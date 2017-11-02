@@ -3936,6 +3936,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
       for (int i = 0; i < _kernel.fields.length; i++) {
         kernel.Field kernelField = _kernel.fields[i];
         if (kernelField.name.name == 'index' ||
+            kernelField.name.name == '_name' ||
             kernelField.name.name == 'values') {
           continue;
         }

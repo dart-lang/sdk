@@ -271,7 +271,10 @@ class NativeDataResolverImpl extends NativeMemberResolverBase
       FunctionExpression functionExpression = node;
       node = functionExpression.body;
       Token token = node.getBeginToken();
-      if (identical(token.stringValue, 'native')) return true;
+      if (identical(token.stringValue, 'native')) {
+        element.isMarkedNative = true;
+        return true;
+      }
       return false;
     });
   }

@@ -17,7 +17,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/library_loader.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -72,7 +71,6 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   if (printSteps) {
     print('---- analyze-all -------------------------------------------------');
   }
-  EnumCreator.matchKernelRepresentationForTesting = true;
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,

@@ -336,6 +336,14 @@ abstract class TestSuite {
       return;
     }
 
+    if (configuration.fastTestsOnly &&
+        (expectations.contains(Expectation.slow) ||
+            expectations.contains(Expectation.skipSlow) ||
+            expectations.contains(Expectation.timeout) ||
+            expectations.contains(Expectation.dartkTimeout))) {
+      return;
+    }
+
     doTest(testCase);
   }
 

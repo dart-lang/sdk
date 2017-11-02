@@ -3,7 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 static_library("libdouble_conversion") {
-  configs += [ "../../..:dart_config" ]
+  configs += [
+    "../../..:dart_arch_config",
+    "../../..:dart_config",
+    "../../..:dart_os_config",
+  ]
   if (is_fuchsia) {
     configs -= [ "//build/config:symbol_visibility_hidden" ]
   }

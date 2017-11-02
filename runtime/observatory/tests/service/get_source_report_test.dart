@@ -65,7 +65,7 @@ var tests = [
       'endPos': ifKernel(633, 88),
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([539, 590, 619], [54, 72, 82]),
+        'hits': ifKernel([501, 539, 590, 619], [39, 54, 72, 82]),
         'misses': ifKernel([552], [60])
       }
     };

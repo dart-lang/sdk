@@ -9,7 +9,7 @@ import 'dart:core';
 import 'result_models.dart';
 import '../logger.dart';
 import '../cache_new.dart';
-import '../logdog_new.dart';
+import '../logdog.dart';
 import '../logdog_rpc.dart';
 import '../luci_api.dart';
 import '../luci.dart';
@@ -23,17 +23,6 @@ class TestResultService {
   final CreateCacheFunction standardCache;
 
   TestResultService(this.logger, this.standardCache);
-
-  /// Gets a test-result from a [path], which can either be a [url] to a build
-  /// bot or a local path.
-  Future<TestResult> getTestResult(String path,
-      {CreateCacheFunction createCache}) {
-    if (path.startsWith("http")) {
-      return fromLogdog(path, createCache: createCache);
-    } else {
-      return getFromFile(new File(path));
-    }
-  }
 
   /// Gets the latest result from a builder with [name] in a [project].
   Future<TestResult> latestForBuilder(String project, String name,
@@ -81,6 +70,11 @@ class TestResultService {
       // https://luci-logdog.appspot.com/v/?s=chromium%2Fbb%2Fclient.dart%...log
       logger.debug("Assuming that $uri is a luci-logdog url.");
       logName = "${Uri.decodeFull(uri.substring(48))}";
+    } else if (uri.contains("logs.chromium")) {
+      // If it is a logs.chromium.org url
+      // https://logs.chromium.org/v/?s=chromium%2Fbb%2Fclient.dart%...log
+      logger.debug("Assuming that $uri is a logs.chromium url.");
+      logName = "${Uri.decodeFull(uri.substring(42))}";
     } else {
       logger.debug(
           "Assuming that $uri is a logdog url that can be used directly");
@@ -188,13 +182,21 @@ class TestResultService {
     String recipes = buildBucket ? "" : "recipes/";
     List<LogdogStream> streams = await logdog.query(
         project, "$prefix/+/${recipes}steps/**/result.log/0", cache);
-    RegExp stepNameRegExp =
-        new RegExp(r"^.*\/steps\/read_results_of_(.*)\/0\/logs\/.*");
+    RegExp stepNameRegExp = new RegExp(
+        r"^.*\/steps\/read_results_of_(.*)\/0\/logs\/result.log\/.*");
+    RegExp stepNameShardRegExp =
+        new RegExp(r"^.*\/steps\/(.*)\/0\/logs\/result.log\/.*");
     return await Future.wait(streams.map((stream) async {
-      String name = stepNameRegExp.firstMatch(stream.path).group(1);
-      List<TestResult> results =
-          await fromStreams(project, [stream], longCache);
-      return new BuildStepTestResult(name.replaceAll("_", " "), results[0]);
+      try {
+        var match = stepNameRegExp.firstMatch(stream.path);
+        match ??= stepNameShardRegExp.firstMatch(stream.path);
+        String name = match.group(1);
+        List<TestResult> results =
+            await fromStreams(project, [stream], longCache);
+        return new BuildStepTestResult(name.replaceAll("_", " "), results[0]);
+      } catch (ex) {
+        return new BuildStepTestResult("TEST", new TestResult());
+      }
     }));
   }
 

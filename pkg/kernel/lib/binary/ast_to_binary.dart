@@ -212,6 +212,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
       _recordNodeOffsetForMetadataMappingImpl(program, programOffset);
     }
     libraryOffsets = <int>[];
+    CanonicalName main = getCanonicalNameOfMember(program.mainMethod);
+    if (main != null) {
+      checkCanonicalName(main);
+    }
     writeLibraries(program);
     writeUriToSource(program.uriToSource);
     writeLinkTable(program);
@@ -811,12 +815,14 @@ class BinaryPrinter extends Visitor implements BinarySink {
 
   visitSuperPropertyGet(SuperPropertyGet node) {
     writeByte(Tag.SuperPropertyGet);
+    writeOffset(node.fileOffset);
     writeName(node.name);
     writeReference(node.interfaceTargetReference);
   }
 
   visitSuperPropertySet(SuperPropertySet node) {
     writeByte(Tag.SuperPropertySet);
+    writeOffset(node.fileOffset);
     writeName(node.name);
     writeNode(node.value);
     writeReference(node.interfaceTargetReference);
@@ -871,6 +877,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     writeByte(Tag.DirectMethodInvocation);
+    writeOffset(node.fileOffset);
     writeByte(node.flags);
     writeNode(node.receiver);
     writeReference(node.targetReference);

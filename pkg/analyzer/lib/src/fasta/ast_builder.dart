@@ -22,7 +22,6 @@ import 'package:front_end/src/fasta/messages.dart'
     show
         Code,
         Message,
-        codeExpectedExpression,
         codeExpectedFunctionBody,
         messageNativeClauseShouldBeAnnotation;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
@@ -912,8 +911,8 @@ class AstBuilder extends ScopeListener {
   @override
   void endOptionalFormalParameters(
       int count, Token leftDelimeter, Token rightDelimeter) {
-    assert(optional('[', leftDelimeter) || optional('{', leftDelimeter));
-    assert(optional(']', rightDelimeter) || optional('}', rightDelimeter));
+    assert((optional('[', leftDelimeter) && optional(']', rightDelimeter)) ||
+        (optional('{', leftDelimeter) && optional('}', rightDelimeter)));
     debugEvent("OptionalFormalParameters");
 
     push(new _OptionalFormalParameters(
@@ -1281,23 +1280,13 @@ class AstBuilder extends ScopeListener {
     if (message.code == codeExpectedFunctionBody) {
       if (identical('native', token.stringValue) && parser != null) {
         Token nativeKeyword = token;
-        Token semicolon = parser.parseLiteralString(token.next);
+        Token semicolon = parser.parseLiteralString(token.next).next;
         // TODO(brianwilkerson) Should this be using ensureSemicolon?
         token = parser.expectSemicolon(semicolon);
         StringLiteral name = pop();
         pop(); // star
         pop(); // async
         push(ast.nativeFunctionBody(nativeKeyword, name, semicolon));
-        return token;
-      }
-    } else if (message.code == codeExpectedExpression) {
-      String lexeme = token.lexeme;
-      if (identical('async', lexeme) || identical('yield', lexeme)) {
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
-            token.charOffset,
-            token.charCount);
-        push(ast.simpleIdentifier(token));
         return token;
       }
     }
@@ -1491,7 +1480,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endDottedName(int count, Token firstIdentifier) {
+  void handleDottedName(int count, Token firstIdentifier) {
     assert(firstIdentifier.isIdentifier);
     debugEvent("DottedName");
 
@@ -1542,7 +1531,7 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
 
     push(popList(count) ?? NullValue.IdentifierList);
@@ -1860,9 +1849,9 @@ class AstBuilder extends ScopeListener {
 
   @override
   void endFactoryMethod(
-      Token beginToken, Token factoryKeyword, Token semicolon) {
+      Token beginToken, Token factoryKeyword, Token endToken) {
     assert(optional('factory', factoryKeyword));
-    assert(optional(';', semicolon));
+    assert(optional(';', endToken) || optional('}', endToken));
     debugEvent("FactoryMethod");
 
     FunctionBody body;
@@ -1874,7 +1863,7 @@ class AstBuilder extends ScopeListener {
     } else if (bodyObject is _RedirectingFactoryBody) {
       separator = bodyObject.equalToken;
       redirectedConstructor = bodyObject.constructorName;
-      body = ast.emptyFunctionBody(semicolon);
+      body = ast.emptyFunctionBody(endToken);
     } else {
       unhandled("${bodyObject.runtimeType}", "bodyObject",
           beginToken.charOffset, uri);
@@ -2410,6 +2399,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
         return;
+      case "CONST_AFTER_FACTORY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_AFTER_FACTORY, offset, length);
+        return;
       case "CONST_AND_COVARIANT":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_AND_COVARIANT, offset, length);
@@ -2425,6 +2418,10 @@ class AstBuilder extends ScopeListener {
       case "CONST_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.CONST_CLASS, offset, length);
+        return;
+      case "CONST_FACTORY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.CONST_FACTORY, offset, length);
         return;
       case "CONST_NOT_INITIALIZED":
         String name = arguments['name'];
@@ -2507,6 +2504,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_AFTER_CONST, offset, length);
         return;
+      case "EXTERNAL_AFTER_FACTORY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_AFTER_FACTORY, offset, length);
+        return;
       case "EXTERNAL_AFTER_STATIC":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_AFTER_STATIC, offset, length);
@@ -2515,9 +2516,17 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_CLASS, offset, length);
         return;
+      case "EXTERNAL_CONSTRUCTOR_WITH_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, offset, length);
+        return;
       case "EXTERNAL_ENUM":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXTERNAL_ENUM, offset, length);
+        return;
+      case "EXTERNAL_FIELD":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXTERNAL_FIELD, offset, length);
         return;
       case "EXTERNAL_METHOD_WITH_BODY":
         errorReporter?.reportErrorForOffset(
@@ -2595,10 +2604,10 @@ class AstBuilder extends ScopeListener {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_CLASS_BODY, offset, length);
         return;
-//      case "MISSING_CONST_FINAL_VAR_OR_TYPE":
-//        errorReporter?.reportErrorForOffset(
-//            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, offset, length);
-//        return;
+      case "MISSING_CONST_FINAL_VAR_OR_TYPE":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, offset, length);
+        return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);
@@ -2695,6 +2704,14 @@ class AstBuilder extends ScopeListener {
       case "STATIC_AFTER_FINAL":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.STATIC_AFTER_FINAL, offset, length);
+        return;
+      case "STATIC_AFTER_VAR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_AFTER_VAR, offset, length);
+        return;
+      case "STATIC_OPERATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.STATIC_OPERATOR, offset, length);
         return;
       case "TOP_LEVEL_OPERATOR":
         errorReporter?.reportErrorForOffset(

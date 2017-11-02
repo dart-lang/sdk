@@ -8,6 +8,7 @@ import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart' as ir;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/clone.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:collection/algorithms.dart' show mergeSort; // a stable sort.
 
 import '../common.dart';
 import '../constants/constructors.dart';
@@ -196,6 +197,10 @@ abstract class ClassEnv {
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor));
 }
 
+int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
+  return a.fileOffset.compareTo(b.fileOffset);
+}
+
 /// Environment for fast lookup of class members.
 class ClassEnvImpl implements ClassEnv {
   final ir.Class cls;
@@ -204,6 +209,7 @@ class ClassEnvImpl implements ClassEnv {
   Map<String, ir.Member> _constructorMap;
   Map<String, ir.Member> _memberMap;
   Map<String, ir.Member> _setterMap;
+  List<ir.Member> _members; // in declarartion order.
 
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity> _constructorBodyList;
@@ -261,79 +267,99 @@ class ClassEnvImpl implements ClassEnv {
   }
 
   void _ensureMaps(KernelToElementMapBase elementMap) {
-    if (_memberMap == null) {
-      _memberMap = <String, ir.Member>{};
-      _setterMap = <String, ir.Member>{};
-      _constructorMap = <String, ir.Member>{};
+    if (_memberMap != null) return;
 
-      void addMembers(ir.Class c, {bool includeStatic}) {
-        for (ir.Member member in c.members) {
-          if (member.name.name.contains('#')) {
-            // Skip synthetic .dill members.
+    _memberMap = <String, ir.Member>{};
+    _setterMap = <String, ir.Member>{};
+    _constructorMap = <String, ir.Member>{};
+    var members = <ir.Member>[];
+
+    void addFields(ir.Class c, {bool includeStatic}) {
+      for (ir.Field member in c.fields) {
+        if (!includeStatic && member.isStatic) continue;
+        var name = member.name.name;
+        if (name.contains('#')) {
+          // Skip synthetic .dill members.
+          continue;
+        }
+        _memberMap[name] = member;
+        if (member.isMutable) {
+          _setterMap[name] = member;
+        }
+        members.add(member);
+      }
+    }
+
+    void addProcedures(ir.Class c, {bool includeStatic}) {
+      for (ir.Procedure member in c.procedures) {
+        if (!includeStatic && member.isStatic) continue;
+        var name = member.name.name;
+        assert(!name.contains('#'));
+        if (member.kind == ir.ProcedureKind.Factory) {
+          if (member.function.body is ir.RedirectingFactoryBody) {
+            // Don't include redirecting factories.
             continue;
           }
-          if (member is ir.Constructor) {
-            if (!includeStatic) continue;
-            _constructorMap[member.name.name] = member;
-          } else if (member is ir.Procedure &&
-              member.kind == ir.ProcedureKind.Factory) {
-            if (member.function.body is ir.RedirectingFactoryBody) {
-              // Don't include redirecting factories.
-              continue;
-            }
-            if (!includeStatic) continue;
-            _constructorMap[member.name.name] = member;
-          } else if (member is ir.Procedure) {
-            if (!includeStatic && member.isStatic) continue;
-            if (member.kind == ir.ProcedureKind.Setter) {
-              _setterMap[member.name.name] = member;
-            } else {
-              _memberMap[member.name.name] = member;
-            }
-          } else if (member is ir.Field) {
-            if (!includeStatic && member.isStatic) continue;
-            _memberMap[member.name.name] = member;
-            if (member.isMutable) {
-              _setterMap[member.name.name] = member;
-            }
-            _memberMap[member.name.name] = member;
-          } else {
-            failedAt(
-                NO_LOCATION_SPANNABLE, "Unexpected class member node: $member");
-          }
-        }
-      }
-
-      if (cls.mixedInClass != null) {
-        addMembers(cls.mixedInClass, includeStatic: false);
-      }
-      addMembers(cls, includeStatic: true);
-
-      if (isUnnamedMixinApplication && _constructorMap.isEmpty) {
-        // Ensure that constructors are created for the superclass in case it
-        // is also an unnamed mixin application.
-        ClassEntity superclass = elementMap.getClass(cls.superclass);
-        elementMap.elementEnvironment.lookupConstructor(superclass, '');
-
-        // Unnamed mixin applications have no constructors when read from .dill.
-        // For each generative constructor in the superclass we make a
-        // corresponding forwarding constructor in the subclass.
-        //
-        // This code is copied from
-        // 'package:kernel/transformations/mixin_full_resolution.dart'
-        var superclassSubstitution = getSubstitutionMap(cls.supertype);
-        var superclassCloner =
-            new CloneVisitor(typeSubstitution: superclassSubstitution);
-
-        for (var superclassConstructor in cls.superclass.constructors) {
-          var forwardingConstructor = _buildForwardingConstructor(
-              superclassCloner, superclassConstructor);
-          cls.addMember(forwardingConstructor);
-          _constructorMap[forwardingConstructor.name.name] =
-              forwardingConstructor;
+          _constructorMap[name] = member;
+        } else if (member.kind == ir.ProcedureKind.Setter) {
+          _setterMap[name] = member;
+          members.add(member);
+        } else {
+          assert(member.kind == ir.ProcedureKind.Method ||
+              member.kind == ir.ProcedureKind.Getter ||
+              member.kind == ir.ProcedureKind.Operator);
+          _memberMap[name] = member;
+          members.add(member);
         }
       }
     }
+
+    void addConstructors(ir.Class c) {
+      for (ir.Constructor member in c.constructors) {
+        var name = member.name.name;
+        assert(!name.contains('#'));
+        _constructorMap[name] = member;
+      }
+    }
+
+    int mixinMemberCount = 0;
+    if (cls.mixedInClass != null) {
+      addFields(cls.mixedInClass, includeStatic: false);
+      addProcedures(cls.mixedInClass, includeStatic: false);
+      mergeSort(members, compare: orderByFileOffset);
+      mixinMemberCount = members.length;
+    }
+    addFields(cls, includeStatic: true);
+    addConstructors(cls);
+    addProcedures(cls, includeStatic: true);
+
+    if (isUnnamedMixinApplication && _constructorMap.isEmpty) {
+      // Ensure that constructors are created for the superclass in case it
+      // is also an unnamed mixin application.
+      ClassEntity superclass = elementMap.getClass(cls.superclass);
+      elementMap.elementEnvironment.lookupConstructor(superclass, '');
+
+      // Unnamed mixin applications have no constructors when read from .dill.
+      // For each generative constructor in the superclass we make a
+      // corresponding forwarding constructor in the subclass.
+      //
+      // This code is copied from
+      // 'package:kernel/transformations/mixin_full_resolution.dart'
+      var superclassSubstitution = getSubstitutionMap(cls.supertype);
+      var superclassCloner =
+          new CloneVisitor(typeSubstitution: superclassSubstitution);
+
+      for (var superclassConstructor in cls.superclass.constructors) {
+        var forwardingConstructor = _buildForwardingConstructor(
+            superclassCloner, superclassConstructor);
+        cls.addMember(forwardingConstructor);
+        _constructorMap[forwardingConstructor.name.name] =
+            forwardingConstructor;
+      }
+    }
+
+    mergeSort(members, start: mixinMemberCount, compare: orderByFileOffset);
+    _members = members;
   }
 
   /// Return the [MemberEntity] for the member [name] in [cls]. If [setter] is
@@ -350,16 +376,9 @@ class ClassEnvImpl implements ClassEnv {
   void forEachMember(
       KernelToElementMap elementMap, void f(MemberEntity member)) {
     _ensureMaps(elementMap);
-    _memberMap.values.forEach((ir.Member member) {
+    _members.forEach((ir.Member member) {
       f(elementMap.getMember(member));
     });
-    for (ir.Member member in _setterMap.values) {
-      if (member is ir.Procedure) {
-        f(elementMap.getMember(member));
-      } else {
-        // Skip fields; these are also in _memberMap.
-      }
-    }
   }
 
   /// Return the [ConstructorEntity] for the constructor [name] in [cls].

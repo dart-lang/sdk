@@ -9,7 +9,7 @@ part of dart._runtime;
 
 /// The JavaScript undefined constant.
 ///
-/// This is initialized by DDC to JS void 0.
+/// This is initialized by DDC to JS `void 0`.
 const undefined = null;
 
 final Function(Object, Object, Object) defineProperty =
@@ -101,8 +101,10 @@ defineLazyField(to, name, desc) => JS(
 })()''');
 
 copyTheseProperties(to, from, names) {
-  for (var i = 0; i < JS('int', '#.length', names); ++i) {
-    copyProperty(to, from, JS('', '#[#]', names, i));
+  for (var i = 0, n = JS('int', '#.length', names); i < n; ++i) {
+    var name = JS('', '#[#]', names, i);
+    if (name == 'constructor') continue;
+    copyProperty(to, from, name);
   }
   return to;
 }

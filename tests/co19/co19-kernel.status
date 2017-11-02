@@ -134,7 +134,6 @@ LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # No support for def
 LibTest/isolate/Isolate/spawnUri_A01_t06: Skip
 
 [ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
-Language/Libraries_and_Scripts/Scripts/top_level_main_t05: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_t04: Crash
 Language/Classes/Instance_Variables/constant_t01: Crash
 
@@ -206,5 +205,5 @@ Language/Types/Static_Types/malformed_type_t04: RuntimeError
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk || $compiler == dartkp ]
-Language/Libraries_and_Scripts/Imports/deferred_import_t01: CompileTimeError # Deferred loading kernel issue 28335.
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # Deferred loading kernel issue 28335.
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: Crash # Deferred loading kernel issue 28335.
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Deferred loading kernel issue 28335.

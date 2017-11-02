@@ -22,6 +22,4 @@ test1() {
 int y = 0; // field def after use
 final /*@topType=int*/ z = 42; // should infer `int`
 
-main() {
-  test1();
-}
+main() {}

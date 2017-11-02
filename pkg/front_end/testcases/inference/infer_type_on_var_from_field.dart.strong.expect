@@ -11,13 +11,13 @@ class A extends core::Object {
     ;
   method test1() → dynamic {
     core::int a = this.{self::A::x};
-    a = "hi";
+    a = "hi" as{TypeError} core::int;
     a = 3;
     core::int b = this.{self::A::y};
-    b = "hi";
+    b = "hi" as{TypeError} core::int;
     b = 4;
     core::int c = this.{self::A::z};
-    c = "hi";
+    c = "hi" as{TypeError} core::int;
     c = 4;
   }
 }

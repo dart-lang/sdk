@@ -61,6 +61,7 @@ kernel/test/closures_test: Slow, Pass
 
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow
+analyzer/test/src/fasta/message_coverage_test: Skip # Issue 31259
 
 [ $runtime != vm || $mode != release || $system == windows ]
 front_end/test/fasta/*: Skip

@@ -1,0 +1,68 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Base extends core::Object {
+  field core::int intProp = null;
+  field core::num numProp = null;
+  field core::double doubleProp = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Test1 extends self::Base {
+  default constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    core::int v1 = super.{self::Base::intProp} = self::getInt();
+    core::int v2 = super.{self::Base::intProp} = self::getNum() as{TypeError} core::int;
+    core::int v4 = let final core::int #t1 = super.{self::Base::intProp} in #t1.{core::num::==}(null) ?{core::int} super.{self::Base::intProp} = self::getInt() : #t1;
+    core::int v5 = let final core::int #t2 = super.{self::Base::intProp} in #t2.{core::num::==}(null) ?{core::int} super.{self::Base::intProp} = self::getNum() as{TypeError} core::int : #t2;
+    core::int v7 = super.{self::Base::intProp} = super.{self::Base::intProp}.{core::num::+}(self::getInt());
+    core::num v8 = super.{self::Base::intProp} = super.{self::Base::intProp}.{core::num::+}(self::getNum());
+    core::int v10 = super.{self::Base::intProp} = super.{self::Base::intProp}.{core::num::+}(1);
+    core::int v11 = let final core::int #t3 = super.{self::Base::intProp} in let final core::int #t4 = super.{self::Base::intProp} = #t3.{core::num::+}(1) in #t3;
+  }
+}
+class Test2 extends self::Base {
+  default constructor •() → void
+    : super self::Base::•()
+    ;
+  method test() → void {
+    core::int v1 = super.{self::Base::numProp} = self::getInt();
+    core::num v2 = super.{self::Base::numProp} = self::getNum();
+    core::double v3 = super.{self::Base::numProp} = self::getDouble();
+    core::num v4 = let final core::num #t5 = super.{self::Base::numProp} in #t5.{core::num::==}(null) ?{core::num} super.{self::Base::numProp} = self::getInt() : #t5;
+    core::num v5 = let final core::num #t6 = super.{self::Base::numProp} in #t6.{core::num::==}(null) ?{core::num} super.{self::Base::numProp} = self::getNum() : #t6;
+    core::num v6 = let final core::num #t7 = super.{self::Base::numProp} in #t7.{core::num::==}(null) ?{core::num} super.{self::Base::numProp} = self::getDouble() : #t7;
+    core::num v7 = super.{self::Base::numProp} = super.{self::Base::numProp}.{core::num::+}(self::getInt());
+    core::num v8 = super.{self::Base::numProp} = super.{self::Base::numProp}.{core::num::+}(self::getNum());
+    core::num v9 = super.{self::Base::numProp} = super.{self::Base::numProp}.{core::num::+}(self::getDouble());
+    core::num v10 = super.{self::Base::numProp} = super.{self::Base::numProp}.{core::num::+}(1);
+    core::num v11 = let final core::num #t8 = super.{self::Base::numProp} in let final core::num #t9 = super.{self::Base::numProp} = #t8.{core::num::+}(1) in #t8;
+  }
+}
+class Test3 extends self::Base {
+  default constructor •() → void
+    : super self::Base::•()
+    ;
+  method test3() → void {
+    core::double v2 = super.{self::Base::doubleProp} = self::getNum() as{TypeError} core::double;
+    core::double v3 = super.{self::Base::doubleProp} = self::getDouble();
+    core::double v5 = let final core::double #t10 = super.{self::Base::doubleProp} in #t10.{core::num::==}(null) ?{core::double} super.{self::Base::doubleProp} = self::getNum() as{TypeError} core::double : #t10;
+    core::double v6 = let final core::double #t11 = super.{self::Base::doubleProp} in #t11.{core::num::==}(null) ?{core::double} super.{self::Base::doubleProp} = self::getDouble() : #t11;
+    core::double v7 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.{core::double::+}(self::getInt());
+    core::double v8 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.{core::double::+}(self::getNum());
+    core::double v9 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.{core::double::+}(self::getDouble());
+    core::double v10 = super.{self::Base::doubleProp} = super.{self::Base::doubleProp}.{core::double::+}(1);
+    core::double v11 = let final core::double #t12 = super.{self::Base::doubleProp} in let final core::double #t13 = super.{self::Base::doubleProp} = #t12.{core::double::+}(1) in #t12;
+  }
+}
+static method getInt() → core::int
+  return 0;
+static method getNum() → core::num
+  return 0;
+static method getDouble() → core::double
+  return 0.0;
+static method main() → dynamic {}

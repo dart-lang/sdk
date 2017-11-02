@@ -54,17 +54,18 @@ DEFINE_FLAG(bool,
             "Always try to drop code if the function's usage counter is >= 0");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
-HeapPage* HeapPage::Initialize(VirtualMemory* memory,
-                               PageType type,
-                               const char* name) {
-  ASSERT(memory != NULL);
-  ASSERT(memory->size() > VirtualMemory::PageSize());
+HeapPage* HeapPage::Allocate(intptr_t size_in_words,
+                             PageType type,
+                             const char* name) {
   bool is_executable = (type == kExecutable);
   // Create the new page executable (RWX) only if we're not in W^X mode
   bool create_executable = !FLAG_write_protect_code && is_executable;
-  if (!memory->Commit(create_executable, name)) {
+  VirtualMemory* memory = VirtualMemory::AllocateAligned(
+      size_in_words << kWordSizeLog2, kPageSize, create_executable, name);
+  if (memory == NULL) {
     return NULL;
   }
+
   HeapPage* result = reinterpret_cast<HeapPage*>(memory->address());
   ASSERT(result != NULL);
   result->memory_ = memory;
@@ -74,22 +75,6 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory,
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
 
-  return result;
-}
-
-HeapPage* HeapPage::Allocate(intptr_t size_in_words,
-                             PageType type,
-                             const char* name) {
-  VirtualMemory* memory =
-      VirtualMemory::Reserve(size_in_words << kWordSizeLog2);
-  if (memory == NULL) {
-    return NULL;
-  }
-  HeapPage* result = Initialize(memory, type, name);
-  if (result == NULL) {
-    delete memory;  // Release reservation to OS.
-    return NULL;
-  }
   return result;
 }
 
@@ -1258,8 +1243,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
       last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()),
-      idle_gc_threshold_in_words_(grow_heap_ / 2 *
-                                  PageSpace::kPageSizeInWords) {}
+      idle_gc_threshold_in_words_(grow_heap_ / 2 * kPageSizeInWords) {}
 
 PageSpaceController::~PageSpaceController() {}
 
@@ -1276,9 +1260,9 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   capacity_increase_in_words =
       Utils::Maximum<intptr_t>(0, capacity_increase_in_words);
   capacity_increase_in_words =
-      Utils::RoundUp(capacity_increase_in_words, PageSpace::kPageSizeInWords);
+      Utils::RoundUp(capacity_increase_in_words, kPageSizeInWords);
   intptr_t capacity_increase_in_pages =
-      capacity_increase_in_words / PageSpace::kPageSizeInWords;
+      capacity_increase_in_words / kPageSizeInWords;
   double multiplier = 1.0;
   // To avoid waste, the first GC should be triggered before too long. After
   // kInitialTimeoutSeconds, gradually lower the capacity limit.
@@ -1358,7 +1342,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     const intptr_t grow_pages =
         (static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
          after.capacity_in_words) /
-        PageSpace::kPageSizeInWords;
+        kPageSizeInWords;
     if (garbage_ratio == 0) {
       // No garbage in the previous cycle so it would be hard to compute a
       // grow_heap_ size based on estimated garbage so we use growth ratio
@@ -1373,8 +1357,8 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       intptr_t local_grow_heap = 0;
       while (min < max) {
         local_grow_heap = (max + min) / 2;
-        const intptr_t limit = after.capacity_in_words +
-                               (local_grow_heap * PageSpace::kPageSizeInWords);
+        const intptr_t limit =
+            after.capacity_in_words + (local_grow_heap * kPageSizeInWords);
         const intptr_t allocated_before_next_gc = limit - after.used_in_words;
         const double estimated_garbage = k * allocated_before_next_gc;
         if (t <= estimated_garbage / limit) {
@@ -1400,8 +1384,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
 
   // Limit shrinkage: allow growth by at least half the pages freed by GC.
   const intptr_t freed_pages =
-      (before.capacity_in_words - after.capacity_in_words) /
-      PageSpace::kPageSizeInWords;
+      (before.capacity_in_words - after.capacity_in_words) / kPageSizeInWords;
   grow_heap_ = Utils::Maximum(grow_heap_, freed_pages / 2);
   heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap_);
   last_usage_ = after;
@@ -1409,7 +1392,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
   // Set the idle threshold halfway between the current size and the capacity
   // at which we'd block for a GC.
   intptr_t gc_threshold_in_words =
-      after.capacity_in_words + (PageSpace::kPageSizeInWords * grow_heap_);
+      after.capacity_in_words + (kPageSizeInWords * grow_heap_);
   idle_gc_threshold_in_words_ =
       (after.used_in_words + gc_threshold_in_words) / 2;
 }

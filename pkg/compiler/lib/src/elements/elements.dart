@@ -1284,7 +1284,14 @@ abstract class FunctionElement extends Element
   AsyncMarker get asyncMarker;
 
   /// `true` if this function is external.
+  ///
+  /// Patched methods are _not_ external, but [isMarkedExternal] is `true`.
   bool get isExternal;
+
+  /// `true` if this function is marked as external.
+  ///
+  /// If the function is implemented through a patch [isExternal] is `false`.
+  bool get isMarkedExternal;
 
   /// The structure of the function parameters.
   ParameterStructure get parameterStructure;

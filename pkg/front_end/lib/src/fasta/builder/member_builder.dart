@@ -15,9 +15,7 @@ abstract class MemberBuilder extends ModifierBuilder {
 
   String get name;
 
-  MemberBuilder(Builder parent, int charOffset)
-      : parent = parent,
-        super(parent, charOffset);
+  MemberBuilder(this.parent, int charOffset) : super(parent, charOffset);
 
   bool get isInstanceMember => isClassMember && !isStatic;
 

@@ -19,20 +19,24 @@ class DietParser extends ClassMemberParser {
     return skipFormals(token, kind);
   }
 
-  // TODO(brianwilkerson) Move this method to Parser, and, if possible, merge it
-  // with skipFormalParameters.
+  // TODO(brianwilkerson): Move this method to Parser, and, if possible, merge
+  // it with skipFormalParameters.
   Token skipFormals(Token token, MemberKind kind) {
+    // TODO(brianwilkerson): Accept the last consumed token.
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {
         reportRecoverableError(token, messageExpectedOpenParens);
         listener.endFormalParameters(0, token, token, kind);
+        // TODO(brianwilkerson): Until this method accepts the last consumed
+        // token, this returns the wrong token (it should be the token before
+        // `token`).
         return token;
       }
-      return reportUnexpectedToken(token).next;
+      return reportUnexpectedToken(token);
     }
     Token closeBrace = closeBraceTokenFor(token);
     listener.endFormalParameters(0, token, closeBrace, kind);
-    return closeBrace.next;
+    return closeBrace;
   }
 }

@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:front_end/src/byte_store/byte_store.dart';
+import 'package:front_end/src/byte_store/cache.dart';
 import 'package:front_end/src/byte_store/file_byte_store.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -27,16 +28,18 @@ class ProtectedFileByteStore implements ByteStore {
   final GetCurrentTime _getCurrentTimeFunction;
 
   final FileByteStore _fileByteStore;
+  final Cache<String, List<int>> _cache;
 
   /// Create a new instance of the [ProtectedFileByteStore].
   ///
   /// The [protectionDuration] specifies how long temporary protected keys
   /// stay protected.
   ProtectedFileByteStore(this._cachePath, Duration protectionDuration,
-      {GetCurrentTime getCurrentTime})
+      {GetCurrentTime getCurrentTime, int cacheSizeBytes: 128 * 1024 * 1024})
       : _protectionDuration = protectionDuration,
         _getCurrentTimeFunction = getCurrentTime ?? _getCurrentTimeDefault,
-        _fileByteStore = new FileByteStore(_cachePath);
+        _fileByteStore = new FileByteStore(_cachePath),
+        _cache = new Cache(cacheSizeBytes, (bytes) => bytes.length);
 
   /// Remove all not protected keys.
   void flush() {
@@ -61,7 +64,7 @@ class ProtectedFileByteStore implements ByteStore {
 
   @override
   List<int> get(String key) {
-    return _fileByteStore.get(key);
+    return _cache.get(key, () => _fileByteStore.get(key));
   }
 
   @override
@@ -70,6 +73,7 @@ class ProtectedFileByteStore implements ByteStore {
       throw new ArgumentError('The key $key is reserved.');
     }
     _fileByteStore.put(key, bytes);
+    _cache.put(key, bytes);
   }
 
   /// The [add] keys are added to the set of temporary protected keys, and

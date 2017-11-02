@@ -6,9 +6,11 @@ library fasta.util.relativize;
 
 // TODO(ahe): Move more advanced version from dart2js here.
 
+final Uri currentDirectory = Uri.base;
+
 String relativizeUri(Uri uri, {Uri base}) {
   if (uri == null) return null;
-  base ??= Uri.base;
+  base ??= currentDirectory;
   String result = "$uri";
   final prefix = "$base";
   return result.startsWith(prefix) ? result.substring(prefix.length) : result;

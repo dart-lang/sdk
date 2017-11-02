@@ -14,7 +14,7 @@
  * is printed but only when running in verbose mode.
  */
 class TrackMap<K, V> implements Map<K, V> {
-  final Map _map;
+  final Map<K, V> _map;
   final List _counts;
   static final Map<String, List<int>> _countsMap = {};
 

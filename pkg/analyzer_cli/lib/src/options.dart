@@ -76,6 +76,9 @@ class CommandLineOptions {
   /// The path to the dart SDK.
   String dartSdkPath;
 
+  /// The path to the folder with the 'vm_platform.dill' file.
+  String dartSdkPlatformBinariesPath;
+
   /// The path to the dart SDK summary file.
   String dartSdkSummaryPath;
 
@@ -264,6 +267,9 @@ class CommandLineOptions {
         printAndFail('Invalid Dart SDK path: $sdkPath');
         return null; // Only reachable in testing.
       }
+
+      options.dartSdkPlatformBinariesPath =
+          computePlatformBinariesPath(sdkPath);
     }
 
     // Check package config.

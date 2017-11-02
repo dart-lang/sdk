@@ -9,13 +9,11 @@ class Test1 extends core::Object {
     ;
   static method test(self::Test1 t) → void {
     core::int v1 = t.{self::Test1::prop} = self::getInt();
-    core::num v2 = t.{self::Test1::prop} = self::getNum();
     core::int v4 = let final self::Test1 #t1 = t in let final core::int #t2 = #t1.{self::Test1::prop} in #t2.{core::num::==}(null) ?{core::int} #t1.{self::Test1::prop} = self::getInt() : #t2;
-    core::num v5 = let final self::Test1 #t3 = t in let final core::int #t4 = #t3.{self::Test1::prop} in #t4.{core::num::==}(null) ?{core::num} #t3.{self::Test1::prop} = self::getNum() : #t4;
-    core::int v7 = let final self::Test1 #t5 = t in #t5.{self::Test1::prop} = #t5.{self::Test1::prop}.{core::num::+}(self::getInt());
-    core::num v8 = let final self::Test1 #t6 = t in #t6.{self::Test1::prop} = #t6.{self::Test1::prop}.{core::num::+}(self::getNum());
-    core::int v10 = let final self::Test1 #t7 = t in #t7.{self::Test1::prop} = #t7.{self::Test1::prop}.{core::num::+}(1);
-    core::int v11 = let final self::Test1 #t8 = t in let final core::int #t9 = #t8.{self::Test1::prop} in let final core::int #t10 = #t8.{self::Test1::prop} = #t9.{core::num::+}(1) in #t9;
+    core::int v7 = let final self::Test1 #t3 = t in #t3.{self::Test1::prop} = #t3.{self::Test1::prop}.{core::num::+}(self::getInt());
+    core::num v8 = let final self::Test1 #t4 = t in #t4.{self::Test1::prop} = #t4.{self::Test1::prop}.{core::num::+}(self::getNum());
+    core::int v10 = let final self::Test1 #t5 = t in #t5.{self::Test1::prop} = #t5.{self::Test1::prop}.{core::num::+}(1);
+    core::int v11 = let final self::Test1 #t6 = t in let final core::int #t7 = #t6.{self::Test1::prop} in let final core::int #t8 = #t6.{self::Test1::prop} = #t7.{core::num::+}(1) in #t7;
   }
 }
 class Test2 extends core::Object {
@@ -27,14 +25,14 @@ class Test2 extends core::Object {
     core::int v1 = t.{self::Test2::prop} = self::getInt();
     core::num v2 = t.{self::Test2::prop} = self::getNum();
     core::double v3 = t.{self::Test2::prop} = self::getDouble();
-    core::num v4 = let final self::Test2 #t11 = t in let final core::num #t12 = #t11.{self::Test2::prop} in #t12.{core::num::==}(null) ?{core::num} #t11.{self::Test2::prop} = self::getInt() : #t12;
-    core::num v5 = let final self::Test2 #t13 = t in let final core::num #t14 = #t13.{self::Test2::prop} in #t14.{core::num::==}(null) ?{core::num} #t13.{self::Test2::prop} = self::getNum() : #t14;
-    core::num v6 = let final self::Test2 #t15 = t in let final core::num #t16 = #t15.{self::Test2::prop} in #t16.{core::num::==}(null) ?{core::num} #t15.{self::Test2::prop} = self::getDouble() : #t16;
-    core::num v7 = let final self::Test2 #t17 = t in #t17.{self::Test2::prop} = #t17.{self::Test2::prop}.{core::num::+}(self::getInt());
-    core::num v8 = let final self::Test2 #t18 = t in #t18.{self::Test2::prop} = #t18.{self::Test2::prop}.{core::num::+}(self::getNum());
-    core::num v9 = let final self::Test2 #t19 = t in #t19.{self::Test2::prop} = #t19.{self::Test2::prop}.{core::num::+}(self::getDouble());
-    core::num v10 = let final self::Test2 #t20 = t in #t20.{self::Test2::prop} = #t20.{self::Test2::prop}.{core::num::+}(1);
-    core::num v11 = let final self::Test2 #t21 = t in let final core::num #t22 = #t21.{self::Test2::prop} in let final core::num #t23 = #t21.{self::Test2::prop} = #t22.{core::num::+}(1) in #t22;
+    core::num v4 = let final self::Test2 #t9 = t in let final core::num #t10 = #t9.{self::Test2::prop} in #t10.{core::num::==}(null) ?{core::num} #t9.{self::Test2::prop} = self::getInt() : #t10;
+    core::num v5 = let final self::Test2 #t11 = t in let final core::num #t12 = #t11.{self::Test2::prop} in #t12.{core::num::==}(null) ?{core::num} #t11.{self::Test2::prop} = self::getNum() : #t12;
+    core::num v6 = let final self::Test2 #t13 = t in let final core::num #t14 = #t13.{self::Test2::prop} in #t14.{core::num::==}(null) ?{core::num} #t13.{self::Test2::prop} = self::getDouble() : #t14;
+    core::num v7 = let final self::Test2 #t15 = t in #t15.{self::Test2::prop} = #t15.{self::Test2::prop}.{core::num::+}(self::getInt());
+    core::num v8 = let final self::Test2 #t16 = t in #t16.{self::Test2::prop} = #t16.{self::Test2::prop}.{core::num::+}(self::getNum());
+    core::num v9 = let final self::Test2 #t17 = t in #t17.{self::Test2::prop} = #t17.{self::Test2::prop}.{core::num::+}(self::getDouble());
+    core::num v10 = let final self::Test2 #t18 = t in #t18.{self::Test2::prop} = #t18.{self::Test2::prop}.{core::num::+}(1);
+    core::num v11 = let final self::Test2 #t19 = t in let final core::num #t20 = #t19.{self::Test2::prop} in let final core::num #t21 = #t19.{self::Test2::prop} = #t20.{core::num::+}(1) in #t20;
   }
 }
 class Test3 extends core::Object {
@@ -43,15 +41,13 @@ class Test3 extends core::Object {
     : super core::Object::•()
     ;
   static method test3(self::Test3 t) → void {
-    core::num v2 = t.{self::Test3::prop} = self::getNum();
     core::double v3 = t.{self::Test3::prop} = self::getDouble();
-    core::num v5 = let final self::Test3 #t24 = t in let final core::double #t25 = #t24.{self::Test3::prop} in #t25.{core::num::==}(null) ?{core::num} #t24.{self::Test3::prop} = self::getNum() : #t25;
-    core::double v6 = let final self::Test3 #t26 = t in let final core::double #t27 = #t26.{self::Test3::prop} in #t27.{core::num::==}(null) ?{core::double} #t26.{self::Test3::prop} = self::getDouble() : #t27;
-    core::double v7 = let final self::Test3 #t28 = t in #t28.{self::Test3::prop} = #t28.{self::Test3::prop}.{core::double::+}(self::getInt());
-    core::double v8 = let final self::Test3 #t29 = t in #t29.{self::Test3::prop} = #t29.{self::Test3::prop}.{core::double::+}(self::getNum());
-    core::double v9 = let final self::Test3 #t30 = t in #t30.{self::Test3::prop} = #t30.{self::Test3::prop}.{core::double::+}(self::getDouble());
-    core::double v10 = let final self::Test3 #t31 = t in #t31.{self::Test3::prop} = #t31.{self::Test3::prop}.{core::double::+}(1);
-    core::double v11 = let final self::Test3 #t32 = t in let final core::double #t33 = #t32.{self::Test3::prop} in let final core::double #t34 = #t32.{self::Test3::prop} = #t33.{core::double::+}(1) in #t33;
+    core::double v6 = let final self::Test3 #t22 = t in let final core::double #t23 = #t22.{self::Test3::prop} in #t23.{core::num::==}(null) ?{core::double} #t22.{self::Test3::prop} = self::getDouble() : #t23;
+    core::double v7 = let final self::Test3 #t24 = t in #t24.{self::Test3::prop} = #t24.{self::Test3::prop}.{core::double::+}(self::getInt());
+    core::double v8 = let final self::Test3 #t25 = t in #t25.{self::Test3::prop} = #t25.{self::Test3::prop}.{core::double::+}(self::getNum());
+    core::double v9 = let final self::Test3 #t26 = t in #t26.{self::Test3::prop} = #t26.{self::Test3::prop}.{core::double::+}(self::getDouble());
+    core::double v10 = let final self::Test3 #t27 = t in #t27.{self::Test3::prop} = #t27.{self::Test3::prop}.{core::double::+}(1);
+    core::double v11 = let final self::Test3 #t28 = t in let final core::double #t29 = #t28.{self::Test3::prop} in let final core::double #t30 = #t28.{self::Test3::prop} = #t29.{core::double::+}(1) in #t29;
   }
 }
 static method getInt() → core::int

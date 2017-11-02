@@ -67,6 +67,11 @@ call_nonexistent_static_test/10: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
+callable_test/00: MissingCompileTimeError
+callable_test/01: MissingCompileTimeError
+check_member_static_test/01: MissingCompileTimeError
+check_method_override_test/01: MissingCompileTimeError
+check_method_override_test/02: MissingCompileTimeError
 const_constructor2_test/13: MissingCompileTimeError
 const_constructor2_test/14: MissingCompileTimeError
 const_constructor2_test/15: MissingCompileTimeError
@@ -115,6 +120,13 @@ field_initialization_order_test/01: MissingCompileTimeError
 field_method4_test: MissingCompileTimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
+function_malformed_result_type_test/00: MissingCompileTimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
+function_type_call_getter2_test/04: MissingCompileTimeError
+function_type_call_getter2_test/05: MissingCompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_closure_test: StaticWarning
 generic_methods_dynamic_test/01: MissingCompileTimeError
@@ -452,6 +464,9 @@ mixin_invalid_bound_test/08: MissingCompileTimeError
 mixin_invalid_bound_test/09: MissingCompileTimeError
 mixin_invalid_bound_test/10: MissingCompileTimeError
 
+[ $compiler == dart2analyzer ]
+generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
+
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
@@ -513,17 +528,22 @@ call_nonexistent_static_test/10: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
+callable_test/00: MissingCompileTimeError
+callable_test/01: MissingCompileTimeError
+check_member_static_test/01: MissingCompileTimeError
+check_method_override_test/01: MissingCompileTimeError
+check_method_override_test/02: MissingCompileTimeError
 constructor_call_as_function_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 constructor_duplicate_final_test/03: MissingCompileTimeError
+constructor_named_arguments_test/01: MissingCompileTimeError
 covariant_subtyping_with_substitution_test: StaticWarning
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
 cyclic_type_variable_test/04: MissingCompileTimeError
 cyclic_typedef_test/13: MissingCompileTimeError
-constructor_named_arguments_test/01: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
@@ -550,6 +570,13 @@ field_initialization_order_test/01: MissingCompileTimeError
 field_method4_test: MissingCompileTimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
+function_malformed_result_type_test/00: MissingCompileTimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
+function_type_call_getter2_test/04: MissingCompileTimeError
+function_type_call_getter2_test/05: MissingCompileTimeError
 generic_list_checked_test: CompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_closure_test: StaticWarning
@@ -1014,6 +1041,8 @@ const_optional_args_negative_test: CompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 constructor3_negative_test: fail # Issue 11585
 constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
+function_type_parameter2_negative_test: CompileTimeError
+function_type_parameter_negative_test: CompileTimeError
 
 [ $strong && $compiler == dart2analyzer ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -1106,7 +1135,7 @@ string_split_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 switch_case_test/none: CompileTimeError
 
-vm/lazy_deopt_with_exception*: CompileTimeError
+vm/lazy_deopt_with_exception_test: CompileTimeError
 prefix6_negative_test: CompileTimeError, OK
 void_type_function_types_test/none: CompileTimeError # Issue 30177
 void_type_usage_test/param_as: CompileTimeError # Issue 30177

@@ -2,17 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
+import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:args/args.dart';
 import 'package:gardening/src/luci.dart';
 import 'package:gardening/src/luci_api.dart';
 import 'package:gardening/src/results/status_expectations.dart';
+import 'package:gardening/src/results/status_files.dart';
 import 'package:gardening/src/results/test_result_service.dart';
 import 'package:gardening/src/util.dart';
 import 'package:gardening/src/console_table.dart';
 import 'package:gardening/src/results/result_models.dart' as models;
 import 'package:gardening/src/results/util.dart';
-import 'package:gardening/src/logdog_new.dart';
+import 'package:gardening/src/logdog.dart';
 import 'package:gardening/src/logdog_rpc.dart';
 import 'package:gardening/src/buildbucket.dart';
 import 'package:gardening/src/extended_printer.dart';
@@ -45,14 +47,16 @@ bool isCqInput(ArgResults argResults) {
   return false;
 }
 
-String howToUse = "Use by calling one of the following:\n\n"
-    "\tget <command> <file>                     : where file is a local path.\n"
-    "\tget <command> <uri_to_result_log>        : for direct links to result.logs.\n"
-    "\tget <command> <uri_try_bot>              : for links to try bot builders.\n"
-    "\tget <command> <commit_number> <patchset> : for links to try bot builders.\n"
-    "\tget <command> <builder>                  : for a builder name.\n"
-    "\tget <command> <builder> <build>          : for a builder and build number.\n"
-    "\tget <command> <builder_group>            : for a builder group.\n";
+String howToUse(String command) {
+  return "Use by calling one of the following:\n\n"
+      "\tget $command <file>                     : for a local result.log file.\n"
+      "\tget $command <uri_to_result_log>        : for direct links to result.logs.\n"
+      "\tget $command <uri_try_bot>              : for links to try bot builders.\n"
+      "\tget $command <commit_number> <patchset> : for links to try bot builders.\n"
+      "\tget $command <builder>                  : for a builder name.\n"
+      "\tget $command <builder> <build>          : for a builder and build number.\n"
+      "\tget $command <builder_group>            : for a builder group.\n";
+}
 
 /// Utility method to get a single test-result no matter what has been passed in
 /// as arguments. The test-result can either be from a builder-group, a single
@@ -60,7 +64,7 @@ String howToUse = "Use by calling one of the following:\n\n"
 Future<models.TestResult> getTestResult(ArgResults argResults) async {
   if (argResults.rest.length == 0) {
     print("No result.log file given as argument.");
-    print(howToUse);
+    print(howToUse(argResults.name));
     return null;
   }
 
@@ -78,12 +82,17 @@ Future<models.TestResult> getTestResult(ArgResults argResults) async {
 
   if (argResults.rest.length == 1) {
     if (argResults.rest.first.startsWith("http")) {
-      return testResultService.getTestResult(firstArgument);
+      return testResultService.fromLogdog(firstArgument);
     } else if (isBuilderGroup) {
       return testResultService.forBuilderGroup(firstArgument);
     } else if (isBuilder) {
       return testResultService.latestForBuilder(BUILDER_PROJECT, firstArgument);
     }
+  }
+
+  var file = new File(argResults.rest.first);
+  if (await file.exists()) {
+    return testResultService.getFromFile(file);
   }
 
   if (argResults.rest.length == 2 &&
@@ -95,7 +104,7 @@ Future<models.TestResult> getTestResult(ArgResults argResults) async {
   }
 
   print("Too many arguments passed to command or arguments were incorrect.");
-  print(howToUse);
+  print(howToUse(argResults.name));
   return null;
 }
 
@@ -104,7 +113,7 @@ Future<Iterable<BuildBucketTestResult>> getTestResultsFromCq(
     ArgResults argResults) async {
   if (argResults.rest.length == 0) {
     print("No result.log file given as argument.");
-    print(howToUse);
+    print(howToUse(argResults.name));
     return null;
   }
 
@@ -118,7 +127,7 @@ Future<Iterable<BuildBucketTestResult>> getTestResultsFromCq(
     if (!isSwarmingTaskUrl(firstArgument)) {
       print("URI does not match "
           "`https://ci.chromium.org/swarming/task/<taskid>?server...`.");
-      print(howToUse);
+      print(howToUse(argResults.name));
       return null;
     }
     String swarmingTaskId = getSwarmingTaskId(firstArgument);
@@ -132,7 +141,7 @@ Future<Iterable<BuildBucketTestResult>> getTestResultsFromCq(
   }
 
   print("Too many arguments passed to command or arguments were incorrect.");
-  print(howToUse);
+  print(howToUse(argResults.name));
   return null;
 }
 
@@ -222,7 +231,7 @@ class GetTestsWithResultAndExpectationCommand extends Command {
         return item.result.result;
       })
       ..addHeader(new Column("Expected"), (item) {
-        return item.expectations.toString();
+        return item.entries.toString();
       })
       ..addHeader(new Column("Success", width: 4), (item) {
         return item.isSuccess() ? "OK" : "FAIL";
@@ -284,8 +293,7 @@ class GetTestFailuresCommand extends Command {
     var estimatedTime =
         new Duration(milliseconds: testResult.results.length * 100 ~/ 1000);
     print("Calling test.py to find status files for the configuration and "
-        "the expectation for ${testResult.results.length} tests. "
-        "Estimated time remaining is ${estimatedTime.inSeconds} seconds...");
+        "the expectation for ${testResult.results.length} tests. ");
     List<TestExpectationResult> withExpectations =
         await getTestResultsWithExpectation(testResult);
     printFailingTestExpectationResults(withExpectations);
@@ -371,6 +379,7 @@ void printFailingTestExpectationResults(List<TestExpectationResult> results) {
       results.where((x) => !x.isSuccess()).toList();
   failing.sort((a, b) => a.result.name.compareTo(b.result.name));
   int index = 0;
+  print("");
   failing.forEach((fail) => printFailingTest(fail, index++));
   if (index == 0) {
     print("\tNo failures found.");
@@ -390,17 +399,35 @@ void printFailingTest(TestExpectationResult result, int index) {
       .toArgs(includeSelectors: false)
       .map((arg) => arg.replaceAll("--", ""));
 
-  var extPrint = new ExtendedPrinter(preceding: "\t");
+  var extPrint = new ExtendedPrinter();
   if (index > 0) {
-    extPrint.printLinePattern("-");
+    extPrint.printLinePattern("*");
+    extPrint.println("");
   }
   extPrint
     ..println("FAILED: ${getQualifiedNameForTest(result.result.name)}")
+    ..printLinePattern("-")
     ..println("Result: ${result.result.result}")
-    ..println("Expected: ${result.expectations}")
+    ..println("Expected: ${result.expectations()}");
+  printStatusEntries(result.entries, extPrint);
+  extPrint
     ..println("Configuration: ${conf.join(', ')}")
     ..println("")
     ..println(
         "To run locally (if you have the right architecture and runtime):")
-    ..println(getReproductionCommand(result.configuration, result.result.name));
+    ..println(getReproductionCommand(result.configuration, result.result.name))
+    ..println("");
+}
+
+void printStatusEntries(
+    List<StatusSectionEntry> entries, ExtendedPrinter printer) {
+  var oldPreceding = printer.preceding;
+  printer.preceding = "  ";
+  for (StatusSectionEntry entry in entries) {
+    printer.println("${entry.statusFile.path}");
+    printer.println("  [ ${entry.section.condition} ]");
+    printer.println("    line ${entry.entry.lineNumber}: ${entry.entry.path} : "
+        "${entry.entry.expectations}");
+  }
+  printer.preceding = oldPreceding;
 }

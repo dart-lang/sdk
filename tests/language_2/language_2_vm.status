@@ -78,8 +78,13 @@ call_nonexistent_static_test/10: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
+callable_test/00: MissingCompileTimeError
+callable_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
+check_member_static_test/01: MissingCompileTimeError
+check_method_override_test/01: MissingCompileTimeError
+check_method_override_test/02: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
 class_literal_test/01: MissingCompileTimeError
 class_literal_test/02: MissingCompileTimeError
@@ -254,6 +259,7 @@ flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
+function_malformed_result_type_test/00: MissingCompileTimeError
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -262,6 +268,13 @@ function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
 function_subtype_not1_test: RuntimeError
 function_subtype_typearg5_test: RuntimeError
+function_type_alias_test: RuntimeError
+function_type_call_getter2_test/00: MissingCompileTimeError
+function_type_call_getter2_test/01: MissingCompileTimeError
+function_type_call_getter2_test/02: MissingCompileTimeError
+function_type_call_getter2_test/03: MissingCompileTimeError
+function_type_call_getter2_test/04: MissingCompileTimeError
+function_type_call_getter2_test/05: MissingCompileTimeError
 generic_closure_test: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
@@ -699,7 +712,6 @@ try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 try_catch_syntax_test/08: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError
-type_literal_test: RuntimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
 type_promotion_parameter_test/02: MissingCompileTimeError
 type_promotion_parameter_test/03: MissingCompileTimeError
@@ -781,7 +793,6 @@ type_variable_scope2_test: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
 type_variable_scope_test/02: MissingCompileTimeError
-type_variable_scope_test/03: MissingCompileTimeError
 type_variable_scope_test/04: MissingCompileTimeError
 type_variable_scope_test/05: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
@@ -897,6 +908,7 @@ recursive_mixin_test: Crash
 [ $runtime == vm && !$checked ]
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
+callable_test/none: RuntimeError
 checked_setter2_test: RuntimeError
 checked_setter3_test: RuntimeError
 checked_setter_test: RuntimeError
@@ -931,10 +943,10 @@ function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
+function_type_call_getter2_test/none: RuntimeError
+function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
-getters_setters2_test/01: RuntimeError
-getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
@@ -943,6 +955,12 @@ tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
+
+[ $runtime == vm && !$checked && $compiler != dartk]
+getters_setters2_test/01: RuntimeError
+getters_setters2_test/none: RuntimeError
+implicit_downcast_during_assignment_test: RuntimeError
+implicit_downcast_during_if_null_assignment_test: RuntimeError
 
 [ $runtime == vm && $checked && $mode == debug ]
 tearoff_dynamic_test: Crash
@@ -961,6 +979,7 @@ library_env_test/has_no_io_support: RuntimeError, OK
 multiline_strings_test: Fail # Issue 23020
 regress_19413_test: MissingCompileTimeError
 regress_21793_test/01: MissingCompileTimeError
+type_variable_scope_test/03: MissingCompileTimeError
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
@@ -1027,6 +1046,7 @@ multiline_strings_test: Fail # Issue 23020
 regress_21793_test/01: MissingCompileTimeError
 regress_23408_test: Crash
 type_parameter_test/05: MissingCompileTimeError
+type_variable_scope_test/03: MissingCompileTimeError
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 vm/regress_27201_test: Fail
@@ -1066,3 +1086,6 @@ deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: RuntimeError
+
+[ $runtime == vm && $compiler != dartk ]
+generic_no_such_method_dispatcher_simple_test: Skip # This test is only for kernel.

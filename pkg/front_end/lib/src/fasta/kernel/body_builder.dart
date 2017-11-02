@@ -461,7 +461,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       _typeInferrer.inferMetadata(annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
-      annotations.forEach(field.addAnnotation);
+      annotations.forEach((annotation) => field.addAnnotation(annotation));
       for (int i = 1; i < fields.length; i++) {
         // We have to clone the annotations on the remaining fields.
         field = fields[i].target;
@@ -625,7 +625,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             body, messageSetterWithWrongNumberOfFormals);
       }
     }
-    builder.body = body;
+    if (!builder.isExternal) {
+      builder.body = body;
+    } else {
+      if (body != null) {
+        builder.body = wrapInCompileTimeErrorStatement(
+            body, fasta.messageExternalMethodWithBody);
+      }
+    }
     Member target = builder.target;
     _typeInferrer.inferMetadata(annotations);
     for (Expression annotation in annotations ?? const []) {
@@ -1139,21 +1146,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     if (builder == null || (!isInstanceContext && builder.isInstanceMember)) {
       Name n = new Name(name, library.library);
-      if (prefix != null &&
-          prefix.deferred &&
-          builder == null &&
-          "loadLibrary" == name) {
-        int offset = offsetForToken(token);
-        const String message = "Deferred loading isn't implemented yet.";
-        // We report the error twice, the first time silently and marking it as
-        // unhandled. This ensures that the compile-time error is reported
-        // eagerly by kernel-service, thus preventing any attempts from running
-        // a program that uses deferred loading. Obviously, this is a temporary
-        // solution until we can fully implement deferred loading.
-        deprecated_addCompileTimeError(offset, message,
-            wasHandled: false, silent: true);
-        return deprecated_buildCompileTimeError(message, offset);
-      } else if (!isQualified && isInstanceContext) {
+      if (!isQualified && isInstanceContext) {
         assert(builder == null);
         if (constantExpressionRequired || member.isField) {
           return new UnresolvedAccessor(this, n, token);
@@ -1235,6 +1228,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             "or removing 'deferred' from the import.");
       }
       return builder;
+    } else if (builder is LoadLibraryBuilder) {
+      return new LoadLibraryAccessor(this, token, builder);
     } else {
       if (builder.hasProblem && builder is! AccessErrorBuilder) return builder;
       Builder setter;

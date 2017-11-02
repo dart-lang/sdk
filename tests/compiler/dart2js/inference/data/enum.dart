@@ -58,7 +58,7 @@ enum Enum4 {
   a,
 }
 
-/*element: enumToString1:Value mask: ["Enum4.a"] type: [null|exact=JSString]*/
+/*element: enumToString1:Value mask: ["Enum4.a"] type: [exact=JSString]*/
 enumToString1() {
   return Enum4.a. /*invoke: [exact=Enum4]*/ toString();
 }
@@ -73,9 +73,8 @@ enum Enum5 {
   /*element: Enum5.b:[exact=Enum5]*/
   b,
 }
-// TODO(johnniwinther): Used the optimized enum encoding this yields
-// [exact=JSString] instead of [null|exact=JSString].
-/*element: enumToString2:[null|exact=JSString]*/
+
+/*element: enumToString2:[exact=JSString]*/
 enumToString2() {
   Enum5.b. /*invoke: [exact=Enum5]*/ toString();
   return Enum5.a. /*invoke: [exact=Enum5]*/ toString();

@@ -62,14 +62,12 @@ static void GetUniqueDynamicTarget(Isolate* isolate,
 AotCallSpecializer::AotCallSpecializer(
     Precompiler* precompiler,
     FlowGraph* flow_graph,
-    bool use_speculative_inlining,
-    GrowableArray<intptr_t>* inlining_black_list)
-    : CallSpecializer(flow_graph, /* should_clone_fields=*/false),
+    SpeculativeInliningPolicy* speculative_policy)
+    : CallSpecializer(flow_graph,
+                      speculative_policy,
+                      /* should_clone_fields=*/false),
       precompiler_(precompiler),
-      use_speculative_inlining_(use_speculative_inlining),
-      inlining_black_list_(inlining_black_list),
       has_unique_no_such_method_(false) {
-  ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
   Function& target_function = Function::Handle();
   if (isolate()->object_store()->unique_dynamic_targets() != Array::null()) {
     GetUniqueDynamicTarget(isolate(), Symbols::NoSuchMethod(),
@@ -216,14 +214,6 @@ bool AotCallSpecializer::TryReplaceWithHaveSameRuntimeType(
   }
 
   return false;
-}
-
-bool AotCallSpecializer::IsAllowedForInlining(intptr_t call_deopt_id) const {
-  if (!use_speculative_inlining_) return false;
-  for (intptr_t i = 0; i < inlining_black_list_->length(); ++i) {
-    if ((*inlining_black_list_)[i] == call_deopt_id) return false;
-  }
-  return true;
 }
 
 static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
@@ -550,7 +540,8 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   const intptr_t number_of_checks = unary_checks.NumberOfChecks();
-  if (IsAllowedForInlining(instr->deopt_id()) && number_of_checks > 0) {
+  if (speculative_policy_->IsAllowedForInlining(instr->deopt_id()) &&
+      number_of_checks > 0) {
     if ((op_kind == Token::kINDEX) &&
         TryReplaceWithIndexedOp(instr, &unary_checks)) {
       return;

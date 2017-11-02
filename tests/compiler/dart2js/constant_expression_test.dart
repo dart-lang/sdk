@@ -19,7 +19,7 @@ class TestData {
   final String declarations;
 
   /// Tested constants.
-  final List constants;
+  final List<ConstantData> constants;
 
   const TestData(this.declarations, this.constants);
 }
@@ -192,7 +192,7 @@ main() {
 Future testData(TestData data) async {
   StringBuffer sb = new StringBuffer();
   sb.write('${data.declarations}\n');
-  Map constants = {};
+  Map<String, ConstantData> constants = {};
   data.constants.forEach((ConstantData constantData) {
     String name = 'c${constants.length}';
     sb.write('const $name = ${constantData.code};\n');

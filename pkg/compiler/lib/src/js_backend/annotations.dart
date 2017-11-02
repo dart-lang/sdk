@@ -12,12 +12,26 @@ import '../elements/entities.dart';
 bool noInline(ElementEnvironment elementEnvironment,
     CommonElements commonElements, MemberEntity element) {
   if (_hasAnnotation(
+      elementEnvironment, element, commonElements.metaNoInlineClass)) {
+    return true;
+  }
+  if (_hasAnnotation(
       elementEnvironment, element, commonElements.expectNoInlineClass)) {
     // TODO(floitsch): restrict to elements from the test directory.
     return true;
   }
   return _hasAnnotation(
       elementEnvironment, element, commonElements.noInlineClass);
+}
+
+/// Returns `true` if inlining is requested for [element].
+bool tryInline(ElementEnvironment elementEnvironment,
+    CommonElements commonElements, MemberEntity element) {
+  if (_hasAnnotation(
+      elementEnvironment, element, commonElements.metaTryInlineClass)) {
+    return true;
+  }
+  return false;
 }
 
 /// Returns `true` if parameter and returns types should be trusted for

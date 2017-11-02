@@ -667,9 +667,12 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   /// Call [analyze] for all live members.
   void analyzeAllElements() {
+    Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
+        .where((MemberEntity member) => !member.isAbstract);
+
     Iterable<MemberEntity> members = useSorterForTesting
-        ? sorter.sortMembers(closedWorld.processedMembers)
-        : sortMembers(closedWorld.processedMembers, computeMemberSize);
+        ? sorter.sortMembers(processedMembers)
+        : sortMembers(processedMembers, computeMemberSize);
 
     members.forEach((MemberEntity member) {
       progress.showProgress(
@@ -1203,7 +1206,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       Iterable<MemberEntity> members, int computeSize(MemberEntity member)) {
     Map<int, Set<MemberEntity>> methodSizes = <int, Set<MemberEntity>>{};
     members.forEach((MemberEntity element) {
-      if (element.isAbstract) return;
       // Put the other operators in buckets by size, later to be added in
       // size order.
       int size = computeSize(element);

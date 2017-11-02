@@ -12,7 +12,7 @@ import 'package:gardening/src/buildbot_data.dart';
 import 'package:gardening/src/buildbot_loading.dart';
 import 'package:gardening/src/buildbot_structures.dart';
 import 'package:gardening/src/client.dart';
-import 'package:gardening/src/logdog.dart' as logdog;
+import 'package:gardening/src/logdog.dart';
 import 'package:gardening/src/util.dart';
 
 // TODO(johnniwinther): Adjustments needed: this script may run with
@@ -81,16 +81,8 @@ Future readLogDogResults(
     {int buildNumberOffset, int buildNumberCount}) async {
   Map<String, String> subgroupPaths = subgroup.logDogPaths;
   for (String shardName in subgroupPaths.keys) {
-    String subgroupPath = subgroupPaths[shardName];
-    List<int> buildNumbers = <int>[];
-    String text = await logdog.ls(subgroupPath);
-    for (String line in text.split('\n')) {
-      line = line.trim();
-      if (line.isNotEmpty) {
-        buildNumbers.add(int.parse(line));
-      }
-    }
-    buildNumbers.sort((a, b) => -a.compareTo(b));
+    List<int> buildNumbers =
+        await latestBuildNumbersForBuilder(shardName, buildNumberCount);
     int buildNumberIndex;
     if (buildNumberOffset < 0) {
       buildNumberIndex = -buildNumberOffset - 1;

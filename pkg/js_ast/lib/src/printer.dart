@@ -4,7 +4,7 @@
 
 part of js_ast;
 
-typedef String Renamer(Name);
+typedef String Renamer(Name name);
 
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;

@@ -268,7 +268,7 @@ class C {
       _assertLibraryUris(result,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       // Compiled: c.dart (changed), and b.dart (has mixin).
-      _assertCompiledUris([cUri, bUri]);
+      _assertCompiledUris(includes: [cUri, bUri], excludes: [aUri]);
     }
   }
 
@@ -414,10 +414,11 @@ Future<String> b;
 
     KernelResult result = await driver.getKernel(bUri);
 
-    // The result does not include SDK libraries.
-    _assertLibraryUris(result,
+    // SDK libraries were not compiled.
+    _assertCompiledUris(
         includes: [bUri],
         excludes: [Uri.parse('dart:core'), Uri.parse('dart:async')]);
+    _assertLibraryUris(result, includes: [aUri, bUri]);
 
     // The types of top-level variables are resolved.
     var library = _getLibrary(result, bUri);
@@ -440,9 +441,10 @@ int getValue() {
           .toList();
 
       // The result does not include SDK libraries.
-      _assertLibraryUris(result,
-          includes: [bUri],
-          excludes: [Uri.parse('dart:core'), Uri.parse('dart:core')]);
+      _assertCompiledUris(
+          includes: [aUri],
+          excludes: [Uri.parse('dart:core'), Uri.parse('dart:async')]);
+      _assertLibraryUris(result, includes: [aUri, bUri]);
 
       // The types of top-level variables are resolved.
       var library = _getLibrary(result, bUri);
@@ -796,13 +798,19 @@ import 'b.dart';
         .toList();
   }
 
-  void _assertCompiledUris(Iterable<Uri> expected) {
+  void _assertCompiledUris(
+      {Iterable<Uri> includes: const [], Iterable<Uri> excludes: const []}) {
     var compiledCycles = driver.test.compiledCycles;
     Set<Uri> compiledUris = compiledCycles
         .map((cycle) => cycle.libraries.map((file) => file.uri))
         .expand((uris) => uris)
         .toSet();
-    expect(compiledUris, unorderedEquals(expected));
+    for (var shouldInclude in includes) {
+      expect(compiledUris, contains(shouldInclude));
+    }
+    for (var shouldExclude in excludes) {
+      expect(compiledUris, isNot(contains(shouldExclude)));
+    }
   }
 
   void _assertLibraryUris(KernelResult result,

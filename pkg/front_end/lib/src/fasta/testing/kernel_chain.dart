@@ -13,28 +13,24 @@ import 'dart:io' show Directory, File, IOSink;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'package:kernel/kernel.dart' show loadProgramFromBinary;
-
-import 'package:kernel/target/targets.dart' show Target;
-
-import 'package:kernel/text/ast_to_text.dart' show Printer;
-
-import 'package:testing/testing.dart' show Result, StdioProcess, Step;
-
 import 'package:kernel/ast.dart' show Library, Program;
-
-import '../kernel/verifier.dart' show verifyProgram;
-
-import '../compiler_context.dart';
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
+import 'package:kernel/error_formatter.dart' show ErrorFormatter;
+
+import 'package:kernel/kernel.dart' show loadProgramFromBinary;
+
+import 'package:kernel/naive_type_checker.dart' show StrongModeTypeChecker;
+
+import 'package:kernel/target/targets.dart' show Target;
+
+import 'package:kernel/text/ast_to_text.dart' show Printer;
+
 import 'package:testing/testing.dart'
     show ChainContext, Result, StdioProcess, Step, TestDescription;
-
-import 'package:kernel/ast.dart' show Program;
 
 import 'package:front_end/front_end.dart';
 
@@ -43,6 +39,10 @@ import 'package:front_end/src/base/processed_options.dart'
 
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+
+import '../compiler_context.dart';
+
+import '../kernel/verifier.dart' show verifyProgram;
 
 class Print extends Step<Program, Program, ChainContext> {
   const Print();
@@ -81,6 +81,27 @@ class Verify extends Step<Program, Program, ChainContext> {
             null, context.expectationSet["VerificationError"], errors, null);
       }
     });
+  }
+}
+
+class TypeCheck extends Step<Program, Program, ChainContext> {
+  const TypeCheck();
+
+  String get name => "typeCheck";
+
+  Future<Result<Program>> run(Program program, ChainContext context) async {
+    var errorFormatter = new ErrorFormatter();
+    var checker =
+        new StrongModeTypeChecker(errorFormatter, program, ignoreSdk: true);
+    checker.checkProgram(program);
+    if (errorFormatter.numberOfFailures == 0) {
+      return pass(program);
+    } else {
+      errorFormatter.failures.forEach(print);
+      print('------- Found ${errorFormatter.numberOfFailures} errors -------');
+      return new Result<Program>(null, context.expectationSet["TypeCheckError"],
+          '${errorFormatter.numberOfFailures} type errors', null);
+    }
   }
 }
 

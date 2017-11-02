@@ -52,15 +52,28 @@ enum LogicalOperator { kAnd, kOr };
 class Program {
  public:
   ~Program() {
-    if (kernel_data_ != NULL) {
+    if (buffer_ownership_ && kernel_data_ != NULL) {
       ASSERT(release_callback != NULL);
       release_callback(const_cast<uint8_t*>(kernel_data_));
-      kernel_data_ = NULL;
     }
+    kernel_data_ = NULL;
   }
 
-  static Program* ReadFrom(Reader* reader);
+  /**
+   * Read a kernel Program from the given Reader. Note the returned Program
+   * can potentially contain several "sub programs", though the library count
+   * etc will reference the last "sub program" only.
+   * @param reader
+   * @param take_buffer_ownership if set to true, the release callback will be
+   * called upon Program destruction, i.e. the data from reader will likely be
+   * released. If set to false the data will not be released. This is for
+   * instance useful for creating Programs out of "sub programs" where each
+   * "sub program" should not try to release the buffer.
+   * @return
+   */
+  static Program* ReadFrom(Reader* reader, bool take_buffer_ownership = true);
 
+  bool is_single_program() { return single_program_; }
   NameIndex main_method() { return main_method_reference_; }
   intptr_t source_table_offset() const { return source_table_offset_; }
   intptr_t string_table_offset() const { return string_table_offset_; }
@@ -76,6 +89,8 @@ class Program {
   Program()
       : kernel_data_(NULL), kernel_data_size_(-1), release_callback(NULL) {}
 
+  bool single_program_;
+  bool buffer_ownership_;
   NameIndex main_method_reference_;  // Procedure.
   intptr_t library_count_;
 

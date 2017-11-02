@@ -581,8 +581,8 @@ void IsolateReloadContext::Reload(bool force_reload,
         ASSERT(data_len == 1);
         kernel_program.set(reinterpret_cast<kernel::Program*>(data));
         Dart_TypedDataReleaseData(retval);
-        kernel::KernelLoader loader(kernel_program.get());
-        loader.FindModifiedLibraries(I, modified_libs_, force_reload);
+        kernel::KernelLoader::FindModifiedLibraries(
+            kernel_program.get(), I, modified_libs_, force_reload);
       }
     }
     if (result.IsError()) {
@@ -656,9 +656,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   // propagating the UnwindError or an UnhandledException error.
 
   if (isolate()->use_dart_frontend()) {
-    // Load the kernel program.
-    kernel::KernelLoader loader(kernel_program.get());
-    const Object& tmp = loader.LoadProgram();
+    const Object& tmp =
+        kernel::KernelLoader::LoadEntireProgram(kernel_program.get());
     if (!tmp.IsError()) {
       Library& lib = Library::Handle(thread->zone());
       lib ^= tmp.raw();

@@ -66,6 +66,11 @@ regress31050() {
   Expect.equals(new C().m(), 777);
 }
 
+var name = 42;
+regress31117() {
+  Expect.equals(name, 42);
+}
+
 main() {
   var a = new A();
   var a2 = new A2();

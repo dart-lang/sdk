@@ -341,14 +341,20 @@ inference_new/dependency_only_if_overloaded: Crash
 inference_new/downwards_inference_inside_top_level: Crash
 inference_new/field_inference_circularity: Crash
 inference_new/indexed_assign_combiner: Crash
+inference_new/infer_assign_to_implicit_this_upwards: Crash
 inference_new/infer_assign_to_index: Crash
 inference_new/infer_assign_to_index_set_vs_get: Crash
 inference_new/infer_assign_to_index_super_upwards: Crash
 inference_new/infer_assign_to_index_this_upwards: Crash
 inference_new/infer_assign_to_index_upwards: Crash
+inference_new/infer_assign_to_local_upwards: Crash
 inference_new/infer_assign_to_property: Crash
 inference_new/infer_assign_to_property_custom: Crash
+inference_new/infer_assign_to_property_null_aware_upwards: Crash
+inference_new/infer_assign_to_property_super_upwards: Crash
+inference_new/infer_assign_to_property_upwards: Crash
 inference_new/infer_assign_to_ref: Crash
+inference_new/infer_assign_to_static_upwards: Crash
 inference_new/infer_field_getter_setter_mismatch: Crash
 inference_new/infer_field_override_getter_overrides_setter: Crash
 inference_new/infer_field_override_setter_overrides_getter: Crash
@@ -356,12 +362,14 @@ inference_new/infer_instance_accessor_ref: Crash
 inference_new/infer_instance_field_ref: Crash
 inference_new/infer_instance_field_ref_circular: Crash
 inference_new/infer_logical: Crash
+inference_new/invalid_assignment_during_toplevel_inference: Crash
 inference_new/property_assign_combiner: Crash
 inference_new/property_get_toplevel: Crash
 inference_new/static_assign_combiner: Crash
 inference_new/strongly_connected_component: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
+invalid_assignment: Crash
 invocations: Crash
 local_generic_function: Crash
 metadata_enum: Crash
@@ -440,6 +448,7 @@ regress/issue_29981: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
 regress/issue_29987: Crash # Issue 30997.
+regress/issue_31155: Crash # Issue 31155.
 reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash
@@ -473,6 +482,10 @@ runtime_checks_new/derived_class_typed: Crash
 runtime_checks_new/field_forwarding_stub_abstract_generic_covariant: Crash
 runtime_checks_new/field_forwarding_stub_explicit_covariant: Crash
 runtime_checks_new/generic_covariance_based_on_inference: Crash
+runtime_checks_new/mixin_forwarding_stub_field: Crash
+runtime_checks_new/mixin_forwarding_stub_getter: Crash
+runtime_checks_new/mixin_forwarding_stub_setter: Crash
+runtime_checks_new/stub_checked_via_target: Crash
 static_setter: Crash
 store_load: Crash
 stringliteral: Crash

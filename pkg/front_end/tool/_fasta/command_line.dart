@@ -228,7 +228,8 @@ ProcessedOptions analyzeCommandLine(
         "Can't specify both '--compile-sdk' and '--platform'.");
   }
 
-  final bool strongMode = options.containsKey("--strong-mode");
+  final bool strongMode =
+      options.containsKey("--strong-mode") || options.containsKey("--strong");
 
   final String targetName = options["-t"] ?? options["--target"] ?? "vm";
 

@@ -1329,8 +1329,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ ldr(R0, Address(SP, +0 * kWordSize));  // Right.
   __ ldr(R1, Address(SP, +1 * kWordSize));  // Left.
   __ orr(TMP, R0, Operand(R1));
-  __ tsti(TMP, Immediate(kSmiTagMask));
-  __ b(not_smi_or_overflow, NE);
+  __ BranchIfNotSmi(TMP, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
       __ adds(R0, R1, Operand(R0));   // Adds.
@@ -1982,10 +1981,8 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                  const Register right) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
-  __ tsti(left, Immediate(kSmiTagMask));
-  __ b(&reference_compare, EQ);
-  __ tsti(right, Immediate(kSmiTagMask));
-  __ b(&reference_compare, EQ);
+  __ BranchIfSmi(left, &reference_compare);
+  __ BranchIfSmi(right, &reference_compare);
 
   // Value compare for two doubles.
   __ CompareClassId(left, kDoubleCid);
@@ -2086,8 +2083,7 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   // Jump if receiver is a smi.
   Label smi_case;
-  __ TestImmediate(R0, kSmiTagMask);
-  __ b(&smi_case, EQ);
+  __ BranchIfSmi(R0, &smi_case);
 
   // Loads the cid of the object.
   __ LoadClassId(R0, R0);

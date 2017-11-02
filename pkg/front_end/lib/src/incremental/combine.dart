@@ -149,10 +149,15 @@ class _Combiner {
       var existingReference = target.canonicalName.getChild(name).reference;
       _referenceMap[source.reference] = existingReference;
       Class existingNode = existingReference.node;
+      for (var constructor in source.constructors) {
+        _combineClassMember(existingNode, constructor);
+      }
+      for (var field in source.fields) {
+        _combineClassMember(existingNode, field);
+      }
       for (var procedure in source.procedures) {
         _combineClassMember(existingNode, procedure);
       }
-      // TODO(scheglov): combine fields and constructors
     } else {
       result._undoClassToLibrary[source] = source.parent;
       _putUndoForClassMembers(source);
@@ -277,6 +282,11 @@ class _ReplaceReferencesVisitor extends RecursiveVisitor {
   _ReplaceReferencesVisitor(this.map, this.undoMap);
 
   @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    node.targetReference = _newReferenceFor(node.targetReference);
+  }
+
+  @override
   void visitDirectMethodInvocation(DirectMethodInvocation node) {
     node.targetReference = _newReferenceFor(node.targetReference);
   }
@@ -316,6 +326,11 @@ class _ReplaceReferencesVisitor extends RecursiveVisitor {
   }
 
   @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
+    node.targetReference = _newReferenceFor(node.targetReference);
+  }
+
+  @override
   void visitStaticGet(StaticGet node) {
     node.targetReference = _newReferenceFor(node.targetReference);
   }
@@ -327,6 +342,11 @@ class _ReplaceReferencesVisitor extends RecursiveVisitor {
 
   @override
   void visitStaticSet(StaticSet node) {
+    node.targetReference = _newReferenceFor(node.targetReference);
+  }
+
+  @override
+  void visitSuperInitializer(SuperInitializer node) {
     node.targetReference = _newReferenceFor(node.targetReference);
   }
 

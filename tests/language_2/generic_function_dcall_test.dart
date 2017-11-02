@@ -46,9 +46,7 @@ void testGenericFnAsGenericFnArg() {
 
 void testGenericFnTypeToString() {
   T f<T>(T a) => a;
-  // TODO(jmesserly): other Dart implementations use `=>` arrow, so we may need
-  // to change this in DDC at some point.
-  Expect.equals(f.runtimeType.toString(), "<T>(T) -> T");
+  Expect.equals(f.runtimeType.toString(), "<T>(T) => T");
 }
 
 main() {

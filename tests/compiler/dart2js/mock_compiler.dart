@@ -280,7 +280,7 @@ class MockCompiler extends Compiler {
   }
 
   /// Create a new [MockCompiler] and apply it asynchronously to [f].
-  static Future create(f(MockCompiler compiler)) {
+  static Future<T> create<T>(T f(MockCompiler compiler)) {
     MockCompiler compiler = new MockCompiler.internal();
     return compiler.init().then((_) => f(compiler));
   }

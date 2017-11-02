@@ -8,12 +8,13 @@ class C<T extends core::Object> extends core::Object {
     : self::C::t = t, super core::Object::•()
     ;
 }
-static method main() → dynamic {
+static method test() → dynamic {
   self::C<core::int> x = new self::C::•<core::int>(42);
   core::num y;
   self::C<core::int> c_int = new self::C::•<core::int>(y);
   self::C<core::num> c_num = new self::C::•<core::num>(123);
   self::C<core::num> c_num2 = let final self::C<core::num> #t1 = new self::C::•<core::num>(456) in let final dynamic #t2 = #t1.{self::C::t} = 1.0 in #t1;
   self::C<dynamic> c_dynamic = new self::C::•<dynamic>(42);
-  x.{self::C::t} = "hello";
+  x.{self::C::t} = "hello" as{TypeError} core::int;
 }
+static method main() → dynamic {}

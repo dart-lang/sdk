@@ -35,7 +35,7 @@ import '../fasta_codes.dart'
         templateOverrideTypeVariablesMismatch,
         templateRedirectionTargetNotFound;
 
-import '../problems.dart' show unhandled, unimplemented;
+import '../problems.dart' show unexpected, unhandled, unimplemented;
 
 import 'kernel_builder.dart'
     show
@@ -123,19 +123,21 @@ abstract class KernelClassBuilder
       List<String> names = constructors.keys.toList();
       for (String name in names) {
         Builder builder = constructors[name];
+        if (builder.parent != this) {
+          unexpected(
+              "$fileUri", "${builder.parent.fileUri}", charOffset, fileUri);
+        }
         if (builder is KernelProcedureBuilder && builder.isFactory) {
           // Compute the immediate redirection target, not the effective.
           ConstructorReferenceBuilder redirectionTarget =
               builder.redirectionTarget;
           if (redirectionTarget != null) {
-            assert(builder.actualBody == null);
             Builder targetBuilder = redirectionTarget.target;
             addRedirectingConstructor(builder, library);
             if (targetBuilder is ProcedureBuilder) {
-              Member target = targetBuilder.target;
-              builder.body = new RedirectingFactoryBody(target);
+              builder.setRedirectingFactoryBody(targetBuilder.target);
             } else if (targetBuilder is DillMemberBuilder) {
-              builder.body = new RedirectingFactoryBody(targetBuilder.member);
+              builder.setRedirectingFactoryBody(targetBuilder.member);
             } else {
               var message = templateRedirectionTargetNotFound
                   .withArguments(redirectionTarget.fullNameForErrors);

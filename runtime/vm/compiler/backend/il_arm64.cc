@@ -593,8 +593,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   const ZoneGrowableArray<intptr_t>& data = cid_results();
   ASSERT(data[0] == kSmiCid);
   bool result = data[1] == true_result;
-  __ tsti(val_reg, Immediate(kSmiTagMask));
-  __ b(result ? labels.true_label : labels.false_label, EQ);
+  __ BranchIfSmi(val_reg, result ? labels.true_label : labels.false_label);
   __ LoadClassId(cid_reg, val_reg);
 
   for (intptr_t i = 2; i < data.length(); i += 2) {
@@ -1363,12 +1362,7 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
   if (value_is_smi == NULL) {
     __ LoadImmediate(value_cid_reg, kSmiCid);
   }
-  __ tsti(value_reg, Immediate(kSmiTagMask));
-  if (value_is_smi == NULL) {
-    __ b(&done, EQ);
-  } else {
-    __ b(value_is_smi, EQ);
-  }
+  __ BranchIfSmi(value_reg, value_is_smi == NULL ? &done : value_is_smi);
   __ LoadClassId(value_cid_reg, value_reg);
   __ Bind(&done);
 }
@@ -2752,18 +2746,17 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intptr_t right_cid = this->right()->Type()->ToCid();
   bool combined_smi_check = false;
   if (this->left()->definition() == this->right()->definition()) {
-    __ tsti(left, Immediate(kSmiTagMask));
+    __ BranchIfNotSmi(left, slow_path->entry_label());
   } else if (left_cid == kSmiCid) {
-    __ tsti(right, Immediate(kSmiTagMask));
+    __ BranchIfNotSmi(right, slow_path->entry_label());
   } else if (right_cid == kSmiCid) {
-    __ tsti(left, Immediate(kSmiTagMask));
+    __ BranchIfNotSmi(left, slow_path->entry_label());
   } else {
     combined_smi_check = true;
     __ orr(result, left, Operand(right));
-    __ tsti(result, Immediate(kSmiTagMask));
+    __ BranchIfNotSmi(result, slow_path->entry_label());
   }
 
-  __ b(slow_path->entry_label(), NE);
   switch (op_kind()) {
     case Token::kADD:
       __ adds(result, left, Operand(right));
@@ -2908,16 +2901,15 @@ Condition CheckedSmiComparisonInstr::EmitComparisonCode(
   intptr_t left_cid = this->left()->Type()->ToCid();                           \
   intptr_t right_cid = this->right()->Type()->ToCid();                         \
   if (this->left()->definition() == this->right()->definition()) {             \
-    __ tsti(left, Immediate(kSmiTagMask));                                     \
+    __ BranchIfNotSmi(left, slow_path->entry_label());                         \
   } else if (left_cid == kSmiCid) {                                            \
-    __ tsti(right, Immediate(kSmiTagMask));                                    \
+    __ BranchIfNotSmi(right, slow_path->entry_label());                        \
   } else if (right_cid == kSmiCid) {                                           \
-    __ tsti(left, Immediate(kSmiTagMask));                                     \
+    __ BranchIfNotSmi(left, slow_path->entry_label());                         \
   } else {                                                                     \
     __ orr(temp, left, Operand(right));                                        \
-    __ tsti(temp, Immediate(kSmiTagMask));                                     \
-  }                                                                            \
-  __ b(slow_path->entry_label(), NE)
+    __ BranchIfNotSmi(temp, slow_path->entry_label());                         \
+  }
 
 void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                                BranchInstr* branch) {
@@ -3252,16 +3244,15 @@ void CheckEitherNonSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register left = locs()->in(0).reg();
   const Register right = locs()->in(1).reg();
   if (this->left()->definition() == this->right()->definition()) {
-    __ tsti(left, Immediate(kSmiTagMask));
+    __ BranchIfSmi(left, deopt);
   } else if (left_cid == kSmiCid) {
-    __ tsti(right, Immediate(kSmiTagMask));
+    __ BranchIfSmi(right, deopt);
   } else if (right_cid == kSmiCid) {
-    __ tsti(left, Immediate(kSmiTagMask));
+    __ BranchIfSmi(left, deopt);
   } else {
     __ orr(TMP, left, Operand(right));
-    __ tsti(TMP, Immediate(kSmiTagMask));
+    __ BranchIfSmi(TMP, deopt);
   }
-  __ b(deopt, EQ);
 }
 
 LocationSummary* BoxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
@@ -3425,15 +3416,13 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(is_truncating());
     Label done;
     __ SmiUntag(out, value);
-    __ TestImmediate(value, kSmiTagMask);
-    __ b(&done, EQ);
+    __ BranchIfSmi(value, &done);
     __ LoadFieldFromOffset(out, value, Mint::value_offset());
     __ Bind(&done);
   } else {
     Label done;
     __ SmiUntag(out, value);
-    __ TestImmediate(value, kSmiTagMask);
-    __ b(&done, EQ);
+    __ BranchIfSmi(value, &done);
     __ CompareClassId(value, kMintCid);
     __ b(deopt, NE);
     __ LoadFieldFromOffset(out, value, Mint::value_offset());

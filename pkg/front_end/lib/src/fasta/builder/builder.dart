@@ -38,6 +38,8 @@ export 'invalid_type_builder.dart' show InvalidTypeBuilder;
 
 export 'library_builder.dart' show LibraryBuilder;
 
+export 'load_library_builder.dart' show LoadLibraryBuilder;
+
 export 'member_builder.dart' show MemberBuilder;
 
 export 'metadata_builder.dart' show MetadataBuilder;
@@ -81,6 +83,7 @@ abstract class Builder {
 
   Uri get fileUri => null;
 
+  // TODO(ahe): We can get rid of this if we switch to absolute URIs everywhere.
   String get relativeFileUri {
     throw "The relativeFileUri method should be only called on subclasses "
         "which have an efficient implementation of `relativeFileUri`!";
@@ -122,9 +125,13 @@ abstract class Builder {
 
   bool get isSynthetic => false;
 
-  get target => unsupported("target", charOffset, fileUri);
+  get target => unsupported("${runtimeType}.target", charOffset, fileUri);
 
   bool get hasProblem => false;
+
+  bool get isPatch => this != origin;
+
+  Builder get origin => this;
 
   String get fullNameForErrors;
 

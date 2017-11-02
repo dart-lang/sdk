@@ -32,8 +32,7 @@ Future mainInternal(Bot bot, List<String> args,
       args);
 }
 
-RegExp logdogUrlRegexp =
-    new RegExp(r'https://luci-logdog.appspot.com/.*client.dart');
+RegExp logdogUrlRegexp = new RegExp(r'https://logs.chromium.org/.*client.dart');
 
 /// Loads [BuildResult]s for the [runCount] last builds for the build(s) in
 /// [args]. [args] can be a list of [BuildGroup] names or a list of log uris.
@@ -73,18 +72,23 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
     return buildUri;
   }
 
-  for (String arg in args) {
-    if (logdogUrlRegexp.hasMatch(arg)) {
-      print('Encountered a logdog URI ("${arg.substring(0,40)}...").');
-      print('Please use the regular log URI, even with --logdog.');
-      exit(-1);
-    }
-  }
   for (BuildGroup buildGroup in buildGroups) {
     if (args.contains(buildGroup.groupName)) {
       buildUriList.addAll(buildGroup
           .createUris(bot.mostRecentBuildNumber)
           .map(updateWithCommit));
+    } else {
+      for (BuildSubgroup subGroup in buildGroup.subgroups) {
+        for (String arg in args) {
+          if (subGroup.shardNames.contains(arg)) {
+            buildUriList.addAll(subGroup
+                .createUris(bot.mostRecentBuildNumber)
+                .map(updateWithCommit));
+            // Break out to not include more from same group.
+            break;
+          }
+        }
+      }
     }
   }
   if (buildUriList.isEmpty) {

@@ -8,9 +8,11 @@
 
 DeltaBlue: Fail
 accessors: Fail
+argument_mismatch: TypeCheckError
 async_function: Fail
 await: Fail
-bug30695: RuntimeError
+bad_setter_abstract: TypeCheckError
+bug30695: TypeCheckError
 bug31124: RuntimeError # Test has an intentional error
 call: Fail
 cascade: Fail
@@ -45,30 +47,100 @@ redirecting_constructor: Fail
 redirecting_factory: Fail
 statements: Fail
 stringliteral: Fail
+super_rasta_copy: TypeCheckError
 top_level_accessors: Fail
 type_variable_as_super: Fail
+type_variable_prefix: TypeCheckError
 typedef: Fail
 uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
+warn_unresolved_sends: TypeCheckError
 
 inference/abstract_class_instantiation: Fail # Issue #30040
+inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: TypeCheckError
+inference/conflicts_can_happen: TypeCheckError
+inference/conflicts_can_happen2: TypeCheckError
+inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/constructors_too_many_positional_arguments: Fail # Issue #30040
-inference/downwards_inference_annotations_for_loop_variable: Fail # Issue #30035
-inference/downwards_inference_annotations_locals: Fail # Issue #30031 and Issue #30035
-inference/downwards_inference_annotations_locals_referring_to_locals: Fail # Issue #30035
-inference/downwards_inference_annotations_parameter: Fail # Issue #30035
-inference/downwards_inference_annotations_parameter_local: Fail # Issue #30035
-inference/downwards_inference_annotations_type_variable: Fail # Issue #30035
-inference/downwards_inference_annotations_type_variable_local: Fail # Issue #30035
+inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
+inference/downwards_inference_annotations_for_loop_variable: Fail # Issue #28434
+inference/downwards_inference_annotations_locals: Fail # Issue #30031 and Issue #28434
+inference/downwards_inference_annotations_locals_referring_to_locals: Fail # Issue #28434
+inference/downwards_inference_annotations_parameter: Fail # Issue #28434
+inference/downwards_inference_annotations_parameter_local: Fail # Issue #28434
+inference/downwards_inference_annotations_type_variable: Fail # Issue #28434
+inference/downwards_inference_annotations_type_variable_local: Fail # Issue #28434
+inference/downwards_inference_assignment_statements: TypeCheckError
+inference/downwards_inference_on_constructor_arguments_infer_downwards: TypeCheckError
+inference/downwards_inference_on_function_arguments_infer_downwards: TypeCheckError
+inference/downwards_inference_on_function_expressions: TypeCheckError
 inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
+inference/downwards_inference_on_generic_constructor_arguments_infer_downwards: TypeCheckError
+inference/downwards_inference_on_generic_function_expressions: TypeCheckError
+inference/downwards_inference_on_instance_creations_infer_downwards: TypeCheckError
+inference/downwards_inference_on_list_literals_infer_downwards: TypeCheckError
+inference/downwards_inference_on_map_literals: TypeCheckError
+inference/downwards_inference_yield_yield_star: TypeCheckError
+inference/future_then_2: TypeCheckError
+inference/future_then_4: TypeCheckError
+inference/future_then_5: TypeCheckError
+inference/future_then_conditional_2: TypeCheckError
+inference/future_then_conditional_4: TypeCheckError
+inference/future_then_conditional_5: TypeCheckError
 inference/future_then_explicit_future: Fail # Issue #30040
+inference/future_then_upwards: TypeCheckError
+inference/future_then_upwards_2: TypeCheckError
+inference/future_then_upwards_3: TypeCheckError
+inference/future_union_downwards: TypeCheckError
+inference/future_union_downwards_2: TypeCheckError
+inference/future_union_downwards_3: TypeCheckError
+inference/future_union_downwards_4: TypeCheckError
 inference/generic_functions_return_typedef: Fail # Issue #29798
+inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
+inference/generic_methods_dart_math_min_max: TypeCheckError
+inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
+inference/generic_methods_downwards_inference_affects_arguments: TypeCheckError
+inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
+inference/generic_methods_infer_generic_instantiation: TypeCheckError
 inference/generic_methods_infer_js_builtin: Fail # Issue #30029
+inference/generic_methods_inference_error: TypeCheckError
+inference/generic_methods_iterable_and_future: TypeCheckError
+inference/generic_methods_nested_generic_instantiation: TypeCheckError
+inference/infer_field_override_multiple: TypeCheckError
+inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TypeCheckError
+inference/infer_local_function_referenced_before_declaration: TypeCheckError
+inference/infer_method_missing_params: TypeCheckError
+inference/infer_type_on_overridden_fields2: TypeCheckError
+inference/infer_type_on_overridden_fields4: TypeCheckError
+inference/infer_type_regardless_of_declaration_order_or_cycles: TypeCheckError
+inference/infer_type_regardless_of_declaration_order_or_cycles_b: TypeCheckError
+inference/infer_types_on_generic_instantiations_3: TypeCheckError
+inference/infer_types_on_generic_instantiations_4: TypeCheckError
+inference/infer_types_on_generic_instantiations_5: TypeCheckError
+inference/infer_types_on_generic_instantiations_in_library_cycle: TypeCheckError
+inference/infer_types_on_generic_instantiations_in_library_cycle_a: TypeCheckError
+inference/infer_types_on_generic_instantiations_infer: TypeCheckError
+inference/infer_types_on_loop_indices_for_each_loop: TypeCheckError
+inference/inferred_initializing_formal_checks_default_value: TypeCheckError
+inference/list_literals: TypeCheckError
+inference/list_literals_top_level: TypeCheckError
+inference/local_return_and_yield: TypeCheckError
+inference/map_literals: TypeCheckError
+inference/map_literals_top_level: TypeCheckError
+inference/property_set_bad_setter: TypeCheckError
+inference/top_level_return_and_yield: TypeCheckError
+inference/unresolved_super: TypeCheckError
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail # Issue #25824
+inference_new/infer_assign_to_index_super_upwards: TypeCheckError
+inference_new/infer_assign_to_index_this_upwards: TypeCheckError
+inference_new/infer_assign_to_index_upwards: TypeCheckError
+inference_new/infer_assign_to_property_custom: TypeCheckError
+inference_new/infer_field_getter_setter_mismatch: TypeCheckError
+inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
@@ -128,13 +200,14 @@ rasta/malformed_const_constructor: Fail
 rasta/malformed_function: Fail
 rasta/malformed_function_type: Fail
 rasta/mandatory_parameter_initializer: Fail
-rasta/mixin_library: RuntimeError
+rasta/mixin_library: TypeCheckError
 rasta/native_is_illegal: Fail
 rasta/parser_error: Fail
 rasta/previsit_deferred: Fail
 rasta/static: Fail
-rasta/super: RuntimeError
+rasta/super: TypeCheckError
 rasta/super_initializer: Fail
+rasta/super_mixin: TypeCheckError
 rasta/super_operator: Fail
 rasta/supports_reflection: VerificationError
 rasta/switch_execution_case_t02: Fail
@@ -150,13 +223,29 @@ rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 rasta/unsupported_platform_library: Fail
 
+regress/issue_29941: TypeCheckError
+regress/issue_29943: TypeCheckError
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
 regress/issue_29977: Crash # Issue 30997.
 regress/issue_29982: Fail # Issue 29982.
+regress/issue_29983: TypeCheckError
+regress/issue_29984: TypeCheckError
+regress/issue_29985: TypeCheckError
 regress/issue_29987: Crash # Issue 30997.
+regress/issue_31155: Crash # Issue 31155.
 
+runtime_checks/covariant_generic_method_type_parameter: TypeCheckError
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
+runtime_checks_new/contravariant_getter_return_compound_assign: TypeCheckError
+runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
+runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
+runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
+runtime_checks_new/stub_checked_via_target: RuntimeError # Forwarding stub checks not yet implemented
+runtime_checks_new/stub_from_interface_contravariant_from_class: TypeCheckError
+runtime_checks_new/stub_from_interface_covariantImpl_from_super: TypeCheckError
+runtime_checks_new/stub_from_interface_covariantInterface_from_class: TypeCheckError
+runtime_checks_new/stub_from_interface_covariant_from_super: TypeCheckError
 
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 rasta/duplicated_mixin: RuntimeError # Expected, this file has no main method.

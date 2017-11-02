@@ -1561,6 +1561,9 @@ class ClassExpression extends Expression {
     }
   }
 
+  @override
+  ClassDeclaration toStatement() => new ClassDeclaration(this);
+
   ClassExpression _clone() => new ClassExpression(name, heritage, methods,
       typeParams: typeParams, fields: fields);
 

@@ -207,10 +207,6 @@ ExpectedDeclaration:
   analyzerCode: EXPECTED_EXECUTABLE
   dart2jsCode: "*fatal*"
 
-ExpectedExpression:
-  template: "Expected an expression, but got '#lexeme'."
-  dart2jsCode: "*fatal*"
-
 ExpectedFunctionBody:
   template: "Expected a function body, but got '#lexeme'."
   analyzerCode: MISSING_FUNCTION_BODY
@@ -250,6 +246,14 @@ ExpectedType:
   template: "Expected a type, but got '#lexeme'."
   analyzerCode: EXPECTED_TYPE_NAME
   dart2jsCode: "*fatal*"
+
+MissingConstFinalVarOrType:
+  template: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
+  tip: "Try adding the name of the type of the variable or the keyword 'var'."
+  analyzerCode: MISSING_CONST_FINAL_VAR_OR_TYPE
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { static f; }"
 
 AbstractClassMember:
   template: "Members of classes can't be declared to be 'abstract'."
@@ -340,6 +344,22 @@ ConstAndVar:
     - "class C { const var x; }"
     - "class C { var const x; }"
 
+ConstFactory:
+  template: "Only redirecting factory constructors can be declared to be 'const'."
+  tip: "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target."
+  analyzerCode: CONST_FACTORY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { const factory C() {} }"
+
+ConstAfterFactory:
+  template: "The modifier 'const' should be before the modifier 'factory'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: CONST_AFTER_FACTORY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { factory const C() = prefix.B.foo; }"
+
 CovariantAfterFinal:
   template: "The modifier 'covariant' should be before the modifier 'final'."
   tip: "Try re-ordering the modifiers."
@@ -385,6 +405,14 @@ ExternalAfterConst:
   script:
     - "class C { const external C(); }"
 
+ExternalAfterFactory:
+  template: "The modifier 'external' should be before the modifier 'factory'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: EXTERNAL_AFTER_FACTORY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { factory external C(); }"
+
 ExternalAfterStatic:
   template: "The modifier 'external' should be before the modifier 'static'."
   tip: "Try re-ordering the modifiers."
@@ -392,6 +420,22 @@ ExternalAfterStatic:
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
     - "class C { static external f(); }"
+
+ExternalConstructorWithBody:
+  template: "External constructors can't have a body."
+  tip: "Try removing the body of the constructor, or removing the keyword 'external'."
+  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { external factory C() {} }"
+
+ExternalField:
+  template: "Fields can't be declared to be 'external'."
+  tip: "Try removing the keyword 'external'."
+  analyzerCode: EXTERNAL_FIELD
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { external var f; }"
 
 ExtraneousModifier:
   template: "Can't have modifier '#lexeme' here."
@@ -463,6 +507,22 @@ StaticAfterFinal:
   dart2jsCode: EXTRANEOUS_MODIFIER
   script:
     - "class C { final static int f; }"
+
+StaticAfterVar:
+  template: "The modifier 'static' should be before the modifier 'var'."
+  tip: "Try re-ordering the modifiers."
+  analyzerCode: STATIC_AFTER_VAR
+  dart2jsCode: "*ignored*"
+  script:
+    - "class C { var static f; }"
+
+StaticOperator:
+  template: "Operators can't be static."
+  tip: "Try removing the keyword 'static'."
+  analyzerCode: STATIC_OPERATOR
+  dart2jsCode: EXTRANEOUS_MODIFIER
+  script:
+    - "class C { static operator +(int x) => x + 1; }"
 
 InvalidAwaitFor:
   template: "The keyword 'await' isn't allowed for a normal 'for' statement."
@@ -812,6 +872,13 @@ ListLiteralTooManyTypeArguments:
 
 ListLiteralTypeArgumentMismatch:
   template: "Map literal requires two type arguments."
+
+LoadLibraryTakesNoArguments:
+  template: "'loadLibrary' takes no arguments."
+
+LoadLibraryHidesMember:
+  template: "The library '#uri' defines a top-level member named 'loadLibrary'. This member is hidden by the special member 'loadLibrary' that the language adds to support deferred loading."
+  tip: "Try to rename or hide the member."
 
 TypeArgumentMismatch:
   # TODO(sigmund): #string should be a number instead.
@@ -1402,3 +1469,18 @@ ColonInPlaceOfIn:
   tip: "Try replacing the colon with the keyword 'in'."
   analyzerCode: COLON_IN_PLACE_OF_IN
   dart2jsCode: "*fatal*"
+
+ExternalFactoryRedirection:
+  template: "A redirecting factory can't be external."
+  tip: "Try removing the 'external' modifier."
+
+InvalidAssignment:
+  template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
+  tip: "Try changing the type of the left hand side, or casting the right hand side to '#type2'."
+  analyzerCode: INVALID_ASSIGNMENT
+  dart2jsCode: "*ignored*"
+  script: >
+    main() {
+      int i;
+      i = 1.5;
+    }

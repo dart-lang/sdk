@@ -10,9 +10,10 @@ class Symbol {
   const Symbol(String name) : this._name = name;
 
   @patch
-  toString() => 'Symbol("${getUnmangledName(this)}")';
+  toString() => 'Symbol("${computeUnmangledName(this)}")';
 
-  static getUnmangledName(Symbol symbol) {
+  @patch
+  static String computeUnmangledName(Symbol symbol) {
     String string = Symbol.getName(symbol);
 
     // get:foo -> foo

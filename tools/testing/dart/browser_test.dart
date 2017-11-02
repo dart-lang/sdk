@@ -91,7 +91,8 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
   // these packages when possible.
   async_helper.async_helper.asyncTestInitialize(function() {});
   sdk._isolate_helper.startRootIsolate(function() {}, []);
-  
+  sdk._debugger.registerDevtoolsFormatter();
+
   testErrorToStackTrace = function(error) {
     var stackTrace = sdk.dart.stackTrace(error).toString();
     

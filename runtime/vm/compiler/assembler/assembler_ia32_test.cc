@@ -3146,6 +3146,22 @@ ASSEMBLER_TEST_RUN(BitTest, test) {
   EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
 }
 
+ASSEMBLER_TEST_GENERATE(BitTestImmediate, assembler) {
+  __ movl(ECX, Immediate(32));
+  __ bt(EAX, 5);
+  Label ok;
+  __ j(CARRY, &ok);
+  __ int3();
+  __ Bind(&ok);
+  __ movl(EAX, Immediate(1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(BitTestImmediate, test) {
+  typedef int (*BitTestImmediate)();
+  EXPECT_EQ(1, reinterpret_cast<BitTestImmediate>(test->entry())());
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

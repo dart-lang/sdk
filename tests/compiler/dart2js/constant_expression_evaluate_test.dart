@@ -32,7 +32,7 @@ class TestData {
   final String declarations;
 
   /// Tested constants.
-  final List constants;
+  final List<ConstantData> constants;
 
   const TestData(this.name, this.declarations, this.constants);
 }
@@ -315,6 +315,7 @@ class B extends A {
  const boolean = const bool.fromEnvironment("baz", defaultValue: false);
  const not_string =
     const bool.fromEnvironment("not_string", defaultValue: false) ? '' : 0;
+ get getter => 0;
  class Class1 {
     final field;
     const Class1() : field = not_string.length;
@@ -434,6 +435,7 @@ class B extends A {
         MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
     const ConstantData('const Class1()', 'NonConstant',
         MessageKind.INVALID_CONSTANT_STRING_LENGTH_TYPE),
+    const ConstantData('getter', 'NonConstant'),
   ]),
 ];
 
@@ -444,7 +446,7 @@ main() {
 Future testData(TestData data) async {
   StringBuffer sb = new StringBuffer();
   sb.write('${data.declarations}\n');
-  Map constants = {};
+  Map<String, ConstantData> constants = {};
   data.constants.forEach((ConstantData constantData) {
     String name = 'c${constants.length}';
     sb.write('const $name = ${constantData.code};\n');

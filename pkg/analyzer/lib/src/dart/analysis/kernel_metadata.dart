@@ -11,16 +11,12 @@ import 'package:kernel/kernel.dart' as kernel;
 
 /// Additional information that Analyzer needs for nodes.
 class AnalyzerMetadata {
-  final kernel.Node parent;
-
   /// If the node is a named constructor, the offset of the name.
   /// Otherwise `-1`.
   int constructorNameOffset = -1;
 
   /// Optional documentation comment, may be `null`.
   String documentationComment;
-
-  AnalyzerMetadata(this.parent);
 
   /// Return the [AnalyzerMetadata] for the [node], or `null` absent.
   static AnalyzerMetadata forNode(kernel.TreeNode node) {
@@ -84,22 +80,20 @@ class AnalyzerMetadataRepository
 
   @override
   AnalyzerMetadata readFromBinary(kernel.BinarySource source) {
-    var parent = source.readNodeReference();
-    return new AnalyzerMetadata(parent)
+    return new AnalyzerMetadata()
       ..constructorNameOffset = _readOffset(source)
       ..documentationComment = _readOptionalString(source);
   }
 
   @override
   void writeToBinary(AnalyzerMetadata metadata, kernel.BinarySink sink) {
-    sink.writeNodeReference(metadata.parent);
     _writeOffset(sink, metadata.constructorNameOffset);
     _writeOptionalString(sink, metadata.documentationComment);
   }
 
   /// Return the existing or new [AnalyzerMetadata] instance for the [node].
   AnalyzerMetadata _forWriting(kernel.TreeNode node) {
-    return mapping[node] ??= new AnalyzerMetadata(node);
+    return mapping[node] ??= new AnalyzerMetadata();
   }
 
   int _readOffset(kernel.BinarySource source) {

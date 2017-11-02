@@ -12,7 +12,7 @@ import 'package:expect/expect.dart';
 class D {
   var a = 0.0;
   var b = 1.0;
-  var c = 2.0;
+  dynamic c = 2.0;
   test() {
     a = 0.0;
     b = 1.0;
@@ -46,7 +46,7 @@ testD() {
 class F {
   var a = new Float32x4.zero();
   var b = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var c = new Float32x4.zero();
+  dynamic c = new Float32x4.zero();
   test() {
     a = new Float32x4.zero();
     b = new Float32x4(1.0, 2.0, 3.0, 4.0);

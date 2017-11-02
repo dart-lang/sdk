@@ -223,7 +223,7 @@ class ResolverTask extends CompilerTask {
   WorldImpact resolveMethodElementImplementation(
       FunctionElementX element, FunctionExpression tree) {
     return reporter.withCurrentElement(element, () {
-      if (element.isExternal && tree.hasBody) {
+      if (element.isMarkedExternal && tree.hasBody) {
         reporter.reportErrorMessage(element, MessageKind.EXTERNAL_WITH_BODY,
             {'functionName': element.name});
       }
@@ -352,7 +352,7 @@ class ResolverTask extends CompilerTask {
         element.parseNode(resolution.parsingContext);
         element.computeType(resolution);
         FunctionElementX implementation = element;
-        if (element.isExternal) {
+        if (element.isMarkedExternal) {
           implementation = target.resolveExternalFunction(element);
         }
         return resolveMethodElementImplementation(

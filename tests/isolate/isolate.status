@@ -213,9 +213,9 @@ isolate_import_test/01: Skip # Flutter Issue 9114
 
 # Deferred loading kernel issue 28335.
 [ ($compiler == dartk || $compiler == dartkp) ]
-deferred_in_isolate2_test: Skip # Deferred loading kernel issue 28335.
-deferred_in_isolate_test: Skip # Deferred loading kernel issue 28335.
-issue_21398_parent_isolate2_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_in_isolate2_test: Crash # Deferred loading kernel issue 28335.
+deferred_in_isolate_test: Crash # Deferred loading kernel issue 28335.
+issue_21398_parent_isolate2_test/01: Crash # Deferred loading kernel issue 28335.
 
 [ $compiler == dartkp ]
 message3_test/byteBuffer: Crash

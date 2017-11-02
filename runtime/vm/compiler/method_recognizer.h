@@ -120,7 +120,8 @@ namespace dart {
   V(_Bigint, get:_neg, Bigint_getNeg, Bool, 0x356019c4)                        \
   V(_Bigint, get:_used, Bigint_getUsed, Smi, 0x33ba5131)                       \
   V(_Bigint, get:_digits, Bigint_getDigits, TypedDataUint32Array, 0x68defc99)  \
-  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, Dynamic, 0x0246fcf8)      \
+  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, TypedDataUint32Array,     \
+      0x0246fcf8)                                                              \
   V(_HashVMBase, set:_index, LinkedHashMap_setIndex, Dynamic, 0x53a33a00)      \
   V(_HashVMBase, get:_data, LinkedHashMap_getData, Array, 0x2d79fc4d)          \
   V(_HashVMBase, set:_data, LinkedHashMap_setData, Dynamic, 0x129a9708)        \
@@ -156,7 +157,7 @@ namespace dart {
   V(_Double, >=, Double_greaterEqualThan, Bool, 0x57491a62)                    \
   V(_Double, <, Double_lessThan, Bool, 0x2e9d61bb)                             \
   V(_Double, <=, Double_lessEqualThan, Bool, 0x099e4442)                       \
-  V(_Double, ==, Double_equal, Bool, 0x04c399a1)                               \
+  V(_Double, ==, Double_equal, Bool, 0x282bd876)                               \
   V(_Double, +, Double_add, Double, 0x0ea5f450)                                \
   V(_Double, -, Double_sub, Double, 0x76768546)                                \
   V(_Double, *, Double_mul, Double, 0x66c66e3d)                                \
@@ -193,7 +194,7 @@ namespace dart {
   V(_TwoByteString, ==, TwoByteString_equality, Bool, 0x4719e83f)              \
   V(_Type, get:hashCode, Type_getHashCode, Smi, 0x18d0dde0)                    \
   V(::, _getHash, Object_getHash, Smi, 0x2827856d)                             \
-  V(::, _setHash, Object_setHash, Object, 0x302d1fe8)                          \
+  V(::, _setHash, Object_setHash, Dynamic, 0x54cb3fbc)                         \
 
 
 #define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
@@ -467,7 +468,7 @@ namespace dart {
   V(_Double, >=, Double_greaterEqualThan, 0x57491a62)                          \
   V(_Double, <, Double_lessThan, 0x2e9d61bb)                                   \
   V(_Double, <=, Double_lessEqualThan, 0x099e4442)                             \
-  V(_Double, ==, Double_equal, 0x04c399a1)                                     \
+  V(_Double, ==, Double_equal, 0x282bd876)                                     \
   V(_Double, +, Double_add, 0x0ea5f450)                                        \
   V(_Double, -, Double_sub, 0x76768546)                                        \
   V(_Double, *, Double_mul, 0x66c66e3d)                                        \

@@ -9,7 +9,6 @@
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/datastream.h"
-#include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
@@ -24,13 +23,13 @@ class Class;
 class ClassTable;
 class Closure;
 class Code;
-class Dwarf;
 class ExternalTypedData;
 class GrowableObjectArray;
 class Heap;
 class Instructions;
 class LanguageError;
 class Library;
+class LinkedHashMap;
 class Object;
 class PassiveObject;
 class ObjectStore;
@@ -202,30 +201,6 @@ class Snapshot {
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
 };
 
-class Image : ValueObject {
- public:
-  explicit Image(const void* raw_memory) : raw_memory_(raw_memory) {
-    ASSERT(Utils::IsAligned(raw_memory, OS::kMaxPreferredCodeAlignment));
-  }
-
-  void* object_start() {
-    return reinterpret_cast<void*>(reinterpret_cast<uword>(raw_memory_) +
-                                   kHeaderSize);
-  }
-
-  uword object_size() {
-    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
-    return snapshot_size - kHeaderSize;
-  }
-
-  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
-
- private:
-  const void* raw_memory_;  // The symbol kInstructionsSnapshot.
-
-  DISALLOW_COPY_AND_ASSIGN(Image);
-};
-
 class BaseReader {
  public:
   BaseReader(const uint8_t* buffer, intptr_t size) : stream_(buffer, size) {}
@@ -324,21 +299,6 @@ class BackRefNode : public ValueObject {
   ZoneGrowableArray<intptr_t>* patch_records_;
 };
 
-class ImageReader : public ZoneAllocated {
- public:
-  ImageReader(const uint8_t* instructions_buffer, const uint8_t* data_buffer);
-
-  RawInstructions* GetInstructionsAt(int32_t offset);
-  RawObject* GetObjectAt(int32_t offset);
-
- private:
-  const uint8_t* instructions_buffer_;
-  const uint8_t* data_buffer_;
-  const uint8_t* vm_instructions_buffer_;
-
-  DISALLOW_COPY_AND_ASSIGN(ImageReader);
-};
-
 // Reads a snapshot into objects.
 class SnapshotReader : public BaseReader {
  public:
@@ -396,6 +356,9 @@ class SnapshotReader : public BaseReader {
   PageSpace* old_space() const { return old_space_; }
 
  private:
+  void EnqueueRehashingOfMap(const LinkedHashMap& map);
+  RawObject* RunDelayedRehashingOfMaps();
+
   RawClass* ReadClassId(intptr_t object_id);
   RawFunction* ReadFunctionId(intptr_t object_id);
   RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
@@ -472,6 +435,7 @@ class SnapshotReader : public BaseReader {
   UnhandledException& error_;      // Error handle.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
+  GrowableObjectArray& objects_to_rehash_;
 
   friend class ApiError;
   friend class Array;
@@ -679,122 +643,6 @@ class ForwardList {
   intptr_t first_unprocessed_object_id_;
 
   DISALLOW_COPY_AND_ASSIGN(ForwardList);
-};
-
-class ImageWriter : public ZoneAllocated {
- public:
-  ImageWriter()
-      : next_offset_(0), next_object_offset_(0), instructions_(), objects_() {
-    ResetOffsets();
-  }
-  virtual ~ImageWriter() {}
-
-  void ResetOffsets() {
-    next_offset_ = Image::kHeaderSize;
-    next_object_offset_ = Image::kHeaderSize;
-    instructions_.Clear();
-    objects_.Clear();
-  }
-  int32_t GetTextOffsetFor(RawInstructions* instructions, RawCode* code);
-  int32_t GetDataOffsetFor(RawObject* raw_object);
-
-  void Write(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() = 0;
-  intptr_t data_size() { return next_object_offset_; }
-
- protected:
-  void WriteROData(WriteStream* stream);
-  virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
-
-  struct InstructionsData {
-    explicit InstructionsData(RawInstructions* insns,
-                              RawCode* code,
-                              intptr_t offset)
-        : raw_insns_(insns), raw_code_(code), offset_(offset) {}
-
-    union {
-      RawInstructions* raw_insns_;
-      const Instructions* insns_;
-    };
-    union {
-      RawCode* raw_code_;
-      const Code* code_;
-    };
-    intptr_t offset_;
-  };
-
-  struct ObjectData {
-    explicit ObjectData(RawObject* raw_obj) : raw_obj_(raw_obj) {}
-
-    union {
-      RawObject* raw_obj_;
-      const Object* obj_;
-    };
-  };
-
-  intptr_t next_offset_;
-  intptr_t next_object_offset_;
-  GrowableArray<InstructionsData> instructions_;
-  GrowableArray<ObjectData> objects_;
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(ImageWriter);
-};
-
-class AssemblyImageWriter : public ImageWriter {
- public:
-  AssemblyImageWriter(uint8_t** assembly_buffer,
-                      ReAlloc alloc,
-                      intptr_t initial_size);
-  void Finalize();
-
-  virtual void WriteText(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() { return text_size_; }
-
-  intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
-
- private:
-  void FrameUnwindPrologue();
-  void FrameUnwindEpilogue();
-  void WriteByteSequence(uword start, uword end);
-  void WriteWordLiteralText(uword value) {
-// Padding is helpful for comparing the .S with --disassemble.
-#if defined(ARCH_IS_64_BIT)
-    assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
-#else
-    assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
-#endif
-    text_size_ += sizeof(value);
-  }
-
-  WriteStream assembly_stream_;
-  intptr_t text_size_;
-  Dwarf* dwarf_;
-
-  DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
-};
-
-class BlobImageWriter : public ImageWriter {
- public:
-  BlobImageWriter(uint8_t** instructions_blob_buffer,
-                  ReAlloc alloc,
-                  intptr_t initial_size)
-      : ImageWriter(),
-        instructions_blob_stream_(instructions_blob_buffer,
-                                  alloc,
-                                  initial_size) {}
-
-  virtual void WriteText(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() { return InstructionsBlobSize(); }
-
-  intptr_t InstructionsBlobSize() const {
-    return instructions_blob_stream_.bytes_written();
-  }
-
- private:
-  WriteStream instructions_blob_stream_;
-
-  DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };
 
 class SnapshotWriter : public BaseWriter {

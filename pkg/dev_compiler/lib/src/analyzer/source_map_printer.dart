@@ -144,6 +144,10 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     }
     _previousLine = _line;
     _previousColumn = _column;
+    // TODO(vsm): We suppress the identifier as it appears to confuse dev
+    // tools when the identifier is renamed.  Investigate if this is
+    // ever worth doing.
+    identifier = null;
     sourceMap.addLocation(
         new SourceLocation(offset,
             sourceUrl: _sourceUri,

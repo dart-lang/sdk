@@ -15,6 +15,8 @@ import '../problems.dart' show unhandled;
 
 import 'fasta_accessors.dart' show BuilderHelper;
 
+import 'kernel_builder.dart' show LoadLibraryBuilder;
+
 import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
@@ -514,7 +516,8 @@ class ThisIndexAccessor extends Accessor {
   Expression _makeSimpleRead() {
     return new ShadowMethodInvocation(new ShadowThisExpression(), indexGetName,
         new ShadowArguments(<Expression>[index]),
-        interfaceTarget: getter);
+        interfaceTarget: getter)
+      ..fileOffset = offsetForToken(token);
   }
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
@@ -692,6 +695,26 @@ class StaticAccessor extends Accessor {
       write = new StaticSet(writeTarget, value);
       complexAssignment?.write = write;
     }
+    write.fileOffset = offsetForToken(token);
+    return write;
+  }
+}
+
+abstract class LoadLibraryAccessor extends Accessor {
+  final LoadLibraryBuilder builder;
+
+  LoadLibraryAccessor(BuilderHelper helper, Token token, this.builder)
+      : super(helper, token);
+
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    var read = helper.makeStaticGet(builder.createTearoffMethod(), token);
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    Expression write = makeInvalidWrite(value);
     write.fileOffset = offsetForToken(token);
     return write;
   }

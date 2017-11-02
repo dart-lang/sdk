@@ -51,6 +51,9 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
     // Set all non object fields.
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    cls.set_kernel_offset(reader->Read<int32_t>());
+#endif
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // Instance size of a VM defined class is already set up.
       cls.set_instance_size_in_words(reader->Read<int32_t>());
@@ -100,6 +103,9 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     classid_t class_id = ptr()->id_;
     ASSERT(class_id != kIllegalCid);
     writer->Write<classid_t>(class_id);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    writer->Write<int32_t>(ptr()->kernel_offset_);
+#endif
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // We don't write the instance size of VM defined classes as they
       // are already setup during initialization as part of pre populating
@@ -585,7 +591,7 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &data, kIsDeserialized);
 
   // Set all the object fields.
-  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to_snapshot(),
+  READ_OBJECT_FIELDS(data, data.raw()->from(), data.raw()->to(),
                      kAsInlinedObject);
 
   return data.raw();
@@ -2351,6 +2357,8 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
   // in particular, if/when (const) maps are needed in the VM isolate snapshot.
   ASSERT(reader->isolate() != Dart::vm_isolate());
   map.SetHashMask(0);  // Prefer sentinel 0 over null for better type feedback.
+
+  reader->EnqueueRehashingOfMap(map);
 
   // Read the keys and values.
   bool read_as_reference = RawObject::IsCanonical(tags) ? false : true;

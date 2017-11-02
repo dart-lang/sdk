@@ -145,8 +145,8 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
   const intptr_t size = Utils::RoundUp(capacity * Sample::instance_size(),
                                        VirtualMemory::PageSize());
   const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Reserve(size);
-  if ((memory_ == NULL) || !memory_->Commit(kNotExecutable, "dart-profiler")) {
+  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-profiler");
+  if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
 

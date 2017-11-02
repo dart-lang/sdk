@@ -1477,20 +1477,28 @@ class FixProcessor {
       return 1;
     });
     int numElements = elements.length;
-    int insertOffset = targetClass.end - 1;
+
+    ClassMemberLocation location =
+        utils.prepareNewClassMemberLocation(targetClass, (_) => true);
+
     String prefix = utils.getIndent(1);
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
+      builder.addInsertion(location.offset, (DartEditBuilder builder) {
         // TODO(brianwilkerson) Compare with builder.writeOverrideOfInheritedMember
         // The builder method doesn't merge getter/setter pairs into fields.
-        // EOL management
-        bool isFirst = true;
-        void addEolIfNotFirst() {
-          if (!isFirst || utils.isClassWithEmptyBody(targetClass)) {
-            builder.write(eol);
+
+        // Separator management.
+        int numOfMembersWritten = 0;
+        void addSeparatorBetweenDeclarations() {
+          if (numOfMembersWritten == 0) {
+            builder.write(location.prefix);
+          } else {
+            builder.write(eol); // after the previous member
+            builder.write(eol); // empty line separator
+            builder.write(prefix);
           }
-          isFirst = false;
+          numOfMembersWritten++;
         }
 
         // merge getter/setter pairs into fields
@@ -1505,9 +1513,8 @@ class FixProcessor {
               i--;
               numElements--;
               // separator
-              addEolIfNotFirst();
+              addSeparatorBetweenDeclarations();
               // @override
-              builder.write(prefix);
               builder.write('@override');
               builder.write(eol);
               // add field
@@ -1516,19 +1523,19 @@ class FixProcessor {
               builder.write(' ');
               builder.write(element.name);
               builder.write(';');
-              builder.write(eol);
             }
           }
         }
         // add elements
         for (ExecutableElement element in elements) {
-          addEolIfNotFirst();
+          addSeparatorBetweenDeclarations();
           _addFix_createMissingOverridesForBuilder(
               builder, targetClass, element);
         }
+        builder.write(location.suffix);
       });
     });
-    changeBuilder.setSelection(new Position(file, insertOffset));
+    changeBuilder.setSelection(new Position(file, location.offset));
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_MISSING_OVERRIDES,
         args: [numElements]);
   }
@@ -1545,7 +1552,6 @@ class FixProcessor {
     bool isSetter = elementKind == ElementKind.SETTER;
     bool isMethod = elementKind == ElementKind.METHOD;
     bool isOperator = isMethod && (element as MethodElement).isOperator;
-    builder.write(prefix);
     if (isGetter) {
       builder.write('// TODO: implement ${element.displayName}');
       builder.write(eol);
@@ -1589,7 +1595,6 @@ class FixProcessor {
       builder.write(prefix);
       builder.write('}');
     }
-    builder.write(eol);
     utils.targetExecutableElement = null;
   }
 

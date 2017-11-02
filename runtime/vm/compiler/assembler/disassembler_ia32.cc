@@ -206,6 +206,7 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0xAD:
       return "shrd";
     case 0xA3:
+    case 0xBA:
       return "bt";
     case 0xAB:
       return "bts";
@@ -1456,6 +1457,16 @@ int X86Decoder::InstructionDecode(uword pc) {
             PrintHex(comparison);
             Print("]");
             data++;
+          } else if (f0byte == 0xBA && (*data & 0xe0) == 0xe0) {
+            // bt? immediate instruction
+            int r = (*data >> 3) & 7;
+            static const char* const names[4] = {"bt", "bts", "btr", "btc"};
+            Print(names[r - 4]);
+            Print(" ");
+            data += PrintRightOperand(data);
+            uint8_t bit = *data++;
+            Print(",");
+            PrintInt(bit);
           } else {
             UNIMPLEMENTED();
           }

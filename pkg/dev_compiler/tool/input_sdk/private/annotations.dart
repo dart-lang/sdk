@@ -30,6 +30,15 @@ class NoReifyGeneric {
   const NoReifyGeneric();
 }
 
+/// Enables/disables reificiation of functions within the body of this function.
+/// ****CAUTION******
+/// This is currently unchecked, and hence should be used very carefully for
+/// internal SDK APIs only.
+class ReifyFunctionTypes {
+  final bool value;
+  const ReifyFunctionTypes(this.value);
+}
+
 /// Tells the development compiler to check a variable for null at its
 /// declaration point, and then to assume that the variable is non-null
 /// from that point forward.

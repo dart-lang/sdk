@@ -181,12 +181,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginDottedName(Token token) {
-    super.beginDottedName(token);
-    begin('DottedName');
-  }
-
-  @override
   void beginElseStatement(Token token) {
     super.beginElseStatement(token);
     begin('ElseStatement');
@@ -298,12 +292,6 @@ class ForwardingTestListener extends ForwardingListener {
   void beginHide(Token hideKeyword) {
     super.beginHide(hideKeyword);
     begin('Hide');
-  }
-
-  @override
-  void beginIdentifierList(Token token) {
-    super.beginIdentifierList(token);
-    begin('IdentifierList');
   }
 
   @override
@@ -673,12 +661,6 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endDottedName(int count, Token firstIdentifier) {
-    end('DottedName');
-    super.endDottedName(count, firstIdentifier);
-  }
-
-  @override
   void endElseStatement(Token token) {
     end('ElseStatement');
     super.endElseStatement(token);
@@ -811,12 +793,6 @@ class ForwardingTestListener extends ForwardingListener {
   void endHide(Token hideKeyword) {
     end('Hide');
     super.endHide(hideKeyword);
-  }
-
-  @override
-  void endIdentifierList(int count) {
-    end('IdentifierList');
-    super.endIdentifierList(count);
   }
 
   @override
@@ -1104,6 +1080,18 @@ class ForwardingTestListener extends ForwardingListener {
   void handleClassImplements(Token implementsKeyword, int interfacesCount) {
     expectIn('ClassDeclaration');
     listener.handleClassImplements(implementsKeyword, interfacesCount);
+  }
+
+  @override
+  void handleIdentifierList(int count) {
+    expectInOneOf(['Hide', 'Show']);
+    super.handleIdentifierList(count);
+  }
+
+  @override
+  void handleDottedName(int count, Token firstIdentifier) {
+    expectIn('ConditionalUri');
+    super.handleDottedName(count, firstIdentifier);
   }
 
   @override

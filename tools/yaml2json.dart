@@ -18,8 +18,15 @@ main(List<String> arguments) async {
   }
   Uri input = Uri.base.resolve(arguments[0]);
   Uri output = Uri.base.resolve(arguments[1]);
-  var yaml = loadYaml(await new File.fromUri(input).readAsString());
-  await new File.fromUri(output)
-      .writeAsString(const JsonEncoder.withIndent("  ").convert(yaml));
+  Map yaml = loadYaml(await new File.fromUri(input).readAsString());
+  Map<String, dynamic> result = new Map<String, dynamic>();
+  result["comment:0"] = "NOTE: THIS FILE IS GENERATED. DO NOT EDIT.";
+  result["comment:1"] =
+      "Instead modify '${arguments[0]}' and follow the instructions therein.";
+  for (String key in yaml.keys) {
+    result[key] = yaml[key];
+  }
+  File file = new File.fromUri(output);
+  await file.writeAsString(const JsonEncoder.withIndent("  ").convert(result));
   port.close();
 }

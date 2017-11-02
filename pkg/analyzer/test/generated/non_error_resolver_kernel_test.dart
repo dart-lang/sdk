@@ -29,7 +29,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
   }
@@ -51,14 +51,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_functionDeclaration_scope_signature() async {
     return super.test_functionDeclaration_scope_signature();
   }
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_functionTypeAlias_scope_signature() async {
     return super.test_functionTypeAlias_scope_signature();
   }
@@ -88,7 +88,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_methodDeclaration_scope_signature() async {
     return super.test_methodDeclaration_scope_signature();
   }

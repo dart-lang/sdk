@@ -191,6 +191,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (_targetFunction != null) {
         _ensureDefaultArgumentValues(_targetFunction);
       }
+
+      if (backend.tracer.isEnabled) {
+        MemberEntity member = definition.member;
+        String name = member.name;
+        if (member.isInstanceMember) {
+          name = "${member.enclosingClass.name}.$name";
+          if (definition.kind == MemberKind.constructorBody) {
+            name += " (body)";
+          }
+        }
+        backend.tracer.traceCompilation(name);
+        backend.tracer.traceGraph('builder', graph);
+      }
+
       return graph;
     });
   }

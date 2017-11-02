@@ -46,12 +46,11 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         messageConstConstructorWithBody,
-        messageExternalMethodWithBody,
         messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
         warning;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unexpected;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
@@ -74,6 +73,8 @@ import 'kernel_builder.dart'
         isRedirectingGenerativeConstructorImplementation;
 
 import 'kernel_shadow_ast.dart' show ShadowProcedure, ShadowVariableDeclaration;
+
+import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -102,10 +103,6 @@ abstract class KernelFunctionBuilder
         return internalProblem(messageInternalProblemBodyOnAbstractMethod,
             newBody.fileOffset, fileUri);
       }
-      if (isExternal) {
-        return library.addCompileTimeError(
-            messageExternalMethodWithBody, newBody.fileOffset, fileUri);
-      }
       if (isConstructor && isConst) {
         return library.addCompileTimeError(
             messageConstConstructorWithBody, newBody.fileOffset, fileUri);
@@ -116,6 +113,15 @@ abstract class KernelFunctionBuilder
       function.body = newBody;
       newBody?.parent = function;
     }
+  }
+
+  void setRedirectingFactoryBody(Member target) {
+    if (actualBody != null) {
+      unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
+    }
+    actualBody = new RedirectingFactoryBody(target);
+    function.body = actualBody;
+    actualBody?.parent = function;
   }
 
   Statement get body => actualBody ??= new EmptyStatement();
@@ -197,7 +203,6 @@ abstract class KernelFunctionBuilder
   Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader) {
-    target.isExternal = true;
     Builder constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
@@ -322,6 +327,12 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
         }
       }
     }
+  }
+
+  @override
+  void becomeNative(Loader loader) {
+    procedure.isExternal = true;
+    super.becomeNative(loader);
   }
 }
 
@@ -450,5 +461,11 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     }
     initializers.add(initializer);
     initializer.parent = constructor;
+  }
+
+  @override
+  void becomeNative(Loader loader) {
+    constructor.isExternal = true;
+    super.becomeNative(loader);
   }
 }

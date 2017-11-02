@@ -52,6 +52,335 @@ class CombineTest {
   ///   * When a class to merge is first time declared in the first library;
   ///   * When a class to merge is first time declared in the second library.
   ///
+  /// With two cases of constructor declarations:
+  ///   * Already defined, so references to it should be rewritten.
+  ///   * First defined in this outline, so references to it can be kept as is.
+  ///
+  /// For each case we validate [DirectMethodInvocation], [MethodInvocation],
+  /// and [SuperMethodInvocation].
+  void test_class_procedure_constructor() {
+    var nodeToNameMap = <NamedNode, String>{};
+
+    var library1 = _newLibrary('test');
+    var constructorA11 = _newConstructor('a1');
+    var classA1 = new Class(
+        name: 'A', supertype: objectSuper, constructors: [constructorA11]);
+    library1.addClass(classA1);
+    nodeToNameMap[classA1] = 'A1';
+    nodeToNameMap[constructorA11] = 'A11';
+
+    var library2 = _newLibrary('test');
+    var constructorA12 = _newConstructor('a1');
+    var constructorA22 = _newConstructor('a2');
+    var constructorB11 = _newConstructor('b1');
+    var classA2 = new Class(
+        name: 'A',
+        supertype: objectSuper,
+        constructors: [constructorA12, constructorA22]);
+    library2.addClass(classA2);
+    var classB1 = new Class(
+        name: 'B', supertype: objectSuper, constructors: [constructorB11]);
+    library2.addClass(classB1);
+    // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
+    library2.addProcedure(_newExpressionsProcedure([
+      new ConstructorInvocation(constructorA12, new Arguments.empty()),
+      new ConstructorInvocation(constructorA22, new Arguments.empty()),
+    ], name: 'main2'));
+    library2.addClass(new Class(
+        name: 'S1',
+        supertype: classA2.asThisSupertype,
+        constructors: [
+          new Constructor(new FunctionNode(new EmptyStatement()),
+              name: new Name('c1'),
+              initializers: [
+                new SuperInitializer(constructorA12, new Arguments.empty()),
+                new SuperInitializer(constructorA22, new Arguments.empty()),
+              ]),
+          new Constructor(new FunctionNode(new EmptyStatement()),
+              name: new Name('c2'),
+              initializers: [
+                new RedirectingInitializer(
+                    constructorA12, new Arguments.empty()),
+                new RedirectingInitializer(
+                    constructorA22, new Arguments.empty()),
+              ]),
+        ]));
+    nodeToNameMap[classA2] = 'A2';
+    nodeToNameMap[constructorA12] = 'A12';
+    nodeToNameMap[constructorA22] = 'A22';
+    nodeToNameMap[constructorB11] = 'B11';
+    nodeToNameMap[classB1] = 'B1';
+    nodeToNameMap[constructorB11] = 'B11';
+
+    var library3 = _newLibrary('test');
+    var constructorB12 = _newConstructor('b1');
+    var constructorB22 = _newConstructor('b2');
+    var classB2 = new Class(
+        name: 'B',
+        supertype: objectSuper,
+        constructors: [constructorB12, constructorB22]);
+    library3.addClass(classB2);
+    library3.addProcedure(_newExpressionsProcedure([
+      new ConstructorInvocation(constructorB12, new Arguments.empty()),
+      new ConstructorInvocation(constructorB22, new Arguments.empty()),
+    ], name: 'main3'));
+    library3.addClass(new Class(
+        name: 'S2',
+        supertype: classA2.asThisSupertype,
+        constructors: [
+          new Constructor(new FunctionNode(new EmptyStatement()),
+              name: new Name('c1'),
+              initializers: [
+                new SuperInitializer(constructorB12, new Arguments.empty()),
+                new SuperInitializer(constructorB22, new Arguments.empty()),
+              ]),
+          new Constructor(new FunctionNode(new EmptyStatement()),
+              name: new Name('c2'),
+              initializers: [
+                new RedirectingInitializer(
+                    constructorB12, new Arguments.empty()),
+                new RedirectingInitializer(
+                    constructorB22, new Arguments.empty()),
+              ]),
+        ]));
+    nodeToNameMap[classB2] = 'B2';
+    nodeToNameMap[constructorB12] = 'B12';
+    nodeToNameMap[constructorB22] = 'B22';
+
+    var outline1 = _newOutline([library1]);
+    var outline2 = _newOutline([library2]);
+    var outline3 = _newOutline([library3]);
+
+    expect(_getLibraryText(library1, nodeToNameMap), r'''
+class A[A1] {
+  constructor a1[A11]();
+}
+''');
+    expect(_getLibraryText(library2, nodeToNameMap), r'''
+class A[A2] {
+  constructor a1[A12]();
+  constructor a2[A22]();
+}
+class B[B1] {
+  constructor b1[B11]();
+}
+class S1 {
+  constructor c1() :
+      super[A12](),
+      super[A22]();
+  constructor c2() :
+      redirect[A12](),
+      redirect[A22]();
+}
+main2() {
+  ConstructorInvocation[A12]();
+  ConstructorInvocation[A22]();
+}
+''');
+    expect(_getLibraryText(library3, nodeToNameMap), r'''
+class B[B2] {
+  constructor b1[B12]();
+  constructor b2[B22]();
+}
+class S2 {
+  constructor c1() :
+      super[B12](),
+      super[B22]();
+  constructor c2() :
+      redirect[B12](),
+      redirect[B22]();
+}
+main3() {
+  ConstructorInvocation[B12]();
+  ConstructorInvocation[B22]();
+}
+''');
+
+    _runCombineTest([outline1, outline2, outline3], (result) {
+      var library = _getLibrary(result.program, 'test');
+      expect(_getLibraryText(library, nodeToNameMap), r'''
+class A[A1] {
+  constructor a1[A11]();
+  constructor a2[A22]();
+}
+class B[B1] {
+  constructor b1[B11]();
+  constructor b2[B22]();
+}
+class S1 {
+  constructor c1() :
+      super[A11](),
+      super[A22]();
+  constructor c2() :
+      redirect[A11](),
+      redirect[A22]();
+}
+class S2 {
+  constructor c1() :
+      super[B11](),
+      super[B22]();
+  constructor c2() :
+      redirect[B11](),
+      redirect[B22]();
+}
+main2() {
+  ConstructorInvocation[A11]();
+  ConstructorInvocation[A22]();
+}
+main3() {
+  ConstructorInvocation[B11]();
+  ConstructorInvocation[B22]();
+}
+''');
+    });
+  }
+
+  /// We test two cases of class declarations:
+  ///   * When a class to merge is first time declared in the first library;
+  ///   * When a class to merge is first time declared in the second library.
+  ///
+  /// With two cases of field declarations:
+  ///   * Already defined, so references to it should be rewritten.
+  ///   * First defined in this outline, so references to it can be kept as is.
+  ///
+  /// For each case we validate [DirectMethodInvocation], [MethodInvocation],
+  /// and [SuperMethodInvocation].
+  void test_class_procedure_field() {
+    var library1 = _newLibrary('test');
+    var fieldA11 = _newField('a1');
+    var classA1 =
+        new Class(name: 'A', supertype: objectSuper, fields: [fieldA11]);
+    library1.addClass(classA1);
+
+    var library2 = _newLibrary('test');
+    var fieldA12 = _newField('a1');
+    var fieldA22 = _newField('a2');
+    var fieldB11 = _newField('b1');
+    var classA2 = new Class(
+        name: 'A', supertype: objectSuper, fields: [fieldA12, fieldA22]);
+    library2.addClass(classA2);
+    library2.addClass(
+        new Class(name: 'B', supertype: objectSuper, fields: [fieldB11]));
+    // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
+    library2.addProcedure(_newExpressionsProcedure([
+      new DirectPropertyGet(null, fieldA12),
+      new PropertyGet(null, null, fieldA12),
+      new DirectPropertySet(null, fieldA12, null),
+      new PropertySet(null, null, null, fieldA12),
+      new DirectPropertyGet(null, fieldA22),
+      new PropertyGet(null, null, fieldA22),
+      new DirectPropertySet(null, fieldA22, null),
+      new PropertySet(null, null, null, fieldA22),
+    ], name: 'main2'));
+    library2.addClass(
+        new Class(name: 'S1', supertype: classA2.asThisSupertype, procedures: [
+      _newExpressionsProcedure([
+        new SuperPropertyGet(null, fieldA12),
+        new SuperPropertySet(null, null, fieldA12),
+        new SuperPropertyGet(null, fieldA22),
+        new SuperPropertySet(null, null, fieldA22),
+      ], name: 'foo')
+    ]));
+
+    var library3 = _newLibrary('test');
+    var fieldB12 = _newField('b1');
+    var fieldB22 = _newField('b2');
+    library3.addClass(new Class(
+        name: 'B', supertype: objectSuper, fields: [fieldB12, fieldB22]));
+    library3.addProcedure(_newExpressionsProcedure([
+      new DirectPropertyGet(null, fieldB12),
+      new PropertyGet(null, null, fieldB12),
+    ], name: 'main3'));
+    library3.addClass(
+        new Class(name: 'S2', supertype: classA2.asThisSupertype, procedures: [
+      _newExpressionsProcedure([
+        new SuperPropertyGet(null, fieldB12),
+        new SuperPropertySet(null, null, fieldB12),
+        new SuperPropertyGet(null, fieldB22),
+        new SuperPropertySet(null, null, fieldB22),
+      ], name: 'foo')
+    ]));
+
+    var outline1 = _newOutline([library1]);
+    var outline2 = _newOutline([library2]);
+    var outline3 = _newOutline([library3]);
+
+    _runCombineTest([outline1, outline2, outline3], (result) {
+      var library = _getLibrary(result.program, 'test');
+
+      var classA = _getClass(library, 'A');
+      expect(_getField(classA, 'a1'), same(fieldA11));
+      expect(_getField(classA, 'a2'), same(fieldA22));
+
+      // main2() is updated to point to "A.a1" from library1.
+      // But "A.a2" is still from library2.
+      var main2 = _getProcedure(library, 'main2', '@methods');
+      expect((_getProcedureExpression(main2, 0) as DirectPropertyGet).target,
+          same(fieldA11));
+      expect((_getProcedureExpression(main2, 1) as PropertyGet).interfaceTarget,
+          same(fieldA11));
+      expect((_getProcedureExpression(main2, 2) as DirectPropertySet).target,
+          same(fieldA11));
+      expect((_getProcedureExpression(main2, 3) as PropertySet).interfaceTarget,
+          same(fieldA11));
+
+      // Super invocations are updated.
+      var classS1 = _getClass(library, 'S1');
+      var fooS1 = _getProcedure(classS1, 'foo', '@methods');
+      expect(
+          (_getProcedureExpression(fooS1, 0) as SuperPropertyGet)
+              .interfaceTarget,
+          same(fieldA11));
+      expect(
+          (_getProcedureExpression(fooS1, 1) as SuperPropertySet)
+              .interfaceTarget,
+          same(fieldA11));
+      expect(
+          (_getProcedureExpression(fooS1, 2) as SuperPropertyGet)
+              .interfaceTarget,
+          same(fieldA22));
+      expect(
+          (_getProcedureExpression(fooS1, 3) as SuperPropertySet)
+              .interfaceTarget,
+          same(fieldA22));
+
+      var classB = _getClass(library, 'B');
+      expect(_getField(classB, 'b1'), same(fieldB11));
+      expect(_getField(classB, 'b2'), same(fieldB22));
+
+      // main3() is updated to point to "B.b1" from library2.
+      var main3 = _getProcedure(library, 'main3', '@methods');
+      expect((_getProcedureExpression(main3, 0) as DirectPropertyGet).target,
+          same(fieldB11));
+      expect((_getProcedureExpression(main3, 1) as PropertyGet).interfaceTarget,
+          same(fieldB11));
+
+      // Super invocations are updated.
+      var classS2 = _getClass(library, 'S2');
+      var fooS2 = _getProcedure(classS2, 'foo', '@methods');
+      expect(
+          (_getProcedureExpression(fooS2, 0) as SuperPropertyGet)
+              .interfaceTarget,
+          same(fieldB11));
+      expect(
+          (_getProcedureExpression(fooS2, 1) as SuperPropertySet)
+              .interfaceTarget,
+          same(fieldB11));
+      expect(
+          (_getProcedureExpression(fooS2, 2) as SuperPropertyGet)
+              .interfaceTarget,
+          same(fieldB22));
+      expect(
+          (_getProcedureExpression(fooS2, 3) as SuperPropertySet)
+              .interfaceTarget,
+          same(fieldB22));
+    });
+  }
+
+  /// We test two cases of class declarations:
+  ///   * When a class to merge is first time declared in the first library;
+  ///   * When a class to merge is first time declared in the second library.
+  ///
   /// With two cases of setter declarations:
   ///   * Already defined, so references to it should be rewritten.
   ///   * First defined in this outline, so references to it can be kept as is.
@@ -736,12 +1065,21 @@ class CombineTest {
 
   /// Get a single [Field] with the given [name].
   /// Throw if there is not exactly one.
-  Field _getField(Library library, String name) {
-    var results = library.fields.where((field) => field.name.name == name);
+  Field _getField(NamedNode parent, String name) {
+    List<Field> fields;
+    if (parent is Library) {
+      fields = parent.fields;
+    } else if (parent is Class) {
+      fields = parent.fields;
+    } else {
+      throw new ArgumentError('Only Library or Class expected');
+    }
+
+    var results = fields.where((field) => field.name.name == name);
     expect(results, hasLength(1), reason: 'Expected only one: $name');
     Field result = results.first;
-    expect(result.parent, library);
-    var parentName = library.canonicalName.getChild('@fields');
+    expect(result.parent, parent);
+    var parentName = parent.canonicalName.getChild('@fields');
     expect(result.canonicalName.parent, parentName);
     return result;
   }
@@ -787,6 +1125,11 @@ class CombineTest {
     Block mainBlock = procedure.function.body;
     ExpressionStatement statement = mainBlock.statements[index];
     return statement.expression;
+  }
+
+  Constructor _newConstructor(String name, {Statement body}) {
+    body ??= new EmptyStatement();
+    return new Constructor(new FunctionNode(body), name: new Name(name));
   }
 
   Procedure _newExpressionsProcedure(List<Expression> expressions,
@@ -848,6 +1191,164 @@ class CombineTest {
     states.forEach((outline, state) {
       state.verifySame();
     });
+  }
+
+  /// Return the text presentation of the [library] that is not a normal Kernel
+  /// AST text, but includes portions that we want to test - declarations
+  /// and references.  The map [nodeToName] must have entries for all
+  /// referenced nodes, other declarations are optional.
+  static String _getLibraryText(
+      Library library, Map<NamedNode, String> nodeToName) {
+    var buffer = new StringBuffer();
+
+    String getNodeName(NamedNode node) {
+      String name = nodeToName[node];
+      if (name != null) {
+        return '[$name]';
+      } else {
+        return '';
+      }
+    }
+
+    void writeStatement(Statement node, String indent) {
+      if (node is ExpressionStatement) {
+        Expression expression = node.expression;
+        String prefix = expression.runtimeType.toString();
+        Member target;
+        if (expression is ConstructorInvocation) {
+          target = expression.target;
+        } else if (expression is DirectMethodInvocation) {
+          target = expression.target;
+        } else if (expression is MethodInvocation) {
+          target = expression.interfaceTarget;
+        } else if (expression is SuperMethodInvocation) {
+          target = expression.interfaceTarget;
+        } else {
+          var type = expression.runtimeType;
+          fail('Unsupported expression: $type');
+        }
+        String name = nodeToName[target];
+        expect(name, isNotNull, reason: target.toString());
+        buffer.writeln('$indent$prefix[$name]();');
+      } else {
+        fail('Unsupported statement: (${node.runtimeType}) $node');
+      }
+    }
+
+    void writeBody(Statement body, String indent) {
+      if (body is EmptyStatement) {
+        buffer.writeln(';');
+      } else if (body is Block) {
+        buffer.write(' {');
+        if (body.statements.isNotEmpty) {
+          buffer.writeln();
+          for (var statement in body.statements) {
+            writeStatement(statement, '$indent  ');
+          }
+          buffer.writeln('$indent}');
+        } else {
+          buffer.writeln('}');
+        }
+      } else {
+        fail('Not implemented ${body.runtimeType}');
+      }
+    }
+
+    void writeField(Field node, String indent) {
+      fail('Not implemented ${node.runtimeType}');
+    }
+
+    void writeInitializer(Initializer node, String indent) {
+      String kind;
+      Constructor target;
+      if (node is RedirectingInitializer) {
+        kind = 'redirect';
+        target = node.target;
+      } else if (node is SuperInitializer) {
+        kind = 'super';
+        target = node.target;
+      } else {
+        fail('Not implemented ${node.runtimeType}');
+      }
+      String name = nodeToName[target];
+      expect(name, isNotNull, reason: target.toString());
+      buffer.write('${indent}${kind}[$name]()');
+    }
+
+    void writeConstructor(Constructor node, String indent) {
+      String name = getNodeName(node);
+      buffer.write('${indent}constructor ${node.name}$name()');
+      List<Initializer> initializers = node.initializers;
+      if (initializers.isNotEmpty) {
+        buffer.writeln(' :');
+        for (int i = 0; i < initializers.length; i++) {
+          Initializer initializer = initializers[i];
+          writeInitializer(initializer, '      ');
+          if (i != initializers.length - 1) {
+            buffer.writeln(',');
+          }
+        }
+      }
+      writeBody(node.function.body, indent);
+    }
+
+    void writeProcedure(NamedNode parent, Procedure node, String indent) {
+      String prefixName;
+      String kindStr;
+      ProcedureKind kind = node.kind;
+      if (kind == ProcedureKind.Method) {
+        prefixName = '@methods';
+        kindStr = '';
+      } else if (kind == ProcedureKind.Getter) {
+        prefixName = '@getters';
+        kindStr = 'get ';
+      } else if (kind == ProcedureKind.Getter) {
+        prefixName = '@setters';
+        kindStr = 'set ';
+      } else {
+        fail('Unsupported kind: $kind');
+      }
+
+      // Verify canonical names linkage.
+      var parentName = parent.canonicalName.getChild(prefixName);
+      expect(node.canonicalName.parent, parentName);
+
+      String nodeName = getNodeName(node);
+      buffer.write('$indent$kindStr${node.name}$nodeName()');
+      writeBody(node.function.body, indent);
+    }
+
+    void writeClass(Class node) {
+      String nodeName = getNodeName(node);
+      buffer.write('class ${node.name}$nodeName {');
+      if (!node.members.isEmpty) {
+        buffer.writeln();
+        for (var field in node.fields) {
+          writeField(field, '  ');
+        }
+        for (var constructor in node.constructors) {
+          writeConstructor(constructor, '  ');
+        }
+        for (var procedure in node.procedures) {
+          writeProcedure(node, procedure, '  ');
+        }
+      }
+      buffer.writeln('}');
+    }
+
+    for (var node in library.fields) {
+      writeField(node, '');
+    }
+
+    for (var node in library.classes) {
+      writeClass(node);
+    }
+
+    for (var node in library.procedures) {
+      writeProcedure(library, node, '');
+    }
+
+    return buffer.toString();
   }
 }
 

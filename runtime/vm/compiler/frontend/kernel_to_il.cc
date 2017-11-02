@@ -156,7 +156,7 @@ TranslationHelper::TranslationHelper(Thread* thread)
       metadata_mappings_(TypedData::Handle(Z)) {}
 
 void TranslationHelper::InitFromScript(const Script& script) {
-  KernelProgramInfo& info =
+  const KernelProgramInfo& info =
       KernelProgramInfo::Handle(Z, script.kernel_program_info());
   if (info.IsNull()) {
     // If there is no kernel data associated with the script, then
@@ -165,6 +165,11 @@ void TranslationHelper::InitFromScript(const Script& script) {
     // NoSuchMethodDispatcher and InvokeFieldDispatcher.
     return;
   }
+  InitFromKernelProgramInfo(info);
+}
+
+void TranslationHelper::InitFromKernelProgramInfo(
+    const KernelProgramInfo& info) {
   SetStringOffsets(TypedData::Handle(Z, info.string_offsets()));
   SetStringData(TypedData::Handle(Z, info.string_data()));
   SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
@@ -1828,7 +1833,7 @@ Fragment FlowGraphBuilder::NativeFunctionBody(intptr_t first_positional_offset,
     case MethodRecognizer::kLinkedHashMap_getIndex:
       body += LoadLocal(scopes_->this_variable);
       body += LoadNativeField(kind, LinkedHashMap::index_offset(),
-                              Object::dynamic_type(), kDynamicCid);
+                              Object::dynamic_type(), kTypedDataUint32ArrayCid);
       break;
     case MethodRecognizer::kLinkedHashMap_setIndex:
       body += LoadLocal(scopes_->this_variable);

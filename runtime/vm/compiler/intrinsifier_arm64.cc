@@ -66,9 +66,7 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
 
   Label fall_through;
   __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
-  __ tsti(R1, Immediate(kSmiTagMask));
-  // Index not Smi.
-  __ b(&fall_through, NE);
+  __ BranchIfNotSmi(R1, &fall_through);
   __ ldr(R0, Address(SP, 2 * kWordSize));  // Array.
 
   // Range check.
@@ -177,8 +175,7 @@ static int GetScaleFactor(intptr_t size) {
   __ ldr(R2, Address(SP, kArrayLengthStackOffset)); /* Array length. */        \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
-  __ tsti(R2, Immediate(kSmiTagMask));                                         \
-  __ b(&fall_through, NE);                                                     \
+  __ BranchIfNotSmi(R2, &fall_through);                                        \
   __ CompareRegisters(R2, ZR);                                                 \
   __ b(&fall_through, LT);                                                     \
   __ SmiUntag(R2);                                                             \
@@ -267,8 +264,7 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ ldr(R0, Address(SP, +0 * kWordSize));
   __ ldr(R1, Address(SP, +1 * kWordSize));
   __ orr(TMP, R0, Operand(R1));
-  __ tsti(TMP, Immediate(kSmiTagMask));
-  __ b(not_smi, NE);
+  __ BranchIfNotSmi(TMP, not_smi);
 }
 
 void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
@@ -385,8 +381,7 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
   __ ldr(R1, Address(SP, +0 * kWordSize));
   __ ldr(R0, Address(SP, +1 * kWordSize));
   __ orr(TMP, R0, Operand(R1));
-  __ tsti(TMP, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);
+  __ BranchIfNotSmi(TMP, &fall_through);
   // R1: Tagged left (dividend).
   // R0: Tagged right (divisor).
   // Check if modulo by zero -> exception thrown in main function.
@@ -437,8 +432,7 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 void Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, +0 * kWordSize));  // Grab first argument.
-  __ tsti(R0, Immediate(kSmiTagMask));      // Test for Smi.
-  __ b(&fall_through, NE);
+  __ BranchIfNotSmi(R0, &fall_through);
   __ negs(R0, R0);
   __ b(&fall_through, VS);
   __ ret();
@@ -552,8 +546,8 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ b(&true_label, EQ);
 
   __ orr(R2, R0, Operand(R1));
-  __ tsti(R2, Immediate(kSmiTagMask));
-  __ b(&check_for_mint, NE);  // If R0 or R1 is not a smi do Mint checks.
+  __ BranchIfNotSmi(R2, &check_for_mint);
+  // If R0 or R1 is not a smi do Mint checks.
 
   // Both arguments are smi, '===' is good enough.
   __ LoadObject(R0, Bool::False());
@@ -566,8 +560,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label receiver_not_smi;
   __ Bind(&check_for_mint);
 
-  __ tsti(R1, Immediate(kSmiTagMask));  // Check receiver.
-  __ b(&receiver_not_smi, NE);
+  __ BranchIfNotSmi(R1, &receiver_not_smi);  // Check receiver.
 
   // Left (receiver) is Smi, return false if right is not Double.
   // Note that an instance of Mint or Bigint never contains a value that can be
@@ -584,8 +577,7 @@ void Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ CompareClassId(R1, kMintCid);
   __ b(&fall_through, NE);
   // Receiver is Mint, return false if right is Smi.
-  __ tsti(R0, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);
+  __ BranchIfNotSmi(R0, &fall_through);
   __ LoadObject(R0, Bool::False());
   __ ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
@@ -1295,8 +1287,7 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
                                      Label* is_smi,
                                      Label* not_double_smi) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tsti(R0, Immediate(kSmiTagMask));
-  __ b(is_smi, EQ);
+  __ BranchIfSmi(R0, is_smi);
   __ CompareClassId(R0, kDoubleCid);
   __ b(not_double_smi, NE);
   // Fall through with Double in R0.
@@ -1416,8 +1407,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   // Only smis allowed.
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tsti(R0, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);
+  __ BranchIfNotSmi(R0, &fall_through);
   // Is Smi.
   __ SmiUntag(R0);
   __ scvtfdx(V1, R0);
@@ -1436,8 +1426,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   Label fall_through;
 
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ tsti(R0, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);
+  __ BranchIfNotSmi(R0, &fall_through);
   // Is Smi.
   __ SmiUntag(R0);
   __ scvtfdx(V0, R0);
@@ -1895,8 +1884,7 @@ void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
   __ ldr(R1, Address(SP, 1 * kWordSize));  // start
   __ ldr(R2, Address(SP, 0 * kWordSize));  // other
 
-  __ tsti(R1, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);  // 'start' is not a Smi.
+  __ BranchIfNotSmi(R1, &fall_through);
 
   __ CompareClassId(R2, kOneByteStringCid);
   __ b(&fall_through, NE);
@@ -1932,8 +1920,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
 
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
   __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
-  __ tsti(R1, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);  // Index is not a Smi.
+  __ BranchIfNotSmi(R1, &fall_through);    // Index is not a Smi.
   // Range check.
   __ ldr(R2, FieldAddress(R0, String::length_offset()));
   __ cmp(R1, Operand(R2));
@@ -2123,8 +2110,7 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ ldr(R2, Address(SP, kEndIndexOffset));
   __ ldr(TMP, Address(SP, kStartIndexOffset));
   __ orr(R3, R2, Operand(TMP));
-  __ tsti(R3, Immediate(kSmiTagMask));
-  __ b(&fall_through, NE);  // 'start', 'end' not Smi.
+  __ BranchIfNotSmi(R3, &fall_through);  // 'start', 'end' not Smi.
 
   __ sub(R2, R2, Operand(TMP));
   TryAllocateOnebyteString(assembler, &ok, &fall_through);
@@ -2203,8 +2189,7 @@ static void StringEquality(Assembler* assembler, intptr_t string_cid) {
   __ b(&is_true, EQ);
 
   // Is other OneByteString?
-  __ tsti(R1, Immediate(kSmiTagMask));
-  __ b(&fall_through, EQ);
+  __ BranchIfSmi(R1, &fall_through);
   __ CompareClassId(R1, string_cid);
   __ b(&fall_through, NE);
 

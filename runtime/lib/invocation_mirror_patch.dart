@@ -164,6 +164,9 @@ class _InvocationMirror implements Invocation {
   _InvocationMirror(this._functionName, this._argumentsDescriptor,
       this._arguments, this._isSuperInvocation);
 
+  _InvocationMirror._withoutType(this._functionName, this._typeArguments,
+      this._positionalArguments, this._namedArguments, this._isSuperInvocation);
+
   static _allocateInvocationMirror(String functionName,
       List argumentsDescriptor, List arguments, bool isSuperInvocation) {
     return new _InvocationMirror(

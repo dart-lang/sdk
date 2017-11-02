@@ -20,8 +20,8 @@ main() {
     var c = new C<int>();
     var f = c.f;
     var g = c.g;
-    Expect.equals("(int) -> int", f.runtimeType.toString()); //# 01: ok
-    Expect.equals("(Object) -> int", g.runtimeType.toString()); //# 01: ok
+    Expect.equals("(int) => int", f.runtimeType.toString()); //# 01: ok
+    Expect.equals("(Object) => int", g.runtimeType.toString()); //# 01: ok
     Expect.equals(21, f(21));
     Expect.equals(14, g(14));
     Expect.isTrue(f is Function);
@@ -44,8 +44,8 @@ main() {
     var c = new C<bool>();
     var f = c.f;
     var g = c.g;
-    Expect.equals("(bool) -> bool", f.runtimeType.toString()); //# 01: ok
-    Expect.equals("(Object) -> bool", g.runtimeType.toString()); //# 01: ok
+    Expect.equals("(bool) => bool", f.runtimeType.toString()); //# 01: ok
+    Expect.equals("(Object) => bool", g.runtimeType.toString()); //# 01: ok
     Expect.isTrue(f is F);
     Expect.isTrue(g is F);
     Expect.isTrue(f is! F<int>);
@@ -58,8 +58,8 @@ main() {
     var c = new C();
     var f = c.f;
     var g = c.g;
-    Expect.equals("(dynamic) -> dynamic", f.runtimeType.toString()); //# 01: ok
-    Expect.equals("(Object) -> dynamic", g.runtimeType.toString()); //# 01: ok
+    Expect.equals("(dynamic) => dynamic", f.runtimeType.toString()); //# 01: ok
+    Expect.equals("(Object) => dynamic", g.runtimeType.toString()); //# 01: ok
     Expect.isTrue(f is F);
     Expect.isTrue(g is F);
     Expect.isTrue(f is! F<int>);

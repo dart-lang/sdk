@@ -12,6 +12,8 @@ import 'dart:collection';
 import 'dart:html' as html;
 import 'dart:math';
 
+part 'profile.dart';
+
 /// JsonMLConfig object to pass to devtools to specify how an Object should
 /// be displayed. skipDart signals that an object should not be formatted
 /// by the Dart formatter. This is used to specify that an Object
@@ -70,8 +72,8 @@ void addPropertiesFromSignature(
   // the debugger output.
   // TODO(jacobr): consider adding runtimeType to this list.
   var skippedNames = new Set()..add('hashCode');
-
-  while (sig != null) {
+  var objectPrototype = JS('', 'Object.prototype');
+  while (sig != null && !identical(sig, objectPrototype)) {
     for (var symbol in getOwnPropertySymbols(sig)) {
       var dartName = symbolName(symbol);
       String dartXPrefix = 'dartx.';
@@ -826,10 +828,11 @@ class ClassFormatter implements Formatter {
     }
 
     var typeName = getTypeName(type);
-    var mixins = dart.getMixins(type);
-    if (mixins != null && mixins.isNotEmpty) {
+    var mixin = dart.getMixin(type);
+    if (mixin != null) {
+      // TODO(jmesserly): this can only be one value.
       ret.add(new NameValuePair(
-          name: '[[Mixins]]', value: new HeritageClause('mixins', mixins)));
+          name: '[[Mixins]]', value: new HeritageClause('mixins', [mixin])));
     }
 
     var baseProto = JS('', '#.__proto__', type);

@@ -45,8 +45,9 @@ main(List<String> arguments) {
           tmp.resolve("vm_outline.dill").toFilePath(),
         ]);
       } on String catch (e) {
-        Expect.isTrue(
-            e.startsWith("Class '_InvocationMirror' not found in library "));
+        Expect.stringEquals(
+            "root::dart:async::@methods::dart:async::_rethrow is already bound",
+            "$e");
         print("Failed as expected: $e");
         exitCode = 0;
         return;

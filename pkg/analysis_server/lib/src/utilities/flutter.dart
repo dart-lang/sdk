@@ -183,19 +183,26 @@ String getWidgetPresentationText(InstanceCreationExpression node) {
   if (!isWidget(element)) {
     return null;
   }
-  // TODO(scheglov) check that the required argument is actually provided.
   List<Expression> arguments = node.argumentList.arguments;
   if (_isExactWidget(
       element, 'Icon', 'package:flutter/src/widgets/icon.dart')) {
-    String text = arguments[0].toString();
-    String arg = shorten(text, 32);
-    return 'Icon($arg)';
+    if (arguments.isNotEmpty) {
+      String text = arguments[0].toString();
+      String arg = shorten(text, 32);
+      return 'Icon($arg)';
+    } else {
+      return 'Icon';
+    }
   }
   if (_isExactWidget(
       element, 'Text', 'package:flutter/src/widgets/text.dart')) {
-    String text = arguments[0].toString();
-    String arg = shorten(text, 32);
-    return 'Text($arg)';
+    if (arguments.isNotEmpty) {
+      String text = arguments[0].toString();
+      String arg = shorten(text, 32);
+      return 'Text($arg)';
+    } else {
+      return 'Text';
+    }
   }
   return element.name;
 }

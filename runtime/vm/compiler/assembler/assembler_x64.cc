@@ -2163,6 +2163,17 @@ void Assembler::btq(Register base, Register offset) {
   EmitOperand(offset & 7, operand);
 }
 
+void Assembler::btq(Register base, int bit) {
+  ASSERT(bit >= 0 && bit < 64);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(base);
+  EmitOperandREX(4, operand, bit >= 32 ? REX_W : REX_NONE);
+  EmitUint8(0x0F);
+  EmitUint8(0xBA);
+  EmitOperand(4, operand);
+  EmitUint8(bit);
+}
+
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC8);
@@ -2776,7 +2787,10 @@ void Assembler::Stop(const char* message, bool fixed_length_encoding) {
     // Emit the lower half and the higher half of the message address as
     // immediate operands in the test rax instructions.
     testl(RAX, Immediate(Utils::Low32Bits(message_address)));
-    testl(RAX, Immediate(Utils::High32Bits(message_address)));
+    uint32_t hi = Utils::High32Bits(message_address);
+    if (hi != 0) {
+      testl(RAX, Immediate(hi));
+    }
   }
   // Emit the int3 instruction.
   int3();  // Execution can be resumed with the 'cont' command in gdb.

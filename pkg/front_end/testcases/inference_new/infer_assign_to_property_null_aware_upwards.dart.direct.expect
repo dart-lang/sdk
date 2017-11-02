@@ -1,0 +1,63 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Test1 extends core::Object {
+  field core::int prop = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  static method test(self::Test1 t) → void {
+    dynamic v1 = let final dynamic #t1 = t in #t1.==(null) ? null : #t1.prop = self::getInt();
+    dynamic v2 = let final dynamic #t2 = t in #t2.==(null) ? null : #t2.prop = self::getNum();
+    dynamic v4 = let final dynamic #t3 = t in #t3.==(null) ? null : let final dynamic #t4 = #t3.prop in #t4.==(null) ? #t3.prop = self::getInt() : #t4;
+    dynamic v5 = let final dynamic #t5 = t in #t5.==(null) ? null : let final dynamic #t6 = #t5.prop in #t6.==(null) ? #t5.prop = self::getNum() : #t6;
+    dynamic v7 = let final dynamic #t7 = t in #t7.==(null) ? null : #t7.prop = #t7.prop.+(self::getInt());
+    dynamic v8 = let final dynamic #t8 = t in #t8.==(null) ? null : #t8.prop = #t8.prop.+(self::getNum());
+    dynamic v10 = let final dynamic #t9 = t in #t9.==(null) ? null : #t9.prop = #t9.prop.+(1);
+    dynamic v11 = let final dynamic #t10 = t in #t10.==(null) ? null : let final dynamic #t11 = #t10.prop in let final dynamic #t12 = #t10.prop = #t11.+(1) in #t11;
+  }
+}
+class Test2 extends core::Object {
+  field core::num prop = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  static method test(self::Test2 t) → void {
+    dynamic v1 = let final dynamic #t13 = t in #t13.==(null) ? null : #t13.prop = self::getInt();
+    dynamic v2 = let final dynamic #t14 = t in #t14.==(null) ? null : #t14.prop = self::getNum();
+    dynamic v3 = let final dynamic #t15 = t in #t15.==(null) ? null : #t15.prop = self::getDouble();
+    dynamic v4 = let final dynamic #t16 = t in #t16.==(null) ? null : let final dynamic #t17 = #t16.prop in #t17.==(null) ? #t16.prop = self::getInt() : #t17;
+    dynamic v5 = let final dynamic #t18 = t in #t18.==(null) ? null : let final dynamic #t19 = #t18.prop in #t19.==(null) ? #t18.prop = self::getNum() : #t19;
+    dynamic v6 = let final dynamic #t20 = t in #t20.==(null) ? null : let final dynamic #t21 = #t20.prop in #t21.==(null) ? #t20.prop = self::getDouble() : #t21;
+    dynamic v7 = let final dynamic #t22 = t in #t22.==(null) ? null : #t22.prop = #t22.prop.+(self::getInt());
+    dynamic v8 = let final dynamic #t23 = t in #t23.==(null) ? null : #t23.prop = #t23.prop.+(self::getNum());
+    dynamic v9 = let final dynamic #t24 = t in #t24.==(null) ? null : #t24.prop = #t24.prop.+(self::getDouble());
+    dynamic v10 = let final dynamic #t25 = t in #t25.==(null) ? null : #t25.prop = #t25.prop.+(1);
+    dynamic v11 = let final dynamic #t26 = t in #t26.==(null) ? null : let final dynamic #t27 = #t26.prop in let final dynamic #t28 = #t26.prop = #t27.+(1) in #t27;
+  }
+}
+class Test3 extends core::Object {
+  field core::double prop = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  static method test3(self::Test3 t) → void {
+    dynamic v2 = let final dynamic #t29 = t in #t29.==(null) ? null : #t29.prop = self::getNum();
+    dynamic v3 = let final dynamic #t30 = t in #t30.==(null) ? null : #t30.prop = self::getDouble();
+    dynamic v5 = let final dynamic #t31 = t in #t31.==(null) ? null : let final dynamic #t32 = #t31.prop in #t32.==(null) ? #t31.prop = self::getNum() : #t32;
+    dynamic v6 = let final dynamic #t33 = t in #t33.==(null) ? null : let final dynamic #t34 = #t33.prop in #t34.==(null) ? #t33.prop = self::getDouble() : #t34;
+    dynamic v7 = let final dynamic #t35 = t in #t35.==(null) ? null : #t35.prop = #t35.prop.+(self::getInt());
+    dynamic v8 = let final dynamic #t36 = t in #t36.==(null) ? null : #t36.prop = #t36.prop.+(self::getNum());
+    dynamic v9 = let final dynamic #t37 = t in #t37.==(null) ? null : #t37.prop = #t37.prop.+(self::getDouble());
+    dynamic v10 = let final dynamic #t38 = t in #t38.==(null) ? null : #t38.prop = #t38.prop.+(1);
+    dynamic v11 = let final dynamic #t39 = t in #t39.==(null) ? null : let final dynamic #t40 = #t39.prop in let final dynamic #t41 = #t39.prop = #t40.+(1) in #t40;
+  }
+}
+static method getInt() → core::int
+  return 0;
+static method getNum() → core::num
+  return 0;
+static method getDouble() → core::double
+  return 0.0;
+static method main() → dynamic {}

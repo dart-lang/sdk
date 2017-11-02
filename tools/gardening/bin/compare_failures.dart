@@ -20,7 +20,8 @@ void help(ArgParser argParser) {
   print('This tool is particularly useful to detect flakes and their ');
   print('frequency.');
   print('Usage: compare_failures [options] ');
-  print('  (<log-uri> [<log-uri> ...] | <build-group> [<build-group> ...])');
+  print('  (<log-uri> [<log-uri> ...] | <build-group> [<build-group> ...] | '
+      '<builder> [<builder> ...)');
   print('where <log-uri> is the uri the stdio output of a failing test step ');
   print('and <build-group> is the name of a buildbot group, for instance ');
   print('`vm-kernel`, and options are:');

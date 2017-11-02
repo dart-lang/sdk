@@ -6,6 +6,7 @@ library fasta.verifier;
 
 import 'package:kernel/ast.dart'
     show
+        AsExpression,
         Class,
         ExpressionStatement,
         Field,
@@ -16,6 +17,7 @@ import 'package:kernel/ast.dart'
         Member,
         Procedure,
         Program,
+        StaticInvocation,
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
@@ -34,7 +36,8 @@ import '../severity.dart' show Severity;
 
 import '../type_inference/type_schema.dart' show TypeSchemaVisitor, UnknownType;
 
-import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
+import 'redirecting_factory_body.dart'
+    show RedirectingFactoryBody, getRedirectingFactoryBody;
 
 List<LocatedMessage> verifyProgram(Program program, {bool isOutline: false}) {
   FastaVerifyingVisitor verifier = new FastaVerifyingVisitor(isOutline);
@@ -100,11 +103,21 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   problem(TreeNode node, String details, {TreeNode context}) {
     node ??= (context ?? this.context);
     int offset = node?.fileOffset ?? -1;
+    String file = node?.location?.file ?? fileUri;
+    Uri uri = file == null ? null : Uri.parse(file);
     LocatedMessage message = templateInternalVerificationError
         .withArguments(details)
-        .withLocation(fileUri == null ? null : Uri.parse(fileUri), offset);
+        .withLocation(uri, offset);
     CompilerContext.current.report(message, Severity.error);
     errors.add(message);
+  }
+
+  @override
+  visitAsExpression(AsExpression node) {
+    super.visitAsExpression(node);
+    if (node.fileOffset == -1) {
+      problem(node, "No offset for $node");
+    }
   }
 
   @override
@@ -177,5 +190,14 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   visitSuperPropertySet(SuperPropertySet node) {
     checkSuperInvocation(node);
     super.visitSuperPropertySet(node);
+  }
+
+  @override
+  visitStaticInvocation(StaticInvocation node) {
+    super.visitStaticInvocation(node);
+    RedirectingFactoryBody body = getRedirectingFactoryBody(node.target);
+    if (body != null) {
+      problem(node, "Attempt to invoke redirecting factory.");
+    }
   }
 }

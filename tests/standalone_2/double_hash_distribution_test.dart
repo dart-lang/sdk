@@ -4,6 +4,9 @@
 
 // Test that the distribution of hash codes for doubles is reasonable.
 
+// VMOptions=--intrinsify
+// VMOptions=--no_intrinsify
+
 import 'package:expect/expect.dart';
 
 main() {

@@ -370,7 +370,7 @@ class Driver implements ServerStarter {
       defaultSdkPath = results[SDK_OPTION];
     } else {
       // No path to the SDK was provided.
-      // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
+      // Use FolderBasedDartSdk.defaultSdkDirectory, which will make a guess.
       defaultSdkPath = FolderBasedDartSdk
           .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
           .path;

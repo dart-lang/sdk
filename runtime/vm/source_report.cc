@@ -211,6 +211,12 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     coverage[i] = kCoverageNone;
   }
 
+  if (function.usage_counter() > 0) {
+    coverage[0] = kCoverageHit;
+  } else {
+    coverage[0] = kCoverageMiss;
+  }
+
   PcDescriptors::Iterator iter(
       descriptors,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);

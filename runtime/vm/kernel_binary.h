@@ -163,25 +163,25 @@ class Reader {
     return result;
   }
 
-  uint32_t ReadUInt32At(intptr_t offset) {
-    set_offset(offset);
-    return ReadUInt32();
+  uint32_t ReadUInt32At(intptr_t offset) const {
+    ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
+
+    const uint8_t* buffer = this->buffer();
+    uint32_t value = (buffer[offset + 0] << 24) | (buffer[offset + 1] << 16) |
+                     (buffer[offset + 2] << 8) | (buffer[offset + 3] << 0);
+    return value;
   }
 
   uint32_t ReadFromIndexNoReset(intptr_t end_offset,
                                 intptr_t fields_before,
                                 intptr_t list_size,
                                 intptr_t list_index) {
-    return ReadUInt32At(end_offset -
-                        (fields_before + list_size - list_index) * 4);
+    set_offset(end_offset - (fields_before + list_size - list_index) * 4);
+    return ReadUInt32();
   }
 
   uint32_t ReadUInt32() {
-    ASSERT((size_ >= 4) && (offset_ >= 0) && (offset_ <= size_ - 4));
-
-    const uint8_t* buffer = this->buffer();
-    uint32_t value = (buffer[offset_ + 0] << 24) | (buffer[offset_ + 1] << 16) |
-                     (buffer[offset_ + 2] << 8) | (buffer[offset_ + 3] << 0);
+    uint32_t value = ReadUInt32At(offset_);
     offset_ += 4;
     return value;
   }
@@ -316,7 +316,7 @@ class Reader {
   }
 
  private:
-  const uint8_t* buffer() {
+  const uint8_t* buffer() const {
     if (raw_buffer_ != NULL) {
       return raw_buffer_;
     }

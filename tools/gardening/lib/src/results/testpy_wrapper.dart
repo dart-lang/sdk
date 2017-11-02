@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:path/path.dart' as path;
 import 'result_models.dart';
 import 'util.dart';
+import '../util.dart';
 
 /// Calls test.py with arguments gathered from a specific [configuration] and
 /// lists all tests included for that particular configuration.
@@ -27,13 +28,13 @@ Future<Iterable<String>> statusFileLister(Configuration configuration) async {
 /// Calls test.py with arguments and returns the result.
 Future<Iterable<String>> callTestPy(List<String> args) async {
   var testPyPath = path.absolute(PathHelper.testPyPath());
-  var result = await Process.run(testPyPath, args);
+  var result = await runPython(testPyPath, args);
   if (result.exitCode != 0) {
     throw "Failed to call test.py: "
         "'${PathHelper.testPyPath()} ${args.join(' ')}'. "
         "Process exited with ${result.exitCode}";
   }
-  return (result.stdout as String).split('\n').skip(1);
+  return (result.stdout as String).split(newLine).skip(1);
 }
 
 /// Calls test.py with arguments gathered from a specific [configuration] and

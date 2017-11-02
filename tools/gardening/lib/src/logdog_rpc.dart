@@ -8,7 +8,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'cache_new.dart';
 
-const String LOGDOG_HOST = "luci-logdog.appspot.com";
+const String LOGDOG_HOST = "logs.chromium.org";
 
 /// Class for communicating with logdog over rpc.
 class LogdogRpc {
@@ -26,7 +26,9 @@ class LogdogRpc {
         .then((json) {
       StringBuffer buffer = new StringBuffer();
       json["logs"].forEach((log) {
-        buffer.write(log["text"]["lines"][0]["value"]);
+        log["text"]["lines"].forEach((line) {
+          buffer.writeln(line["value"]);
+        });
       });
       return buffer.toString();
     });

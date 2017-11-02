@@ -10,7 +10,7 @@ class C<T> {
   C(this.t);
 }
 
-main() {
+test() {
   var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(42);
 
   num y;
@@ -25,3 +25,5 @@ main() {
   var /*@type=C<dynamic>*/ c_dynamic = new C<dynamic>(42);
   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 }
+
+main() {}

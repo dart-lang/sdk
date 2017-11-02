@@ -53,35 +53,11 @@ String form2(String returns, String positional,
   result.write(")");
 }
 
-/// Formats types the DDC way: `(String, [int], {name: bool}) -> double`.
-String form3(String returns, String positional,
-    [Map<String, String> named = const {}]) {
-  var result = new StringBuffer();
-  result.write("($positional");
-  if (positional != "" && named.isNotEmpty) result.write(", ");
-  if (named.isNotEmpty) {
-    result.write("{");
-    bool first = true;
-    named.forEach((name, type) {
-      if (first) {
-        first = false;
-      } else {
-        result.write(", ");
-      }
-      result.write("$name: $type");
-    });
-    result.write("}");
-  }
-  result.write(") -> $returns");
-  return result.toString();
-}
-
 F detectForm() {
   var s = main.runtimeType.toString();
   if (s.contains('=>')) return form1;
   if (s.contains('Function')) return form2;
-  if (s.contains('->')) return form3;
-  Expect.fail('"$s" contains neither "=>", "->" nor "Function"');
+  Expect.fail('"$s" contains neither "=>", nor "Function"');
 }
 
 main() {

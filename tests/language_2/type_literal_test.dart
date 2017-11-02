@@ -42,12 +42,9 @@ main() {
   testType(new Box<Box<Foo>>().typeArg, "Box<Foo>");
 
   // Typedef.
-  testType(Func, "Func((bool) -> int)");
-  testType(GenericFunc, "GenericFunc((bottom) -> int)");
-
-  // TODO(rnystrom): This should print "GenericFunc<int>", but that isn't
-  // implemented yet.
-  testType(new Box<GenericFunc<int>>().typeArg, "(int) -> int");
+  testType(Func, "Func");
+  testType(GenericFunc, "GenericFunc");
+  testType(new Box<GenericFunc<int>>().typeArg, "GenericFunc<int>");
 
   // Literals are canonicalized.
   Expect.identical(Foo, Foo);

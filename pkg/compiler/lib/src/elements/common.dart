@@ -93,7 +93,7 @@ abstract class ElementCommon implements Element {
   @override
   bool get isAssignable {
     if (isFinal || isConst) return false;
-    if (isFunction || isConstructor) return false;
+    if (isFunction || isGetter || isConstructor) return false;
     return true;
   }
 

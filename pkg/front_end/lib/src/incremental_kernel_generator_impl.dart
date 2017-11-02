@@ -40,6 +40,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// The function to notify when files become used or unused, or `null`.
   final WatchUsedFilesFn _watchFn;
 
+  /// Whether we the generator is configured to use SDK outline.
+  bool _hasSdkOutlineBytes;
+
   /// The [KernelDriver] that is used to compute kernels.
   KernelDriver _driver;
 
@@ -61,6 +64,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       {WatchUsedFilesFn watch})
       : _logger = options.logger,
         _watchFn = watch {
+    _hasSdkOutlineBytes = sdkOutlineBytes != null;
     _testView = new _TestView(this);
 
     Future<Null> onFileAdded(Uri uri) {
@@ -102,6 +106,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       try {
         KernelResult kernelResult = await _driver.getKernel(_entryPoint);
         List<LibraryCycleResult> results = kernelResult.results;
+
+        // Exclude the SDK cycle if was not compiled.
+        if (_hasSdkOutlineBytes) {
+          results.removeWhere((cycle) => cycle.signature == '<sdk>');
+        }
 
         // The file graph might have changed, perform GC.
         await _gc();

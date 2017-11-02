@@ -9,6 +9,7 @@ import 'package:front_end/src/fasta/parser/async_modifier.dart'
 
 import '../common.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../util/util.dart';
 import 'names.dart';
 
 /// Abstract interface for entities.
@@ -264,5 +265,26 @@ class ParameterStructure {
   CallStructure get callStructure {
     return new CallStructure(
         positionalParameters + namedParameters.length, namedParameters);
+  }
+
+  int get hashCode => Hashing.listHash(
+      namedParameters,
+      Hashing.objectHash(
+          positionalParameters, Hashing.objectHash(requiredParameters)));
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! ParameterStructure) return false;
+    if (requiredParameters != other.requiredParameters ||
+        positionalParameters != other.positionalParameters ||
+        namedParameters.length != other.namedParameters.length) {
+      return false;
+    }
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (namedParameters[i] != other.namedParameters[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }

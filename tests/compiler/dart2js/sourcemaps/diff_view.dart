@@ -906,7 +906,7 @@ CodeSource codeSourceFromElement(Element element) {
 
 /// Create [LineData] that colors line numbers according to the [CodeSource]s
 /// origin if available.
-LineData getLineData(CodeSource lineAnnotation) {
+LineData getLineData(Object lineAnnotation) {
   if (lineAnnotation != null) {
     return new LineData(
         lineClass: ClassNames.line,

@@ -577,7 +577,7 @@ class _RetainedDataBuilder extends RecursiveVisitor implements _RetainedData {
     markMember(coreTypes.awaitHelperProcedure);
 
     // These are needed by the mixin transformer
-    markMember(coreTypes.invocationMirrorDefaultConstructor);
+    markMember(coreTypes.invocationMirrorWithoutTypeConstructor);
     markMember(coreTypes.listFromConstructor);
   }
 

@@ -37,6 +37,9 @@ class KernelEquivalence {
       constantEquivalence: constantEquivalence,
       constantValueEquivalence: constantValueEquivalence);
 
+  bool entityEntityEquivalence(Entity a, Entity b, {TestStrategy strategy}) =>
+      entityEquivalence(a, b, strategy: strategy);
+
   bool entityEquivalence(Element a, Entity b, {TestStrategy strategy}) {
     if (identical(a, b)) return true;
     if (a == null || b == null) return false;
@@ -163,6 +166,9 @@ class KernelEquivalence {
             '$a (${a.runtimeType}) vs $b (${b.runtimeType})');
     }
   }
+
+  bool typeTypeEquivalence(DartType a, DartType b, {TestStrategy strategy}) =>
+      typeEquivalence(a, b, strategy: strategy);
 
   bool typeEquivalence(ResolutionDartType a, DartType b,
       {TestStrategy strategy}) {

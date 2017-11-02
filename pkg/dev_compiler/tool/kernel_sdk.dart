@@ -13,8 +13,13 @@ import 'package:path/path.dart' as path;
 
 Future main(List<String> args) async {
   Directory.current = path.dirname(path.dirname(path.fromUri(Platform.script)));
-  var target = new DevCompilerTarget();
 
+  var outputPath = path.absolute('lib/sdk/ddc_sdk.dill');
+  if (args.isNotEmpty) {
+    outputPath = args[0];
+  }
+
+  var target = new DevCompilerTarget();
   var options = new CompilerOptions()
     ..compileSdk = true
     ..chaseDependencies = true
@@ -27,6 +32,5 @@ Future main(List<String> args) async {
 
   // Useful for debugging:
   // writeProgramToText(program);
-  var output = path.absolute('lib/sdk/ddc_sdk.dill');
-  await writeProgramToBinary(program, output);
+  await writeProgramToBinary(program, outputPath);
 }

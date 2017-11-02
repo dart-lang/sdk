@@ -426,9 +426,7 @@ class Listener {
     logEvent("Hide");
   }
 
-  void beginIdentifierList(Token token) {}
-
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     logEvent("IdentifierList");
   }
 
@@ -503,9 +501,7 @@ class Listener {
     logEvent("ConditionalUri");
   }
 
-  void beginDottedName(Token token) {}
-
-  void endDottedName(int count, Token firstIdentifier) {
+  void handleDottedName(int count, Token firstIdentifier) {
     logEvent("DottedName");
   }
 

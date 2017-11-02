@@ -382,7 +382,7 @@ abstract class AbstractDecoder<M, K> {
   /// If no value is associated with [key], then if [isOptional] is `true`,
   /// and empty [List] is returned, otherwise an exception is thrown.
   List<Element> getElements(K key, {bool isOptional: false}) {
-    List list = _map[_getKeyValue(key)];
+    List<int> list = _map[_getKeyValue(key)];
     if (list == null) {
       if (isOptional) {
         return const [];
@@ -414,7 +414,7 @@ abstract class AbstractDecoder<M, K> {
   /// If no value is associated with [key], then if [isOptional] is `true`,
   /// and empty [List] is returned, otherwise an exception is thrown.
   List<ConstantExpression> getConstants(K key, {bool isOptional: false}) {
-    List list = _map[_getKeyValue(key)];
+    List<int> list = _map[_getKeyValue(key)];
     if (list == null) {
       if (isOptional) {
         return const [];
@@ -446,7 +446,7 @@ abstract class AbstractDecoder<M, K> {
   /// If no value is associated with [key], then if [isOptional] is `true`,
   /// and empty [List] is returned, otherwise an exception is thrown.
   List<ResolutionDartType> getTypes(K key, {bool isOptional: false}) {
-    List list = _map[_getKeyValue(key)];
+    List<int> list = _map[_getKeyValue(key)];
     if (list == null) {
       if (isOptional) {
         return const [];

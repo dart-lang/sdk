@@ -45,12 +45,6 @@ abstract class ClosureDataLookup<T> {
   /// used inside the scope of [node].
   ScopeInfo getScopeInfo(MemberEntity member);
 
-  /// This returns the same information as ScopeInfo, but can be called in
-  /// situations when you are sure you are dealing with a closure specifically.
-  // TODO(johnniwinther,efortuna): Remove the need for this. It is now only
-  // used in inference.
-  ClosureRepresentationInfo getClosureInfoForMember(MemberEntity member);
-
   ClosureRepresentationInfo getClosureInfo(T localFunction);
 
   /// Look up information about a loop, in case any variables it declares need

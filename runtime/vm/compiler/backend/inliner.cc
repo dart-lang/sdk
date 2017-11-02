@@ -1013,10 +1013,9 @@ class CallSiteInliner : public ValueObject {
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
 #ifdef DART_PRECOMPILER
-            AotCallSpecializer call_specializer(
-                inliner_->precompiler_, callee_graph,
-                inliner_->use_speculative_inlining_,
-                inliner_->inlining_black_list_);
+            AotCallSpecializer call_specializer(inliner_->precompiler_,
+                                                callee_graph,
+                                                inliner_->speculative_policy_);
 
             call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
@@ -1035,7 +1034,8 @@ class CallSiteInliner : public ValueObject {
             UNREACHABLE();
 #endif  // DART_PRECOMPILER
           } else {
-            JitCallSpecializer call_specializer(callee_graph);
+            JitCallSpecializer call_specializer(callee_graph,
+                                                inliner_->speculative_policy_);
 
             call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
@@ -1298,6 +1298,14 @@ class CallSiteInliner : public ValueObject {
     TRACE_INLINING(THR_Print("  Static Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       StaticCallInstr* call = call_info[call_idx].call;
+
+      if (FlowGraphInliner::TryReplaceStaticCallWithInline(
+              inliner_->flow_graph(), NULL, call,
+              inliner_->speculative_policy_)) {
+        inlined = true;
+        continue;
+      }
+
       const Function& target = call->function();
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
@@ -1311,6 +1319,7 @@ class CallSiteInliner : public ValueObject {
                             &call->function(), call);
         continue;
       }
+
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
@@ -1610,7 +1619,7 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   if ((!FLAG_precompiled_mode ||
-       owner_->inliner_->use_speculative_inlining()) &&
+       owner_->inliner_->speculative_policy()->AllowsSpeculativeInlining()) &&
       target_info.IsSingleCid() &&
       TryInlineRecognizedMethod(target_info.cid_start, *target_info.target)) {
     owner_->inlined_ = true;
@@ -1663,7 +1672,8 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           owner_->caller_graph(), receiver_cid, target, call_, redefinition,
           call_->instance_call()->token_pos(),
-          *call_->instance_call()->ic_data(), &entry, &last)) {
+          call_->instance_call()->ic_data(), &entry, &last,
+          owner_->inliner_->speculative_policy())) {
     // Create a graph fragment.
     redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
@@ -2043,19 +2053,15 @@ FlowGraphInliner::FlowGraphInliner(
     GrowableArray<const Function*>* inline_id_to_function,
     GrowableArray<TokenPosition>* inline_id_to_token_pos,
     GrowableArray<intptr_t>* caller_inline_id,
-    bool use_speculative_inlining,
-    GrowableArray<intptr_t>* inlining_black_list,
+    SpeculativeInliningPolicy* speculative_policy,
     Precompiler* precompiler)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
       trace_inlining_(ShouldTraceInlining(flow_graph)),
-      use_speculative_inlining_(use_speculative_inlining),
-      inlining_black_list_(inlining_black_list),
-      precompiler_(precompiler) {
-  ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
-}
+      speculative_policy_(speculative_policy),
+      precompiler_(precompiler) {}
 
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
   const Function& function = flow_graph->function();
@@ -2225,7 +2231,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        intptr_t array_cid,
                                        Definition** array,
                                        Definition* index,
-                                       Instruction** cursor) {
+                                       Instruction** cursor,
+                                       bool can_speculate) {
   // Insert array length load and bounds check.
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
       new (Z) Value(*array), CheckArrayBoundInstr::LengthOffsetFor(array_cid),
@@ -2237,11 +2244,16 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
       LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
-  *cursor = flow_graph->AppendTo(
-      *cursor,
-      new (Z) CheckArrayBoundInstr(new (Z) Value(length), new (Z) Value(index),
-                                   call->deopt_id()),
-      call->env(), FlowGraph::kEffect);
+  Instruction* bounds_check = NULL;
+  if (can_speculate) {
+    bounds_check = new (Z) CheckArrayBoundInstr(
+        new (Z) Value(length), new (Z) Value(index), call->deopt_id());
+  } else {
+    bounds_check = new (Z) GenericCheckBoundInstr(
+        new (Z) Value(length), new (Z) Value(index), call->deopt_id());
+  }
+  *cursor = flow_graph->AppendTo(*cursor, bounds_check, call->env(),
+                                 FlowGraph::kEffect);
 
   if (array_cid == kGrowableObjectArrayCid) {
     // Insert data elements load.
@@ -2267,7 +2279,8 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
                              Instruction* call,
                              Definition* receiver,
                              TargetEntryInstr** entry,
-                             Definition** last) {
+                             Definition** last,
+                             bool can_speculate) {
   intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
 
   Definition* array = receiver;
@@ -2279,7 +2292,7 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   Instruction* cursor = *entry;
 
   array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, index,
-                                     &cursor);
+                                     &cursor, can_speculate);
 
   intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
@@ -2395,7 +2408,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   }
 
   array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, index,
-                                     &cursor);
+                                     &cursor, /* can_speculate= */ true);
 
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
@@ -2871,7 +2884,8 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
 bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     FlowGraph* flow_graph,
     ForwardInstructionIterator* iterator,
-    InstanceCallInstr* call) {
+    InstanceCallInstr* call,
+    SpeculativeInliningPolicy* policy) {
   Function& target = Function::Handle(Z);
   GrowableArray<intptr_t> class_ids;
   call->ic_data()->GetCheckAt(0, &class_ids, &target);
@@ -2881,7 +2895,7 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
   Definition* last;
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, target, call, call->ArgumentAt(0),
-          call->token_pos(), *call->ic_data(), &entry, &last)) {
+          call->token_pos(), call->ic_data(), &entry, &last, policy)) {
     // Insert receiver class check if needed.
     if (MethodRecognizer::PolymorphicTarget(target) ||
         flow_graph->InstanceCallNeedsClassCheck(call, target.kind())) {
@@ -2923,7 +2937,8 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
 bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     FlowGraph* flow_graph,
     ForwardInstructionIterator* iterator,
-    StaticCallInstr* call) {
+    StaticCallInstr* call,
+    SpeculativeInliningPolicy* policy) {
   TargetEntryInstr* entry;
   Definition* last;
   Definition* receiver = NULL;
@@ -2935,7 +2950,7 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
   }
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, call->function(), call, receiver,
-          call->token_pos(), *call->ic_data(), &entry, &last)) {
+          call->token_pos(), call->ic_data(), &entry, &last, policy)) {
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
       PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -2956,10 +2971,12 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
       last->LinkTo(call);
     }
     // Remove through the iterator.
-    ASSERT(iterator->Current() == call);
-    iterator->RemoveCurrentFromGraph();
-    call->set_previous(NULL);
-    call->set_next(NULL);
+    if (iterator != NULL) {
+      ASSERT(iterator->Current() == call);
+      iterator->RemoveCurrentFromGraph();
+    } else {
+      call->RemoveFromGraph();
+    }
     return true;
   }
   return false;
@@ -3088,16 +3105,20 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
   return true;
 }
 
-bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
-                                                 intptr_t receiver_cid,
-                                                 const Function& target,
-                                                 Definition* call,
-                                                 Definition* receiver,
-                                                 TokenPosition token_pos,
-                                                 const ICData& ic_data,
-                                                 TargetEntryInstr** entry,
-                                                 Definition** last) {
-  MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
+bool FlowGraphInliner::TryInlineRecognizedMethod(
+    FlowGraph* flow_graph,
+    intptr_t receiver_cid,
+    const Function& target,
+    Definition* call,
+    Definition* receiver,
+    TokenPosition token_pos,
+    const ICData* ic_data,
+    TargetEntryInstr** entry,
+    Definition** last,
+    SpeculativeInliningPolicy* policy) {
+  const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
+
+  const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
   switch (kind) {
     // Recognized [] operators.
     case MethodRecognizer::kImmutableArrayGetIndexed:
@@ -3110,29 +3131,45 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
     case MethodRecognizer::kFloat32ArrayGetIndexed:
     case MethodRecognizer::kFloat64ArrayGetIndexed:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
       if (!CanUnboxInt32()) return false;
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
 
     case MethodRecognizer::kInt64ArrayGetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
+
+    default:
+      break;
+  }
+
+  // The following ones need to speculate.
+  if (!can_speculate) {
+    return false;
+  }
+
+  switch (kind) {
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
     case MethodRecognizer::kGrowableArraySetIndexed:
@@ -3146,7 +3183,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kInt16ArraySetIndexed:
     case MethodRecognizer::kUint16ArraySetIndexed: {
       // Optimistically assume Smi.
-      if (ic_data.HasDeoptReason(ICData::kDeoptCheckSmi)) {
+      if (ic_data != NULL && ic_data->HasDeoptReason(ICData::kDeoptCheckSmi)) {
         // Optimistic assumption failed at least once.
         return false;
       }
@@ -3319,14 +3356,16 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kGrowableArraySetData:
       ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
              ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
-      ASSERT(call->IsStaticCall() || ic_data.NumberOfChecksIs(1));
+      ASSERT(call->IsStaticCall() ||
+             (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::data_offset(), kEmitStoreBarrier,
           call, receiver, entry, last);
     case MethodRecognizer::kGrowableArraySetLength:
       ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
              ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
-      ASSERT(call->IsStaticCall() || ic_data.NumberOfChecksIs(1));
+      ASSERT(call->IsStaticCall() ||
+             (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
           call, receiver, entry, last);
@@ -3442,7 +3481,9 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
 
     case MethodRecognizer::kObjectRuntimeType: {
       Type& type = Type::ZoneHandle(Z);
-      if (RawObject::IsStringClassId(receiver_cid)) {
+      if (receiver_cid == kDynamicCid) {
+        return false;
+      } else if (RawObject::IsStringClassId(receiver_cid)) {
         type = Type::StringType();
       } else if (receiver_cid == kDoubleCid) {
         type = Type::Double();

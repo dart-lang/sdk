@@ -271,7 +271,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
     push(popList(count));
   }

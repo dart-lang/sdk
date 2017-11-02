@@ -3,9 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'logdog.dart';
 import 'buildbot_structures.dart';
-import 'logdog.dart' as logdog;
-import 'util.dart';
 
 /// Data describing the steps of the buildbots.
 const List<BuildGroup> buildGroups = const <BuildGroup>[
@@ -889,24 +888,13 @@ class BuildSubgroup {
 
 /// Computes the logdog path for a build bot with the given [botName].
 String getLogDogPath(String botName) {
-  return 'chromium/bb/client.dart/$botName';
+  return 'bb/client.dart/$botName';
 }
 
 /// Pulls the list of the build numbers (in decreasing order) of the available
 /// builds for [botName] using logdog.
-Future<List<int>> lookupBotBuildNumbers(String botName) async {
-  String subgroupPath = getLogDogPath(botName);
-  List<int> buildNumbers = <int>[];
-  log('Lookup build numbers for $subgroupPath');
-  String text = await logdog.ls(subgroupPath);
-  for (String line in text.split('\n')) {
-    line = line.trim();
-    if (line.isNotEmpty) {
-      buildNumbers.add(int.parse(line));
-    }
-  }
-  buildNumbers.sort((a, b) => -a.compareTo(b));
-  return buildNumbers;
+Future<List<int>> lookupBotBuildNumbers(String botName, {int count = 20}) {
+  return latestBuildNumbersForBuilder(botName, count);
 }
 
 /// Returns the index of [buildNumber] in the decreasing list of

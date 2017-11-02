@@ -231,7 +231,11 @@ template("build_libdart_builtin") {
     extra_configs += invoker.extra_configs
   }
   static_library(target_name) {
-    configs += [ "..:dart_config" ] + extra_configs
+    configs += [
+      "..:dart_arch_config",
+      "..:dart_config",
+      "..:dart_os_config",
+    ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -286,7 +290,9 @@ template("build_gen_snapshot") {
   }
   executable(target_name) {
     configs += [
+                 "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_os_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -386,7 +392,9 @@ template("build_gen_snapshot_dart_io") {
   }
   source_set(target_name) {
     configs += [
+                 "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_os_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     deps = []
@@ -450,7 +458,11 @@ template("dart_io") {
     extra_sources += invoker.extra_sources
   }
   source_set(target_name) {
-    configs += [ "..:dart_config" ] + extra_configs
+    configs += [
+      "..:dart_arch_config",
+      "..:dart_config",
+      "..:dart_os_config",
+    ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -678,7 +690,9 @@ template("dart_executable") {
   }
   executable(target_name) {
     configs += [
+                 "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_os_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -979,7 +993,9 @@ executable("run_vm_tests") {
   }
 
   configs += [
+    "..:dart_arch_config",
     "..:dart_config",
+    "..:dart_os_config",
     "..:dart_maybe_product_config",
   ]
   if (is_fuchsia) {

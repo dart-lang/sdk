@@ -76,6 +76,7 @@ class IdValue {
     if (text.startsWith(elementPrefix)) {
       text = text.substring(elementPrefix.length);
       int colonPos = text.indexOf(':');
+      if (colonPos == -1) throw "Invalid element id: '$text'";
       id = new ElementId(text.substring(0, colonPos));
       expected = text.substring(colonPos + 1);
     } else if (text.startsWith(invokePrefix)) {
@@ -313,7 +314,10 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         break;
       }
     }
-    return computeDefaultNodeId(position);
+    if (position != null) {
+      return computeDefaultNodeId(position);
+    }
+    return null;
   }
 
   void run() {
@@ -332,14 +336,21 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitVariableDefinitions(ast.VariableDefinitions node) {
     for (ast.Node child in node.definitions) {
+      if (child == null) continue;
       AstElement element = elements[child];
       if (element == null) {
         reportHere(reporter, child, 'No element for variable.');
+      } else if (element.isField) {
+        if (element == elements.analyzedElement) {
+          computeForElement(element);
+        }
       } else if (!element.isLocal) {
         computeForElement(element);
       } else if (element.isInitializingFormal) {
         ast.Send send = child;
         computeForNode(child, computeDefaultNodeId(send.selector), element);
+      } else if (child is ast.FunctionExpression) {
+        computeForNode(child, computeDefaultNodeId(child.name), element);
       } else {
         computeForNode(child, computeDefaultNodeId(child), element);
       }
@@ -349,12 +360,14 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitFunctionExpression(ast.FunctionExpression node) {
     AstElement element = elements.getFunctionDefinition(node);
-    if (element != null && !element.isLocal) {
-      computeForElement(element);
-    } else {
-      computeForNode(node, computeDefaultNodeId(node), element);
+    if (element != null) {
+      if (!element.isLocal) {
+        computeForElement(element);
+      } else {
+        computeForNode(node, computeDefaultNodeId(node), element);
+      }
+      visitNode(node);
     }
-    visitNode(node);
   }
 
   visitSend(ast.Send node) {
@@ -403,11 +416,17 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         case SendStructureKind.UNARY:
         case SendStructureKind.EQUALS:
         case SendStructureKind.NOT_EQUALS:
-        case SendStructureKind.INDEX:
           ast.Node position =
               computeAccessPosition(node, sendStructure.semantics);
           if (position != null) {
             computeForNode(node, createInvokeId(position));
+          }
+          break;
+        case SendStructureKind.INDEX:
+          ast.Node position =
+              computeAccessPosition(node, sendStructure.semantics);
+          if (position != null) {
+            computeForNode(node, createAccessId(position));
           }
           break;
         case SendStructureKind.SET:
@@ -430,7 +449,14 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           }
           break;
         case SendStructureKind.INDEX_SET:
-          computeForNode(node, createInvokeId(node.selector));
+          computeForNode(node, createUpdateId(node.selector));
+          break;
+        case SendStructureKind.COMPOUND_INDEX_SET:
+        case SendStructureKind.INDEX_PREFIX:
+        case SendStructureKind.INDEX_POSTFIX:
+          computeForNode(node, createAccessId(node.selector));
+          computeForNode(node, createInvokeId(node.assignmentOperator));
+          computeForNode(node, createUpdateId(node.selector));
           break;
         case SendStructureKind.PREFIX:
         case SendStructureKind.POSTFIX:
@@ -594,6 +620,12 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
         receiver is ir.VariableGet &&
         receiver.variable.name == null) {
       // This is a desugared `?.`.
+    } else if (node.name.name == '[]') {
+      computeForNode(node, computeDefaultNodeId(node));
+      super.visitMethodInvocation(node);
+    } else if (node.name.name == '[]=') {
+      computeForNode(node, createUpdateId(node));
+      super.visitMethodInvocation(node);
     } else {
       computeForNode(node, createInvokeId(node));
       super.visitMethodInvocation(node);
@@ -686,7 +718,9 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitSwitchCase(ir.SwitchCase node) {
-    computeForNode(node, createSwitchCaseId(node));
+    if (node.expressionOffsets.isNotEmpty) {
+      computeForNode(node, createSwitchCaseId(node));
+    }
     super.visitSwitchCase(node);
   }
 

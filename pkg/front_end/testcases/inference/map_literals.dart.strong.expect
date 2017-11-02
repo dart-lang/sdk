@@ -7,7 +7,7 @@ static method test1() → dynamic {
   x.{core::Map::[]=}(3, "z");
   x.{core::Map::[]=}("hi", "w");
   x.{core::Map::[]=}(4.0, "u");
-  x.{core::Map::[]=}(3, 42);
+  x.{core::Map::[]=}(3, 42 as{TypeError} core::String);
   core::Map<core::num, core::String> y = x;
 }
 static method test2() → dynamic {
@@ -15,7 +15,7 @@ static method test2() → dynamic {
   x.{core::Map::[]=}(3, "z");
   x.{core::Map::[]=}("hi", "w");
   x.{core::Map::[]=}(4.0, "u");
-  x.{core::Map::[]=}(3, 42);
+  x.{core::Map::[]=}(3, 42 as{TypeError} core::Pattern);
   core::Pattern p = null;
   x.{core::Map::[]=}(2, p);
   core::Map<core::int, core::String> y = x;

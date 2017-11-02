@@ -52,7 +52,7 @@ void cleanUp() {
   tmpDir.deleteSync(recursive: true);
 }
 
-Future launchDart2Js(_) {
+Future<Process> launchDart2Js(_) {
   return Process.start(
       // Use an absolute path because we are changing the cwd below.
       path.fromUri(Uri.base.resolve(Platform.executable)),

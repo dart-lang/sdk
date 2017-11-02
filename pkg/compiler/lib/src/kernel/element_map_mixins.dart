@@ -574,7 +574,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     ir.Member target = node.target;
     if (target is ir.Field && target.isConst) {
       return new FieldConstantExpression(elementMap.getField(node.target));
-    } else if (node.target is ir.Procedure) {
+    } else if (target is ir.Procedure &&
+        target.kind == ir.ProcedureKind.Method) {
       FunctionEntity function = elementMap.getMethod(node.target);
       DartType type = elementMap.getFunctionType(node.target.function);
       return new FunctionConstantExpression(function, type);

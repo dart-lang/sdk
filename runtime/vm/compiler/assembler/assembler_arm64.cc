@@ -947,26 +947,18 @@ void Assembler::CompareClassId(Register object,
 }
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
-  // Load up a null object. We only need it so we can use LoadClassId on it in
-  // the case that object is a Smi..
-  LoadObject(TMP, Object::null_object());
-  // Check if the object is a Smi.
-  tsti(object, Immediate(kSmiTagMask));
-  // If the object *is* a Smi, use the null object instead. o/w leave alone.
-  csel(TMP, TMP, object, EQ);
-  // Loads either the cid of the object if it isn't a Smi, or the cid of null
-  // if it is a Smi, which will be ignored.
-  LoadClassId(result, TMP);
-
-  LoadImmediate(TMP, kSmiCid);
-  // If object is a Smi, move the Smi cid into result. o/w leave alone.
-  csel(result, TMP, result, EQ);
+  ASSERT(result != object);
+  Label done;
+  LoadImmediate(result, kSmiCid);
+  BranchIfSmi(object, &done);
+  LoadClassId(result, object);
+  Bind(&done);
 }
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  LoadClassIdMayBeSmi(result, object);
+  LoadClassIdMayBeSmi(TMP, object);
   // Finally, tag the result.
-  SmiTag(result);
+  SmiTag(result, TMP);
 }
 
 // Frame entry and exit.

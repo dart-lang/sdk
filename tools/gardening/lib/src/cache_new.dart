@@ -27,14 +27,21 @@ CreateCacheFunction initCache(Uri baseUri, [Logger logger]) {
       }
       if (key == null || key.isEmpty) {
         logger.warning("Key is null or empty - cannot cache result");
-      } else {
-        // format key
-        key = key.replaceAll("/", "_").replaceAll(".", "_");
-        var cacheResult = await cache.read(key, duration);
-        if (cacheResult.hasResult) {
-          logger.debug("Found key $key in cache");
-          return cacheResult.result;
-        }
+        return null;
+      }
+      // format key
+      key = key
+          .replaceAll("/", "_")
+          .replaceAll(":", "")
+          .replaceAll(".", "_")
+          .replaceAll("?", "")
+          .replaceAll("%2F", "_")
+          .replaceAll("*", "x");
+
+      var cacheResult = await cache.read(key, duration);
+      if (cacheResult.hasResult) {
+        logger.debug("Found key $key in cache");
+        return cacheResult.result;
       }
 
       logger.debug("Could not find key $key in cache");

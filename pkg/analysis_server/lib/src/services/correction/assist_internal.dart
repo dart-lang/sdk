@@ -681,7 +681,16 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+
     Expression returnValue = (body as ExpressionFunctionBody).expression;
+
+    // Return expressions can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in the function body.
+    if (selectionOffset >= returnValue.offset) {
+      _coverageMarker();
+      return;
+    }
+
     DartType returnValueType = returnValue.staticType;
     String returnValueCode = _getNodeText(returnValue);
     // prepare prefix
@@ -730,6 +739,13 @@ class AssistProcessor {
       returnExpression = onlyStatement.expression;
     }
     if (returnExpression == null) {
+      _coverageMarker();
+      return;
+    }
+
+    // Return expressions can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in the function body.
+    if (selectionOffset >= returnExpression.offset) {
       _coverageMarker();
       return;
     }

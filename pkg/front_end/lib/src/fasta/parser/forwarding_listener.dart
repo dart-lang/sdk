@@ -115,11 +115,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginDottedName(Token token) {
-    listener?.beginDottedName(token);
-  }
-
-  @override
   void beginElseStatement(Token token) {
     listener?.beginElseStatement(token);
   }
@@ -212,11 +207,6 @@ class ForwardingListener implements Listener {
   @override
   void beginHide(Token hideKeyword) {
     listener?.beginHide(hideKeyword);
-  }
-
-  @override
-  void beginIdentifierList(Token token) {
-    listener?.beginIdentifierList(token);
   }
 
   @override
@@ -529,11 +519,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endDottedName(int count, Token firstIdentifier) {
-    listener?.endDottedName(count, firstIdentifier);
-  }
-
-  @override
   void endElseStatement(Token token) {
     listener?.endElseStatement(token);
   }
@@ -644,11 +629,6 @@ class ForwardingListener implements Listener {
   @override
   void endHide(Token hideKeyword) {
     listener?.endHide(hideKeyword);
-  }
-
-  @override
-  void endIdentifierList(int count) {
-    listener?.endIdentifierList(count);
   }
 
   @override
@@ -952,6 +932,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleDottedName(int count, Token firstIdentifier) {
+    listener?.handleDottedName(count, firstIdentifier);
+  }
+
+  @override
   void handleEmptyStatement(Token token) {
     listener?.handleEmptyStatement(token);
   }
@@ -989,6 +974,11 @@ class ForwardingListener implements Listener {
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
     listener?.handleIdentifier(token, context);
+  }
+
+  @override
+  void handleIdentifierList(int count) {
+    listener?.handleIdentifierList(count);
   }
 
   @override

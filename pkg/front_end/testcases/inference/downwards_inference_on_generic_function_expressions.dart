@@ -5,7 +5,7 @@
 /*@testedFeatures=inference*/
 library test;
 
-void main() {
+void test() {
   {
     String f<S>(int x) => null;
     var /*@type=<S extends Object>(int) -> String*/ v = f;
@@ -69,3 +69,5 @@ void main() {
         x. /*@target=String::substring*/ substring(3);
   }
 }
+
+main() {}

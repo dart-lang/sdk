@@ -18,7 +18,6 @@ import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/resolution/class_hierarchy.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -103,7 +102,6 @@ Future<ResultKind> mainInternal(List<String> args,
   }
 
   enableDebugMode();
-  EnumCreator.matchKernelRepresentationForTesting = true;
   useOptimizedMixins = true;
 
   Directory dir = await Directory.systemTemp.createTemp('dart2js-with-dill');

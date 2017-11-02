@@ -1525,6 +1525,14 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       Print(",");
       current += PrintImmediate(current, BYTE_SIZE);
     }
+  } else if (opcode == 0xBA && (*current & 0xE0) == 0xE0) {
+    // bt? immediate instruction
+    int r = (*current >> 3) & 7;
+    static const char* const names[4] = {"bt", "bts", "btr", "btc"};
+    Print("%s ", names[r - 4]);
+    current += PrintRightOperand(current);
+    uint8_t bit = *current++;
+    Print(",%d", bit);
   } else {
     UnimplementedInstruction();
   }
@@ -1856,6 +1864,16 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         }
         Print("test%c rax,", operand_size_code());
         PrintImmediateValue(value);
+        // A 4-byte immediate test of EAX followed by an int3 instruction is a
+        // Stop instruction.
+        if (operand_size() == DOUBLEWORD_SIZE && data[0] == 0xcc) {
+          uintptr_t message = *reinterpret_cast<uint32_t*>(data - 4);
+          if (((message - 1) & message) != 0) {
+            const char* msg = reinterpret_cast<const char*>(message);
+            Print("  STOP: '%s'", msg);
+            break;
+          }
+        }
         break;
       }
       case 0xD1:  // fall through

@@ -1239,6 +1239,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->SkipCanonicalNameReference();
       return;
     case kDirectMethodInvocation:
+      builder_->ReadPosition();                // read position.
       builder_->ReadFlags();                   // read flags.
       VisitExpression();                       // read receiver.
       builder_->SkipCanonicalNameReference();  // read target_reference.
@@ -2827,6 +2828,7 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
 }
 
 void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
+  builder_->ReadPosition();  // read position.
   builder_->ReadFlags();  // read flags.
 
   const Instance& receiver =
@@ -4708,6 +4710,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       SkipCanonicalNameReference();  // read interface_target_reference.
       return;
     case kDirectMethodInvocation:
+      ReadPosition();                // read position.
       SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
       SkipCanonicalNameReference();  // read target_reference.
@@ -6096,8 +6099,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
-    TokenPosition* position) {
-  if (position != NULL) *position = TokenPosition::kNoSource;
+    TokenPosition* p) {
+  TokenPosition position = ReadPosition();  // read offset.
+  if (p != NULL) *p = position;
 
   ReadFlags();  // read flags.
 
@@ -6153,9 +6157,9 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
       BuildArguments(&argument_names, &argument_count);  // read arguments.
   ++argument_count;
   if (type_args_len > 0) ++argument_count;
-  return instructions + StaticCall(TokenPosition::kNoSource, target,
-                                   argument_count, argument_names,
-                                   ICData::kNoRebind, type_args_len);
+  return instructions + StaticCall(position, target, argument_count,
+                                   argument_names, ICData::kNoRebind,
+                                   type_args_len);
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
@@ -6532,7 +6536,8 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  ReadFlags();  // read flags.
+  uint8_t flags = ReadFlags();  // read flags.
+  const bool is_type_error = (flags & (1 << 0)) != 0;
 
   Fragment instructions = BuildExpression();  // read operand.
 
@@ -6552,6 +6557,11 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
       object_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
     // We already evaluated the operand on the left and just leave it there as
     // the result of the `obj as dynamic` expression.
+  } else if (is_type_error) {
+    instructions += LoadLocal(MakeTemporary());
+    instructions +=
+        flow_graph_builder_->AssertAssignable(type, Symbols::Empty());
+    instructions += Drop();
   } else {
     instructions += PushArgument();
 

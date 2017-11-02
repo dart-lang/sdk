@@ -11,7 +11,8 @@ namespace dart {
 
 class JitCallSpecializer : public CallSpecializer {
  public:
-  explicit JitCallSpecializer(FlowGraph* flow_graph);
+  explicit JitCallSpecializer(FlowGraph* flow_graph,
+                              SpeculativeInliningPolicy* speculative_policy);
 
   virtual ~JitCallSpecializer() {}
 

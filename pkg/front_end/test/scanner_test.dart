@@ -4,6 +4,8 @@
 
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/base/jenkins_smi_hash.dart';
+import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
+    show AbstractScanner;
 import 'package:front_end/src/scanner/errors.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/scanner.dart';
@@ -153,8 +155,10 @@ abstract class ScannerTestBase {
   }
 
   void test_ampersand_ampersand_eq() {
-    _assertToken(TokenType.AMPERSAND_AMPERSAND_EQ, "&&=",
-        lazyAssignmentOperators: true);
+    if (AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
+      _assertToken(TokenType.AMPERSAND_AMPERSAND_EQ, "&&=",
+          lazyAssignmentOperators: true);
+    }
   }
 
   void test_ampersand_eq() {
@@ -211,7 +215,9 @@ abstract class ScannerTestBase {
   }
 
   void test_bar_bar_eq() {
-    _assertToken(TokenType.BAR_BAR_EQ, "||=", lazyAssignmentOperators: true);
+    if (AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
+      _assertToken(TokenType.BAR_BAR_EQ, "||=", lazyAssignmentOperators: true);
+    }
   }
 
   void test_bar_eq() {

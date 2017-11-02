@@ -160,13 +160,13 @@ main(List<String> args) {
       Expect.isNotNull(cls2, 'Missing class ${cls1.name}');
 
       check(cls1.library, cls2.library, 'class ${cls1.name}', cls1, cls2,
-          equivalence.entityEquivalence);
+          equivalence.entityEntityEquivalence);
       InterfaceType thisType1 = types1.getThisType(cls1);
       InterfaceType thisType2 = types2.getThisType(cls2);
       check(cls1, cls2, 'thisType', thisType1, thisType2,
-          equivalence.typeEquivalence);
+          equivalence.typeTypeEquivalence);
       check(cls1, cls2, 'supertype', types1.getSupertype(cls1),
-          types2.getSupertype(cls2), equivalence.typeEquivalence);
+          types2.getSupertype(cls2), equivalence.typeTypeEquivalence);
       checkClasses(env1.getSuperClass(cls1), env2.getSuperClass(cls2));
 
       List<DartType> mixins1 = <DartType>[];
@@ -177,19 +177,19 @@ main(List<String> args) {
       env2.forEachMixin(cls2, (ClassEntity mixin) {
         mixins2.add(types2.asInstanceOf(thisType2, mixin));
       });
-      checkLists(
-          mixins1, mixins2, '${cls1.name} mixins', equivalence.typeEquivalence);
+      checkLists(mixins1, mixins2, '${cls1.name} mixins',
+          equivalence.typeTypeEquivalence);
 
       checkLists(
           types1.getInterfaces(cls1).toList(),
           types2.getInterfaces(cls2).toList(),
           '${cls1.name} interfaces',
-          equivalence.typeEquivalence);
+          equivalence.typeTypeEquivalence);
       checkLists(
           types1.getSupertypes(cls1).toList(),
           types2.getSupertypes(cls2).toList(),
           '${cls1.name} supertypes',
-          equivalence.typeEquivalence);
+          equivalence.typeTypeEquivalence);
 
       if (cls1 == compiler1.frontendStrategy.commonElements.objectClass) return;
 

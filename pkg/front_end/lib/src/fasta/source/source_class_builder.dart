@@ -38,7 +38,7 @@ import '../kernel/kernel_builder.dart'
         TypeVariableBuilder,
         compareProcedures;
 
-import '../problems.dart' show unhandled;
+import '../problems.dart' show unexpected, unhandled;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -94,7 +94,10 @@ class SourceClassBuilder extends KernelClassBuilder {
   Class build(KernelLibraryBuilder library, LibraryBuilder coreLibrary) {
     void buildBuilders(String name, Builder builder) {
       do {
-        if (builder is KernelFieldBuilder) {
+        if (builder.parent != this) {
+          unexpected(
+              "$fileUri", "${builder.parent.fileUri}", charOffset, fileUri);
+        } else if (builder is KernelFieldBuilder) {
           // TODO(ahe): It would be nice to have a common interface for the
           // build method to avoid duplicating these two cases.
           cls.addMember(builder.build(library));

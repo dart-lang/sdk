@@ -338,37 +338,37 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_metadata_fieldFormalParameter() async {
     await super.test_metadata_fieldFormalParameter();
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_metadata_fieldFormalParameter_withDefault() async {
     await super.test_metadata_fieldFormalParameter_withDefault();
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_metadata_functionTypedFormalParameter() async {
     await super.test_metadata_functionTypedFormalParameter();
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_metadata_functionTypedFormalParameter_withDefault() async {
     await super.test_metadata_functionTypedFormalParameter_withDefault();
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_metadata_simpleFormalParameter() async {
     await super.test_metadata_simpleFormalParameter();
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30035')
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_metadata_simpleFormalParameter_withDefault() async {
     await super.test_metadata_simpleFormalParameter_withDefault();
   }
@@ -400,7 +400,7 @@ class C {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31213')
   test_typedef_generic_asFieldType() async {
     await super.test_typedef_generic_asFieldType();
   }

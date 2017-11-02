@@ -252,6 +252,9 @@ isolate/package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 isolate/scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 isolate/spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 
+[ (($compiler != none && $compiler != dartk || $runtime != vm) && ($compiler != precompiler || $runtime != dart_precompiled)) ]
+isolate/vm_rehash_test: SkipByDesign
+
 [ $jscl ]
 isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
 

@@ -406,13 +406,13 @@ class FunctionType extends AbstractFunctionType {
           buffer += ', ';
         }
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
-        buffer += '${JS('', '#[#]', names, i)}: $typeNameString';
+        buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
       buffer += '}';
     }
 
     var returnTypeName = typeName(returnType);
-    buffer += ') -> $returnTypeName';
+    buffer += ') => $returnTypeName';
     _stringValue = buffer;
     return buffer;
   }
@@ -458,9 +458,23 @@ class Typedef extends AbstractFunctionType {
 
   Typedef(this._name, this._closure) {}
 
-  toString() =>
-      JS('String', '# + "(" + #.toString() + ")"', _name, functionType);
-  get name => _name;
+  toString() {
+    var typeArgs = getGenericArgs(this);
+    if (typeArgs == null) return name;
+
+    var result = name + '<';
+    var allDynamic = true;
+    for (var i = 0, n = JS('int', '#.length', typeArgs); i < n; ++i) {
+      if (i > 0) result += ', ';
+      var typeArg = JS('', '#[#]', typeArgs, i);
+      if (JS('bool', '# !== #', typeArg, _dynamic)) allDynamic = false;
+      result += typeName(typeArg);
+    }
+    result += '>';
+    return allDynamic ? name : result;
+  }
+
+  String get name => JS('String', '#', _name);
 
   AbstractFunctionType get functionType {
     var ft = _functionType;
@@ -1062,21 +1076,17 @@ isClassSubType(t1, t2, isCovariant) => JS('', '''(() => {
 
   if (definitive($t1.__proto__, $t2)) return true;
 
-  // Check mixins.
-  let mixins = $getMixins($t1);
-  if (mixins) {
-    for (let m1 of mixins) {
-      // TODO(jmesserly): remove the != null check once we can load core libs.
-      if (m1 != null && definitive(m1, $t2)) return true;
-    }
+  // Check mixin.
+  let m1 = $getMixin($t1);
+  if (m1 != null) {
+    if (definitive(m1, $t2)) return true;
   }
 
   // Check interfaces.
   let getInterfaces = $getImplements($t1);
   if (getInterfaces) {
     for (let i1 of getInterfaces()) {
-      // TODO(jmesserly): remove the != null check once we can load core libs.
-      if (i1 != null && definitive(i1, $t2)) return true;
+      if (definitive(i1, $t2)) return true;
     }
   }
 

@@ -206,8 +206,7 @@ Future<List<Uri>> compilePlatform(
 
   var inputs = [Uri.parse('dart:core')];
   if (forFlutter && !forFlutterRelease) {
-    inputs.addAll(
-        [Uri.parse('dart:vmservice_sky'), Uri.parse('dart:diagnostic_server')]);
+    inputs.add(Uri.parse('dart:vmservice_sky'));
   }
   var result = await generateKernel(
       new ProcessedOptions(
@@ -307,13 +306,6 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
             documented: false,
             platforms: VM_PLATFORM),
 
-        "diagnostic_server": const LibraryInfo(
-            "diagnostic_server/diagnostic_server.dart",
-            categories: "Client,Server",
-            implementation: true,
-            documented: false,
-            platforms: VM_PLATFORM),
-
       ''');
     }
   }
@@ -375,13 +367,6 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
           path.join('vmservice_io', 'vmservice_io.dart'));
       addLocation(
           locations, '_vmservice', path.join('vmservice', 'vmservice.dart'));
-
-      _writeSync(
-          path.join(sdkOut, 'diagnostic_server.dart'),
-          readInputFile(path.join(flutterDir.path, 'shell', 'common',
-              'diagnostic', 'diagnostic_server.dart')));
-
-      addLocation(locations, 'diagnostic_server', 'diagnostic_server.dart');
     }
   }
 }

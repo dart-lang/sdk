@@ -176,12 +176,7 @@ class GnWorkspace extends Workspace {
       // Found the .jiri_root file, must be a non-git workspace.
       if (folder.getChildAssumingFolder(_jiriRootName).exists) {
         String root = folder.path;
-        List<String> packagesFiles =
-            _findPackagesFile(provider, root, path, forHost: false);
-        if (packagesFiles.isEmpty) {
-          packagesFiles =
-              _findPackagesFile(provider, root, path, forHost: true);
-        }
+        List<String> packagesFiles = _findPackagesFile(provider, root, path);
         if (packagesFiles.isEmpty) {
           return null;
         }
@@ -195,48 +190,26 @@ class GnWorkspace extends Workspace {
 
   /**
    * For a source at `$root/foo/bar`, the packages files are generated in
-   * `$root/out/<debug|release>-XYZ/[hostABC/]gen/foo/bar`.
+   * `$root/out/<debug|release>-XYZ/dartlang/gen/foo/bar`.
    *
    * Note that in some cases multiple .packages files can be found at that
    * location, for example if the package contains both a library and a binary
-   * target.
+   * target. For a complete view of the package, all of these files need to be
+   * taken into account.
    */
   static List<String> _findPackagesFile(
-      ResourceProvider provider, String root, String path,
-      {forHost: false}) {
+    ResourceProvider provider,
+    String root,
+    String path,
+  ) {
     Context pathContext = provider.pathContext;
     String sourceDirectory = pathContext.relative(path, from: root);
-    Folder outDirectory = provider.getFolder(pathContext.join(root, 'out'));
-    if (!outDirectory.exists) {
-      return const <String>[];
-    }
-    outDirectory = outDirectory
-        .getChildren()
-        .where((resource) => resource is Folder)
-        .map((resource) => resource as Folder)
-        .firstWhere((Folder folder) {
-      String baseName = pathContext.basename(folder.path);
-      // TODO(pylaligand): find a better way to locate the proper directory.
-      return baseName.startsWith('debug') || baseName.startsWith('release');
-    }, orElse: () => null);
+    Folder outDirectory = _getOutDirectory(root, provider);
     if (outDirectory == null) {
       return const <String>[];
     }
-    if (forHost) {
-      outDirectory = outDirectory
-          .getChildren()
-          .where((resource) => resource is Folder)
-          .map((resource) => resource as Folder)
-          .firstWhere(
-              (Folder folder) =>
-                  pathContext.basename(folder.path).startsWith('host'),
-              orElse: () => null);
-    }
-    if (outDirectory == null) {
-      return const <String>[];
-    }
-    Folder genDir = outDirectory
-        .getChildAssumingFolder(pathContext.join('gen', sourceDirectory));
+    Folder genDir = outDirectory.getChildAssumingFolder(
+        pathContext.join('dartlang', 'gen', sourceDirectory));
     if (!genDir.exists) {
       return const <String>[];
     }
@@ -247,5 +220,43 @@ class GnWorkspace extends Workspace {
         .where((File file) => pathContext.extension(file.path) == '.packages')
         .map((File file) => file.path)
         .toList();
+  }
+
+  /**
+   * Returns the output directory of the build, or `null` if it could not be
+   * found.
+   *
+   * First attempts to read a config file at the root of the source tree. If
+   * that file cannot be found, looks for standard output directory locations.
+   */
+  static Folder _getOutDirectory(String root, ResourceProvider provider) {
+    Context pathContext = provider.pathContext;
+    File config = provider.getFile(pathContext.join(root, '.config'));
+    if (config.exists) {
+      String content = config.readAsStringSync();
+      Match match = new RegExp(r'^FUCHSIA_BUILD_DIR="(.+)"$', multiLine: true)
+          .firstMatch(content);
+      if (match != null) {
+        String path = match.group(1);
+        if (pathContext.isRelative(path)) {
+          path = pathContext.join(root, path);
+        }
+        return provider.getFolder(path);
+      }
+    }
+    Folder outDirectory = provider.getFolder(pathContext.join(root, 'out'));
+    if (!outDirectory.exists) {
+      return null;
+    }
+    return outDirectory
+        .getChildren()
+        .where((resource) => resource is Folder)
+        .map((resource) => resource as Folder)
+        .firstWhere((Folder folder) {
+      String baseName = pathContext.basename(folder.path);
+      // Taking a best guess to identify a build dir. This is clearly a fallback
+      // to the config-based method.
+      return baseName.startsWith('debug') || baseName.startsWith('release');
+    }, orElse: () => null);
   }
 }

@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
@@ -313,12 +315,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final InterfaceType thisType;
 
+  final SourceLibraryBuilder library;
+
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   ClosureContext closureContext;
 
-  TypeInferrerImpl(
-      this.engine, this.uri, this.listener, bool topLevel, this.thisType)
+  TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
+      this.thisType, this.library)
       : coreTypes = engine.coreTypes,
         strongMode = engine.strongMode,
         classHierarchy = engine.classHierarchy,
@@ -329,6 +333,37 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Gets the type promoter that should be used to promote types during
   /// inference.
   TypePromoter get typePromoter;
+
+  /// Checks whether [actualType] can be assigned to [expectedType], and inserts
+  /// an implicit downcast if appropriate.
+  Expression checkAssignability(DartType expectedType, DartType actualType,
+      Expression expression, int fileOffset) {
+    if (expectedType == null ||
+        typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
+      // Types are compatible.
+      return null;
+    } else {
+      // Insert an implicit downcast.
+      if (strongMode) {
+        if (engine.isTopLevelInferenceComplete &&
+            !typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
+          // Error: not assignable.
+          library.addWarning(
+              templateInvalidAssignment.withArguments(actualType, expectedType),
+              fileOffset,
+              Uri.parse(uri));
+        }
+        var parent = expression.parent;
+        var typeCheck = new AsExpression(expression, expectedType)
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
+        parent.replaceChild(expression, typeCheck);
+        return typeCheck;
+      } else {
+        return null;
+      }
+    }
+  }
 
   /// Finds a member of [receiverType] called [name], and if it is found,
   /// reports it through instrumentation using [fileOffset].
@@ -569,13 +604,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Arguments arguments,
       Expression expression,
       DartType inferredType,
-      FunctionType functionType) {
+      FunctionType functionType,
+      int fileOffset) {
     var expressionToReplace = desugaredInvocation ?? expression;
     switch (checkKind) {
       case MethodContravarianceCheckKind.checkMethodReturn:
         var parent = expressionToReplace.parent;
         var replacement = new AsExpression(expressionToReplace, inferredType)
-          ..isTypeError = true;
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
         parent.replaceChild(expressionToReplace, replacement);
         if (instrumentation != null) {
           int offset = arguments.fileOffset == -1
@@ -590,7 +627,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         var propertyGet = new PropertyGet(desugaredInvocation.receiver,
             desugaredInvocation.name, desugaredInvocation.interfaceTarget);
         var asExpression = new AsExpression(propertyGet, functionType)
-          ..isTypeError = true;
+          ..isTypeError = true
+          ..fileOffset = fileOffset;
         var replacement = new MethodInvocation(
             asExpression, callName, desugaredInvocation.arguments);
         parent.replaceChild(expressionToReplace, replacement);
@@ -615,7 +653,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Object interfaceMember,
       PropertyGet desugaredGet,
       Expression expression,
-      DartType inferredType) {
+      DartType inferredType,
+      int fileOffset) {
     DispatchCategory callKind;
     if (receiver is ThisExpression) {
       callKind = DispatchCategory.viaThis;
@@ -635,7 +674,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       expressionToReplace.parent.replaceChild(
           expressionToReplace,
           new AsExpression(expressionToReplace, inferredType)
-            ..isTypeError = true);
+            ..isTypeError = true
+            ..fileOffset = fileOffset);
     }
     if (instrumentation != null) {
       int offset = expression.fileOffset;
@@ -980,7 +1020,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         isOverloadedArithmeticOperator: isOverloadedArithmeticOperator,
         receiverType: receiverType);
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
-        expression, inferredType, calleeType);
+        expression, inferredType, calleeType, fileOffset);
     listener.methodInvocationExit(
         expression, arguments, isImplicitCall, inferredType);
     return inferredType;
@@ -1015,8 +1055,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     var inferredType = getCalleeType(interfaceMember, receiverType);
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
-    handlePropertyGetContravariance(
-        receiver, interfaceMember, desugaredGet, expression, inferredType);
+    handlePropertyGetContravariance(receiver, interfaceMember, desugaredGet,
+        expression, inferredType, fileOffset);
     listener.propertyGetExit(expression, inferredType);
     return typeNeeded ? inferredType : null;
   }

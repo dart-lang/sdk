@@ -159,9 +159,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureRepresentationInfo closureData =
-        _closureDataLookup.getClosureInfoForMember(_analyzedMember);
-    closureData.forEachBoxedVariable((variable, field) {
+    ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(_analyzedMember);
+    scopeInfo.forEachBoxedVariable((variable, field) {
       _locals.setCapturedAndBoxed(variable, field);
     });
 
@@ -695,12 +694,11 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
 
-    ArgumentsTypes arguments = analyzeArguments(node.arguments);
-
     ir.TreeNode receiver = node.receiver;
     if (receiver is ir.VariableGet &&
         receiver.variable.parent is ir.FunctionDeclaration) {
       // This is an invocation of a named local function.
+      ArgumentsTypes arguments = analyzeArguments(node.arguments);
       ClosureRepresentationInfo info =
           _closureDataLookup.getClosureInfo(receiver.variable.parent);
       return handleStaticInvoke(
@@ -708,6 +706,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
 
     TypeInformation receiverType = visit(receiver);
+    ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (selector.name == '==') {
       if (_types.isNull(receiverType)) {
         // null == o
@@ -719,8 +718,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         return _types.boolType;
       }
     }
-    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
-      _checkIfExposesThis(selector, mask);
+    if (node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(
+          selector, _types.newTypedSelector(receiverType, mask));
     }
     return handleDynamicInvoke(
         CallType.access, node, selector, mask, receiverType, arguments);
@@ -1143,8 +1143,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeMask mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.interfaceTarget` to narrow the receiver
     // type for --trust-type-annotations/strong-mode.
-    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
-      _checkIfExposesThis(selector, mask);
+    if (node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(
+          selector, _types.newTypedSelector(receiverType, mask));
     }
     return handleDynamicGet(node, selector, mask, receiverType);
   }
@@ -1156,22 +1157,21 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     TypeMask mask = _memberData.typeOfSend(node);
     // TODO(johnniwinther): Use `node.target` to narrow the receiver type.
     Selector selector = new Selector.getter(member.memberName);
-    if (!_isThisExposed) {
-      _checkIfExposesThis(selector, mask);
-    }
+    _checkIfExposesThis(selector, _types.newTypedSelector(receiverType, mask));
     return handleDynamicGet(node, selector, mask, receiverType);
   }
 
   @override
   TypeInformation visitPropertySet(ir.PropertySet node) {
+    TypeInformation receiverType = visit(node.receiver);
+    Selector selector = _elementMap.getSelector(node);
+    TypeMask mask = _memberData.typeOfSend(node);
+
     TypeInformation rhsType = visit(node.value);
     if (node.value is ir.ThisExpression) {
       _markThisAsExposed();
     }
 
-    TypeInformation receiverType = visit(node.receiver);
-    Selector selector = _elementMap.getSelector(node);
-    TypeMask mask = _memberData.typeOfSend(node);
     if (_inGenerativeConstructor && node.receiver is ir.ThisExpression) {
       Iterable<MemberEntity> targets = _closedWorld.locateMembers(
           selector, _types.newTypedSelector(receiverType, mask));
@@ -1186,8 +1186,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         }
       }
     }
-    if (!_isThisExposed && node.receiver is ir.ThisExpression) {
-      _checkIfExposesThis(selector, mask);
+    if (node.receiver is ir.ThisExpression) {
+      _checkIfExposesThis(
+          selector, _types.newTypedSelector(receiverType, mask));
     }
     handleDynamicSet(node, selector, mask, receiverType, rhsType);
     return rhsType;

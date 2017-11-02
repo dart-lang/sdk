@@ -1,4 +1,6 @@
 {
+  "comment:0": "NOTE: THIS FILE IS GENERATED. DO NOT EDIT.",
+  "comment:1": "Instead modify 'sdk/lib/libraries.yaml' and follow the instructions therein.",
   "vm": {
     "libraries": {
       "_builtin": {
@@ -85,9 +87,6 @@
         ],
         "uri": "mirrors/mirrors.dart"
       },
-      "_http": {
-        "uri": "_http/http.dart"
-      },
       "io": {
         "patches": [
           "../../runtime/bin/common_patch.dart",
@@ -97,6 +96,7 @@
           "../../runtime/bin/file_system_entity_patch.dart",
           "../../runtime/bin/filter_patch.dart",
           "../../runtime/bin/io_service_patch.dart",
+          "../../runtime/bin/namespace_patch.dart",
           "../../runtime/bin/platform_patch.dart",
           "../../runtime/bin/process_patch.dart",
           "../../runtime/bin/socket_patch.dart",
@@ -109,9 +109,10 @@
       "_internal": {
         "patches": [
           "../../runtime/lib/internal_patch.dart",
-          "../../runtime/lib/class_id.dart",
+          "../../runtime/lib/class_id_fasta.dart",
           "../../runtime/lib/print_patch.dart",
-          "../../runtime/lib/symbol_patch.dart"
+          "../../runtime/lib/symbol_patch.dart",
+          "internal/patch.dart"
         ],
         "uri": "internal/internal.dart"
       },
@@ -119,13 +120,15 @@
         "patches": "../../runtime/lib/convert_patch.dart",
         "uri": "convert/convert.dart"
       },
+      "profiler": {
+        "uri": "profiler/profiler.dart"
+      },
       "math": {
         "patches": "../../runtime/lib/math_patch.dart",
         "uri": "math/math.dart"
       },
-      "profiler": {
-        "patches": "../../runtime/lib/empty_source.dart",
-        "uri": "profiler/profiler.dart"
+      "_http": {
+        "uri": "_http/http.dart"
       }
     }
   }

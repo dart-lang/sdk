@@ -9,16 +9,13 @@
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/datastream.h"
-#include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/heap.h"
-#include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/snapshot.h"
 #include "vm/version.h"
-#include "vm/visitor.h"
 
 #if defined(DEBUG)
 #define SNAPSHOT_BACKTRACE
@@ -30,6 +27,8 @@ namespace dart {
 class Serializer;
 class Deserializer;
 class ObjectStore;
+class ImageWriter;
+class ImageReader;
 
 // For full snapshots, we use a clustered snapshot format that trades longer
 // serialization time for faster deserialization time and smaller snapshots.
@@ -239,19 +238,8 @@ class Serializer : public StackResource {
     Write<int32_t>(cid);
   }
 
-  int32_t GetTextOffset(RawInstructions* instr, RawCode* code) {
-    intptr_t offset = heap_->GetObjectId(instr);
-    if (offset == 0) {
-      offset = image_writer_->GetTextOffsetFor(instr, code);
-      ASSERT(offset != 0);
-      heap_->SetObjectId(instr, offset);
-    }
-    return offset;
-  }
-
-  int32_t GetDataOffset(RawObject* object) {
-    return image_writer_->GetDataOffsetFor(object);
-  }
+  int32_t GetTextOffset(RawInstructions* instr, RawCode* code) const;
+  int32_t GetDataOffset(RawObject* object) const;
 
   Snapshot::Kind kind() const { return kind_; }
 
@@ -343,13 +331,8 @@ class Deserializer : public StackResource {
     return Read<int32_t>();
   }
 
-  RawInstructions* GetInstructionsAt(int32_t offset) {
-    return image_reader_->GetInstructionsAt(offset);
-  }
-
-  RawObject* GetObjectAt(int32_t offset) {
-    return image_reader_->GetObjectAt(offset);
-  }
+  RawInstructions* GetInstructionsAt(int32_t offset) const;
+  RawObject* GetObjectAt(int32_t offset) const;
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 

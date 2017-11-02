@@ -25,6 +25,9 @@
         "vm-win-release-ia32",
         "vm-win-release-x64"
       ],
+      "meta": {
+        "description": "This configuration is used by the vm debug, vm product and vm release builders."
+      },
       "steps": [
         {
           "name": "build dart",
@@ -47,8 +50,231 @@
     },
     {
       "builders": [
+        "vm-asan-linux-release-ia32",
+        "vm-asan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm builders with address sanitizing (asan). We have to run gn.py with the DART_USE_ASAN options, which we do by running generate_buildfiles."
+      },
+      "steps": [
+        {
+          "name": "generate build files with ASAN_USE_DART=1",
+          "script": "tools/generate_buildfiles.py",
+          "environment": {"DART_USE_ASAN": 1}
+        },
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["-v", "runtime"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--timeout=240"],
+          "environment": {
+            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
+            "ASAN_SYMBOLIZER_PATH": "buildtools/toolchain/clang+llvm-x86_64-linux/bin/llvm-symbolizer"
+          }
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": ["--checked","--timeout=240"],
+          "environment": {
+            "ASAN_OPTIONS": "handle_segv=0:detect_stack_use_after_return=0",
+            "ASAN_SYMBOLIZER_PATH": "buildtools/toolchain/clang+llvm-x86_64-linux/bin/llvm-symbolizer"
+          }
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-linux-debug-x64",
+        "vm-kernel-linux-release-x64",
+        "vm-kernel-mac-debug-x64",
+        "vm-kernel-mac-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the kernel builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime","runtime_kernel"]
+        },
+        {
+          "name": "front-end tests",
+          "arguments": ["--runtime=vm","--compiler=none","--checked"],
+          "tests": ["pkg/front_end"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--runtime=vm","--compiler=dartk"],
+          "exclude_tests": ["language_2","corelib_2","lib_2","standalone_2"]
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": ["--runtime=vm","--compiler=dartk","--strong"],
+          "tests": ["language_2","corelib_2","lib_2","standalone_2"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "app-linux-debug-x64",
+        "app-linux-product-x64",
+        "app-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm app builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--compiler=app_jit"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "precomp-linux-debug-x64",
+        "precomp-linux-product-x64",
+        "vm-noopt-mac-simarm64",
+        "vm-precomp-win-simarm64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the vm precomp builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime","runtime_precompiled"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "--compiler=precompiler",
+            "--runtime=dart_precompiled",
+            "--use-blobs"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-precomp-android-release"
+      ],
+      "meta": {
+        "description": "This is the configuration for the android precomp builder. This has its own configuration because it needs to pass os and system as arguments."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--os=android","runtime","runtime_precompiled"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "--compiler=precompiler",
+            "--runtime=dart_precompiled",
+            "--system=android",
+            "--use-blobs"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-optcounter-threshold-linux-release-ia32",
+        "vm-optcounter-threshold-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the optcounter builders, under the vm-misc group. They run the same tests as the ordinary VM builders, but add extra options to the vm."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--vm-options=--optimization-counter-threshold=5"]
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": [
+            "--checked",
+            "--vm-options=--optimization-counter-threshold=5"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-reload-linux-debug-x64",
+        "vm-reload-linux-release-x64",
+        "vm-reload-mac-debug-simdbc64",
+        "vm-reload-mac-release-simdbc64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the hot reload builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--hot-reload"]
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": ["--checked","--hot-reload"]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-reload-rollback-linux-debug-x64",
+        "vm-reload-rollback-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This is the configuration for reload rollback builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["runtime"]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--hot-reload-rollback"]
+        },
+        {
+          "name": "checked vm tests",
+          "arguments": ["--checked","--hot-reload-rollback"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
+      "meta": {
+        "description": "This configuration is used by the linux sdk builder. The difference between this configuration and the other sdk builder configuration is that this one also generates the api docs."
+      },
       "steps": [
         {
           "name": "build dart ia32",
@@ -72,6 +298,9 @@
         "dart-sdk-mac",
         "dart-sdk-win"
       ],
+      "meta": {
+        "description": "This configuration is used by the sdk-builders for windows and mac."
+      },
       "steps": [
         {
           "name": "build dart ia32",

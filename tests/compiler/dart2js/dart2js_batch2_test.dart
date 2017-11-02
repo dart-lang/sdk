@@ -49,7 +49,7 @@ void cleanUp() {
   tmpDir.deleteSync(recursive: true);
 }
 
-Future launchDart2Js(_) {
+Future<Process> launchDart2Js(_) {
   String ext = Platform.isWindows ? '.bat' : '';
   String command = path.normalize(path.join(
       path.fromUri(Platform.script), '../../../../sdk/bin/dart2js${ext}'));

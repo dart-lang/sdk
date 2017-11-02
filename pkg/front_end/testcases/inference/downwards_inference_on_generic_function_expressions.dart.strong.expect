@@ -2,15 +2,15 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method main() → void {
+static method test() → void {
   {
     function f<S extends core::Object>(core::int x) → core::String
       return null;
     <S extends core::Object>(core::int) → core::String v = f;
     v = <T extends core::Object>(core::int x) → core::String => null;
     v = <T extends core::Object>(core::int x) → core::String => "hello";
-    v = <T extends core::Object>(core::String x) → core::String => "hello";
-    v = <T extends core::Object>(core::int x) → core::int => 3;
+    v = <T extends core::Object>(core::String x) → core::String => "hello" as{TypeError} <S extends core::Object>(core::int) → core::String;
+    v = <T extends core::Object>(core::int x) → core::int => 3 as{TypeError} <S extends core::Object>(core::int) → core::String;
     v = <T extends core::Object>(core::int x) → core::String {
       return 3;
     };
@@ -21,7 +21,7 @@ static method main() → void {
     <S extends core::Object>(core::int) → core::String v = f;
     v = <T extends core::Object>(core::int x) → core::String => null;
     v = <T extends core::Object>(core::int x) → core::String => "hello";
-    v = <T extends core::Object>(core::int x) → core::int => 3;
+    v = <T extends core::Object>(core::int x) → core::int => 3 as{TypeError} <S extends core::Object>(core::int) → core::String;
     v = <T extends core::Object>(core::int x) → core::String {
       return 3;
     };
@@ -35,7 +35,7 @@ static method main() → void {
     <S extends core::Object>(core::int) → core::List<core::String> v = f;
     v = <T extends core::Object>(core::int x) → core::List<core::String> => null;
     v = <T extends core::Object>(core::int x) → core::List<core::String> => <core::String>["hello"];
-    v = <T extends core::Object>(core::String x) → core::List<core::String> => <core::String>["hello"];
+    v = <T extends core::Object>(core::String x) → core::List<core::String> => <core::String>["hello"] as{TypeError} <S extends core::Object>(core::int) → core::List<core::String>;
     v = <T extends core::Object>(core::int x) → core::List<core::String> => <core::String>[3];
     v = <T extends core::Object>(core::int x) → core::List<core::String> {
       return <core::String>[3];
@@ -52,9 +52,10 @@ static method main() → void {
     x = <T extends core::Object>(core::int x) → core::int => x;
     x = <T extends core::Object>(core::int x) → core::int => x.{core::num::+}(1);
     <T extends core::Object>(core::int) → core::String y = int2String;
-    y = <T extends core::Object>(core::int x) → core::int => x;
+    y = <T extends core::Object>(core::int x) → core::int => x as{TypeError} <T extends core::Object>(core::int) → core::String;
     y = <T extends core::Object>(core::int x) → core::String => x.substring(3);
     <T extends core::Object>(core::String) → core::String z = string2String;
     z = <T extends core::Object>(core::String x) → core::String => x.{core::String::substring}(3);
   }
 }
+static method main() → dynamic {}

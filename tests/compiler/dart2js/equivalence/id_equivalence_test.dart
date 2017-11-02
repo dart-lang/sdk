@@ -158,9 +158,21 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
         case SendStructureKind.UNARY:
           return computeInvokeName(sendStructure.operator.selectorName);
         case SendStructureKind.INDEX:
-          return computeInvokeName('[]');
+          return computeGetName('[]');
         case SendStructureKind.INDEX_SET:
-          return computeInvokeName('[]=');
+          return computeSetName('[]=');
+        case SendStructureKind.COMPOUND_INDEX_SET:
+        case SendStructureKind.INDEX_PREFIX:
+        case SendStructureKind.INDEX_POSTFIX:
+          if (id.kind == IdKind.update) {
+            return computeSetName('[]=');
+          } else if (id.kind == IdKind.invoke) {
+            return computeInvokeName(
+                sendStructure.operator.binaryOperator.name);
+          } else {
+            return computeGetName('[]');
+          }
+          break;
         case SendStructureKind.EQUALS:
           return computeInvokeName('==');
         case SendStructureKind.NOT_EQUALS:
@@ -268,6 +280,10 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
           receiver.variable.parent is ir.FunctionDeclaration) {
         // This is an invocation of a named local function.
         return computeInvokeName(receiver.variable.name);
+      } else if (node.name.name == '[]') {
+        return computeGetName('[]');
+      } else if (node.name.name == '[]=') {
+        return computeSetName('[]=');
       } else {
         return computeInvokeName(node.name.name);
       }

@@ -35,7 +35,7 @@ class PathHelper {
 
 /// Tests if all strings passed in [stringsToTest] are integers.
 bool areNumbers(Iterable<String> stringsToTest) {
-  RegExp isNumberRegExp = new RegExp("\\d+");
+  RegExp isNumberRegExp = new RegExp(r"^\d+$");
   return stringsToTest
       .every((string) => isNumberRegExp.firstMatch(string) != null);
 }

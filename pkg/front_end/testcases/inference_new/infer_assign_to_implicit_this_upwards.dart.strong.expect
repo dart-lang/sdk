@@ -1,0 +1,63 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Test1 extends core::Object {
+  field core::int t = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method test() → void {
+    core::int v1 = this.{self::Test1::t} = self::getInt();
+    core::int v2 = this.{self::Test1::t} = self::getNum() as{TypeError} core::int;
+    core::int v4 = let final core::int #t1 = this.{self::Test1::t} in #t1.{core::num::==}(null) ?{core::int} this.{self::Test1::t} = self::getInt() : #t1;
+    core::int v5 = let final core::int #t2 = this.{self::Test1::t} in #t2.{core::num::==}(null) ?{core::int} this.{self::Test1::t} = self::getNum() as{TypeError} core::int : #t2;
+    core::int v7 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getInt());
+    core::num v8 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getNum());
+    core::int v10 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(1);
+    core::int v11 = let final core::int #t3 = this.{self::Test1::t} in let final core::int #t4 = this.{self::Test1::t} = #t3.{core::num::+}(1) in #t3;
+  }
+}
+class Test2 extends core::Object {
+  field core::num t = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method test() → void {
+    core::int v1 = this.{self::Test2::t} = self::getInt();
+    core::num v2 = this.{self::Test2::t} = self::getNum();
+    core::double v3 = this.{self::Test2::t} = self::getDouble();
+    core::num v4 = let final core::num #t5 = this.{self::Test2::t} in #t5.{core::num::==}(null) ?{core::num} this.{self::Test2::t} = self::getInt() : #t5;
+    core::num v5 = let final core::num #t6 = this.{self::Test2::t} in #t6.{core::num::==}(null) ?{core::num} this.{self::Test2::t} = self::getNum() : #t6;
+    core::num v6 = let final core::num #t7 = this.{self::Test2::t} in #t7.{core::num::==}(null) ?{core::num} this.{self::Test2::t} = self::getDouble() : #t7;
+    core::num v7 = this.{self::Test2::t} = this.{self::Test2::t}.{core::num::+}(self::getInt());
+    core::num v8 = this.{self::Test2::t} = this.{self::Test2::t}.{core::num::+}(self::getNum());
+    core::num v9 = this.{self::Test2::t} = this.{self::Test2::t}.{core::num::+}(self::getDouble());
+    core::num v10 = this.{self::Test2::t} = this.{self::Test2::t}.{core::num::+}(1);
+    core::num v11 = let final core::num #t8 = this.{self::Test2::t} in let final core::num #t9 = this.{self::Test2::t} = #t8.{core::num::+}(1) in #t8;
+  }
+}
+class Test3 extends core::Object {
+  field core::double t = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method test3() → void {
+    core::double v2 = this.{self::Test3::t} = self::getNum() as{TypeError} core::double;
+    core::double v3 = this.{self::Test3::t} = self::getDouble();
+    core::double v5 = let final core::double #t10 = this.{self::Test3::t} in #t10.{core::num::==}(null) ?{core::double} this.{self::Test3::t} = self::getNum() as{TypeError} core::double : #t10;
+    core::double v6 = let final core::double #t11 = this.{self::Test3::t} in #t11.{core::num::==}(null) ?{core::double} this.{self::Test3::t} = self::getDouble() : #t11;
+    core::double v7 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(self::getInt());
+    core::double v8 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(self::getNum());
+    core::double v9 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(self::getDouble());
+    core::double v10 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(1);
+    core::double v11 = let final core::double #t12 = this.{self::Test3::t} in let final core::double #t13 = this.{self::Test3::t} = #t12.{core::double::+}(1) in #t12;
+  }
+}
+static method getInt() → core::int
+  return 0;
+static method getNum() → core::num
+  return 0;
+static method getDouble() → core::double
+  return 0.0;
+static method main() → dynamic {}

@@ -24,6 +24,11 @@ class Symbol implements core.Symbol {
 
   @patch
   toString() => 'Symbol("$_name")';
+
+  @patch
+  static String computeUnmangledName(Symbol symbol) {
+    throw "unsupported operation";
+  }
 }
 
 @patch

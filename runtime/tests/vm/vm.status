@@ -93,6 +93,7 @@ cc/Profiler_ToggleRecordAllocation: Skip
 cc/Profiler_TrivialRecordAllocation: Skip
 cc/Profiler_TypedArrayAllocation: Skip
 cc/Profiler_GetSourceReport: Skip
+cc/LargeMap: Skip
 
 # Following tests are failing in a weird way on macos/ia32/debug builds
 # need to investigate.

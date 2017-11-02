@@ -274,7 +274,7 @@ type Class extends Node {
   CanonicalNameReference canonicalName;
   FileOffset fileOffset;
   FileOffset fileEndOffset;
-  Byte flags (isAbstract, xx); // Where xx is index into ClassLevel
+  Byte flags (isAbstract, isEnum, xx); // Where xx is index into ClassLevel
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
@@ -492,12 +492,14 @@ type PropertySet extends Expression {
 
 type SuperPropertyGet extends Expression {
   Byte tag = 24;
+  FileOffset fileOffset;
   Name name;
   MemberReference interfaceTarget; // May be NullReference.
 }
 
 type SuperPropertySet extends Expression {
   Byte tag = 25;
+  FileOffset fileOffset;
   Name name;
   Expression value;
   MemberReference interfaceTarget; // May be NullReference.
@@ -566,6 +568,7 @@ type SuperMethodInvocation extends Expression {
 
 type DirectMethodInvocation extends Expression {
   Byte tag = 17; // Note: tag is out of order
+  FileOffset fileOffset;
   Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;

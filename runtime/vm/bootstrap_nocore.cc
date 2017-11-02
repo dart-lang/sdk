@@ -34,9 +34,9 @@ static BootstrapLibProps bootstrap_libraries[] = {
 
 static const intptr_t bootstrap_library_count = ARRAY_SIZE(bootstrap_libraries);
 
-void Finish(Thread* thread, bool from_kernel) {
+static void Finish(Thread* thread) {
   Bootstrap::SetupNativeResolver();
-  ClassFinalizer::ProcessPendingClasses(from_kernel);
+  ClassFinalizer::ProcessPendingClasses();
 
   // Eagerly compile the _Closure class as it is the class of all closure
   // instances. This allows us to just finalize function types without going
@@ -72,15 +72,6 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
   kernel::KernelLoader loader(program);
   Isolate* isolate = thread->isolate();
-  // Mark the already-pending classes.  This mark bit will be used to avoid
-  // adding classes to the list more than once.
-  GrowableObjectArray& pending_classes = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->pending_classes());
-  Class& pending = Class::Handle(zone);
-  for (intptr_t i = 0; i < pending_classes.Length(); ++i) {
-    pending ^= pending_classes.At(i);
-    pending.set_is_marked_for_parsing();
-  }
 
   // Load the bootstrap libraries in order (see object_store.h).
   Library& library = Library::Handle(zone);
@@ -100,7 +91,7 @@ RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   }
 
   // Finish bootstrapping, including class finalization.
-  Finish(thread, /*from_kernel=*/true);
+  Finish(thread);
 
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.

@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks
-//
-// Dart test for function type alias with optional parameters.
 
+// Dart test for function type alias with optional parameters.
 import "package:expect/expect.dart";
 
 typedef int f1<T>([int a, int b, T c]);

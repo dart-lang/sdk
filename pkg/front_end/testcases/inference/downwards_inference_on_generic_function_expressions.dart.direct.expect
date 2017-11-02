@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method main() → void {
+static method test() → void {
   {
     function f<S extends core::Object>(core::int x) → core::String
       return null;
@@ -58,3 +58,4 @@ static method main() → void {
     z = <T extends core::Object>(dynamic x) → dynamic => x.substring(3);
   }
 }
+static method main() → dynamic {}

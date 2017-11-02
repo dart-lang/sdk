@@ -20,9 +20,10 @@ vm:
       uri: "internal/internal.dart"
       patches:
         - "../../runtime/lib/internal_patch.dart"
-        - "../../runtime/lib/class_id.dart"
+        - "../../runtime/lib/class_id_fasta.dart"
         - "../../runtime/lib/print_patch.dart"
         - "../../runtime/lib/symbol_patch.dart"
+        - "internal/patch.dart"
 
     async:
       uri: "async/async.dart"
@@ -96,6 +97,7 @@ vm:
         - "../../runtime/bin/file_system_entity_patch.dart"
         - "../../runtime/bin/filter_patch.dart"
         - "../../runtime/bin/io_service_patch.dart"
+        - "../../runtime/bin/namespace_patch.dart"
         - "../../runtime/bin/platform_patch.dart"
         - "../../runtime/bin/process_patch.dart"
         - "../../runtime/bin/socket_patch.dart"
@@ -125,7 +127,6 @@ vm:
 
     profiler:
       uri: "profiler/profiler.dart"
-      patches: "../../runtime/lib/empty_source.dart"
 
     typed_data:
       uri: "typed_data/typed_data.dart"

@@ -5577,9 +5577,7 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
                       type_parameter_name.ToCString());
         }
       }
-      if ((CurrentToken() == Token::kEXTENDS) ||
-          (!parameterizing_class && (CurrentToken() == Token::kSUPER))) {
-        const bool is_lower_bound = CurrentToken() == Token::kSUPER;
+      if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
         // A bound may refer to the owner of the type parameter it applies to,
         // i.e. to the class or function currently being parsed.
@@ -5587,14 +5585,6 @@ void Parser::ParseTypeParameters(bool parameterizing_class) {
         // type parameters, as they are not fully parsed yet.
         type_parameter_bound =
             ParseTypeOrFunctionType(false, ClassFinalizer::kDoNotResolve);
-        if (is_lower_bound) {
-          // TODO(regis): Handle 'super' differently than 'extends' if lower
-          // bounds make it in the final specification and if run time support
-          // for lower bounds is required.
-          // For now, we parse but ignore lower bounds and only support upper
-          // bounds.
-          type_parameter_bound = I->object_store()->object_type();
-        }
       } else {
         type_parameter_bound = I->object_store()->object_type();
       }
@@ -8187,8 +8177,7 @@ bool Parser::TryParseTypeParameters() {
         // Consume the identifier, the period will be consumed below.
         ConsumeToken();
       }
-    } else if ((ct != Token::kCOMMA) && (ct != Token::kEXTENDS) &&
-               (ct != Token::kSUPER)) {
+    } else if ((ct != Token::kCOMMA) && (ct != Token::kEXTENDS)) {
       // We are looking at something other than type parameters.
       return false;
     }
@@ -11478,8 +11467,9 @@ ArgumentListNode* Parser::ParseActualParameters(
   const bool saved_mode = SetAllowFunctionLiterals(true);
   ArgumentListNode* arguments;
   if (implicit_arguments == NULL) {
-    // TODO(regis): When require_const is true, do we need to check that
-    // func_type_args are null or instantiated?
+    // When require_const is true, no function type arguments are passed, so
+    // there is no need to check that they are instantiated.
+    ASSERT(!require_const || func_type_args.IsNull());
     arguments = new (Z) ArgumentListNode(TokenPos(), func_type_args);
   } else {
     // If implicit arguments are provided, they include type arguments (if any).
@@ -11984,10 +11974,18 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
                                   func_type_args, false /* is_conditional */);
           }
         } else if (primary_node->primary().IsTypeParameter()) {
-          // TODO(regis): What about the parsed type arguments?
+          // The parsed type arguments (if any) are not parameterizing the type
+          // parameter (this would be a compile-time error), but are passed as
+          // the type arguments of a generic closure call with the type
+          // parameter as the closure. This will result in a NSM call, whether
+          // the call is generic or not.
           selector = LoadTypeParameter(primary_node);
+          selector = ParseClosureCall(selector, func_type_args);
         } else if (primary_node->primary().IsClass()) {
-          // TODO(regis): What about the parsed type arguments?
+          // The parsed type arguments (if any) are not parameterizing the
+          // class, but are passed as the type arguments of a generic closure
+          // call with the class as the closure. This will result in a NSM call,
+          // whether the call is generic or not.
           const Class& type_class = Class::Cast(primary_node->primary());
           AbstractType& type = Type::ZoneHandle(
               Z, Type::New(type_class, Object::null_type_arguments(),
@@ -11997,6 +11995,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           ASSERT(!type.IsMalformed());
           selector = new (Z) TypeNode(primary_pos, type,
                                       primary_node->is_deferred_reference());
+          selector = ParseClosureCall(selector, func_type_args);
         } else {
           UNREACHABLE();  // Internal parser error.
         }

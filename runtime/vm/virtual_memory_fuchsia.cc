@@ -146,36 +146,90 @@ void VirtualMemory::InitOnce() {
   page_size_ = getpagesize();
 }
 
-VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
+static void CloseVmar(zx_handle_t vmar) {
+  zx_status_t status = zx_vmar_destroy(vmar);
+  if (status != ZX_OK) {
+    LOG_ERR("zx_vmar_destroy failed: %s\n", zx_status_get_string(status));
+  }
+  status = zx_handle_close(vmar);
+  if (status != ZX_OK) {
+    LOG_ERR("zx_handle_close failed: %s\n", zx_status_get_string(status));
+  }
+}
+
+VirtualMemory* VirtualMemory::Allocate(intptr_t size,
+                                       bool is_executable,
+                                       const char* name) {
+  return AllocateAligned(size, 0, is_executable, name);
+}
+
+VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
+                                              intptr_t alignment,
+                                              bool is_executable,
+                                              const char* name) {
   ASSERT(Utils::IsAligned(size, page_size_));
+  ASSERT(Utils::IsAligned(alignment, page_size_));
+  intptr_t allocated_size = size + alignment;
   zx_handle_t vmar = ZX_HANDLE_INVALID;
   uword addr = 0;
-  const uint32_t flags = ZX_VM_FLAG_COMPACT | ZX_VM_FLAG_CAN_MAP_SPECIFIC |
-                         ZX_VM_FLAG_CAN_MAP_READ | ZX_VM_FLAG_CAN_MAP_WRITE |
-                         ZX_VM_FLAG_CAN_MAP_EXECUTE;
-  zx_status_t status =
-      zx_vmar_allocate(zx_vmar_root_self(), 0, size, flags, &vmar, &addr);
+  const uint32_t alloc_flags =
+      ZX_VM_FLAG_COMPACT | ZX_VM_FLAG_CAN_MAP_SPECIFIC |
+      ZX_VM_FLAG_CAN_MAP_READ | ZX_VM_FLAG_CAN_MAP_WRITE |
+      ZX_VM_FLAG_CAN_MAP_EXECUTE;
+  zx_status_t status = zx_vmar_allocate(zx_vmar_root_self(), 0, allocated_size,
+                                        alloc_flags, &vmar, &addr);
   if (status != ZX_OK) {
     LOG_ERR("zx_vmar_allocate(size = %ld) failed: %s\n", size,
             zx_status_get_string(status));
     return NULL;
   }
-  VmarList::AddVmar(vmar, addr, size);
-  MemoryRegion region(reinterpret_cast<void*>(addr), size);
-  return new VirtualMemory(region, vmar);
+
+  zx_handle_t vmo = ZX_HANDLE_INVALID;
+  status = zx_vmo_create(size, 0u, &vmo);
+  if (status != ZX_OK) {
+    LOG_ERR("zx_vmo_create(%ld) failed: %s\n", size,
+            zx_status_get_string(status));
+    CloseVmar(vmar);
+    return NULL;
+  }
+
+  if (name != NULL) {
+    zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
+  }
+
+  uword aligned_addr = alignment == 0 ? addr : Utils::RoundUp(addr, alignment);
+  const size_t offset = aligned_addr - addr;
+  const uint32_t map_flags = ZX_VM_FLAG_SPECIFIC | ZX_VM_FLAG_PERM_READ |
+                             ZX_VM_FLAG_PERM_WRITE |
+                             (is_executable ? ZX_VM_FLAG_PERM_EXECUTE : 0);
+  uintptr_t mapped_addr;
+  status = zx_vmar_map(vmar, offset, vmo, 0, size, map_flags, &mapped_addr);
+  zx_handle_close(vmo);
+  if (status != ZX_OK) {
+    LOG_ERR("zx_vmar_map(%ld, %ld, %u) failed: %s\n", offset, size, flags,
+            zx_status_get_string(status));
+    CloseVmar(vmar);
+    return NULL;
+  }
+  if (mapped_addr != aligned_addr) {
+    LOG_ERR("zx_vmar_map: mapped_addr != aligned_addr: %lx != %lx\n",
+            mapped_addr, aligned_addr);
+    CloseVmar(vmar);
+    return NULL;
+  }
+  LOG_INFO("Commit(%lx, %ld, %s): success\n", addr, size,
+           executable ? "executable" : "");
+
+  VmarList::AddVmar(vmar, aligned_addr, size);
+  MemoryRegion region(reinterpret_cast<void*>(aligned_addr), size);
+  MemoryRegion reserved(reinterpret_cast<void*>(addr), allocated_size);
+  return new VirtualMemory(region, reserved, vmar);
 }
 
 VirtualMemory::~VirtualMemory() {
   if (vm_owns_region()) {
     zx_handle_t vmar = static_cast<zx_handle_t>(handle());
-    zx_status_t status = zx_vmar_destroy(vmar);
-    if (status != ZX_OK) {
-      LOG_ERR("zx_vmar_destroy failed: %s\n", zx_status_get_string(status));
-    }
-    status = zx_handle_close(vmar);
-    if (status != ZX_OK) {
-      LOG_ERR("zx_handle_close failed: %s\n", zx_status_get_string(status));
-    }
+    CloseVmar(vmar);
     VmarList::RemoveVmar(start());
   }
 }
@@ -190,49 +244,6 @@ bool VirtualMemory::FreeSubSegment(int32_t handle,
     LOG_ERR("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
     return false;
   }
-  return true;
-}
-
-bool VirtualMemory::Commit(uword addr,
-                           intptr_t size,
-                           bool executable,
-                           const char* name) {
-  ASSERT(Contains(addr));
-  ASSERT(Contains(addr + size) || (addr + size == end()));
-  zx_handle_t vmo = ZX_HANDLE_INVALID;
-  zx_status_t status = zx_vmo_create(size, 0u, &vmo);
-  if (status != ZX_OK) {
-    LOG_ERR("zx_vmo_create(%ld) failed: %s\n", size,
-            zx_status_get_string(status));
-    return false;
-  }
-
-  if (name != NULL) {
-    zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
-  }
-
-  zx_handle_t vmar = static_cast<zx_handle_t>(handle());
-  const size_t offset = addr - start();
-  const uint32_t flags = ZX_VM_FLAG_SPECIFIC | ZX_VM_FLAG_PERM_READ |
-                         ZX_VM_FLAG_PERM_WRITE |
-                         (executable ? ZX_VM_FLAG_PERM_EXECUTE : 0);
-  uintptr_t mapped_addr;
-  status = zx_vmar_map(vmar, offset, vmo, 0, size, flags, &mapped_addr);
-  if (status != ZX_OK) {
-    zx_handle_close(vmo);
-    LOG_ERR("zx_vmar_map(%ld, %ld, %u) failed: %s\n", offset, size, flags,
-            zx_status_get_string(status));
-    return false;
-  }
-  if (addr != mapped_addr) {
-    zx_handle_close(vmo);
-    LOG_ERR("zx_vmar_map: addr != mapped_addr: %lx != %lx\n", addr,
-            mapped_addr);
-    return false;
-  }
-  zx_handle_close(vmo);
-  LOG_INFO("Commit(%lx, %ld, %s): success\n", addr, size,
-           executable ? "executable" : "");
   return true;
 }
 

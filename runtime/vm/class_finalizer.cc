@@ -8,6 +8,7 @@
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/kernel_loader.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -115,7 +116,7 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
 // Processing ObjectStore::pending_classes_ occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
-bool ClassFinalizer::ProcessPendingClasses(bool from_kernel) {
+bool ClassFinalizer::ProcessPendingClasses() {
   Thread* thread = Thread::Current();
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
                                            "ProcessPendingClasses"));
@@ -147,16 +148,6 @@ bool ClassFinalizer::ProcessPendingClasses(bool from_kernel) {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
-    }
-
-    // Classes compiled from Dart sources are finalized more lazily, classes
-    // compiled from Kernel binaries can be finalized now (and should be,
-    // since we will not revisit them).
-    if (from_kernel) {
-      for (intptr_t i = 0; i < class_array.Length(); i++) {
-        cls ^= class_array.At(i);
-        FinalizeClass(cls);
-      }
     }
 
     if (FLAG_print_classes) {
@@ -2407,19 +2398,23 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   }
 
   // Now clone the functions from the mixin class.
+  const Library& from_library = Library::Handle(zone, mixin_cls.library());
+  const Library& to_library = Library::Handle(zone, cls.library());
+  Function& from_func = Function::Handle(zone);
+
   functions = mixin_cls.functions();
   const intptr_t num_functions = functions.Length();
   for (intptr_t i = 0; i < num_functions; i++) {
-    func ^= functions.At(i);
-    if (func.IsGenerativeConstructor()) {
+    from_func ^= functions.At(i);
+    if (from_func.IsGenerativeConstructor()) {
       // A mixin class must not have explicit constructors.
-      if (!func.IsImplicitConstructor()) {
+      if (!from_func.IsImplicitConstructor()) {
         const Script& script = Script::Handle(cls.script());
         const Error& error = Error::Handle(LanguageError::NewFormatted(
-            Error::Handle(), script, func.token_pos(), Report::AtLocation,
+            Error::Handle(), script, from_func.token_pos(), Report::AtLocation,
             Report::kError, Heap::kNew,
             "constructor '%s' is illegal in mixin class %s",
-            String::Handle(func.UserVisibleName()).ToCString(),
+            String::Handle(from_func.UserVisibleName()).ToCString(),
             String::Handle(zone, mixin_cls.Name()).ToCString()));
 
         ReportErrors(error, cls, cls.token_pos(),
@@ -2428,9 +2423,11 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
       }
       continue;  // Skip the implicit constructor.
     }
-    if (!func.is_static() && !func.IsMethodExtractor() &&
-        !func.IsNoSuchMethodDispatcher() && !func.IsInvokeFieldDispatcher()) {
-      func = func.Clone(cls);
+    if (!from_func.is_static() && !from_func.IsMethodExtractor() &&
+        !from_func.IsNoSuchMethodDispatcher() &&
+        !from_func.IsInvokeFieldDispatcher()) {
+      func = from_func.Clone(cls);
+      to_library.CloneMetadataFrom(from_library, from_func, func);
       cloned_funcs.Add(func);
     }
   }
@@ -2629,6 +2626,15 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize %s\n", cls.ToCString());
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If loading from a kernel, make sure that the class is fully loaded.
+  // Top level classes are always fully loaded.
+  if (!cls.IsTopLevel() && cls.kernel_offset() > 0) {
+    kernel::KernelLoader::FinishLoading(cls);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   if (cls.is_patch()) {
     // The fields and functions of a patch class are copied to the
     // patched class after parsing. There is nothing to finalize.

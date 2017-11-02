@@ -52,6 +52,7 @@ generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
 generic_methods_test: CompileTimeError
 generic_methods_type_expression_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
+generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
@@ -120,7 +121,6 @@ part_refers_to_core_library_test/01: Crash
 regress_22443_test: RuntimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_23408_test: CompileTimeError
-regress_25568_test: RuntimeError
 regress_27617_test/1: MissingCompileTimeError
 setter_override2_test/none: CompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 31089
@@ -164,7 +164,6 @@ regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 31093
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: CompileTimeError, Crash # Issue 27809
-regress_29949_test: RuntimeError # Issue 31086
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
 string_interpolation_and_buffer_test: RuntimeError
@@ -270,15 +269,13 @@ execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 field_increment_bailout_test: RuntimeError # Issue 29920
-field_optimization3_test: RuntimeError # Issue 29920
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920
 flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920
 function_subtype_inline2_test: RuntimeError
-function_type/function_type50_test: RuntimeError # Issue 29920
-function_type/function_type58_test: RuntimeError # Issue 29920
+function_type_alias6_test/none: RuntimeError
 generic_instanceof2_test: RuntimeError # Issue 29920
 generic_is_check_test: RuntimeError # Issue 29920
 generic_method_types_test/02: RuntimeError
@@ -335,7 +332,7 @@ left_shift_test: RuntimeError # Ints and doubles are unified.
 expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 truncdiv_test: RuntimeError # Issue 29920
-field_optimization3_test: RuntimeError # Issue 29920
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
 stacktrace_test: RuntimeError # Issue 29920
 const_evaluation_test/01: RuntimeError # Issue 29920
+asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920

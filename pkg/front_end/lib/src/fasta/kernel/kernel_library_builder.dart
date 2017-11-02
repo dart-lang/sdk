@@ -18,6 +18,7 @@ import '../fasta_codes.dart'
     show
         Message,
         messageConflictsWithTypeVariableCause,
+        messageExternalFactoryRedirection,
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
         templateConflictsWithTypeVariable,
@@ -26,6 +27,7 @@ import '../fasta_codes.dart'
         templateExportHidesExport,
         templateIllegalMethodName,
         templateImportHidesImport,
+        templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
         templateLocalDefinitionHidesImport,
         templateTypeVariableDuplicatedNameCause;
@@ -67,6 +69,7 @@ import 'kernel_builder.dart'
         KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
+        LoadLibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
         NamedTypeBuilder,
@@ -85,7 +88,7 @@ class KernelLibraryBuilder
     extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;
 
-  final bool isPatch;
+  final KernelLibraryBuilder actualOrigin;
 
   final Map<String, SourceClassBuilder> mixinApplicationClasses =
       <String, SourceClassBuilder>{};
@@ -108,9 +111,13 @@ class KernelLibraryBuilder
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
-  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.isPatch)
-      : library = new Library(uri, fileUri: relativizeUri(fileUri)),
+  KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin)
+      : library = actualOrigin?.library ??
+            new Library(uri, fileUri: relativizeUri(fileUri)),
         super(loader, fileUri);
+
+  @override
+  KernelLibraryBuilder get origin => actualOrigin ?? this;
 
   @override
   Library get target => library;
@@ -680,6 +687,9 @@ class KernelLibraryBuilder
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
 
+    if (redirectionTarget != null && procedure.isExternal) {
+      addCompileTimeError(messageExternalFactoryRedirection, charOffset, uri);
+    }
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
     addBuilder(procedureName, procedure, charOffset);
     if (nativeMethodName != null) {
@@ -759,24 +769,36 @@ class KernelLibraryBuilder
 
   @override
   void buildBuilder(Builder builder, LibraryBuilder coreLibrary) {
+    Class cls;
+    Member member;
+    Typedef typedef;
     if (builder is SourceClassBuilder) {
-      Class cls = builder.build(this, coreLibrary);
-      library.addClass(cls);
+      cls = builder.build(this, coreLibrary);
     } else if (builder is KernelFieldBuilder) {
-      library.addMember(builder.build(this)..isStatic = true);
+      member = builder.build(this)..isStatic = true;
     } else if (builder is KernelProcedureBuilder) {
-      library.addMember(builder.build(this)..isStatic = true);
+      member = builder.build(this)..isStatic = true;
     } else if (builder is KernelFunctionTypeAliasBuilder) {
-      library.addTypedef(builder.build(this));
+      typedef = builder.build(this);
     } else if (builder is KernelEnumBuilder) {
-      library.addClass(builder.build(this, coreLibrary));
+      cls = builder.build(this, coreLibrary);
     } else if (builder is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
+      return;
     } else if (builder is BuiltinTypeBuilder) {
       // Nothing needed.
+      return;
     } else {
       unhandled("${builder.runtimeType}", "buildBuilder", builder.charOffset,
           builder.fileUri);
+      return;
+    }
+    if (cls != null) {
+      library.addClass(cls);
+    } else if (member != null) {
+      library.addMember(member);
+    } else if (typedef != null) {
+      library.addTypedef(typedef);
     }
   }
 
@@ -787,11 +809,8 @@ class KernelLibraryBuilder
     for (Import import in imports) {
       Library importedLibrary = import.imported.target;
       if (importedLibrary != null) {
-        if (import.deferred && import.prefix != null) {
-          library.addDependency(new LibraryDependency.deferredImport(
-              importedLibrary, import.prefix,
-              combinators: toKernelCombinators(import.combinators))
-            ..fileOffset = import.charOffset);
+        if (import.deferred && import.prefixBuilder?.dependency != null) {
+          library.addDependency(import.prefixBuilder.dependency);
         } else {
           library.addDependency(new LibraryDependency.import(importedLibrary,
               name: import.prefix,
@@ -848,6 +867,7 @@ class KernelLibraryBuilder
       other = error.builder;
     }
     bool isLocal = false;
+    bool isLoadLibrary = false;
     Builder preferred;
     Uri uri;
     Uri otherUri;
@@ -860,7 +880,15 @@ class KernelLibraryBuilder
     } else {
       uri = builder.computeLibraryUri();
       otherUri = other.computeLibraryUri();
-      if (otherUri?.scheme == "dart" && uri?.scheme != "dart") {
+      if (builder is LoadLibraryBuilder) {
+        isLoadLibrary = true;
+        preferred = builder;
+        preferredUri = otherUri;
+      } else if (other is LoadLibraryBuilder) {
+        isLoadLibrary = true;
+        preferred = other;
+        preferredUri = uri;
+      } else if (otherUri?.scheme == "dart" && uri?.scheme != "dart") {
         preferred = builder;
         preferredUri = uri;
         hiddenUri = otherUri;
@@ -876,6 +904,9 @@ class KernelLibraryBuilder
             ? templateLocalDefinitionHidesExport
             : templateLocalDefinitionHidesImport;
         addNit(template.withArguments(name, hiddenUri), charOffset, fileUri);
+      } else if (isLoadLibrary) {
+        addNit(templateLoadLibraryHidesMember.withArguments(preferredUri),
+            charOffset, fileUri);
       } else {
         var template =
             isExport ? templateExportHidesExport : templateImportHidesImport;
@@ -901,6 +932,18 @@ class KernelLibraryBuilder
     Message message = template.withArguments(name, uri, otherUri);
     addNit(message, charOffset, fileUri);
     return new KernelInvalidTypeBuilder(name, charOffset, fileUri, message);
+  }
+
+  int finishDeferredLoadTearoffs() {
+    int total = 0;
+    for (var import in imports) {
+      if (import.deferred) {
+        Procedure tearoff = import.prefixBuilder.loadLibraryBuilder.tearoff;
+        if (tearoff != null) library.addMember(tearoff);
+        total++;
+      }
+    }
+    return total;
   }
 
   int finishStaticInvocations() {

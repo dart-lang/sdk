@@ -13,36 +13,32 @@ static method getDouble() → core::double
   return 0.0;
 static method test1() → void {
   core::int v1 = self::topLevelInt = self::getInt();
-  core::num v2 = self::topLevelInt = self::getNum();
   core::int v4 = let final core::int #t1 = self::topLevelInt in #t1.{core::num::==}(null) ?{core::int} self::topLevelInt = self::getInt() : #t1;
-  core::num v5 = let final core::int #t2 = self::topLevelInt in #t2.{core::num::==}(null) ?{core::num} self::topLevelInt = self::getNum() : #t2;
   core::int v7 = self::topLevelInt = self::topLevelInt.{core::num::+}(self::getInt());
   core::num v8 = self::topLevelInt = self::topLevelInt.{core::num::+}(self::getNum());
   core::int v10 = self::topLevelInt = self::topLevelInt.{core::num::+}(1);
-  core::int v11 = let final core::int #t3 = self::topLevelInt in let final core::int #t4 = self::topLevelInt = #t3.{core::num::+}(1) in #t3;
+  core::int v11 = let final core::int #t2 = self::topLevelInt in let final core::int #t3 = self::topLevelInt = #t2.{core::num::+}(1) in #t2;
 }
 static method test2() → void {
   core::int v1 = self::topLevelNum = self::getInt();
   core::num v2 = self::topLevelNum = self::getNum();
   core::double v3 = self::topLevelNum = self::getDouble();
-  core::num v4 = let final core::num #t5 = self::topLevelNum in #t5.{core::num::==}(null) ?{core::num} self::topLevelNum = self::getInt() : #t5;
-  core::num v5 = let final core::num #t6 = self::topLevelNum in #t6.{core::num::==}(null) ?{core::num} self::topLevelNum = self::getNum() : #t6;
-  core::num v6 = let final core::num #t7 = self::topLevelNum in #t7.{core::num::==}(null) ?{core::num} self::topLevelNum = self::getDouble() : #t7;
+  core::num v4 = let final core::num #t4 = self::topLevelNum in #t4.{core::num::==}(null) ?{core::num} self::topLevelNum = self::getInt() : #t4;
+  core::num v5 = let final core::num #t5 = self::topLevelNum in #t5.{core::num::==}(null) ?{core::num} self::topLevelNum = self::getNum() : #t5;
+  core::num v6 = let final core::num #t6 = self::topLevelNum in #t6.{core::num::==}(null) ?{core::num} self::topLevelNum = self::getDouble() : #t6;
   core::num v7 = self::topLevelNum = self::topLevelNum.{core::num::+}(self::getInt());
   core::num v8 = self::topLevelNum = self::topLevelNum.{core::num::+}(self::getNum());
   core::num v9 = self::topLevelNum = self::topLevelNum.{core::num::+}(self::getDouble());
   core::num v10 = self::topLevelNum = self::topLevelNum.{core::num::+}(1);
-  core::num v11 = let final core::num #t8 = self::topLevelNum in let final core::num #t9 = self::topLevelNum = #t8.{core::num::+}(1) in #t8;
+  core::num v11 = let final core::num #t7 = self::topLevelNum in let final core::num #t8 = self::topLevelNum = #t7.{core::num::+}(1) in #t7;
 }
 static method test3() → void {
-  core::num v2 = self::topLevelDouble = self::getNum();
   core::double v3 = self::topLevelDouble = self::getDouble();
-  core::num v5 = let final core::double #t10 = self::topLevelDouble in #t10.{core::num::==}(null) ?{core::num} self::topLevelDouble = self::getNum() : #t10;
-  core::double v6 = let final core::double #t11 = self::topLevelDouble in #t11.{core::num::==}(null) ?{core::double} self::topLevelDouble = self::getDouble() : #t11;
+  core::double v6 = let final core::double #t9 = self::topLevelDouble in #t9.{core::num::==}(null) ?{core::double} self::topLevelDouble = self::getDouble() : #t9;
   core::double v7 = self::topLevelDouble = self::topLevelDouble.{core::double::+}(self::getInt());
   core::double v8 = self::topLevelDouble = self::topLevelDouble.{core::double::+}(self::getNum());
   core::double v9 = self::topLevelDouble = self::topLevelDouble.{core::double::+}(self::getDouble());
   core::double v10 = self::topLevelDouble = self::topLevelDouble.{core::double::+}(1);
-  core::double v11 = let final core::double #t12 = self::topLevelDouble in let final core::double #t13 = self::topLevelDouble = #t12.{core::double::+}(1) in #t12;
+  core::double v11 = let final core::double #t10 = self::topLevelDouble in let final core::double #t11 = self::topLevelDouble = #t10.{core::double::+}(1) in #t10;
 }
 static method main() → dynamic {}

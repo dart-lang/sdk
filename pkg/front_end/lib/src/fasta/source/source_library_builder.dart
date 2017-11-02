@@ -122,9 +122,6 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool get isPart => partOfName != null || partOfUri != null;
 
-  @override
-  bool get isPatch;
-
   List<UnresolvedType<T>> get types => libraryDeclaration.types;
 
   T addNamedType(Object name, List<T> arguments, int charOffset);
@@ -502,6 +499,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {
+        // TODO(ahe): This shouldn't be necessary as setters have been added to
+        // their own scope.
         assert(builder.next.next == null);
         addBuilder(name, builder.next, builder.next.charOffset);
       }

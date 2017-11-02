@@ -971,26 +971,34 @@ class NodeListener extends ElementListener {
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
     Node name = popNode();
-    popNode(); // Discard modifiers. They're recomputed below.
-
-    // TODO(ahe): Move this parsing to the parser.
-    int modifierCount = 0;
-    Token modifier = beginToken;
-    if (modifier.stringValue == "external") {
-      handleModifier(modifier);
-      modifierCount++;
-      modifier = modifier.next;
-    }
-    if (modifier.stringValue == "const") {
-      handleModifier(modifier);
-      modifierCount++;
-      modifier = modifier.next;
-    }
-    assert(modifier.stringValue == "factory");
-    handleModifier(modifier);
-    modifierCount++;
-    handleModifiers(modifierCount);
     Modifiers modifiers = popNode();
+
+    // The parser does not report `factory` as a modifier,
+    // but NodeListener considers it to be a modifier.
+    // We cannot simply add all tokens from beginToken to factoryToken
+    // inclusive because there may be invalid tokens that the parser
+    // has skipped and the factoryKeyword may itself be out of order.
+    // Because modifiers may be out of order, and some code relies
+    // on the order of the nodes in modifiers, we must insert the factory
+    // keyword in the correct place by rebuilding the modifiers.
+    int modifierCount = 0;
+    Identifier factoryNode = new Identifier(factoryKeyword);
+    modifiers.nodes.nodes.forEach((Node node) {
+      if (factoryNode != null &&
+          factoryNode.token.charOffset < node.getBeginToken().charOffset) {
+        pushNode(factoryNode);
+        ++modifierCount;
+        factoryNode = null;
+      }
+      pushNode(node);
+      ++modifierCount;
+    });
+    if (factoryNode != null) {
+      pushNode(factoryNode);
+      ++modifierCount;
+    }
+    handleModifiers(modifierCount);
+    modifiers = popNode();
 
     pushNode(new FunctionExpression(
         name, null, formals, body, null, modifiers, null, null, asyncModifier));

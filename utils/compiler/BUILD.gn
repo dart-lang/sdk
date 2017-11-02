@@ -84,7 +84,7 @@ generate_patched_sdk("patched_dart2js_sdk") {
   deps = [
     # TODO(ahe): This is needed by ../../tools/patch_sdk.dart to compute
     # dependencies.
-    "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
+    "../../runtime/vm:kernel_platform_files($host_toolchain)",
   ]
   input_patches_dir = "../../sdk/lib/_internal/js_runtime/lib"
   patched_sdk_dir = "patched_dart2js_sdk"

@@ -68,6 +68,12 @@ const intptr_t kOffsetOfPtr = 32;
        (reinterpret_cast<type*>(kOffsetOfPtr)->accessor())) -                  \
    kOffsetOfPtr)  // NOLINT
 
+#define SIZE_OF_RETURNED_VALUE(type, method)                                   \
+  sizeof(reinterpret_cast<type*>(kOffsetOfPtr)->method())
+
+#define SIZE_OF_DEREFERENCED_RETURNED_VALUE(type, method)                      \
+  sizeof(*(reinterpret_cast<type*>(kOffsetOfPtr))->method())
+
 #define OPEN_ARRAY_START(type, align)                                          \
   do {                                                                         \
     const uword result = reinterpret_cast<uword>(this) + sizeof(*this);        \

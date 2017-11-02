@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("build/dart_host_toolchain.gni")
-
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
   if (is_fuchsia || is_fuchsia_host) {
@@ -38,7 +36,7 @@ group("runtime") {
   }
   deps = [
     "runtime/bin:dart",
-    "runtime/bin:dart_bootstrap($dart_host_toolchain)",
+    "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
@@ -53,7 +51,7 @@ group("runtime_kernel") {
   }
   deps = [
     ":runtime",
-    "runtime/vm:kernel_platform_files($dart_host_toolchain)",
+    "runtime/vm:kernel_platform_files($host_toolchain)",
 
     # TODO(rmacnak): Link this into 'dart'.
     "utils/kernel-service:kernel-service",
@@ -62,7 +60,7 @@ group("runtime_kernel") {
 
 group("runtime_precompiled") {
   deps = [
-    "runtime/bin:dart_bootstrap($dart_host_toolchain)",
+    "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:process_test",
   ]

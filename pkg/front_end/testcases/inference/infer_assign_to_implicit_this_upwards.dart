@@ -14,9 +14,7 @@ class Test1 {
 
   void test() {
     var /*@type=int*/ v1 = /*@target=Test1::t*/ t = getInt();
-    var /*@type=num*/ v2 = /*@target=Test1::t*/ t = getNum();
     var /*@type=int*/ v4 = /*@target=Test1::t*/ t ??= getInt();
-    var /*@type=num*/ v5 = /*@target=Test1::t*/ t ??= getNum();
     var /*@type=int*/ v7 = /*@target=Test1::t*/ t += getInt();
     var /*@type=num*/ v8 = /*@target=Test1::t*/ t += getNum();
     var /*@type=int*/ v10 = ++ /*@target=Test1::t*/ t;
@@ -46,9 +44,7 @@ class Test3 {
   double t;
 
   void test3() {
-    var /*@type=num*/ v2 = /*@target=Test3::t*/ t = getNum();
     var /*@type=double*/ v3 = /*@target=Test3::t*/ t = getDouble();
-    var /*@type=num*/ v5 = /*@target=Test3::t*/ t ??= getNum();
     var /*@type=double*/ v6 = /*@target=Test3::t*/ t ??= getDouble();
     var /*@type=double*/ v7 = /*@target=Test3::t*/ t += getInt();
     var /*@type=double*/ v8 = /*@target=Test3::t*/ t += getNum();

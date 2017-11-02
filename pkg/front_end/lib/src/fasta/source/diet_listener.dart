@@ -27,7 +27,7 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../parser.dart'
     show IdentifierContext, MemberKind, Parser, closeBraceTokenFor, optional;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unexpected;
 
 import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 
@@ -325,7 +325,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endDottedName(int count, Token firstIdentifier) {
+  void handleDottedName(int count, Token firstIdentifier) {
     debugEvent("DottedName");
     discard(count);
   }
@@ -347,7 +347,7 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
     discard(count);
   }
@@ -523,7 +523,8 @@ class DietListener extends StackListener {
     }
     var typeInferrer = library.disableTypeInference
         ? typeInferenceEngine.createDisabledTypeInferrer()
-        : typeInferenceEngine.createLocalTypeInferrer(uri, listener, thisType);
+        : typeInferenceEngine.createLocalTypeInferrer(
+            uri, listener, thisType, library);
     return new BodyBuilder(library, builder, memberScope, formalParameterScope,
         hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
       ..constantExpressionRequired = builder.isConstructor && builder.isConst;
@@ -705,9 +706,9 @@ class DietListener extends StackListener {
       // There's a slight asymmetry between [parseTopLevelMember] and
       // [parseMember] because the former doesn't call `parseMetadataStar`.
       token = parser.parseMetadataStar(metadata ?? token);
-      token = parser.parseTopLevelMember(token);
+      token = parser.parseTopLevelMember(token).next;
     } else {
-      token = parser.parseMember(metadata ?? token);
+      token = parser.parseMember(metadata ?? token).next;
     }
     listenerFinishFields(listener, startToken, metadata, isTopLevel);
     listener.checkEmpty(token.charOffset);
@@ -726,6 +727,11 @@ class DietListener extends StackListener {
       name = nameOrQualified;
     }
     if (currentClass != null) {
+      if (uri != currentClass.fileUri) {
+        unexpected("$uri", "${currentClass.fileUri}", currentClass.charOffset,
+            currentClass.fileUri);
+      }
+
       if (getOrSet != null && optional("set", getOrSet)) {
         builder = currentClass.scope.setters[name];
       } else {
@@ -756,6 +762,11 @@ class DietListener extends StackListener {
       String errorName = suffix == null ? name : "$name.$suffix";
       return deprecated_inputError(
           uri, token.charOffset, "Duplicated name: $errorName");
+    }
+
+    if (uri != builder.fileUri) {
+      unexpected(
+          "$uri", "${builder.fileUri}", builder.charOffset, builder.fileUri);
     }
     return builder;
   }

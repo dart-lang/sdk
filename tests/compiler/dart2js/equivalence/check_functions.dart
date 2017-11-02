@@ -552,6 +552,54 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
       check(member1, member2, 'getFunctionType', env1.getFunctionType(member1),
           env2.getFunctionType(member2), strategy.typeEquivalence);
     }
+
+    check(
+        member1, member2, "isTopLevel", member1.isTopLevel, member2.isTopLevel);
+    check(member1, member2, "isStatic", member1.isStatic, member2.isStatic);
+    check(member1, member2, "isInstanceMember", member1.isInstanceMember,
+        member2.isInstanceMember);
+    check(member1, member2, "isConstructor", member1.isConstructor,
+        member2.isConstructor);
+    check(member1, member2, "isField", member1.isField, member2.isField);
+    check(
+        member1, member2, "isFunction", member1.isFunction, member2.isFunction);
+    check(member1, member2, "isGetter", member1.isGetter, member2.isGetter);
+    check(member1, member2, "isSetter", member1.isSetter, member2.isSetter);
+    check(member1, member2, "isAssignable", member1.isAssignable,
+        member2.isAssignable);
+    check(member1, member2, "isConst", member1.isConst, member2.isConst);
+    check(
+        member1, member2, "isAbstract", member1.isAbstract, member2.isAbstract);
+
+    if (member1 is FunctionEntity) {
+      FunctionEntity function1 = member1;
+      FunctionEntity function2 = member2;
+      check(function1, function2, "isExternal", function1.isExternal,
+          function2.isExternal);
+      check(function1, function2, "parameterStructure",
+          function1.parameterStructure, function2.parameterStructure);
+      check(function1, function2, "asyncMarker", function1.asyncMarker,
+          function2.asyncMarker);
+    }
+
+    if (member1 is ConstructorEntity) {
+      ConstructorEntity constructor1 = member1;
+      ConstructorEntity constructor2 = member2;
+      check(
+          constructor1,
+          constructor2,
+          "isGenerativeConstructor",
+          constructor1.isGenerativeConstructor,
+          constructor2.isGenerativeConstructor);
+      check(constructor1, constructor2, "isFactoryConstructor",
+          constructor1.isFactoryConstructor, constructor2.isFactoryConstructor);
+      check(
+          constructor1,
+          constructor2,
+          "isFromEnvironmentConstructor",
+          constructor1.isFromEnvironmentConstructor,
+          constructor2.isFromEnvironmentConstructor);
+    }
   }
 
   checkSetEquivalence(env1, env2, 'libraries', filterLibraries(env1.libraries),

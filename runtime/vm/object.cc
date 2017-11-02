@@ -2119,6 +2119,7 @@ RawClass* Class::New() {
   result.set_num_own_type_arguments(0);
   result.set_num_native_fields(0);
   result.set_token_pos(TokenPosition::kNoSource);
+  result.set_kernel_offset(-1);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -2693,7 +2694,9 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
     // Make dispatcher function generic, since type arguments are passed.
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, TypeArguments::New(desc.TypeArgsLen()));
-    // TODO(regis): Can we leave the array uninitialized to save memory?
+    // The presence of a type parameter array is enough to mark this dispatcher
+    // as generic. To save memory, we do not copy the type parameters to the
+    // array (they are not accessed), but leave it as an array of null objects.
     invocation.set_type_parameters(type_params);
   }
 
@@ -3253,6 +3256,7 @@ RawClass* Class::NewCommon(intptr_t index) {
 template <class FakeInstance>
 RawClass* Class::New(intptr_t index) {
   Class& result = Class::Handle(NewCommon<FakeInstance>(index));
+  result.set_kernel_offset(-1);
   Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
@@ -3266,6 +3270,7 @@ RawClass* Class::New(const Library& lib,
   result.set_name(name);
   result.set_script(script);
   result.set_token_pos(token_pos);
+  result.set_kernel_offset(-1);
   Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
@@ -3294,6 +3299,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
     cls.set_is_cycle_free();
+    cls.set_kernel_offset(-1);
     library.AddClass(cls);
     return cls.raw();
   } else {
@@ -4967,9 +4973,6 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(!IsInstantiated());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsCanonical());
-  // TODO(regis): It is not clear yet whether we will canonicalize the result
-  // of the concatenation of function_type_arguments in a nested generic
-  // function. Leave the assert for now to be safe, but plan on revisiting.
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
   // Lookup instantiator and, if found, return paired instantiated result.
@@ -10219,6 +10222,18 @@ RawField* Library::GetMetadataField(const String& metaname) const {
     }
   }
   return Field::null();
+}
+
+void Library::CloneMetadataFrom(const Library& from_library,
+                                const Function& from_fun,
+                                const Function& to_fun) const {
+  const String& metaname = String::Handle(MakeMetadataName(from_fun));
+  const Field& from_field =
+      Field::Handle(from_library.GetMetadataField(metaname));
+  if (!from_field.IsNull()) {
+    AddFunctionMetadata(to_fun, from_field.token_pos(),
+                        from_field.kernel_offset());
+  }
 }
 
 RawObject* Library::GetMetadata(const Object& obj) const {

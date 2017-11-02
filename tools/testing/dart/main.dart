@@ -29,7 +29,7 @@ void main(List<String> arguments) {
   // Parse the command line arguments to a configuration.
   var parser = new OptionsParser();
   var configurations = parser.parse(arguments);
-  if (configurations.isEmpty) return;
+  if (configurations == null || configurations.isEmpty) return;
 
   // Run all of the configured tests.
   // TODO(26372): Ensure that all tasks complete and return a future from this

@@ -254,18 +254,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
 
   @override
-  ClosureRepresentationInfo getClosureInfoForMember(MemberEntity entity) {
-    var closure = _memberClosureRepresentationMap[entity];
-    // TODO(johnniwinther): Re-insert assertion or remove
-    // [getClosureInfoForMember].
-    /*assert(
-        closure != null,
-        "Corresponding closure class not found for $entity. "
-        "Closures found for ${_memberClosureRepresentationMap.keys}");*/
-    return closure ?? const ClosureRepresentationInfo();
-  }
-
-  @override
   ClosureRepresentationInfo getClosureInfo(ir.Node node) {
     assert(node is ir.FunctionExpression || node is ir.FunctionDeclaration);
     var closure = _localClosureRepresentationMap[node];

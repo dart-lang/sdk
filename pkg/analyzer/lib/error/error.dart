@@ -315,6 +315,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.CLASS_IN_CLASS,
   ParserErrorCode.COLON_IN_PLACE_OF_IN,
   ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
+  ParserErrorCode.CONST_AFTER_FACTORY,
   ParserErrorCode.CONST_AND_COVARIANT,
   ParserErrorCode.CONST_AND_FINAL,
   ParserErrorCode.CONST_AND_VAR,

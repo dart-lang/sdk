@@ -39,7 +39,7 @@ bool isStateless(FunctionBody function, Expression node, [AstNode context]) {
       if (e.isFinal) return true;
       if (e is LocalVariableElement || e is ParameterElement) {
         // make sure the local isn't mutated in the context.
-        return !_isPotentiallyMutated(function, e, context);
+        return !isPotentiallyMutated(function, e, context);
       }
     }
   }
@@ -48,7 +48,7 @@ bool isStateless(FunctionBody function, Expression node, [AstNode context]) {
 
 /// Returns true if the local variable is potentially mutated within [context].
 /// This accounts for closures that may have been created outside of [context].
-bool _isPotentiallyMutated(FunctionBody function, VariableElement e,
+bool isPotentiallyMutated(FunctionBody function, VariableElement e,
     [AstNode context]) {
   if (function is FunctionBodyImpl && function.localVariableInfo == null) {
     // TODO(jmesserly): this is a caching bug in Analyzer. They don't restore

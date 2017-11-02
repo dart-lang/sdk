@@ -4,6 +4,6 @@ import "dart:core" as core;
 
 static method test1() → dynamic {
   core::Map<core::Null, core::Null> x = <core::Null, core::Null>{null: null};
-  x.{core::Map::[]=}(3, "z");
+  x.{core::Map::[]=}(3, "z" as{TypeError} core::Null);
 }
 static method main() → dynamic {}

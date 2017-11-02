@@ -12,95 +12,38 @@
 // TODO(leafp): Consider splitting some of this out.
 part of dart._runtime;
 
+/// Returns a new type that mixes members from base and the mixin.
 ///
-/// Returns a new type that mixes members from base and all mixins.
-///
-/// Each mixin applies in sequence, with further to the right ones overriding
-/// previous entries.
-///
-/// For each mixin, we only take its own properties, not anything from its
-/// superclass (prototype).
-mixin(base, @rest mixins) => JS('', '''(() => {
-  // Create an initializer for the mixin, so when derived constructor calls
-  // super, we can correctly initialize base and mixins.
+/// The mixin must be non-generic; generic mixins are handled by [genericMixin].
+mixinMembers(to, from) {
+  JS('', '#[#] = #', to, _mixin, from);
+  var toProto = JS('', '#.prototype', to);
+  var fromProto = JS('', '#.prototype', from);
+  copyProperties(toProto, fromProto);
+  copySignature(to, from, _methodSig);
+  copySignature(to, from, _fieldSig);
+  copySignature(to, from, _getterSig);
+  copySignature(to, from, _setterSig);
+}
 
-  // Create a class that will hold all of the mixin methods.
-  class Mixin extends $base {}
-  // Save the original constructor.  For ClassTypeAlias definitions, this
-  // is the concrete type.  We embed metadata (e.g., implemented interfaces)
-  // on this constructor and need to access that from runtime instances.
-  let constructor = Mixin.prototype.constructor;
-  // Copy each mixin's methods, with later ones overwriting earlier entries.
-  for (let m of $mixins) {
-    $copyProperties(Mixin.prototype, m.prototype);
-  }
-  // Restore original Mixin JS constructor.
-  Mixin.prototype.constructor = constructor;  
-  // Dart constructors: run mixin constructors, then the base constructors.
-  for (let memberName of $getOwnNamesAndSymbols($base)) {
-    let member = $safeGetOwnProperty($base, memberName);
-    if (typeof member == "function" && member.prototype === base.prototype) {
-      $defineValue(Mixin, memberName, function(...args) {
-        // Run mixin initializers. They cannot have arguments.
-        // Run them backwards so most-derived mixin is initialized first.
-        for (let i = $mixins.length - 1; i >= 0; i--) {
-          let m = $mixins[i];
-          (m[$mixinNew] || m.new).call(this);
-        }
-        // Run base initializer.
-        $base[memberName].apply(this, args);
-      }).prototype = Mixin.prototype;
-    }
-  }
+void copySignature(to, from, signatureField) {
+  defineLazyField(
+      to,
+      signatureField,
+      JS('', '{ get: # }', () {
+        var baseSignature = JS('', '#.__proto__[#]', to, signatureField);
+        var fromSignature = JS('', '#[#]', from, signatureField);
+        if (fromSignature == null) return baseSignature;
+        var toSignature = JS('', '{ __proto__: # }', baseSignature);
+        copyProperties(toSignature, fromSignature);
+        return toSignature;
+      }));
+}
 
-  // Set the signature of the Mixin class to be the composition
-  // of the signatures of the mixins.
-  $setMethodSignature(Mixin, () => {
-    let s = { __proto__: $base[$_methodSig] };
-    for (let m of $mixins) {
-      let sig = m[$_methodSig];
-      if (sig != null) $copyProperties(s, sig);
-    }
-    return s;
-  });
+final _mixin = JS('', 'Symbol("mixin")');
 
-  $setFieldSignature(Mixin, () => {
-    let s = { __proto__: $base[$_fieldSig] };
-    for (let m of $mixins) {
-      let sig = m[$_fieldSig];
-      if (sig != null) $copyProperties(s, sig);
-    }
-    return s;
-  });
-
-  $setGetterSignature(Mixin, () => {
-    let s = { __proto__: $base[$_getterSig] };
-    for (let m of $mixins) {
-      let sig = m[$_getterSig];
-      if (sig != null) $copyProperties(s, sig);
-    }
-    return s;
-  });
-
-  $setSetterSignature(Mixin, () => {
-    let s = { __proto__: $base[$_setterSig] };
-    for (let m of $mixins) {
-      let sig = m[$_setterSig];
-      if (sig != null) $copyProperties(s, sig);
-    }
-    return s;
-  });
-
-  // Save mixins for reflection
-  Mixin[$_mixins] = $mixins;
-  return Mixin;
-})()''');
-
-/// The Symbol for storing type arguments on a specialized generic type.
-final _mixins = JS('', 'Symbol("mixins")');
-
-getMixins(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
-    clazz, _mixins, clazz, _mixins);
+getMixin(clazz) => JS('', 'Object.hasOwnProperty.call(#, #) ? #[#] : null',
+    clazz, _mixin, clazz, _mixin);
 
 @JSExportName('implements')
 final _implements = JS('', 'Symbol("implements")');

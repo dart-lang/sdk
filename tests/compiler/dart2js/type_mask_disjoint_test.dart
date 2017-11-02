@@ -136,7 +136,8 @@ check(String typeMaskDescriptor1, String typeMaskDescriptor2,
       areDisjoint: areDisjoint);
 }
 
-checkUnions(List descriptors1, List descriptors2, {areDisjoint: true}) {
+checkUnions(List<String> descriptors1, List<String> descriptors2,
+    {areDisjoint: true}) {
   print('[$descriptors1] & [$descriptors2]');
   var m1 = new TypeMask.unionOf(descriptors1.map(maskOf).toList(), world);
   var m2 = new TypeMask.unionOf(descriptors2.map(maskOf).toList(), world);

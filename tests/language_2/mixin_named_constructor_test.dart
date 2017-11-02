@@ -25,7 +25,6 @@ class C extends B with A {
 
 void main() {
   var c = new C();
-  print(calls.join(', '));
   Expect.isTrue(c._done);
   Expect.equals(calls.join(', '), 'A(), B.protected(), C()');
 }

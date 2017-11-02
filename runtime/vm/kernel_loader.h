@@ -52,25 +52,93 @@ class Mapping {
   MapType map_;
 };
 
+class LibraryIndex {
+ public:
+  // |kernel_data| is the kernel data for one library alone.
+  explicit LibraryIndex(const TypedData& kernel_data);
+
+  intptr_t class_count() const { return class_count_; }
+  intptr_t procedure_count() const { return procedure_count_; }
+
+  intptr_t ClassOffset(intptr_t index) const {
+    return reader_.ReadUInt32At(class_index_offset_ + index * 4);
+  }
+
+  intptr_t ProcedureOffset(intptr_t index) const {
+    return reader_.ReadUInt32At(procedure_index_offset_ + index * 4);
+  }
+
+  intptr_t SizeOfClassAtOffset(intptr_t class_offset) const {
+    for (intptr_t i = 0, offset = class_index_offset_; i < class_count_;
+         ++i, offset += 4) {
+      if (static_cast<intptr_t>(reader_.ReadUInt32At(offset)) == class_offset) {
+        return reader_.ReadUInt32At(offset + 4) - class_offset;
+      }
+    }
+    UNREACHABLE();
+    return -1;
+  }
+
+ private:
+  Reader reader_;
+  intptr_t class_index_offset_;
+  intptr_t class_count_;
+  intptr_t procedure_index_offset_;
+  intptr_t procedure_count_;
+
+  DISALLOW_COPY_AND_ASSIGN(LibraryIndex);
+};
+
+class ClassIndex {
+ public:
+  // |class_offset| is the offset of class' kernel data in |buffer| of
+  // size |size|. The size of the class' kernel data is |class_size|.
+  ClassIndex(const uint8_t* buffer,
+             intptr_t buffer_size,
+             intptr_t class_offset,
+             intptr_t class_size);
+
+  // |class_offset| is the offset of class' kernel data in |kernel_data|.
+  // The size of the class' kernel data is |class_size|.
+  ClassIndex(const TypedData& kernel_data,
+             intptr_t class_offset,
+             intptr_t class_size);
+
+  intptr_t procedure_count() const { return procedure_count_; }
+
+  intptr_t ProcedureOffset(intptr_t index) const {
+    return reader_.ReadUInt32At(procedure_index_offset_ + index * 4);
+  }
+
+ private:
+  void Init(intptr_t class_offset, intptr_t class_size);
+
+  Reader reader_;
+  intptr_t procedure_count_;
+  intptr_t procedure_index_offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClassIndex);
+};
+
 class KernelLoader {
  public:
   explicit KernelLoader(Program* program);
+  static Object& LoadEntireProgram(Program* program);
 
   // Returns the library containing the main procedure, null if there
   // was no main procedure, or a failure object if there was an error.
-  Object& LoadProgram();
+  Object& LoadProgram(bool process_pending_classes = true);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
-  void FindModifiedLibraries(Isolate* isolate,
-                             BitVector* modified_libs,
-                             bool force_reload);
+  static void FindModifiedLibraries(Program* program,
+                                    Isolate* isolate,
+                                    BitVector* modified_libs,
+                                    bool force_reload);
 
   void LoadLibrary(intptr_t index);
 
-  const String& DartSymbol(StringIndex index) {
-    return translation_helper_.DartSymbol(index);
-  }
+  static void FinishLoading(const Class& klass);
 
   const String& LibraryUri(intptr_t library_index) {
     return translation_helper_.DartSymbol(
@@ -101,11 +169,29 @@ class KernelLoader {
  private:
   friend class BuildingTranslationHelper;
 
+  KernelLoader(const Script& script,
+               const TypedData& kernel_data,
+               intptr_t data_program_offset);
+
+  void initialize_fields();
+  static void index_programs(kernel::Reader* reader,
+                             GrowableArray<intptr_t>* subprogram_file_starts);
+  void walk_incremental_kernel(BitVector* modified_libs);
+
   void LoadPreliminaryClass(ClassHelper* class_helper,
                             intptr_t type_parameter_count);
+
   Class& LoadClass(const Library& library,
                    const Class& toplevel_class,
                    intptr_t class_end);
+
+  void FinishClassLoading(const Class& klass,
+                          const Library& library,
+                          const Class& toplevel_class,
+                          intptr_t class_offset,
+                          const ClassIndex& class_index,
+                          ClassHelper* class_helper);
+
   void LoadProcedure(const Library& library,
                      const Class& owner,
                      bool in_class,
@@ -142,7 +228,13 @@ class KernelLoader {
   Isolate* isolate_;
   Array& patch_classes_;
   ActiveClass active_class_;
+  // This is the offset of the current library within
+  // the whole kernel program.
   intptr_t library_kernel_offset_;
+  // This is the offset by which offsets, which are set relative
+  // to their library's kernel data, have to be corrected.
+  intptr_t correction_offset_;
+  bool loading_native_wrappers_library_;
   TypedData& library_kernel_data_;
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
@@ -153,6 +245,11 @@ class KernelLoader {
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;
+};
+
+class ClassLoader {
+ public:
+  void LoadClassMembers();
 };
 
 }  // namespace kernel

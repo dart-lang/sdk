@@ -6,6 +6,15 @@
 
 // Hash table with open addressing that separates the index from keys/values.
 
+// This function takes care of rehashing of the linked hashmaps in [objects]. We
+// do this eagerly after snapshot deserialization.
+void _rehashObjects(List objects) {
+  final int length = objects.length;
+  for (int i = 0; i < length; ++i) {
+    objects[i]._regenerateIndex();
+  }
+}
+
 abstract class _HashFieldBase {
   // Each occupied entry in _index is a fixed-size integer that encodes a pair:
   //   [ hash pattern for key | index of entry in _data ]
@@ -13,8 +22,7 @@ abstract class _HashFieldBase {
   // The length of _index is always a power of two, and there is always at
   // least one unoccupied entry.
   // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
-  // lazily by _regenerateIndex.
-  // TODO(koda): Consider also using null _index for tiny, linear-search tables.
+  // eagerly by _regenerateIndex.
   Uint32List _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
 
   // Cached in-place mask for the hash pattern component.
@@ -159,7 +167,6 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashVMBase {
 
   void clear() {
     if (!isEmpty) {
-      // Use _data.length, since _index might be null.
       _init(_data.length, _hashMask, null, 0);
     }
   }
@@ -184,22 +191,16 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashVMBase {
     }
   }
 
-  int _getIndexLength() {
-    return (_index == null) ? _regenerateIndex() : _index.length;
-  }
-
-  int _regenerateIndex() {
-    assert(_index == null);
+  // This method is called by [_rehashObjects] (see above).
+  void _regenerateIndex() {
     _index = new Uint32List(_data.length);
     assert(_hashMask == 0);
     _hashMask = _HashBase._indexSizeToHashMask(_index.length);
     final int tmpUsed = _usedData;
     _usedData = 0;
     for (int i = 0; i < tmpUsed; i += 2) {
-      // TODO(koda): Avoid redundant equality tests and stores into _data.
       this[_data[i]] = _data[i + 1];
     }
-    return _index.length;
   }
 
   void _insert(K key, V value, int hashPattern, int i) {
@@ -245,7 +246,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashVMBase {
   }
 
   void operator []=(K key, V value) {
-    final int size = _getIndexLength();
+    final int size = _index.length;
     final int sizeMask = size - 1;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
@@ -259,7 +260,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashVMBase {
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    final int size = _getIndexLength();
+    final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
@@ -282,7 +283,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashVMBase {
   }
 
   V remove(Object key) {
-    final int size = _getIndexLength();
+    final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
@@ -312,7 +313,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashVMBase {
 
   // If key is absent, return _data (which is never a value).
   Object _getValueOrData(Object key) {
-    final int size = _getIndexLength();
+    final int size = _index.length;
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);

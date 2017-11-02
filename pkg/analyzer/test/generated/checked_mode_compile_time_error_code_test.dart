@@ -5,6 +5,7 @@
 library analyzer.test.generated.checked_mode_compile_time_error_code_test;
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,6 +19,10 @@ main() {
 
 @reflectiveTest
 class CheckedModeCompileTimeErrorCodeTest extends ResolverTestCase {
+  @override
+  AnalysisOptions get defaultAnalysisOptions =>
+      new AnalysisOptionsImpl()..strongMode = true;
+
   test_fieldFormalParameterAssignableToField_extends() async {
     // According to checked-mode type checking rules, a value of type B is
     // assignable to a field of type A, because B extends A (and hence is a
@@ -163,7 +168,7 @@ var v = const A(null);''');
   }
 
   test_fieldFormalParameterAssignableToField_typedef() async {
-    // foo has the runtime type dynamic -> dynamic, so it should be assignable
+    // foo has the runtime type dynamic -> dynamic, so it is not assignable
     // to A.f.
     Source source = addSource(r'''
 typedef String Int2String(int x);
@@ -174,7 +179,7 @@ class A {
 foo(x) => 1;
 var v = const A(foo);''');
     await computeAnalysisResult(source);
-    assertNoErrors(source);
+    assertErrors(source, [StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
 
@@ -222,7 +227,8 @@ class C {
   final B b;
   const C(this.b);
 }
-var v = const C(const A());''');
+const A u = const A();
+var v = const C(u);''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
@@ -234,13 +240,13 @@ var v = const C(const A());''');
     Source source = addSource(r'''
 class A {
   final int x;
-  const A(String this.x);
+  const A(this.x);
 }
 var v = const A('foo');''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-      StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE
+      StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE
     ]);
     verify([source]);
   }
@@ -273,7 +279,8 @@ class C {
   final B b;
   const C(this.b);
 }
-var v = const C(const A());''');
+const A u = const A();
+var v = const C(u);''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
@@ -287,7 +294,8 @@ var v = const C(const A());''');
 class A {
   const A(List<int> x);
 }
-var x = const A(const <num>[1, 2, 3]);''');
+const dynamic w = const <num>[1, 2, 3];
+var x = const A(w);''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
@@ -302,7 +310,8 @@ var x = const A(const <num>[1, 2, 3]);''');
 class A {
   const A(Map<int, int> x);
 }
-var x = const A(const <num, int>{1: 2});''');
+const dynamic w = const <num, int>{1: 2};
+var x = const A(w);''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
@@ -317,7 +326,8 @@ var x = const A(const <num, int>{1: 2});''');
 class A {
   const A(Map<int, int> x);
 }
-var x = const A(const <int, num>{1: 2});''');
+const dynamic w = const <int, num>{1: 2};
+var x = const A(w);''');
     await computeAnalysisResult(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH

@@ -439,17 +439,13 @@ class JsClassMirror extends JsMirror implements ClassMirror {
     if (_mixin != null) {
       return _mixin;
     }
-    var mixins = dart.getMixins(dart.unwrapType(_cls));
-    if (mixins == null || mixins.isEmpty) {
+    var mixin = dart.getMixin(dart.unwrapType(_cls));
+    if (mixin == null) {
       // If there is no mixin, return this mirror per API.
       _mixin = this;
       return _mixin;
     }
-    if (mixins.length > 1) {
-      throw new UnsupportedError("ClassMirror.mixin not yet supported for "
-          "classes ($_cls) with multiple mixins");
-    }
-    _mixin = reflectType(dart.wrapType(mixins[0]));
+    _mixin = reflectType(dart.wrapType(mixin));
     return _mixin;
   }
 
