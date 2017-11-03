@@ -77,6 +77,7 @@ equivalence/id_equivalence_test: Pass, Slow
 [ ! $checked ]
 exit_code_test: Skip # This tests requires checked mode.
 serialization*: Slow, Pass
+jsinterop/declaration_test: Slow, Pass
 
 [ $checked ]
 analyze_dart2js_helpers_test: Pass, Slow
