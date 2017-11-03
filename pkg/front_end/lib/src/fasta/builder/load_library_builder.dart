@@ -21,11 +21,14 @@ class LoadLibraryBuilder extends Builder {
 
   final LibraryDependency importDependency;
 
+  /// Offset of the import prefix.
+  final int charOffset;
+
   /// Synthetic static method to represent the tear-off of 'loadLibrary'.  If
   /// null, no tear-offs were seen in the code and no method is generated.
   Member tearoff;
 
-  LoadLibraryBuilder(this.parent, this.importDependency, int charOffset)
+  LoadLibraryBuilder(this.parent, this.importDependency, this.charOffset)
       : super(parent, charOffset, parent.fileUri);
 
   LoadLibrary createLoadLibrary(int charOffset) {
@@ -39,7 +42,9 @@ class LoadLibraryBuilder extends Builder {
     tearoff = new Procedure(
         new Name('__loadLibrary_$prefix', parent.target),
         ProcedureKind.Method,
-        new FunctionNode(new ExpressionStatement(expression)));
+        new FunctionNode(new ExpressionStatement(expression)),
+        fileUri: parent.target.fileUri)
+      ..fileOffset = charOffset;
     return tearoff;
   }
 

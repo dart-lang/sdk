@@ -213,6 +213,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
+  test_prefix_conditionalPropertyAccess_get_loadLibrary() async {
+    return super.test_prefix_conditionalPropertyAccess_get_loadLibrary();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_recursiveInterfaceInheritance_mixin() async {
     return super.test_recursiveInterfaceInheritance_mixin();
