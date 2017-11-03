@@ -2314,9 +2314,14 @@ class JsKernelToElementMap extends KernelToElementMapBase
     // TODO(efortuna): Limit field number usage to when we need to distinguish
     // between two variables with the same name from different scopes.
     int fieldNumber = 0;
+
+    // For the captured variables that are boxed, ensure this closure has a
+    // field to reference the box. This puts the boxes first in the closure like
+    // the AST front-end, but otherwise there is no reason to separate this loop
+    // from the one below.
+    // TODO(redemption): Merge this loop and the following.
+
     for (ir.Node variable in info.freeVariables) {
-      // Make a corresponding field entity in this closure class for the
-      // free variables in the KernelScopeInfo.freeVariable.
       if (variable is ir.VariableDeclaration) {
         Local capturedLocal = localsMap.getLocalVariable(variable);
         if (_isInRecord(capturedLocal, recordFieldsVisibleInScope)) {
@@ -2329,7 +2334,23 @@ class JsKernelToElementMap extends KernelToElementMapBase
               recordFieldsVisibleInScope,
               fieldNumber);
           if (constructedField) fieldNumber++;
-        } else {
+        }
+      }
+    }
+
+    // Add a field for the captured 'this'.
+    if (info.thisUsedAsFreeVariable) {
+      _constructClosureField(cls.thisLocal, cls, memberThisType, memberMap,
+          getMemberDefinition(member).node, true, false, fieldNumber);
+      fieldNumber++;
+    }
+
+    for (ir.Node variable in info.freeVariables) {
+      // Make a corresponding field entity in this closure class for the
+      // free variables in the KernelScopeInfo.freeVariable.
+      if (variable is ir.VariableDeclaration) {
+        Local capturedLocal = localsMap.getLocalVariable(variable);
+        if (!_isInRecord(capturedLocal, recordFieldsVisibleInScope)) {
           _constructClosureField(
               capturedLocal,
               cls,
@@ -2355,11 +2376,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
       } else {
         throw new UnsupportedError("Unexpected field node type: $variable");
       }
-    }
-    if (info.thisUsedAsFreeVariable) {
-      _constructClosureField(cls.thisLocal, cls, memberThisType, memberMap,
-          getMemberDefinition(member).node, true, false, fieldNumber);
-      fieldNumber++;
     }
   }
 
@@ -2387,8 +2403,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
       return false;
     }
 
-    FieldEntity closureField =
-        new JClosureField('_box_$fieldNumber', cls, true, false);
+    FieldEntity closureField = new JClosureField(
+        '_box_$fieldNumber', cls, true, false, recordField.box);
 
     _members.register<IndexedField, FieldData>(
         closureField,
@@ -2418,7 +2434,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
         _getClosureVariableName(capturedLocal.name, fieldNumber),
         cls,
         isConst,
-        isAssignable);
+        isAssignable,
+        capturedLocal);
 
     _members.register<IndexedField, FieldData>(
         closureField,

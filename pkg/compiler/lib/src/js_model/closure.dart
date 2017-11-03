@@ -538,9 +538,10 @@ class JClosureClass extends JClass {
   String toString() => '${jsElementPrefix}closure_class($name)';
 }
 
-class JClosureField extends JField {
+class JClosureField extends JField implements PrivatelyNamedJSEntity {
+  final Local _declaredEntity;
   JClosureField(String name, KernelClosureClass containingClass, bool isConst,
-      bool isAssignable)
+      bool isAssignable, this._declaredEntity)
       : super(
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity,
@@ -548,6 +549,12 @@ class JClosureField extends JField {
             isAssignable: isAssignable,
             isConst: isConst,
             isStatic: false);
+
+  @override
+  Local get declaredEntity => _declaredEntity;
+
+  @override
+  Entity get rootOfScope => enclosingClass;
 }
 
 /// A container for variables declared in a particular scope that are accessed

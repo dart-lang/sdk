@@ -928,11 +928,8 @@ class Namer {
     // scheme that tries to avoid name clashes with super classes does not
     // apply. So we can directly grab a name.
     if (element is JSEntity) {
-      var jsEntity = element;
       return _disambiguateInternalMember(
-          jsEntity,
-          // ignore: UNDEFINED_GETTER
-          () => jsEntity.declaredEntity.name);
+          element, () => (element as JSEntity).declaredEntity.name);
     }
 
     // If the name of the field might clash with another field,
