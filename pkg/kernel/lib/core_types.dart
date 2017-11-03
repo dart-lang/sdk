@@ -67,6 +67,7 @@ class CoreTypes {
   Constructor _constantExpressionErrorDefaultConstructor;
   Constructor _fallThroughErrorUrlAndLineConstructor;
   Constructor _compileTimeErrorDefaultConstructor;
+  Procedure _objectEquals;
 
   Class _internalSymbolClass;
 
@@ -285,6 +286,10 @@ class CoreTypes {
 
   Class get objectClass {
     return _objectClass ??= _index.getClass('dart:core', 'Object');
+  }
+
+  Procedure get objectEquals {
+    return _objectEquals ??= _index.getMember('dart:core', 'Object', '==');
   }
 
   Procedure get printProcedure {
