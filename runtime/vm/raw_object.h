@@ -366,12 +366,19 @@ class RawObject {
   // Like !IsHeapObject() || IsOldObject(), but compiles to a single branch.
   bool IsSmiOrOldObject() const {
     ASSERT(IsWellFormed());
-    COMPILE_ASSERT(kHeapObjectTag == 1);
-    COMPILE_ASSERT(kNewObjectAlignmentOffset == kWordSize);
     static const uword kNewObjectBits =
         (kNewObjectAlignmentOffset | kHeapObjectTag);
     const uword addr = reinterpret_cast<uword>(this);
-    return (addr & kNewObjectBits) != kNewObjectBits;
+    return (addr & kObjectAlignmentMask) != kNewObjectBits;
+  }
+
+  // Like !IsHeapObject() || IsNewObject(), but compiles to a single branch.
+  bool IsSmiOrNewObject() const {
+    ASSERT(IsWellFormed());
+    static const uword kOldObjectBits =
+        (kOldObjectAlignmentOffset | kHeapObjectTag);
+    const uword addr = reinterpret_cast<uword>(this);
+    return (addr & kObjectAlignmentMask) != kOldObjectBits;
   }
 
   // Support for GC marking bit.

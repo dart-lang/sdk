@@ -18,32 +18,6 @@ class Heap;
 class HeapPage;
 class RawObject;
 
-// Binary search table for updating pointers during a sliding compaction.
-// TODO(rmacnak): Replace with lookup scheme based on bitmap of live allocation
-// units.
-class ForwardingMap : public ValueObject {
- public:
-  ForwardingMap();
-  ~ForwardingMap();
-
-  void Insert(RawObject* before, RawObject* after);
-  void Sort();
-  RawObject* Lookup(RawObject* before);
-
- private:
-  struct Entry {
-    RawObject* before;
-    RawObject* after;
-  };
-
-  static int CompareEntries(Entry* a, Entry* b);
-
-  intptr_t size_;
-  intptr_t capacity_;
-  Entry* entries_;
-  bool sorted_;
-};
-
 // Implements an evacuating compactor and a sliding compactor.
 class GCCompactor : public ValueObject,
                     private HandleVisitor,
@@ -55,17 +29,26 @@ class GCCompactor : public ValueObject,
         heap_(heap) {}
   ~GCCompactor() {}
 
-  HeapPage* SlidePages(HeapPage* pages, FreeList* freelist);
-  void ForwardPointers();
+  void CompactBySliding(HeapPage* pages, FreeList* freelist, Mutex* mutex);
 
   intptr_t EvacuatePages(HeapPage* page);
 
  private:
+  void SlidePage(HeapPage* page);
+  uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
+  void MoveToExactAddress(uword addr);
+  void MoveToContiguousSize(intptr_t size);
+
+  void ForwardPointersForSliding();
   void VisitPointers(RawObject** first, RawObject** last);
   void VisitHandle(uword addr);
 
   Heap* heap_;
-  ForwardingMap forwarding_map_;
+
+  HeapPage* free_page_;
+  uword free_current_;
+  uword free_end_;
+  FreeList* freelist_;
 };
 
 }  // namespace dart

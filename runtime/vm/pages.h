@@ -24,6 +24,7 @@ class Heap;
 class JSONObject;
 class ObjectPointerVisitor;
 class ObjectSet;
+class ForwardingPage;
 
 // TODO(iposva): Determine heap sizes and tune the page size accordingly.
 static const intptr_t kPageSize = 256 * KB;
@@ -47,6 +48,10 @@ class HeapPage {
     ASSERT(Utils::IsAligned(value, kObjectAlignment));
     used_in_bytes_ = value;
   }
+
+  ForwardingPage* forwarding_page() const { return forwarding_page_; }
+  ForwardingPage* AllocateForwardingPage();
+  void FreeForwardingPage();
 
   PageType type() const { return type_; }
 
@@ -89,6 +94,7 @@ class HeapPage {
   HeapPage* next_;
   uword object_end_;
   uword used_in_bytes_;
+  ForwardingPage* forwarding_page_;
   PageType type_;
 
   friend class PageSpace;

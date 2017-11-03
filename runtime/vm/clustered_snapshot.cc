@@ -26,7 +26,7 @@ static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   if (address == 0) {
     OUT_OF_MEMORY();
   }
-  return reinterpret_cast<RawObject*>(address + kHeapObjectTag);
+  return RawObject::FromAddr(address);
 }
 
 void Deserializer::InitializeHeader(RawObject* raw,
@@ -4962,7 +4962,7 @@ class SeedInstructionsVisitor : public ObjectVisitor {
 
   void VisitObject(RawObject* obj) {
     if (obj->IsInstructions()) {
-      uword addr = reinterpret_cast<uword>(obj) - kHeapObjectTag;
+      uword addr = RawObject::ToAddr(obj);
       int32_t offset = addr - text_base_;
       heap_->SetObjectId(obj, -offset);
     }
