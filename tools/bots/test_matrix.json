@@ -143,6 +143,27 @@
     },
     {
       "builders": [
+        "ddc-linux-release",
+        "ddc-mac-release",
+        "ddc-win-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the ddc builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["dart2js_bot"]
+        },
+        {
+          "name": "ddc tests",
+          "script": "tools/bots/ddc_tests.py"
+        }
+      ]
+    },
+    {
+      "builders": [
         "precomp-linux-debug-x64",
         "precomp-linux-product-x64",
         "vm-noopt-mac-simarm64",
