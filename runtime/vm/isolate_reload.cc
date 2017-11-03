@@ -1175,6 +1175,12 @@ static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
     return;
   }
 
+  // Don't report `typedef bool Predicate(Object o)` as unused. There is nothing
+  // to execute.
+  if (new_cls.IsTypedefClass()) {
+    return;
+  }
+
   if (new_cls.raw() == old_cls.raw()) {
     // A new class maps to itself. All its functions, field initizers, and so
     // on are new.

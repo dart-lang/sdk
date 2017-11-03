@@ -31,6 +31,8 @@ class NewClass {
   function() => "new value";
 }
 
+typedef bool NewTypedef(Object obj);
+
 main2() {
   print(function());
   print(uninitializedField);
