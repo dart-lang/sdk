@@ -24,7 +24,6 @@ main(List<String> arguments) {
       ProcessResult result = await Process.run(dartVm.toFilePath(), <String>[
         compilePlatform.toFilePath(),
         "-v",
-        "--strong",
         "dart:core",
         librariesJson.toFilePath(),
         platformDill.toFilePath(),
