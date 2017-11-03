@@ -98,50 +98,14 @@ VM_UNIT_TEST_CASE(RoundUpToPowerOfTwo) {
   EXPECT_EQ(0x10000000U, Utils::RoundUpToPowerOfTwo(0x08765432));
 }
 
-VM_UNIT_TEST_CASE(CountOneBits32) {
-  EXPECT_EQ(0, Utils::CountOneBits32(0));
-  EXPECT_EQ(1, Utils::CountOneBits32(0x00000010));
-  EXPECT_EQ(1, Utils::CountOneBits32(0x00010000));
-  EXPECT_EQ(1, Utils::CountOneBits32(0x10000000));
-  EXPECT_EQ(4, Utils::CountOneBits32(0x10101010));
-  EXPECT_EQ(8, Utils::CountOneBits32(0x03030303));
-  EXPECT_EQ(32, Utils::CountOneBits32(0xFFFFFFFF));
-}
-
-VM_UNIT_TEST_CASE(CountOneBits64) {
-  EXPECT_EQ(0, Utils::CountOneBits64(DART_UINT64_C(0)));
-  EXPECT_EQ(1, Utils::CountOneBits64(DART_UINT64_C(0x00000010)));
-  EXPECT_EQ(1, Utils::CountOneBits64(DART_UINT64_C(0x00010000)));
-  EXPECT_EQ(1, Utils::CountOneBits64(DART_UINT64_C(0x10000000)));
-  EXPECT_EQ(4, Utils::CountOneBits64(DART_UINT64_C(0x10101010)));
-  EXPECT_EQ(8, Utils::CountOneBits64(DART_UINT64_C(0x03030303)));
-  EXPECT_EQ(32, Utils::CountOneBits64(DART_UINT64_C(0xFFFFFFFF)));
-
-  EXPECT_EQ(2, Utils::CountOneBits64(DART_UINT64_C(0x0000001000000010)));
-  EXPECT_EQ(2, Utils::CountOneBits64(DART_UINT64_C(0x0001000000010000)));
-  EXPECT_EQ(2, Utils::CountOneBits64(DART_UINT64_C(0x1000000010000000)));
-  EXPECT_EQ(8, Utils::CountOneBits64(DART_UINT64_C(0x1010101010101010)));
-  EXPECT_EQ(16, Utils::CountOneBits64(DART_UINT64_C(0x0303030303030303)));
-  EXPECT_EQ(64, Utils::CountOneBits64(DART_UINT64_C(0xFFFFFFFFFFFFFFFF)));
-}
-
-VM_UNIT_TEST_CASE(CountOneBitsWord) {
-  EXPECT_EQ(0, Utils::CountOneBitsWord(0));
-  EXPECT_EQ(1, Utils::CountOneBitsWord(0x00000010));
-  EXPECT_EQ(1, Utils::CountOneBitsWord(0x00010000));
-  EXPECT_EQ(1, Utils::CountOneBitsWord(0x10000000));
-  EXPECT_EQ(4, Utils::CountOneBitsWord(0x10101010));
-  EXPECT_EQ(8, Utils::CountOneBitsWord(0x03030303));
-  EXPECT_EQ(32, Utils::CountOneBitsWord(0xFFFFFFFF));
-
-#if defined(ARCH_IS_64_BIT)
-  EXPECT_EQ(2, Utils::CountOneBitsWord(0x0000001000000010));
-  EXPECT_EQ(2, Utils::CountOneBitsWord(0x0001000000010000));
-  EXPECT_EQ(2, Utils::CountOneBitsWord(0x1000000010000000));
-  EXPECT_EQ(8, Utils::CountOneBitsWord(0x1010101010101010));
-  EXPECT_EQ(16, Utils::CountOneBitsWord(0x0303030303030303));
-  EXPECT_EQ(64, Utils::CountOneBitsWord(0xFFFFFFFFFFFFFFFF));
-#endif
+VM_UNIT_TEST_CASE(CountOneBits) {
+  EXPECT_EQ(0, Utils::CountOneBits(0));
+  EXPECT_EQ(1, Utils::CountOneBits(0x00000010));
+  EXPECT_EQ(1, Utils::CountOneBits(0x00010000));
+  EXPECT_EQ(1, Utils::CountOneBits(0x10000000));
+  EXPECT_EQ(4, Utils::CountOneBits(0x10101010));
+  EXPECT_EQ(8, Utils::CountOneBits(0x03030303));
+  EXPECT_EQ(32, Utils::CountOneBits(0xFFFFFFFF));
 }
 
 VM_UNIT_TEST_CASE(CountZeros) {

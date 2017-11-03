@@ -21,6 +21,17 @@ uintptr_t Utils::RoundUpToPowerOfTwo(uintptr_t x) {
   return x + 1;
 }
 
+// Implementation is from "Hacker's Delight" by Henry S. Warren, Jr.,
+// figure 5-2, page 66, where the function is called pop.
+int Utils::CountOneBits(uint32_t x) {
+  x = x - ((x >> 1) & 0x55555555);
+  x = (x & 0x33333333) + ((x >> 2) & 0x33333333);
+  x = (x + (x >> 4)) & 0x0F0F0F0F;
+  x = x + (x >> 8);
+  x = x + (x >> 16);
+  return static_cast<int>(x & 0x0000003F);
+}
+
 // TODO(koda): Compare to flsll call/intrinsic.
 int Utils::HighestBit(int64_t v) {
   uint64_t x = static_cast<uint64_t>((v > 0) ? v : -v);
