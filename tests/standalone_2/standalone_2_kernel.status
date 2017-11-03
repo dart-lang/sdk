@@ -39,11 +39,8 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 dwarf_stack_trace_test: RuntimeError
 
 [ $compiler == dartk && $strong ]
-io/arguments_test: RuntimeError
 io/async_catch_errors_test: RuntimeError
-io/code_collection_test: RuntimeError
 io/echo_server_stream_test: RuntimeError
-io/file_lock_test: RuntimeError
 io/http_10_test: RuntimeError
 io/http_advanced_test: RuntimeError
 io/http_auth_digest_test: RuntimeError
@@ -51,7 +48,6 @@ io/http_auth_test: RuntimeError
 io/http_basic_test: RuntimeError
 io/http_bind_test: RuntimeError
 io/http_client_request_test: Timeout
-io/http_client_stays_alive_test: RuntimeError
 io/http_compression_test: RuntimeError
 io/http_connection_close_test: RuntimeError
 io/http_connection_header_test: RuntimeError
@@ -76,11 +72,9 @@ io/http_server_test: RuntimeError
 io/http_session_test: RuntimeError
 io/http_stream_close_test: RuntimeError
 io/https_server_test: RuntimeError
-io/namespace_test: RuntimeError
 io/pipe_server_test: RuntimeError
 io/raw_secure_socket_pause_test: RuntimeError
 io/raw_secure_socket_test: RuntimeError
-io/raw_socket_cross_process_test: RuntimeError
 io/raw_socket_typed_data_test: RuntimeError
 io/raw_socket_write_destroy_test: RuntimeError
 io/regress_21160_test: RuntimeError
@@ -92,9 +86,8 @@ io/secure_socket_alpn_test: RuntimeError
 io/secure_socket_test: RuntimeError
 io/socket_bind_test: RuntimeError
 io/socket_close_test: RuntimeError
-io/socket_cross_process_test: RuntimeError
 io/socket_exception_test: RuntimeError
-io/socket_finalizer_test: RuntimeError
+io/socket_finalizer_test: Timeout
 io/socket_info_ipv4_test: RuntimeError
 io/socket_info_ipv6_test: RuntimeError
 io/socket_ipv6_test/02: RuntimeError
@@ -102,8 +95,6 @@ io/socket_ipv6_test/03: RuntimeError
 io/socket_port_test: RuntimeError
 io/socket_source_address_test: RuntimeError
 io/socket_test: RuntimeError
-io/stdio_socket_finalizer_test: RuntimeError
-io/test_runner_test: RuntimeError
 io/web_socket_compression_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_test: RuntimeError
