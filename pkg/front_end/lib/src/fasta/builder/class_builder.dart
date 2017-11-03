@@ -23,6 +23,7 @@ import 'builder.dart'
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         templateInternalProblemNotFoundIn,
         templateInternalProblemSuperclassNotFound;
@@ -92,7 +93,9 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
-    if (accessingLibrary != library && name.startsWith("_")) return null;
+    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+      return null;
+    }
     Builder builder = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
@@ -101,7 +104,9 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   Builder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
-    if (accessingLibrary != library && name.startsWith("_")) return null;
+    if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
+      return null;
+    }
     return constructors.lookup(name, charOffset, uri);
   }
 
@@ -209,8 +214,9 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
             null);
   }
 
-  void addCompileTimeError(Message message, int charOffset) {
-    library.addCompileTimeError(message, charOffset, fileUri);
+  void addCompileTimeError(Message message, int charOffset,
+      {LocatedMessage context}) {
+    library.addCompileTimeError(message, charOffset, fileUri, context: context);
   }
 
   void addWarning(Message message, int charOffset) {

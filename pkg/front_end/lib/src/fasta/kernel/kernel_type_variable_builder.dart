@@ -22,13 +22,21 @@ import 'kernel_builder.dart'
 
 class KernelTypeVariableBuilder
     extends TypeVariableBuilder<KernelTypeBuilder, DartType> {
-  final TypeParameter parameter;
+  final TypeParameter actualParameter;
+
+  KernelTypeVariableBuilder actualOrigin;
 
   KernelTypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
       [KernelTypeBuilder bound])
-      : parameter = new TypeParameter(name, null)..fileOffset = charOffset,
+      : actualParameter = new TypeParameter(name, null)
+          ..fileOffset = charOffset,
         super(name, bound, compilationUnit, charOffset);
+
+  @override
+  KernelTypeVariableBuilder get origin => actualOrigin ?? this;
+
+  TypeParameter get parameter => origin.actualParameter;
 
   TypeParameter get target => parameter;
 
@@ -60,7 +68,12 @@ class KernelTypeVariableBuilder
   }
 
   void finish(LibraryBuilder library, KernelClassBuilder object) {
+    if (isPatch) return;
     parameter.bound ??=
         bound?.build(library) ?? object.buildType(library, null);
+  }
+
+  void applyPatch(covariant KernelTypeVariableBuilder patch) {
+    patch.actualOrigin = this;
   }
 }

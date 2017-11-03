@@ -1080,6 +1080,23 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Member lookupInstanceMember(Name name,
       {bool isSetter: false, bool isSuper: false}) {
     Class cls = classBuilder.cls;
+    if (classBuilder.isPatch) {
+      if (isSuper) {
+        // The super class is only correctly found through the origin class.
+        cls = classBuilder.origin.cls;
+      } else {
+        Member member =
+            hierarchy.getInterfaceMember(cls, name, setter: isSetter);
+        if (member?.parent == cls) {
+          // Only if the member is found in the patch can we use it.
+          return member;
+        } else {
+          // Otherwise, we need to keep searching in the origin class.
+          cls = classBuilder.origin.cls;
+        }
+      }
+    }
+
     if (isSuper) {
       cls = cls.superclass;
       if (cls == null) return null;
@@ -1103,7 +1120,39 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         if (constructor.name == name) return constructor;
       }
     }
-    return null;
+
+    /// Performs a similar lookup to [lookupConstructor], but using a slower
+    /// implementation.
+    Constructor lookupConstructorWithPatches(Name name, bool isSuper) {
+      ClassBuilder builder = classBuilder.origin;
+
+      ClassBuilder getSuperclass(ClassBuilder builder) {
+        // This way of computing the superclass is slower than using the kernel
+        // objects directly.
+        var supertype = builder.supertype;
+        if (supertype is NamedTypeBuilder) {
+          var builder = supertype.builder;
+          if (builder is ClassBuilder) return builder;
+        }
+        return null;
+      }
+
+      if (isSuper) {
+        builder = getSuperclass(builder)?.origin;
+        while (builder?.isMixinApplication ?? false) {
+          builder = getSuperclass(builder)?.origin;
+        }
+      }
+      if (builder != null) {
+        Class target = builder.target;
+        for (Constructor constructor in target.constructors) {
+          if (constructor.name == name) return constructor;
+        }
+      }
+      return null;
+    }
+
+    return lookupConstructorWithPatches(name, isSuper);
   }
 
   @override
@@ -1139,7 +1188,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   scopeLookup(Scope scope, String name, Token token,
       {bool isQualified: false, PrefixBuilder prefix}) {
-    Builder builder = scope.lookup(name, offsetForToken(token), uri);
+    int charOffset = offsetForToken(token);
+    Builder builder = scope.lookup(name, charOffset, uri);
+    if (builder == null && prefix == null && (classBuilder?.isPatch ?? false)) {
+      // The scope of a patched method includes the origin class.
+      builder =
+          classBuilder.origin.findStaticBuilder(name, charOffset, uri, library);
+    }
     if (builder != null && member.isField && builder.isInstanceMember) {
       return new IncompleteError(this, token,
           fasta.templateThisAccessInFieldInitializer.withArguments(name));
@@ -1156,7 +1211,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
-        return new ShadowNullLiteral()..fileOffset = offsetForToken(token);
+        return new ShadowNullLiteral()..fileOffset = charOffset;
       } else {
         return new UnresolvedAccessor(this, n, token);
       }
@@ -1165,7 +1220,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           builder.isTypeVariable &&
           !member.isConstructor) {
         deprecated_addCompileTimeError(
-            offsetForToken(token), "Not a constant expression.");
+            charOffset, "Not a constant expression.");
       }
       return new TypeDeclarationAccessor(this, builder, name, token);
     } else if (builder.isLocal) {
@@ -1173,7 +1228,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           !builder.isConst &&
           !member.isConstructor) {
         deprecated_addCompileTimeError(
-            offsetForToken(token), "Not a constant expression.");
+            charOffset, "Not a constant expression.");
       }
       // An initializing formal parameter might be final without its
       // VariableDeclaration being final. See
@@ -1186,7 +1241,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         return new ReadOnlyAccessor(
             this,
             new ShadowVariableGet(builder.target, fact, scope)
-              ..fileOffset = offsetForToken(token),
+              ..fileOffset = charOffset,
             name,
             token);
       } else {
@@ -1201,7 +1256,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           // name that should be resolved here.
           !member.isConstructor) {
         deprecated_addCompileTimeError(
-            offsetForToken(token), "Not a constant expression.");
+            charOffset, "Not a constant expression.");
       }
       Name n = new Name(name, library.library);
       Member getter;
@@ -1220,7 +1275,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (builder is PrefixBuilder) {
       if (constantExpressionRequired && builder.deferred) {
         deprecated_addCompileTimeError(
-            offsetForToken(token),
+            charOffset,
             "'$name' can't be used in a constant expression because it's "
             "marked as 'deferred' which means it isn't available until "
             "loaded.\n"
@@ -1236,7 +1291,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (builder.isSetter) {
         setter = builder;
       } else if (builder.isGetter) {
-        setter = scope.lookupSetter(name, offsetForToken(token), uri);
+        setter = scope.lookupSetter(name, charOffset, uri);
       } else if (builder.isField && !builder.isFinal) {
         setter = builder;
       }
@@ -1248,7 +1303,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             // Static tear-offs are also compile time constants.
             readTarget is Procedure)) {
           deprecated_addCompileTimeError(
-              offsetForToken(token), "Not a constant expression.");
+              charOffset, "Not a constant expression.");
         }
       }
       return accessor;
@@ -3298,7 +3353,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   Initializer buildFieldInitializer(
       bool isSynthetic, String name, int offset, Expression expression) {
-    Builder builder = classBuilder.scope.local[name];
+    Builder builder =
+        classBuilder.scope.local[name] ?? classBuilder.origin.scope.local[name];
     if (builder is KernelFieldBuilder && builder.isInstanceMember) {
       initializedFields ??= <String, int>{};
       if (initializedFields.containsKey(name)) {

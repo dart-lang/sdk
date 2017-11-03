@@ -48,6 +48,9 @@ import '../messages.dart'
         messageConstConstructorWithBody,
         messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
+        messagePatchDeclarationMismatch,
+        messagePatchDeclarationOrigin,
+        messagePatchNonExternal,
         warning;
 
 import '../problems.dart' show internalProblem, unexpected;
@@ -97,6 +100,8 @@ abstract class KernelFunctionBuilder
       : super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset);
 
+  KernelFunctionBuilder get actualOrigin;
+
   void set body(Statement newBody) {
     if (newBody != null) {
       if (isAbstract) {
@@ -122,6 +127,9 @@ abstract class KernelFunctionBuilder
     actualBody = new RedirectingFactoryBody(target);
     function.body = actualBody;
     actualBody?.parent = function;
+    if (isPatch) {
+      actualOrigin.setRedirectingFactoryBody(target);
+    }
   }
 
   Statement get body => actualBody ??= new EmptyStatement();
@@ -216,6 +224,24 @@ abstract class KernelFunctionBuilder
     }
     target.addAnnotation(annotation);
   }
+
+  bool checkPatch(KernelFunctionBuilder patch) {
+    if (!isExternal) {
+      patch.library.addCompileTimeError(
+          messagePatchNonExternal, patch.charOffset, patch.fileUri,
+          context:
+              messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+      return false;
+    }
+    return true;
+  }
+
+  void reportPatchMismatch(Builder patch) {
+    library.addCompileTimeError(
+        messagePatchDeclarationMismatch, patch.charOffset, patch.fileUri,
+        context:
+            messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+  }
 }
 
 class KernelProcedureBuilder extends KernelFunctionBuilder {
@@ -225,6 +251,9 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
   final ConstructorReferenceBuilder redirectionTarget;
+
+  @override
+  KernelProcedureBuilder actualOrigin;
 
   KernelProcedureBuilder(
       List<MetadataBuilder> metadata,
@@ -246,6 +275,9 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
+
+  @override
+  KernelProcedureBuilder get origin => actualOrigin ?? this;
 
   ProcedureKind get kind => procedure.kind;
 
@@ -301,7 +333,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
     return procedure;
   }
 
-  Procedure get target => procedure;
+  Procedure get target => origin.procedure;
 
   @override
   void instrumentTopLevelInference(Instrumentation instrumentation) {
@@ -330,9 +362,29 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   }
 
   @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+    origin.procedure.isExternal = procedure.isExternal;
+    origin.procedure.function = procedure.function;
+    origin.procedure.function.parent = origin.procedure;
+    return 1;
+  }
+
+  @override
   void becomeNative(Loader loader) {
     procedure.isExternal = true;
     super.becomeNative(loader);
+  }
+
+  @override
+  void applyPatch(Builder patch) {
+    if (patch is KernelProcedureBuilder) {
+      if (checkPatch(patch)) {
+        patch.actualOrigin = this;
+      }
+    } else {
+      reportPatchMismatch(patch);
+    }
   }
 }
 
@@ -347,6 +399,9 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   SuperInitializer superInitializer;
 
   RedirectingInitializer redirectingInitializer;
+
+  @override
+  KernelConstructorBuilder actualOrigin;
 
   KernelConstructorBuilder(
       List<MetadataBuilder> metadata,
@@ -365,6 +420,9 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
+
+  @override
+  KernelConstructorBuilder get origin => actualOrigin ?? this;
 
   bool get isInstanceMember => false;
 
@@ -396,7 +454,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     return super.buildFunction(library)..returnType = const VoidType();
   }
 
-  Constructor get target => constructor;
+  Constructor get target => origin.constructor;
 
   void checkSuperOrThisInitializer(Initializer initializer) {
     if (superInitializer != null || redirectingInitializer != null) {
@@ -464,8 +522,30 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   }
 
   @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+    origin.constructor.isExternal = constructor.isExternal;
+    origin.constructor.function = constructor.function;
+    origin.constructor.function.parent = constructor.function;
+    origin.constructor.initializers = constructor.initializers;
+    setParents(origin.constructor.initializers, origin.constructor);
+    return 1;
+  }
+
+  @override
   void becomeNative(Loader loader) {
     constructor.isExternal = true;
     super.becomeNative(loader);
+  }
+
+  @override
+  void applyPatch(Builder patch) {
+    if (patch is KernelConstructorBuilder) {
+      if (checkPatch(patch)) {
+        patch.actualOrigin = this;
+      }
+    } else {
+      reportPatchMismatch(patch);
+    }
   }
 }

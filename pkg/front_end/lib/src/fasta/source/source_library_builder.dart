@@ -659,6 +659,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
     // TODO(ahe): The input to this method, [typeVariables], shouldn't be just
     // type variables. It should be everything that's in scope, for example,
     // members (of a class) or formal parameters (of a method).
+    // Also, this doesn't work well with patching.
     if (typeVariables == null) {
       // If there are no type variables in the scope, propagate our types to be
       // resolved in the parent declaration.

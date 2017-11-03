@@ -44,7 +44,7 @@ abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
       member = scope.lookup(name, charOffset, fileUri);
     }
     if (member is TypeDeclarationBuilder) {
-      builder = member;
+      builder = member.origin;
       return;
     }
     builder = buildInvalidType(charOffset, fileUri);

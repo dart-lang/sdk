@@ -895,6 +895,7 @@ FastaUsageShort:
       -h        Display this message (add -v for information about all options).
 
 FastaUsageLong:
+  # TODO(ahe): Consider if the reference to platform.dill needs to change below?
   template: |
     Supported options:
 
@@ -932,10 +933,11 @@ FastaUsageLong:
       --exclude-source
         Do not include source code in the dill file.
 
-      --compile-sdk=<patched_sdk>
-        Compile the SDK from scratch instead of reading it from 'platform.dill'.
+      --compile-sdk=<sdk>
+        Compile the SDK from scratch instead of reading it from a .dill file
+        (see --platform).
 
-      --sdk=<patched_sdk>
+      --sdk=<sdk>
         Location of the SDK sources for use when compiling additional platform
         libraries.
 
@@ -1484,3 +1486,23 @@ InvalidAssignment:
       int i;
       i = 1.5;
     }
+
+PatchClassTypeVariablesMismatch:
+  template: "A patch class must have the same number of type variables as its origin class."
+
+PatchClassOrigin:
+  template: "This is the origin class."
+
+PatchDeclarationMismatch:
+  template: "This patch doesn't match origin declaration."
+
+PatchDeclarationOrigin:
+  template: "This is the origin declaration."
+
+PatchInjectionFailed:
+  template: "Can't inject '#name' into '#uri'."
+  tip: "Try adding '@patch'."
+
+PatchNonExternal:
+  template: "Can't apply this patch as its origin declaration isn't external."
+  tip: "Try adding 'external' to the origin declaration."

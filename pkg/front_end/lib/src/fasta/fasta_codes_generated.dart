@@ -1567,10 +1567,11 @@ const MessageCode messageFastaUsageLong =
   --exclude-source
     Do not include source code in the dill file.
 
-  --compile-sdk=<patched_sdk>
-    Compile the SDK from scratch instead of reading it from 'platform.dill'.
+  --compile-sdk=<sdk>
+    Compile the SDK from scratch instead of reading it from a .dill file
+    (see --platform).
 
-  --sdk=<patched_sdk>
+  --sdk=<sdk>
     Location of the SDK sources for use when compiling additional platform
     libraries.
 
@@ -3215,6 +3216,74 @@ Message _withArgumentsPartTwice(Uri uri_) {
       message: """Can't use '$uri' as a part more than once.""",
       arguments: {'uri': uri_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchClassOrigin = messagePatchClassOrigin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchClassOrigin = const MessageCode(
+    "PatchClassOrigin",
+    message: r"""This is the origin class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchClassTypeVariablesMismatch =
+    messagePatchClassTypeVariablesMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchClassTypeVariablesMismatch = const MessageCode(
+    "PatchClassTypeVariablesMismatch",
+    message:
+        r"""A patch class must have the same number of type variables as its origin class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchDeclarationMismatch = messagePatchDeclarationMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchDeclarationMismatch = const MessageCode(
+    "PatchDeclarationMismatch",
+    message: r"""This patch doesn't match origin declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchDeclarationOrigin = messagePatchDeclarationOrigin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchDeclarationOrigin = const MessageCode(
+    "PatchDeclarationOrigin",
+    message: r"""This is the origin declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_)>
+    templatePatchInjectionFailed =
+    const Template<Message Function(String name, Uri uri_)>(
+        messageTemplate: r"""Can't inject '#name' into '#uri'.""",
+        tipTemplate: r"""Try adding '@patch'.""",
+        withArguments: _withArgumentsPatchInjectionFailed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)> codePatchInjectionFailed =
+    const Code<Message Function(String name, Uri uri_)>(
+  "PatchInjectionFailed",
+  templatePatchInjectionFailed,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codePatchInjectionFailed,
+      message: """Can't inject '$name' into '$uri'.""",
+      tip: """Try adding '@patch'.""",
+      arguments: {'name': name, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchNonExternal = messagePatchNonExternal;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchNonExternal = const MessageCode(
+    "PatchNonExternal",
+    message:
+        r"""Can't apply this patch as its origin declaration isn't external.""",
+    tip: r"""Try adding 'external' to the origin declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePlatformPrivateLibraryAccess =

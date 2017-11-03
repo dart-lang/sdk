@@ -6,7 +6,7 @@ library fasta.library_builder;
 
 import '../combinator.dart' show Combinator;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unsupported;
 
 import '../export.dart' show Export;
 
@@ -139,6 +139,8 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   int finishNativeMethods() => 0;
 
+  int finishPatchMethods() => 0;
+
   /// Looks up [constructorName] in the class named [className].
   ///
   /// The class is looked up in this library's export scope unless
@@ -214,5 +216,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   Builder lookup(String name, int charOffset, Uri fileUri) {
     return scope.lookup(name, charOffset, fileUri);
+  }
+
+  /// If this is a patch library, apply its patches to [origin].
+  void applyPatches() {
+    if (!isPatch) return;
+    unsupported("${runtimeType}.applyPatches", -1, fileUri);
   }
 }

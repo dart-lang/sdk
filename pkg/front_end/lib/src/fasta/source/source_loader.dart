@@ -207,6 +207,13 @@ class SourceLoader<L> extends Loader<L> {
     });
     parts.forEach(builders.remove);
     ticker.logMs("Resolved parts");
+
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library is SourceLibraryBuilder) {
+        library.applyPatches();
+      }
+    });
+    ticker.logMs("Applied patches");
   }
 
   void computeLibraryScopes() {
@@ -329,6 +336,14 @@ class SourceLoader<L> extends Loader<L> {
       count += library.finishNativeMethods();
     });
     ticker.logMs("Finished $count native methods");
+  }
+
+  void finishPatchMethods() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      count += library.finishPatchMethods();
+    });
+    ticker.logMs("Finished $count patch methods");
   }
 
   /// Returns all the supertypes (including interfaces) of [cls]
@@ -470,7 +485,10 @@ class SourceLoader<L> extends Loader<L> {
   void buildProgram() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        libraries.add(library.build(coreLibrary));
+        L target = library.build(coreLibrary);
+        if (!library.isPatch) {
+          libraries.add(target);
+        }
       }
     });
     ticker.logMs("Built program");
