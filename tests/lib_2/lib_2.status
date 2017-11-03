@@ -97,6 +97,7 @@ mirrors/library_enumeration_deferred_loading_test: RuntimeError,OK # Deferred lo
 [ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
 isolate/browser/*: SkipByDesign  # Browser specific tests
 isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
+isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 
 [ $runtime == dart_precompiled || $runtime == flutter ]
 isolate/count_test: Skip # Isolate.spawnUri

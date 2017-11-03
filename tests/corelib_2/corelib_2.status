@@ -605,14 +605,12 @@ list_concurrent_modify_test: Crash # Issue 30559
 
 [ $compiler == dartk && $strong ]
 collection_removes_test: RuntimeError
-date_time11_test: RuntimeError
 iterable_generate_test/01: Pass
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 iterable_to_set_test: Pass
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
-main_test: RuntimeError
 map_keys2_test: Pass
 
 [ $compiler == dartkp && $strong ]

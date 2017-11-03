@@ -108,9 +108,6 @@ io/web_socket_compression_test: RuntimeError
 io/web_socket_pipe_test: RuntimeError
 io/web_socket_protocol_test: RuntimeError
 io/web_socket_typed_data_test: RuntimeError
-regress_26031_test: RuntimeError
-regress_28854_1_test: RuntimeError
-regress_28854_2_test: RuntimeError
 
 [ $compiler == dartkp && $strong ]
 io/arguments_test: RuntimeError

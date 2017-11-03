@@ -821,7 +821,6 @@ issue1363_test/01: MissingCompileTimeError
 issue15606_test/01: MissingCompileTimeError
 issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
-issue23244_test: RuntimeError
 issue_25671b_test/01: DartkCrash
 list_is_test: RuntimeError
 map_literal11_test/none: MissingRuntimeError
@@ -946,7 +945,6 @@ type_promotion_multiple_test/19: MissingCompileTimeError
 type_promotion_multiple_test/20: MissingCompileTimeError
 type_promotion_multiple_test/21: MissingCompileTimeError
 type_promotion_multiple_test/22: MissingCompileTimeError
-vm/optimized_guarded_field_isolates_test: RuntimeError
 vm/regress_28325_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/01: MissingCompileTimeError

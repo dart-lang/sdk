@@ -127,6 +127,7 @@ typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
 [ $compiler == dart2js ]
+isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 async/future_or_strong_test: RuntimeError
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.

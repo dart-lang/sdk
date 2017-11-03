@@ -209,8 +209,8 @@ class _SendPortImpl implements SendPort {
 }
 
 typedef _NullaryFunction();
-typedef _UnaryFunction(args);
-typedef _BinaryFunction(args, message);
+typedef _UnaryFunction(Null args);
+typedef _BinaryFunction(Null args, Null message);
 
 /**
  * Takes the real entry point as argument and invokes it with the

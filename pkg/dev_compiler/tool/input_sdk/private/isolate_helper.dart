@@ -725,8 +725,8 @@ bool get globalPostMessageDefined {
 }
 
 typedef _MainFunction();
-typedef _MainFunctionArgs(args);
-typedef _MainFunctionArgsMessage(args, message);
+typedef _MainFunctionArgs(Null args);
+typedef _MainFunctionArgsMessage(Null args, Null message);
 
 /// Note: IsolateNatives depends on _globalState which is only set up correctly
 /// when 'dart:isolate' has been imported.
