@@ -4900,8 +4900,7 @@ class Parser {
   }
 
   Token parseVariablesDeclarationRest(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    return parseVariablesDeclarationMaybeSemicolonRest(token, true);
+    return parseVariablesDeclarationMaybeSemicolonRest(token.next, true);
   }
 
   Token parseVariablesDeclarationNoSemicolon(Token token) {
@@ -4911,9 +4910,8 @@ class Parser {
   }
 
   Token parseVariablesDeclarationNoSemicolonRest(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // Only called when parsing a for loop, so this is for parsing locals.
-    return parseVariablesDeclarationMaybeSemicolonRest(token, false);
+    return parseVariablesDeclarationMaybeSemicolonRest(token.next, false);
   }
 
   Token parseVariablesDeclarationMaybeSemicolon(
@@ -5005,7 +5003,7 @@ class Parser {
     token = expect('for', token);
     Token leftParenthesis = token;
     expect('(', token);
-    token = parseVariablesDeclarationOrExpressionOpt(token.next);
+    token = parseVariablesDeclarationOrExpressionOpt(token);
     if (optional('in', token)) {
       if (awaitToken != null && !inAsync) {
         reportRecoverableError(token, fasta.messageAwaitForNotAsync);
@@ -5032,16 +5030,17 @@ class Parser {
   /// ;
   /// ```
   Token parseVariablesDeclarationOrExpressionOpt(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    final String value = token.stringValue;
+    Token next = token.next;
+    final String value = next.stringValue;
     if (identical(value, ';')) {
-      listener.handleNoExpression(token);
-      return token;
-    } else if (isOneOf4(token, '@', 'var', 'final', 'const')) {
-      return parseVariablesDeclarationNoSemicolon(token).next;
+      listener.handleNoExpression(next);
+      return next;
+    } else if (isOneOf4(next, '@', 'var', 'final', 'const')) {
+      return parseVariablesDeclarationNoSemicolon(token.next).next;
     }
-    return parseType(token, TypeContinuation.VariablesDeclarationOrExpression);
+    return parseType(
+        token.next, TypeContinuation.VariablesDeclarationOrExpression);
   }
 
   /// This method parses the portion of the forLoopParts that starts with the
@@ -5340,7 +5339,7 @@ class Parser {
     Token switchKeyword = token;
     listener.beginSwitchStatement(switchKeyword);
     token = parseParenthesizedExpression(token.next);
-    token = parseSwitchBlock(token.next);
+    token = parseSwitchBlock(token);
     listener.endSwitchStatement(switchKeyword, token);
     return token;
   }
@@ -5351,8 +5350,7 @@ class Parser {
   /// ;
   /// ```
   Token parseSwitchBlock(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    Token begin = token;
+    Token begin = token = token.next;
     listener.beginSwitchBlock(begin);
     token = expect('{', token);
     int caseCount = 0;
