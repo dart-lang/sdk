@@ -3688,10 +3688,9 @@ class Parser {
     }
 
     listener.beginBlockFunctionBody(begin);
-    token = token.next;
-    while (notEofOrValue('}', token)) {
+    while (notEofOrValue('}', token.next)) {
       Token startToken = token.next;
-      token = parseStatementOpt(token).next;
+      token = parseStatementOpt(token.next);
       if (identical(token.next, startToken)) {
         // No progress was made, so we report the current token as being invalid
         // and move forward.
@@ -3701,6 +3700,7 @@ class Parser {
       }
       ++statementCount;
     }
+    token = token.next;
     listener.endBlockFunctionBody(statementCount, begin, token);
     expect('}', token);
     return ofFunctionExpression ? token.next : token;
