@@ -361,7 +361,6 @@ cc/Profiler_GetSourceReport: Fail
 cc/Profiler_SourcePositionOptimized: Skip
 cc/ScriptSnapshot2: Crash
 cc/ScriptSnapshot: Crash
-cc/ScriptSnapshotsUpdateSubclasses: Crash # Issue 29850
 cc/SourcePosition_Async: Crash
 cc/SourcePosition_BitwiseOperations: Crash
 cc/SourcePosition_ForLoop: Crash
