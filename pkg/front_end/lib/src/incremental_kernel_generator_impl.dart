@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/src/base/performace_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
@@ -33,6 +35,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
   /// The logger to report compilation progress.
   final PerformanceLog _logger;
+
+  /// The [ByteStore] used to cache results.
+  final ByteStore _byteStore;
 
   /// The URI of the program entry point.
   final Uri _entryPoint;
@@ -63,6 +68,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       UriTranslator uriTranslator, List<int> sdkOutlineBytes, this._entryPoint,
       {WatchUsedFilesFn watch})
       : _logger = options.logger,
+        _byteStore = options.byteStore,
         _watchFn = watch {
     _hasSdkOutlineBytes = sdkOutlineBytes != null;
     _testView = new _TestView(this);
@@ -85,6 +91,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   @override
   void acceptLastDelta() {
     _throwIfNoLastDelta();
+    _updateProtectedFileByteStore();
     _currentSignatures.addAll(_lastSignatures);
     _lastSignatures = null;
   }
@@ -219,6 +226,28 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     }
     if (_lastSignatures == null) {
       throw new StateError(MSG_NO_LAST_DELTA);
+    }
+  }
+
+  /// If [ProtectedFileByteStore] is used, update the protected keys.
+  void _updateProtectedFileByteStore() {
+    ByteStore byteStore = this._byteStore;
+    if (byteStore is ProtectedFileByteStore) {
+      // Compute the set of added and removed ByteStore keys.
+      // We use knowledge about KernelDriver implementation details.
+      var addedKeys = new Set<String>();
+      var removedKeys = new Set<String>();
+      for (var lastUri in _lastSignatures.keys) {
+        var currentSignature = _currentSignatures[lastUri];
+        var lastSignature = _lastSignatures[lastUri];
+        addedKeys.add('$lastSignature.kernel');
+        if (currentSignature != null && lastSignature != null) {
+          removedKeys.add('$currentSignature.kernel');
+        }
+      }
+
+      byteStore.updateProtectedKeys(
+          add: addedKeys.toList(), remove: removedKeys.toList());
     }
   }
 }

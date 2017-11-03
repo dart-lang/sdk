@@ -8,6 +8,7 @@ import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:front_end/summary_generator.dart';
@@ -40,13 +41,14 @@ class IncrementalKernelGeneratorTest {
       {Uri sdkOutlineUri,
       bool setPackages: true,
       bool embedSourceText: true,
-      String initialState}) async {
+      String initialState,
+      ByteStore byteStore}) async {
     createSdkFiles(fileSystem);
     // TODO(scheglov) Builder the SDK kernel and set it into the options.
 
     var compilerOptions = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..byteStore = new MemoryByteStore()
+      ..byteStore = byteStore ?? new MemoryByteStore()
 //      ..logger = new PerformanceLog(stdout)
       ..strongMode = true
       ..chaseDependencies = true
@@ -82,6 +84,64 @@ class IncrementalKernelGeneratorTest {
     _assertStateError(() {
       incrementalKernelGenerator.acceptLastDelta();
     }, IncrementalKernelGeneratorImpl.MSG_NO_LAST_DELTA);
+  }
+
+  test_acceptLastDelta_protectedFileByteStore() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    Uri aUri = writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(bPath, r'''
+import 'a.dart';
+var b = a;
+''');
+
+    var byteStore = new _ProtectedFileByteStoreMock();
+
+    {
+      await getInitialState(bUri, byteStore: byteStore);
+      incrementalKernelGenerator.acceptLastDelta();
+
+      // There is nothing to remove yet.
+      expect(byteStore.removedKeys, isEmpty);
+
+      // The added keys: SDK, a.dart, and b.dart
+      expect(byteStore.addedKeys, hasLength(3));
+
+      byteStore.clearState();
+    }
+
+    // Update b.dart and recompile.
+    writeFile(bPath, r'''
+import 'a.dart';
+var b = a + 1;
+''');
+    incrementalKernelGenerator.invalidate(bUri);
+    {
+      await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
+
+      // The key for b.dart should be removed.
+      // But we don't actually check the key.
+      expect(byteStore.removedKeys, hasLength(1));
+
+      // The new key for b.dart should be added.
+      expect(byteStore.addedKeys, hasLength(1));
+    }
+
+    // Update a.dart and recompile.
+    writeFile(aPath, 'var a = 2;');
+    incrementalKernelGenerator.invalidate(aUri);
+    {
+      await incrementalKernelGenerator.computeDelta();
+      incrementalKernelGenerator.acceptLastDelta();
+
+      // The keys for a.dart and b.dart should be removed.
+      expect(byteStore.removedKeys, hasLength(2));
+
+      // The new keys for a.dart and b.dart should be added.
+      expect(byteStore.addedKeys, hasLength(2));
+    }
   }
 
   test_compile_chain() async {
@@ -675,5 +735,36 @@ import 'a.dart';
     var translator = incrementalKernelGenerator.test.driver.uriTranslator;
     var outputUri = translator.translate(inputUri) ?? inputUri;
     return outputUri.toString();
+  }
+}
+
+class _ProtectedFileByteStoreMock implements ProtectedFileByteStore {
+  final byteStore = new MemoryByteStore();
+
+  List<String> addedKeys;
+  List<String> removedKeys;
+
+  void clearState() {
+    addedKeys = null;
+    removedKeys = null;
+  }
+
+  @override
+  void flush() {}
+
+  @override
+  List<int> get(String key) {
+    return byteStore.get(key);
+  }
+
+  @override
+  void put(String key, List<int> bytes) {
+    byteStore.put(key, bytes);
+  }
+
+  @override
+  void updateProtectedKeys({List<String> add, List<String> remove}) {
+    this.addedKeys = add;
+    this.removedKeys = remove;
   }
 }
