@@ -239,11 +239,9 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var args = [
-        '--kernel-binaries=${context.platformBinaries.toFilePath()}',
-        generated.path,
-        "Hello, World!"
-      ];
+      var args = ['--kernel-binaries=${context.platformBinaries.toFilePath()}'];
+      if (context.strongMode) args.add('--strong');
+      args.add(generated.path);
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {

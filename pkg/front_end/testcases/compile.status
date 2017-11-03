@@ -86,7 +86,6 @@ rasta/type_with_parse_error: Fail
 rasta/typedef: Fail
 rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail
-rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 
 regress/issue_29975: Fail # Issue 29975.
