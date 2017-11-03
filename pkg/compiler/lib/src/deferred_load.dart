@@ -335,8 +335,7 @@ class DeferredLoadTask extends CompilerTask {
           return;
         }
 
-        WorldImpact worldImpact =
-            compiler.resolution.getWorldImpact(analyzableElement);
+        WorldImpact worldImpact = compiler.impactCache[analyzableElement];
         compiler.impactStrategy.visitImpact(
             analyzableElement,
             worldImpact,

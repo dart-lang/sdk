@@ -69,7 +69,7 @@ Future checkModels(Uri entryPoint,
   Compiler compilerNormal = await measure(title, 'compile normal', () async {
     Compiler compilerNormal = compilerFor(
         memorySourceFiles: sourceFiles, options: [Flags.analyzeOnly]);
-    compilerNormal.resolution.retainCachesForTesting = true;
+    compilerNormal.impactCacheDeleter.retainCachesForTesting = true;
     await compilerNormal.run(entryPoint);
     ElementEnvironment elementEnvironment =
         compilerNormal.frontendStrategy.elementEnvironment;
@@ -83,7 +83,7 @@ Future checkModels(Uri entryPoint,
         memorySourceFiles: sourceFiles,
         resolutionInputs: resolutionInputs,
         options: [Flags.analyzeOnly]);
-    compilerDeserialized.resolution.retainCachesForTesting = true;
+    compilerDeserialized.impactCacheDeleter.retainCachesForTesting = true;
     await compilerDeserialized.run(entryPoint);
     ElementEnvironment elementEnvironment =
         compilerDeserialized.frontendStrategy.elementEnvironment;

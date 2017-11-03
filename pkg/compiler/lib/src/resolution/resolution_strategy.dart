@@ -153,7 +153,8 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
   WorkItemBuilder createResolutionWorkItemBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
-      ImpactTransformer impactTransformer) {
+      ImpactTransformer impactTransformer,
+      Map<Entity, WorldImpact> impactCache) {
     return new ResolutionWorkItemBuilder(_compiler.resolution);
   }
 

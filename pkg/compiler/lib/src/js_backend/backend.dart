@@ -462,6 +462,8 @@ class JavaScriptBackend {
 
   Resolution get resolution => compiler.resolution;
 
+  ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
+
   Target get target => _target;
 
   /// Resolution support for generating table of interceptors and
@@ -760,7 +762,10 @@ class JavaScriptBackend {
             classHierarchyBuilder,
             classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(
-            nativeBasicData, _nativeDataBuilder, impactTransformer));
+            nativeBasicData,
+            _nativeDataBuilder,
+            impactTransformer,
+            compiler.impactCache));
   }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
@@ -1184,7 +1189,8 @@ class JavaScriptBackend {
       {bool supportDeferredLoad: true,
       bool supportDumpInfo: true,
       bool supportSerialization: true}) {
-    return new JavaScriptImpactStrategy(resolution, compiler.dumpInfoTask,
+    return new JavaScriptImpactStrategy(
+        impactCacheDeleter, compiler.dumpInfoTask,
         supportDeferredLoad: supportDeferredLoad,
         supportDumpInfo: supportDumpInfo,
         supportSerialization: supportSerialization);
@@ -1194,13 +1200,13 @@ class JavaScriptBackend {
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {
-  final Resolution resolution;
+  final ImpactCacheDeleter impactCacheDeleter;
   final DumpInfoTask dumpInfoTask;
   final bool supportDeferredLoad;
   final bool supportDumpInfo;
   final bool supportSerialization;
 
-  JavaScriptImpactStrategy(this.resolution, this.dumpInfoTask,
+  JavaScriptImpactStrategy(this.impactCacheDeleter, this.dumpInfoTask,
       {this.supportDeferredLoad,
       this.supportDumpInfo,
       this.supportSerialization});
@@ -1215,7 +1221,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       } else {
         impact.apply(visitor);
         if (impactSource is Element) {
-          resolution.uncacheWorldImpact(impactSource);
+          impactCacheDeleter.uncacheWorldImpact(impactSource);
         }
       }
     } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
@@ -1234,7 +1240,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
     if (impactUse == DeferredLoadTask.IMPACT_USE && !supportSerialization) {
       // TODO(johnniwinther): Allow emptying when serialization has been
       // performed.
-      resolution.emptyCache();
+      impactCacheDeleter.emptyCache();
     }
   }
 }

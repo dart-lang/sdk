@@ -143,12 +143,14 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         classQueries);
   }
 
+  @override
   WorkItemBuilder createResolutionWorkItemBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
-      ImpactTransformer impactTransformer) {
+      ImpactTransformer impactTransformer,
+      Map<Entity, WorldImpact> impactCache) {
     return new KernelWorkItemBuilder(elementMap, nativeBasicData,
-        nativeDataBuilder, impactTransformer, closureModels);
+        nativeDataBuilder, impactTransformer, closureModels, impactCache);
   }
 
   ClassQueries createClassQueries() {
@@ -166,20 +168,22 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<Entity, WorldImpact> impactCache;
 
   KernelWorkItemBuilder(
       this._elementMap,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       this._impactTransformer,
-      this.closureModels)
+      this.closureModels,
+      this.impactCache)
       : _nativeMemberResolver = new KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
     return new KernelWorkItem(_elementMap, _impactTransformer,
-        _nativeMemberResolver, entity, closureModels);
+        _nativeMemberResolver, entity, closureModels, impactCache);
   }
 }
 
@@ -189,9 +193,15 @@ class KernelWorkItem implements ResolutionWorkItem {
   final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
   final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<Entity, WorldImpact> impactCache;
 
-  KernelWorkItem(this._elementMap, this._impactTransformer,
-      this._nativeMemberResolver, this.element, this.closureModels);
+  KernelWorkItem(
+      this._elementMap,
+      this._impactTransformer,
+      this._nativeMemberResolver,
+      this.element,
+      this.closureModels,
+      this.impactCache);
 
   @override
   WorldImpact run() {
@@ -201,7 +211,12 @@ class KernelWorkItem implements ResolutionWorkItem {
     if (closureModel != null) {
       closureModels[element] = closureModel;
     }
-    return _impactTransformer.transformResolutionImpact(impact);
+    WorldImpact worldImpact =
+        _impactTransformer.transformResolutionImpact(impact);
+    if (impactCache != null) {
+      impactCache[element] = impact;
+    }
+    return worldImpact;
   }
 }
 

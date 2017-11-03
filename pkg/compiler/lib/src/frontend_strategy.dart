@@ -88,7 +88,8 @@ abstract class FrontendStrategy {
   WorkItemBuilder createResolutionWorkItemBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
-      ImpactTransformer impactTransformer);
+      ImpactTransformer impactTransformer,
+      Map<Entity, WorldImpact> impactCache);
 
   /// Computes the main function from [mainLibrary] adding additional world
   /// impact to [impactBuilder].
@@ -140,4 +141,20 @@ abstract class FrontendStrategyBase implements FrontendStrategy {
     }
     return _nativeBasicData;
   }
+}
+
+/// Class that deletes the contents of an [WorldImpact] cache.
+// TODO(redemption): this can be deleted when we sunset the old front end and
+// delete serialization.
+abstract class ImpactCacheDeleter {
+  bool retainCachesForTesting;
+
+  /// Removes the [WorldImpact] for [element] from the resolution cache. Later
+  /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
+  void uncacheWorldImpact(Entity element);
+
+  /// Removes the [WorldImpact]s for all [Element]s in the resolution cache. ,
+  /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
+  /// impact.
+  void emptyCache();
 }

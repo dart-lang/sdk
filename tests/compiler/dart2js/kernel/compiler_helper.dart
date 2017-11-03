@@ -54,7 +54,7 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
             Flags.useKernel
           ]);
       ElementResolutionWorldBuilder.useInstantiationMap = true;
-      compiler.resolution.retainCachesForTesting = true;
+      compiler.impactCacheDeleter.retainCachesForTesting = true;
       await compiler.run(entryPoint);
       return compiler;
     });
@@ -75,7 +75,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       options: [Flags.analyzeAll, Flags.enableAssertMessage]);
-  compiler.resolution.retainCachesForTesting = true;
+  compiler.impactCacheDeleter.retainCachesForTesting = true;
   await compiler.run(entryPoint);
 
   if (printSteps) {
@@ -86,7 +86,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
       memorySourceFiles: memorySourceFiles,
       options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler2.resolution.retainCachesForTesting = true;
+  compiler2.impactCacheDeleter.retainCachesForTesting = true;
   await compiler2.run(entryPoint);
   return new Pair<Compiler, Compiler>(compiler, compiler2);
 }
@@ -156,7 +156,7 @@ Future<Compiler> compileWithDill(
       diagnosticHandler: diagnosticHandler,
       outputProvider: compilerOutput);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler.resolution.retainCachesForTesting = true;
+  compiler.impactCacheDeleter.retainCachesForTesting = true;
   if (beforeRun != null) {
     beforeRun(compiler);
   }
