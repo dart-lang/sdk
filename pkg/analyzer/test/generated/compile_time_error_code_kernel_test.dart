@@ -30,13 +30,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30997')
-  test_deferredImportWithInvalidUri() async {
-    return super.test_deferredImportWithInvalidUri();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateConstructorName_named() async {
     return super.test_duplicateConstructorName_named();
@@ -157,13 +150,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
-  test_invalidUri_part() async {
-    return super.test_invalidUri_part();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30981')
   test_memberWithClassName_getter() async {
     return super.test_memberWithClassName_getter();
@@ -195,13 +181,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30982')
   test_multipleSuperInitializers() async {
     return super.test_multipleSuperInitializers();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
-  test_partOfNonPart() async {
-    return super.test_partOfNonPart();
   }
 
   @override
@@ -308,13 +287,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
     return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
-  test_uriDoesNotExist_part() async {
-    return super.test_uriDoesNotExist_part();
   }
 
   @override

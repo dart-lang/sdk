@@ -453,7 +453,6 @@ syntax_test/51: Fail # Not syntax.
 await_backwards_compatibility_test/await4: Fail # Not syntax.
 const_constructor_test/01: Fail # Not syntax.
 await_backwards_compatibility_test/await3: Fail # Not syntax.
-missing_part_of_tag_test/01: Fail # Not syntax.
 sync_generator2_test/09: Fail # Not syntax.
 sync_generator2_test/20: Fail # Not syntax.
 sync_generator2_test/11: Fail # Not syntax.

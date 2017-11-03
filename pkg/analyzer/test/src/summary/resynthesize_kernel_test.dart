@@ -332,12 +332,6 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
-  test_invalidUris() async {
-    await super.test_invalidUris();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_metadata_fieldFormalParameter() async {
     await super.test_metadata_fieldFormalParameter();
@@ -385,12 +379,6 @@ class C {
   test_parameter_checked_inherited() async {
     // @checked is deprecated, use `covariant` instead.
     await super.test_parameter_checked_inherited();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
-  test_parts_invalidUri() async {
-    await super.test_parts_invalidUri();
   }
 
   @failingTest

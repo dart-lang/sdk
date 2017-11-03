@@ -1353,7 +1353,7 @@ PartOfUseUri:
   tip: "Try changing the 'part of' declaration to use a relative file name."
 
 PartOfUriMismatch:
-  template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#string'."
+  template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'."
 
 MissingMain:
   template: "No 'main' method found."
@@ -1461,6 +1461,9 @@ InvalidPackageUri:
 
 CouldNotParseUri:
   template: "Couldn't parse URI '#string':\n  #string2."
+
+ExpectedUri:
+  template: "Expected a URI."
 
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."

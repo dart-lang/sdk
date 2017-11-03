@@ -1269,6 +1269,13 @@ Message _withArgumentsExpectedType(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedUri = messageExpectedUri;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedUri =
+    const MessageCode("ExpectedUri", message: r"""Expected a URI.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3138,29 +3145,30 @@ const Template<
     Message Function(
         Uri uri_,
         Uri uri2_,
-        String
-            string)> templatePartOfUriMismatch = const Template<
-        Message Function(Uri uri_, Uri uri2_, String string)>(
+        Uri
+            uri3_)> templatePartOfUriMismatch = const Template<
+        Message Function(Uri uri_, Uri uri2_, Uri uri3_)>(
     messageTemplate:
-        r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#string'.""",
+        r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'.""",
     withArguments: _withArgumentsPartOfUriMismatch);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Uri uri_, Uri uri2_, String string)>
+const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>
     codePartOfUriMismatch =
-    const Code<Message Function(Uri uri_, Uri uri2_, String string)>(
+    const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>(
   "PartOfUriMismatch",
   templatePartOfUriMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPartOfUriMismatch(Uri uri_, Uri uri2_, String string) {
+Message _withArgumentsPartOfUriMismatch(Uri uri_, Uri uri2_, Uri uri3_) {
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
+  String uri3 = relativizeUri(uri3_);
   return new Message(codePartOfUriMismatch,
       message:
-          """Using '$uri' as part of '$uri2' but its 'part of' declaration says '$string'.""",
-      arguments: {'uri': uri_, 'uri2': uri2_, 'string': string});
+          """Using '$uri' as part of '$uri2' but its 'part of' declaration says '$uri3'.""",
+      arguments: {'uri': uri_, 'uri2': uri2_, 'uri3': uri3_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

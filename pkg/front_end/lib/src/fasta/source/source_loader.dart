@@ -114,6 +114,9 @@ class SourceLoader<L> extends Loader<L> {
           templateInternalProblemUriMissingScheme.withArguments(uri),
           -1,
           library.uri);
+    } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+      // Simulate empty file
+      return null;
     }
 
     // Get the library text from the cache, or read from the file system.

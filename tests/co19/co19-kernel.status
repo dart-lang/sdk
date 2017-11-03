@@ -72,24 +72,10 @@ Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: Missing
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t06: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/Imports/syntax_t03: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t04: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t11: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t13: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t18: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t20: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t21: Crash # Issue 30997
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
-Language/Libraries_and_Scripts/Parts/syntax_t01: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/syntax_t03: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/syntax_t05: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/syntax_t07: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/syntax_t08: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/compilation_t07: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/compilation_t11: Crash # Issue 30997
 Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_library_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.

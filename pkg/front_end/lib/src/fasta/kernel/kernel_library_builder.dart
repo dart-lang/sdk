@@ -811,38 +811,52 @@ class KernelLibraryBuilder
     }
   }
 
-  @override
-  Library build(LibraryBuilder coreLibrary) {
-    super.build(coreLibrary);
+  void addDependencies(Library library, Set<KernelLibraryBuilder> seen) {
+    if (!seen.add(this)) {
+      return;
+    }
 
-    for (Import import in imports) {
-      Library importedLibrary = import.imported.target;
-      if (importedLibrary != null) {
+    // Merge import and export lists to have the dependencies in source order.
+    // This is required for the DietListener to correctly match up metadata.
+    int importIndex = 0;
+    int exportIndex = 0;
+    while (importIndex < imports.length || exportIndex < exports.length) {
+      if (exportIndex >= exports.length ||
+          (importIndex < imports.length &&
+              imports[importIndex].charOffset <
+                  exports[exportIndex].charOffset)) {
+        // Add import
+        Import import = imports[importIndex++];
         if (import.deferred && import.prefixBuilder?.dependency != null) {
           library.addDependency(import.prefixBuilder.dependency);
         } else {
-          library.addDependency(new LibraryDependency.import(importedLibrary,
+          library.addDependency(new LibraryDependency.import(
+              import.imported.target,
               name: import.prefix,
               combinators: toKernelCombinators(import.combinators))
             ..fileOffset = import.charOffset);
         }
-      }
-    }
-
-    for (Export export in exports) {
-      Library exportedLibrary = export.exported.target;
-      if (exportedLibrary != null) {
-        library.addDependency(new LibraryDependency.export(exportedLibrary,
+      } else {
+        // Add export
+        Export export = exports[exportIndex++];
+        library.addDependency(new LibraryDependency.export(
+            export.exported.target,
             combinators: toKernelCombinators(export.combinators))
           ..fileOffset = export.charOffset);
       }
     }
 
-    for (var part in parts) {
-      // TODO(scheglov): Add support for annotations, see
-      // https://github.com/dart-lang/sdk/issues/30284.
+    for (KernelLibraryBuilder part in parts) {
       library.addPart(new LibraryPart(<Expression>[], part.relativeFileUri));
+      part.addDependencies(library, seen);
     }
+  }
+
+  @override
+  Library build(LibraryBuilder coreLibrary) {
+    super.build(coreLibrary);
+
+    addDependencies(library, new Set<KernelLibraryBuilder>());
 
     loader.target.metadataCollector
         ?.setDocumentationComment(library, documentationComment);
