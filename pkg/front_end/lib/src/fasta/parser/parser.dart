@@ -1302,32 +1302,25 @@ class Parser {
     token =
         ensureIdentifier(token.next, IdentifierContext.enumDeclaration).next;
     Token leftBrace = token;
-    token = expect('{', token);
+    expect('{', token);
     int count = 0;
-    if (!optional('}', token)) {
-      Token before = token;
-      token = parseMetadataStar(token);
-      if (!identical(token, before)) {
-        reportRecoverableError(before, fasta.messageAnnotationOnEnumConstant);
+    do {
+      Token next = token.next;
+      if (optional('}', next)) {
+        token = next;
+        if (count == 0) {
+          reportRecoverableError(token, fasta.messageEnumDeclarationEmpty);
+        }
+        break;
+      }
+      token = parseMetadataStar(token.next);
+      if (!identical(token, next)) {
+        reportRecoverableError(next, fasta.messageAnnotationOnEnumConstant);
       }
       token =
           ensureIdentifier(token, IdentifierContext.enumValueDeclaration).next;
       count++;
-      while (optional(',', token)) {
-        token = token.next;
-        if (optional('}', token)) break;
-        Token before = token;
-        token = parseMetadataStar(token);
-        if (!identical(token, before)) {
-          reportRecoverableError(before, fasta.messageAnnotationOnEnumConstant);
-        }
-        token = ensureIdentifier(token, IdentifierContext.enumValueDeclaration)
-            .next;
-        count++;
-      }
-    } else {
-      reportRecoverableError(token, fasta.messageEnumDeclarationEmpty);
-    }
+    } while (optional(',', token));
     expect('}', token);
     listener.endEnum(enumKeyword, leftBrace, count);
     return token;
