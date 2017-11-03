@@ -342,6 +342,11 @@ abstract class ContextManagerCallbacks {
       Folder folder, ContextRoot contextRoot, AnalysisOptions options);
 
   /**
+   * An [event] was processed, so analysis state might be different now.
+   */
+  void afterWatchEvent(WatchEvent event);
+
+  /**
    * Called when the set of files associated with a context have changed (or
    * some of those files have been modified).  [changeSet] is the set of
    * changes that need to be applied to the context.
@@ -1290,12 +1295,17 @@ class ContextManagerImpl implements ContextManager {
   }
 
   void _handleWatchEvent(WatchEvent event) {
+    callbacks.broadcastWatchEvent(event);
+    _handleWatchEventImpl(event);
+    callbacks.afterWatchEvent(event);
+  }
+
+  void _handleWatchEventImpl(WatchEvent event) {
     // Figure out which context this event applies to.
     // TODO(brianwilkerson) If a file is explicitly included in one context
     // but implicitly referenced in another context, we will only send a
     // changeSet to the context that explicitly includes the file (because
     // that's the only context that's watching the file).
-    callbacks.broadcastWatchEvent(event);
     String path = event.path;
     ChangeType type = event.type;
     ContextInfo info = _getInnermostContextInfoFor(path);

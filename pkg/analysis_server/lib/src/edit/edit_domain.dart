@@ -837,6 +837,7 @@ class _RefactoringManager {
       return;
     }
     _reset();
+    _resetOnAnalysisSetChanged();
     this.kind = kind;
     this.file = file;
     this.offset = offset;
@@ -850,7 +851,6 @@ class _RefactoringManager {
       Element element = await server.getElementAtOffset(file, offset);
       if (element != null) {
         if (element is ExecutableElement) {
-          _resetOnAnalysisStarted();
           refactoring = new ConvertGetterToMethodRefactoring(
               searchEngine, server.getAstProvider(file), element);
         }
@@ -860,7 +860,6 @@ class _RefactoringManager {
       Element element = await server.getElementAtOffset(file, offset);
       if (element != null) {
         if (element is ExecutableElement) {
-          _resetOnAnalysisStarted();
           refactoring = new ConvertMethodToGetterRefactoring(
               searchEngine, server.getAstProvider(file), element);
         }
@@ -869,7 +868,6 @@ class _RefactoringManager {
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
-        _resetOnFileResolutionChanged(file);
         refactoring = new ExtractLocalRefactoring(unit, offset, length);
         feedback = new ExtractLocalVariableFeedback(
             <String>[], <int>[], <int>[],
@@ -880,7 +878,6 @@ class _RefactoringManager {
     if (kind == RefactoringKind.EXTRACT_METHOD) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
-        _resetOnAnalysisStarted();
         refactoring = new ExtractMethodRefactoring(
             searchEngine, server.getAstProvider(file), unit, offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
@@ -890,7 +887,6 @@ class _RefactoringManager {
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
-        _resetOnFileResolutionChanged(file);
         refactoring = new InlineLocalRefactoring(
             searchEngine, server.getAstProvider(file), unit, offset);
       }
@@ -898,7 +894,6 @@ class _RefactoringManager {
     if (kind == RefactoringKind.INLINE_METHOD) {
       CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
-        _resetOnAnalysisStarted();
         refactoring = new InlineMethodRefactoring(
             searchEngine, server.getAstProvider(file), unit, offset);
       }
@@ -926,7 +921,6 @@ class _RefactoringManager {
           element = constructor.staticElement;
         }
         // do create the refactoring
-        _resetOnAnalysisStarted();
         refactoring = new RenameRefactoring(
             searchEngine, server.getAstProvider(file), element);
         feedback =
@@ -999,20 +993,11 @@ class _RefactoringManager {
     subscriptionToReset = null;
   }
 
-  void _resetOnAnalysisStarted() {
+  void _resetOnAnalysisSetChanged() {
     subscriptionToReset?.cancel();
-    subscriptionToReset = server.onAnalysisStarted.listen((_) => _reset());
-  }
-
-  /**
-   * We're performing a refactoring that affects only the given [file].
-   * So, when the [file] resolution is changed, we need to reset refactoring.
-   * But when any other file is changed or analyzed, we can continue.
-   */
-  void _resetOnFileResolutionChanged(String file) {
-    // TODO(brianwilkerson) Decide whether we want to implement this
-    // functionality for the new analysis driver or whether we should remove
-    // this method.
+    subscriptionToReset = server.onAnalysisSetChanged.listen((_) {
+      _reset();
+    });
   }
 
   void _sendResultResponse() {
