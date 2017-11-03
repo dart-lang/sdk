@@ -80,7 +80,6 @@ rasta/parser_error: Fail
 rasta/super: Fail
 rasta/super_initializer: Fail
 rasta/super_operator: Fail
-rasta/supports_reflection: VerificationError
 rasta/try_label: Fail
 rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail
