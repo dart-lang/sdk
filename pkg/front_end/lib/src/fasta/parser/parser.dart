@@ -278,6 +278,13 @@ class Parser {
 
   bool get inPlainSync => asyncState == AsyncModifier.Sync;
 
+  /// Parse a compilation unit.
+  ///
+  /// This method is only invoked from outside the parser. As a result, this
+  /// method takes the next token to be consumed rather than the last consumed
+  /// token and returns the token after the last consumed token rather than the
+  /// last consumed token.
+  ///
   /// ```
   /// libraryDefinition:
   ///   scriptTag?
@@ -319,6 +326,12 @@ class Parser {
     return token;
   }
 
+  /// Parse a top-level declaration.
+  ///
+  /// This method is only invoked from outside the parser. As a result, this
+  /// method takes the next token to be consumed rather than the last consumed
+  /// token and returns the token after the last consumed token rather than the
+  /// last consumed token.
   Token parseTopLevelDeclaration(Token token) {
     token =
         parseTopLevelDeclarationImpl(syntheticPreviousToken(token), null).next;
@@ -3117,7 +3130,7 @@ class Parser {
     }
     int count = 0;
     while (notEofOrValue('}', token.next)) {
-      token = parseMember(token.next);
+      token = parseClassMember(token);
       ++count;
     }
     token = token.next;
@@ -3141,6 +3154,16 @@ class Parser {
   bool isModifierOrFactory(Token next) =>
       optional('factory', next) || isModifier(next);
 
+  /// Parse a class member.
+  ///
+  /// This method is only invoked from outside the parser. As a result, this
+  /// method takes the next token to be consumed rather than the last consumed
+  /// token and returns the token after the last consumed token rather than the
+  /// last consumed token.
+  Token parseMember(Token token) {
+    return parseClassMember(syntheticPreviousToken(token)).next;
+  }
+
   /// ```
   /// classMember:
   ///   fieldDeclaration |
@@ -3148,9 +3171,8 @@ class Parser {
   ///   methodDeclaration
   /// ;
   /// ```
-  Token parseMember(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    token = parseMetadataStar(token);
+  Token parseClassMember(Token token) {
+    token = parseMetadataStar(token.next);
     Token start = token;
     listener.beginMember(token);
     // TODO(danrubel): isFactoryDeclaration scans forward over modifiers
