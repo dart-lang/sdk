@@ -20,7 +20,7 @@ void test1(Test<int, int> t) {
   var /*@type=int*/ v4 = t /*@target=Test::[]=*/ ['x'] ??= getInt();
   var /*@type=int*/ v5 = t /*@target=Test::[]=*/ ['x'] ??= getNum();
   var /*@type=int*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
-  var /*@type=num*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
+  var /*@type=int*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
   var /*@type=int*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
   var /*@type=int*/ v11 = t /*@target=Test::[]=*/ ['x']++;
 }
@@ -44,10 +44,10 @@ void test3(Test<int, double> t) {
   var /*@type=double*/ v3 = t /*@target=Test::[]=*/ ['x'] = getDouble();
   var /*@type=num*/ v5 = t /*@target=Test::[]=*/ ['x'] ??= getNum();
   var /*@type=num*/ v6 = t /*@target=Test::[]=*/ ['x'] ??= getDouble();
-  var /*@type=int*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
-  var /*@type=num*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
+  var /*@type=double*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
+  var /*@type=double*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
   var /*@type=double*/ v9 = t /*@target=Test::[]=*/ ['x'] += getDouble();
-  var /*@type=int*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
+  var /*@type=double*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
   var /*@type=int*/ v11 = t /*@target=Test::[]=*/ ['x']++;
 }
 
@@ -56,9 +56,9 @@ void test4(Test<num, int> t) {
   var /*@type=int*/ v2 = t /*@target=Test::[]=*/ ['x'] = getNum();
   var /*@type=num*/ v4 = t /*@target=Test::[]=*/ ['x'] ??= getInt();
   var /*@type=num*/ v5 = t /*@target=Test::[]=*/ ['x'] ??= getNum();
-  var /*@type=num*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
-  var /*@type=num*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
-  var /*@type=num*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
+  var /*@type=int*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
+  var /*@type=int*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
+  var /*@type=int*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
   var /*@type=num*/ v11 = t /*@target=Test::[]=*/ ['x']++;
 }
 
@@ -81,10 +81,10 @@ void test6(Test<num, double> t) {
   var /*@type=double*/ v3 = t /*@target=Test::[]=*/ ['x'] = getDouble();
   var /*@type=num*/ v5 = t /*@target=Test::[]=*/ ['x'] ??= getNum();
   var /*@type=num*/ v6 = t /*@target=Test::[]=*/ ['x'] ??= getDouble();
-  var /*@type=num*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
-  var /*@type=num*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
-  var /*@type=num*/ v9 = t /*@target=Test::[]=*/ ['x'] += getDouble();
-  var /*@type=num*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
+  var /*@type=double*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
+  var /*@type=double*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
+  var /*@type=double*/ v9 = t /*@target=Test::[]=*/ ['x'] += getDouble();
+  var /*@type=double*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
   var /*@type=num*/ v11 = t /*@target=Test::[]=*/ ['x']++;
 }
 
@@ -93,9 +93,9 @@ void test7(Test<double, int> t) {
   var /*@type=int*/ v2 = t /*@target=Test::[]=*/ ['x'] = getNum();
   var /*@type=num*/ v4 = t /*@target=Test::[]=*/ ['x'] ??= getInt();
   var /*@type=num*/ v5 = t /*@target=Test::[]=*/ ['x'] ??= getNum();
-  var /*@type=double*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
-  var /*@type=double*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
-  var /*@type=double*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
+  var /*@type=int*/ v7 = t /*@target=Test::[]=*/ ['x'] += getInt();
+  var /*@type=int*/ v8 = t /*@target=Test::[]=*/ ['x'] += getNum();
+  var /*@type=int*/ v10 = ++t /*@target=Test::[]=*/ ['x'];
   var /*@type=double*/ v11 = t /*@target=Test::[]=*/ ['x']++;
 }
 

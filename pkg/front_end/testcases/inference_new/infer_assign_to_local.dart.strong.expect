@@ -1,0 +1,47 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  default constructor •() → void
+    : super self::A::•()
+    ;
+  operator +(self::C v) → self::A
+    return null;
+  operator -(core::int i) → self::B
+    return null;
+  operator *(self::B v) → self::B
+    return null;
+  operator &(self::A v) → self::C
+    return null;
+}
+class C extends self::B {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method test() → void {
+  self::B local;
+  local = self::f<self::B>();
+  local.{core::Object::==}(null) ?{self::B} local = self::f<self::B>() : null;
+  local = local.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+  local = local.{self::B::*}(self::f<dynamic>());
+  local = local.{self::B::&}(self::f<dynamic>());
+  local = local.{self::B::-}(1);
+  local = local.{self::B::-}(1);
+  self::B v1 = local = self::f<self::B>();
+  self::B v2 = let final self::B #t1 = local in #t1.{core::Object::==}(null) ?{self::B} local = self::f<self::B>() : #t1;
+  self::B v3 = local = local.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+  self::B v4 = local = local.{self::B::*}(self::f<dynamic>());
+  self::C v5 = local = local.{self::B::&}(self::f<dynamic>());
+  self::B v6 = local = local.{self::B::-}(1);
+  self::B v7 = let final self::B #t2 = local in let final self::B #t3 = local = #t2.{self::B::-}(1) in #t2;
+}
+static method main() → dynamic {}

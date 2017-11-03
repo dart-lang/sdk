@@ -1,0 +1,64 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  static field self::B staticVariable = null;
+  default constructor •() → void
+    : super self::A::•()
+    ;
+  operator +(self::C v) → self::A
+    return null;
+  operator -(core::int i) → self::B
+    return null;
+  operator *(self::B v) → self::B
+    return null;
+  operator &(self::A v) → self::C
+    return null;
+}
+class C extends self::B {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+static field self::B topLevelVariable;
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method test_topLevelVariable() → void {
+  self::topLevelVariable = self::f<self::B>();
+  self::topLevelVariable.{core::Object::==}(null) ?{self::B} self::topLevelVariable = self::f<self::B>() : null;
+  self::topLevelVariable = self::topLevelVariable.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+  self::topLevelVariable = self::topLevelVariable.{self::B::*}(self::f<dynamic>());
+  self::topLevelVariable = self::topLevelVariable.{self::B::&}(self::f<dynamic>());
+  self::topLevelVariable = self::topLevelVariable.{self::B::-}(1);
+  self::topLevelVariable = self::topLevelVariable.{self::B::-}(1);
+  self::B v1 = self::topLevelVariable = self::f<self::B>();
+  self::B v2 = let final self::B #t1 = self::topLevelVariable in #t1.{core::Object::==}(null) ?{self::B} self::topLevelVariable = self::f<self::B>() : #t1;
+  self::B v3 = self::topLevelVariable = self::topLevelVariable.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+  self::B v4 = self::topLevelVariable = self::topLevelVariable.{self::B::*}(self::f<dynamic>());
+  self::C v5 = self::topLevelVariable = self::topLevelVariable.{self::B::&}(self::f<dynamic>());
+  self::B v6 = self::topLevelVariable = self::topLevelVariable.{self::B::-}(1);
+  self::B v7 = let final self::B #t2 = self::topLevelVariable in let final self::B #t3 = self::topLevelVariable = #t2.{self::B::-}(1) in #t2;
+}
+static method test_staticVariable() → void {
+  self::B::staticVariable = self::f<self::B>();
+  self::B::staticVariable.{core::Object::==}(null) ?{self::B} self::B::staticVariable = self::f<self::B>() : null;
+  self::B::staticVariable = self::B::staticVariable.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+  self::B::staticVariable = self::B::staticVariable.{self::B::*}(self::f<dynamic>());
+  self::B::staticVariable = self::B::staticVariable.{self::B::&}(self::f<dynamic>());
+  self::B::staticVariable = self::B::staticVariable.{self::B::-}(1);
+  self::B::staticVariable = self::B::staticVariable.{self::B::-}(1);
+  self::B v1 = self::B::staticVariable = self::f<self::B>();
+  self::B v2 = let final self::B #t4 = self::B::staticVariable in #t4.{core::Object::==}(null) ?{self::B} self::B::staticVariable = self::f<self::B>() : #t4;
+  self::B v3 = self::B::staticVariable = self::B::staticVariable.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+  self::B v4 = self::B::staticVariable = self::B::staticVariable.{self::B::*}(self::f<dynamic>());
+  self::C v5 = self::B::staticVariable = self::B::staticVariable.{self::B::&}(self::f<dynamic>());
+  self::B v6 = self::B::staticVariable = self::B::staticVariable.{self::B::-}(1);
+  self::B v7 = let final self::B #t5 = self::B::staticVariable in let final self::B #t6 = self::B::staticVariable = #t5.{self::B::-}(1) in #t5;
+}
+static method main() → dynamic {}

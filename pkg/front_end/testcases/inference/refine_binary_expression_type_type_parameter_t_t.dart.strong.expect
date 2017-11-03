@@ -13,9 +13,9 @@ class C<T extends core::num> extends core::Object {
     self::C::T r3 = this.{self::C::a}.{core::num::*}(b);
   }
   method opEq(generic-covariant-impl generic-covariant-interface self::C::T b) → void {
-    this.{self::C::a} = this.{self::C::a}.{core::num::+}(b);
-    this.{self::C::a} = this.{self::C::a}.{core::num::-}(b);
-    this.{self::C::a} = this.{self::C::a}.{core::num::*}(b);
+    this.{self::C::a} = this.{self::C::a}.{core::num::+}(b) as{TypeError} self::C::T;
+    this.{self::C::a} = this.{self::C::a}.{core::num::-}(b) as{TypeError} self::C::T;
+    this.{self::C::a} = this.{self::C::a}.{core::num::*}(b) as{TypeError} self::C::T;
   }
 }
 static method main() → dynamic {}

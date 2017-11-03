@@ -48,11 +48,10 @@ class Test extends core::Object {
     let final dynamic #t15 = t in let final dynamic #t16 = self::f<dynamic>() in #t15.[]=(#t16, #t15.[](#t16).-(1));
     dynamic v1 = let final dynamic #t17 = t in let final dynamic #t18 = self::f<dynamic>() in let final dynamic #t19 = self::f<dynamic>() in let final dynamic #t20 = #t17.[]=(#t18, #t19) in #t19;
     dynamic v2 = let final dynamic #t21 = t in let final dynamic #t22 = self::f<dynamic>() in let final dynamic #t23 = #t21.[](#t22) in #t23.==(null) ? let final dynamic #t24 = self::f<dynamic>() in let final dynamic #t25 = #t21.[]=(#t22, #t24) in #t24 : #t23;
-    dynamic v3 = let final dynamic #t26 = t in let final dynamic #t27 = self::f<dynamic>() in let final dynamic #t28 = #t26.[](#t27).+(self::f<dynamic>()) in let final dynamic #t29 = #t26.[]=(#t27, #t28) in #t28;
-    dynamic v4 = let final dynamic #t30 = t in let final dynamic #t31 = self::f<dynamic>() in let final dynamic #t32 = #t30.[](#t31).*(self::f<dynamic>()) in let final dynamic #t33 = #t30.[]=(#t31, #t32) in #t32;
-    dynamic v5 = let final dynamic #t34 = t in let final dynamic #t35 = self::f<dynamic>() in let final dynamic #t36 = #t34.[](#t35).&(self::f<dynamic>()) in let final dynamic #t37 = #t34.[]=(#t35, #t36) in #t36;
-    dynamic v6 = let final dynamic #t38 = t in let final dynamic #t39 = self::f<dynamic>() in let final dynamic #t40 = #t38.[](#t39).-(1) in let final dynamic #t41 = #t38.[]=(#t39, #t40) in #t40;
-    dynamic v7 = let final dynamic #t42 = t in let final dynamic #t43 = self::f<dynamic>() in let final dynamic #t44 = #t42.[](#t43) in let final dynamic #t45 = #t42.[]=(#t43, #t44.-(1)) in #t44;
+    dynamic v4 = let final dynamic #t26 = t in let final dynamic #t27 = self::f<dynamic>() in let final dynamic #t28 = #t26.[](#t27).*(self::f<dynamic>()) in let final dynamic #t29 = #t26.[]=(#t27, #t28) in #t28;
+    dynamic v5 = let final dynamic #t30 = t in let final dynamic #t31 = self::f<dynamic>() in let final dynamic #t32 = #t30.[](#t31).&(self::f<dynamic>()) in let final dynamic #t33 = #t30.[]=(#t31, #t32) in #t32;
+    dynamic v6 = let final dynamic #t34 = t in let final dynamic #t35 = self::f<dynamic>() in let final dynamic #t36 = #t34.[](#t35).-(1) in let final dynamic #t37 = #t34.[]=(#t35, #t36) in #t36;
+    dynamic v7 = let final dynamic #t38 = t in let final dynamic #t39 = self::f<dynamic>() in let final dynamic #t40 = #t38.[](#t39) in let final dynamic #t41 = #t38.[]=(#t39, #t40.-(1)) in #t40;
   }
 }
 static method f<T extends core::Object>() → self::f::T

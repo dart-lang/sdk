@@ -19,7 +19,7 @@ void test1() {
   var /*@type=int*/ v4 = topLevelInt ??= getInt();
   var /*@type=int*/ v5 = topLevelInt ??= getNum();
   var /*@type=int*/ v7 = topLevelInt += getInt();
-  var /*@type=num*/ v8 = topLevelInt += getNum();
+  var /*@type=int*/ v8 = topLevelInt += getNum();
   var /*@type=int*/ v10 = ++topLevelInt;
   var /*@type=int*/ v11 = topLevelInt++;
 }

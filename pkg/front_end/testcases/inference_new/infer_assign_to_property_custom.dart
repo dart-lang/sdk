@@ -14,8 +14,8 @@ class B {
   A a;
 }
 
-var /*@topType=int*/ v_prefix_pp = (++new B(). /*@target=B::a*/ a);
-var /*@topType=double*/ v_prefix_mm = (--new B(). /*@target=B::a*/ a);
+var /*@topType=A*/ v_prefix_pp = (++new B(). /*@target=B::a*/ a);
+var /*@topType=A*/ v_prefix_mm = (--new B(). /*@target=B::a*/ a);
 var /*@topType=A*/ v_postfix_pp = (new B(). /*@target=B::a*/ a++);
 var /*@topType=A*/ v_postfix_mm = (new B(). /*@target=B::a*/ a--);
 

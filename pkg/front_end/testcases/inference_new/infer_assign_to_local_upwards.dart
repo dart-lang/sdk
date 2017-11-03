@@ -15,7 +15,7 @@ void test1(int t) {
   var /*@type=int*/ v4 = t ??= getInt();
   var /*@type=int*/ v5 = t ??= getNum();
   var /*@type=int*/ v7 = t += getInt();
-  var /*@type=num*/ v8 = t += getNum();
+  var /*@type=int*/ v8 = t += getNum();
   var /*@type=int*/ v10 = ++t;
   var /*@type=int*/ v11 = t++;
 }

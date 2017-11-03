@@ -14,7 +14,7 @@ static method test1(core::int t) → void {
   core::int v4 = let final core::int #t1 = t in #t1.{core::num::==}(null) ?{core::int} t = self::getInt() : #t1;
   core::int v5 = let final core::int #t2 = t in #t2.{core::num::==}(null) ?{core::int} t = self::getNum() as{TypeError} core::int : #t2;
   core::int v7 = t = t.{core::num::+}(self::getInt());
-  core::num v8 = t = t.{core::num::+}(self::getNum());
+  core::int v8 = t = t.{core::num::+}(self::getNum()) as{TypeError} core::int;
   core::int v10 = t = t.{core::num::+}(1);
   core::int v11 = let final core::int #t3 = t in let final core::int #t4 = t = #t3.{core::num::+}(1) in #t3;
 }

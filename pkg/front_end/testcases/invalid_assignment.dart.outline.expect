@@ -2,7 +2,13 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method test(core::int i, core::String s) → dynamic
+class A extends core::Object {
+  default constructor •() → void
+    ;
+  operator +(core::int i) → core::String
+    ;
+}
+static method test(core::int i, core::String s, self::A a) → dynamic
   ;
 static method main() → dynamic
   ;

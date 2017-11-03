@@ -38,7 +38,6 @@ static method test() → void {
   local = local.-(1);
   dynamic v1 = local = self::f<dynamic>();
   dynamic v2 = let final dynamic #t1 = local in #t1.==(null) ? local = self::f<dynamic>() : #t1;
-  dynamic v3 = local = local.+(self::f<dynamic>());
   dynamic v4 = local = local.*(self::f<dynamic>());
   dynamic v5 = local = local.&(self::f<dynamic>());
   dynamic v6 = local = local.-(1);

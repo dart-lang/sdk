@@ -1,6 +1,6 @@
 library;
 import self as self;
 
-static method main() → dynamic {
-  throw "Error: Unexpected token '>'.";
+static method #main() → dynamic {
+  throw "pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1.dart:9:39: Error: Unexpected token '>'.\nvar /*@topType=dynamic*/v = (f<dynamic>)(() { return 1; });\n                                      ^";
 }

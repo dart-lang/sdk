@@ -1,6 +1,11 @@
-library;
+library test;
 import self as self;
+import "dart:core" as core;
 
+static field dynamic v = self::f.<(dynamic);
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2.dart:10:16: Error: Expected ';' before this.\n    (f)<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/ /*@returnType=int*/ () {\n               ^"]/* from null */;
+static method f<T extends core::Object>(() → self::f::T g) → core::List<self::f::T>
+  return <self::f::T>[g.call()];
 static method main() → dynamic {
-  throw "pkg/front_end/testcases/inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2.dart:10:16: Error: Expected ';' before this.\n    (f)<dynamic>(/*info:INFERRED_TYPE_CLOSURE*/ /*@returnType=int*/ () {\n               ^";
+  self::v;
 }

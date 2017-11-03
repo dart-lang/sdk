@@ -18,7 +18,6 @@ class Test1 extends self::Base {
     dynamic v1 = super.{self::Base::intProp} = self::getInt();
     dynamic v4 = let final dynamic #t1 = super.{self::Base::intProp} in #t1.==(null) ? super.{self::Base::intProp} = self::getInt() : #t1;
     dynamic v7 = super.{self::Base::intProp} = super.{self::Base::intProp}.+(self::getInt());
-    dynamic v8 = super.{self::Base::intProp} = super.{self::Base::intProp}.+(self::getNum());
     dynamic v10 = super.{self::Base::intProp} = super.{self::Base::intProp}.+(1);
     dynamic v11 = let final dynamic #t2 = super.{self::Base::intProp} in let final dynamic #t3 = super.{self::Base::intProp} = #t2.+(1) in #t2;
   }

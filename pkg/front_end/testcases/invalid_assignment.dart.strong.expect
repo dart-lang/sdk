@@ -2,8 +2,19 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method test(core::int i, core::String s) → dynamic {
+class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(core::int i) → core::String
+    return "";
+}
+static method test(core::int i, core::String s, self::A a) → dynamic {
+  i = 1;
   i = s as{TypeError} core::int;
+  i.{core::num::==}(null) ?{core::int} i = 1 : null;
   i.{core::num::==}(null) ?{core::int} i = s as{TypeError} core::int : null;
+  a = new self::A::•();
+  a = a.{self::A::+}(1) as{TypeError} self::A;
 }
 static method main() → dynamic {}

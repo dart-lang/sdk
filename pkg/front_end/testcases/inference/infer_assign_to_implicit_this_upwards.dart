@@ -16,7 +16,6 @@ class Test1 {
     var /*@type=int*/ v1 = /*@target=Test1::t*/ t = getInt();
     var /*@type=int*/ v4 = /*@target=Test1::t*/ t ??= getInt();
     var /*@type=int*/ v7 = /*@target=Test1::t*/ t += getInt();
-    var /*@type=num*/ v8 = /*@target=Test1::t*/ t += getNum();
     var /*@type=int*/ v10 = ++ /*@target=Test1::t*/ t;
     var /*@type=int*/ v11 = /*@target=Test1::t*/ t++;
   }

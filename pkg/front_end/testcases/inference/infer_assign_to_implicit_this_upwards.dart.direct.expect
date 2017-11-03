@@ -11,7 +11,6 @@ class Test1 extends core::Object {
     dynamic v1 = this.{self::Test1::t} = self::getInt();
     dynamic v4 = let final dynamic #t1 = this.{self::Test1::t} in #t1.==(null) ? this.{self::Test1::t} = self::getInt() : #t1;
     dynamic v7 = this.{self::Test1::t} = this.{self::Test1::t}.+(self::getInt());
-    dynamic v8 = this.{self::Test1::t} = this.{self::Test1::t}.+(self::getNum());
     dynamic v10 = this.{self::Test1::t} = this.{self::Test1::t}.+(1);
     dynamic v11 = let final dynamic #t2 = this.{self::Test1::t} in let final dynamic #t3 = this.{self::Test1::t} = #t2.+(1) in #t2;
   }

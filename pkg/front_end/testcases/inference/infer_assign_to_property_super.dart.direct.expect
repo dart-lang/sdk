@@ -45,7 +45,6 @@ class Test extends self::Base {
     super.{self::Base::member} = super.{self::Base::member}.-(1);
     dynamic v1 = super.{self::Base::member} = self::f<dynamic>();
     dynamic v2 = let final dynamic #t1 = super.{self::Base::member} in #t1.==(null) ? super.{self::Base::member} = self::f<dynamic>() : #t1;
-    dynamic v3 = super.{self::Base::member} = super.{self::Base::member}.+(self::f<dynamic>());
     dynamic v4 = super.{self::Base::member} = super.{self::Base::member}.*(self::f<dynamic>());
     dynamic v5 = super.{self::Base::member} = super.{self::Base::member}.&(self::f<dynamic>());
     dynamic v6 = super.{self::Base::member} = super.{self::Base::member}.-(1);

@@ -16,7 +16,6 @@ class Test1 {
     var /*@type=int*/ v1 = t. /*@target=Test1::prop*/ prop = getInt();
     var /*@type=int*/ v4 = t. /*@target=Test1::prop*/ prop ??= getInt();
     var /*@type=int*/ v7 = t. /*@target=Test1::prop*/ prop += getInt();
-    var /*@type=num*/ v8 = t. /*@target=Test1::prop*/ prop += getNum();
     var /*@type=int*/ v10 = ++t. /*@target=Test1::prop*/ prop;
     var /*@type=int*/ v11 = t. /*@target=Test1::prop*/ prop++;
   }

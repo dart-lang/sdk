@@ -24,7 +24,7 @@ class Test1 extends Base {
     var /*@type=int*/ v5 =
         super. /*@target=Base::intProp*/ intProp ??= getNum();
     var /*@type=int*/ v7 = super. /*@target=Base::intProp*/ intProp += getInt();
-    var /*@type=num*/ v8 = super. /*@target=Base::intProp*/ intProp += getNum();
+    var /*@type=int*/ v8 = super. /*@target=Base::intProp*/ intProp += getNum();
     var /*@type=int*/ v10 = ++super. /*@target=Base::intProp*/ intProp;
     var /*@type=int*/ v11 = super. /*@target=Base::intProp*/ intProp++;
   }

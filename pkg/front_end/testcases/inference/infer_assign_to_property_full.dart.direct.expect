@@ -40,11 +40,10 @@ class Test extends core::Object {
     let final dynamic #t6 = t in #t6.member = #t6.member.-(1);
     dynamic v1 = t.member = self::f<dynamic>();
     dynamic v2 = let final dynamic #t7 = t in let final dynamic #t8 = #t7.member in #t8.==(null) ? #t7.member = self::f<dynamic>() : #t8;
-    dynamic v3 = let final dynamic #t9 = t in #t9.member = #t9.member.+(self::f<dynamic>());
-    dynamic v4 = let final dynamic #t10 = t in #t10.member = #t10.member.*(self::f<dynamic>());
-    dynamic v5 = let final dynamic #t11 = t in #t11.member = #t11.member.&(self::f<dynamic>());
-    dynamic v6 = let final dynamic #t12 = t in #t12.member = #t12.member.-(1);
-    dynamic v7 = let final dynamic #t13 = t in let final dynamic #t14 = #t13.member in let final dynamic #t15 = #t13.member = #t14.-(1) in #t14;
+    dynamic v4 = let final dynamic #t9 = t in #t9.member = #t9.member.*(self::f<dynamic>());
+    dynamic v5 = let final dynamic #t10 = t in #t10.member = #t10.member.&(self::f<dynamic>());
+    dynamic v6 = let final dynamic #t11 = t in #t11.member = #t11.member.-(1);
+    dynamic v7 = let final dynamic #t12 = t in let final dynamic #t13 = #t12.member in let final dynamic #t14 = #t12.member = #t13.-(1) in #t13;
   }
 }
 static method f<T extends core::Object>() → self::f::T

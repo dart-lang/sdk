@@ -1035,6 +1035,7 @@ getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 if_null_precedence_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
+implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 malformed2_test/00: MissingCompileTimeError
@@ -2103,6 +2104,7 @@ checked_setter3_test: RuntimeError # Issue 31128
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
 implicit_downcast_during_assignment_test: RuntimeError
+implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
