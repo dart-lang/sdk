@@ -3451,6 +3451,24 @@ class A {
 ''');
   }
 
+  test_removeTypeAnnotation_field_BAD_noInitializer() async {
+    await resolveTestUnit('''
+class A {
+  int v;
+}
+''');
+    await assertNoAssistAt('v;', DartAssistKind.REMOVE_TYPE_ANNOTATION);
+  }
+
+  test_removeTypeAnnotation_localVariable_BAD_noInitializer() async {
+    await resolveTestUnit('''
+main() {
+  int v;
+}
+''');
+    await assertNoAssistAt('v;', DartAssistKind.REMOVE_TYPE_ANNOTATION);
+  }
+
   test_removeTypeAnnotation_localVariable_BAD_onInitializer() async {
     await resolveTestUnit('''
 main() {
@@ -3497,6 +3515,14 @@ main() {
   final v = 1;
 }
 ''');
+  }
+
+  test_removeTypeAnnotation_topLevelVariable_BAD_noInitializer() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestUnit('''
+int v;
+''');
+    await assertNoAssistAt('v;', DartAssistKind.REMOVE_TYPE_ANNOTATION);
   }
 
   test_removeTypeAnnotation_topLevelVariable_BAD_syntheticName() async {

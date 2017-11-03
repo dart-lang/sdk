@@ -1763,7 +1763,12 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    // add edit
+    // The variable must have an initializer, otherwise there is no other
+    // source for its type.
+    if (firstVariable.initializer == null) {
+      _coverageMarker();
+      return;
+    }
     Token keyword = declarationList.keyword;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
