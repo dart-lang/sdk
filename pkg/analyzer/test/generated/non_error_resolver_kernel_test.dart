@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'non_error_resolver_driver_test.dart';
@@ -32,21 +31,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
-  }
-
-  @override
-  @assertFailingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30836')
-  test_finalNotInitialized_hasNativeClause_hasConstructor() async {
-    return super.test_finalNotInitialized_hasNativeClause_hasConstructor();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30836')
-  test_finalNotInitialized_hasNativeClause_noConstructor() async {
-    fail('This test fails only in checked mode.');
-    return super.test_finalNotInitialized_hasNativeClause_noConstructor();
   }
 
   @override
