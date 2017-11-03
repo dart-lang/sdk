@@ -48,8 +48,8 @@ namespace dart {
   V(_Double, _sub, DoubleSub, Double, 0x4f466391)                              \
   V(_Double, _mul, DoubleMul, Double, 0x175e4f66)                              \
   V(_Double, _div, DoubleDiv, Double, 0x0854181b)                              \
-  V(::, min, MathMin, Dynamic, 0x154735b3)                                     \
-  V(::, max, MathMax, Dynamic, 0x217af195)                                     \
+  V(::, min, MathMin, Dynamic, 0x1499bbdc)                                     \
+  V(::, max, MathMax, Dynamic, 0x5e8ae02a)                                     \
   V(::, _doublePow, MathDoublePow, Double, 0x61369cfd)                         \
   V(Float32x4, Float32x4., Float32x4Constructor, Float32x4, 0x5640679a)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, Float32x4, 0x2f0b7925)           \
@@ -424,8 +424,8 @@ namespace dart {
   V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 0x322badf5)             \
   V(::, exp, MathExp, 0x32ab9efa)                                              \
   V(::, log, MathLog, 0x1ee8f9fc)                                              \
-  V(::, max, MathMax, 0x217af195)                                              \
-  V(::, min, MathMin, 0x154735b3)                                              \
+  V(::, max, MathMax, 0x5e8ae02a)                                              \
+  V(::, min, MathMin, 0x1499bbdc)                                              \
   V(::, pow, MathPow, 0x5f119fa5)                                              \
   V(::, _classRangeCheck, ClassRangeCheck, 0x16a2fc83)                         \
   V(::, _classRangeCheckNegative, ClassRangeCheckNegated, 0x46898c74)          \
