@@ -111,7 +111,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
     return _logger.runAsync('Compute delta', () async {
       try {
-        KernelResult kernelResult = await _driver.getKernel(_entryPoint);
+        KernelSequenceResult kernelResult =
+            await _driver.getKernelSequence(_entryPoint);
         List<LibraryCycleResult> results = kernelResult.results;
 
         // Exclude the SDK cycle if was not compiled.

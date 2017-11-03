@@ -28,7 +28,7 @@ import 'package:meta/meta.dart';
 /// [Future] is awaited before reading the file content.
 typedef Future<Null> KernelDriverFileAddedFn(Uri uri);
 
-/// This class computes [KernelResult]s for Dart files.
+/// This class computes [KernelSequenceResult]s for Dart files.
 ///
 /// Let the "current file state" represent a map from file URI to the file
 /// contents most recently read from that file. When the driver needs to
@@ -36,14 +36,20 @@ typedef Future<Null> KernelDriverFileAddedFn(Uri uri);
 /// the optional "file added" function, read the file and put it into the
 /// current file state.
 ///
-/// The client invokes [getKernel] to schedule computing the [KernelResult]
-/// for a Dart file. The driver will eventually use the current file state
-/// of the specified file and all files that it transitively depends on to
-/// compute corresponding kernel files (or read them from the [ByteStore]).
+/// The client invokes [getKernelSequence] to schedule computing the
+/// [KernelSequenceResult] for a Dart file. The driver will eventually use the
+/// current file state of the specified file and all files that it transitively
+/// depends on to compute corresponding kernel files (or read them from the
+/// [ByteStore]).
+///
+/// If the client is interested only in the full library for a single Dart
+/// file, it should use [getKernel] instead. This will allow the driver to
+/// compute only single fully resolved library (or the cycle it belongs to),
+/// and provide just outlines of other libraries.
 ///
 /// A call to [invalidate] removes the specified file from the current file
-/// state, so that it will be reread before any following [getKernel] will
-/// return a result.
+/// state, so that it will be reread before any following [getKernel] or
+/// [getKernelSequence] will return a result.
 class KernelDriver {
   /// The version of data format, should be incremented on every format change.
   static const int DATA_VERSION = 1;
@@ -129,12 +135,47 @@ class KernelDriver {
   /// The driver will update the current file state for any file previously
   /// reported using [invalidate].
   ///
-  /// If the driver has the cached result for the file with the current file
-  /// state, it is returned.
+  /// If the driver has cached results for the file and its dependencies for
+  /// the current file state, these cached results are returned.
   ///
-  /// Otherwise the driver will compute new kernel files and return them.
+  /// Otherwise the driver will compute new results and return them.
   Future<KernelResult> getKernel(Uri uri) async {
-    return await runWithFrontEndContext('Compute delta', () async {
+    // TODO(scheglov): Rewrite to actually return just outlines of dependencies.
+    KernelSequenceResult sequence = await getKernelSequence(uri);
+
+    var dependencies = <Library>[];
+    Library requestedLibrary;
+    for (var i = 0; i < sequence.results.length; i++) {
+      List<Library> libraries = sequence.results[i].kernelLibraries;
+      if (i == sequence.results.length - 1) {
+        for (var library in libraries) {
+          if (library.importUri == uri) {
+            requestedLibrary = library;
+          } else {
+            dependencies.add(library);
+          }
+        }
+      } else {
+        dependencies.addAll(libraries);
+      }
+    }
+
+    return new KernelResult(dependencies, sequence.types, requestedLibrary);
+  }
+
+  /// Return the [KernelSequenceResult] for the Dart file with the given [uri].
+  ///
+  /// The [uri] must be absolute and normalized.
+  ///
+  /// The driver will update the current file state for any file previously
+  /// reported using [invalidate].
+  ///
+  /// If the driver has cached results for the file and its dependencies for
+  /// the current file state, these cached results are returned.
+  ///
+  /// Otherwise the driver will compute new results and return them.
+  Future<KernelSequenceResult> getKernelSequence(Uri uri) async {
+    return await runWithFrontEndContext('Compute kernels', () async {
       await _refreshInvalidatedFiles();
 
       CanonicalName nameRoot = new CanonicalName.root();
@@ -184,7 +225,7 @@ class KernelDriver {
 
       TypeEnvironment types = _buildTypeEnvironment(nameRoot, results);
 
-      return new KernelResult(nameRoot, types, results);
+      return new KernelSequenceResult(nameRoot, types, results);
     });
   }
 
@@ -194,10 +235,11 @@ class KernelDriver {
   /// The [uri] must be absolute and normalized file URI.
   ///
   /// Schedules the file contents for the [uri] to be read into the current
-  /// file state prior the next invocation of [getKernel] returns the result.
+  /// file state prior the next invocation of [getKernel] or
+  /// [getKernelSequence] returns the result.
   ///
   /// Invocation of this method will not prevent a [Future] returned from
-  /// [getKernel] from completing with a result, but the result is not
+  /// [getKernelSequence] from completing with a result, but the result is not
   /// guaranteed to be consistent with the new current file state after this
   /// [invalidate] invocation.
   void invalidate(Uri uri) {
@@ -407,11 +449,26 @@ class KernelDriver {
 
 /// The result of compiling of a single file.
 class KernelResult {
+  /// The dependencies of the [library].
+  /// Most of them are shaken outlines, but some might be full libraries.
+  final List<Library> dependencies;
+
+  /// The [TypeEnvironment] based on the SDK library outlines.
+  final TypeEnvironment types;
+
+  /// The library of the requested file.
+  final Library library;
+
+  KernelResult(this.dependencies, this.types, this.library);
+}
+
+/// The result of compiling of a sequence of libraries.
+class KernelSequenceResult {
   final CanonicalName nameRoot;
   final TypeEnvironment types;
   final List<LibraryCycleResult> results;
 
-  KernelResult(this.nameRoot, this.types, this.results);
+  KernelSequenceResult(this.nameRoot, this.types, this.results);
 }
 
 /// Compilation result for a library cycle.

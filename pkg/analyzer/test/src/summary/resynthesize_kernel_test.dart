@@ -108,16 +108,17 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
         metadataFactory: new AnalyzerMetadataFactory());
 
     KernelResult kernelResult = await driver.getKernel(testUri);
-
     var libraryMap = <String, kernel.Library>{};
     var libraryExistMap = <String, bool>{};
-    for (var cycleResult in kernelResult.results) {
-      for (var library in cycleResult.kernelLibraries) {
-        String uriStr = library.importUri.toString();
-        libraryMap[uriStr] = library;
-        libraryExistMap[uriStr] = true;
-      }
+
+    void addLibrary(kernel.Library library) {
+      String uriStr = library.importUri.toString();
+      libraryMap[uriStr] = library;
+      libraryExistMap[uriStr] = true;
     }
+
+    kernelResult.dependencies.forEach(addLibrary);
+    addLibrary(kernelResult.library);
 
     if (DEBUG) {
       var library = libraryMap[testUriStr];

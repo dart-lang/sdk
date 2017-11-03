@@ -162,14 +162,16 @@ class KernelContext {
       // Remember Kernel libraries required to resynthesize the target.
       var libraryMap = <String, kernel.Library>{};
       var libraryExistMap = <String, bool>{};
-      for (var cycleResult in kernelResult.results) {
-        for (var library in cycleResult.kernelLibraries) {
-          String uriStr = library.importUri.toString();
-          libraryMap[uriStr] = library;
-          FileState file = fsState.getFileForUri(library.importUri);
-          libraryExistMap[uriStr] = file?.exists ?? false;
-        }
+
+      void addLibrary(kernel.Library library) {
+        String uriStr = library.importUri.toString();
+        libraryMap[uriStr] = library;
+        FileState file = fsState.getFileForUri(library.importUri);
+        libraryExistMap[uriStr] = file?.exists ?? false;
       }
+
+      kernelResult.dependencies.forEach(addLibrary);
+      addLibrary(kernelResult.library);
 
       if (DEBUG) {
         print('----------- ${targetLibrary.uriStr}');
