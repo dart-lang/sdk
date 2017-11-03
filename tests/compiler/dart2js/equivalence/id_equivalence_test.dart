@@ -216,15 +216,17 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
         case SendStructureKind.PREFIX:
         case SendStructureKind.POSTFIX:
         case SendStructureKind.COMPOUND:
-          String dynamicName = getDynamicName();
-          if (dynamicName != null) {
-            if (id.kind == IdKind.update) {
-              return computeSetName(dynamicName);
-            } else if (id.kind == IdKind.invoke) {
-              return computeInvokeName(
-                  sendStructure.operator.binaryOperator.name);
-            } else {
-              return computeGetName(dynamicName);
+          if (id.kind == IdKind.invoke) {
+            return computeInvokeName(
+                sendStructure.operator.binaryOperator.name);
+          } else {
+            String dynamicName = getDynamicName();
+            if (dynamicName != null) {
+              if (id.kind == IdKind.update) {
+                return computeSetName(dynamicName);
+              } else {
+                return computeGetName(dynamicName);
+              }
             }
           }
           break;
