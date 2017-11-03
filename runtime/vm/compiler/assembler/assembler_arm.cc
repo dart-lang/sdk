@@ -1790,7 +1790,7 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 
 static bool CanEncodeBranchOffset(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, 4));
-  return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
+  return Utils::IsInt(Utils::CountOneBits32(kBranchOffsetMask), offset);
 }
 
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {

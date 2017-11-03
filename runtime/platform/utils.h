@@ -103,7 +103,39 @@ class Utils {
   }
 
   static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
-  static int CountOneBits(uint32_t x);
+
+  static int CountOneBits32(uint32_t x) {
+#ifdef _MSC_VER
+    return __popcnt(x);
+#elif __GNUC__
+    return __builtin_popcount(x);
+#else
+#error CountOneBits32 not implemented for this compiler
+#endif
+  }
+
+  static int CountOneBits64(uint64_t x) {
+#ifdef _MSC_VER
+#ifdef ARCH_IS_64_BIT
+    return __popcnt64(x);
+#else
+    return CountOneBits32(static_cast<uint32_t>(x)) +
+           CountOneBits32(static_cast<uint32_t>(x >> 32));
+#endif
+#elif __GNUC__
+    return __builtin_popcountll(x);
+#else
+#error CountOneBits64 not implemented for this compiler
+#endif
+  }
+
+  static int CountOneBitsWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return CountOneBits64(x);
+#else
+    return CountOneBits32(x);
+#endif
+  }
 
   static int HighestBit(int64_t v);
 
