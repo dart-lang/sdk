@@ -59,15 +59,15 @@ class CombineTest {
   /// For each case we validate [DirectMethodInvocation], [MethodInvocation],
   /// and [SuperMethodInvocation].
   void test_class_procedure_constructor() {
-    var nodeToNameMap = <NamedNode, String>{};
+    var nodeToName = <NamedNode, String>{};
 
     var library1 = _newLibrary('test');
     var constructorA11 = _newConstructor('a1');
     var classA1 = new Class(
         name: 'A', supertype: objectSuper, constructors: [constructorA11]);
     library1.addClass(classA1);
-    nodeToNameMap[classA1] = 'A1';
-    nodeToNameMap[constructorA11] = 'A11';
+    nodeToName[classA1] = 'A1';
+    nodeToName[constructorA11] = 'A11';
 
     var library2 = _newLibrary('test');
     var constructorA12 = _newConstructor('a1');
@@ -105,12 +105,12 @@ class CombineTest {
                     constructorA22, new Arguments.empty()),
               ]),
         ]));
-    nodeToNameMap[classA2] = 'A2';
-    nodeToNameMap[constructorA12] = 'A12';
-    nodeToNameMap[constructorA22] = 'A22';
-    nodeToNameMap[constructorB11] = 'B11';
-    nodeToNameMap[classB1] = 'B1';
-    nodeToNameMap[constructorB11] = 'B11';
+    nodeToName[classA2] = 'A2';
+    nodeToName[constructorA12] = 'A12';
+    nodeToName[constructorA22] = 'A22';
+    nodeToName[constructorB11] = 'B11';
+    nodeToName[classB1] = 'B1';
+    nodeToName[constructorB11] = 'B11';
 
     var library3 = _newLibrary('test');
     var constructorB12 = _newConstructor('b1');
@@ -126,7 +126,7 @@ class CombineTest {
     ], name: 'main3'));
     library3.addClass(new Class(
         name: 'S2',
-        supertype: classA2.asThisSupertype,
+        supertype: classB2.asThisSupertype,
         constructors: [
           new Constructor(new FunctionNode(new EmptyStatement()),
               name: new Name('c1'),
@@ -143,20 +143,20 @@ class CombineTest {
                     constructorB22, new Arguments.empty()),
               ]),
         ]));
-    nodeToNameMap[classB2] = 'B2';
-    nodeToNameMap[constructorB12] = 'B12';
-    nodeToNameMap[constructorB22] = 'B22';
+    nodeToName[classB2] = 'B2';
+    nodeToName[constructorB12] = 'B12';
+    nodeToName[constructorB22] = 'B22';
 
     var outline1 = _newOutline([library1]);
     var outline2 = _newOutline([library2]);
     var outline3 = _newOutline([library3]);
 
-    expect(_getLibraryText(library1, nodeToNameMap), r'''
+    expect(_getLibraryText(library1, nodeToName), r'''
 class A[A1] {
   constructor a1[A11]();
 }
 ''');
-    expect(_getLibraryText(library2, nodeToNameMap), r'''
+    expect(_getLibraryText(library2, nodeToName), r'''
 class A[A2] {
   constructor a1[A12]();
   constructor a2[A22]();
@@ -164,7 +164,7 @@ class A[A2] {
 class B[B1] {
   constructor b1[B11]();
 }
-class S1 {
+class S1 extends A[A2] {
   constructor c1() :
       super[A12](),
       super[A22]();
@@ -177,12 +177,12 @@ main2() {
   ConstructorInvocation[A22]();
 }
 ''');
-    expect(_getLibraryText(library3, nodeToNameMap), r'''
+    expect(_getLibraryText(library3, nodeToName), r'''
 class B[B2] {
   constructor b1[B12]();
   constructor b2[B22]();
 }
-class S2 {
+class S2 extends B[B2] {
   constructor c1() :
       super[B12](),
       super[B22]();
@@ -198,7 +198,7 @@ main3() {
 
     _runCombineTest([outline1, outline2, outline3], (result) {
       var library = _getLibrary(result.program, 'test');
-      expect(_getLibraryText(library, nodeToNameMap), r'''
+      expect(_getLibraryText(library, nodeToName), r'''
 class A[A1] {
   constructor a1[A11]();
   constructor a2[A22]();
@@ -207,7 +207,7 @@ class B[B1] {
   constructor b1[B11]();
   constructor b2[B22]();
 }
-class S1 {
+class S1 extends A[A1] {
   constructor c1() :
       super[A11](),
       super[A22]();
@@ -215,7 +215,7 @@ class S1 {
       redirect[A11](),
       redirect[A22]();
 }
-class S2 {
+class S2 extends B[B1] {
   constructor c1() :
       super[B11](),
       super[B22]();
@@ -243,14 +243,18 @@ main3() {
   ///   * Already defined, so references to it should be rewritten.
   ///   * First defined in this outline, so references to it can be kept as is.
   ///
-  /// For each case we validate [DirectMethodInvocation], [MethodInvocation],
-  /// and [SuperMethodInvocation].
+  /// For each case we validate [DirectPropertyGet], [DirectPropertySet],
+  /// [PropertyGet], [PropertySet], [SuperPropertyGet], and [SuperPropertySet].
   void test_class_procedure_field() {
+    var nodeToName = <NamedNode, String>{};
+
     var library1 = _newLibrary('test');
     var fieldA11 = _newField('a1');
     var classA1 =
         new Class(name: 'A', supertype: objectSuper, fields: [fieldA11]);
     library1.addClass(classA1);
+    nodeToName[classA1] = 'A1';
+    nodeToName[fieldA11] = 'a11';
 
     var library2 = _newLibrary('test');
     var fieldA12 = _newField('a1');
@@ -259,8 +263,9 @@ main3() {
     var classA2 = new Class(
         name: 'A', supertype: objectSuper, fields: [fieldA12, fieldA22]);
     library2.addClass(classA2);
-    library2.addClass(
-        new Class(name: 'B', supertype: objectSuper, fields: [fieldB11]));
+    var classB1 =
+        new Class(name: 'B', supertype: objectSuper, fields: [fieldB11]);
+    library2.addClass(classB1);
     // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
     library2.addProcedure(_newExpressionsProcedure([
       new DirectPropertyGet(null, fieldA12),
@@ -281,18 +286,26 @@ main3() {
         new SuperPropertySet(null, null, fieldA22),
       ], name: 'foo')
     ]));
+    nodeToName[classA2] = 'A2';
+    nodeToName[classB1] = 'B1';
+    nodeToName[fieldA12] = 'a12';
+    nodeToName[fieldA22] = 'a22';
+    nodeToName[fieldB11] = 'b11';
 
     var library3 = _newLibrary('test');
     var fieldB12 = _newField('b1');
     var fieldB22 = _newField('b2');
-    library3.addClass(new Class(
-        name: 'B', supertype: objectSuper, fields: [fieldB12, fieldB22]));
+    var classB2 = new Class(
+        name: 'B', supertype: objectSuper, fields: [fieldB12, fieldB22]);
+    library3.addClass(classB2);
     library3.addProcedure(_newExpressionsProcedure([
       new DirectPropertyGet(null, fieldB12),
       new PropertyGet(null, null, fieldB12),
+      new DirectPropertyGet(null, fieldB22),
+      new PropertyGet(null, null, fieldB22),
     ], name: 'main3'));
     library3.addClass(
-        new Class(name: 'S2', supertype: classA2.asThisSupertype, procedures: [
+        new Class(name: 'S2', supertype: classB2.asThisSupertype, procedures: [
       _newExpressionsProcedure([
         new SuperPropertyGet(null, fieldB12),
         new SuperPropertySet(null, null, fieldB12),
@@ -300,80 +313,111 @@ main3() {
         new SuperPropertySet(null, null, fieldB22),
       ], name: 'foo')
     ]));
+    nodeToName[classB2] = 'B2';
+    nodeToName[fieldB12] = 'b12';
+    nodeToName[fieldB22] = 'b22';
 
     var outline1 = _newOutline([library1]);
     var outline2 = _newOutline([library2]);
     var outline3 = _newOutline([library3]);
 
+    expect(_getLibraryText(library1, nodeToName), r'''
+class A[A1] {
+  var a1[a11];
+}
+''');
+    expect(_getLibraryText(library2, nodeToName), r'''
+class A[A2] {
+  var a1[a12];
+  var a2[a22];
+}
+class B[B1] {
+  var b1[b11];
+}
+class S1 extends A[A2] {
+  foo() {
+    SuperPropertyGet[a12]();
+    SuperPropertySet[a12]();
+    SuperPropertyGet[a22]();
+    SuperPropertySet[a22]();
+  }
+}
+main2() {
+  DirectPropertyGet[a12]();
+  PropertyGet[a12]();
+  DirectPropertySet[a12]();
+  PropertySet[a12]();
+  DirectPropertyGet[a22]();
+  PropertyGet[a22]();
+  DirectPropertySet[a22]();
+  PropertySet[a22]();
+}
+''');
+    expect(_getLibraryText(library3, nodeToName), r'''
+class B[B2] {
+  var b1[b12];
+  var b2[b22];
+}
+class S2 extends B[B2] {
+  foo() {
+    SuperPropertyGet[b12]();
+    SuperPropertySet[b12]();
+    SuperPropertyGet[b22]();
+    SuperPropertySet[b22]();
+  }
+}
+main3() {
+  DirectPropertyGet[b12]();
+  PropertyGet[b12]();
+  DirectPropertyGet[b22]();
+  PropertyGet[b22]();
+}
+''');
+
     _runCombineTest([outline1, outline2, outline3], (result) {
       var library = _getLibrary(result.program, 'test');
-
-      var classA = _getClass(library, 'A');
-      expect(_getField(classA, 'a1'), same(fieldA11));
-      expect(_getField(classA, 'a2'), same(fieldA22));
-
-      // main2() is updated to point to "A.a1" from library1.
-      // But "A.a2" is still from library2.
-      var main2 = _getProcedure(library, 'main2', '@methods');
-      expect((_getProcedureExpression(main2, 0) as DirectPropertyGet).target,
-          same(fieldA11));
-      expect((_getProcedureExpression(main2, 1) as PropertyGet).interfaceTarget,
-          same(fieldA11));
-      expect((_getProcedureExpression(main2, 2) as DirectPropertySet).target,
-          same(fieldA11));
-      expect((_getProcedureExpression(main2, 3) as PropertySet).interfaceTarget,
-          same(fieldA11));
-
-      // Super invocations are updated.
-      var classS1 = _getClass(library, 'S1');
-      var fooS1 = _getProcedure(classS1, 'foo', '@methods');
-      expect(
-          (_getProcedureExpression(fooS1, 0) as SuperPropertyGet)
-              .interfaceTarget,
-          same(fieldA11));
-      expect(
-          (_getProcedureExpression(fooS1, 1) as SuperPropertySet)
-              .interfaceTarget,
-          same(fieldA11));
-      expect(
-          (_getProcedureExpression(fooS1, 2) as SuperPropertyGet)
-              .interfaceTarget,
-          same(fieldA22));
-      expect(
-          (_getProcedureExpression(fooS1, 3) as SuperPropertySet)
-              .interfaceTarget,
-          same(fieldA22));
-
-      var classB = _getClass(library, 'B');
-      expect(_getField(classB, 'b1'), same(fieldB11));
-      expect(_getField(classB, 'b2'), same(fieldB22));
-
-      // main3() is updated to point to "B.b1" from library2.
-      var main3 = _getProcedure(library, 'main3', '@methods');
-      expect((_getProcedureExpression(main3, 0) as DirectPropertyGet).target,
-          same(fieldB11));
-      expect((_getProcedureExpression(main3, 1) as PropertyGet).interfaceTarget,
-          same(fieldB11));
-
-      // Super invocations are updated.
-      var classS2 = _getClass(library, 'S2');
-      var fooS2 = _getProcedure(classS2, 'foo', '@methods');
-      expect(
-          (_getProcedureExpression(fooS2, 0) as SuperPropertyGet)
-              .interfaceTarget,
-          same(fieldB11));
-      expect(
-          (_getProcedureExpression(fooS2, 1) as SuperPropertySet)
-              .interfaceTarget,
-          same(fieldB11));
-      expect(
-          (_getProcedureExpression(fooS2, 2) as SuperPropertyGet)
-              .interfaceTarget,
-          same(fieldB22));
-      expect(
-          (_getProcedureExpression(fooS2, 3) as SuperPropertySet)
-              .interfaceTarget,
-          same(fieldB22));
+      expect(_getLibraryText(library, nodeToName), r'''
+class A[A1] {
+  var a1[a11];
+  var a2[a22];
+}
+class B[B1] {
+  var b1[b11];
+  var b2[b22];
+}
+class S1 extends A[A1] {
+  foo() {
+    SuperPropertyGet[a11]();
+    SuperPropertySet[a11]();
+    SuperPropertyGet[a22]();
+    SuperPropertySet[a22]();
+  }
+}
+class S2 extends B[B1] {
+  foo() {
+    SuperPropertyGet[b11]();
+    SuperPropertySet[b11]();
+    SuperPropertyGet[b22]();
+    SuperPropertySet[b22]();
+  }
+}
+main2() {
+  DirectPropertyGet[a11]();
+  PropertyGet[a11]();
+  DirectPropertySet[a11]();
+  PropertySet[a11]();
+  DirectPropertyGet[a22]();
+  PropertyGet[a22]();
+  DirectPropertySet[a22]();
+  PropertySet[a22]();
+}
+main3() {
+  DirectPropertyGet[b11]();
+  PropertyGet[b11]();
+  DirectPropertyGet[b22]();
+  PropertyGet[b22]();
+}
+''');
     });
   }
 
@@ -388,11 +432,15 @@ main3() {
   /// For each case we validate [DirectPropertyGet], [PropertyGet],
   /// and [SuperPropertyGet].
   void test_class_procedure_getter() {
+    var nodeToName = <NamedNode, String>{};
+
     var library1 = _newLibrary('test');
     var procedureA11 = _newGetter('a1');
     var classA1 = new Class(
         name: 'A', supertype: objectSuper, procedures: [procedureA11]);
     library1.addClass(classA1);
+    nodeToName[classA1] = 'A1';
+    nodeToName[procedureA11] = 'a11';
 
     var library2 = _newLibrary('test');
     var procedureA12 = _newGetter('a1');
@@ -403,8 +451,9 @@ main3() {
         supertype: objectSuper,
         procedures: [procedureA12, procedureA22]);
     library2.addClass(classA2);
-    library2.addClass(new Class(
-        name: 'B', supertype: objectSuper, procedures: [procedureB11]));
+    var classB1 = new Class(
+        name: 'B', supertype: objectSuper, procedures: [procedureB11]);
+    library2.addClass(classB1);
     // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
     library2.addProcedure(_newExpressionsProcedure([
       new DirectPropertyGet(null, procedureA12),
@@ -419,83 +468,116 @@ main3() {
         new SuperPropertyGet(null, procedureA22),
       ], name: 'foo')
     ]));
+    nodeToName[classA2] = 'A2';
+    nodeToName[classB1] = 'B1';
+    nodeToName[procedureA12] = 'a12';
+    nodeToName[procedureA22] = 'a22';
+    nodeToName[procedureB11] = 'b11';
 
     var library3 = _newLibrary('test');
     var procedureB12 = _newGetter('b1');
     var procedureB22 = _newGetter('b2');
-    library3.addClass(new Class(
+    var classB2 = new Class(
         name: 'B',
         supertype: objectSuper,
-        procedures: [procedureB12, procedureB22]));
+        procedures: [procedureB12, procedureB22]);
+    library3.addClass(classB2);
     library3.addProcedure(_newExpressionsProcedure([
       new DirectPropertyGet(null, procedureB12),
       new PropertyGet(null, null, procedureB12),
     ], name: 'main3'));
     library3.addClass(
-        new Class(name: 'S2', supertype: classA2.asThisSupertype, procedures: [
+        new Class(name: 'S2', supertype: classB2.asThisSupertype, procedures: [
       _newExpressionsProcedure([
         new SuperPropertyGet(null, procedureB12),
         new SuperPropertyGet(null, procedureB22),
       ], name: 'foo')
     ]));
+    nodeToName[classB2] = 'B2';
+    nodeToName[procedureB12] = 'b12';
+    nodeToName[procedureB22] = 'b22';
 
     var outline1 = _newOutline([library1]);
     var outline2 = _newOutline([library2]);
     var outline3 = _newOutline([library3]);
 
+    expect(_getLibraryText(library1, nodeToName), r'''
+class A[A1] {
+  get a1[a11] => 0;
+}
+''');
+    expect(_getLibraryText(library2, nodeToName), r'''
+class A[A2] {
+  get a1[a12] => 0;
+  get a2[a22] => 0;
+}
+class B[B1] {
+  get b1[b11] => 0;
+}
+class S1 extends A[A2] {
+  foo() {
+    SuperPropertyGet[a12]();
+    SuperPropertyGet[a22]();
+  }
+}
+main2() {
+  DirectPropertyGet[a12]();
+  PropertyGet[a12]();
+  DirectPropertyGet[a22]();
+  PropertyGet[a22]();
+}
+''');
+    expect(_getLibraryText(library3, nodeToName), r'''
+class B[B2] {
+  get b1[b12] => 0;
+  get b2[b22] => 0;
+}
+class S2 extends B[B2] {
+  foo() {
+    SuperPropertyGet[b12]();
+    SuperPropertyGet[b22]();
+  }
+}
+main3() {
+  DirectPropertyGet[b12]();
+  PropertyGet[b12]();
+}
+''');
+
     _runCombineTest([outline1, outline2, outline3], (result) {
       var library = _getLibrary(result.program, 'test');
-
-      var classA = _getClass(library, 'A');
-      expect(_getProcedure(classA, 'a1', '@getters'), same(procedureA11));
-      expect(_getProcedure(classA, 'a2', '@getters'), same(procedureA22));
-
-      // main2() is updated to point to "A.a1" from library1.
-      // But "A.a2" is still from library2.
-      var main2 = _getProcedure(library, 'main2', '@methods');
-      expect((_getProcedureExpression(main2, 0) as DirectPropertyGet).target,
-          same(procedureA11));
-      expect((_getProcedureExpression(main2, 1) as PropertyGet).interfaceTarget,
-          same(procedureA11));
-      expect((_getProcedureExpression(main2, 2) as DirectPropertyGet).target,
-          same(procedureA22));
-      expect((_getProcedureExpression(main2, 3) as PropertyGet).interfaceTarget,
-          same(procedureA22));
-
-      // Super invocations are updated.
-      var classS1 = _getClass(library, 'S1');
-      var fooS1 = _getProcedure(classS1, 'foo', '@methods');
-      expect(
-          (_getProcedureExpression(fooS1, 0) as SuperPropertyGet)
-              .interfaceTarget,
-          same(procedureA11));
-      expect(
-          (_getProcedureExpression(fooS1, 1) as SuperPropertyGet)
-              .interfaceTarget,
-          same(procedureA22));
-
-      var classB = _getClass(library, 'B');
-      expect(_getProcedure(classB, 'b1', '@getters'), same(procedureB11));
-      expect(_getProcedure(classB, 'b2', '@getters'), same(procedureB22));
-
-      // main3() is updated to point to "B.b1" from library2.
-      var main3 = _getProcedure(library, 'main3', '@methods');
-      expect((_getProcedureExpression(main3, 0) as DirectPropertyGet).target,
-          same(procedureB11));
-      expect((_getProcedureExpression(main3, 1) as PropertyGet).interfaceTarget,
-          same(procedureB11));
-
-      // Super invocations are updated.
-      var classS2 = _getClass(library, 'S2');
-      var fooS2 = _getProcedure(classS2, 'foo', '@methods');
-      expect(
-          (_getProcedureExpression(fooS2, 0) as SuperPropertyGet)
-              .interfaceTarget,
-          same(procedureB11));
-      expect(
-          (_getProcedureExpression(fooS2, 1) as SuperPropertyGet)
-              .interfaceTarget,
-          same(procedureB22));
+      expect(_getLibraryText(library, nodeToName), r'''
+class A[A1] {
+  get a1[a11] => 0;
+  get a2[a22] => 0;
+}
+class B[B1] {
+  get b1[b11] => 0;
+  get b2[b22] => 0;
+}
+class S1 extends A[A1] {
+  foo() {
+    SuperPropertyGet[a11]();
+    SuperPropertyGet[a22]();
+  }
+}
+class S2 extends B[B1] {
+  foo() {
+    SuperPropertyGet[b11]();
+    SuperPropertyGet[b22]();
+  }
+}
+main2() {
+  DirectPropertyGet[a11]();
+  PropertyGet[a11]();
+  DirectPropertyGet[a22]();
+  PropertyGet[a22]();
+}
+main3() {
+  DirectPropertyGet[b11]();
+  PropertyGet[b11]();
+}
+''');
     });
   }
 
@@ -510,11 +592,15 @@ main3() {
   /// For each case we validate [DirectMethodInvocation], [MethodInvocation],
   /// and [SuperMethodInvocation].
   void test_class_procedure_method() {
+    var nodeToName = <NamedNode, String>{};
+
     var library1 = _newLibrary('test');
     var procedureA11 = _newMethod('a1');
     var classA1 = new Class(
         name: 'A', supertype: objectSuper, procedures: [procedureA11]);
     library1.addClass(classA1);
+    nodeToName[classA1] = 'A1';
+    nodeToName[procedureA11] = 'a11';
 
     var library2 = _newLibrary('test');
     var procedureA12 = _newMethod('a1');
@@ -525,8 +611,9 @@ main3() {
         supertype: objectSuper,
         procedures: [procedureA12, procedureA22]);
     library2.addClass(classA2);
-    library2.addClass(new Class(
-        name: 'B', supertype: objectSuper, procedures: [procedureB11]));
+    var classB1 = new Class(
+        name: 'B', supertype: objectSuper, procedures: [procedureB11]);
+    library2.addClass(classB1);
     // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
     library2.addProcedure(_newExpressionsProcedure([
       new DirectMethodInvocation(null, procedureA12, new Arguments.empty()),
@@ -541,92 +628,116 @@ main3() {
         new SuperMethodInvocation(null, null, procedureA22),
       ], name: 'foo')
     ]));
+    nodeToName[classA2] = 'A2';
+    nodeToName[classB1] = 'B1';
+    nodeToName[procedureA12] = 'a12';
+    nodeToName[procedureA22] = 'a22';
+    nodeToName[procedureB11] = 'b11';
 
     var library3 = _newLibrary('test');
     var procedureB12 = _newMethod('b1');
     var procedureB22 = _newMethod('b2');
-    library3.addClass(new Class(
+    var classB2 = new Class(
         name: 'B',
         supertype: objectSuper,
-        procedures: [procedureB12, procedureB22]));
+        procedures: [procedureB12, procedureB22]);
+    library3.addClass(classB2);
     library3.addProcedure(_newExpressionsProcedure([
       new DirectMethodInvocation(null, procedureB12, new Arguments.empty()),
       new MethodInvocation(null, null, new Arguments.empty(), procedureB12),
     ], name: 'main3'));
     library3.addClass(
-        new Class(name: 'S2', supertype: classA2.asThisSupertype, procedures: [
+        new Class(name: 'S2', supertype: classB2.asThisSupertype, procedures: [
       _newExpressionsProcedure([
         new SuperMethodInvocation(null, null, procedureB12),
         new SuperMethodInvocation(null, null, procedureB22),
       ], name: 'foo')
     ]));
+    nodeToName[classB2] = 'B2';
+    nodeToName[procedureB12] = 'b12';
+    nodeToName[procedureB22] = 'b22';
 
     var outline1 = _newOutline([library1]);
     var outline2 = _newOutline([library2]);
     var outline3 = _newOutline([library3]);
 
+    expect(_getLibraryText(library1, nodeToName), r'''
+class A[A1] {
+  a1[a11]();
+}
+''');
+    expect(_getLibraryText(library2, nodeToName), r'''
+class A[A2] {
+  a1[a12]();
+  a2[a22]();
+}
+class B[B1] {
+  b1[b11]();
+}
+class S1 extends A[A2] {
+  foo() {
+    SuperMethodInvocation[a12]();
+    SuperMethodInvocation[a22]();
+  }
+}
+main2() {
+  DirectMethodInvocation[a12]();
+  MethodInvocation[a12]();
+  DirectMethodInvocation[a22]();
+  MethodInvocation[a22]();
+}
+''');
+    expect(_getLibraryText(library3, nodeToName), r'''
+class B[B2] {
+  b1[b12]();
+  b2[b22]();
+}
+class S2 extends B[B2] {
+  foo() {
+    SuperMethodInvocation[b12]();
+    SuperMethodInvocation[b22]();
+  }
+}
+main3() {
+  DirectMethodInvocation[b12]();
+  MethodInvocation[b12]();
+}
+''');
+
     _runCombineTest([outline1, outline2, outline3], (result) {
       var library = _getLibrary(result.program, 'test');
-
-      var classA = _getClass(library, 'A');
-      expect(_getProcedure(classA, 'a1', '@methods'), same(procedureA11));
-      expect(_getProcedure(classA, 'a2', '@methods'), same(procedureA22));
-
-      // main2() is updated to point to "A.a1" from library1.
-      // But "A.a2" is still from library2.
-      var main2 = _getProcedure(library, 'main2', '@methods');
-      expect(
-          (_getProcedureExpression(main2, 0) as DirectMethodInvocation).target,
-          same(procedureA11));
-      expect(
-          (_getProcedureExpression(main2, 1) as MethodInvocation)
-              .interfaceTarget,
-          same(procedureA11));
-      expect(
-          (_getProcedureExpression(main2, 2) as DirectMethodInvocation).target,
-          same(procedureA22));
-      expect(
-          (_getProcedureExpression(main2, 3) as MethodInvocation)
-              .interfaceTarget,
-          same(procedureA22));
-
-      // Super invocations are updated.
-      var classS1 = _getClass(library, 'S1');
-      var fooS1 = _getProcedure(classS1, 'foo', '@methods');
-      expect(
-          (_getProcedureExpression(fooS1, 0) as SuperMethodInvocation)
-              .interfaceTarget,
-          same(procedureA11));
-      expect(
-          (_getProcedureExpression(fooS1, 1) as SuperMethodInvocation)
-              .interfaceTarget,
-          same(procedureA22));
-
-      var classB = _getClass(library, 'B');
-      expect(_getProcedure(classB, 'b1', '@methods'), same(procedureB11));
-      expect(_getProcedure(classB, 'b2', '@methods'), same(procedureB22));
-
-      // main3() is updated to point to "B.b1" from library2.
-      var main3 = _getProcedure(library, 'main3', '@methods');
-      expect(
-          (_getProcedureExpression(main3, 0) as DirectMethodInvocation).target,
-          same(procedureB11));
-      expect(
-          (_getProcedureExpression(main3, 1) as MethodInvocation)
-              .interfaceTarget,
-          same(procedureB11));
-
-      // Super invocations are updated.
-      var classS2 = _getClass(library, 'S2');
-      var fooS2 = _getProcedure(classS2, 'foo', '@methods');
-      expect(
-          (_getProcedureExpression(fooS2, 0) as SuperMethodInvocation)
-              .interfaceTarget,
-          same(procedureB11));
-      expect(
-          (_getProcedureExpression(fooS2, 1) as SuperMethodInvocation)
-              .interfaceTarget,
-          same(procedureB22));
+      expect(_getLibraryText(library, nodeToName), r'''
+class A[A1] {
+  a1[a11]();
+  a2[a22]();
+}
+class B[B1] {
+  b1[b11]();
+  b2[b22]();
+}
+class S1 extends A[A1] {
+  foo() {
+    SuperMethodInvocation[a11]();
+    SuperMethodInvocation[a22]();
+  }
+}
+class S2 extends B[B1] {
+  foo() {
+    SuperMethodInvocation[b11]();
+    SuperMethodInvocation[b22]();
+  }
+}
+main2() {
+  DirectMethodInvocation[a11]();
+  MethodInvocation[a11]();
+  DirectMethodInvocation[a22]();
+  MethodInvocation[a22]();
+}
+main3() {
+  DirectMethodInvocation[b11]();
+  MethodInvocation[b11]();
+}
+''');
     });
   }
 
@@ -641,11 +752,15 @@ main3() {
   /// For each case we validate [DirectPropertySet], [PropertySet],
   /// and [SuperPropertySet].
   void test_class_procedure_setter() {
+    var nodeToName = <NamedNode, String>{};
+
     var library1 = _newLibrary('test');
     var procedureA11 = _newSetter('a1');
     var classA1 = new Class(
         name: 'A', supertype: objectSuper, procedures: [procedureA11]);
     library1.addClass(classA1);
+    nodeToName[classA1] = 'A1';
+    nodeToName[procedureA11] = 'a11';
 
     var library2 = _newLibrary('test');
     var procedureA12 = _newSetter('a1');
@@ -656,8 +771,9 @@ main3() {
         supertype: objectSuper,
         procedures: [procedureA12, procedureA22]);
     library2.addClass(classA2);
-    library2.addClass(new Class(
-        name: 'B', supertype: objectSuper, procedures: [procedureB11]));
+    var classB1 = new Class(
+        name: 'B', supertype: objectSuper, procedures: [procedureB11]);
+    library2.addClass(classB1);
     // Use 'A.a1' and 'A.a2' to validate later how they are rewritten.
     library2.addProcedure(_newExpressionsProcedure([
       new DirectPropertySet(null, procedureA12, new IntLiteral(0)),
@@ -672,83 +788,236 @@ main3() {
         new SuperPropertySet(null, new IntLiteral(0), procedureA22),
       ], name: 'foo')
     ]));
+    nodeToName[classA2] = 'A2';
+    nodeToName[classB1] = 'B1';
+    nodeToName[procedureA12] = 'a12';
+    nodeToName[procedureA22] = 'a22';
+    nodeToName[procedureB11] = 'b11';
 
     var library3 = _newLibrary('test');
     var procedureB12 = _newSetter('b1');
     var procedureB22 = _newSetter('b2');
-    library3.addClass(new Class(
+    var classB2 = new Class(
         name: 'B',
         supertype: objectSuper,
-        procedures: [procedureB12, procedureB22]));
+        procedures: [procedureB12, procedureB22]);
+    library3.addClass(classB2);
     library3.addProcedure(_newExpressionsProcedure([
       new DirectPropertySet(null, procedureB12, new IntLiteral(0)),
       new PropertySet(null, null, new IntLiteral(0), procedureB12),
     ], name: 'main3'));
     library3.addClass(
-        new Class(name: 'S2', supertype: classA2.asThisSupertype, procedures: [
+        new Class(name: 'S2', supertype: classB2.asThisSupertype, procedures: [
       _newExpressionsProcedure([
         new SuperPropertySet(null, new IntLiteral(0), procedureB12),
         new SuperPropertySet(null, new IntLiteral(0), procedureB22),
       ], name: 'foo')
     ]));
+    nodeToName[classB2] = 'B2';
+    nodeToName[procedureB12] = 'b12';
+    nodeToName[procedureB22] = 'b22';
 
     var outline1 = _newOutline([library1]);
     var outline2 = _newOutline([library2]);
     var outline3 = _newOutline([library3]);
 
+    expect(_getLibraryText(library1, nodeToName), r'''
+class A[A1] {
+  set a1[a11]();
+}
+''');
+    expect(_getLibraryText(library2, nodeToName), r'''
+class A[A2] {
+  set a1[a12]();
+  set a2[a22]();
+}
+class B[B1] {
+  set b1[b11]();
+}
+class S1 extends A[A2] {
+  foo() {
+    SuperPropertySet[a12]();
+    SuperPropertySet[a22]();
+  }
+}
+main2() {
+  DirectPropertySet[a12]();
+  PropertySet[a12]();
+  DirectPropertySet[a22]();
+  PropertySet[a22]();
+}
+''');
+    expect(_getLibraryText(library3, nodeToName), r'''
+class B[B2] {
+  set b1[b12]();
+  set b2[b22]();
+}
+class S2 extends B[B2] {
+  foo() {
+    SuperPropertySet[b12]();
+    SuperPropertySet[b22]();
+  }
+}
+main3() {
+  DirectPropertySet[b12]();
+  PropertySet[b12]();
+}
+''');
+
     _runCombineTest([outline1, outline2, outline3], (result) {
       var library = _getLibrary(result.program, 'test');
+      expect(_getLibraryText(library, nodeToName), r'''
+class A[A1] {
+  set a1[a11]();
+  set a2[a22]();
+}
+class B[B1] {
+  set b1[b11]();
+  set b2[b22]();
+}
+class S1 extends A[A1] {
+  foo() {
+    SuperPropertySet[a11]();
+    SuperPropertySet[a22]();
+  }
+}
+class S2 extends B[B1] {
+  foo() {
+    SuperPropertySet[b11]();
+    SuperPropertySet[b22]();
+  }
+}
+main2() {
+  DirectPropertySet[a11]();
+  PropertySet[a11]();
+  DirectPropertySet[a22]();
+  PropertySet[a22]();
+}
+main3() {
+  DirectPropertySet[b11]();
+  PropertySet[b11]();
+}
+''');
+    });
+  }
 
-      var classA = _getClass(library, 'A');
-      expect(_getProcedure(classA, 'a1', '@setters'), same(procedureA11));
-      expect(_getProcedure(classA, 'a2', '@setters'), same(procedureA22));
+  void test_class_typeParameter_updateReference() {
+    var nodeToName = <TreeNode, String>{};
 
-      // main2() is updated to point to "A.a1" from library1.
-      // But "A.a2" is still from library2.
-      var main2 = _getProcedure(library, 'main2', '@methods');
-      expect((_getProcedureExpression(main2, 0) as DirectPropertySet).target,
-          same(procedureA11));
-      expect((_getProcedureExpression(main2, 1) as PropertySet).interfaceTarget,
-          same(procedureA11));
-      expect((_getProcedureExpression(main2, 2) as DirectPropertySet).target,
-          same(procedureA22));
-      expect((_getProcedureExpression(main2, 3) as PropertySet).interfaceTarget,
-          same(procedureA22));
+    var library1 = _newLibrary('test');
+    var typeParameterT1 = _newTypeParameter('T');
+    var fieldA11 =
+        _newField('a1', type: new TypeParameterType(typeParameterT1));
+    var classA1 = new Class(
+        name: 'A',
+        typeParameters: [typeParameterT1],
+        supertype: objectSuper,
+        fields: [fieldA11]);
+    library1.addClass(classA1);
+    nodeToName[typeParameterT1] = 'T1';
+    nodeToName[classA1] = 'A1';
+    nodeToName[fieldA11] = 'a11';
 
-      // Super invocations are updated.
-      var classS1 = _getClass(library, 'S1');
-      var fooS1 = _getProcedure(classS1, 'foo', '@methods');
-      expect(
-          (_getProcedureExpression(fooS1, 0) as SuperPropertySet)
-              .interfaceTarget,
-          same(procedureA11));
-      expect(
-          (_getProcedureExpression(fooS1, 1) as SuperPropertySet)
-              .interfaceTarget,
-          same(procedureA22));
+    var library2 = _newLibrary('test');
+    var typeParameterT2 = _newTypeParameter('T');
+    var fieldA12 =
+        _newField('a1', type: new TypeParameterType(typeParameterT2));
+    var fieldA22 =
+        _newField('a2', type: new TypeParameterType(typeParameterT2));
+    var classA2 = new Class(
+        name: 'A',
+        typeParameters: [typeParameterT2],
+        supertype: objectSuper,
+        fields: [fieldA12, fieldA22]);
+    nodeToName[typeParameterT2] = 'T2';
+    library2.addClass(classA2);
+    nodeToName[classA2] = 'A2';
+    nodeToName[fieldA12] = 'a12';
+    nodeToName[fieldA22] = 'a22';
 
-      var classB = _getClass(library, 'B');
-      expect(_getProcedure(classB, 'b1', '@setters'), same(procedureB11));
-      expect(_getProcedure(classB, 'b2', '@setters'), same(procedureB22));
+    var outline1 = _newOutline([library1]);
+    var outline2 = _newOutline([library2]);
 
-      // main3() is updated to point to "B.b1" from library2.
-      var main3 = _getProcedure(library, 'main3', '@methods');
-      expect((_getProcedureExpression(main3, 0) as DirectPropertySet).target,
-          same(procedureB11));
-      expect((_getProcedureExpression(main3, 1) as PropertySet).interfaceTarget,
-          same(procedureB11));
+    expect(_getLibraryText(library1, nodeToName), r'''
+class A[A1]<T[T1]> {
+  T[T1] a1[a11];
+}
+''');
+    expect(_getLibraryText(library2, nodeToName), r'''
+class A[A2]<T[T2]> {
+  T[T2] a1[a12];
+  T[T2] a2[a22];
+}
+''');
 
-      // Super invocations are updated.
-      var classS2 = _getClass(library, 'S2');
-      var fooS2 = _getProcedure(classS2, 'foo', '@methods');
-      expect(
-          (_getProcedureExpression(fooS2, 0) as SuperPropertySet)
-              .interfaceTarget,
-          same(procedureB11));
-      expect(
-          (_getProcedureExpression(fooS2, 1) as SuperPropertySet)
-              .interfaceTarget,
-          same(procedureB22));
+    _runCombineTest([outline1, outline2], (result) {
+      var library = _getLibrary(result.program, 'test');
+      expect(_getLibraryText(library, nodeToName), r'''
+class A[A1]<T[T1]> {
+  T[T1] a1[a11];
+  T[T1] a2[a22];
+}
+''');
+    });
+  }
+
+  void test_class_updateReferences() {
+    var nodeToName = <TreeNode, String>{};
+
+    var library1 = _newLibrary('test');
+    var classA1 = new Class(name: 'A', supertype: objectSuper);
+    library1.addClass(classA1);
+    nodeToName[classA1] = 'A1';
+
+    var library2 = _newLibrary('test');
+    var classA2 = new Class(name: 'A', supertype: objectSuper);
+    var classB1 = new Class(name: 'B1', supertype: new Supertype(classA2, []));
+    var classB2 = new Class(
+        name: 'B2',
+        supertype: objectSuper,
+        implementedTypes: [new Supertype(classA2, [])]);
+    var classB3 = new Class(
+        name: 'B3',
+        supertype: objectSuper,
+        mixedInType: new Supertype(classA2, []));
+    var typeParameterT1 = new TypeParameter('T', new InterfaceType(classA2));
+    var classB4 = new Class(
+        name: 'B4', supertype: objectSuper, typeParameters: [typeParameterT1]);
+    library2.addClass(classA2);
+    library2.addClass(classB1);
+    library2.addClass(classB2);
+    library2.addClass(classB3);
+    library2.addClass(classB4);
+    nodeToName[classA2] = 'A2';
+    nodeToName[classB1] = 'B1';
+    nodeToName[classB2] = 'B2';
+    nodeToName[classB3] = 'B3';
+    nodeToName[classB4] = 'B4';
+    nodeToName[typeParameterT1] = 'T';
+
+    var outline1 = _newOutline([library1]);
+    var outline2 = _newOutline([library2]);
+
+    expect(_getLibraryText(library1, nodeToName), r'''
+class A[A1] {}
+''');
+    expect(_getLibraryText(library2, nodeToName), r'''
+class A[A2] {}
+class B1[B1] extends A[A2] {}
+class B2[B2] implements A[A2] {}
+class B3[B3] with A[A2] {}
+class B4[B4]<T[T] extends A[A2]> {}
+''');
+
+    _runCombineTest([outline1, outline2], (result) {
+      var library = _getLibrary(result.program, 'test');
+      expect(_getLibraryText(library, nodeToName), r'''
+class A[A1] {}
+class B1[B1] extends A[A1] {}
+class B2[B2] implements A[A1] {}
+class B3[B3] with A[A1] {}
+class B4[B4]<T[T] extends A[A1]> {}
+''');
     });
   }
 
@@ -1140,8 +1409,9 @@ main3() {
         new FunctionNode(new Block(statements)));
   }
 
-  Field _newField(String name) {
-    return new Field(new Name(name));
+  Field _newField(String name, {DartType type}) {
+    type ??= const DynamicType();
+    return new Field(new Name(name), type: type);
   }
 
   Procedure _newGetter(String name) {
@@ -1174,6 +1444,11 @@ main3() {
             positionalParameters: [new VariableDeclaration('_')]));
   }
 
+  TypeParameter _newTypeParameter(String name) {
+    var bound = new InterfaceType(coreTypes.objectClass);
+    return new TypeParameter(name, bound);
+  }
+
   void _runCombineTest(
       List<Program> outlines, void checkResult(CombineResult result)) {
     // Store the original state.
@@ -1198,15 +1473,30 @@ main3() {
   /// and references.  The map [nodeToName] must have entries for all
   /// referenced nodes, other declarations are optional.
   static String _getLibraryText(
-      Library library, Map<NamedNode, String> nodeToName) {
+      Library library, Map<TreeNode, String> nodeToName) {
     var buffer = new StringBuffer();
 
-    String getNodeName(NamedNode node) {
+    String getNodeName(TreeNode node, {bool required: false}) {
       String name = nodeToName[node];
       if (name != null) {
         return '[$name]';
       } else {
+        if (required) {
+          fail('The name is required for (${node.runtimeType}) $node');
+        }
         return '';
+      }
+    }
+
+    void writeType(DartType type) {
+      if (type is InterfaceType) {
+        String name = getNodeName(type.classNode);
+        buffer.write('${type.classNode.name}$name');
+      } else if (type is TypeParameterType) {
+        String name = getNodeName(type.parameter);
+        buffer.write('${type.parameter.name}$name');
+      } else {
+        throw new UnimplementedError('(${type.runtimeType}) $type');
       }
     }
 
@@ -1219,17 +1509,28 @@ main3() {
           target = expression.target;
         } else if (expression is DirectMethodInvocation) {
           target = expression.target;
+        } else if (expression is DirectPropertyGet) {
+          target = expression.target;
+        } else if (expression is DirectPropertySet) {
+          target = expression.target;
         } else if (expression is MethodInvocation) {
           target = expression.interfaceTarget;
+        } else if (expression is PropertyGet) {
+          target = expression.interfaceTarget;
+        } else if (expression is PropertySet) {
+          target = expression.interfaceTarget;
         } else if (expression is SuperMethodInvocation) {
+          target = expression.interfaceTarget;
+        } else if (expression is SuperPropertyGet) {
+          target = expression.interfaceTarget;
+        } else if (expression is SuperPropertySet) {
           target = expression.interfaceTarget;
         } else {
           var type = expression.runtimeType;
           fail('Unsupported expression: $type');
         }
-        String name = nodeToName[target];
-        expect(name, isNotNull, reason: target.toString());
-        buffer.writeln('$indent$prefix[$name]();');
+        String name = getNodeName(target, required: true);
+        buffer.writeln('$indent$prefix$name();');
       } else {
         fail('Unsupported statement: (${node.runtimeType}) $node');
       }
@@ -1249,13 +1550,29 @@ main3() {
         } else {
           buffer.writeln('}');
         }
+      } else if (body is ExpressionStatement) {
+        buffer.write(' => ');
+        Expression expression = body.expression;
+        if (expression is IntLiteral) {
+          buffer.write(expression);
+        } else {
+          fail('Not implemented ${expression.runtimeType}');
+        }
+        buffer.writeln(';');
       } else {
         fail('Not implemented ${body.runtimeType}');
       }
     }
 
     void writeField(Field node, String indent) {
-      fail('Not implemented ${node.runtimeType}');
+      buffer.write(indent);
+      String name = getNodeName(node, required: true);
+      if (node.type is DynamicType) {
+        buffer.write('var');
+      } else {
+        writeType(node.type);
+      }
+      buffer.writeln(' ${node.name}$name;');
     }
 
     void writeInitializer(Initializer node, String indent) {
@@ -1270,9 +1587,8 @@ main3() {
       } else {
         fail('Not implemented ${node.runtimeType}');
       }
-      String name = nodeToName[target];
-      expect(name, isNotNull, reason: target.toString());
-      buffer.write('${indent}${kind}[$name]()');
+      String name = getNodeName(target, required: true);
+      buffer.write('${indent}${kind}$name()');
     }
 
     void writeConstructor(Constructor node, String indent) {
@@ -1302,7 +1618,7 @@ main3() {
       } else if (kind == ProcedureKind.Getter) {
         prefixName = '@getters';
         kindStr = 'get ';
-      } else if (kind == ProcedureKind.Getter) {
+      } else if (kind == ProcedureKind.Setter) {
         prefixName = '@setters';
         kindStr = 'set ';
       } else {
@@ -1314,13 +1630,71 @@ main3() {
       expect(node.canonicalName.parent, parentName);
 
       String nodeName = getNodeName(node);
-      buffer.write('$indent$kindStr${node.name}$nodeName()');
+      buffer.write('$indent$kindStr${node.name}$nodeName');
+      if (kind != ProcedureKind.Getter) {
+        buffer.write('()');
+      }
       writeBody(node.function.body, indent);
+    }
+
+    void writeSupertype(Supertype supertype) {
+      expect(supertype.typeArguments, isEmpty);
+      var clazz = supertype.classNode;
+      String name = getNodeName(clazz, required: true);
+      buffer.write('${clazz.name}$name');
     }
 
     void writeClass(Class node) {
       String nodeName = getNodeName(node);
-      buffer.write('class ${node.name}$nodeName {');
+      buffer.write('class ${node.name}$nodeName');
+
+      if (node.typeParameters.isNotEmpty) {
+        buffer.write('<');
+        for (var i = 0; i < node.typeParameters.length; i++) {
+          if (i != 0) {
+            buffer.write(', ');
+          }
+          TypeParameter typeParameter = node.typeParameters[i];
+          String name = getNodeName(typeParameter, required: true);
+          buffer.write('${typeParameter.name}$name');
+          if (typeParameter.bound != null) {
+            var bound = typeParameter.bound as InterfaceType;
+            if (bound.classNode.name != 'Object') {
+              buffer.write(' extends ');
+              writeType(typeParameter.bound);
+            }
+          }
+        }
+        buffer.write('>');
+      }
+
+      {
+        var superType = node.supertype;
+        var superClassName = superType.classNode.name;
+        if (superClassName != 'Object') {
+          buffer.write(' extends ');
+          writeSupertype(superType);
+        }
+
+        if (node.implementedTypes.isNotEmpty) {
+          buffer.write(' implements ');
+          for (var i = 0; i < node.implementedTypes.length; i++) {
+            if (i != 0) {
+              buffer.write(', ');
+            }
+            writeSupertype(node.implementedTypes[i]);
+          }
+        }
+
+        Supertype mixedInType = node.mixedInType;
+        if (mixedInType != null) {
+          buffer.write(' with ');
+          writeSupertype(mixedInType);
+        }
+      }
+
+      buffer.write(' {');
+
       if (!node.members.isEmpty) {
         buffer.writeln();
         for (var field in node.fields) {
@@ -1367,6 +1741,7 @@ class _OutlineState {
     outline.accept(collector);
     expect(collector.nodes, initialCollector.nodes);
     expect(collector.references, initialCollector.references);
+    expect(collector.typeParameters, initialCollector.typeParameters);
     initialCollector.libraryParents.forEach((library, outline) {
       expect(library.canonicalName.parent, outline.root);
       expect(library.parent, outline);
@@ -1389,6 +1764,7 @@ class _StateCollector extends RecursiveVisitor {
   final Map<NamedNode, NamedNode> nodeParents = {};
   final Map<Library, Program> libraryParents = {};
   final List<Reference> references = [];
+  final List<TypeParameter> typeParameters = [];
 
   @override
   void defaultMemberReference(Member node) {
@@ -1420,5 +1796,10 @@ class _StateCollector extends RecursiveVisitor {
   @override
   void visitTypedefReference(Typedef node) {
     references.add(node.reference);
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    typeParameters.add(node.parameter);
   }
 }
