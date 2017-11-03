@@ -697,7 +697,7 @@ class Parser {
     assert(optional('export', token));
     Token exportKeyword = token;
     listener.beginExport(exportKeyword);
-    token = ensureParseLiteralString(token.next);
+    token = ensureParseLiteralString(token);
     token = parseConditionalUris(token.next);
     token = parseCombinators(token);
     token = ensureSemicolon(token);
@@ -2559,12 +2559,10 @@ class Parser {
     token = ensureIdentifier(token, context);
 
     int fieldCount = 1;
-    token =
-        parseFieldInitializerOpt(token.next, name, varFinalOrConst, isTopLevel);
+    token = parseFieldInitializerOpt(token, name, varFinalOrConst, isTopLevel);
     while (optional(',', token)) {
       name = ensureIdentifier(token.next, context);
-      token = parseFieldInitializerOpt(
-          name.next, name, varFinalOrConst, isTopLevel);
+      token = parseFieldInitializerOpt(name, name, varFinalOrConst, isTopLevel);
       ++fieldCount;
     }
     token = ensureSemicolon(token);
@@ -2830,8 +2828,8 @@ class Parser {
 
   Token parseFieldInitializerOpt(
       Token token, Token name, Token varFinalOrConst, bool isTopLevel) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
+    token = token.next;
     if (optional('=', token)) {
       Token assignment = token;
       listener.beginFieldInitializer(token);
@@ -2896,7 +2894,7 @@ class Parser {
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = false;
     do {
-      token = parseInitializer(token.next);
+      token = parseInitializer(token);
       ++count;
     } while (optional(',', token));
     mayParseFunctionExpressions = old;
@@ -2916,25 +2914,27 @@ class Parser {
   /// ;
   /// ```
   Token parseInitializer(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    listener.beginInitializer(token);
-    if (optional('assert', token)) {
-      token = parseAssert(token, Assert.Initializer);
+    Token next = token.next;
+    listener.beginInitializer(next);
+    if (optional('assert', next)) {
+      token = parseAssert(token.next, Assert.Initializer);
     } else {
-      token = parseExpression(token);
+      token = parseExpression(token.next);
     }
     listener.endInitializer(token);
     return token;
   }
 
   Token ensureParseLiteralString(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    if (!identical(token.kind, STRING_TOKEN)) {
-      Message message = fasta.templateExpectedString.withArguments(token);
+    Token next = token.next;
+    if (!identical(next.kind, STRING_TOKEN)) {
+      Message message = fasta.templateExpectedString.withArguments(next);
       Token newToken =
           new SyntheticStringToken(TokenType.STRING, '""', token.charOffset, 0);
-      token = rewriteAndRecover(token, message, newToken);
+      token = rewriteAndRecover(token.next, message, newToken);
+    } else {
+      token = next;
     }
     return parseLiteralString(token);
   }
@@ -4043,11 +4043,10 @@ class Parser {
   }
 
   Token parseExpressionWithoutCascade(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    return optional('throw', token)
-        ? parseThrowExpression(token, false)
-        : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
+    return optional('throw', token.next)
+        ? parseThrowExpression(token.next, false)
+        : parsePrecedenceExpression(token.next, ASSIGNMENT_PRECEDENCE, false);
   }
 
   Token parseConditionalExpressionRest(Token token) {
@@ -4056,9 +4055,9 @@ class Parser {
     assert(optional('?', token));
     Token question = token;
     listener.beginConditionalExpression();
-    token = parseExpressionWithoutCascade(token.next);
+    token = parseExpressionWithoutCascade(token);
     Token colon = token;
-    token = expect(':', token);
+    expect(':', token);
     listener.handleConditionalExpressionColon();
     token = parseExpressionWithoutCascade(token);
     listener.endConditionalExpression(question, colon);
@@ -4170,7 +4169,7 @@ class Parser {
 
     if (identical(token.type.precedence, ASSIGNMENT_PRECEDENCE)) {
       Token assignment = token;
-      token = parseExpressionWithoutCascade(token.next);
+      token = parseExpressionWithoutCascade(token);
       listener.handleAssignmentExpression(assignment);
     }
     listener.endCascade();
@@ -5214,7 +5213,7 @@ class Parser {
     Token throwToken = token;
     token = allowCascades
         ? parseExpression(token.next)
-        : parseExpressionWithoutCascade(token.next);
+        : parseExpressionWithoutCascade(token);
     listener.handleThrowExpression(throwToken, token);
     return token;
   }
