@@ -140,6 +140,8 @@ vm_sources = [
   "json_parser.h",
   "json_stream.cc",
   "json_stream.h",
+  "json_writer.cc",
+  "json_writer.h",
   "kernel.cc",
   "kernel.h",
   "kernel_binary.cc",
