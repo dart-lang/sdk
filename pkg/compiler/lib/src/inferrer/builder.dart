@@ -1354,7 +1354,17 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
             isSetIfNull: node.isIfNullAssignment);
       }
 
-      return node.isPostfix ? getterType : newType;
+      if (node.isPostfix) {
+        if (node.isConditional) {
+          return getterType;
+        } else {
+          // We have just successfully performed a `+ 1` operation on the getter
+          // so we know it to be not `null`.
+          return types.narrowNotNull(getterType);
+        }
+      } else {
+        return newType;
+      }
     }
   }
 

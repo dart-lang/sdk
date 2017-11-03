@@ -10,16 +10,15 @@ main() {
   staticFieldPostfixDec();
   instanceFieldPostfixInc();
   instanceFieldPostfixDec();
+  conditionalInstanceFieldPostfixInc();
+  conditionalInstanceFieldPostfixDec();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Postfix increment on local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO(johnniwinther): Update ast inference to detect non-nullness of postfix
-// results.
-/*ast.element: localPostfixInc:[null|exact=JSUInt31]*/
-/*kernel.element: localPostfixInc:[exact=JSUInt31]*/
+/*element: localPostfixInc:[exact=JSUInt31]*/
 localPostfixInc() {
   var local;
   if (local == null) {
@@ -32,8 +31,7 @@ localPostfixInc() {
 // Postfix decrement on local variable.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*ast.element: localPostfixDec:[null|exact=JSUInt31]*/
-/*kernel.element: localPostfixDec:[exact=JSUInt31]*/
+/*element: localPostfixDec:[exact=JSUInt31]*/
 localPostfixDec() {
   var local;
   if (local == null) {
@@ -49,8 +47,7 @@ localPostfixDec() {
 /*element: _staticField1:[null|subclass=JSPositiveInt]*/
 var _staticField1;
 
-/*ast.element: staticFieldPostfixInc:[null|subclass=JSPositiveInt]*/
-/*kernel.element: staticFieldPostfixInc:[subclass=JSPositiveInt]*/
+/*element: staticFieldPostfixInc:[subclass=JSPositiveInt]*/
 staticFieldPostfixInc() {
   if (_staticField1 == null) {
     _staticField1 = 0;
@@ -65,8 +62,7 @@ staticFieldPostfixInc() {
 /*element: _staticField2:[null|subclass=JSInt]*/
 var _staticField2;
 
-/*ast.element: staticFieldPostfixDec:[null|subclass=JSInt]*/
-/*kernel.element: staticFieldPostfixDec:[subclass=JSInt]*/
+/*element: staticFieldPostfixDec:[subclass=JSInt]*/
 staticFieldPostfixDec() {
   if (_staticField2 == null) {
     _staticField2 = 0;
@@ -84,8 +80,7 @@ class Class1 {
   var field1;
 }
 
-/*ast.element: instanceFieldPostfixInc:[null|subclass=JSPositiveInt]*/
-/*kernel.element: instanceFieldPostfixInc:[subclass=JSPositiveInt]*/
+/*element: instanceFieldPostfixInc:[subclass=JSPositiveInt]*/
 instanceFieldPostfixInc() {
   var c = new Class1();
   if (c. /*[exact=Class1]*/ field1 == null) {
@@ -107,8 +102,7 @@ class Class2 {
   var field2;
 }
 
-/*ast.element: instanceFieldPostfixDec:[null|subclass=JSInt]*/
-/*kernel.element: instanceFieldPostfixDec:[subclass=JSInt]*/
+/*element: instanceFieldPostfixDec:[subclass=JSInt]*/
 instanceFieldPostfixDec() {
   var c = new Class2();
   if (c. /*[exact=Class2]*/ field2 == null) {
@@ -118,4 +112,48 @@ instanceFieldPostfixDec() {
       /*[exact=Class2]*/
       /*update: [exact=Class2]*/
       field2 /*invoke: [null|subclass=JSInt]*/ --;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Conditional postfix increment on instance field.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class3.:[exact=Class3]*/
+class Class3 {
+  /*element: Class3.field3:[null|subclass=JSPositiveInt]*/
+  var field3;
+}
+
+/*element: conditionalInstanceFieldPostfixInc:[null|subclass=JSPositiveInt]*/
+conditionalInstanceFieldPostfixInc() {
+  var c = new Class3();
+  if (c. /*[exact=Class3]*/ field3 == null) {
+    c. /*update: [exact=Class3]*/ field3 = 0;
+  }
+  return c?.
+      /*[exact=Class3]*/
+      /*update: [exact=Class3]*/
+      field3 /*invoke: [null|subclass=JSPositiveInt]*/ ++;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Conditional postfix decrement on instance field.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class4.:[exact=Class4]*/
+class Class4 {
+  /*element: Class4.field4:[null|subclass=JSInt]*/
+  var field4;
+}
+
+/*element: conditionalInstanceFieldPostfixDec:[null|subclass=JSInt]*/
+conditionalInstanceFieldPostfixDec() {
+  var c = new Class4();
+  if (c. /*[exact=Class4]*/ field4 == null) {
+    c. /*update: [exact=Class4]*/ field4 = 0;
+  }
+  return c?.
+      /*[exact=Class4]*/
+      /*update: [exact=Class4]*/
+      field4 /*invoke: [null|subclass=JSInt]*/ --;
 }
