@@ -7,7 +7,7 @@ import 'dart:convert';
 
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
