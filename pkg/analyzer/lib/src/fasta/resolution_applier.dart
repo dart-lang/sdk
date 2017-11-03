@@ -58,8 +58,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.parent is VariableDeclarationList &&
-        node.parent.parent is TopLevelVariableDeclaration) {
+    AstNode parent = node.parent;
+    if (parent is VariableDeclarationList &&
+        (parent.parent is TopLevelVariableDeclaration ||
+            parent.parent is FieldDeclaration)) {
       // Don't visit the name; resolution for it will come from the outline.
     } else {
       node.name.accept(this);

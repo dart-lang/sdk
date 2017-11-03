@@ -987,6 +987,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    debugEvent("ClassHeader");
+    nativeMethodName = null;
+  }
+
+  @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassBody");
   }

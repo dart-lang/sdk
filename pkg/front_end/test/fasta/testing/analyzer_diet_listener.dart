@@ -4,7 +4,9 @@
 
 library fasta.analyzer_diet_listener;
 
-import 'package:analyzer/dart/ast/ast.dart' as ast show AstNode;
+import 'package:analyzer/dart/ast/ast.dart' as ast show AstNode, ClassMember;
+
+import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 
 import 'package:analyzer/dart/element/type.dart' as ast show DartType;
 
@@ -19,6 +21,8 @@ import 'package:analyzer/src/fasta/resolution_storer.dart'
     show InstrumentedResolutionStorer;
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
+
+import 'package:front_end/src/fasta/scanner.dart' show scanString;
 
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
     show TypeInferenceEngine;
@@ -100,13 +104,33 @@ class AnalyzerDietListener extends DietListener {
     List<String> names = popList(count);
     Builder builder = lookupBuilder(token, null, names.first);
     Token metadata = pop();
+    AstBuilder listener =
+        createListener(builder, memberScope, builder.isInstanceMember);
+
+    if (!isTopLevel) {
+      Token classToken = scanString('class Cx {}').tokens;
+      listener.classDeclaration = astFactory.classDeclaration(
+        null,
+        null,
+        null,
+        classToken,
+        astFactory.simpleIdentifier(classToken.next),
+        null,
+        null,
+        null,
+        null,
+        null,
+        // leftBracket
+        <ast.ClassMember>[],
+        null, // rightBracket
+      );
+    }
+
     _withBodyBuilder(builder, null, () {
-      parseFields(
-          createListener(builder, memberScope, builder.isInstanceMember),
-          token,
-          metadata,
-          isTopLevel);
+      parseFields(listener, token, metadata, isTopLevel);
     });
+
+    listener.classDeclaration = null;
   }
 
   @override

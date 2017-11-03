@@ -2167,7 +2167,9 @@ class AstBuilder extends ScopeListener {
   AstNode finishFields() {
     debugEvent("finishFields");
 
-    return declarations.removeLast();
+    return classDeclaration != null
+        ? classDeclaration.members.removeAt(classDeclaration.members.length - 1)
+        : declarations.removeLast();
   }
 
   @override

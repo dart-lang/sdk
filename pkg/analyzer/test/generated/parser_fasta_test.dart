@@ -3539,6 +3539,19 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
     test_parseClassDeclaration_native();
   }
 
+  void test_parseClassDeclaration_native_allowedWithFields() {
+    allowNativeClause = true;
+    createParser(r'''
+class A native 'something' {
+  final int x;
+  A() {}
+}
+''');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
+  }
+
   void test_parseClassDeclaration_native_missing_literal() {
     createParser('class A native {}');
     CompilationUnitMember member = parseFullCompilationUnitMember();
