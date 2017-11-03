@@ -835,10 +835,11 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
  *   this parent isolate.
- * \param error DOCUMENT
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
  *
- * \return The new isolate is returned. May be NULL if an error
- *   occurs during isolate initialization.
+ * \return The new isolate on success, or NULL if isolate creation failed.
  */
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolate(const char* script_uri,
@@ -869,10 +870,11 @@ Dart_CreateIsolate(const char* script_uri,
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
  *   this parent isolate.
- * \param error DOCUMENT
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
  *
- * \return The new isolate is returned. May be NULL if an error
- *   occurs during isolate initialization.
+ * \return The new isolate on success, or NULL if isolate creation failed.
  */
 DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
                                                       const char* main,
