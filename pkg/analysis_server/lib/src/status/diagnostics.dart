@@ -498,7 +498,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     h4('Added files ${lenCounter(addedFiles)}', raw: true);
     ul(addedFiles, writeFile, classes: 'scroll-table');
 
-    h4('ImplicitFiles files ${lenCounter(implicitFiles)}', raw: true);
+    h4('Implicit files ${lenCounter(implicitFiles)}', raw: true);
     ul(implicitFiles, writeFile, classes: 'scroll-table');
 
     SourceFactory sourceFactory = driver.sourceFactory;
