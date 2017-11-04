@@ -195,7 +195,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (backend.tracer.isEnabled) {
         MemberEntity member = definition.member;
         String name = member.name;
-        if (member.isInstanceMember) {
+        if (member.isInstanceMember ||
+            member.isConstructor ||
+            member.isStatic) {
           name = "${member.enclosingClass.name}.$name";
           if (definition.kind == MemberKind.constructorBody) {
             name += " (body)";
