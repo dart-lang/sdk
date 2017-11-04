@@ -88,12 +88,12 @@ List<_SignalController> _signalControllers = new List(32);
 class _SignalController {
   final ProcessSignal signal;
 
-  StreamController _controller;
+  StreamController<ProcessSignal> _controller;
   var _id;
 
   _SignalController(this.signal) {
-    _controller =
-        new StreamController.broadcast(onListen: _listen, onCancel: _cancel);
+    _controller = new StreamController<ProcessSignal>.broadcast(
+        onListen: _listen, onCancel: _cancel);
   }
 
   Stream<ProcessSignal> get stream => _controller.stream;
