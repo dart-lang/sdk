@@ -338,7 +338,7 @@ class Block extends Statement {
   final bool isScope;
 
   Block(this.statements, {this.isScope: false}) {
-    assert(!statements.any((s) => s is! Statement));
+    assert(statements.every((s) => s is Statement));
   }
   Block.empty()
       : statements = <Statement>[],

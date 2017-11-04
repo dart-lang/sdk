@@ -1173,7 +1173,8 @@ class CommandExecutorImpl implements CommandExecutor {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
-        command.displayName == 'dartdevc' &&
+        (command.displayName == 'dartdevc' ||
+            command.displayName == 'dartdevk') &&
         globalConfiguration.batch) {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);

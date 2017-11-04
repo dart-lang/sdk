@@ -33,13 +33,22 @@ Future runBatch(List<String> batchArgs) async {
     tests++;
     var args = batchArgs.toList()..addAll(line.split(new RegExp(r'\s+')));
 
-    var succeeded = await compile(args);
+    String outcome;
+    try {
+      // TODO(jmesserly): share SDK deserialization between compilations.
+      var succeeded = await compile(args);
+      outcome = succeeded ? 'PASS' : 'FAIL';
+    } catch (e, s) {
+      outcome = 'CRASH';
+      print('Unhandled exception:');
+      print(e);
+      print(s);
+    }
 
     // TODO(rnystrom): If kernel has any internal static state that needs to
     // be cleared, do it here.
 
     stderr.writeln('>>> EOF STDERR');
-    var outcome = succeeded ? 'PASS' : 'FAIL';
     print('>>> TEST $outcome ${watch.elapsedMilliseconds}ms');
   }
 
