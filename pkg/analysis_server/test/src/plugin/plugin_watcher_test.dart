@@ -178,6 +178,9 @@ class TestPluginManager implements PluginManager {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  void recordPluginFailure(String hostPackageName, String message) {}
+
+  @override
   void removedContextRoot(ContextRoot contextRoot) {
     removedContextRoots.add(contextRoot);
   }

@@ -19,6 +19,7 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analyzer/context/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -34,6 +35,7 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:path/path.dart' as pathPackage;
 
 final String kCustomCss = '''
 .lead, .page-title+.markdown-body>p:first-child {
@@ -1005,11 +1007,48 @@ class PluginsPage extends DiagnosticPageWithNav {
     List<PluginInfo> analysisPlugins = server.pluginManager.plugins;
 
     if (analysisPlugins.isEmpty) {
-      blankslate('No analysis plugins active.');
+      blankslate('No known analysis plugins.');
     } else {
-      ul(analysisPlugins, (PluginInfo p) {
-        buf.writeln('${p.data.name} ${p.pluginId} (${p.data.version})');
-      });
+      for (PluginInfo plugin in analysisPlugins) {
+        // TODO(brianwilkerson) Sort the plugins by name.
+        String id = plugin.pluginId;
+        PluginData data = plugin.data;
+
+        List<String> components = pathPackage.split(id);
+        int length = components.length;
+        String name;
+        if (length == 0) {
+          name = 'unknown plugin';
+        } else if (length > 2) {
+          name = components[length - 3];
+        } else {
+          name = components[length - 1];
+        }
+        h4(name);
+        p('path: $id');
+        if (data.name == null) {
+          if (plugin.exception != null) {
+            p('not running');
+            pre(() {
+              buf.write(plugin.exception);
+            });
+          } else {
+            p('not running for unknown reason');
+          }
+        } else {
+          p('name: ${data.name}');
+          p('version: ${data.version}');
+          p('Associated contexts:');
+          Set<ContextRoot> contexts = plugin.contextRoots;
+          if (contexts.isEmpty) {
+            blankslate('none');
+          } else {
+            ul(contexts.toList(), (ContextRoot root) {
+              buf.writeln(root.root);
+            });
+          }
+        }
+      }
     }
   }
 }
