@@ -2,33 +2,18 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-language/application_negative_test: Crash
 language/bad_constructor_test/06_generated: Crash
-language/script1_negative_test: Crash
-language/script2_negative_test: Crash
 language_2/covariant_subtyping_test: Crash
-language_2/script1_negative_test: Crash
-language_2/script2_negative_test: Crash
 
 language/async_test/constructor4_generated: VerificationError
-language/conditional_import_string_test: VerificationError
-language/conditional_import_test: VerificationError
-language/config_import_corelib_test: VerificationError
 language/const_factory_with_body_test/01_generated: VerificationError
 language/const_instance_field_test/01_generated: VerificationError
-language/constant_string_interpolation2_test: VerificationError
 language/constructor10_test/00_generated: VerificationError
 language/constructor10_test/01_generated: VerificationError
 language/constructor10_test/02_generated: VerificationError
+language/deferred_closurize_load_library_test: VerificationError
 language/enum_syntax_test/20_generated: VerificationError
 language/enum_syntax_test/22_generated: VerificationError
-language/library_env_test/has_html_support_generated: VerificationError
-language/library_env_test/has_io_support_generated: VerificationError
-language/library_env_test/has_mirror_support_generated: VerificationError
-language/library_env_test/has_no_html_support_generated: VerificationError
-language/library_env_test/has_no_io_support_generated: VerificationError
-language/library_env_test/has_no_mirror_support_generated: VerificationError
-language/library_env_test/none_generated: VerificationError
 language/malformed_inheritance_test/03_generated: VerificationError
 language/malformed_inheritance_test/09_generated: VerificationError
 language/malformed_inheritance_test/10_generated: VerificationError
@@ -58,24 +43,14 @@ language/type_variable_scope_test/03_generated: VerificationError
 language/unhandled_exception_negative_test: VerificationError
 language/variable_declaration_metadata_test/13_generated: VerificationError
 language/variable_declaration_metadata_test/14_generated: VerificationError
-language_2/conditional_import_string_test: VerificationError
-language_2/conditional_import_test: VerificationError
-language_2/config_import_corelib_test: VerificationError
 language_2/const_factory_with_body_test/01_generated: VerificationError
 language_2/const_instance_field_test/01_generated: VerificationError
-language_2/constant_string_interpolation2_test: VerificationError
 language_2/constructor10_test/00_generated: VerificationError
 language_2/constructor10_test/01_generated: VerificationError
 language_2/constructor10_test/02_generated: VerificationError
+language_2/deferred_closurize_load_library_test: VerificationError
 language_2/enum_syntax_test/20_generated: VerificationError
 language_2/enum_syntax_test/22_generated: VerificationError
-language_2/library_env_test/has_html_support_generated: VerificationError
-language_2/library_env_test/has_io_support_generated: VerificationError
-language_2/library_env_test/has_mirror_support_generated: VerificationError
-language_2/library_env_test/has_no_html_support_generated: VerificationError
-language_2/library_env_test/has_no_io_support_generated: VerificationError
-language_2/library_env_test/has_no_mirror_support_generated: VerificationError
-language_2/library_env_test/none_generated: VerificationError
 language_2/malformed_inheritance_test/02_generated: VerificationError
 language_2/malformed_inheritance_test/08_generated: VerificationError
 language_2/malformed_inheritance_test/09_generated: VerificationError
@@ -90,7 +65,6 @@ language_2/parameter_default_test/03_generated: VerificationError
 language_2/parameter_default_test/04_generated: VerificationError
 language_2/parameter_default_test/05_generated: VerificationError
 language_2/parameter_default_test/06_generated: VerificationError
-language_2/recursive_generic_test: VerificationError
 language_2/redirecting_factory_infinite_steps_test/02_generated: VerificationError
 language_2/super_call3_test/01_generated: VerificationError
 language_2/super_call3_test/02_generated: VerificationError
