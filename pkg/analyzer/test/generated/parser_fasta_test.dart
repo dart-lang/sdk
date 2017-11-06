@@ -2653,7 +2653,9 @@ class FastaParserTestCase extends Object
   Statement parseStatement(String source,
       [bool enableLazyAssignmentOperators]) {
     return _runParser(
-        source, (parser) => (token) => parser.parseStatementOpt(token).next,
+        source,
+        (parser) => (token) =>
+            parser.parseStatementOpt(parser.syntheticPreviousToken(token)).next,
         codes: NO_ERROR_COMPARISON) as Statement;
   }
 
@@ -2979,7 +2981,8 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   Statement parseStatement2() {
-    return _run((parser) => (token) => parser.parseStatementOpt(token).next)
+    return _run((parser) => (token) =>
+            parser.parseStatementOpt(parser.syntheticPreviousToken(token)).next)
         as Statement;
   }
 
