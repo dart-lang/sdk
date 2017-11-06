@@ -5007,15 +5007,16 @@ class Parser {
     Token leftParenthesis = token;
     expect('(', token);
     token = parseVariablesDeclarationOrExpressionOpt(token);
-    if (optional('in', token)) {
+    Token next = token.next;
+    if (optional('in', next)) {
       if (awaitToken != null && !inAsync) {
-        reportRecoverableError(token, fasta.messageAwaitForNotAsync);
+        reportRecoverableError(next, fasta.messageAwaitForNotAsync);
       }
       return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
-    } else if (optional(':', token)) {
-      reportRecoverableError(token, fasta.messageColonInPlaceOfIn);
+    } else if (optional(':', next)) {
+      reportRecoverableError(next, fasta.messageColonInPlaceOfIn);
       if (awaitToken != null && !inAsync) {
-        reportRecoverableError(token, fasta.messageAwaitForNotAsync);
+        reportRecoverableError(next, fasta.messageAwaitForNotAsync);
       }
       return parseForInRest(awaitToken, forKeyword, leftParenthesis, token);
     } else {
@@ -5033,17 +5034,16 @@ class Parser {
   /// ;
   /// ```
   Token parseVariablesDeclarationOrExpressionOpt(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token next = token.next;
     final String value = next.stringValue;
     if (identical(value, ';')) {
       listener.handleNoExpression(next);
-      return next;
+      return token;
     } else if (isOneOf4(next, '@', 'var', 'final', 'const')) {
-      return parseVariablesDeclarationNoSemicolon(token.next).next;
+      return parseVariablesDeclarationNoSemicolon(next);
     }
-    return parseType(
-        token.next, TypeContinuation.VariablesDeclarationOrExpression);
+    return parseType(next, TypeContinuation.VariablesDeclarationOrExpression)
+        .previous;
   }
 
   /// This method parses the portion of the forLoopParts that starts with the
@@ -5057,8 +5057,7 @@ class Parser {
   /// ;
   /// ```
   Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    Token leftSeparator = ensureSemicolon(token);
+    Token leftSeparator = ensureSemicolon(token.next);
     token = leftSeparator.next;
     if (optional(';', token)) {
       token = parseEmptyStatement(token).next;
@@ -5098,11 +5097,11 @@ class Parser {
   /// ```
   Token parseForInRest(
       Token awaitToken, Token forKeyword, Token leftParenthesis, Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('in', token) || optional(':', token));
-    Token inKeyword = token;
-    listener.beginForInExpression(token.next);
-    token = parseExpression(token.next);
+    Token inKeyword = token.next;
+    assert(optional('in', inKeyword) || optional(':', inKeyword));
+    token = inKeyword.next;
+    listener.beginForInExpression(token);
+    token = parseExpression(token);
     listener.endForInExpression(token);
     expect(')', token);
     listener.beginForInBody(token.next);
