@@ -413,11 +413,13 @@ from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
+[ $compiler == dart2js ]
+date_time11_test: RuntimeError, OK # Fails when US is on winter time, issue 31285.
+
 [ $compiler == dart2js && $runtime == safari ]
 regexp/no-extensions_test: RuntimeError
 regexp/lookahead_test: RuntimeError
 regexp/overflow_test: RuntimeError
-date_time11_test: RuntimeError, OK # Bug in Safari.
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
