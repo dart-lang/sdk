@@ -2560,7 +2560,7 @@ analyze(MockCompiler compiler, String text,
   NodeListener listener =
       new NodeListener(const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener);
-  parser.parseStatementOpt(tokens);
+  parser.parseStatementOpt(parser.syntheticPreviousToken(tokens));
   Node node = listener.popNode();
   Element compilationUnit = new CompilationUnitElementX(
       new Script(null, null, null), compiler.mainApp);

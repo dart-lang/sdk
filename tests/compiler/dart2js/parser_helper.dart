@@ -115,8 +115,10 @@ Node parseBodyCode(String text, Function parseMethod,
   return node;
 }
 
-Node parseStatement(String text) =>
-    parseBodyCode(text, (parser, tokens) => parser.parseStatementOpt(tokens));
+Node parseStatement(String text) => parseBodyCode(
+    text,
+    (parser, tokens) =>
+        parser.parseStatementOpt(parser.syntheticPreviousToken(tokens)));
 
 Node parseFunction(String text, MockCompiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
