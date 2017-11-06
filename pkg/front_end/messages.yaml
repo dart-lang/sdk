@@ -427,6 +427,14 @@ ExternalConstructorWithBody:
   analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
   dart2jsCode: "*ignored*"
   script:
+    - "class C { external C() {} }"
+
+ExternalFactoryWithBody:
+  template: "External factories can't have a body."
+  tip: "Try removing the body of the factory, or removing the keyword 'external'."
+  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*ignored*"
+  script:
     - "class C { external factory C() {} }"
 
 ExternalField:
@@ -1478,6 +1486,8 @@ ColonInPlaceOfIn:
 ExternalFactoryRedirection:
   template: "A redirecting factory can't be external."
   tip: "Try removing the 'external' modifier."
+  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*ignored*"
 
 InvalidAssignment:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
@@ -1509,3 +1519,4 @@ PatchInjectionFailed:
 PatchNonExternal:
   template: "Can't apply this patch as its origin declaration isn't external."
   tip: "Try adding 'external' to the origin declaration."
+

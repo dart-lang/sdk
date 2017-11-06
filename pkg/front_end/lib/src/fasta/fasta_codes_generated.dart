@@ -1438,8 +1438,22 @@ const Code<Null> codeExternalFactoryRedirection =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryRedirection = const MessageCode(
     "ExternalFactoryRedirection",
+    analyzerCode: "EXTERNAL_CONSTRUCTOR_WITH_BODY",
+    dart2jsCode: "*ignored*",
     message: r"""A redirecting factory can't be external.""",
     tip: r"""Try removing the 'external' modifier.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFactoryWithBody = messageExternalFactoryWithBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFactoryWithBody = const MessageCode(
+    "ExternalFactoryWithBody",
+    analyzerCode: "EXTERNAL_CONSTRUCTOR_WITH_BODY",
+    dart2jsCode: "*ignored*",
+    message: r"""External factories can't have a body.""",
+    tip:
+        r"""Try removing the body of the factory, or removing the keyword 'external'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalField = messageExternalField;

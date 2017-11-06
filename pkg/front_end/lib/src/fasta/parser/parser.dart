@@ -3435,19 +3435,13 @@ class Parser {
       reportRecoverableError(asyncToken, fasta.messageFactoryNotSync);
     }
     if (optional('=', token)) {
-      // TODO(danrubel): There is a duplicate check at the semantic level
-      // that needs to be removed now that the check is performed here.
       if (externalToken != null) {
-        // TODO(danrubel): The more correct error message here would be
-        // that a redirecting factory cannot be external.
-        reportRecoverableError(token, fasta.messageExternalConstructorWithBody);
+        reportRecoverableError(token, fasta.messageExternalFactoryRedirection);
       }
       token = parseRedirectingFactoryBody(token);
     } else if (externalToken != null) {
       if (!optional(';', token)) {
-        // TODO(danrubel): The more correct error message here would be
-        // that an external *factory* cannot have a body.
-        reportRecoverableError(token, fasta.messageExternalConstructorWithBody);
+        reportRecoverableError(token, fasta.messageExternalFactoryWithBody);
       }
       token = parseFunctionBody(token, false, true);
     } else {
