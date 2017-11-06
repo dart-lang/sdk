@@ -5366,15 +5366,16 @@ class Parser {
   Token parseSwitchBlock(Token token) {
     Token begin = token = token.next;
     listener.beginSwitchBlock(begin);
-    token = expect('{', token);
+    expect('{', token);
     int caseCount = 0;
-    while (!identical(token.kind, EOF_TOKEN)) {
-      if (optional('}', token)) {
+    while (!identical(token.next.kind, EOF_TOKEN)) {
+      if (optional('}', token.next)) {
         break;
       }
       token = parseSwitchCase(token);
       ++caseCount;
     }
+    token = token.next;
     listener.endSwitchBlock(caseCount, begin, token);
     expect('}', token);
     return token;
@@ -5403,46 +5404,43 @@ class Parser {
   /// ;
   /// ```
   Token parseSwitchCase(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
-    Token begin = token;
+    Token begin = token.next;
     Token defaultKeyword = null;
     Token colonAfterDefault = null;
     int expressionCount = 0;
     int labelCount = 0;
-    Token peek = peekPastLabels(token);
+    Token peek = peekPastLabels(begin);
     while (true) {
       // Loop until we find something that can't be part of a switch case.
       String value = peek.stringValue;
       if (identical(value, 'default')) {
-        while (!identical(token, peek)) {
-          token = parseLabel(token).next;
+        while (!identical(token.next, peek)) {
+          token = parseLabel(token.next);
           labelCount++;
         }
-        defaultKeyword = token;
-        colonAfterDefault = token.next;
-        token = expect(':', colonAfterDefault);
-        peek = token;
+        defaultKeyword = token.next;
+        colonAfterDefault = token = defaultKeyword.next;
+        peek = expect(':', colonAfterDefault);
         break;
       } else if (identical(value, 'case')) {
-        while (!identical(token, peek)) {
-          token = parseLabel(token).next;
+        while (!identical(token.next, peek)) {
+          token = parseLabel(token.next);
           labelCount++;
         }
-        Token caseKeyword = token;
-        listener.beginCaseExpression(token);
-        token = parseExpression(token.next);
+        Token caseKeyword = token.next;
+        listener.beginCaseExpression(caseKeyword);
+        token = parseExpression(caseKeyword.next);
         listener.endCaseExpression(token);
         Token colonToken = token;
-        token = expect(':', token);
+        expect(':', colonToken);
         listener.handleCaseMatch(caseKeyword, colonToken);
         expressionCount++;
-        peek = peekPastLabels(token);
+        peek = peekPastLabels(token.next);
       } else {
         if (expressionCount == 0) {
           // TODO(ahe): This is probably easy to recover from.
           reportUnrecoverableError(
-              token, fasta.templateExpectedButGot.withArguments("case"));
+              token.next, fasta.templateExpectedButGot.withArguments("case"));
         }
         break;
       }
@@ -5450,29 +5448,30 @@ class Parser {
     listener.beginSwitchCase(labelCount, expressionCount, begin);
     // Finally zero or more statements.
     int statementCount = 0;
-    while (!identical(token.kind, EOF_TOKEN)) {
+    while (!identical(token.next.kind, EOF_TOKEN)) {
       String value = peek.stringValue;
       if ((identical(value, 'case')) ||
           (identical(value, 'default')) ||
-          ((identical(value, '}')) && (identical(token, peek)))) {
+          ((identical(value, '}')) && (identical(token.next, peek)))) {
         // A label just before "}" will be handled as a statement error.
         break;
       } else {
-        Token startToken = token;
-        token = parseStatementOpt(token).next;
-        if (identical(token, startToken)) {
+        Token startToken = token.next;
+        token = parseStatementOpt(startToken);
+        Token next = token.next;
+        if (identical(next, startToken)) {
           // No progress was made, so we report the current token as being
           // invalid and move forward.
           reportRecoverableError(
-              token, fasta.templateUnexpectedToken.withArguments(token));
-          token = token.next;
+              next, fasta.templateUnexpectedToken.withArguments(next));
+          token = next;
         }
         ++statementCount;
       }
-      peek = peekPastLabels(token);
+      peek = peekPastLabels(token.next);
     }
     listener.endSwitchCase(labelCount, expressionCount, defaultKeyword,
-        colonAfterDefault, statementCount, begin, token);
+        colonAfterDefault, statementCount, begin, token.next);
     return token;
   }
 
