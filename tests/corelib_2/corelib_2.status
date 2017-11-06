@@ -606,9 +606,7 @@ error_stack_trace1_test: Skip  # Expects unobfuscated stack trace
 list_concurrent_modify_test: Crash # Issue 30559
 
 [ $compiler == dartk && $strong ]
-big_integer_arith_vm_test/modInv: RuntimeError # Issue 31256
 collection_removes_test: RuntimeError
-int_modulo_arith_test/bignum: RuntimeError # Issue 31256
 iterable_generate_test/01: Pass
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError

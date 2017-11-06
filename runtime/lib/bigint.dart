@@ -1842,7 +1842,7 @@ class _Bigint extends _IntegerImplementation {
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     final mAsBigint = m._toBigint();
-    var t = this;
+    int t = this;
     if (t._neg || (t._absCompare(mAsBigint) >= 0)) {
       t %= mAsBigint;
       t = t._toBigint();
