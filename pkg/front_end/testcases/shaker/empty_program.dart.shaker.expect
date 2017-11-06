@@ -156,7 +156,7 @@ library dart:core:
     - current
     - moveNext
   - class _InvocationMirror
-    - (default constructor)
+    - dart.core::_withoutType
     - memberName
     - typeArguments
     - positionalArguments

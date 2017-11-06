@@ -13,14 +13,14 @@ class Fisk extends core::Object {
       core::print(this.key);
     }
     for (final dynamic #t2 in x) {
-      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, null, <dynamic>[#t2].toList(growable: false), <dynamic, dynamic>{}));
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <dynamic>[], <dynamic>[#t2].toList(growable: false), core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{})));
       core::print(self::Fisk);
     }
     for (final dynamic #t3 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/unresolved_for_in.dart:17:10: Error: Expected lvalue, but got Instance of 'PrefixBuilder'\n    for (collection in x) {\n         ^")) in x) {
       core::print(const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/unresolved_for_in.dart: Error: A library can't be used as an expression.")));
     }
     for (final dynamic #t4 in x) {
-      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, null, <dynamic>[#t4].toList(growable: false), <dynamic, dynamic>{}));
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <dynamic>[], <dynamic>[#t4].toList(growable: false), core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{})));
       core::print(() → void);
     }
     for (final dynamic #t5 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/unresolved_for_in.dart:23:10: Error: Expected lvalue, but got 1\n    for (1 in x) {\n         ^")) in x) {
@@ -31,21 +31,21 @@ class Fisk extends core::Object {
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
   for (final dynamic #t6 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 34, null, <dynamic>[#t6].toList(growable: false), <dynamic, dynamic>{}));
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{})));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 34, const <dynamic>[], <dynamic>[#t6].toList(growable: false), core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{})));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <dynamic>[], const <dynamic>[], core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{}))));
   }
   for (final dynamic #t7 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, null, <dynamic>[#t7].toList(growable: false), <dynamic, dynamic>{}));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <dynamic>[], <dynamic>[#t7].toList(growable: false), core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{})));
     core::print(self::Fisk);
   }
   for (final dynamic #t8 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/unresolved_for_in.dart:37:8: Error: Expected lvalue, but got Instance of 'PrefixBuilder'\n  for (collection in arguments) {\n       ^")) in arguments) {
     core::print(const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/unresolved_for_in.dart: Error: A library can't be used as an expression.")));
   }
   for (final dynamic #t9 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, null, <dynamic>[#t9].toList(growable: false), <dynamic, dynamic>{}));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <dynamic>[], <dynamic>[#t9].toList(growable: false), core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{})));
     core::print(() → void);
   }
   for (final dynamic #t10 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/unresolved_for_in.dart:43:8: Error: Expected lvalue, but got 1\n  for (1 in arguments) {\n       ^")) in arguments) {
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{})));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <dynamic>[], const <dynamic>[], core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{}))));
   }
 }

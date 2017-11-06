@@ -57,8 +57,8 @@ class CoreTypes {
   Class _invocationClass;
   Constructor _externalNameDefaultConstructor;
   Class _invocationMirrorClass;
-  Constructor _invocationMirrorDefaultConstructor;
   Constructor _invocationMirrorWithTypeConstructor;
+  Constructor _invocationMirrorWithoutTypeConstructor;
   Class _noSuchMethodErrorClass;
   Constructor _noSuchMethodErrorDefaultConstructor;
   Procedure _listFromConstructor;
@@ -68,6 +68,7 @@ class CoreTypes {
   Constructor _fallThroughErrorUrlAndLineConstructor;
   Constructor _compileTimeErrorDefaultConstructor;
   Procedure _objectEquals;
+  Procedure _mapUnmodifiable;
 
   Class _internalSymbolClass;
 
@@ -230,14 +231,14 @@ class CoreTypes {
         _index.getClass('dart:core', '_InvocationMirror');
   }
 
-  Constructor get invocationMirrorDefaultConstructor {
-    return _invocationMirrorDefaultConstructor ??=
-        _index.getMember('dart:core', '_InvocationMirror', '');
-  }
-
   Constructor get invocationMirrorWithTypeConstructor {
     return _invocationMirrorWithTypeConstructor ??=
         _index.getMember('dart:core', '_InvocationMirror', '_withType');
+  }
+
+  Constructor get invocationMirrorWithoutTypeConstructor {
+    return _invocationMirrorWithoutTypeConstructor ??=
+        _index.getMember('dart:core', '_InvocationMirror', '_withoutType');
   }
 
   Class get iterableClass {
@@ -259,6 +260,11 @@ class CoreTypes {
 
   Class get mapClass {
     return _mapClass ??= _index.getClass('dart:core', 'Map');
+  }
+
+  Procedure get mapUnmodifiable {
+    return _mapUnmodifiable ??=
+        _index.getMember('dart:core', 'Map', 'unmodifiable');
   }
 
   Library get mirrorsLibrary {
