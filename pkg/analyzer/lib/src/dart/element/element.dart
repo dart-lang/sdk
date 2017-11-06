@@ -1140,6 +1140,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   bool isSuperConstructorAccessible(ConstructorElement constructor) {
+    if (!constructor.isAccessibleIn(library)) {
+      return false;
+    }
     // If this class has no mixins, then all superclass constructors are
     // accessible.
     if (mixins.isEmpty) {

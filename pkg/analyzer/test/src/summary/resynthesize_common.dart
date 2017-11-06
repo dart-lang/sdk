@@ -1498,7 +1498,6 @@ import 'a.dart';
 class M {
 }
 class alias MixinApp extends Base with M {
-  synthetic MixinApp._priv() = Base._priv;
   synthetic MixinApp() = Base;
   synthetic MixinApp.noArgs() = Base.noArgs;
   synthetic MixinApp.requiredArg(dynamic x) = Base.requiredArg;
