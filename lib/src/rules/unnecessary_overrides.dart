@@ -10,7 +10,7 @@ import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc =
     r"Don't override a method to do a super method invocation with the same"
-    r" parameters.";
+    r' parameters.';
 
 const _details = r'''
 
