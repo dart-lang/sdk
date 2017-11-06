@@ -7,6 +7,10 @@ main() {
   superMethodInvoke();
   superFieldInvoke();
   superGetterInvoke();
+  missingSuperMethodInvoke();
+  superMethodInvokeMissingArgument();
+  superMethodInvokeExtraArgument();
+  superMethodInvokeExtraNamedArgument();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -83,4 +87,102 @@ class Sub3 extends Super3 {
 /*element: superGetterInvoke:[null]*/
 superGetterInvoke() {
   new Sub3(). /*invoke: [exact=Sub3]*/ method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of missing super method.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super4.:[exact=Super4]*/
+class Super4 {}
+
+/*element: Sub4.:[exact=Sub4]*/
+class Sub4 extends Super4 {
+  /*element: Sub4.method:[empty]*/
+  method() {
+    // ignore: UNDEFINED_SUPER_METHOD
+    var a = super.method();
+    return a. /*invoke: [empty]*/ abs();
+  }
+}
+
+/*element: missingSuperMethodInvoke:[null]*/
+missingSuperMethodInvoke() {
+  new Sub4(). /*invoke: [exact=Sub4]*/ method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of super method with missing argument.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super5.:[exact=Super5]*/
+class Super5 {
+  /*element: Super5.method1:[exact=JSUInt31]*/
+  method1(/*[exact=JSUInt31]*/ x) => 42;
+}
+
+/*element: Sub5.:[exact=Sub5]*/
+class Sub5 extends Super5 {
+  /*element: Sub5.method2:[empty]*/
+  method2() {
+    super.method1(0);
+    // ignore: NOT_ENOUGH_REQUIRED_ARGUMENTS
+    var a = super.method1();
+    return a. /*invoke: [empty]*/ abs();
+  }
+}
+
+/*element: superMethodInvokeMissingArgument:[null]*/
+superMethodInvokeMissingArgument() {
+  new Sub5(). /*invoke: [exact=Sub5]*/ method2();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of super method with extra argument.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super6.:[exact=Super6]*/
+class Super6 {
+  /*element: Super6.method:[exact=JSUInt31]*/
+  method() => 42;
+}
+
+/*element: Sub6.:[exact=Sub6]*/
+class Sub6 extends Super6 {
+  /*element: Sub6.method:[empty]*/
+  method() {
+    // ignore: EXTRA_POSITIONAL_ARGUMENTS
+    var a = super.method(0);
+    return a. /*invoke: [empty]*/ abs();
+  }
+}
+
+/*element: superMethodInvokeExtraArgument:[null]*/
+superMethodInvokeExtraArgument() {
+  new Sub6(). /*invoke: [exact=Sub6]*/ method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of super method.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super7.:[exact=Super7]*/
+class Super7 {
+  /*element: Super7.method:[exact=JSUInt31]*/
+  method() => 42;
+}
+
+/*element: Sub7.:[exact=Sub7]*/
+class Sub7 extends Super7 {
+  /*element: Sub7.method:[empty]*/
+  method() {
+    // ignore: UNDEFINED_NAMED_PARAMETER
+    var a = super.method(a: 0);
+    return a. /*invoke: [empty]*/ abs();
+  }
+}
+
+/*element: superMethodInvokeExtraNamedArgument:[null]*/
+superMethodInvokeExtraNamedArgument() {
+  new Sub7(). /*invoke: [exact=Sub7]*/ method();
 }

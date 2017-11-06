@@ -178,6 +178,7 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
         case SendStructureKind.NOT_EQUALS:
           return computeInvokeName('==');
         case SendStructureKind.INVOKE:
+        case SendStructureKind.INCOMPATIBLE_INVOKE:
           switch (sendStructure.semantics.kind) {
             case AccessKind.LOCAL_VARIABLE:
             case AccessKind.FINAL_LOCAL_VARIABLE:

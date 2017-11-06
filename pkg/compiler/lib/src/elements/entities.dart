@@ -287,4 +287,13 @@ class ParameterStructure {
     }
     return true;
   }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('ParameterStructure(');
+    sb.write('requiredParameters=$requiredParameters,');
+    sb.write('positionalParameters=$positionalParameters,');
+    sb.write('namedParameters={${namedParameters.join(',')}})');
+    return sb.toString();
+  }
 }

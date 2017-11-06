@@ -382,6 +382,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           }
           break;
         case SendStructureKind.INVOKE:
+        case SendStructureKind.INCOMPATIBLE_INVOKE:
           switch (sendStructure.semantics.kind) {
             case AccessKind.EXPRESSION:
               computeForNode(node, createInvokeId(node.argumentsNode));
