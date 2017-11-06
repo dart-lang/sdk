@@ -128,6 +128,10 @@ class _Combiner {
   CanonicalName _adoptMemberName(NamedNode target, Member source) {
     String qualifier = CanonicalName.getMemberQualifier(source);
     CanonicalName parentName = target.canonicalName.getChild(qualifier);
+    if (source.name.isPrivate) {
+      Uri libraryUri = source.name.library.importUri;
+      parentName = parentName.getChildFromUri(libraryUri);
+    }
     String sourceName = source.canonicalName.name;
     if (parentName.hasChild(sourceName)) {
       return parentName.getChild(sourceName);

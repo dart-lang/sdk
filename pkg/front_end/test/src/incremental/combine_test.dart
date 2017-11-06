@@ -1191,6 +1191,36 @@ class B4[B4]<T[T] extends A[A1]> {}
     });
   }
 
+  void test_procedure_method_private_updateReferences() {
+    var libraryA1 = _newLibrary('a');
+    var procedureA1A = _newMethod('_A', libraryForPrivate: libraryA1);
+    libraryA1.addProcedure(procedureA1A);
+
+    var libraryA2 = _newLibrary('a');
+    var procedureA2A = _newMethod('_A', libraryForPrivate: libraryA2);
+    libraryA2.addProcedure(procedureA2A);
+
+    var libraryB = _newLibrary('b');
+    libraryB.addProcedure(_newExpressionsProcedure([
+      new StaticInvocation(procedureA2A, new Arguments.empty()),
+    ]));
+
+    var outline1 = _newOutline([libraryA1]);
+    var outline2 = _newOutline([libraryA2, libraryB]);
+
+    _runCombineTest([outline1, outline2], (result) {
+      var libraryA = _getLibrary(result.program, 'a');
+      _getProcedure(libraryA, '_A', '@methods');
+
+      var libraryB = _getLibrary(result.program, 'b');
+      var main = _getProcedure(libraryB, 'main', '@methods');
+      expect(
+          (_getProcedureExpression(main, 0) as StaticInvocation)
+              .targetReference,
+          same(procedureA1A.reference));
+    });
+  }
+
   void test_procedure_method_skipDuplicate() {
     var libraryA1 = _newLibrary('a');
     libraryA1.addProcedure(_newMethod('A'));
@@ -1367,10 +1397,13 @@ class B4[B4]<T[T] extends A[A1]> {}
   /// Get a single [Procedure] with the given [name].
   /// Throw if there is not exactly one.
   Procedure _getProcedure(NamedNode parent, String name, String prefixName) {
+    Library enclosingLibrary;
     List<Procedure> procedures;
     if (parent is Library) {
+      enclosingLibrary = parent;
       procedures = parent.procedures;
     } else if (parent is Class) {
+      enclosingLibrary = parent.enclosingLibrary;
       procedures = parent.procedures;
     } else {
       throw new ArgumentError('Only Library or Class expected');
@@ -1383,6 +1416,9 @@ class B4[B4]<T[T] extends A[A1]> {}
     expect(result.parent, parent);
 
     var parentName = parent.canonicalName.getChild(prefixName);
+    if (name.startsWith('_')) {
+      parentName = parentName.getChildFromUri(enclosingLibrary.importUri);
+    }
     expect(result.canonicalName.parent, parentName);
 
     return result;
@@ -1424,10 +1460,11 @@ class B4[B4]<T[T] extends A[A1]> {}
     return new Library(uri, name: name);
   }
 
-  Procedure _newMethod(String name, {Statement body}) {
+  Procedure _newMethod(String name,
+      {Statement body, Library libraryForPrivate}) {
     body ??= new EmptyStatement();
-    return new Procedure(
-        new Name(name), ProcedureKind.Method, new FunctionNode(body));
+    return new Procedure(new Name(name, libraryForPrivate),
+        ProcedureKind.Method, new FunctionNode(body));
   }
 
   Program _newOutline(List<Library> libraries) {
@@ -1751,6 +1788,10 @@ class _OutlineState {
       if (child is Member) {
         var qualifier = CanonicalName.getMemberQualifier(child);
         var parentName = parent.canonicalName.getChild(qualifier);
+        if (child.name.isPrivate) {
+          var libraryUri = child.enclosingLibrary.importUri;
+          parentName = parentName.getChildFromUri(libraryUri);
+        }
         expect(child.canonicalName.parent, parentName);
       } else {
         expect(child.canonicalName.parent, parent.canonicalName);
