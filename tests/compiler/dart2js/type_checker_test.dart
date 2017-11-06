@@ -2605,7 +2605,7 @@ analyzeIn(MockCompiler compiler, FunctionElement element, String text,
       new NodeListener(const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener)
     ..asyncState = element.asyncMarker.asyncParserState;
-  parser.parseStatementOpt(tokens);
+  parser.parseStatementOpt(parser.syntheticPreviousToken(tokens));
   Node node = listener.popNode();
   TreeElements elements = compiler.resolveNodeStatement(node, element);
   TypeCheckerVisitor checker =
