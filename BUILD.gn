@@ -74,7 +74,8 @@ group("create_sdk") {
   ]
 }
 
-if (dart_host_sdk_toolchain != host_toolchain) {
+if (defined(dart_host_sdk_toolchain) &&
+    dart_host_sdk_toolchain != host_toolchain) {
   group("create_host_sdk") {
     deps = [
       "sdk:create_sdk($dart_host_sdk_toolchain)",
