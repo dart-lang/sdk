@@ -53,7 +53,8 @@ void check(Map<String, List<String>> testFiles,
               cachedCompiler: cachedCompiler);
           var compiler = result.compiler;
           bool unexpectedResult = false;
-          if (expectedOutcome.contains('compile-time error')) {
+          if (expectedOutcome.contains('compile-time error') ||
+              expectedOutcome.contains('syntax error')) {
             if (collector.errors.isEmpty) {
               print('$testFileName: Missing compile-time error.');
               unexpectedResult = true;

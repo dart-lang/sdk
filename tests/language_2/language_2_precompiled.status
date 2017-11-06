@@ -768,7 +768,6 @@ return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
-setter_override2_test/none: CompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -983,7 +982,6 @@ type_check_const_function_typedef2_test: MissingCompileTimeError
 [ $runtime == dart_precompiled && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
 setter4_test: MissingCompileTimeError
-setter_override2_test/none: CompileTimeError
 
 [ $runtime == dart_precompiled && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.

@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 class C {
   // illegal: var cannot follow final
-  final var a = 0;// //# 00: compile-time error
+  final var a = 0;// //# 00: syntax error
   // illegal: final field declaration, must be initialized
   final a; // //# 01: compile-time error
   final a = 0; // //# none: ok

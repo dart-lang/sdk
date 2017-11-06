@@ -55,7 +55,6 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
-get_set_syntax_test/none: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 import_private_test/01: MissingCompileTimeError # Issue 29920
@@ -122,7 +121,6 @@ regress_22443_test: RuntimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_23408_test: CompileTimeError
 regress_27617_test/1: MissingCompileTimeError
-setter_override2_test/none: CompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError # Issue 31089
 string_interpolate_test: CompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920

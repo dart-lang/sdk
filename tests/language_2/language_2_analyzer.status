@@ -913,7 +913,6 @@ generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_test: StaticWarning
 generics_test: StaticWarning
-get_set_syntax_test/none: Fail # Issue 11575
 getter_declaration_negative_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 import_core_prefix_test: StaticWarning
@@ -1122,7 +1121,6 @@ prefix15_negative_test: CompileTimeError, OK
 prefix18_negative_test: CompileTimeError, OK
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
-setter_override2_test/none: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 string_unicode1_negative_test: CompileTimeError
 string_unicode2_negative_test: CompileTimeError
@@ -1469,7 +1467,6 @@ setter4_test: MissingCompileTimeError
 setter_no_getter_call_test/01: StaticWarning
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
-setter_override2_test/none: CompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError

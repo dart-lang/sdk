@@ -13,8 +13,8 @@ main() {
   Expect.isTrue(0x10 is int);
   Expect.isTrue(-0x10 is int);
   // "a" will be part of hex literal, the following "s" is an error.
-  0x10as int; //# 01: compile-time error
-  0x; //# 04: compile-time error
+  0x10as int; //# 01: syntax error
+  0x; //# 04: syntax error
 
   // Double literals.
   Expect.isTrue(2.0 is double);
@@ -30,12 +30,12 @@ main() {
   Expect.isTrue(1e+2 is double);
   Expect.equals(1e+2, 1e+2 as double);
   Expect.throwsNoSuchMethodError(() => 1.e+2); //# 05: compile-time error
-  1d; //# 06: compile-time error
-  1D; //# 07: compile-time error
+  1d; //# 06: syntax error
+  1D; //# 07: syntax error
   Expect.throwsNoSuchMethodError(() => 1.d+2); //# 08: compile-time error
   Expect.throwsNoSuchMethodError(() => 1.D+2); //# 09: compile-time error
-  1.1d; //# 10: compile-time error
-  1.1D; //# 11: compile-time error
-  1e; //# 02: compile-time error
-  1x; //# 03: compile-time error
+  1.1d; //# 10: syntax error
+  1.1D; //# 11: syntax error
+  1e; //# 02: syntax error
+  1x; //# 03: syntax error
 }

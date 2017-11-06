@@ -8,16 +8,16 @@ class A {
   A(this.x) {}
 
   // Redirecting constructor must not have a function body.
-  A.illegalBody(x) : this(3) {} //     //# 01: compile-time error
+  A.illegalBody(x) : this(3) {} //     //# 01: syntax error
 
   // Redirecting constructor must not initialize any fields.
-  A.illegalInit() : this(3), x = 5; // //# 02: compile-time error
+  A.illegalInit() : this(3), x = 5; // //# 02: syntax error
 
   // Redirecting constructor must not have initializing formal parameters.
   A.illegalFormal(this.x) : this(3); // //# 03: compile-time error
 
   // Redirection constructors must not call super constructor.
-  A.illegalSuper() : this(3), super(3); // //# 04: compile-time error
+  A.illegalSuper() : this(3), super(3); // //# 04: syntax error
 }
 
 main() {

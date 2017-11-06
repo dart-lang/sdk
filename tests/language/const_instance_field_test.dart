@@ -5,7 +5,7 @@
 // Test that const instance fields are compile-time errors.
 
 class C {
-  const field = 0; //# 01: compile-time error
+  const field = 0; //# 01: syntax error
 }
 
 void main() {

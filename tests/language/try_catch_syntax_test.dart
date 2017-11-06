@@ -12,13 +12,13 @@ main() {
 }
 
 testMissingCatch() {
-  try { } // //# 01: compile-time error
+  try { } // //# 01: syntax error
 }
 
 testMissingTry() {
-  on Exception catch (e) { } //                  //# 02: compile-time error
-  on Exception catch (e, trace) { } //           //# 03: compile-time error
-  finally { } //                                 //# 04: compile-time error
+  on Exception catch (e) { } //                  //# 02: syntax error
+  on Exception catch (e, trace) { } //           //# 03: syntax error
+  finally { } //                                 //# 04: syntax error
 }
 
 testDuplicateCatchVariable() {
@@ -26,19 +26,19 @@ testDuplicateCatchVariable() {
 }
 
 testIllegalFinally() {
-  try { } finally (e) { } //# 06: compile-time error
+  try { } finally (e) { } //# 06: syntax error
 }
 
 testIllegalCatch() {
-  try { } catch () { } //             //# 07: compile-time error
+  try { } catch () { } //             //# 07: syntax error
   try { } on MammaMia catch (e) { } //# 08: static type warning
-  try { } catch (var e) { } //        //# 09: compile-time error
-  try { } catch (final e) { } //      //# 10: compile-time error
-  try { } catch (int e) { } //        //# 11: compile-time error
-  try { } catch (final int e) { } //  //# 12: compile-time error
-  try { } catch ([e, s]) { } //       //# 13: compile-time error
-  try { } catch (e, [s]) { } //       //# 14: compile-time error
-  try { } catch (e, [s0, s1]) { } //  //# 15: compile-time error
+  try { } catch (var e) { } //        //# 09: syntax error
+  try { } catch (final e) { } //      //# 10: syntax error
+  try { } catch (int e) { } //        //# 11: syntax error
+  try { } catch (final int e) { } //  //# 12: syntax error
+  try { } catch ([e, s]) { } //       //# 13: syntax error
+  try { } catch (e, [s]) { } //       //# 14: syntax error
+  try { } catch (e, [s0, s1]) { } //  //# 15: syntax error
 }
 
 testIllegalRethrow() {

@@ -171,234 +171,234 @@ void testCalls() {
 
 // Invalid syntax. This was invalid syntax before the addition of trailing
 // commas too, and should stay that way.
-void topBadEmpty(,) {} //                          //# 1: compile-time error
-void topBadStart(, a) {} //                        //# 2: compile-time error
-void topBadEnd(a,,) {} //                          //# 3: compile-time error
-void topBadMiddle(a,, b) {} //                     //# 4: compile-time error
-void topBadPosEmpty([]) {} //                      //# 5: compile-time error
-void topBadPosEmpty(,[]) {} //                     //# 6: compile-time error
-void topBadPosEmpty([,]) {} //                     //# 7: compile-time error
-void topBadPosEmpty([],) {} //                     //# 8: compile-time error
-void topBadPosStart(,[a]) {} //                    //# 9: compile-time error
-void topBadPosStart([, a]) {} //                   //# 10: compile-time error
-void topBadPosEnd([a,,]) {} //                     //# 11: compile-time error
-void topBadPosStart([a],) {} //                    //# 12: compile-time error
-void topBadPosMiddle([a,, b]) {} //                //# 13: compile-time error
-void topBadNamEmpty({}) {} //                      //# 14: compile-time error
-void topBadNamEmpty(,{}) {} //                     //# 15: compile-time error
-void topBadNamEmpty({,}) {} //                     //# 16: compile-time error
-void topBadNamEmpty({},) {} //                     //# 17: compile-time error
-void topBadNamStart(,{a}) {} //                    //# 18: compile-time error
-void topBadNamStart({, a}) {} //                   //# 19: compile-time error
-void topBadNamEnd({a,,}) {} //                     //# 20: compile-time error
-void topBadNamStart({a},) {} //                    //# 21: compile-time error
-void topBadNamMiddle({a,, b}) {} //                //# 22: compile-time error
-void set topSetBadEmpty(,) {} //                   //# 23: compile-time error
-void set topSetBadStart(, a) {} //                 //# 24: compile-time error
-void set topSetBadEnd(a,,) {} //                   //# 25: compile-time error
-void set topSetBadMiddle(a,, b) {} //              //# 26: compile-time error
+void topBadEmpty(,) {} //                          //# 1: syntax error
+void topBadStart(, a) {} //                        //# 2: syntax error
+void topBadEnd(a,,) {} //                          //# 3: syntax error
+void topBadMiddle(a,, b) {} //                     //# 4: syntax error
+void topBadPosEmpty([]) {} //                      //# 5: syntax error
+void topBadPosEmpty(,[]) {} //                     //# 6: syntax error
+void topBadPosEmpty([,]) {} //                     //# 7: syntax error
+void topBadPosEmpty([],) {} //                     //# 8: syntax error
+void topBadPosStart(,[a]) {} //                    //# 9: syntax error
+void topBadPosStart([, a]) {} //                   //# 10: syntax error
+void topBadPosEnd([a,,]) {} //                     //# 11: syntax error
+void topBadPosStart([a],) {} //                    //# 12: syntax error
+void topBadPosMiddle([a,, b]) {} //                //# 13: syntax error
+void topBadNamEmpty({}) {} //                      //# 14: syntax error
+void topBadNamEmpty(,{}) {} //                     //# 15: syntax error
+void topBadNamEmpty({,}) {} //                     //# 16: syntax error
+void topBadNamEmpty({},) {} //                     //# 17: syntax error
+void topBadNamStart(,{a}) {} //                    //# 18: syntax error
+void topBadNamStart({, a}) {} //                   //# 19: syntax error
+void topBadNamEnd({a,,}) {} //                     //# 20: syntax error
+void topBadNamStart({a},) {} //                    //# 21: syntax error
+void topBadNamMiddle({a,, b}) {} //                //# 22: syntax error
+void set topSetBadEmpty(,) {} //                   //# 23: syntax error
+void set topSetBadStart(, a) {} //                 //# 24: syntax error
+void set topSetBadEnd(a,,) {} //                   //# 25: syntax error
+void set topSetBadMiddle(a,, b) {} //              //# 26: syntax error
 class Bad {
   Bad() {}
-  Bad.empty(,) {} //                               //# 27: compile-time error
-  Bad.start(, a) {} //                             //# 28: compile-time error
-  Bad.end(a,,) {} //                               //# 29: compile-time error
-  Bad.middle(a,, b) {} //                          //# 30: compile-time error
-  Bad.posEmpty([]) {} //                           //# 31: compile-time error
-  Bad.posEmpty(,[]) {} //                          //# 32: compile-time error
-  Bad.posEmpty([,]) {} //                          //# 33: compile-time error
-  Bad.posEmpty([],) {} //                          //# 34: compile-time error
-  Bad.posStart(,[a]) {} //                         //# 35: compile-time error
-  Bad.posStart([, a]) {} //                        //# 36: compile-time error
-  Bad.posEnd([a,,]) {} //                          //# 37: compile-time error
-  Bad.posStart([a],) {} //                         //# 38: compile-time error
-  Bad.PosMiddle([a,, b]) {} //                     //# 39: compile-time error
-  Bad.namEmpty({}) {} //                           //# 40: compile-time error
-  Bad.namEmpty(,{}) {} //                          //# 41: compile-time error
-  Bad.namEmpty({,}) {} //                          //# 42: compile-time error
-  Bad.namEmpty({},) {} //                          //# 43: compile-time error
-  Bad.namStart(,{a}) {} //                         //# 44: compile-time error
-  Bad.namStart({, a}) {} //                        //# 45: compile-time error
-  Bad.namEnd({a,,}) {} //                          //# 46: compile-time error
-  Bad.namStart({a},) {} //                         //# 47: compile-time error
-  Bad.namMiddle({a,, b}) {} //                     //# 48: compile-time error
-  static void staticBadEmpty(,) {} //              //# 49: compile-time error
-  static void staticBadStart(, a) {} //            //# 50: compile-time error
-  static void staticBadEnd(a,,) {} //              //# 51: compile-time error
-  static void staticBadMiddle(a,, b) {} //         //# 52: compile-time error
-  static void staticBadPosEmpty([]) {} //          //# 53: compile-time error
-  static void staticBadPosEmpty(,[]) {} //         //# 54: compile-time error
-  static void staticBadPosEmpty([,]) {} //         //# 55: compile-time error
-  static void staticBadPosEmpty([],) {} //         //# 56: compile-time error
-  static void staticBadPosStart(,[a]) {} //        //# 57: compile-time error
-  static void staticBadPosStart([, a]) {} //       //# 58: compile-time error
-  static void staticBadPosEnd([a,,]) {} //         //# 59: compile-time error
-  static void staticBadPosStart([a],) {} //        //# 60: compile-time error
-  static void staticBadPosMiddle([a,, b]) {} //    //# 61: compile-time error
-  static void staticBadNamEmpty({}) {} //          //# 62: compile-time error
-  static void staticBadNamEmpty(,{}) {} //         //# 63: compile-time error
-  static void staticBadNamEmpty({,}) {} //         //# 64: compile-time error
-  static void staticBadNamEmpty({},) {} //         //# 65: compile-time error
-  static void staticBadNamStart(,{a}) {} //        //# 66: compile-time error
-  static void staticBadNamStart({, a}) {} //       //# 67: compile-time error
-  static void staticBadNamEnd({a,,}) {} //         //# 68: compile-time error
-  static void staticBadNamStart({a},) {} //        //# 69: compile-time error
-  static void staticBadNamMiddle({a,, b}) {} //    //# 70: compile-time error
-  static void set staticSetBadEmpty(,) {} //       //# 71: compile-time error
-  static void set staticSetBadStart(, a) {} //     //# 72: compile-time error
-  static void set staticSetBadEnd(a,,) {} //       //# 73: compile-time error
-  static void set staticSetBadMiddle(a,, b) {} //  //# 74: compile-time error
-  void instanceBadEmpty(,) {} //                   //# 75: compile-time error
-  void instanceBadStart(, a) {} //                 //# 76: compile-time error
-  void instanceBadEnd(a,,) {} //                   //# 77: compile-time error
-  void instanceBadMiddle(a,, b) {} //              //# 78: compile-time error
-  void instanceBadPosEmpty([]) {} //               //# 79: compile-time error
-  void instanceBadPosEmpty(,[]) {} //              //# 80: compile-time error
-  void instanceBadPosEmpty([,]) {} //              //# 81: compile-time error
-  void instanceBadPosEmpty([],) {} //              //# 82: compile-time error
-  void instanceBadPosStart(,[a]) {} //             //# 83: compile-time error
-  void instanceBadPosStart([, a]) {} //            //# 84: compile-time error
-  void instanceBadPosEnd([a,,]) {} //              //# 85: compile-time error
-  void instanceBadPosStart([a],) {} //             //# 86: compile-time error
-  void instanceBadPosMiddle([a,, b]) {} //         //# 87: compile-time error
-  void instanceBadNamEmpty({}) {} //               //# 88: compile-time error
-  void instanceBadNamEmpty(,{}) {} //              //# 89: compile-time error
-  void instanceBadNamEmpty({,}) {} //              //# 90: compile-time error
-  void instanceBadNamEmpty({},) {} //              //# 91: compile-time error
-  void instanceBadNamStart(,{a}) {} //             //# 92: compile-time error
-  void instanceBadNamStart({, a}) {} //            //# 93: compile-time error
-  void instanceBadNamEnd({a,,}) {} //              //# 94: compile-time error
-  void instanceBadNamStart({a},) {} //             //# 95: compile-time error
-  void instanceBadNamMiddle({a,, b}) {} //         //# 96: compile-time error
-  void set instanceSetBadEmpty(,) {} //            //# 97: compile-time error
-  void set instanceSetBadStart(, a) {} //          //# 98: compile-time error
-  void set instanceSetBadEnd(a,,) {} //            //# 99: compile-time error
-  void set instanceSetBadMiddle(a,, b) {} //       //# 100: compile-time error
-  void operator *(,); //                           //# 101: compile-time error
-  void operator *(, a); //                         //# 102: compile-time error
-  void operator *(a,,); //                         //# 103: compile-time error
-  void operator []=(, a); //                       //# 104: compile-time error
-  void operator []=(a,,); //                       //# 105: compile-time error
-  void operator []=(a,, b); //                     //# 106: compile-time error
+  Bad.empty(,) {} //                               //# 27: syntax error
+  Bad.start(, a) {} //                             //# 28: syntax error
+  Bad.end(a,,) {} //                               //# 29: syntax error
+  Bad.middle(a,, b) {} //                          //# 30: syntax error
+  Bad.posEmpty([]) {} //                           //# 31: syntax error
+  Bad.posEmpty(,[]) {} //                          //# 32: syntax error
+  Bad.posEmpty([,]) {} //                          //# 33: syntax error
+  Bad.posEmpty([],) {} //                          //# 34: syntax error
+  Bad.posStart(,[a]) {} //                         //# 35: syntax error
+  Bad.posStart([, a]) {} //                        //# 36: syntax error
+  Bad.posEnd([a,,]) {} //                          //# 37: syntax error
+  Bad.posStart([a],) {} //                         //# 38: syntax error
+  Bad.PosMiddle([a,, b]) {} //                     //# 39: syntax error
+  Bad.namEmpty({}) {} //                           //# 40: syntax error
+  Bad.namEmpty(,{}) {} //                          //# 41: syntax error
+  Bad.namEmpty({,}) {} //                          //# 42: syntax error
+  Bad.namEmpty({},) {} //                          //# 43: syntax error
+  Bad.namStart(,{a}) {} //                         //# 44: syntax error
+  Bad.namStart({, a}) {} //                        //# 45: syntax error
+  Bad.namEnd({a,,}) {} //                          //# 46: syntax error
+  Bad.namStart({a},) {} //                         //# 47: syntax error
+  Bad.namMiddle({a,, b}) {} //                     //# 48: syntax error
+  static void staticBadEmpty(,) {} //              //# 49: syntax error
+  static void staticBadStart(, a) {} //            //# 50: syntax error
+  static void staticBadEnd(a,,) {} //              //# 51: syntax error
+  static void staticBadMiddle(a,, b) {} //         //# 52: syntax error
+  static void staticBadPosEmpty([]) {} //          //# 53: syntax error
+  static void staticBadPosEmpty(,[]) {} //         //# 54: syntax error
+  static void staticBadPosEmpty([,]) {} //         //# 55: syntax error
+  static void staticBadPosEmpty([],) {} //         //# 56: syntax error
+  static void staticBadPosStart(,[a]) {} //        //# 57: syntax error
+  static void staticBadPosStart([, a]) {} //       //# 58: syntax error
+  static void staticBadPosEnd([a,,]) {} //         //# 59: syntax error
+  static void staticBadPosStart([a],) {} //        //# 60: syntax error
+  static void staticBadPosMiddle([a,, b]) {} //    //# 61: syntax error
+  static void staticBadNamEmpty({}) {} //          //# 62: syntax error
+  static void staticBadNamEmpty(,{}) {} //         //# 63: syntax error
+  static void staticBadNamEmpty({,}) {} //         //# 64: syntax error
+  static void staticBadNamEmpty({},) {} //         //# 65: syntax error
+  static void staticBadNamStart(,{a}) {} //        //# 66: syntax error
+  static void staticBadNamStart({, a}) {} //       //# 67: syntax error
+  static void staticBadNamEnd({a,,}) {} //         //# 68: syntax error
+  static void staticBadNamStart({a},) {} //        //# 69: syntax error
+  static void staticBadNamMiddle({a,, b}) {} //    //# 70: syntax error
+  static void set staticSetBadEmpty(,) {} //       //# 71: syntax error
+  static void set staticSetBadStart(, a) {} //     //# 72: syntax error
+  static void set staticSetBadEnd(a,,) {} //       //# 73: syntax error
+  static void set staticSetBadMiddle(a,, b) {} //  //# 74: syntax error
+  void instanceBadEmpty(,) {} //                   //# 75: syntax error
+  void instanceBadStart(, a) {} //                 //# 76: syntax error
+  void instanceBadEnd(a,,) {} //                   //# 77: syntax error
+  void instanceBadMiddle(a,, b) {} //              //# 78: syntax error
+  void instanceBadPosEmpty([]) {} //               //# 79: syntax error
+  void instanceBadPosEmpty(,[]) {} //              //# 80: syntax error
+  void instanceBadPosEmpty([,]) {} //              //# 81: syntax error
+  void instanceBadPosEmpty([],) {} //              //# 82: syntax error
+  void instanceBadPosStart(,[a]) {} //             //# 83: syntax error
+  void instanceBadPosStart([, a]) {} //            //# 84: syntax error
+  void instanceBadPosEnd([a,,]) {} //              //# 85: syntax error
+  void instanceBadPosStart([a],) {} //             //# 86: syntax error
+  void instanceBadPosMiddle([a,, b]) {} //         //# 87: syntax error
+  void instanceBadNamEmpty({}) {} //               //# 88: syntax error
+  void instanceBadNamEmpty(,{}) {} //              //# 89: syntax error
+  void instanceBadNamEmpty({,}) {} //              //# 90: syntax error
+  void instanceBadNamEmpty({},) {} //              //# 91: syntax error
+  void instanceBadNamStart(,{a}) {} //             //# 92: syntax error
+  void instanceBadNamStart({, a}) {} //            //# 93: syntax error
+  void instanceBadNamEnd({a,,}) {} //              //# 94: syntax error
+  void instanceBadNamStart({a},) {} //             //# 95: syntax error
+  void instanceBadNamMiddle({a,, b}) {} //         //# 96: syntax error
+  void set instanceSetBadEmpty(,) {} //            //# 97: syntax error
+  void set instanceSetBadStart(, a) {} //          //# 98: syntax error
+  void set instanceSetBadEnd(a,,) {} //            //# 99: syntax error
+  void set instanceSetBadMiddle(a,, b) {} //       //# 100: syntax error
+  void operator *(,); //                           //# 101: syntax error
+  void operator *(, a); //                         //# 102: syntax error
+  void operator *(a,,); //                         //# 103: syntax error
+  void operator []=(, a); //                       //# 104: syntax error
+  void operator []=(a,,); //                       //# 105: syntax error
+  void operator []=(a,, b); //                     //# 106: syntax error
   void operator []=(a,); //                        //# 107: compile-time error
 
   method() {
     // Local methods.
-    void localBadEmpty(,) {} //                    //# 108: compile-time error
-    void localBadStart(, a) {} //                  //# 109: compile-time error
-    void localBadEnd(a,,) {} //                    //# 110: compile-time error
-    void localBadMiddle(a,, b) {} //               //# 111: compile-time error
-    void localBadPosEmpty([]) {} //                //# 112: compile-time error
-    void localBadPosEmpty(,[]) {} //               //# 113: compile-time error
-    void localBadPosEmpty([,]) {} //               //# 114: compile-time error
-    void localBadPosEmpty([],) {} //               //# 115: compile-time error
-    void localBadPosStart(,[a]) {} //              //# 116: compile-time error
-    void localBadPosStart([, a]) {} //             //# 117: compile-time error
-    void localBadPosEnd([a,,]) {} //               //# 118: compile-time error
-    void localBadPosStart([a],) {} //              //# 119: compile-time error
-    void localBadPosMiddle([a,, b]) {} //          //# 120: compile-time error
-    void localBadNamEmpty({}) {} //                //# 121: compile-time error
-    void localBadNamEmpty(,{}) {} //               //# 122: compile-time error
-    void localBadNamEmpty({,}) {} //               //# 123: compile-time error
-    void localBadNamEmpty({},) {} //               //# 124: compile-time error
-    void localBadNamStart(,{a}) {} //              //# 125: compile-time error
-    void localBadNamStart({, a}) {} //             //# 126: compile-time error
-    void localBadNamEnd({a,,}) {} //               //# 127: compile-time error
-    void localBadNamStart({a},) {} //              //# 128: compile-time error
-    void localBadNamMiddle({a,, b}) {} //          //# 129: compile-time error
+    void localBadEmpty(,) {} //                    //# 108: syntax error
+    void localBadStart(, a) {} //                  //# 109: syntax error
+    void localBadEnd(a,,) {} //                    //# 110: syntax error
+    void localBadMiddle(a,, b) {} //               //# 111: syntax error
+    void localBadPosEmpty([]) {} //                //# 112: syntax error
+    void localBadPosEmpty(,[]) {} //               //# 113: syntax error
+    void localBadPosEmpty([,]) {} //               //# 114: syntax error
+    void localBadPosEmpty([],) {} //               //# 115: syntax error
+    void localBadPosStart(,[a]) {} //              //# 116: syntax error
+    void localBadPosStart([, a]) {} //             //# 117: syntax error
+    void localBadPosEnd([a,,]) {} //               //# 118: syntax error
+    void localBadPosStart([a],) {} //              //# 119: syntax error
+    void localBadPosMiddle([a,, b]) {} //          //# 120: syntax error
+    void localBadNamEmpty({}) {} //                //# 121: syntax error
+    void localBadNamEmpty(,{}) {} //               //# 122: syntax error
+    void localBadNamEmpty({,}) {} //               //# 123: syntax error
+    void localBadNamEmpty({},) {} //               //# 124: syntax error
+    void localBadNamStart(,{a}) {} //              //# 125: syntax error
+    void localBadNamStart({, a}) {} //             //# 126: syntax error
+    void localBadNamEnd({a,,}) {} //               //# 127: syntax error
+    void localBadNamStart({a},) {} //              //# 128: syntax error
+    void localBadNamMiddle({a,, b}) {} //          //# 129: syntax error
 
     // invalid calls.
 
-    topx(,); //                                    //# 130: compile-time error
-    topy(,); //                                    //# 131: compile-time error
-    topz(,); //                                    //# 132: compile-time error
-    topx(, x); //                                  //# 133: compile-time error
-    topz(, z:z); //                                //# 134: compile-time error
-    topxy(x,, y); //                               //# 135: compile-time error
-    topxz(x,, z:z); //                             //# 136: compile-time error
-    topx(x,,); //                                  //# 137: compile-time error
-    topz(z:z,,); //                                //# 138: compile-time error
+    topx(,); //                                    //# 130: syntax error
+    topy(,); //                                    //# 131: syntax error
+    topz(,); //                                    //# 132: syntax error
+    topx(, x); //                                  //# 133: syntax error
+    topz(, z:z); //                                //# 134: syntax error
+    topxy(x,, y); //                               //# 135: syntax error
+    topxz(x,, z:z); //                             //# 136: syntax error
+    topx(x,,); //                                  //# 137: syntax error
+    topz(z:z,,); //                                //# 138: syntax error
 
-    new C.x(,); //                                 //# 139: compile-time error
-    new C.y(,); //                                 //# 140: compile-time error
-    new C.z(,); //                                 //# 141: compile-time error
-    new C.x(, x); //                               //# 142: compile-time error
-    new C.z(, z:z); //                             //# 143: compile-time error
-    new C.xy(x,, y); //                            //# 144: compile-time error
-    new C.xz(x,, z:z); //                          //# 145: compile-time error
-    new C.x(x,,); //                               //# 146: compile-time error
-    new C.z(z:z,,); //                             //# 147: compile-time error
+    new C.x(,); //                                 //# 139: syntax error
+    new C.y(,); //                                 //# 140: syntax error
+    new C.z(,); //                                 //# 141: syntax error
+    new C.x(, x); //                               //# 142: syntax error
+    new C.z(, z:z); //                             //# 143: syntax error
+    new C.xy(x,, y); //                            //# 144: syntax error
+    new C.xz(x,, z:z); //                          //# 145: syntax error
+    new C.x(x,,); //                               //# 146: syntax error
+    new C.z(z:z,,); //                             //# 147: syntax error
 
-    C.staticx(,); //                               //# 148: compile-time error
-    C.staticy(,); //                               //# 149: compile-time error
-    C.staticz(,); //                               //# 150: compile-time error
-    C.staticx(, x); //                             //# 151: compile-time error
-    C.staticz(, z:z); //                           //# 152: compile-time error
-    C.staticxy(x,, y); //                          //# 153: compile-time error
-    C.staticxz(x,, z:z); //                        //# 154: compile-time error
-    C.staticx(x,,); //                             //# 155: compile-time error
-    C.staticz(z:z,,); //                           //# 156: compile-time error
+    C.staticx(,); //                               //# 148: syntax error
+    C.staticy(,); //                               //# 149: syntax error
+    C.staticz(,); //                               //# 150: syntax error
+    C.staticx(, x); //                             //# 151: syntax error
+    C.staticz(, z:z); //                           //# 152: syntax error
+    C.staticxy(x,, y); //                          //# 153: syntax error
+    C.staticxz(x,, z:z); //                        //# 154: syntax error
+    C.staticx(x,,); //                             //# 155: syntax error
+    C.staticz(z:z,,); //                           //# 156: syntax error
 
-    c.instancex(,); //                             //# 157: compile-time error
-    c.instancey(,); //                             //# 158: compile-time error
-    c.instancez(,); //                             //# 159: compile-time error
-    c.instancex(, x); //                           //# 160: compile-time error
-    c.instancez(, z:z); //                         //# 161: compile-time error
-    c.instancexy(x,, y); //                        //# 162: compile-time error
-    c.instancexz(x,, z:z); //                      //# 163: compile-time error
-    c.instancex(x,,); //                           //# 164: compile-time error
-    c.instancez(z:z,,); //                         //# 165: compile-time error
+    c.instancex(,); //                             //# 157: syntax error
+    c.instancey(,); //                             //# 158: syntax error
+    c.instancez(,); //                             //# 159: syntax error
+    c.instancex(, x); //                           //# 160: syntax error
+    c.instancez(, z:z); //                         //# 161: syntax error
+    c.instancexy(x,, y); //                        //# 162: syntax error
+    c.instancexz(x,, z:z); //                      //# 163: syntax error
+    c.instancex(x,,); //                           //# 164: syntax error
+    c.instancez(z:z,,); //                         //# 165: syntax error
 
-    c[x,] = y; //                                  //# 166: compile-time error
+    c[x,] = y; //                                  //# 166: syntax error
   }
 
   // As parameters:
-  void f(void topBadEmpty(,)) {} //                //# 167: compile-time error
-  void f(void topBadStart(, a)) {} //              //# 168: compile-time error
-  void f(void topBadEnd(a,,)) {} //                //# 169: compile-time error
-  void f(void topBadMiddle(a,, b)) {} //           //# 170: compile-time error
-  void f(void topBadPosEmpty([])) {} //            //# 171: compile-time error
-  void f(void topBadPosEmpty(,[])) {} //           //# 172: compile-time error
-  void f(void topBadPosEmpty([,])) {} //           //# 173: compile-time error
-  void f(void topBadPosEmpty([],)) {} //           //# 174: compile-time error
-  void f(void topBadPosStart(,[a])) {} //          //# 175: compile-time error
-  void f(void topBadPosStart([, a])) {} //         //# 176: compile-time error
-  void f(void topBadPosEnd([a,,])) {} //           //# 177: compile-time error
-  void f(void topBadPosStart([a],)) {} //          //# 178: compile-time error
-  void f(void topBadPosMiddle([a,, b])) {} //      //# 179: compile-time error
-  void f(void topBadNamEmpty({})) {} //            //# 180: compile-time error
-  void f(void topBadNamEmpty(,{})) {} //           //# 181: compile-time error
-  void f(void topBadNamEmpty({,})) {} //           //# 182: compile-time error
-  void f(void topBadNamEmpty({},)) {} //           //# 183: compile-time error
-  void f(void topBadNamStart(,{a})) {} //          //# 184: compile-time error
-  void f(void topBadNamStart({, a})) {} //         //# 185: compile-time error
-  void f(void topBadNamEnd({a,,})) {} //           //# 186: compile-time error
-  void f(void topBadNamStart({a},)) {} //          //# 187: compile-time error
-  void f(void topBadNamMiddle({a,, b})) {} //      //# 188: compile-time error
+  void f(void topBadEmpty(,)) {} //                //# 167: syntax error
+  void f(void topBadStart(, a)) {} //              //# 168: syntax error
+  void f(void topBadEnd(a,,)) {} //                //# 169: syntax error
+  void f(void topBadMiddle(a,, b)) {} //           //# 170: syntax error
+  void f(void topBadPosEmpty([])) {} //            //# 171: syntax error
+  void f(void topBadPosEmpty(,[])) {} //           //# 172: syntax error
+  void f(void topBadPosEmpty([,])) {} //           //# 173: syntax error
+  void f(void topBadPosEmpty([],)) {} //           //# 174: syntax error
+  void f(void topBadPosStart(,[a])) {} //          //# 175: syntax error
+  void f(void topBadPosStart([, a])) {} //         //# 176: syntax error
+  void f(void topBadPosEnd([a,,])) {} //           //# 177: syntax error
+  void f(void topBadPosStart([a],)) {} //          //# 178: syntax error
+  void f(void topBadPosMiddle([a,, b])) {} //      //# 179: syntax error
+  void f(void topBadNamEmpty({})) {} //            //# 180: syntax error
+  void f(void topBadNamEmpty(,{})) {} //           //# 181: syntax error
+  void f(void topBadNamEmpty({,})) {} //           //# 182: syntax error
+  void f(void topBadNamEmpty({},)) {} //           //# 183: syntax error
+  void f(void topBadNamStart(,{a})) {} //          //# 184: syntax error
+  void f(void topBadNamStart({, a})) {} //         //# 185: syntax error
+  void f(void topBadNamEnd({a,,})) {} //           //# 186: syntax error
+  void f(void topBadNamStart({a},)) {} //          //# 187: syntax error
+  void f(void topBadNamMiddle({a,, b})) {} //      //# 188: syntax error
 }
 
 // As typedefs
-typedef void BadEmpty(,); //                       //# 189: compile-time error
-typedef void BadStart(, a); //                     //# 190: compile-time error
-typedef void BadEnd(a,,); //                       //# 191: compile-time error
-typedef void BadMiddle(a,, b); //                  //# 192: compile-time error
-typedef void BadPosEmpty([]); //                   //# 193: compile-time error
-typedef void BadPosEmpty(,[]); //                  //# 194: compile-time error
-typedef void BadPosEmpty([,]); //                  //# 195: compile-time error
-typedef void BadPosEmpty([],); //                  //# 196: compile-time error
-typedef void BadPosStart(,[a]); //                 //# 197: compile-time error
-typedef void BadPosStart([, a]); //                //# 198: compile-time error
-typedef void BadPosEnd([a,,]); //                  //# 199: compile-time error
-typedef void BadPosStart([a],); //                 //# 200: compile-time error
-typedef void BadPosMiddle([a,, b]); //             //# 201: compile-time error
-typedef void BadNamEmpty({}); //                   //# 202: compile-time error
-typedef void BadNamEmpty(,{}); //                  //# 203: compile-time error
-typedef void BadNamEmpty({,}); //                  //# 204: compile-time error
-typedef void BadNamEmpty({},); //                  //# 205: compile-time error
-typedef void BadNamStart(,{a}); //                 //# 206: compile-time error
-typedef void BadNamStart({, a}); //                //# 207: compile-time error
-typedef void BadNamEnd({a,,}); //                  //# 208: compile-time error
-typedef void BadNamStart({a},); //                 //# 209: compile-time error
-typedef void BadNamMiddle({a,, b}); //             //# 210: compile-time error
+typedef void BadEmpty(,); //                       //# 189: syntax error
+typedef void BadStart(, a); //                     //# 190: syntax error
+typedef void BadEnd(a,,); //                       //# 191: syntax error
+typedef void BadMiddle(a,, b); //                  //# 192: syntax error
+typedef void BadPosEmpty([]); //                   //# 193: syntax error
+typedef void BadPosEmpty(,[]); //                  //# 194: syntax error
+typedef void BadPosEmpty([,]); //                  //# 195: syntax error
+typedef void BadPosEmpty([],); //                  //# 196: syntax error
+typedef void BadPosStart(,[a]); //                 //# 197: syntax error
+typedef void BadPosStart([, a]); //                //# 198: syntax error
+typedef void BadPosEnd([a,,]); //                  //# 199: syntax error
+typedef void BadPosStart([a],); //                 //# 200: syntax error
+typedef void BadPosMiddle([a,, b]); //             //# 201: syntax error
+typedef void BadNamEmpty({}); //                   //# 202: syntax error
+typedef void BadNamEmpty(,{}); //                  //# 203: syntax error
+typedef void BadNamEmpty({,}); //                  //# 204: syntax error
+typedef void BadNamEmpty({},); //                  //# 205: syntax error
+typedef void BadNamStart(,{a}); //                 //# 206: syntax error
+typedef void BadNamStart({, a}); //                //# 207: syntax error
+typedef void BadNamEnd({a,,}); //                  //# 208: syntax error
+typedef void BadNamStart({a},); //                 //# 209: syntax error
+typedef void BadNamMiddle({a,, b}); //             //# 210: syntax error
 
 void testBadCalls() {
   topBadEmpty(); //                                //# 1: continued
@@ -514,49 +514,49 @@ void testBadCalls() {
   // This covers tests 108-166
   bad.method();
 
-  bad.f(() {}); //                                 //# 167: compile-time error
-  bad.f(() {}); //                                 //# 168: compile-time error
-  bad.f(() {}); //                                 //# 169: compile-time error
-  bad.f(() {}); //                                 //# 170: compile-time error
-  bad.f(() {}); //                                 //# 171: compile-time error
-  bad.f(() {}); //                                 //# 172: compile-time error
-  bad.f(() {}); //                                 //# 173: compile-time error
-  bad.f(() {}); //                                 //# 174: compile-time error
-  bad.f(() {}); //                                 //# 175: compile-time error
-  bad.f(() {}); //                                 //# 176: compile-time error
-  bad.f(() {}); //                                 //# 177: compile-time error
-  bad.f(() {}); //                                 //# 178: compile-time error
-  bad.f(() {}); //                                 //# 179: compile-time error
-  bad.f(() {}); //                                 //# 180: compile-time error
-  bad.f(() {}); //                                 //# 181: compile-time error
-  bad.f(() {}); //                                 //# 182: compile-time error
-  bad.f(() {}); //                                 //# 183: compile-time error
-  bad.f(() {}); //                                 //# 184: compile-time error
-  bad.f(() {}); //                                 //# 185: compile-time error
-  bad.f(() {}); //                                 //# 186: compile-time error
-  bad.f(() {}); //                                 //# 187: compile-time error
-  bad.f(() {}); //                                 //# 188: compile-time error
+  bad.f(() {}); //                                 //# 167: continued
+  bad.f(() {}); //                                 //# 168: continued
+  bad.f(() {}); //                                 //# 169: continued
+  bad.f(() {}); //                                 //# 170: continued
+  bad.f(() {}); //                                 //# 171: continued
+  bad.f(() {}); //                                 //# 172: continued
+  bad.f(() {}); //                                 //# 173: continued
+  bad.f(() {}); //                                 //# 174: continued
+  bad.f(() {}); //                                 //# 175: continued
+  bad.f(() {}); //                                 //# 176: continued
+  bad.f(() {}); //                                 //# 177: continued
+  bad.f(() {}); //                                 //# 178: continued
+  bad.f(() {}); //                                 //# 179: continued
+  bad.f(() {}); //                                 //# 180: continued
+  bad.f(() {}); //                                 //# 181: continued
+  bad.f(() {}); //                                 //# 182: continued
+  bad.f(() {}); //                                 //# 183: continued
+  bad.f(() {}); //                                 //# 184: continued
+  bad.f(() {}); //                                 //# 185: continued
+  bad.f(() {}); //                                 //# 186: continued
+  bad.f(() {}); //                                 //# 187: continued
+  bad.f(() {}); //                                 //# 188: continued
 
-  BadEmpty x; //                                   //# 189: compile-time error
-  BadStart x; //                                   //# 190: compile-time error
-  BadEnd x; //                                     //# 191: compile-time error
-  BadMiddle x; //                                  //# 192: compile-time error
-  BadPosEmpty x; //                                //# 193: compile-time error
-  BadPosEmpty x; //                                //# 194: compile-time error
-  BadPosEmpty x; //                                //# 195: compile-time error
-  BadPosEmpty x; //                                //# 196: compile-time error
-  BadPosStart x; //                                //# 197: compile-time error
-  BadPosStart x; //                                //# 198: compile-time error
-  BadPosEnd x; //                                  //# 199: compile-time error
-  BadPosStart x; //                                //# 200: compile-time error
-  BadPosMiddle x; //                               //# 201: compile-time error
-  BadNamEmpty x; //                                //# 202: compile-time error
-  BadNamEmpty x; //                                //# 203: compile-time error
-  BadNamEmpty x; //                                //# 204: compile-time error
-  BadNamEmpty x; //                                //# 205: compile-time error
-  BadNamStart x; //                                //# 206: compile-time error
-  BadNamStart x; //                                //# 207: compile-time error
-  BadNamEnd x; //                                  //# 208: compile-time error
-  BadNamStart x; //                                //# 209: compile-time error
-  BadNamMiddle x; //                               //# 210: compile-time error
+  BadEmpty x; //                                   //# 189: continued
+  BadStart x; //                                   //# 190: continued
+  BadEnd x; //                                     //# 191: continued
+  BadMiddle x; //                                  //# 192: continued
+  BadPosEmpty x; //                                //# 193: continued
+  BadPosEmpty x; //                                //# 194: continued
+  BadPosEmpty x; //                                //# 195: continued
+  BadPosEmpty x; //                                //# 196: continued
+  BadPosStart x; //                                //# 197: continued
+  BadPosStart x; //                                //# 198: continued
+  BadPosEnd x; //                                  //# 199: continued
+  BadPosStart x; //                                //# 200: continued
+  BadPosMiddle x; //                               //# 201: continued
+  BadNamEmpty x; //                                //# 202: continued
+  BadNamEmpty x; //                                //# 203: continued
+  BadNamEmpty x; //                                //# 204: continued
+  BadNamEmpty x; //                                //# 205: continued
+  BadNamStart x; //                                //# 206: continued
+  BadNamStart x; //                                //# 207: continued
+  BadNamEnd x; //                                  //# 208: continued
+  BadNamStart x; //                                //# 209: continued
+  BadNamMiddle x; //                               //# 210: continued
 }

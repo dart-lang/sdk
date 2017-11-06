@@ -7,7 +7,7 @@ class A {
   static A(); // //# 00: compile-time error
 
   // Factory may not be static.
-  static factory A() { return null; } // //# 01: compile-time error
+  static factory A() { return null; } // //# 01: syntax error
 
   // Named constructor may not conflict with names of methods and fields.
   var m;

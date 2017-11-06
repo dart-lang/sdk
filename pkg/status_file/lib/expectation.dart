@@ -46,11 +46,21 @@ class Expectation {
   static final Expectation compileTimeError =
       new Expectation._('CompileTimeError', group: fail);
 
+  /// The test was parsed by the spec_parser, and there was a syntax error.
+  static final Expectation syntaxError =
+      new Expectation._('SyntaxError', group: fail);
+
   /// The test itself contains a comment with `@runtime-error` in it,
   /// indicating it should have produced a runtime error when run. But when it
   /// was run, the test completed without error.
   static final Expectation missingRuntimeError =
       new Expectation._('MissingRuntimeError', group: fail);
+
+  /// The test itself contains a comment with `@syntax-error` in it,
+  /// indicating it should have produced a syntax error when compiled. But when
+  /// it was compiled, no error was reported.
+  static final Expectation missingSyntaxError =
+      new Expectation._('MissingSyntaxError', group: fail);
 
   /// The test itself contains a comment with `@compile-error` in it,
   /// indicating it should have produced an error when compiled. But when it

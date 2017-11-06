@@ -5,11 +5,11 @@
 // Regression test for issue 23051.
 
 main() {
-  new A(); //                                //# 01: compile-time error
+  new A(); //                                //# 01: continued
 }
 
 class A { //                                 //# 01: continued
   // Note the trailing ' in the next line.   //# 01: continued
-  get foo => bar();' //                      //# 01: continued
+  get foo => bar();' //                      //# 01: syntax error
   //                                         //# 01: continued
   String bar( //                             //# 01: continued

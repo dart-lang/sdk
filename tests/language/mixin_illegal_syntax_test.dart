@@ -10,22 +10,22 @@ class G<T> {}
 class M {}
 
 class T = S with M;
-typedef T0 = S with M; //        //# 00: compile-time error
+typedef T0 = S with M; //        //# 00: syntax error
 abstract class TA = S with M;
-class T1 = final S with M; //    //# 01: compile-time error
-class T2 = var S with M; //      //# 02: compile-time error
-class T3 = const S with M; //    //# 03: compile-time error
-class T4 = static S with M; //   //# 04: compile-time error
-class T5 = external S with M; // //# 05: compile-time error
+class T1 = final S with M; //    //# 01: syntax error
+class T2 = var S with M; //      //# 02: syntax error
+class T3 = const S with M; //    //# 03: syntax error
+class T4 = static S with M; //   //# 04: syntax error
+class T5 = external S with M; // //# 05: syntax error
 class T6 = G<int> with M;
 class T7 = G<Map<String, int>> with M;
 
-class C0 extends abstract S with M { } // //# 06: compile-time error
-class C1 extends final S with M { } //    //# 07: compile-time error
-class C2 extends var S with M { } //      //# 08: compile-time error
-class C3 extends const S with M { } //    //# 09: compile-time error
-class C4 extends static S with M { } //   //# 10: compile-time error
-class C5 extends external S with M { } // //# 11: compile-time error
+class C0 extends abstract S with M { } // //# 06: syntax error
+class C1 extends final S with M { } //    //# 07: syntax error
+class C2 extends var S with M { } //      //# 08: syntax error
+class C3 extends const S with M { } //    //# 09: syntax error
+class C4 extends static S with M { } //   //# 10: syntax error
+class C5 extends external S with M { } // //# 11: syntax error
 class C6 extends G<int> with M {}
 
 class C7 extends G<Map<String, int>> with M {}
@@ -33,13 +33,13 @@ class C7 extends G<Map<String, int>> with M {}
 class D0 extends S
     with
         M
-    implements M // //# 12: compile-time error
+    implements M // //# 12: syntax error
     implements
         M {}
 
 class D1 extends T {}
 
-class X = S; //  //# 14: compile-time error
+class X = S; //  //# 14: syntax error
 
 main() {
   new T();

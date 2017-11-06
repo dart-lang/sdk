@@ -10,7 +10,7 @@ class A {
 class B {
   const B() : n = 5;
   final n;
-  static const a; // //# 02: compile-time error
+  static const a; // //# 02: syntax error
   static const b = 3 + 5;
 }
 

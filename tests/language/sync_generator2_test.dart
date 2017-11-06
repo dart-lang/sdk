@@ -13,18 +13,18 @@ var await = "topLevelAwait";
 var yield = "topLevelYield";
 
 test01() sync* {
-  var yield = 0; // //# 01: compile-time error
-  var await = 0; // //# 02: compile-time error
-  var async = 0; // //# 03: compile-time error
-  bool yield() => false; //# 04: compile-time error
-  bool await() => false; //# 05: compile-time error
-  bool async() => false; //# 06: compile-time error
+  var yield = 0; // //# 01: syntax error
+  var await = 0; // //# 02: syntax error
+  var async = 0; // //# 03: syntax error
+  bool yield() => false; //# 04: syntax error
+  bool await() => false; //# 05: syntax error
+  bool async() => false; //# 06: syntax error
 
   var x1 = sync;
-  var x2 = async; // //# 07: compile-time error
-  var x3 = await; // //# 08: compile-time error
+  var x2 = async; // //# 07: syntax error
+  var x3 = await; // //# 08: syntax error
   var x4 = await 55; // //# 09: compile-time error
-  var x4 = yield; // //# 10: compile-time error
+  var x4 = yield; // //# 10: syntax error
 
   var stream = new Stream.fromIterable([1, 2, 3]);
   await for (var e in stream) print(e); //  //# 11: compile-time error
@@ -35,15 +35,15 @@ test02() sync* {
   return null; // //# 20: compile-time error
 }
 
-test03() sync* => null; //  //# 30: compile-time error
+test03() sync* => null; //  //# 30: syntax error
 
-get test04 sync* => null; // //# 40: compile-time error
+get test04 sync* => null; // //# 40: syntax error
 set test04(a) sync* { print(a); } // //# 41: compile-time error
 
 class K {
-  K() sync* {}; // //# 50: compile-time error
+  K() sync* {} // //# 50: compile-time error
   get nix sync* {}
-  get garnix sync* => null; // //# 51: compile-time error
+  get garnix sync* => null; // //# 51: syntax error
   set etwas(var z) sync* { } // //# 52: compile-time error
   sync() sync* {
     yield sync; // Yields a tear-off of the sync() method.

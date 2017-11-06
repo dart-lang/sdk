@@ -7,6 +7,6 @@ main() {
 }
 
 class ClassSyntaxTest {
-  /* //# 01: compile-time error
+  /* //# 01: syntax error
 }
 */ //# 01: continued
