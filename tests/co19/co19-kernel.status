@@ -63,6 +63,7 @@ Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/cla
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: RuntimeError # Issue 31288
 Language/Expressions/This/placement_t04: MissingCompileTimeError
 Language/Expressions/Throw/syntax_t02: MissingCompileTimeError
 Language/Expressions/Type_Test/evaluation_t10: RuntimeError # Kernel Issue 28335 (deferred libraries)
