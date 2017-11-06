@@ -12,6 +12,7 @@ import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/constant_system.dart';
+import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
@@ -73,6 +74,31 @@ class JsBackendStrategy implements KernelBackendStrategy {
         new JsClosedWorldBuilder(_elementMap, _closureDataLookup);
     return closedWorldBuilder._convertClosedWorld(
         closedWorld, strategy.closureModels);
+  }
+
+  @override
+  OutputUnitData convertOutputUnitData(OutputUnitData data) {
+    JsToFrontendMapImpl map = new JsToFrontendMapImpl(_elementMap);
+
+    // TODO(sigmund): make this more flexible to support scenarios where we have
+    // a 1-n mapping (a k-entity that maps to multiple j-entities).
+    Entity toBackendEntity(Entity entity) {
+      if (entity is ClassEntity) return map.toBackendClass(entity);
+      if (entity is MemberEntity) return map.toBackendMember(entity);
+      if (entity is TypeVariableEntity) {
+        return map.toBackendTypeVariable(entity);
+      }
+      if (entity is Local) {
+        // TODO(sigmund): ensure we don't store locals in OuputUnitData
+        return entity;
+      }
+      assert(
+          entity is LibraryEntity, 'unexpected entity ${entity.runtimeType}');
+      return map.toBackendLibrary(entity);
+    }
+
+    return new OutputUnitData.from(data,
+        (m) => convertMap<Entity, OutputUnit>(m, toBackendEntity, (v) => v));
   }
 
   @override

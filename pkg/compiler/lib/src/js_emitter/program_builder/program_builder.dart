@@ -13,7 +13,8 @@ import '../../common/names.dart' show Names, Selectors;
 import '../../constants/values.dart'
     show ConstantValue, InterceptorConstantValue;
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import '../../deferred_load.dart'
+    show DeferredLoadTask, OutputUnit, OutputUnitData;
 import '../../elements/elements.dart'
     show ClassElement, FieldElement, LibraryElement, MethodElement;
 import '../../elements/entities.dart';
@@ -67,6 +68,7 @@ class ProgramBuilder {
   final CommonElements _commonElements;
   final DartTypes _types;
   final DeferredLoadTask _deferredLoadTask;
+  final OutputUnitData _outputUnitData;
   final ClosureConversionTask _closureDataLookup;
   final CodegenWorldBuilder _worldBuilder;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -113,6 +115,7 @@ class ProgramBuilder {
       this._commonElements,
       this._types,
       this._deferredLoadTask,
+      this._outputUnitData,
       this._closureDataLookup,
       this._worldBuilder,
       this._nativeCodegenEnqueuer,
@@ -142,7 +145,7 @@ class ProgramBuilder {
             _options,
             _commonElements,
             _elementEnvironment,
-            _deferredLoadTask,
+            _outputUnitData,
             _worldBuilder,
             _namer,
             _task.emitter,
@@ -155,7 +158,7 @@ class ProgramBuilder {
             rtiNeededClasses,
             _generatedCode,
             _sorter),
-        this._registry = new Registry(_deferredLoadTask, _sorter);
+        this._registry = new Registry(_outputUnitData.mainOutputUnit, _sorter);
 
   /// Mapping from [ClassEntity] to constructed [Class]. We need this to
   /// update the superclass in the [Class].
@@ -455,7 +458,7 @@ class ProgramBuilder {
     Iterable<FieldEntity> lazyFields = _constantHandler
         .getLazilyInitializedFieldsForEmission()
         .where((FieldEntity element) =>
-            _deferredLoadTask.outputUnitForMember(element) ==
+            _outputUnitData.outputUnitForMember(element) ==
             librariesMap.outputUnit);
     return _sorter
         .sortMembers(lazyFields)
@@ -685,7 +688,7 @@ class ProgramBuilder {
         _types,
         _closedWorld,
         _closureDataLookup,
-        _deferredLoadTask,
+        _outputUnitData,
         _task,
         _namer,
         _nativeData,
@@ -934,7 +937,7 @@ class ProgramBuilder {
     DartType memberType = _elementEnvironment.getFunctionType(element);
     js.Expression functionType;
     if (canTearOff || canBeReflected) {
-      OutputUnit outputUnit = _deferredLoadTask.outputUnitForMember(element);
+      OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
       functionType = _generateFunctionType(memberType, outputUnit);
     }
 
@@ -1141,7 +1144,7 @@ class ProgramBuilder {
     js.Expression functionType;
     DartType type = _elementEnvironment.getFunctionType(element);
     if (needsTearOff || canBeReflected) {
-      OutputUnit outputUnit = _deferredLoadTask.outputUnitForMember(element);
+      OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
       functionType = _generateFunctionType(type, outputUnit);
     }
 

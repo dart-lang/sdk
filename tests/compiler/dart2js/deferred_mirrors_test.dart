@@ -30,9 +30,8 @@ runTests() async {
   await runTest('memory:main.dart', (compiler) {
     var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
-    compiler.deferredLoadTask.onResolutionComplete(
-        main, compiler.resolutionWorldBuilder.closedWorldForTesting);
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
 
     var lib1 = lookupLibrary(compiler, "memory:lib1.dart");
     var lib2 = lookupLibrary(compiler, "memory:lib2.dart");
@@ -54,9 +53,8 @@ runTests() async {
   await runTest('memory:main3.dart', (compiler) {
     var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
-    compiler.deferredLoadTask.onResolutionComplete(
-        main, compiler.resolutionWorldBuilder.closedWorldForTesting);
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
 
     Expect.isFalse(compiler.backend.mirrorsData.hasInsufficientMirrorsUsed);
     var mainLib = lookupLibrary(compiler, "memory:main3.dart");
@@ -70,9 +68,8 @@ runTests() async {
   await runTest('memory:main4.dart', (compiler) {
     var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
-    compiler.deferredLoadTask.onResolutionComplete(
-        main, compiler.resolutionWorldBuilder.closedWorldForTesting);
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
 
     lookupLibrary(compiler, "memory:main4.dart");
     lookupLibrary(compiler, "memory:lib4.dart");

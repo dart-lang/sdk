@@ -14,7 +14,7 @@ class Collector {
   final CompilerOptions _options;
   final CommonElements _commonElements;
   final ElementEnvironment _elementEnvironment;
-  final DeferredLoadTask _deferredLoadTask;
+  final OutputUnitData _outputUnitData;
   final CodegenWorldBuilder _worldBuilder;
   // TODO(floitsch): the code-emitter task should not need a namer.
   final Namer _namer;
@@ -56,7 +56,7 @@ class Collector {
       this._options,
       this._commonElements,
       this._elementEnvironment,
-      this._deferredLoadTask,
+      this._outputUnitData,
       this._worldBuilder,
       this._namer,
       this._emitter,
@@ -178,13 +178,12 @@ class Collector {
 
       if (constant.isList) outputContainsConstantList = true;
 
-      OutputUnit constantUnit =
-          _deferredLoadTask.outputUnitForConstant(constant);
+      OutputUnit constantUnit = _outputUnitData.outputUnitForConstant(constant);
       if (constantUnit == null) {
         // The back-end introduces some constants, like "InterceptorConstant" or
         // some list constants. They are emitted in the main output-unit.
         // TODO(sigurdm): We should track those constants.
-        constantUnit = _deferredLoadTask.mainOutputUnit;
+        constantUnit = _outputUnitData.mainOutputUnit;
       }
       outputConstantLists
           .putIfAbsent(constantUnit, () => new List<ConstantValue>())
@@ -277,14 +276,14 @@ class Collector {
           !classesOnlyNeededForRti.contains(cls)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(cls);
-        assert(!_deferredLoadTask.isDeferredClass(cls), failedAt(cls));
+        assert(!_outputUnitData.isDeferredClass(cls), failedAt(cls));
         outputClassLists
             .putIfAbsent(
-                _deferredLoadTask.mainOutputUnit, () => new List<ClassEntity>())
+                _outputUnitData.mainOutputUnit, () => new List<ClassEntity>())
             .add(cls);
       } else {
         outputClassLists
-            .putIfAbsent(_deferredLoadTask.outputUnitForClass(cls),
+            .putIfAbsent(_outputUnitData.outputUnitForClass(cls),
                 () => new List<ClassEntity>())
             .add(cls);
       }
@@ -300,7 +299,7 @@ class Collector {
 
     for (MemberEntity member in _sorter.sortMembers(elements)) {
       List<MemberEntity> list = outputStaticLists.putIfAbsent(
-          _deferredLoadTask.outputUnitForMember(member),
+          _outputUnitData.outputUnitForMember(member),
           () => new List<MemberEntity>());
       list.add(member);
     }
@@ -310,7 +309,7 @@ class Collector {
     addToOutputUnit(FieldEntity element) {
       List<FieldEntity> list = outputStaticNonFinalFieldLists.putIfAbsent(
           // ignore: UNNECESSARY_CAST
-          _deferredLoadTask.outputUnitForMember(element as MemberEntity),
+          _outputUnitData.outputUnitForMember(element as MemberEntity),
           () => new List<FieldEntity>());
       list.add(element);
     }
@@ -334,14 +333,14 @@ class Collector {
 
   void computeNeededLibraries() {
     _generatedCode.keys.forEach((MemberEntity element) {
-      OutputUnit unit = _deferredLoadTask.outputUnitForMember(element);
+      OutputUnit unit = _outputUnitData.outputUnitForMember(element);
       LibraryEntity library = element.library;
       outputLibraryLists
           .putIfAbsent(unit, () => new Set<LibraryEntity>())
           .add(library);
     });
     neededClasses.forEach((ClassEntity element) {
-      OutputUnit unit = _deferredLoadTask.outputUnitForClass(element);
+      OutputUnit unit = _outputUnitData.outputUnitForClass(element);
       LibraryEntity library = element.library;
       outputLibraryLists
           .putIfAbsent(unit, () => new Set<LibraryEntity>())

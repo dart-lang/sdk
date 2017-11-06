@@ -359,12 +359,12 @@ class ElementInfoCollector {
 
   OutputUnitInfo _unitInfoForEntity(Entity entity) {
     return _infoFromOutputUnit(
-        compiler.deferredLoadTask.outputUnitForEntity(entity));
+        compiler.backend.outputUnitData.outputUnitForEntity(entity));
   }
 
   OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForConstant(constant);
+        compiler.backend.outputUnitData.outputUnitForConstant(constant);
     if (outputUnit == null) {
       assert(constant is InterceptorConstantValue);
       return null;

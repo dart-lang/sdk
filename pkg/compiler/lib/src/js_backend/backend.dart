@@ -16,7 +16,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../deferred_load.dart' show DeferredLoadTask;
+import '../deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -415,6 +415,8 @@ class JavaScriptBackend {
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageBuilder _backendUsageBuilder;
   MirrorsDataImpl _mirrorsData;
+  OutputUnitData _outputUnitData;
+
   CheckedModeHelpers _checkedModeHelpers;
 
   final SuperMemberData superMemberData = new SuperMemberData();
@@ -498,6 +500,8 @@ class JavaScriptBackend {
   MirrorsData get mirrorsData => _mirrorsData;
 
   MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
+
+  OutputUnitData get outputUnitData => _outputUnitData;
 
   /// Resolution support for computing reflectable elements.
   MirrorsResolutionAnalysis get mirrorsResolutionAnalysis =>
@@ -644,6 +648,10 @@ class JavaScriptBackend {
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     mirrorsResolutionAnalysis.onResolutionComplete();
+  }
+
+  void onDeferredLoadComplete(OutputUnitData data) {
+    _outputUnitData = compiler.backendStrategy.convertOutputUnitData(data);
   }
 
   void onTypeInferenceComplete(GlobalTypeInferenceResults results) {

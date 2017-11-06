@@ -23,7 +23,7 @@ import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
-import 'deferred_load.dart' show DeferredLoadTask;
+import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'diagnostics/invariant.dart' show REPORT_EXCESS_RESOLUTION;
@@ -666,7 +666,8 @@ abstract class Compiler {
     // require the information computed in [world.closeWorld].)
     backend.onResolutionClosedWorld(closedWorld, closedWorldRefiner);
 
-    deferredLoadTask.onResolutionComplete(mainFunction, closedWorld);
+    OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
+    backend.onDeferredLoadComplete(result);
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.

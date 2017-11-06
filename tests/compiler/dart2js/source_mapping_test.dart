@@ -25,7 +25,8 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
     full.Emitter fullEmitter = backend.emitter.emitter;
     // CodeOutput isn't assignable to CodeBuffer.
     // ignore: RETURN_OF_INVALID_TYPE
-    return fullEmitter.outputBuffers[compiler.deferredLoadTask.mainOutputUnit];
+    return fullEmitter
+        .outputBuffers[compiler.backend.outputUnitData.mainOutputUnit];
   });
 }
 

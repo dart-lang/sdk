@@ -132,13 +132,11 @@ class DeferredLoadTask extends CompilerTask {
   /// this map.
   final Map<ImportElement, String> _importDeferName = <ImportElement, String>{};
 
-  /// A mapping from elements and constants to their output unit. Query this via
-  /// [outputUnitForEntity]
-  final Map<Entity, ImportSet> _elementToSet = new Map<Entity, ImportSet>();
+  /// A mapping from elements and constants to their import set.
+  Map<Entity, ImportSet> _elementToSet = new Map<Entity, ImportSet>();
 
-  /// A mapping from constants to their output unit. Query this via
-  /// [outputUnitForConstant]
-  final Map<ConstantValue, ImportSet> _constantToSet =
+  /// A mapping from constants to their import set.
+  Map<ConstantValue, ImportSet> _constantToSet =
       new Map<ConstantValue, ImportSet>();
 
   Iterable<ImportElement> get _allDeferredImports =>
@@ -164,60 +162,6 @@ class DeferredLoadTask extends CompilerTask {
   JavaScriptBackend get backend => compiler.backend;
   DiagnosticReporter get reporter => compiler.reporter;
 
-  /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForEntity(Entity entity) {
-    // TODO(johnniwinther): Support use of entities by splitting maps by
-    // entity kind.
-    if (!isProgramSplit) return mainOutputUnit;
-    Element element = entity;
-    element = element.implementation;
-    while (!_elementToSet.containsKey(element)) {
-      // TODO(21051): workaround: it looks like we output annotation constants
-      // for classes that we don't include in the output. This seems to happen
-      // when we have reflection but can see that some classes are not needed.
-      // We still add the annotation but don't run through it below (where we
-      // assign every element to its output unit).
-      if (element.enclosingElement == null) {
-        _elementToSet[element] = importSets.mainSet;
-        break;
-      }
-      element = element.enclosingElement.implementation;
-    }
-    return _elementToSet[element].unit;
-  }
-
-  /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForClass(ClassEntity element) {
-    return outputUnitForEntity(element);
-  }
-
-  /// Returns the [OutputUnit] where [element] belongs.
-  OutputUnit outputUnitForMember(MemberEntity element) {
-    return outputUnitForEntity(element);
-  }
-
-  /// Direct access to the output-unit to element relation used for testing.
-  OutputUnit getOutputUnitForElementForTesting(Entity element) {
-    return _elementToSet[element]?.unit;
-  }
-
-  /// Returns the [OutputUnit] where [constant] belongs.
-  OutputUnit outputUnitForConstant(ConstantValue constant) {
-    if (!isProgramSplit) return mainOutputUnit;
-    return _constantToSet[constant]?.unit;
-  }
-
-  /// Direct access to the output-unit to constants map used for testing.
-  Iterable<ConstantValue> get constantsForTesting => _constantToSet.keys;
-
-  bool isDeferred(Entity element) {
-    return outputUnitForEntity(element) != mainOutputUnit;
-  }
-
-  bool isDeferredClass(ClassEntity element) {
-    return outputUnitForEntity(element) != mainOutputUnit;
-  }
-
   /// Returns the unique name for the deferred import of [prefix].
   String getImportDeferName(Spannable node, PrefixElement prefix) {
     String name = _importDeferName[prefix.deferredImport];
@@ -230,20 +174,6 @@ class DeferredLoadTask extends CompilerTask {
   /// Returns the names associated with each deferred import in [unit].
   Iterable<String> getImportNames(OutputUnit unit) {
     return unit._imports.map((i) => _importDeferName[i]);
-  }
-
-  /// Returns `true` if element [to] is reachable from element [from] without
-  /// crossing a deferred import.
-  ///
-  /// For example, if we have two deferred libraries `A` and `B` that both
-  /// import a library `C`, then even though elements from `A` and `C` end up in
-  /// different output units, there is a non-deferred path between `A` and `C`.
-  bool hasOnlyNonDeferredImportPaths(Entity from, Entity to) {
-    OutputUnit outputUnitFrom = outputUnitForEntity(from);
-    OutputUnit outputUnitTo = outputUnitForEntity(to);
-    if (outputUnitTo == mainOutputUnit) return true;
-    if (outputUnitFrom == mainOutputUnit) return false;
-    return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
   }
 
   void registerConstantDeferredUse(
@@ -817,9 +747,8 @@ class DeferredLoadTask extends CompilerTask {
   /// TODO(sigmund): investigate different heuristics for how to select the next
   /// work item (e.g. we might converge faster if we pick first the update that
   /// contains a bigger delta.)
-  void onResolutionComplete(FunctionEntity main, ClosedWorld closedWorld) {
-    if (!isProgramSplit) return;
-    if (main == null) return;
+  OutputUnitData run(FunctionEntity main, ClosedWorld closedWorld) {
+    if (!isProgramSplit || main == null) return _buildResult();
 
     work() {
       var queue = new WorkQueue(this.importSets);
@@ -876,6 +805,19 @@ class DeferredLoadTask extends CompilerTask {
     // Notify that we no longer need impacts for deferred load, so they can be
     // discarded at this time.
     compiler.impactStrategy.onImpactUsed(IMPACT_USE);
+    return _buildResult();
+  }
+
+  OutputUnitData _buildResult() {
+    Map<Entity, OutputUnit> entityMap = <Entity, OutputUnit>{};
+    Map<ConstantValue, OutputUnit> constantMap = <ConstantValue, OutputUnit>{};
+    _elementToSet.forEach((entity, s) => entityMap[entity] = s.unit);
+    _constantToSet.forEach((constant, s) => constantMap[constant] = s.unit);
+
+    _elementToSet = null;
+    _constantToSet = null;
+    return new OutputUnitData(this.isProgramSplit, this.mainOutputUnit,
+        entityMap, constantMap, importSets);
   }
 
   void beforeResolution(LibraryEntity mainLibrary) {
@@ -1390,4 +1332,109 @@ String _computeImportDeferName(ImportElement declaration, Compiler compiler) {
   }
   assert(result != null);
   return result;
+}
+
+/// Results of the deferred loading algorithm.
+///
+/// Provides information about the output unit associated with entities and
+/// constants, as well as other helper methods.
+// TODO(sigmund): consider moving here every piece of data used as a result of
+// deferred loading (including hunksToLoad, etc).
+class OutputUnitData {
+  final bool isProgramSplit;
+  final OutputUnit mainOutputUnit;
+  final Map<Entity, OutputUnit> _entityToUnit;
+  final Map<ConstantValue, OutputUnit> _constantToUnit;
+  final ImportSetLattice _importSets;
+
+  OutputUnitData(this.isProgramSplit, this.mainOutputUnit, this._entityToUnit,
+      this._constantToUnit, this._importSets);
+
+  OutputUnitData.from(OutputUnitData other,
+      Map<Entity, OutputUnit> Function(Map<Entity, OutputUnit>) convertMap)
+      : isProgramSplit = other.isProgramSplit,
+        mainOutputUnit = other.mainOutputUnit,
+        _entityToUnit = convertMap(other._entityToUnit),
+        _constantToUnit = other._constantToUnit,
+        _importSets = other._importSets;
+
+  /// Returns the [OutputUnit] where [entity] belongs.
+  OutputUnit outputUnitForEntity(Entity entity) {
+    // TODO(johnniwinther): Support use of entities by splitting maps by
+    // entity kind.
+    if (!isProgramSplit) return mainOutputUnit;
+    Element element = entity;
+    element = element.implementation;
+    while (!_entityToUnit.containsKey(element)) {
+      // TODO(21051): workaround: it looks like we output annotation constants
+      // for classes that we don't include in the output. This seems to happen
+      // when we have reflection but can see that some classes are not needed.
+      // We still add the annotation but don't run through it below (where we
+      // assign every element to its output unit).
+      if (element.enclosingElement == null) {
+        _entityToUnit[element] = mainOutputUnit;
+        break;
+      }
+      element = element.enclosingElement.implementation;
+    }
+    return _entityToUnit[element];
+  }
+
+  /// Direct access to the output-unit to element relation used for testing.
+  OutputUnit outputUnitForEntityForTesting(Entity entity) {
+    return _entityToUnit[entity];
+  }
+
+  /// Direct access to the output-unit to constants map used for testing.
+  Iterable<ConstantValue> get constantsForTesting => _constantToUnit.keys;
+
+  /// Returns the [OutputUnit] where [element] belongs.
+  OutputUnit outputUnitForClass(ClassEntity element) {
+    return outputUnitForEntity(element);
+  }
+
+  /// Returns the [OutputUnit] where [element] belongs.
+  OutputUnit outputUnitForMember(MemberEntity element) {
+    return outputUnitForEntity(element);
+  }
+
+  /// Returns the [OutputUnit] where [constant] belongs.
+  OutputUnit outputUnitForConstant(ConstantValue constant) {
+    if (!isProgramSplit) return mainOutputUnit;
+    return _constantToUnit[constant];
+  }
+
+  /// Indicates whether [element] is deferred.
+  bool isDeferred(Entity element) {
+    return outputUnitForEntity(element) != mainOutputUnit;
+  }
+
+  /// Indicates whether [element] is deferred.
+  bool isDeferredClass(ClassEntity element) {
+    return outputUnitForEntity(element) != mainOutputUnit;
+  }
+
+  /// Returns `true` if element [to] is reachable from element [from] without
+  /// crossing a deferred import.
+  ///
+  /// For example, if we have two deferred libraries `A` and `B` that both
+  /// import a library `C`, then even though elements from `A` and `C` end up in
+  /// different output units, there is a non-deferred path between `A` and `C`.
+  bool hasOnlyNonDeferredImportPaths(Entity from, Entity to) {
+    OutputUnit outputUnitFrom = outputUnitForEntity(from);
+    OutputUnit outputUnitTo = outputUnitForEntity(to);
+    if (outputUnitTo == mainOutputUnit) return true;
+    if (outputUnitFrom == mainOutputUnit) return false;
+    return outputUnitTo._imports.containsAll(outputUnitFrom._imports);
+  }
+
+  /// Registers that a constant is used in a deferred library.
+  void registerConstantDeferredUse(
+      DeferredConstantValue constant, PrefixElement prefix) {
+    if (!isProgramSplit) return;
+    var unit = _importSets.singleton(prefix.deferredImport).unit;
+    assert(
+        _constantToUnit[constant] == null || _constantToUnit[constant] == unit);
+    _constantToUnit[constant] = unit;
+  }
 }

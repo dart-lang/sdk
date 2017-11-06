@@ -16,7 +16,7 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../../deferred_load.dart' show OutputUnit;
+import '../../deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
 import '../../elements/types.dart';
@@ -118,6 +118,7 @@ class Emitter extends js_emitter.EmitterBase {
   CommonElements get commonElements => _closedWorld.commonElements;
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
   CodegenWorldBuilder get _worldBuilder => compiler.codegenWorldBuilder;
+  OutputUnitData get _outputUnitData => compiler.backend.outputUnitData;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -175,7 +176,7 @@ class Emitter extends js_emitter.EmitterBase {
         interceptorEmitter = new InterceptorEmitter(_closedWorld),
         nsmEmitter = new NsmEmitter(_closedWorld),
         _sorter = sorter,
-        containerBuilder = new ContainerBuilder(compiler.deferredLoadTask),
+        containerBuilder = new ContainerBuilder(),
         _constantOrdering = new ConstantOrdering(sorter) {
     constantEmitter = new ConstantEmitter(
         compiler.options,
@@ -632,7 +633,7 @@ class Emitter extends js_emitter.EmitterBase {
           [namer.globalPropertyNameForMember(element), initialValue]);
     }
 
-    bool inMainUnit = (outputUnit == compiler.deferredLoadTask.mainOutputUnit);
+    bool inMainUnit = (outputUnit == _outputUnitData.mainOutputUnit);
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
     Iterable<FieldEntity> fields = outputStaticNonFinalFieldLists[outputUnit];
@@ -738,7 +739,7 @@ class Emitter extends js_emitter.EmitterBase {
     jsAst.Expression metadata = program.metadataForOutputUnit(outputUnit);
     jsAst.Expression types = program.metadataTypesForOutputUnit(outputUnit);
 
-    if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
+    if (outputUnit == _outputUnitData.mainOutputUnit) {
       jsAst.Expression metadataAccess =
           generateEmbeddedGlobalAccess(embeddedNames.METADATA);
       jsAst.Expression typesAccess =
@@ -1670,8 +1671,8 @@ class Emitter extends js_emitter.EmitterBase {
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
               .contains(cls) &&
           !_nativeData.isNativeClass(cls) &&
-          compiler.deferredLoadTask.outputUnitForMember(element) ==
-              compiler.deferredLoadTask.outputUnitForClass(cls)) {
+          _outputUnitData.outputUnitForMember(element) ==
+              _outputUnitData.outputUnitForClass(cls)) {
         return classDescriptors
             .putIfAbsent(fragment, () => new Map<ClassEntity, ClassBuilder>())
             .putIfAbsent(cls, () {

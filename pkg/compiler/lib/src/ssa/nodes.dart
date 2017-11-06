@@ -280,7 +280,8 @@ class HGraph {
     // TODO(sigurdm,johnniwinther): These deferred constants should be created
     // by the constant evaluator.
     ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
-    compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
+    compiler.backend.outputUnitData
+        .registerConstantDeferredUse(wrapper, prefix);
     return addConstant(wrapper, closedWorld,
         sourceInformation: sourceInformation);
   }

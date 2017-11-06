@@ -532,7 +532,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
       // Don't inline across deferred import to prevent leaking code. The only
       // exception is an empty function (which does not contain code).
-      bool hasOnlyNonDeferredImportPaths = deferredLoadTask
+      bool hasOnlyNonDeferredImportPaths = backend.outputUnitData
           .hasOnlyNonDeferredImportPaths(compiler.currentElement, function);
 
       if (!hasOnlyNonDeferredImportPaths) {
