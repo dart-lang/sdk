@@ -11,8 +11,7 @@ const _desc = r'Avoid using `as`.';
 
 const _details = r'''
 
-From the [flutter style guide]
-(https://github.com/flutter/engine/blob/master/sky/specs/style-guide.md):
+From the [flutter style guide](https://github.com/flutter/engine/blob/master/sky/specs/style-guide.md):
 
 **AVOID** using `as`.
 

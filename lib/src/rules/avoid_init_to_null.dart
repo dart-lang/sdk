@@ -11,8 +11,7 @@ const _desc = r"Don't explicitly initialize variables to null.";
 
 const _details = r'''
 
-From [effective dart]
-(https://www.dartlang.org/effective-dart/usage/#dont-explicitly-initialize-variables-to-null):
+From [effective dart](https://www.dartlang.org/effective-dart/usage/#dont-explicitly-initialize-variables-to-null):
 
 **DON'T** explicitly initialize variables to null.
 

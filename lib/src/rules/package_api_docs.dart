@@ -13,8 +13,7 @@ const _details = r'''
 
 **DO** provide doc comments for all public APIs.
 
-As described in the [pub package layout doc]
-(https://www.dartlang.org/tools/pub/package-layout.html#implementation-files),
+As described in the [pub package layout doc](https://www.dartlang.org/tools/pub/package-layout.html#implementation-files),
 public APIs consist in everything in your package's `lib` folder, minus
 implementation files in `lib/src`, adding elements explicitly exported with an
 `export` directive.
@@ -55,8 +54,7 @@ class Bar {
 ```
 
 Advice for writing good doc comments can be found in the
-[Doc Writing Guidelines]
-(https://www.dartlang.org/articles/doc-comment-guidelines).
+[Doc Writing Guidelines](https://www.dartlang.org/articles/doc-comment-guidelines).
 
 ''';
 
