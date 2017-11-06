@@ -11,6 +11,8 @@ import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../common_elements.dart';
+import '../compiler.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -37,6 +39,7 @@ import '../universe/class_hierarchy_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
+import 'deferred_load.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 
@@ -87,6 +90,10 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   AnnotationProcessor get annotationProcesser => _annotationProcesser ??=
       new KernelAnnotationProcessor(elementMap, nativeBasicDataBuilder);
+
+  @override
+  DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
+      new KernelDeferredLoadTask(compiler);
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {

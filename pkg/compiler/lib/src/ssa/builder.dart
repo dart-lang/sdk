@@ -32,6 +32,7 @@ import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
+import '../resolution/deferred_load.dart' show AstDeferredLoadTask;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
@@ -186,6 +187,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   final JavaScriptBackend backend;
 
   Compiler get compiler => backend.compiler;
+
+  AstDeferredLoadTask get deferredLoadTask => super.deferredLoadTask;
 
   final ConstantSystem constantSystem;
   final RuntimeTypesSubstitutions rtiSubstitutions;

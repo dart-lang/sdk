@@ -17,6 +17,7 @@ import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
@@ -46,6 +47,8 @@ import '../universe/class_hierarchy_builder.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
+
+import 'deferred_load.dart';
 import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
@@ -98,6 +101,9 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
 
   AnnotationProcessor get annotationProcesser => _annotationProcessor ??=
       new _ElementAnnotationProcessor(_compiler, nativeBasicDataBuilder);
+
+  DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
+      new AstDeferredLoadTask(_compiler);
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {

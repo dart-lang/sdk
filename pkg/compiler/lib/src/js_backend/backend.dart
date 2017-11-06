@@ -1127,10 +1127,6 @@ class JavaScriptBackend {
     }
   }
 
-  /// Enable deferred loading. Returns `true` if the backend supports deferred
-  /// loading.
-  bool enableDeferredLoadingIfSupported(Spannable node) => true;
-
   /// Enable compilation of code with compile time errors. Returns `true` if
   /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;

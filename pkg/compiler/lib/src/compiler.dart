@@ -235,7 +235,7 @@ abstract class Compiler {
       checker = new TypeCheckerTask(this),
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
-      deferredLoadTask = new DeferredLoadTask(this),
+      deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       // [enqueuer] is created earlier because it contains the resolution world
       // objects needed by other tasks.

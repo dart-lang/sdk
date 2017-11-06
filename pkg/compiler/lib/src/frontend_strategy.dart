@@ -9,6 +9,8 @@ import 'common/backend_api.dart';
 import 'common/tasks.dart';
 import 'common.dart';
 import 'common_elements.dart';
+import 'compiler.dart' show Compiler;
+import 'deferred_load.dart' show DeferredLoadTask;
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'enqueue.dart';
@@ -62,6 +64,9 @@ abstract class FrontendStrategy {
   AnnotationProcessor get annotationProcesser;
 
   NativeBasicData get nativeBasicData;
+
+  /// Creates a [DeferredLoadTask] for the element model used in this strategy.
+  DeferredLoadTask createDeferredLoadTask(Compiler compiler);
 
   /// Creates the [NativeClassFinder] for this strategy.
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData);

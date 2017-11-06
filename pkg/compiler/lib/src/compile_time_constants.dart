@@ -21,6 +21,7 @@ import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'elements/operators.dart';
 import 'elements/resolution_types.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
+import 'resolution/deferred_load.dart' show AstDeferredLoadTask;
 import 'tree/tree.dart';
 import 'universe/call_structure.dart' show CallStructure;
 import 'util/util.dart' show Link;
@@ -608,8 +609,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   /// prefix.
   bool isDeferredUse(Send send) {
     if (send == null) return false;
-    return compiler.deferredLoadTask.deferredPrefixElement(send, elements) !=
-        null;
+    AstDeferredLoadTask deferredLoadTask = compiler.deferredLoadTask;
+    return deferredLoadTask.deferredPrefixElement(send, elements) != null;
   }
 
   AstConstant visitIdentifier(Identifier node) {
@@ -695,8 +696,9 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           reporter.reportErrorMessage(
               send, MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
         }
+        AstDeferredLoadTask deferredLoadTask = compiler.deferredLoadTask;
         PrefixElement prefix =
-            compiler.deferredLoadTask.deferredPrefixElement(send, elements);
+            deferredLoadTask.deferredPrefixElement(send, elements);
         result = new AstConstant(
             context,
             send,
