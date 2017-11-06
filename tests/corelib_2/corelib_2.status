@@ -414,7 +414,7 @@ from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
 [ $compiler == dart2js ]
-date_time11_test: RuntimeError, OK # Fails when US is on winter time, issue 31285.
+date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
 
 [ $compiler == dart2js && $runtime == safari ]
 regexp/no-extensions_test: RuntimeError
