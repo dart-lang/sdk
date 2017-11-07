@@ -1467,7 +1467,6 @@ method_override7_test/02: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
-missing_part_of_tag_test/01: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
@@ -1602,9 +1601,6 @@ redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
 regress_22443_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
 regress_23408_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant

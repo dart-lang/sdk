@@ -398,6 +398,9 @@ class CapturedScopeBuilder extends ir.Visitor {
     if (_isInsideClosure && savedScopeInfo.thisUsedAsFreeVariable) {
       _currentScopeInfo.thisUsedAsFreeVariable = true;
     }
+    if (_isInsideClosure && savedScopeInfo.thisUsedAsFreeVariableIfNeedsRti) {
+      _currentScopeInfo.thisUsedAsFreeVariableIfNeedsRti = true;
+    }
   }
 
   /// Return true if [variable]'s context is the same as the current executable
