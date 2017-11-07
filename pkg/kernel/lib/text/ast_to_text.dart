@@ -294,7 +294,13 @@ class Printer extends Visitor<Null> {
     // TODO(scheglov): Do we want to print dependencies? dartbug.com/30224
     if (library.additionalExports.isNotEmpty) {
       write('additionalExports = (');
+      bool isFirst = true;
       for (var reference in library.additionalExports) {
+        if (isFirst) {
+          isFirst = false;
+        } else {
+          write(', ');
+        }
         var node = reference.node;
         if (node is Class) {
           Library nodeLibrary = node.enclosingLibrary;
