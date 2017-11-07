@@ -140,18 +140,13 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
-Language/Classes/Setters/parameter_t05: Crash
-Language/Classes/Setters/parameter_t07: Crash
 Language/Expressions/Constants/depending_on_itself_t01: Crash
 Language/Expressions/Constants/depending_on_itself_t02: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Crash
+Language/Expressions/Constants/no_other_constant_expressions_t11: Crash # Issue 31298
 
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
-Language/Expressions/Await_Expressions/evaluation_throws_t03: Crash
-Language/Expressions/Await_Expressions/evaluation_throws_t04: Crash
-Language/Expressions/Await_Expressions/evaluation_throws_t06: Crash
-Language/Expressions/Await_Expressions/evaluation_throws_t07: Crash
 Language/Expressions/Constants/bitwise_operators_t05: Crash
 Language/Expressions/Constants/exception_t01: Crash
 Language/Expressions/Constants/exception_t02: Crash

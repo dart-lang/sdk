@@ -1034,10 +1034,8 @@ async_star_test/none: Crash
 async_test: Crash
 await_for_test: Crash
 bad_constructor_test/00: MissingCompileTimeError
+bad_constructor_test/01: MissingCompileTimeError
 bad_named_parameters_test/04: Crash
-bad_override_test/03: MissingCompileTimeError
-bad_override_test/04: MissingCompileTimeError
-bad_override_test/05: MissingCompileTimeError
 built_in_identifier_illegal_test/01: MissingCompileTimeError
 built_in_identifier_illegal_test/04: MissingCompileTimeError
 built_in_identifier_illegal_test/05: MissingCompileTimeError
@@ -1147,7 +1145,6 @@ covariant_test/04: MissingCompileTimeError
 covariant_test/07: MissingCompileTimeError
 covariant_test/10: MissingCompileTimeError
 covariant_test/11: MissingCompileTimeError
-covariant_test/20b: MissingCompileTimeError
 covariant_test/21: MissingCompileTimeError
 covariant_test/21b: MissingCompileTimeError
 covariant_test/24: MissingCompileTimeError
@@ -1185,15 +1182,9 @@ external_test/14: MissingCompileTimeError
 external_test/16: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
+external_test/25: MissingCompileTimeError
 factory3_test/01: Pass
-fauxverride_test/03: MissingCompileTimeError
-fauxverride_test/05: MissingCompileTimeError
 field_method4_test: Crash
-field_override3_test/00: MissingCompileTimeError
-field_override3_test/01: MissingCompileTimeError
-field_override3_test/02: MissingCompileTimeError
-field_override3_test/03: MissingCompileTimeError
-field_override4_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
 first_class_types_test: RuntimeError
@@ -1228,10 +1219,6 @@ generic_methods_type_expression_test: Crash
 get_set_syntax_test/00: MissingCompileTimeError
 get_set_syntax_test/04: MissingCompileTimeError
 getter_declaration_negative_test: Crash
-getter_override2_test/02: MissingCompileTimeError
-getter_override_test/00: MissingCompileTimeError
-getter_override_test/01: MissingCompileTimeError
-getter_override_test/02: MissingCompileTimeError
 getter_parameters_test/01: MissingCompileTimeError
 getter_parameters_test/02: Crash
 getter_parameters_test/03: MissingCompileTimeError
@@ -1282,13 +1269,7 @@ map_literal4_test/05: MissingCompileTimeError
 map_literal4_test/06: MissingCompileTimeError
 map_literal7_test: RuntimeError
 map_literal8_test: Pass
-method_override7_test/00: MissingCompileTimeError
-method_override7_test/01: MissingCompileTimeError
-method_override7_test/02: MissingCompileTimeError
-method_override8_test/00: MissingCompileTimeError
-method_override8_test/01: MissingCompileTimeError
 mixin_black_listed_test/02: MissingCompileTimeError
-mixin_bound_test: Crash
 mixin_illegal_syntax_test/12: MissingCompileTimeError
 mock_writable_final_field_test: RuntimeError
 multiline_strings_test: Pass
@@ -1306,12 +1287,6 @@ operator_equals_test: MissingCompileTimeError
 optimized_constant_array_string_access_test: MissingCompileTimeError
 optional_named_parameters_test/02: Crash
 optional_named_parameters_test/04: Crash
-override_field_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/01: MissingCompileTimeError
-override_inheritance_mixed_test/02: MissingCompileTimeError
-override_inheritance_mixed_test/03: MissingCompileTimeError
-override_inheritance_mixed_test/04: MissingCompileTimeError
-override_method_with_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/none: Pass
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_incompatible_signature_test/01: MissingCompileTimeError
@@ -1323,8 +1298,6 @@ regress_29784_test/01: Crash
 regress_29784_test/02: Crash
 regress_29784_test/none: Crash
 regress_30339_test: Crash
-setter_override_test/00: MissingCompileTimeError
-setter_override_test/03: MissingCompileTimeError
 static_final_field2_test/02: MissingCompileTimeError
 static_top_level_test/00: MissingCompileTimeError
 static_top_level_test/04: MissingCompileTimeError
@@ -1364,7 +1337,6 @@ type_parameter_test/06: MissingCompileTimeError
 type_parameter_test/07: MissingCompileTimeError
 type_parameter_test/08: MissingCompileTimeError
 type_parameter_test/09: MissingCompileTimeError
-type_parameter_test/none: Timeout
 type_promotion_assign_test/01: MissingCompileTimeError
 type_promotion_assign_test/02: MissingCompileTimeError
 type_promotion_assign_test/03: MissingCompileTimeError
@@ -1515,6 +1487,18 @@ void_type_usage_test/paren_for: CompileTimeError
 void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
+asyncstar_throw_in_catch_test: Crash # Issue 31297
+type_literal_test: RuntimeError
+
+# Correctly passes.
+implicit_downcast_during_if_null_assignment_test: Pass
+getters_setters2_test/*: Pass
+implicit_downcast_during_assignment_test: Pass
+override_inheritance_mixed_test/08: Pass
+implicit_downcast_during_compound_assignment_test: Pass
+type_variable_scope_test/03: Pass
+
+
 
 [ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug]
 flatten_test/04: Crash

@@ -10,6 +10,8 @@ disassemble_test: Pass, Slow
 
 [$compiler == dartk && $runtime == vm && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+
+[ $compiler == dartk || $compiler == dartkp ]
 const_error_multiply_initialized_test/02: MissingCompileTimeError # Issue 29900
 const_error_multiply_initialized_test/04: MissingCompileTimeError # Issue 29900
 
@@ -22,7 +24,6 @@ assertion_initializer_const_error2_test/none: CompileTimeError
 [$compiler == dartkp && $runtime == dart_precompiled && !$checked]
 assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-assertion_initializer_test: CompileTimeError
 
 [$compiler == dartkp && $runtime == dart_precompiled && $checked]
 assertion_initializer_const_error2_test/cc02: Crash
@@ -247,7 +248,7 @@ vm/integer_type_propagation_test: Crash
 vm/optimized_stacktrace_test: Crash
 vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
-
+deferred_redirecting_factory_test: Crash # Issue 31296
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
@@ -425,5 +426,5 @@ type_variable_bounds4_test/01: RuntimeError
 [ $compiler == dartkp ]
 export_double_same_main_test: Crash # Issue 29895
 
-[ $compiler == dartk ]
-bad_constructor_test/06: DartkCrash # TODO: Triage.
+[ $compiler == dartk || $compiler == dartkp ]
+bad_constructor_test/06: DartkCrash # Issue 31299

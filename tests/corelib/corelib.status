@@ -175,6 +175,8 @@ apply3_test: SkipByDesign # Imports dart:mirrors
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
+
+[ $compiler == precompiler || $compiler == dartkp ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 
 [ $compiler == precompiler || $compiler == app_jit ]
