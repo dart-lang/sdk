@@ -356,6 +356,7 @@ abstract class ResolutionWorldBuilderBase
   final BackendUsageBuilder _backendUsageBuilder;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   final NativeResolutionEnqueuer _nativeResolutionEnqueuer;
+  final NoSuchMethodRegistry _noSuchMethodRegistry;
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
   final ClassHierarchyBuilder classHierarchyBuilder;
@@ -389,6 +390,7 @@ abstract class ResolutionWorldBuilderBase
       this._backendUsageBuilder,
       this._rtiNeedBuilder,
       this._nativeResolutionEnqueuer,
+      this._noSuchMethodRegistry,
       this.selectorConstraintsStrategy,
       this.classHierarchyBuilder,
       this.classQueries);
@@ -890,6 +892,7 @@ abstract class KernelResolutionWorldBuilderBase
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries)
@@ -905,6 +908,7 @@ abstract class KernelResolutionWorldBuilderBase
             backendUsageBuilder,
             rtiNeedBuilder,
             nativeResolutionEnqueuer,
+            noSuchMethodRegistry,
             selectorConstraintsStrategy,
             classHierarchyBuilder,
             classQueries);
@@ -934,6 +938,7 @@ abstract class KernelResolutionWorldBuilderBase
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: _backendUsageBuilder.close(),
+        noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,
         constantSystem: _constantSystem,

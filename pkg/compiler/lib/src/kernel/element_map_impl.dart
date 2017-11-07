@@ -1678,6 +1678,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries)
@@ -1693,6 +1694,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
             backendUsageBuilder,
             rtiNeedBuilder,
             nativeResolutionEnqueuer,
+            noSuchMethodRegistry,
             selectorConstraintsStrategy,
             classHierarchyBuilder,
             classQueries);
@@ -1796,6 +1798,7 @@ class KernelClosedWorld extends ClosedWorldBase
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
+      NoSuchMethodData noSuchMethodData,
       ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       Set<ClassEntity> implementedClasses,
@@ -1816,6 +1819,7 @@ class KernelClosedWorld extends ClosedWorldBase
             nativeData,
             interceptorData,
             backendUsage,
+            noSuchMethodData,
             implementedClasses,
             liveNativeClasses,
             liveInstanceMembers,

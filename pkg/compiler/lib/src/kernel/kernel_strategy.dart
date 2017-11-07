@@ -133,6 +133,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries) {
@@ -145,6 +146,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         backendUsageBuilder,
         rtiNeedBuilder,
         nativeResolutionEnqueuer,
+        noSuchMethodRegistry,
         selectorConstraintsStrategy,
         classHierarchyBuilder,
         classQueries);

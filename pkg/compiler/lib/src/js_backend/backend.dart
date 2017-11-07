@@ -448,7 +448,7 @@ class JavaScriptBackend {
     _mirrorsResolutionAnalysis =
         compiler.frontendStrategy.createMirrorsResolutionAnalysis(this);
 
-    noSuchMethodRegistry = new NoSuchMethodRegistry(
+    noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
@@ -654,10 +654,6 @@ class JavaScriptBackend {
     _outputUnitData = compiler.backendStrategy.convertOutputUnitData(data);
   }
 
-  void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
-    noSuchMethodRegistry.onTypeInferenceComplete(results);
-  }
-
   /// Called when resolving a call to a foreign function.
   native.NativeBehavior resolveForeignCall(Send node, Element element,
       CallStructure callStructure, ForeignResolver resolver) {
@@ -766,6 +762,7 @@ class JavaScriptBackend {
             _backendUsageBuilder,
             rtiNeedBuilder,
             _nativeResolutionEnqueuer,
+            noSuchMethodRegistry,
             const OpenWorldStrategy(),
             classHierarchyBuilder,
             classQueries),
@@ -871,7 +868,7 @@ class JavaScriptBackend {
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
-    noSuchMethodRegistry.emitDiagnostic(reporter);
+    closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
     // TODO(redemption): Support `preMirrorsMethodCount` for entities.
     if (mirrorsCodegenAnalysis.preMirrorsMethodCount != null &&

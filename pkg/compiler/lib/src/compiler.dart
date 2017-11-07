@@ -619,8 +619,6 @@ abstract class Compiler {
 
         if (stopAfterTypeInference) return;
 
-        backend.onTypeInferenceComplete(globalInference.results);
-
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 

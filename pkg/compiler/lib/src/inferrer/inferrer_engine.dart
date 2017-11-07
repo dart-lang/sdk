@@ -65,7 +65,7 @@ abstract class InferrerEngine<T> {
 
   // TODO(johnniwinther): This should be part of [ClosedWorld] or
   // [ClosureWorldRefiner].
-  NoSuchMethodRegistry get noSuchMethodRegistry;
+  NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
   TypeSystem<T> get types;
   Map<T, TypeInformation> get concreteTypes;

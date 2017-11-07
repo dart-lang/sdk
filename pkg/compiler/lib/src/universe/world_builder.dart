@@ -22,6 +22,7 @@ import '../js_backend/constant_handler_javascript.dart'
     show JavaScriptConstantCompiler;
 import '../js_backend/interceptor_data.dart' show InterceptorDataBuilder;
 import '../js_backend/native_data.dart' show NativeBasicData, NativeDataBuilder;
+import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../kernel/element_map_impl.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;

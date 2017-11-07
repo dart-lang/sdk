@@ -1027,7 +1027,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
       return e.isFunction &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
-          inferrer.noSuchMethodRegistry.isComplex(e);
+          inferrer.noSuchMethodData.isComplex(e);
     });
   }
 

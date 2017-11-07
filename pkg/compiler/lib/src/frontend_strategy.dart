@@ -84,6 +84,7 @@ abstract class FrontendStrategy {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries);

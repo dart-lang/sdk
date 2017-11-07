@@ -25,6 +25,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
@@ -260,12 +261,19 @@ class JsClosedWorldBuilder {
     RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(map, backendUsage,
         kernelRtiNeed, callMethodsNeedingRti, classesNeedingRti);
 
+    NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
+    NoSuchMethodData noSuchMethodData = new NoSuchMethodDataImpl(
+        map.toBackendFunctionSet(oldNoSuchMethodData.throwingImpls),
+        map.toBackendFunctionSet(oldNoSuchMethodData.otherImpls),
+        map.toBackendFunctionSet(oldNoSuchMethodData.forwardingSyntaxImpls));
+
     return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
         commonElements: _commonElements,
         constantSystem: const JavaScriptConstantSystem(),
         backendUsage: backendUsage,
+        noSuchMethodData: noSuchMethodData,
         nativeData: nativeData,
         interceptorData: interceptorData,
         rtiNeed: rtiNeed,
@@ -485,6 +493,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       this.rtiNeed,
+      NoSuchMethodData noSuchMethodData,
       Set<ClassEntity> implementedClasses,
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
@@ -503,6 +512,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             nativeData,
             interceptorData,
             backendUsage,
+            noSuchMethodData,
             implementedClasses,
             liveNativeClasses,
             liveInstanceMembers,
