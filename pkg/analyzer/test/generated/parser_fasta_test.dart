@@ -2853,7 +2853,9 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   Annotation parseAnnotation() {
-    return _run((parser) => parser.parseMetadata) as Annotation;
+    return _run((parser) => (token) =>
+            parser.parseMetadata(parser.syntheticPreviousToken(token)))
+        as Annotation;
   }
 
   @override

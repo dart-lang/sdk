@@ -360,7 +360,7 @@ class Parser {
       directiveState?.checkScriptTag(this, token.next);
       return parseScript(token);
     }
-    token = parseMetadataStar(token.next);
+    token = parseMetadataStar(token).next;
     if (token.isTopLevelKeyword) {
       return parseTopLevelKeywordDeclaration(null, token, directiveState);
     }
@@ -867,15 +867,18 @@ class Parser {
   /// ;
   /// ```
   Token parseMetadataStar(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
-    token = listener.injectGenericCommentTypeAssign(token);
-    // TODO(brianwilkerson): Remove the `token` because we cannot make any
-    // guarantee about which token it will be.
-    listener.beginMetadataStar(token);
+    // TODO(brianwilkerson): Either remove the invocation of `previous` by
+    // making `injectGenericCommentTypeAssign` accept and return the last
+    // consumed token, or remove the invocation of
+    // `injectGenericCommentTypeAssign` by invoking it outside this method where
+    // invoking it is necessary.
+    token = listener.injectGenericCommentTypeAssign(token.next).previous;
+    listener.beginMetadataStar(token.next);
     int count = 0;
-    while (optional('@', token)) {
-      token = parseMetadata(token);
+    while (optional('@', token.next)) {
+      // TODO(brianwilkerson): Remove the invocation of `previous` when
+      // `parseMetadata` returns the last consumed token.
+      token = parseMetadata(token).previous;
       count++;
     }
     listener.endMetadataStar(count);
@@ -888,12 +891,11 @@ class Parser {
   /// ;
   /// ```
   Token parseMetadata(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    assert(optional('@', token));
-    listener.beginMetadata(token);
-    Token atToken = token;
-    token = ensureIdentifier(token.next, IdentifierContext.metadataReference);
+    Token atToken = token.next;
+    assert(optional('@', atToken));
+    listener.beginMetadata(atToken);
+    token = ensureIdentifier(atToken.next, IdentifierContext.metadataReference);
     token =
         parseQualifiedRestOpt(token, IdentifierContext.metadataContinuation);
     if (optional("<", token.next)) {
@@ -1090,7 +1092,7 @@ class Parser {
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
     // TODO(brianwilkerson) Return the last consumed token.
-    token = parseMetadataStar(token.next);
+    token = parseMetadataStar(token).next;
     listener.beginFormalParameter(token, memberKind);
     token = parseModifiers(token, memberKind, parameterKind: parameterKind);
     return token;
@@ -1313,7 +1315,7 @@ class Parser {
         }
         break;
       }
-      token = parseMetadataStar(token.next);
+      token = parseMetadataStar(token).next;
       if (!identical(token, next)) {
         reportRecoverableError(next, fasta.messageAnnotationOnEnumConstant);
       }
@@ -1810,9 +1812,10 @@ class Parser {
   Token parseTypeVariable(Token token) {
     // TODO(brianwilkerson) Return the last consumed token.
     listener.beginTypeVariable(token.next);
-    token = parseMetadataStar(token.next);
+    token = parseMetadataStar(token);
     token =
-        ensureIdentifier(token, IdentifierContext.typeVariableDeclaration).next;
+        ensureIdentifier(token.next, IdentifierContext.typeVariableDeclaration)
+            .next;
     Token extendsOrSuper = null;
     if (optional('extends', token) || optional('super', token)) {
       extendsOrSuper = token;
@@ -3171,8 +3174,7 @@ class Parser {
   /// ;
   /// ```
   Token parseClassMember(Token token) {
-    token = parseMetadataStar(token.next);
-    Token start = token;
+    Token start = token = parseMetadataStar(token).next;
     listener.beginMember(token);
     // TODO(danrubel): isFactoryDeclaration scans forward over modifiers
     // which findMemberName does as well. See if this can be done once
@@ -4929,7 +4931,7 @@ class Parser {
 
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
-    token = parseMetadataStar(token.next);
+    token = parseMetadataStar(token).next;
 
     // If the next token has a type substitution comment /*=T*/, then
     // the current 'var' token should be repealed and replaced.

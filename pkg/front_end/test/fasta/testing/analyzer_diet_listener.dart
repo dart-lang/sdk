@@ -180,7 +180,7 @@ class AnalyzerDietListener extends DietListener {
     Parser parser = new Parser(_bodyBuilder);
     List bodyBuilderMetadataConstants;
     if (metadata != null) {
-      parser.parseMetadataStar(metadata);
+      parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       bodyBuilderMetadataConstants = _bodyBuilder.pop();
     }
     token = parser.parseFormalParametersOpt(token, kind);
@@ -219,7 +219,9 @@ class AnalyzerDietListener extends DietListener {
     if (isTopLevel) {
       // There's a slight asymmetry between [parseTopLevelMember] and
       // [parseMember] because the former doesn't call `parseMetadataStar`.
-      token = parser.parseMetadataStar(metadata ?? token);
+      token = parser
+          .parseMetadataStar(parser.syntheticPreviousToken(metadata ?? token))
+          .next;
       token = parser.parseTopLevelMember(token).next;
     } else {
       token = parser.parseMember(metadata ?? token).next;
