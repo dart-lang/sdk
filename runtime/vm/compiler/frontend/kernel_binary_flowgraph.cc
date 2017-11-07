@@ -7041,7 +7041,11 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
       Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
   ASSERT(!target.IsNull());
 
-  // Build call to _AsertionError._throwNew(start, end, message)
+  // Build equivalent of `throw _AssertionError._throwNew(start, end, message)`
+  // expression. We build throw (even through _throwNew already throws) because
+  // call is not a valid last instruction for the block. Blocks can only
+  // terminate with explicit control flow instructions (Branch, Goto, Return
+  // or Throw).
   Fragment otherwise_fragment(otherwise);
   otherwise_fragment += IntConstant(condition_start_offset.Pos());
   otherwise_fragment += PushArgument();  // start
@@ -7057,6 +7061,8 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement() {
 
   otherwise_fragment +=
       StaticCall(TokenPosition::kNoSource, target, 3, ICData::kStatic);
+  otherwise_fragment += PushArgument();
+  otherwise_fragment += ThrowException(TokenPosition::kNoSource);
   otherwise_fragment += Drop();
 
   return Fragment(instructions.entry, then);
