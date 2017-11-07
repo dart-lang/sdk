@@ -247,6 +247,10 @@ from_environment_const_type_undefined_test/06: MissingCompileTimeError
 from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
 
+[ $compiler == dartkp ]
+# No support for mirrors
+apply3_test: CompileTimeError
+
 [ $runtime == flutter ]
 
 # No support for mirrors
