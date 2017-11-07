@@ -22,8 +22,6 @@ import 'package:analyzer/src/fasta/resolution_storer.dart'
 
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
-import 'package:front_end/src/fasta/scanner.dart' show scanString;
-
 import 'package:front_end/src/fasta/type_inference/type_inference_engine.dart'
     show TypeInferenceEngine;
 
@@ -39,7 +37,10 @@ import 'package:front_end/src/fasta/builder/builder.dart';
 
 import 'package:front_end/src/fasta/parser.dart' show MemberKind, Parser;
 
-import 'package:front_end/src/scanner/token.dart' show Token;
+import 'package:front_end/src/fasta/scanner/token.dart' show StringToken;
+
+import 'package:front_end/src/scanner/token.dart'
+    show Keyword, Token, TokenType;
 
 import 'package:front_end/src/fasta/source/source_library_builder.dart'
     show SourceLibraryBuilder;
@@ -108,13 +109,13 @@ class AnalyzerDietListener extends DietListener {
         createListener(builder, memberScope, builder.isInstanceMember);
 
     if (!isTopLevel) {
-      Token classToken = scanString('class Cx {}').tokens;
       listener.classDeclaration = astFactory.classDeclaration(
         null,
         null,
         null,
-        classToken,
-        astFactory.simpleIdentifier(classToken.next),
+        new Token(Keyword.CLASS, 0),
+        astFactory.simpleIdentifier(
+            new StringToken.fromString(TokenType.IDENTIFIER, 'Cx', 6)),
         null,
         null,
         null,
