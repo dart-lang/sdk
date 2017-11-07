@@ -1135,6 +1135,33 @@ class B4[B4]<T[T] extends A[A1]> {}
     });
   }
 
+  void test_library_additionalExports_externalVersionFirst() {
+    // As if outline for "a" uses "b" (which is external).
+    // And we first see the external "b", without addition exports.
+    var libraryA = _newLibrary('a');
+    var libraryB1 = _newLibrary('b');
+
+    // As if outline for "b" exports C1 and C2 from "c".
+    // So, we see "b" with exports only as the second library.
+    var libraryB2 = _newLibrary('b');
+    var libraryC = _newLibrary('c');
+    var C1 = new Class(name: 'C1');
+    var C2 = new Class(name: 'C2');
+    libraryC.addClass(C1);
+    libraryC.addClass(C2);
+    libraryB2.additionalExports.add(C1.reference);
+    libraryB2.additionalExports.add(C2.reference);
+
+    var outline1 = _newOutline([libraryA, libraryB1]);
+    var outline2 = _newOutline([libraryB2, libraryC]);
+
+    _runCombineTest([outline1, outline2], (result) {
+      var libraryB = _getLibrary(result.program, 'b');
+      List<Reference> exports = libraryB.additionalExports;
+      expect(exports, unorderedEquals([C1.reference, C2.reference]));
+    });
+  }
+
   void test_library_replaceReference() {
     var libraryA1 = _newLibrary('a');
 

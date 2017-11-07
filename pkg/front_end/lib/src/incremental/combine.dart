@@ -32,6 +32,7 @@ class CombineResult {
   final Map<Library, int> _undoLibraryToClasses = {};
   final Map<Library, int> _undoLibraryToFields = {};
   final Map<Library, int> _undoLibraryToProcedures = {};
+  final List<Library> _undoLibrariesWithoutExports = <Library>[];
 
   final Map<Class, int> _undoClassToConstructors = {};
   final Map<Class, int> _undoClassToFields = {};
@@ -87,6 +88,9 @@ class CombineResult {
     _undoLibraryToProcedures.forEach((library, length) {
       library.procedures.length = length;
     });
+    for (var library in _undoLibrariesWithoutExports) {
+      library.additionalExports.clear();
+    }
 
     _undoClassToConstructors.forEach((class_, length) {
       class_.constructors.length = length;
@@ -231,6 +235,10 @@ class _Combiner {
       var existingReference = target.root.getChild(name).reference;
       replacementMap.references[source.reference] = existingReference;
       Library existingNode = existingReference.node;
+      if (existingNode.additionalExports.isEmpty &&
+          source.additionalExports.isNotEmpty) {
+        existingNode.additionalExports.addAll(source.additionalExports);
+      }
       for (var class_ in source.classes) {
         _combineClass(existingNode, class_);
       }
@@ -245,6 +253,9 @@ class _Combiner {
       result._undoLibraryToClasses[source] = source.classes.length;
       result._undoLibraryToFields[source] = source.fields.length;
       result._undoLibraryToProcedures[source] = source.procedures.length;
+      if (source.additionalExports.isEmpty) {
+        result._undoLibrariesWithoutExports.add(source);
+      }
       source.classes.forEach(_putUndoForClassMembers);
       target.root.adoptChild(source.canonicalName);
       source.parent = target;
