@@ -898,6 +898,9 @@ class CommonElements {
   FunctionEntity get loadLibraryWrapper =>
       _findHelperFunction("_loadLibraryWrapper");
 
+  FunctionEntity get loadDeferredLibrary =>
+      _findHelperFunction("loadDeferredLibrary");
+
   FunctionEntity get boolConversionCheck =>
       _findHelperFunction('boolConversionCheck');
 
@@ -1421,6 +1424,9 @@ abstract class ElementEnvironment {
   /// Returns the metadata constants declared on [library].
   Iterable<ConstantValue> getLibraryMetadata(LibraryEntity library);
 
+  /// Returns the imports seen in [library]
+  Iterable<ImportEntity> getImports(LibraryEntity library);
+
   /// Returns the metadata constants declared on [cls].
   Iterable<ConstantValue> getClassMetadata(ClassEntity cls);
 
@@ -1433,6 +1439,9 @@ abstract class ElementEnvironment {
 
   /// Returns the function type that is an alias of a [typedef].
   FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef);
+
+  /// Returns the typedef type that is declared by a [typedef].
+  TypedefType getTypedefTypeOfTypedef(TypedefEntity typedef);
 
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);

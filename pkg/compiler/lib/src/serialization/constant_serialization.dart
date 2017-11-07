@@ -7,7 +7,12 @@ library dart2js.serialization.constants;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../elements/elements.dart'
-    show ConstructorElement, FieldElement, LocalVariableElement, MethodElement;
+    show
+        ConstructorElement,
+        FieldElement,
+        LocalVariableElement,
+        MethodElement,
+        ImportElement;
 import '../elements/entities.dart' show FieldEntity;
 import '../elements/operators.dart';
 import '../elements/resolution_types.dart';
@@ -185,7 +190,7 @@ class ConstantSerializer
 
   @override
   void visitDeferred(DeferredConstantExpression exp, ObjectEncoder encoder) {
-    encoder.setElement(Key.PREFIX, exp.prefix);
+    encoder.setElement(Key.IMPORT, exp.import as ImportElement);
     encoder.setConstant(Key.EXPRESSION, exp.expression);
   }
 }
@@ -292,7 +297,7 @@ class ConstantDeserializer {
       case ConstantExpressionKind.DEFERRED:
         return new DeferredConstantExpression(
             decoder.getConstant(Key.EXPRESSION),
-            decoder.getElement(Key.PREFIX));
+            decoder.getElement(Key.IMPORT) as ImportElement);
       case ConstantExpressionKind.SYNTHETIC:
     }
     throw new UnsupportedError("Unexpected constant kind: ${kind} in $decoder");

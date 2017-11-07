@@ -1923,15 +1923,15 @@ class StringFromEnvironmentConstantExpression
 /// For example `lib.C`.
 class DeferredConstantExpression extends ConstantExpression {
   final ConstantExpression expression;
-  final Entity prefix;
+  final ImportEntity import;
 
-  DeferredConstantExpression(this.expression, this.prefix);
+  DeferredConstantExpression(this.expression, this.import);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.DEFERRED;
 
   @override
   void _createStructuredText(StringBuffer sb) {
-    sb.write('Deferred(prefix=$prefix,expression=');
+    sb.write('Deferred(import=$import,expression=');
     expression._createStructuredText(sb);
     sb.write(')');
   }
@@ -1940,7 +1940,7 @@ class DeferredConstantExpression extends ConstantExpression {
   ConstantValue evaluate(
       EvaluationEnvironment environment, ConstantSystem constantSystem) {
     return new DeferredConstantValue(
-        expression.evaluate(environment, constantSystem), prefix);
+        expression.evaluate(environment, constantSystem), import);
   }
 
   @override
@@ -1949,7 +1949,7 @@ class DeferredConstantExpression extends ConstantExpression {
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
-    return new DeferredConstantExpression(expression.apply(arguments), prefix);
+    return new DeferredConstantExpression(expression.apply(arguments), import);
   }
 
   @override
@@ -2238,7 +2238,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
 
   @override
   void visitDeferred(DeferredConstantExpression exp, context) {
-    sb.write(exp.prefix.name);
+    sb.write(exp.import.name);
     sb.write('.');
     write(exp, exp.expression);
   }

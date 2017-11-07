@@ -760,6 +760,11 @@ class _CompilerElementEnvironment extends ElementEnvironment {
   }
 
   @override
+  Iterable<ImportEntity> getImports(covariant LibraryElement library) {
+    return library.imports;
+  }
+
+  @override
   Iterable<ConstantValue> getClassMetadata(covariant ClassElement element) {
     return _getMetadataOf(element);
   }
@@ -790,6 +795,11 @@ class _CompilerElementEnvironment extends ElementEnvironment {
     if (result.isMalformed) return null;
     return result;
   }
+
+  @override
+  ResolutionTypedefType getTypedefTypeOfTypedef(
+          covariant TypedefElement typedef) =>
+      typedef.thisType;
 
   @override
   bool isEnumClass(covariant ClassElement cls) => cls.isEnumClass;

@@ -610,7 +610,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   bool isDeferredUse(Send send) {
     if (send == null) return false;
     AstDeferredLoadTask deferredLoadTask = compiler.deferredLoadTask;
-    return deferredLoadTask.deferredPrefixElement(send, elements) != null;
+    return deferredLoadTask.deferredImportElement(send, elements) != null;
   }
 
   AstConstant visitIdentifier(Identifier node) {
@@ -697,15 +697,15 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
               send, MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
         }
         AstDeferredLoadTask deferredLoadTask = compiler.deferredLoadTask;
-        PrefixElement prefix =
-            deferredLoadTask.deferredPrefixElement(send, elements);
+        ImportElement import =
+            deferredLoadTask.deferredImportElement(send, elements);
         result = new AstConstant(
             context,
             send,
-            new DeferredConstantExpression(result.expression, prefix),
-            new DeferredConstantValue(result.value, prefix));
+            new DeferredConstantExpression(result.expression, import),
+            new DeferredConstantValue(result.value, import));
         compiler.deferredLoadTask
-            .registerConstantDeferredUse(result.value, prefix);
+            .registerConstantDeferredUse(result.value, import);
       }
       return result;
     } else if (send.isCall) {

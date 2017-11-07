@@ -754,20 +754,20 @@ class ConstructedConstantValue extends ObjectConstantValue {
 /// A reference to a constant in another output unit.
 /// Used for referring to deferred constants.
 class DeferredConstantValue extends ConstantValue {
-  DeferredConstantValue(this.referenced, this.prefix);
+  DeferredConstantValue(this.referenced, this.import);
 
   final ConstantValue referenced;
-  final Entity prefix;
+  final ImportEntity import;
 
   bool get isReference => true;
 
   bool operator ==(other) {
     return other is DeferredConstantValue &&
         referenced == other.referenced &&
-        prefix == other.prefix;
+        import == other.import;
   }
 
-  get hashCode => (referenced.hashCode * 17 + prefix.hashCode) & 0x3fffffff;
+  get hashCode => (referenced.hashCode * 17 + import.hashCode) & 0x3fffffff;
 
   List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
 

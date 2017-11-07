@@ -34,6 +34,17 @@ abstract class LibraryEntity extends Entity {
   Uri get canonicalUri;
 }
 
+/// Stripped down super interface for import entities.
+///
+/// The [name] property corresponds to the prefix name, if any.
+abstract class ImportEntity extends Entity {
+  /// Whether the import is a deferred import.
+  bool get isDeferred;
+
+  /// The target import URI.
+  Uri get uri;
+}
+
 /// Stripped down super interface for class like entities.
 ///
 /// Currently only [ClassElement] but later also kernel based Dart classes

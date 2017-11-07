@@ -93,7 +93,7 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
 
   @override
   DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
-      new KernelDeferredLoadTask(compiler);
+      new KernelDeferredLoadTask(compiler, _elementMap);
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {

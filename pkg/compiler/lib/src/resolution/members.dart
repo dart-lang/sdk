@@ -2166,8 +2166,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerSendStructure(
         node, new DeferredPrefixStructure(prefix, sendStructure));
     if (result.isConstant) {
-      ConstantExpression constant =
-          new DeferredConstantExpression(result.constant, prefix);
+      ConstantExpression constant = new DeferredConstantExpression(
+          result.constant, prefix.deferredImport);
       registry.setConstant(node, constant);
       result = new ConstantResult(node, constant);
     }

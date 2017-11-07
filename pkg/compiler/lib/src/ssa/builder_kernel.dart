@@ -992,7 +992,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitLoadLibrary(ir.LoadLibrary loadLibrary) {
     // TODO(efortuna): Source information!
     push(new HInvokeStatic(
-        commonElements.loadLibraryWrapper,
+        commonElements.loadDeferredLibrary,
         [graph.addConstantString(loadLibrary.import.name, closedWorld)],
         commonMasks.nonNullType,
         targetCanThrow: false));

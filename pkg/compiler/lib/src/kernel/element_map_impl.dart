@@ -1168,6 +1168,11 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   }
 
   @override
+  ir.Library getLibraryNode(LibraryEntity library) {
+    return _libraries.getData(library).library;
+  }
+
+  @override
   Local getLocalFunction(ir.TreeNode node) {
     assert(
         node is ir.FunctionDeclaration || node is ir.FunctionExpression,
@@ -1216,6 +1221,18 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     }
     _ensureCallType(cls, data);
     return data.callType is FunctionType;
+  }
+
+  @override
+  ImportEntity getImport(ir.LibraryDependency node) {
+    ir.Library library = node.parent;
+    LibraryData data = _libraries.getData(_getLibrary(library));
+    return data.imports[node];
+  }
+
+  @override
+  MemberDefinition getMemberDefinition(MemberEntity member) {
+    return _getMemberDefinition(member);
   }
 }
 
@@ -1435,7 +1452,8 @@ class KernelElementEnvironment extends ElementEnvironment {
 
   @override
   bool isDeferredLoadLibraryGetter(MemberEntity member) {
-    // TODO(redemption): Support these.
+    // The front-end generates the getter of loadLibrary explicitly as code
+    // so there is no implicit representation based on a "loadLibrary" member.
     return false;
   }
 
@@ -1444,6 +1462,13 @@ class KernelElementEnvironment extends ElementEnvironment {
     assert(elementMap.checkFamily(library));
     LibraryData libraryData = elementMap._libraries.getData(library);
     return libraryData.getMetadata(elementMap);
+  }
+
+  @override
+  Iterable<ImportEntity> getImports(covariant IndexedLibrary library) {
+    assert(elementMap.checkFamily(library));
+    LibraryData libraryData = elementMap._libraries.getData(library);
+    return libraryData.getImports(elementMap);
   }
 
   @override
@@ -1472,6 +1497,11 @@ class KernelElementEnvironment extends ElementEnvironment {
   FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef) {
     // TODO(redemption): Support this.
     throw new UnsupportedError('ElementEnvironment.getFunctionTypeOfTypedef');
+  }
+
+  @override
+  TypedefType getTypedefTypeOfTypedef(TypedefEntity typedef) {
+    return elementMap._typedefs.getData(typedef).rawType;
   }
 
   @override

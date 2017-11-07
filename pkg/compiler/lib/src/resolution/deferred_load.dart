@@ -25,6 +25,7 @@ import '../elements/elements.dart'
         ResolvedAstKind,
         TypedefElement;
 import '../elements/resolution_types.dart';
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../resolution/resolution.dart' show AnalyzableElementX;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
@@ -36,10 +37,12 @@ class AstDeferredLoadTask extends DeferredLoadTask {
   ClassElement get deferredLibraryClass =>
       compiler.resolution.commonElements.deferredLibraryClass;
 
+  JavaScriptBackend get backend => compiler.backend;
+
   AstDeferredLoadTask(Compiler compiler) : super(compiler);
 
   Iterable<ImportElement> importsTo(
-      Element element, covariant LibraryElement library) {
+      covariant Element element, covariant LibraryElement library) {
     if (element.isClassMember) {
       element = element.enclosingClass;
     }
@@ -49,7 +52,7 @@ class AstDeferredLoadTask extends DeferredLoadTask {
     return library.getImportsFor(element);
   }
 
-  void checkForDeferredErrorCases(LibraryElement library) {
+  void checkForDeferredErrorCases(covariant LibraryElement library) {
     var usedPrefixes = new Setlet<String>();
     // The last deferred import we saw with a given prefix (if any).
     var prefixDeferredImport = new Map<String, ImportElement>();
@@ -101,7 +104,7 @@ class AstDeferredLoadTask extends DeferredLoadTask {
       ImportElement import,
       Set<String> usedPrefixes,
       Map<String, ImportElement> prefixDeferredImport) {
-    String prefix = import.prefix?.name;
+    String prefix = import.name;
     // The last import we saw with the same prefix.
     ImportElement previousDeferredImport = prefixDeferredImport[prefix];
     if (import.isDeferred) {
@@ -289,7 +292,7 @@ class AstDeferredLoadTask extends DeferredLoadTask {
   /// a.run() and a.foo.
   /// a.loadLibrary.toString() and a.foo.method() are dynamic sends - and
   /// this functions should not be called on them.
-  PrefixElement deferredPrefixElement(ast.Send send, TreeElements elements) {
+  ImportElement deferredImportElement(ast.Send send, TreeElements elements) {
     Element element = elements[send];
     // The DeferredLoaderGetter is not deferred, therefore we do not return the
     // prefix.
@@ -317,7 +320,7 @@ class AstDeferredLoadTask extends DeferredLoadTask {
     if (maybePrefix != null && maybePrefix.isPrefix) {
       PrefixElement prefixElement = maybePrefix;
       if (prefixElement.isDeferred) {
-        return prefixElement;
+        return prefixElement.deferredImport;
       }
     }
     return null;
@@ -325,34 +328,28 @@ class AstDeferredLoadTask extends DeferredLoadTask {
 
   /// Returns a name for a deferred import.
   // TODO(sigmund): delete support for the old annotation-style syntax.
-  String computeImportDeferName(ImportElement declaration, Compiler compiler) {
-    String result;
+  String computeImportDeferName(
+      covariant ImportElement declaration, Compiler compiler) {
     if (declaration.isDeferred) {
-      if (declaration.prefix != null) {
-        result = declaration.prefix.name;
-      } else {
-        // This happens when the deferred import isn't declared with a prefix.
-        assert(compiler.compilationFailed);
-        result = '';
-      }
-    } else {
-      // Finds the first argument to the [DeferredLibrary] annotation
-      List<MetadataAnnotation> metadatas = declaration.metadata;
-      assert(metadatas != null);
-      for (MetadataAnnotation metadata in metadatas) {
-        metadata.ensureResolved(compiler.resolution);
-        ConstantValue value =
-            compiler.constants.getConstantValue(metadata.constant);
-        ResolutionDartType type =
-            value.getType(compiler.resolution.commonElements);
-        Element element = type.element;
-        if (element ==
-            compiler.resolution.commonElements.deferredLibraryClass) {
-          ConstructedConstantValue constant = value;
-          StringConstantValue s = constant.fields.values.single;
-          result = s.primitiveValue;
-          break;
-        }
+      return super.computeImportDeferName(declaration, compiler);
+    }
+
+    String result;
+    // Finds the first argument to the [DeferredLibrary] annotation
+    List<MetadataAnnotation> metadatas = declaration.metadata;
+    assert(metadatas != null);
+    for (MetadataAnnotation metadata in metadatas) {
+      metadata.ensureResolved(compiler.resolution);
+      ConstantValue value =
+          compiler.constants.getConstantValue(metadata.constant);
+      ResolutionDartType type =
+          value.getType(compiler.resolution.commonElements);
+      Element element = type.element;
+      if (element == compiler.resolution.commonElements.deferredLibraryClass) {
+        ConstructedConstantValue constant = value;
+        StringConstantValue s = constant.fields.values.single;
+        result = s.primitiveValue;
+        break;
       }
     }
     assert(result != null);

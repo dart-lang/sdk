@@ -642,6 +642,12 @@ class KernelImpactBuilder extends ir.Visitor {
         target, elementMap.getCallStructure(node.arguments)));
   }
 
+  @override
+  void visitLoadLibrary(ir.LoadLibrary node) {
+    impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+        commonElements.loadDeferredLibrary, CallStructure.ONE_ARG));
+  }
+
   // TODO(johnniwinther): Make this throw and visit child nodes explicitly
   // instead to ensure that we don't visit unwanted parts of the ir.
   @override

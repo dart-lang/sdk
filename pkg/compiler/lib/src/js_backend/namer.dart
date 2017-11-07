@@ -2112,7 +2112,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitDeferred(DeferredConstantValue constant, [_]) {
     // TODO(sra): Investigate that the use of hashCode here is probably a source
     // of instability.
-    int hash = constant.prefix.hashCode;
+    int hash = constant.import.hashCode;
     return _combine(hash, _visit(constant.referenced));
   }
 

@@ -230,9 +230,8 @@ class _ConstantOrdering
   int visitDeferred(DeferredConstantValue a, DeferredConstantValue b) {
     int r = compareValues(a.referenced, b.referenced);
     if (r != 0) return r;
-    // TODO(sra): Implement deferred imports for Kernel.
     // TODO(sra): What kind of Entity is `prefix`?
-    return compareElements(a.prefix, b.prefix);
+    return compareElements(a.import, b.import);
   }
 }
 
