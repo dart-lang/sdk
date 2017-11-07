@@ -360,45 +360,46 @@ class Parser {
       directiveState?.checkScriptTag(this, token.next);
       return parseScript(token);
     }
-    token = parseMetadataStar(token).next;
-    if (token.isTopLevelKeyword) {
+    token = parseMetadataStar(token);
+    if (token.next.isTopLevelKeyword) {
       return parseTopLevelKeywordDeclaration(null, token, directiveState);
     }
-    Token start = token;
+    Token start = token.next;
     // Skip modifiers to find a top level keyword or identifier
-    while (token.isModifier) {
+    while (token.next.isModifier) {
       token = token.next;
     }
-    if (token.isTopLevelKeyword) {
+    Token next = token.next;
+    if (next.isTopLevelKeyword) {
       Token abstractToken;
       Token modifier = start;
-      while (modifier != token) {
+      while (modifier != next) {
         if (optional('abstract', modifier) &&
-            optional('class', token) &&
+            optional('class', next) &&
             abstractToken == null) {
           abstractToken = modifier;
         } else {
           // Recovery
-          reportTopLevelModifierError(modifier, token);
+          reportTopLevelModifierError(modifier, next);
         }
         modifier = modifier.next;
       }
       return parseTopLevelKeywordDeclaration(
           abstractToken, token, directiveState);
-    } else if (token.isIdentifier || token.keyword != null) {
+    } else if (next.isIdentifier || next.keyword != null) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
       directiveState?.checkDeclaration();
       return parseTopLevelMember(start);
-    } else if (start != token) {
+    } else if (start != next) {
       directiveState?.checkDeclaration();
       // Handle the edge case where a modifier is being used as an identifier
       return parseTopLevelMember(start);
     }
     // Ignore any preceding modifiers and just report the unexpected token
-    reportRecoverableErrorWithToken(token, fasta.templateExpectedDeclaration);
-    listener.handleInvalidTopLevelDeclaration(token);
-    return token;
+    reportRecoverableErrorWithToken(next, fasta.templateExpectedDeclaration);
+    listener.handleInvalidTopLevelDeclaration(next);
+    return next;
   }
 
   // Report an error for the given modifier preceding a top level keyword
@@ -426,7 +427,8 @@ class Parser {
   /// Parse any top-level declaration that begins with a keyword.
   Token parseTopLevelKeywordDeclaration(
       Token abstractToken, Token token, DirectiveContext directiveState) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    Token previous = token;
+    token = token.next;
     assert(token.isTopLevelKeyword);
     final String value = token.stringValue;
     if (identical(value, 'class')) {
@@ -439,7 +441,7 @@ class Parser {
       Token next = token.next;
       if (next.isIdentifier || optional("void", next)) {
         directiveState?.checkDeclaration();
-        return parseTypedef(token);
+        return parseTypedef(previous);
       } else {
         directiveState?.checkDeclaration();
         return parseTopLevelMember(token);
@@ -454,15 +456,15 @@ class Parser {
         return parseTopLevelMember(token);
       } else if (identical(value, 'library')) {
         directiveState?.checkLibrary(this, token);
-        return parseLibraryName(token);
+        return parseLibraryName(previous);
       } else if (identical(value, 'import')) {
         directiveState?.checkImport(this, token);
-        return parseImport(token);
+        return parseImport(previous);
       } else if (identical(value, 'export')) {
         directiveState?.checkExport(this, token);
-        return parseExport(token);
+        return parseExport(previous);
       } else if (identical(value, 'part')) {
-        return parsePartOrPartOf(token, directiveState);
+        return parsePartOrPartOf(previous, directiveState);
       }
     }
 
@@ -475,11 +477,10 @@ class Parser {
   /// ;
   /// ```
   Token parseLibraryName(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('library', token));
-    Token libraryKeyword = token;
+    Token libraryKeyword = token.next;
+    assert(optional('library', libraryKeyword));
     listener.beginLibraryName(libraryKeyword);
-    token = parseQualified(token, IdentifierContext.libraryName,
+    token = parseQualified(libraryKeyword, IdentifierContext.libraryName,
         IdentifierContext.libraryNameContinuation);
     token = ensureSemicolon(token.next);
     listener.endLibraryName(libraryKeyword, token);
@@ -519,11 +520,10 @@ class Parser {
   /// ;
   /// ```
   Token parseImport(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('import', token));
-    Token importKeyword = token;
+    Token importKeyword = token.next;
+    assert(optional('import', importKeyword));
     listener.beginImport(importKeyword);
-    token = parseLiteralStringOrRecoverExpression(token);
+    token = parseLiteralStringOrRecoverExpression(importKeyword);
     Token afterUri = token;
     token = parseConditionalUris(token);
     token = parseImportPrefixOpt(token);
@@ -706,11 +706,10 @@ class Parser {
   /// ;
   /// ```
   Token parseExport(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('export', token));
-    Token exportKeyword = token;
+    Token exportKeyword = token.next;
+    assert(optional('export', exportKeyword));
     listener.beginExport(exportKeyword);
-    token = ensureParseLiteralString(token);
+    token = ensureParseLiteralString(exportKeyword);
     token = parseConditionalUris(token.next);
     token = parseCombinators(token);
     token = ensureSemicolon(token);
@@ -809,13 +808,13 @@ class Parser {
   }
 
   Token parsePartOrPartOf(Token token, DirectiveContext directiveState) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('part', token));
-    if (optional('of', token.next)) {
-      directiveState?.checkPartOf(this, token);
+    Token next = token.next;
+    assert(optional('part', next));
+    if (optional('of', next.next)) {
+      directiveState?.checkPartOf(this, next);
       return parsePartOf(token);
     } else {
-      directiveState?.checkPart(this, token);
+      directiveState?.checkPart(this, next);
       return parsePart(token);
     }
   }
@@ -826,11 +825,10 @@ class Parser {
   /// ;
   /// ```
   Token parsePart(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('part', token));
-    Token partKeyword = token;
-    listener.beginPart(token);
-    token = parseLiteralStringOrRecoverExpression(token);
+    Token partKeyword = token.next;
+    assert(optional('part', partKeyword));
+    listener.beginPart(partKeyword);
+    token = parseLiteralStringOrRecoverExpression(partKeyword);
     token = ensureSemicolon(token);
     listener.endPart(partKeyword, token);
     return token;
@@ -842,12 +840,11 @@ class Parser {
   /// ;
   /// ```
   Token parsePartOf(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('part', token));
-    assert(optional('of', token.next));
-    listener.beginPartOf(token);
-    Token partKeyword = token;
-    Token ofKeyword = token.next;
+    Token partKeyword = token.next;
+    Token ofKeyword = partKeyword.next;
+    assert(optional('part', partKeyword));
+    assert(optional('of', ofKeyword));
+    listener.beginPartOf(partKeyword);
     bool hasName = ofKeyword.next.isIdentifier;
     if (hasName) {
       token = parseQualified(ofKeyword, IdentifierContext.partName,
@@ -944,15 +941,14 @@ class Parser {
   /// ;
   /// ```
   Token parseTypedef(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('typedef', token));
-    Token typedefKeyword = token;
-    listener.beginFunctionTypeAlias(token);
+    Token typedefKeyword = token.next;
+    assert(optional('typedef', typedefKeyword));
+    listener.beginFunctionTypeAlias(typedefKeyword);
     Token equals;
-    Token afterType = parseType(token.next, TypeContinuation.Typedef);
+    Token afterType = parseType(typedefKeyword.next, TypeContinuation.Typedef);
     if (afterType == null) {
-      token =
-          ensureIdentifier(token.next, IdentifierContext.typedefDeclaration);
+      token = ensureIdentifier(
+          typedefKeyword.next, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token.next);
       equals = token;
       expect('=', token);
