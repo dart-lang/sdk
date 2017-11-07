@@ -945,7 +945,6 @@ type_promotion_multiple_test/19: MissingCompileTimeError
 type_promotion_multiple_test/20: MissingCompileTimeError
 type_promotion_multiple_test/21: MissingCompileTimeError
 type_promotion_multiple_test/22: MissingCompileTimeError
-vm/regress_28325_test: RuntimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/01: MissingCompileTimeError
 vm/type_vm_test/02: MissingCompileTimeError

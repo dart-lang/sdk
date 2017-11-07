@@ -352,7 +352,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       if (isErrorResponse(response)) {
         throw createError(response, "Failed host lookup: '$host'");
       } else {
-        return response.skip(1).map((result) {
+        return response.skip(1).map<InternetAddress>((result) {
           var type = new InternetAddressType._from(result[0]);
           return new _InternetAddress(result[1], host, result[2]);
         }).toList();
