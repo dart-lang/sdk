@@ -69,15 +69,6 @@ class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
   @override
   @failingTest
-  void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following a
-    // function-valued expression, returning "a<E>(b)(c).d<G>(e).f".
-    super
-        .test_assignableExpression_arguments_normal_chain_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
   void test_assignableExpression_arguments_normal_chain_typeArguments() {
     // TODO(brianwilkerson) Does not parse generic type arguments following a
     // function-valued expression, returning the binary expression "a<E>(b) < F".
@@ -2179,28 +2170,10 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
   @override
   @failingTest
-  void
-      test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following a
-    // function-valued expression.
-    super
-        .test_parseAssignableExpression_expression_args_dot_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
   void test_parseAssignableExpression_expression_args_dot_typeArguments() {
     // TODO(brianwilkerson) Does not parse generic type arguments following a
     // function-valued expression.
     super.test_parseAssignableExpression_expression_args_dot_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_ia_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following an
-    // index expression.
-    super.test_parseCascadeSection_ia_typeArgumentComments();
   }
 
   @override
@@ -2213,26 +2186,10 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseCascadeSection_paa_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following a
-    // function-valued expression.
-    super.test_parseCascadeSection_paa_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
   void test_parseCascadeSection_paa_typeArguments() {
     // TODO(brianwilkerson) Does not parse generic type arguments following a
     // function-valued expression.
     super.test_parseCascadeSection_paa_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_paapaa_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following a
-    // function-valued expression.
-    super.test_parseCascadeSection_paapaa_typeArgumentComments();
   }
 
   @override

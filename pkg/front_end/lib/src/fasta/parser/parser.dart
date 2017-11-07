@@ -4246,7 +4246,12 @@ class Parser {
         listener.handleIndexedExpression(openSquareBracket, token);
         token = token.next;
       } else if (optional('(', token)) {
-        listener.handleNoTypeArguments(token);
+        token = listener.injectGenericCommentTypeList(token);
+        if (isValidMethodTypeArguments(token)) {
+          token = parseTypeArgumentsOpt(token);
+        } else {
+          listener.handleNoTypeArguments(token);
+        }
         token = parseArguments(token).next;
         listener.handleSend(beginToken, token);
       } else {
