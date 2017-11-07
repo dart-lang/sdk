@@ -98,7 +98,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
       } else if (isClassMember) {
         p.parseMember(beginToken);
       } else {
-        p.parseTopLevelMember(beginToken);
+        p.parseTopLevelMember(p.syntheticPreviousToken(beginToken));
       }
     }
 

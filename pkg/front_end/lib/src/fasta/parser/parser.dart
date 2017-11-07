@@ -364,7 +364,7 @@ class Parser {
     if (token.next.isTopLevelKeyword) {
       return parseTopLevelKeywordDeclaration(null, token, directiveState);
     }
-    Token start = token.next;
+    Token start = token;
     // Skip modifiers to find a top level keyword or identifier
     while (token.next.isModifier) {
       token = token.next;
@@ -372,7 +372,7 @@ class Parser {
     Token next = token.next;
     if (next.isTopLevelKeyword) {
       Token abstractToken;
-      Token modifier = start;
+      Token modifier = start.next;
       while (modifier != next) {
         if (optional('abstract', modifier) &&
             optional('class', next) &&
@@ -391,7 +391,7 @@ class Parser {
       // so that we don't parse modifiers twice.
       directiveState?.checkDeclaration();
       return parseTopLevelMember(start);
-    } else if (start != next) {
+    } else if (start.next != next) {
       directiveState?.checkDeclaration();
       // Handle the edge case where a modifier is being used as an identifier
       return parseTopLevelMember(start);
@@ -444,7 +444,7 @@ class Parser {
         return parseTypedef(previous);
       } else {
         directiveState?.checkDeclaration();
-        return parseTopLevelMember(token);
+        return parseTopLevelMember(previous);
       }
     } else {
       // The remaining top level keywords are built-in keywords
@@ -453,7 +453,7 @@ class Parser {
       String nextValue = token.next.stringValue;
       if (identical(nextValue, '(') || identical(nextValue, '<')) {
         directiveState?.checkDeclaration();
-        return parseTopLevelMember(token);
+        return parseTopLevelMember(previous);
       } else if (identical(value, 'library')) {
         directiveState?.checkLibrary(this, token);
         return parseLibraryName(previous);
@@ -2473,21 +2473,21 @@ class Parser {
   }
 
   Token parseTopLevelMember(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    Token start = token;
+    Token beforeStart = token;
+    token = token.next;
     listener.beginTopLevelMember(token);
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
-          start, fasta.templateExpectedDeclaration);
+          token, fasta.templateExpectedDeclaration);
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
-          start, fasta.templateExpectedDeclaration);
+          token, fasta.templateExpectedDeclaration);
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -2537,10 +2537,11 @@ class Parser {
       }
     }
     Token afterModifiers =
-        identifiers.isNotEmpty ? identifiers.head.next : start;
+        identifiers.isNotEmpty ? identifiers.head.next : beforeStart.next;
     return isField
-        ? parseFields(start, identifiers.reverse(), type, name, true)
-        : parseTopLevelMethod(start, afterModifiers, type, getOrSet, name);
+        ? parseFields(beforeStart.next, identifiers.reverse(), type, name, true)
+        : parseTopLevelMethod(
+            beforeStart.next, afterModifiers, type, getOrSet, name);
   }
 
   Token parseFields(Token start, Link<Token> modifiers, Token type, Token name,
@@ -3170,7 +3171,8 @@ class Parser {
   /// ;
   /// ```
   Token parseClassMember(Token token) {
-    Token start = token = parseMetadataStar(token).next;
+    Token start = parseMetadataStar(token);
+    token = start.next;
     listener.beginMember(token);
     // TODO(danrubel): isFactoryDeclaration scans forward over modifiers
     // which findMemberName does as well. See if this can be done once
@@ -3185,14 +3187,14 @@ class Parser {
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
-          start, fasta.templateExpectedDeclaration);
+          token, fasta.templateExpectedDeclaration);
     }
     Token afterName = identifiers.head;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
-          start, fasta.templateExpectedDeclaration);
+          token, fasta.templateExpectedDeclaration);
     }
     Token name = identifiers.head;
     identifiers = identifiers.tail;
@@ -3247,7 +3249,7 @@ class Parser {
         token = reportUnexpectedToken(token);
         if (identical(token.next.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack, see parseTopLevelMember.
-          listener.endFields(1, start, token.next);
+          listener.endFields(1, start.next, token.next);
           listener.endMember();
           return token;
         }
@@ -3256,10 +3258,10 @@ class Parser {
     }
 
     Token afterModifiers =
-        identifiers.isNotEmpty ? identifiers.head.next : start;
+        identifiers.isNotEmpty ? identifiers.head.next : start.next;
     token = isField
-        ? parseFields(start, identifiers.reverse(), type, name, false)
-        : parseMethod(start, afterModifiers, type, getOrSet, name);
+        ? parseFields(start.next, identifiers.reverse(), type, name, false)
+        : parseMethod(start.next, afterModifiers, type, getOrSet, name);
     listener.endMember();
     return token;
   }

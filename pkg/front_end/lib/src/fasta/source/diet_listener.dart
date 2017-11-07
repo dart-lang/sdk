@@ -706,8 +706,7 @@ class DietListener extends StackListener {
       // There's a slight asymmetry between [parseTopLevelMember] and
       // [parseMember] because the former doesn't call `parseMetadataStar`.
       token = parser
-          .parseMetadataStar(parser.syntheticPreviousToken(metadata ?? token))
-          .next;
+          .parseMetadataStar(parser.syntheticPreviousToken(metadata ?? token));
       token = parser.parseTopLevelMember(token).next;
     } else {
       token = parser.parseMember(metadata ?? token).next;
