@@ -131,6 +131,9 @@
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
+  P(print_precompiler_entry_points, bool, false,                               \
+    "Print entry points and info about recognized methods used by "            \
+    "precompiler.")                                                            \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
   P(print_benchmarking_metrics, bool, false,                                   \
     "Print additional memory and latency metrics for benchmarking.")           \

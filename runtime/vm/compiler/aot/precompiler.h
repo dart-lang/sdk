@@ -25,6 +25,7 @@ class ParsedJSONObject;
 class ParsedJSONArray;
 class Precompiler;
 class FlowGraph;
+class PrecompilerEntryPointsPrinter;
 
 class TypeRangeCache : public ValueObject {
  public:
@@ -362,7 +363,8 @@ class Precompiler : public ValueObject {
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
-  void AddEntryPoints(Dart_QualifiedFunctionName entry_points[]);
+  void AddEntryPoints(Dart_QualifiedFunctionName entry_points[],
+                      PrecompilerEntryPointsPrinter* entry_points_printer);
   void Iterate();
 
   void AddType(const AbstractType& type);

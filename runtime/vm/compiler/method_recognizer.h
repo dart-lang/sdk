@@ -6,6 +6,7 @@
 #define RUNTIME_VM_COMPILER_METHOD_RECOGNIZER_H_
 
 #include "vm/allocation.h"
+#include "vm/growable_array.h"
 #include "vm/token.h"
 
 namespace dart {
@@ -518,7 +519,11 @@ namespace dart {
 
 // Forward declarations.
 class Function;
+class Library;
+class RawFunction;
+class RawGrowableObjectArray;
 class String;
+class Zone;
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -543,6 +548,10 @@ class MethodRecognizer : public AllStatic {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   static void InitializeState();
+  static RawGrowableObjectArray* QueryRecognizedMethods(Zone* zone);
+
+ private:
+  static void Libraries(GrowableArray<Library*>* libs);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
