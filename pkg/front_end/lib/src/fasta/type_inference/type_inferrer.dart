@@ -345,7 +345,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else {
       // Insert an implicit downcast.
       if (strongMode) {
-        if (engine.isTopLevelInferenceComplete &&
+        if (!isTopLevel &&
             !typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
           // Error: not assignable.
           library.addWarning(
