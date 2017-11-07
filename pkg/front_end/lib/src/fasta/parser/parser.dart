@@ -2117,7 +2117,9 @@ class Parser {
 
             // TODO(ahe): Generate type events and call
             // parseVariablesDeclarationRest instead.
-            return parseVariablesDeclaration(begin).next;
+            // TODO(brianwilkerson): Remove the invocation of `previous` when
+            // this method accepts the last consumed token.
+            return parseVariablesDeclaration(begin.previous).next;
           } else if (OPEN_PAREN_TOKEN == afterIdKind) {
             // We are looking at `type identifier '('`.
             if (looksLikeFunctionBody(closeBraceTokenFor(afterId).next)) {
@@ -2210,7 +2212,9 @@ class Parser {
 
             // TODO(ahe): Generate type events and call
             // parseVariablesDeclarationRest instead.
-            return parseVariablesDeclaration(begin).next;
+            // TODO(brianwilkerson): Remove the invocation of `previous` when
+            // this method accepts the last consumed token.
+            return parseVariablesDeclaration(begin.previous).next;
           }
           // Fall-through to expression statement.
         }
@@ -2255,7 +2259,9 @@ class Parser {
             isOneOf4(token.next, '=', ';', ',', 'in')) {
           // TODO(ahe): Generate type events and call
           // parseVariablesDeclarationNoSemicolonRest instead.
-          return parseVariablesDeclarationNoSemicolon(begin).next;
+          // TODO(brianwilkerson): Remove the invocation of `previous` when
+          // this method accepts the last consumed token.
+          return parseVariablesDeclarationNoSemicolon(begin.previous).next;
         }
         return parseExpression(begin);
 
@@ -3780,7 +3786,7 @@ class Parser {
     } else if (identical(value, 'return')) {
       return parseReturnStatement(token);
     } else if (identical(value, 'var') || identical(value, 'final')) {
-      return parseVariablesDeclaration(token.next);
+      return parseVariablesDeclaration(token);
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
     } else if (identical(value, 'await') && optional('for', token.next.next)) {
@@ -3829,7 +3835,7 @@ class Parser {
     } else if (token.next.isIdentifier) {
       return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, '@')) {
-      return parseVariablesDeclaration(token.next);
+      return parseVariablesDeclaration(token);
     } else {
       return parseExpressionStatement(token.next);
     }
@@ -3891,7 +3897,7 @@ class Parser {
     Token next = token.next;
     assert(optional('const', next));
     if (next.next.isModifier) {
-      return parseVariablesDeclaration(token.next);
+      return parseVariablesDeclaration(token);
     } else {
       // TODO(brianwilkerson): Remove the invocation of `previous` after
       // converting `parseType` to return the last consumed token.
@@ -4899,7 +4905,6 @@ class Parser {
   }
 
   Token parseVariablesDeclaration(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     return parseVariablesDeclarationMaybeSemicolon(token, true);
   }
 
@@ -4908,7 +4913,6 @@ class Parser {
   }
 
   Token parseVariablesDeclarationNoSemicolon(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // Only called when parsing a for loop, so this is for parsing locals.
     return parseVariablesDeclarationMaybeSemicolon(token, false);
   }
@@ -4920,8 +4924,7 @@ class Parser {
 
   Token parseVariablesDeclarationMaybeSemicolon(
       Token token, bool endWithSemicolon) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    token = parseMetadataStar(token);
+    token = parseMetadataStar(token.next);
 
     // If the next token has a type substitution comment /*=T*/, then
     // the current 'var' token should be repealed and replaced.
@@ -5040,7 +5043,7 @@ class Parser {
       listener.handleNoExpression(next);
       return token;
     } else if (isOneOf4(next, '@', 'var', 'final', 'const')) {
-      return parseVariablesDeclarationNoSemicolon(next);
+      return parseVariablesDeclarationNoSemicolon(token);
     }
     return parseType(next, TypeContinuation.VariablesDeclarationOrExpression)
         .previous;
