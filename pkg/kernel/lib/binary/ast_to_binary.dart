@@ -138,7 +138,12 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   void writeNodeList(List<Node> nodes) {
-    writeList(nodes, writeNode);
+    final len = nodes.length;
+    writeUInt30(len);
+    for (var i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeNode(node);
+    }
   }
 
   void writeNode(Node node) {
@@ -734,9 +739,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
     assert(_variableIndexer != null);
     _variableIndexer.pushScope();
     var oldLabels = _labelIndexer;
-    _labelIndexer = new LabelIndexer();
+    _labelIndexer = null;
     var oldCases = _switchCaseIndexer;
-    _switchCaseIndexer = new SwitchCaseIndexer();
+    _switchCaseIndexer = null;
     // Note: FunctionNode has no tag.
     _typeParameterIndexer.enter(node.typeParameters);
     writeOffset(node.fileOffset);
@@ -1145,6 +1150,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   visitLabeledStatement(LabeledStatement node) {
+    if (_labelIndexer == null) {
+      _labelIndexer = new LabelIndexer();
+    }
     _labelIndexer.enter(node);
     writeByte(Tag.LabeledStatement);
     writeNode(node.body);
@@ -1194,6 +1202,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   visitSwitchStatement(SwitchStatement node) {
+    if (_switchCaseIndexer == null) {
+      _switchCaseIndexer = new SwitchCaseIndexer();
+    }
     _switchCaseIndexer.enter(node);
     writeByte(Tag.SwitchStatement);
     writeOffset(node.fileOffset);
@@ -1506,10 +1517,13 @@ class StringIndexer {
   int get numberOfStrings => index.length;
 
   int put(String string) {
-    return index.putIfAbsent(string, () {
+    var result = index[string];
+    if (result == null) {
       entries.add(new StringTableEntry(string));
-      return index.length;
-    });
+      result = index.length;
+      index[string] = result;
+    }
+    return result;
   }
 
   int operator [](String string) => index[string];
