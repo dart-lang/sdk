@@ -326,6 +326,14 @@ class _ReplaceReferencesVisitor extends RecursiveVisitor {
   }
 
   @override
+  void visitLibrary(Library node) {
+    for (var i = 0; i < node.additionalExports.length; i++) {
+      node.additionalExports[i] = _newReferenceFor(node.additionalExports[i]);
+    }
+    super.visitLibrary(node);
+  }
+
+  @override
   void visitLibraryDependency(LibraryDependency node) {
     node.importedLibraryReference =
         _newReferenceFor(node.importedLibraryReference);

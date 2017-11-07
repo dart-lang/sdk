@@ -1089,6 +1089,52 @@ class B4[B4]<T[T] extends A[A1]> {}
     });
   }
 
+  void test_library_additionalExports() {
+    Map<String, Reference> addLibraryDeclarations(Library library) {
+      var A = new Class(name: 'A');
+      var B = _newField('B');
+      var C = _newMethod('C');
+      var D = _newGetter('D');
+      var E = _newSetter('E');
+      library.addClass(A);
+      library.addField(B);
+      library.addProcedure(C);
+      library.addProcedure(D);
+      library.addProcedure(E);
+      return {
+        'A': A.reference,
+        'B': B.reference,
+        'C': C.reference,
+        'D': D.reference,
+        'E': E.reference
+      };
+    }
+
+    var libraryA1 = _newLibrary('a');
+    var declarations = addLibraryDeclarations(libraryA1);
+
+    var libraryA2 = _newLibrary('a');
+    var declarations2 = addLibraryDeclarations(libraryA2);
+
+    var libraryB = _newLibrary('b');
+    libraryB.additionalExports.addAll(declarations2.values);
+
+    var outline1 = _newOutline([libraryA1]);
+    var outline2 = _newOutline([libraryA2, libraryB]);
+
+    _runCombineTest([outline1, outline2], (result) {
+      var libraryA = _getLibrary(result.program, 'a');
+      var libraryB = _getLibrary(result.program, 'b');
+      expect(libraryB.additionalExports, hasLength(declarations.length));
+      for (var declaration in _getLibraryDeclarations(libraryA)) {
+        String name = declaration.canonicalName.name;
+        Reference reference = declaration.reference;
+        expect(declarations[name], same(reference));
+        expect(libraryB.additionalExports, contains(reference));
+      }
+    });
+  }
+
   void test_library_replaceReference() {
     var libraryA1 = _newLibrary('a');
 
@@ -1505,6 +1551,13 @@ class B4[B4]<T[T] extends A[A1]> {}
     });
   }
 
+  /// Produces all declarations of the [library].
+  static Iterable<NamedNode> _getLibraryDeclarations(Library library) sync* {
+    yield* library.classes;
+    yield* library.procedures;
+    yield* library.fields;
+  }
+
   /// Return the text presentation of the [library] that is not a normal Kernel
   /// AST text, but includes portions that we want to test - declarations
   /// and references.  The map [nodeToName] must have entries for all
@@ -1826,6 +1879,12 @@ class _StateCollector extends RecursiveVisitor {
   @override
   void visitClassReference(Class node) {
     references.add(node.reference);
+  }
+
+  @override
+  visitLibrary(Library node) {
+    references.addAll(node.additionalExports);
+    super.visitLibrary(node);
   }
 
   @override
