@@ -17,11 +17,12 @@ library fasta.test.shaker_test;
 
 import 'dart:async' show Future;
 import 'dart:convert' show JSON;
-import 'dart:io' show File, Platform;
+import 'dart:io' show File;
 
 export 'package:testing/testing.dart' show Chain, runMe;
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/deprecated_problems.dart'
@@ -80,14 +81,31 @@ class TreeShakerContext extends ChainContext {
     environment[ENABLE_FULL_COMPILE] = "";
     environment[AST_KIND_INDEX] = "${AstKind.Kernel.index}";
     bool updateExpectations = environment["updateExpectations"] == "true";
-    Uri outlineUri = Uri.base
-        .resolve(Platform.resolvedExecutable)
-        .resolve("vm_outline.dill");
+
+    Uri platformLocation = _computePlatformBinariesLocation(environment);
+    Uri outlineUri = platformLocation.resolve('vm_outline.dill');
+    List<int> outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
+
     var options = new CompilerOptions()
       ..packagesFileUri = Uri.base.resolve(".packages");
-    List<int> outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
     return new TreeShakerContext(outlineUri, new ProcessedOptions(options),
         outlineBytes, updateExpectations);
+  }
+
+  /// Return the location of the platform binaries, such as `vm_outline.dill`
+  /// in the physical file system, using the given [environment] or the
+  /// default location in `xcodebuild`, `out`; or in the SDK distribution.
+  static Uri _computePlatformBinariesLocation(Map<String, String> environment) {
+    // Check if `--platformBinaries=/path/to/platform/` is given.
+    String platformBinaries = environment['platformBinaries'];
+    if (platformBinaries != null) {
+      if (!platformBinaries.endsWith('/')) {
+        platformBinaries = '$platformBinaries/';
+        return Uri.base.resolve(platformBinaries);
+      }
+    }
+    // Otherwise use the default mechanism.
+    return computePlatformBinariesLocation();
   }
 }
 

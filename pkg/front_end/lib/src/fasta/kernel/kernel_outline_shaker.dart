@@ -26,15 +26,7 @@ void serializeTrimmedOutline(
     data.markAdditionalExports(library);
     for (var clazz in library.classes) {
       if (clazz.name.startsWith('_')) continue;
-      data.markClass(clazz);
-      for (var field in clazz.fields) {
-        if (field.name.isPrivate) continue;
-        data.markMember(field);
-      }
-      for (var constructor in clazz.constructors) {
-        if (constructor.name.isPrivate) continue;
-        data.markMember(constructor);
-      }
+      data.markClassForExport(clazz);
     }
     for (var field in library.fields) {
       if (field.name.isPrivate) continue;
