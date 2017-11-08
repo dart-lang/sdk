@@ -18,7 +18,7 @@ Map jsonify(Map map) {
 
 List listEach(Map map) {
   var result = [];
-  map.forEach((String key, value) {
+  map.forEach((key, value) {
     result.add(key);
     result.add(value);
   });
