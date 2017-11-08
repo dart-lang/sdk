@@ -384,13 +384,15 @@ class _RetainedDataBuilder extends RecursiveVisitor implements _RetainedData {
     markLibrary(node.parent);
     markAnnotations(node.annotations);
 
-    FunctionType type = node.type;
-    type.returnType?.accept(typeMarker);
-    for (var positionalType in type.positionalParameters) {
-      positionalType.accept(typeMarker);
-    }
-    for (var namedType in type.namedParameters) {
-      namedType.type.accept(typeMarker);
+    DartType type = node.type;
+    if (type is FunctionType) {
+      type.returnType?.accept(typeMarker);
+      for (var positionalType in type.positionalParameters) {
+        positionalType.accept(typeMarker);
+      }
+      for (var namedType in type.namedParameters) {
+        namedType.type.accept(typeMarker);
+      }
     }
   }
 
