@@ -1888,10 +1888,11 @@ class Parser {
     /// The number of function types seen during analysis.
     int functionTypes = 0;
 
-    /// The start of type variables of function types seen during
-    /// analysis. Notice that the tokens in this list might be either `'<'` or
-    /// `'('` as not all function types have type parameters. Also, it is safe
-    /// to assume that [closeBraceTokenFor] will return non-null for all these tokens.
+    /// The tokens before the start of type variables of function types seen
+    /// during analysis. Notice that the tokens in this list might precede
+    /// either `'<'` or `'('` as not all function types have type parameters.
+    /// Also, it is safe to assume that [closeBraceTokenFor] will return
+    /// non-null for all of the tokens following these tokens.
     Link<Token> typeVariableStarters = const Link<Token>();
 
     {
@@ -1941,7 +1942,7 @@ class Parser {
       hasReturnType = looksLikeType;
 
       while (optional("Function", token)) {
-        Token typeVariableStart = token.next;
+        Token typeVariableStart = token;
         if (optional("<", token.next)) {
           Token close = closeBraceTokenFor(token.next);
           if (close != null && optional(">", close)) {
@@ -1973,7 +1974,7 @@ class Parser {
       int count = 0;
       for (Token typeVariableStart in typeVariableStarters) {
         count++;
-        parseTypeVariablesOpt(typeVariableStart);
+        parseTypeVariablesOpt(typeVariableStart.next);
         listener.beginFunctionType(begin);
       }
       assert(count == functionTypes);
@@ -2338,25 +2339,29 @@ class Parser {
           reportRecoverableError(nameToken, fasta.messagePrivateNamedParameter);
         }
 
-        token = listener.injectGenericCommentTypeList(token);
+        // TODO(brianwilkerson): Remove the invocation of `previous` when
+        // `injectGenericCommentTypeList` returns the last consumed token.
+        Token previous = listener.injectGenericCommentTypeList(token).previous;
+        token = previous.next;
 
         Token inlineFunctionTypeStart;
         if (optional("<", token)) {
           Token closer = closeBraceTokenFor(token);
           if (closer != null) {
             if (optional("(", closer.next)) {
-              inlineFunctionTypeStart = token;
+              inlineFunctionTypeStart = previous;
               token = token.next;
             }
           }
         } else if (optional("(", token)) {
-          inlineFunctionTypeStart = token;
+          inlineFunctionTypeStart = previous;
           token = closeBraceTokenFor(token).next;
         }
 
         if (inlineFunctionTypeStart != null) {
-          token = parseTypeVariablesOpt(inlineFunctionTypeStart);
-          listener.beginFunctionTypedFormalParameter(inlineFunctionTypeStart);
+          token = parseTypeVariablesOpt(inlineFunctionTypeStart.next);
+          listener
+              .beginFunctionTypedFormalParameter(inlineFunctionTypeStart.next);
           if (!untyped) {
             if (voidToken != null) {
               listener.handleVoidKeyword(voidToken);
@@ -2377,7 +2382,7 @@ class Parser {
           // The following isn't allowed:
           //    int Function(int bar(String x)).
           if (memberKind == MemberKind.GeneralizedFunctionType) {
-            reportRecoverableError(inlineFunctionTypeStart,
+            reportRecoverableError(inlineFunctionTypeStart.next,
                 fasta.messageInvalidInlineFunctionType);
           }
         } else if (untyped) {
@@ -4093,7 +4098,9 @@ class Parser {
     if (isValidMethodTypeArguments(token)) {
       // For example a(b)<T>(c), where token is '<'.
       typeArguments = token;
-      token = parseTypeArgumentsOpt(token);
+      // TODO(brianwilkerson): Remove the invocation of `previous` when
+      // `parseUnaryExpression` (invoked above) returns the last consumed token.
+      token = parseTypeArgumentsOpt(token.previous.next);
       assert(optional('(', token));
       type = token.type;
       tokenLevel = type.precedence;
@@ -4192,7 +4199,10 @@ class Parser {
       if (isValidMethodTypeArguments(token)) {
         // For example a(b)..<T>(c), where token is '<'.
         typeArguments = token;
-        token = parseTypeArgumentsOpt(token);
+        // TODO(brianwilkerson): Remove the invocation of `previous` when this
+        // method accepts the last consumed token and the methods invoked above
+        // that are assigned to `token` return the last consumed token.
+        token = parseTypeArgumentsOpt(token.previous.next);
         assert(optional('(', token));
       }
       token = parseArgumentOrIndexStar(token, typeArguments);
@@ -4270,7 +4280,10 @@ class Parser {
         if (typeArguments == null) {
           token = listener.injectGenericCommentTypeList(token);
           if (isValidMethodTypeArguments(token)) {
-            token = parseTypeArgumentsOpt(token);
+            // TODO(brianwilkerson): Remove the invocation of `previous` when
+            // `injectGenericCommentTypeList` (invoked above) returns the last
+            // consumed token.
+            token = parseTypeArgumentsOpt(token.previous.next);
           } else {
             listener.handleNoTypeArguments(token);
           }
@@ -4545,16 +4558,16 @@ class Parser {
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
   Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
     // TODO(brianwilkerson) Return the last consumed token.
-    token = token.next;
-    assert(optional('<', token));
-    Token closeBrace = closeBraceTokenFor(token);
+    Token next = token.next;
+    assert(optional('<', next));
+    Token closeBrace = closeBraceTokenFor(next);
     if (constKeyword == null &&
         closeBrace != null &&
         identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
-      token = parseTypeVariablesOpt(token);
+      token = parseTypeVariablesOpt(token.next);
       return parseLiteralFunctionSuffix(token);
     } else {
-      token = parseTypeArgumentsOpt(token);
+      token = parseTypeArgumentsOpt(token.next);
       if (optional('{', token)) {
         return parseLiteralMapSuffix(token, constKeyword).next;
       } else if ((optional('[', token)) || (optional('[]', token))) {
@@ -4806,10 +4819,13 @@ class Parser {
     // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
     Token beginToken = ensureIdentifier(token, context);
-    token = listener.injectGenericCommentTypeList(beginToken.next);
-    if (isValidMethodTypeArguments(token)) {
-      token = parseTypeArgumentsOpt(token);
+    // TODO(brianwilkerson): Remove the invocation of `previous` when
+    // `injectGenericCommentTypeList` returns the last consumed token.
+    token = listener.injectGenericCommentTypeList(beginToken.next).previous;
+    if (isValidMethodTypeArguments(token.next)) {
+      token = parseTypeArgumentsOpt(token.next);
     } else {
+      token = token.next;
       listener.handleNoTypeArguments(token);
     }
     token = parseArgumentsOpt(token);
