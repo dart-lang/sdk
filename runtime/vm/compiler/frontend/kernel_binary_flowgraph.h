@@ -758,6 +758,7 @@ class StreamingConstantEvaluator {
   void EvaluateStaticGet();
   void EvaluateMethodInvocation();
   void EvaluateDirectMethodInvocation();
+  void EvaluateSuperMethodInvocation();
   void EvaluateStaticInvocation();
   void EvaluateConstructorInvocationInternal();
   void EvaluateNot();
@@ -1000,6 +1001,7 @@ class StreamingFlowGraphBuilder {
   Value* stack();
   void Push(Definition* definition);
   Value* Pop();
+  Class& GetSuperOrDie();
 
   Tag PeekArgumentsFirstPositionalTag();
   const TypeArguments& PeekArgumentsInstantiatedType(const Class& klass);
@@ -1011,6 +1013,12 @@ class StreamingFlowGraphBuilder {
   LocalVariable* MakeTemporary();
   RawFunction* LookupMethodByMember(NameIndex target,
                                     const String& method_name);
+  Function& FindMatchingFunctionAnyArgs(const Class& klass, const String& name);
+  Function& FindMatchingFunction(const Class& klass,
+                                 const String& name,
+                                 int type_args_len,
+                                 int argument_count,
+                                 const Array& argument_names);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
@@ -1126,12 +1134,22 @@ class StreamingFlowGraphBuilder {
   Fragment BuildVariableSet(uint8_t payload, TokenPosition* position);
   Fragment BuildPropertyGet(TokenPosition* position);
   Fragment BuildPropertySet(TokenPosition* position);
+  Fragment BuildAllocateInvocationMirrorCall(TokenPosition position,
+                                             const String& name,
+                                             intptr_t num_type_arguments,
+                                             intptr_t num_arguments,
+                                             const Array& argument_names,
+                                             LocalVariable* actuals_array,
+                                             Fragment build_rest_of_actuals);
+  Fragment BuildSuperPropertyGet(TokenPosition* position);
+  Fragment BuildSuperPropertySet(TokenPosition* position);
   Fragment BuildDirectPropertyGet(TokenPosition* position);
   Fragment BuildDirectPropertySet(TokenPosition* position);
   Fragment BuildStaticGet(TokenPosition* position);
   Fragment BuildStaticSet(TokenPosition* position);
   Fragment BuildMethodInvocation(TokenPosition* position);
   Fragment BuildDirectMethodInvocation(TokenPosition* position);
+  Fragment BuildSuperMethodInvocation(TokenPosition* position);
   Fragment BuildStaticInvocation(bool is_const, TokenPosition* position);
   Fragment BuildConstructorInvocation(bool is_const, TokenPosition* position);
   Fragment BuildNot(TokenPosition* position);

@@ -239,6 +239,8 @@ dart/spawn_shutdown_test: SkipSlow
 cc/IsolateReload_KernelIncrementalCompile: Skip
 cc/IsolateReload_KernelIncrementalCompileAppAndLib: Skip
 cc/IsolateReload_KernelIncrementalCompileGenerics: Skip
+cc/Mixin_PrivateSuperResolution: Skip
+cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 
 [ ($compiler == dartk) && ($runtime == vm) ]
 cc/CanonicalizationInScriptSnapshots: Fail

@@ -1220,6 +1220,19 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->SkipCanonicalNameReference();  // read target_reference.
       VisitExpression();                       // read value·
       return;
+    case kSuperPropertyGet:
+      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+      builder_->ReadPosition();                // read position.
+      builder_->SkipName();                    // read name.
+      builder_->SkipCanonicalNameReference();  // read target_reference.
+      return;
+    case kSuperPropertySet:
+      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+      builder_->ReadPosition();                // read position.
+      builder_->SkipName();                    // read name.
+      VisitExpression();                       // read value.
+      builder_->SkipCanonicalNameReference();  // read target_reference.
+      return;
     case kStaticGet:
       builder_->ReadPosition();                // read position.
       builder_->SkipCanonicalNameReference();  // read target_reference.
@@ -1244,6 +1257,14 @@ void StreamingScopeBuilder::VisitExpression() {
       VisitExpression();                       // read receiver.
       builder_->SkipCanonicalNameReference();  // read target_reference.
       VisitArguments();                        // read arguments.
+      return;
+    case kSuperMethodInvocation:
+      HandleSpecialLoad(&result_->this_variable, Symbols::This());
+      builder_->ReadPosition();  // read position.
+      builder_->SkipName();      // read name.
+      VisitArguments();          // read arguments.
+      // read interface_target_reference.
+      builder_->SkipCanonicalNameReference();
       return;
     case kStaticInvocation:
     case kConstStaticInvocation:
@@ -2532,6 +2553,9 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kDirectMethodInvocation:
         EvaluateDirectMethodInvocation();
         break;
+      case kSuperMethodInvocation:
+        EvaluateSuperMethodInvocation();
+        break;
       case kStaticInvocation:
       case kConstStaticInvocation:
         EvaluateStaticInvocation();
@@ -2807,13 +2831,9 @@ void StreamingConstantEvaluator::EvaluateMethodInvocation() {
   ASSERT(!klass.IsNull());
 
   // Search the superclass chain for the selector.
-  Function& function = Function::Handle(Z);
   const String& method_name = builder_->ReadNameAsMethodName();  // read name.
-  while (!klass.IsNull()) {
-    function = klass.LookupDynamicFunctionAllowPrivate(method_name);
-    if (!function.IsNull()) break;
-    klass = klass.SuperClass();
-  }
+  Function& function =
+      builder_->FindMatchingFunctionAnyArgs(klass, method_name);
 
   // The frontend should guarantee that [MethodInvocation]s inside constant
   // expressions are always valid.
@@ -2845,6 +2865,41 @@ void StreamingConstantEvaluator::EvaluateDirectMethodInvocation() {
   const Object& result = RunMethodCall(function, &receiver);
   result_ ^= result.raw();
   result_ = H.Canonicalize(result_);
+}
+
+Class& StreamingFlowGraphBuilder::GetSuperOrDie() {
+  Class& klass = Class::Handle(Z, parsed_function()->function().Owner());
+  ASSERT(!klass.IsNull());
+  klass = klass.SuperClass();
+  ASSERT(!klass.IsNull());
+  return klass;
+}
+
+void StreamingConstantEvaluator::EvaluateSuperMethodInvocation() {
+  builder_->ReadPosition();  // read position.
+
+  const LocalVariable* this_variable = builder_->scopes()->this_variable;
+  ASSERT(this_variable->IsConst());
+  const Instance& receiver =
+      Instance::Handle(Z, this_variable->ConstValue()->raw());
+  ASSERT(!receiver.IsNull());
+
+  Class& klass = builder_->GetSuperOrDie();
+
+  const String& method_name = builder_->ReadNameAsMethodName();  // read name.
+  Function& function =
+      builder_->FindMatchingFunctionAnyArgs(klass, method_name);
+
+  // The frontend should guarantee that [MethodInvocation]s inside constant
+  // expressions are always valid.
+  ASSERT(!function.IsNull());
+
+  // Read arguments, run the method and canonicalize the result.
+  const Object& result = RunMethodCall(function, &receiver);
+  result_ ^= result.raw();
+  result_ = H.Canonicalize(result_);
+
+  builder_->SkipCanonicalNameReference();  // read interface_target_reference.
 }
 
 void StreamingConstantEvaluator::EvaluateStaticInvocation() {
@@ -3660,8 +3715,11 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
                                          &argument_count);  // read arguments.
           argument_count += 1;
 
+          Class& parent_klass = GetSuperOrDie();
+
           const Function& target = Function::ZoneHandle(
-              Z, H.LookupConstructorByKernelConstructor(canonical_target));
+              Z, H.LookupConstructorByKernelConstructor(
+                     parent_klass, H.CanonicalNameString(canonical_target)));
           instructions +=
               StaticCall(TokenPosition::kNoSource, target, argument_count,
                          argument_names, ICData::kStatic);
@@ -4249,12 +4307,18 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildDirectPropertyGet(position);
     case kDirectPropertySet:
       return BuildDirectPropertySet(position);
+    case kSuperPropertyGet:
+      return BuildSuperPropertyGet(position);
+    case kSuperPropertySet:
+      return BuildSuperPropertySet(position);
     case kStaticGet:
       return BuildStaticGet(position);
     case kStaticSet:
       return BuildStaticSet(position);
     case kMethodInvocation:
       return BuildMethodInvocation(position);
+    case kSuperMethodInvocation:
+      return BuildSuperMethodInvocation(position);
     case kDirectMethodInvocation:
       return BuildDirectMethodInvocation(position);
     case kStaticInvocation:
@@ -4680,6 +4744,17 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       SkipExpression();              // read value.
       SkipCanonicalNameReference();  // read interface_target_reference.
       return;
+    case kSuperPropertyGet:
+      ReadPosition();                // read position.
+      SkipName();                    // read name.
+      SkipCanonicalNameReference();  // read interface_target_reference.
+      return;
+    case kSuperPropertySet:
+      ReadPosition();                // read position.
+      SkipName();                    // read name.
+      SkipExpression();              // read value.
+      SkipCanonicalNameReference();  // read interface_target_reference.
+      return;
     case kDirectPropertyGet:
       ReadPosition();                // read position.
       SkipFlags();                   // read flags.
@@ -4705,6 +4780,12 @@ void StreamingFlowGraphBuilder::SkipExpression() {
       ReadPosition();                // read position.
       SkipFlags();                   // read flags.
       SkipExpression();              // read receiver.
+      SkipName();                    // read name.
+      SkipArguments();               // read arguments.
+      SkipCanonicalNameReference();  // read interface_target_reference.
+      return;
+    case kSuperMethodInvocation:
+      ReadPosition();                // read position.
       SkipName();                    // read name.
       SkipArguments();               // read arguments.
       SkipCanonicalNameReference();  // read interface_target_reference.
@@ -5225,6 +5306,43 @@ RawFunction* StreamingFlowGraphBuilder::LookupMethodByMember(
     NameIndex target,
     const String& method_name) {
   return flow_graph_builder_->LookupMethodByMember(target, method_name);
+}
+
+Function& StreamingFlowGraphBuilder::FindMatchingFunctionAnyArgs(
+    const Class& klass,
+    const String& name) {
+  // Search the superclass chain for the selector.
+  Function& function = Function::Handle(Z);
+  Class& iterate_klass = Class::Handle(Z, klass.raw());
+  while (!iterate_klass.IsNull()) {
+    function = iterate_klass.LookupDynamicFunctionAllowPrivate(name);
+    if (!function.IsNull()) break;
+    iterate_klass = iterate_klass.SuperClass();
+  }
+  return function;
+}
+
+Function& StreamingFlowGraphBuilder::FindMatchingFunction(
+    const Class& klass,
+    const String& name,
+    int type_args_len,
+    int argument_count,
+    const Array& argument_names) {
+  // Search the superclass chain for the selector.
+  Function& function = Function::Handle(Z);
+  Class& iterate_klass = Class::Handle(Z, klass.raw());
+  while (!iterate_klass.IsNull()) {
+    function = iterate_klass.LookupDynamicFunctionAllowPrivate(name);
+    if (!function.IsNull()) {
+      if (function.AreValidArguments(type_args_len, argument_count,
+                                     argument_names,
+                                     /* error_message = */ NULL)) {
+        return function;
+      }
+    }
+    iterate_klass = iterate_klass.SuperClass();
+  }
+  return Function::Handle();
 }
 
 bool StreamingFlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
@@ -5783,6 +5901,213 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   return instructions;
 }
 
+static Function& GetNoSuchMethodOrDie(Zone* zone, const Class& klass) {
+  Function& nsm_function = Function::Handle(zone);
+  Class& iterate_klass = Class::Handle(zone, klass.raw());
+  while (!iterate_klass.IsNull()) {
+    nsm_function = iterate_klass.LookupDynamicFunction(Symbols::NoSuchMethod());
+    if (!nsm_function.IsNull() && nsm_function.NumParameters() == 2 &&
+        nsm_function.NumTypeParameters() == 0) {
+      break;
+    }
+    iterate_klass = iterate_klass.SuperClass();
+  }
+  // We are guaranteed to find noSuchMethod of class Object.
+  ASSERT(!nsm_function.IsNull());
+
+  return nsm_function;
+}
+
+// Note, that this will always mark `super` flag to true.
+Fragment StreamingFlowGraphBuilder::BuildAllocateInvocationMirrorCall(
+    TokenPosition position,
+    const String& name,
+    intptr_t num_type_arguments,
+    intptr_t num_arguments,
+    const Array& argument_names,
+    LocalVariable* actuals_array,
+    Fragment build_rest_of_actuals) {
+  Fragment instructions;
+
+  // Populate array containing the actual arguments. Just add [this] here.
+  instructions += LoadLocal(actuals_array);                      // array
+  instructions += IntConstant(num_type_arguments == 0 ? 0 : 1);  // index
+  instructions += LoadLocal(scopes()->this_variable);            // receiver
+  instructions += StoreIndexed(kArrayCid);
+  instructions += Drop();  // dispose of stored value
+  instructions += build_rest_of_actuals;
+
+  // First argument is receiver.
+  instructions += LoadLocal(scopes()->this_variable);
+  instructions += PushArgument();
+
+  // Push the arguments for allocating the invocation mirror:
+  //   - the name.
+  instructions += Constant(String::ZoneHandle(Z, name.raw()));
+  instructions += PushArgument();
+
+  //   - the arguments descriptor.
+  const Array& args_descriptor =
+      Array::Handle(Z, ArgumentsDescriptor::New(num_type_arguments,
+                                                num_arguments, argument_names));
+  instructions += Constant(Array::ZoneHandle(Z, args_descriptor.raw()));
+  instructions += PushArgument();
+
+  //   - an array containing the actual arguments.
+  instructions += LoadLocal(actuals_array);
+  instructions += PushArgument();
+
+  //   - [true] indicating this is a `super` NoSuchMethod.
+  instructions += Constant(Bool::True());
+  instructions += PushArgument();
+
+  const Class& mirror_class =
+      Class::Handle(Z, Library::LookupCoreClass(Symbols::InvocationMirror()));
+  ASSERT(!mirror_class.IsNull());
+  const Function& allocation_function = Function::ZoneHandle(
+      Z, mirror_class.LookupStaticFunction(
+             Library::PrivateCoreLibName(Symbols::AllocateInvocationMirror())));
+  ASSERT(!allocation_function.IsNull());
+  instructions += StaticCall(position, allocation_function,
+                             /* argument_count = */ 4, ICData::kStatic);
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildSuperPropertyGet(TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != NULL) *p = position;
+
+  Class& klass = GetSuperOrDie();
+
+  StringIndex name_index = ReadStringReference();  // read name index.
+  NameIndex library_reference =
+      ((H.StringSize(name_index) >= 1) && H.CharacterAt(name_index, 0) == '_')
+          ? ReadCanonicalNameReference()  // read library index.
+          : NameIndex();
+  const String& getter_name = H.DartGetterName(library_reference, name_index);
+  const String& method_name = H.DartMethodName(library_reference, name_index);
+
+  SkipCanonicalNameReference();  // skip target_reference.
+
+  // Search the superclass chain for the selector looking for either getter or
+  // method.
+  Function& function = Function::Handle(Z);
+  while (!klass.IsNull()) {
+    function = klass.LookupDynamicFunction(method_name);
+    if (!function.IsNull()) {
+      Function& target =
+          Function::ZoneHandle(Z, function.ImplicitClosureFunction());
+      ASSERT(!target.IsNull());
+      // Generate inline code for allocation closure object with context
+      // which captures `this`.
+      return BuildImplicitClosureCreation(target);
+    }
+    function = klass.LookupDynamicFunction(getter_name);
+    if (!function.IsNull()) break;
+    klass = klass.SuperClass();
+  }
+
+  Fragment instructions;
+  if (klass.IsNull()) {
+    instructions +=
+        Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
+    instructions += IntConstant(1);  // array size
+    instructions += CreateArray();
+    LocalVariable* actuals_array = MakeTemporary();
+
+    Class& parent_klass = GetSuperOrDie();
+
+    instructions += BuildAllocateInvocationMirrorCall(
+        position, getter_name,
+        /* num_type_arguments = */ 0,
+        /* num_arguments = */ 1,
+        /* argument_names = */ Object::empty_array(), actuals_array,
+        /* build_rest_of_actuals = */ Fragment());
+    instructions += PushArgument();  // second argument is invocation mirror
+
+    Function& nsm_function = GetNoSuchMethodOrDie(Z, parent_klass);
+    instructions +=
+        StaticCall(position, Function::ZoneHandle(Z, nsm_function.raw()),
+                   /* argument_count = */ 2, ICData::kNSMDispatch);
+    instructions += DropTempsPreserveTop(1);  // Drop array
+  } else {
+    ASSERT(!klass.IsNull());
+    ASSERT(!function.IsNull());
+
+    instructions += LoadLocal(scopes()->this_variable);
+    instructions += PushArgument();
+
+    instructions +=
+        StaticCall(position, Function::ZoneHandle(Z, function.raw()),
+                   /* argument_count = */ 1, ICData::kSuper);
+  }
+
+  return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildSuperPropertySet(TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != NULL) *p = position;
+
+  Class& klass = GetSuperOrDie();
+
+  const String& setter_name = ReadNameAsSetterName();  // read name.
+
+  Function& function = FindMatchingFunctionAnyArgs(klass, setter_name);
+
+  Fragment instructions(NullConstant());
+  LocalVariable* value = MakeTemporary();  // this holds RHS value
+
+  if (function.IsNull()) {
+    instructions +=
+        Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
+    instructions += IntConstant(2);  // array size
+    instructions += CreateArray();
+    LocalVariable* actuals_array = MakeTemporary();
+
+    Fragment build_rest_of_actuals;
+    build_rest_of_actuals += LoadLocal(actuals_array);  // array
+    build_rest_of_actuals += IntConstant(1);            // index
+    build_rest_of_actuals += BuildExpression();         // value.
+    build_rest_of_actuals += StoreLocal(position, value);
+    build_rest_of_actuals += StoreIndexed(kArrayCid);
+    build_rest_of_actuals += Drop();  // dispose of stored value
+
+    instructions += BuildAllocateInvocationMirrorCall(
+        position, setter_name, /* num_type_arguments = */ 0,
+        /* num_arguments = */ 2,
+        /* argument_names = */ Object::empty_array(), actuals_array,
+        build_rest_of_actuals);
+    instructions += PushArgument();  // second argument - invocation mirror
+
+    SkipCanonicalNameReference();  // skip target_reference.
+
+    Function& nsm_function = GetNoSuchMethodOrDie(Z, klass);
+    instructions +=
+        StaticCall(position, Function::ZoneHandle(Z, nsm_function.raw()),
+                   /* argument_count = */ 2, ICData::kNSMDispatch);
+    instructions += Drop();  // Drop result of NoSuchMethod invocation
+    instructions += Drop();  // Drop array
+  } else {
+    // receiver
+    instructions += LoadLocal(scopes()->this_variable);
+    instructions += PushArgument();
+
+    instructions += BuildExpression();  // read value.
+    instructions += StoreLocal(position, value);
+    instructions += PushArgument();
+
+    SkipCanonicalNameReference();  // skip target_reference.
+
+    instructions +=
+        StaticCall(position, Function::ZoneHandle(Z, function.raw()),
+                   /* argument_count = */ 2, ICData::kSuper);
+    instructions += Drop();  // Drop result of the setter invocation.
+  }
+
+  return instructions;
+}
+
 Fragment StreamingFlowGraphBuilder::BuildDirectPropertyGet(TokenPosition* p) {
   const TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
@@ -6160,6 +6485,146 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   return instructions + StaticCall(position, target, argument_count,
                                    argument_names, ICData::kNoRebind,
                                    type_args_len);
+}
+
+Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
+    TokenPosition* p) {
+  const TokenPosition position = ReadPosition();  // read position.
+  if (p != NULL) *p = position;
+
+  intptr_t type_args_len = 0;
+  if (I->reify_generic_functions()) {
+    AlternativeReadingScope alt(reader_);
+    SkipName();                        // skip method name
+    ReadUInt();                        // read argument count.
+    type_args_len = ReadListLength();  // read types list length.
+  }
+
+  Class& klass = GetSuperOrDie();
+
+  // Search the superclass chain for the selector.
+  const String& method_name = ReadNameAsMethodName();  // read name.
+
+  // Figure out selector signature.
+  intptr_t argument_count;
+  Array& argument_names = Array::Handle(Z);
+  {
+    AlternativeReadingScope alt(reader_);
+    argument_count = ReadUInt();
+    SkipListOfDartTypes();
+
+    SkipListOfExpressions();
+    intptr_t named_list_length = ReadListLength();
+    argument_names ^= Array::New(named_list_length);
+    for (intptr_t i = 0; i < named_list_length; i++) {
+      const String& arg_name = H.DartSymbol(ReadStringReference());
+      argument_names.SetAt(i, arg_name);
+      SkipExpression();
+    }
+  }
+
+  Function& function = FindMatchingFunction(
+      klass, method_name, type_args_len,
+      argument_count + 1 /* account for 'this' */, argument_names);
+
+  if (function.IsNull()) {
+    ReadUInt();  // argument count
+    intptr_t type_list_length = ReadListLength();
+
+    Fragment instructions;
+    instructions +=
+        Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
+    instructions += IntConstant(argument_count + 1 /* this */ +
+                                (type_list_length == 0 ? 0 : 1));  // array size
+    instructions += CreateArray();
+    LocalVariable* actuals_array = MakeTemporary();
+
+    // Call allocationInvocationMirror to get instance of Invocation.
+    Fragment build_rest_of_actuals;
+    intptr_t actuals_array_index = 0;
+    if (type_list_length > 0) {
+      const TypeArguments& type_arguments =
+          T.BuildTypeArguments(type_list_length);
+      build_rest_of_actuals += LoadLocal(actuals_array);
+      build_rest_of_actuals += IntConstant(actuals_array_index);
+      build_rest_of_actuals +=
+          TranslateInstantiatedTypeArguments(type_arguments);
+      build_rest_of_actuals += StoreIndexed(kArrayCid);
+      build_rest_of_actuals += Drop();  // dispose of stored value
+      ++actuals_array_index;
+    }
+
+    ++actuals_array_index;  // account for 'this'.
+    // Read arguments
+    intptr_t list_length = ReadListLength();
+    intptr_t i = 0;
+    while (i < list_length) {
+      build_rest_of_actuals += LoadLocal(actuals_array);              // array
+      build_rest_of_actuals += IntConstant(actuals_array_index + i);  // index
+      build_rest_of_actuals += BuildExpression();                     // value.
+      build_rest_of_actuals += StoreIndexed(kArrayCid);
+      build_rest_of_actuals += Drop();  // dispose of stored value
+      ++i;
+    }
+    // Read named arguments
+    intptr_t named_list_length = ReadListLength();
+    if (named_list_length > 0) {
+      ASSERT(argument_count == list_length + named_list_length);
+      while ((i - list_length) < named_list_length) {
+        SkipStringReference();
+        build_rest_of_actuals += LoadLocal(actuals_array);              // array
+        build_rest_of_actuals += IntConstant(i + actuals_array_index);  // index
+        build_rest_of_actuals += BuildExpression();  // value.
+        build_rest_of_actuals += StoreIndexed(kArrayCid);
+        build_rest_of_actuals += Drop();  // dispose of stored value
+        ++i;
+      }
+    }
+    instructions += BuildAllocateInvocationMirrorCall(
+        position, method_name, type_list_length,
+        /* num_arguments = */ argument_count + 1, argument_names, actuals_array,
+        build_rest_of_actuals);
+    instructions += PushArgument();  // second argument - invocation mirror
+
+    SkipCanonicalNameReference();  //  skip target_reference.
+
+    Function& nsm_function = GetNoSuchMethodOrDie(Z, klass);
+    instructions += StaticCall(TokenPosition::kNoSource,
+                               Function::ZoneHandle(Z, nsm_function.raw()),
+                               /* argument_count = */ 2, ICData::kNSMDispatch);
+    instructions += DropTempsPreserveTop(1);  // Drop actuals_array temp.
+    return instructions;
+  } else {
+    Fragment instructions;
+
+    if (I->reify_generic_functions()) {
+      AlternativeReadingScope alt(reader_);
+      ReadUInt();                               // read argument count.
+      intptr_t list_length = ReadListLength();  // read types list length.
+      if (list_length > 0) {
+        const TypeArguments& type_arguments =
+            T.BuildTypeArguments(list_length);  // read types.
+        instructions += TranslateInstantiatedTypeArguments(type_arguments);
+        instructions += PushArgument();
+      }
+    }
+
+    // receiver
+    instructions += LoadLocal(scopes()->this_variable);
+    instructions += PushArgument();
+
+    Array& argument_names = Array::ZoneHandle(Z);
+    intptr_t argument_count;
+    instructions +=
+        BuildArguments(&argument_names, &argument_count);  // read arguments.
+    ++argument_count;                                      // include receiver
+    if (type_args_len > 0) ++argument_count;
+    SkipCanonicalNameReference();  // interfaceTargetReference
+    return instructions + StaticCall(position,
+                                     Function::ZoneHandle(Z, function.raw()),
+                                     argument_count, argument_names,
+                                     ICData::kSuper, type_args_len);
+  }
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,

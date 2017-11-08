@@ -62,7 +62,8 @@ class VmTarget extends Target {
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {
-    transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries);
+    transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
+        doSuperResolution: false /* resolution is done in Dart VM */);
     logger?.call("Transformed mixin applications");
 
     // TODO(kmillikin): Make this run on a per-method basis.

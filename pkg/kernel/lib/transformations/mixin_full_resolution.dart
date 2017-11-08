@@ -11,8 +11,10 @@ import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
 void transformLibraries(Target targetInfo, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, List<Library> libraries) {
-  new MixinFullResolution(targetInfo, coreTypes, hierarchy)
+    ClassHierarchy hierarchy, List<Library> libraries,
+    {bool doSuperResolution: true}) {
+  new MixinFullResolution(targetInfo, coreTypes, hierarchy,
+          doSuperResolution: doSuperResolution)
       .transform(libraries);
 }
 
@@ -20,8 +22,9 @@ void transformLibraries(Target targetInfo, CoreTypes coreTypes,
 /// and procedures from the mixed-in class, cloning all constructors from the
 /// base class.
 ///
-/// Super calls (as well as super initializer invocations) are also resolved
-/// to their targets in this pass.
+/// When [doSuperResolution] constructor parameter is [true], super calls
+/// (as well as super initializer invocations) are also resolved to their
+/// targets in this pass.
 class MixinFullResolution {
   final Target targetInfo;
   final CoreTypes coreTypes;
@@ -33,7 +36,13 @@ class MixinFullResolution {
   /// valid anymore.
   ClassHierarchy hierarchy;
 
-  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy);
+  // This enables `super` resolution transformation, which is not compatible
+  // with Dart VM's requirements around incremental compilation and has been
+  // moved to Dart VM itself.
+  final bool doSuperResolution;
+
+  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy,
+      {this.doSuperResolution: true});
 
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
@@ -56,6 +65,9 @@ class MixinFullResolution {
     // We might need to update the class hierarchy.
     hierarchy = hierarchy.applyChanges(transformedClasses);
 
+    if (!doSuperResolution) {
+      return;
+    }
     // Resolve all super call expressions and super initializers.
     for (var library in libraries) {
       if (library.isExternal) continue;

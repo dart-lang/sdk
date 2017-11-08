@@ -18,12 +18,10 @@ class C2 extends core::Object implements sou::A2 {
     : super core::Object::•();
 }
 abstract class _Object&A3 extends core::Object implements sou::A3 {
-  constructor •() → void
-    : super core::Object::•();
 }
 class C3 extends self::_Object&A3 {
   default constructor •() → void
-    : super self::_Object&A3::•();
+    : super core::Object::•();
 }
 @self::Meta::•(sou::A14)
 class X extends core::Object {

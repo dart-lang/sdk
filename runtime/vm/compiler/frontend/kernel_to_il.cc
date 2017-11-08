@@ -624,6 +624,22 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
   return function;
 }
 
+RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
+    const Class& owner,
+    StringIndex constructor_name) {
+  GrowableHandlePtrArray<const String> pieces(Z, 3);
+  pieces.Add(DartString(String::Handle(owner.Name()).ToCString(), Heap::kOld));
+  pieces.Add(Symbols::Dot());
+  String& name = DartString(constructor_name);
+  pieces.Add(ManglePrivateName(Library::Handle(owner.library()), &name));
+
+  String& new_name =
+      String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
+  RawFunction* function = owner.LookupConstructorAllowPrivate(new_name);
+  ASSERT(function != Object::null());
+  return function;
+}
+
 Type& TranslationHelper::GetCanonicalType(const Class& klass) {
   ASSERT(!klass.IsNull());
   // Note that if cls is _Closure, the returned type will be _Closure,
@@ -691,6 +707,16 @@ String& TranslationHelper::ManglePrivateName(NameIndex parent,
   return *name_to_modify;
 }
 
+String& TranslationHelper::ManglePrivateName(const Library& library,
+                                             String* name_to_modify,
+                                             bool symbolize) {
+  if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
+    *name_to_modify = library.PrivateName(*name_to_modify);
+  } else if (symbolize) {
+    *name_to_modify = Symbols::New(thread_, *name_to_modify);
+  }
+  return *name_to_modify;
+}
 FlowGraphBuilder::FlowGraphBuilder(
     intptr_t kernel_offset,
     ParsedFunction* parsed_function,
