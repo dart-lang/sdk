@@ -155,6 +155,12 @@ library dart:core:
   - class _SyncIterator
     - current
     - moveNext
+  - class _CompileTimeError
+    - (default constructor)
+    - toString
+  - class _DuplicatedFieldInitializerError
+    - (default constructor)
+    - toString
   - class _InvocationMirror
     - dart.core::_withoutType
     - memberName
@@ -212,6 +218,10 @@ library dart:core:
     - isNegative
     - abs
     - unary-
+  - class Error
+    - stackTrace
+  - class _ConstantExpressionError
+    - (default constructor)
   - class Function
     - hashCode
     - ==
