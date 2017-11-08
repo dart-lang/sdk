@@ -267,7 +267,6 @@ if_null_precedence_test/none: Pass
 regress_30339_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
-assert_assignable_type_test: Crash
 assert_with_type_test_or_cast_test: Pass, Crash
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_test: Crash
@@ -307,7 +306,6 @@ generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
 generic_no_such_method_dispatcher_test : CompileTimeError
 generic_tearoff_test: CompileTimeError
-generic_test: Crash
 typevariable_substitution2_test/02: RuntimeError
 
 
@@ -583,6 +581,26 @@ switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evalua
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
+vm/type_vm_test/01: MissingCompileTimeError
+vm/type_vm_test/02: MissingCompileTimeError
+vm/type_vm_test/03: MissingCompileTimeError
+vm/type_vm_test/04: MissingCompileTimeError
+vm/type_vm_test/05: MissingCompileTimeError
+vm/type_vm_test/06: MissingCompileTimeError
+vm/type_vm_test/08: MissingCompileTimeError
+vm/type_vm_test/09: MissingCompileTimeError
+vm/type_vm_test/10: MissingCompileTimeError
+vm/type_vm_test/11: MissingCompileTimeError
+vm/type_vm_test/12: MissingCompileTimeError
+vm/type_vm_test/13: MissingCompileTimeError
+vm/type_vm_test/14: MissingCompileTimeError
+vm/type_vm_test/15: MissingCompileTimeError
+vm/type_vm_test/16: MissingCompileTimeError
+vm/type_vm_test/22: MissingCompileTimeError
+vm/type_vm_test/24: MissingCompileTimeError
+vm/type_vm_test/25: MissingCompileTimeError
+vm/type_vm_test/26: MissingCompileTimeError
+vm/type_vm_test/27: MissingCompileTimeError
 
 [ $checked && ($compiler == dartk || $compiler == dartkp) ]
 assign_static_type_test/02: MissingCompileTimeError
@@ -612,7 +630,6 @@ factory3_test: Crash
 final_syntax_test/09: Crash
 generic_function_dcall_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
-implicit_closure1_test: Crash
 named_parameters_type_test/01: Crash
 named_parameters_type_test/02: Crash
 named_parameters_type_test/03: Crash
@@ -627,11 +644,8 @@ const_syntax_test/08: Crash
 const_syntax_test/09: Crash
 const_syntax_test/10: Crash
 stacktrace_demangle_ctors_test: RuntimeError
-type_checks_in_factory_method_test: Crash
-vm/integer_type_propagation_test: Crash
 vm/optimized_stacktrace_test: Crash
 vm/regress_27671_test: Crash
-vm/type_vm_test: Crash
 
 [ ($compiler == dartkp) && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
@@ -946,26 +960,6 @@ type_promotion_multiple_test/20: MissingCompileTimeError
 type_promotion_multiple_test/21: MissingCompileTimeError
 type_promotion_multiple_test/22: MissingCompileTimeError
 vm/type_cast_vm_test: RuntimeError
-vm/type_vm_test/01: MissingCompileTimeError
-vm/type_vm_test/02: MissingCompileTimeError
-vm/type_vm_test/03: MissingCompileTimeError
-vm/type_vm_test/04: MissingCompileTimeError
-vm/type_vm_test/05: MissingCompileTimeError
-vm/type_vm_test/06: MissingCompileTimeError
-vm/type_vm_test/08: MissingCompileTimeError
-vm/type_vm_test/09: MissingCompileTimeError
-vm/type_vm_test/10: MissingCompileTimeError
-vm/type_vm_test/11: MissingCompileTimeError
-vm/type_vm_test/12: MissingCompileTimeError
-vm/type_vm_test/13: MissingCompileTimeError
-vm/type_vm_test/14: MissingCompileTimeError
-vm/type_vm_test/15: MissingCompileTimeError
-vm/type_vm_test/16: MissingCompileTimeError
-vm/type_vm_test/22: MissingCompileTimeError
-vm/type_vm_test/24: MissingCompileTimeError
-vm/type_vm_test/25: MissingCompileTimeError
-vm/type_vm_test/26: MissingCompileTimeError
-vm/type_vm_test/27: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
 void_type_function_types_test/none: CompileTimeError
 void_type_override_test/none: CompileTimeError
@@ -1294,15 +1288,14 @@ redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 regress_26175_test: Crash
 regress_28341_test: Pass
-regress_29784_test/01: Crash
-regress_29784_test/02: Crash
-regress_29784_test/none: Crash
+regress_29784_test/01: MissingCompileTimeError
+regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: Crash
 static_final_field2_test/02: MissingCompileTimeError
 static_top_level_test/00: MissingCompileTimeError
 static_top_level_test/04: MissingCompileTimeError
-super_call4_test: Crash
-super_getter_setter_test: Pass
+super_call4_test: RuntimeError
+super_getter_setter_test: RuntimeError
 sync_generator2_test/41: MissingCompileTimeError
 sync_generator2_test/52: MissingCompileTimeError
 syntax_test/02: MissingCompileTimeError

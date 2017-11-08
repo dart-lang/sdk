@@ -229,26 +229,16 @@ const_conditional_test/08: Crash
 const_syntax_test/08: Crash
 const_syntax_test/09: Crash
 const_syntax_test/10: Crash
-factory3_test: Crash
 final_syntax_test/09: Crash
-implicit_closure1_test: Crash
-named_parameters_type_test/01: Crash
-named_parameters_type_test/02: Crash
-named_parameters_type_test/03: Crash
-named_parameters_type_test/none: Crash
-positional_parameters_type_test/01: Crash
-positional_parameters_type_test/02: Crash
-positional_parameters_type_test/none: Crash
 ref_before_declaration_test/none: Pass
 final_syntax_test/09: MissingCompileTimeError
 ref_before_declaration_test/none: Crash
 stacktrace_demangle_ctors_test: RuntimeError
-type_checks_in_factory_method_test: Crash
-vm/integer_type_propagation_test: Crash
 vm/optimized_stacktrace_test: Crash
 vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
 deferred_redirecting_factory_test: Crash # Issue 31296
+vm/regress_27671_test: Skip # Unsupported
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]

@@ -86,11 +86,13 @@ apply3_test: Fail # mirrors not supported
 dynamic_nosuchmethod_test: Fail # mirrors not supported
 
 [ $compiler == precompiler ]
-apply3_test: SkipByDesign
-dynamic_nosuchmethod_test: SkipByDesign
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
+
+[ $compiler == precompiler || $compiler == dartkp ]
+apply3_test: SkipByDesign
+dynamic_nosuchmethod_test: SkipByDesign
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
@@ -313,7 +315,6 @@ string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 
 [ $compiler == dartkp ]
-apply3_test: CompileTimeError
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError

@@ -224,8 +224,6 @@ cc/RegenerateAllocStubs: Skip
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 
-[ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) && ! $checked ]
-dart/redirection_type_shuffling_test/00: RuntimeError # Issue 29201
 
 [ ($compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
 dart/data_uri_import_test/base64: CompileTimeError
@@ -234,7 +232,7 @@ dart/data_uri_import_test/nomime: CompileTimeError
 dart/data_uri_import_test/percentencoded: CompileTimeError
 dart/data_uri_import_test/wrongmime: CompileTimeError
 dart/data_uri_spawn_test: RuntimeError
-dart/redirection_type_shuffling_test: Crash
+dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 
 [ ($compiler != dartk) ]
