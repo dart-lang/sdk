@@ -3051,16 +3051,16 @@ class Parser {
         isVarAllowed,
         typeContiunationFromFormalParameterKind(parameterKind));
 
-    final firstModifier = token.next;
-    token = context.parseOpt(token.next);
+    Token previous = token;
+    token = context.parseOpt(token);
 
     // If the next token is a modifier,
     // then it's probably out of order and we need to recover from that.
-    if (isModifier(token)) {
+    if (isModifier(token.next)) {
       // Recovery
       context = new ModifierRecoveryContext(this, memberKind, parameterKind,
           isVarAllowed, typeContiunationFromFormalParameterKind(parameterKind));
-      token = context.parseOpt(firstModifier);
+      token = context.parseOpt(previous);
     }
     listener.handleModifiers(context.modifierCount);
 
@@ -3070,7 +3070,7 @@ class Parser {
             ? TypeContinuation.Required
             : TypeContinuation.Optional;
 
-    token = parseType(token, context.typeContinuation, null, memberKind);
+    token = parseType(token.next, context.typeContinuation, null, memberKind);
     return token;
   }
 
