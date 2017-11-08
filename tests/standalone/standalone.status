@@ -64,7 +64,7 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 [ $compiler == precompiler || $compiler == app_jit ]
 io/compile_all_test: Skip # Incompatible flag --compile_all
 
-[ $runtime == dart_precompiled ]
+[ $runtime == dart_precompiled && $system == android ]
 io/https_bad_certificate_test: RuntimeError # Issue 31310
 io/raw_secure_server_socket_test: RuntimeError # Issue 31310
 io/raw_datagram_socket_test: RuntimeError # Issue 31310
