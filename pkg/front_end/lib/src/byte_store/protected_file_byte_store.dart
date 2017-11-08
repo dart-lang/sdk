@@ -34,8 +34,10 @@ class ProtectedFileByteStore implements ByteStore {
   ///
   /// The [protectionDuration] specifies how long temporary protected keys
   /// stay protected.
-  ProtectedFileByteStore(this._cachePath, Duration protectionDuration,
-      {GetCurrentTime getCurrentTime, int cacheSizeBytes: 128 * 1024 * 1024})
+  ProtectedFileByteStore(this._cachePath,
+      {Duration protectionDuration,
+      GetCurrentTime getCurrentTime,
+      int cacheSizeBytes: 128 * 1024 * 1024})
       : _protectionDuration = protectionDuration,
         _getCurrentTimeFunction = getCurrentTime ?? _getCurrentTimeDefault,
         _fileByteStore = new FileByteStore(_cachePath),
@@ -87,8 +89,10 @@ class ProtectedFileByteStore implements ByteStore {
     _withProtectedKeysLockSync(_cachePath, (ProtectedKeys protectedKeys) {
       var now = _getCurrentTimeFunction();
 
-      var maxAge = _protectionDuration.inMilliseconds;
-      protectedKeys.removeOlderThan(maxAge, now);
+      if (_protectionDuration != null) {
+        var maxAge = _protectionDuration.inMilliseconds;
+        protectedKeys.removeOlderThan(maxAge, now);
+      }
 
       for (var addedKey in add) {
         protectedKeys.add(addedKey, now);
