@@ -183,9 +183,10 @@ class AnalyzerDietListener extends DietListener {
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       bodyBuilderMetadataConstants = _bodyBuilder.pop();
     }
-    token = parser.parseFormalParametersOpt(token, kind);
+    token = parser.parseFormalParametersOpt(
+        parser.syntheticPreviousToken(token), kind);
     var bodyBuilderFormals = _bodyBuilder.pop();
-    _bodyBuilder.checkEmpty(token.charOffset);
+    _bodyBuilder.checkEmpty(token.next.charOffset);
     token = parser.parseInitializersOpt(token);
     bool isExpression = false;
     bool allowAbstract = asyncModifier == AsyncMarker.Sync;

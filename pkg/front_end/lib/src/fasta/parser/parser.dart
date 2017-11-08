@@ -978,12 +978,11 @@ class Parser {
   }
 
   Token parseFormalParametersOpt(Token token, MemberKind kind) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
-    if (optional('(', token)) {
-      return parseFormalParameters(token, kind).next;
+    Token next = token.next;
+    if (optional('(', next)) {
+      return parseFormalParameters(next, kind);
     } else {
-      listener.handleNoFormalParameters(token, kind);
+      listener.handleNoFormalParameters(next, kind);
       return token;
     }
   }
@@ -2128,7 +2127,7 @@ class Parser {
 
               // Although it looks like there are no type variables here, they
               // may get injected from a comment.
-              Token formals = parseTypeVariablesOpt(token).next;
+              Token beforeFormals = parseTypeVariablesOpt(token);
 
               listener.beginLocalFunctionDeclaration(begin);
               listener.handleModifiers(0);
@@ -2137,13 +2136,15 @@ class Parser {
               } else {
                 commitType();
               }
-              return parseNamedFunctionRest(begin, token, formals, false);
+              return parseNamedFunctionRest(begin, token, beforeFormals, false);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
-            Token formals = closeBraceTokenFor(afterId)?.next;
-            if (formals != null && optional("(", formals)) {
-              if (looksLikeFunctionBody(closeBraceTokenFor(formals).next)) {
+            Token beforeFormals = closeBraceTokenFor(afterId);
+            if (beforeFormals?.next != null &&
+                optional("(", beforeFormals.next)) {
+              if (looksLikeFunctionBody(
+                  closeBraceTokenFor(beforeFormals.next).next)) {
                 // We are looking at "type identifier '<' ... '>' '(' ... ')'"
                 // followed by '{', '=>', 'async', or 'sync'.
                 parseTypeVariablesOpt(token);
@@ -2154,7 +2155,8 @@ class Parser {
                 } else {
                   commitType();
                 }
-                return parseNamedFunctionRest(begin, token, formals, false);
+                return parseNamedFunctionRest(
+                    begin, token, beforeFormals, false);
               }
             }
           }
@@ -2170,7 +2172,7 @@ class Parser {
 
               // Although it looks like there are no type variables here, they
               // may get injected from a comment.
-              Token formals = parseTypeVariablesOpt(token).next;
+              Token formals = parseTypeVariablesOpt(token);
 
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
@@ -2178,19 +2180,16 @@ class Parser {
               return parseNamedFunctionRest(begin, token, formals, false);
             }
           } else if (optional('<', token.next)) {
-            Token afterTypeVariables = closeBraceTokenFor(token.next)?.next;
-            if (afterTypeVariables != null &&
-                optional("(", afterTypeVariables)) {
-              if (looksLikeFunctionBody(
-                  closeBraceTokenFor(afterTypeVariables).next)) {
+            Token gt = closeBraceTokenFor(token.next);
+            if (gt?.next != null && optional("(", gt.next)) {
+              if (looksLikeFunctionBody(closeBraceTokenFor(gt.next).next)) {
                 // We are looking at `identifier '<' ... '>' '(' ... ')'`
                 // followed by `'{'`, `'=>'`, `'async'`, or `'sync'`.
                 parseTypeVariablesOpt(token);
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
                 listener.handleNoType(token);
-                return parseNamedFunctionRest(
-                    begin, token, afterTypeVariables, false);
+                return parseNamedFunctionRest(begin, token, gt, false);
               }
             }
             // Fall through to expression statement.
@@ -2236,7 +2235,7 @@ class Parser {
           return parseSend(begin, continuationContext);
         }
 
-        Token formals = parseTypeVariablesOpt(name).next;
+        Token formals = parseTypeVariablesOpt(name);
         listener.beginNamedFunctionExpression(begin);
         listener.handleModifiers(0);
         if (hasReturnType) {
@@ -2649,10 +2648,10 @@ class Parser {
       listener.handleNoTypeVariables(token.next);
     }
     checkFormals(isGetter, name, token.next);
-    token = parseFormalParametersOpt(token.next, MemberKind.TopLevelMethod);
+    token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
-    Token asyncToken = token;
-    token = parseAsyncModifier(token);
+    Token asyncToken = token.next;
+    token = parseAsyncModifier(token.next);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
@@ -2883,13 +2882,12 @@ class Parser {
   }
 
   Token parseInitializersOpt(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    if (optional(':', token)) {
+    if (optional(':', token.next)) {
       return parseInitializers(token);
     } else {
       listener.handleNoInitializers();
-      return token;
+      return token.next;
     }
   }
 
@@ -2899,10 +2897,9 @@ class Parser {
   /// ;
   /// ```
   Token parseInitializers(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    assert(optional(':', token));
-    Token begin = token;
+    Token begin = token = token.next;
+    assert(optional(':', begin));
     listener.beginInitializers(begin);
     int count = 0;
     bool old = mayParseFunctionExpressions;
@@ -3365,7 +3362,7 @@ class Parser {
     }
     checkFormals(isGetter, name, token.next);
     token = parseFormalParametersOpt(
-        token.next,
+        token,
         staticModifier != null
             ? MemberKind.StaticMethod
             : MemberKind.NonStaticMethod);
@@ -5586,9 +5583,8 @@ class Parser {
   /// ;
   /// ```
   Token parseAssertStatement(Token token) {
-    token = token.next;
-    assert(optional('assert', token));
-    token = parseAssert(token, Assert.Statement);
+    assert(optional('assert', token.next));
+    token = parseAssert(token.next, Assert.Statement);
     return ensureSemicolon(token);
   }
 

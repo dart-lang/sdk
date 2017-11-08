@@ -678,9 +678,10 @@ class DietListener extends StackListener {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         metadataConstants = listener.pop();
       }
-      token = parser.parseFormalParametersOpt(token, kind);
+      token = parser.parseFormalParametersOpt(
+          parser.syntheticPreviousToken(token), kind);
       var formals = listener.pop();
-      listener.checkEmpty(token.charOffset);
+      listener.checkEmpty(token.next.charOffset);
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifier(token);
       AsyncMarker asyncModifier = getAsyncMarker(listener) ?? AsyncMarker.Sync;
