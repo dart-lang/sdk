@@ -764,7 +764,6 @@ regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
 regress_28255_test: SkipByDesign
 regress_28341_test: RuntimeError
-regress_31057_test: Crash
 return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
