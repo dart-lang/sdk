@@ -407,6 +407,26 @@
           ]
         }
       ]
+    },
+    {
+      "builders": ["analyzer-analysis-server-linux"],
+      "steps": [
+        {
+          "name": "Analyze analysis_server",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--no-hints","pkg/analysis_server"]
+        },
+        {
+          "name": "Analyze analysis_server",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--no-hints","pkg/analyzer"]
+        },
+        {
+          "name": "Analyze analysis_server",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--no-hints","pkg/analyzer_plugin"]
+        }
+      ]
     }
   ]
 }
