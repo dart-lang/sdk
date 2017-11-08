@@ -10,8 +10,6 @@ import 'package:status_file/canonical_status_file.dart';
 final Uri repoRoot = Platform.script.resolve("../../../");
 
 void main() {
-  Directory systemTempDir = Directory.systemTemp;
-  String tempPath = '${systemTempDir.path}/.statusfile';
   // Parse every status file in the repository.
   for (var directory in ["tests", "runtime/tests"]) {
     for (var entry in new Directory.fromUri(repoRoot.resolve(directory))

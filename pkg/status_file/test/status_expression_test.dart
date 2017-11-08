@@ -28,6 +28,8 @@ main() {
   testBoolean();
   testNotBoolean();
   testNotEqual();
+  testNormalize();
+  testCompareTo();
 }
 
 void testExpression() {
@@ -123,4 +125,90 @@ void testNotEqual() {
   Expect.isFalse(expression.evaluate(environment));
   environment["runtime"] = "chrome";
   Expect.isTrue(expression.evaluate(environment));
+}
+
+void testNormalize() {
+  shouldNormalizeTo(String input, String expected) {
+    var expression = Expression.parse(input);
+    Expect.equals(expected, expression.normalize().toString());
+  }
+
+  // Comparison.
+  shouldNormalizeTo(r"$foo == bar", r"$foo == bar");
+  shouldNormalizeTo(r"$foo != bar", r"$foo != bar");
+
+  // Simplify Boolean comparisons.
+  shouldNormalizeTo(r"$foo == true", r"$foo");
+  shouldNormalizeTo(r"$foo == false", r"!$foo");
+  shouldNormalizeTo(r"$foo != true", r"!$foo");
+  shouldNormalizeTo(r"$foo != false", r"$foo");
+
+  // Variable.
+  shouldNormalizeTo(r"$foo", r"$foo");
+  shouldNormalizeTo(r"!$foo", r"!$foo");
+
+  // Logic.
+  shouldNormalizeTo(r"$a || $b", r"$a || $b");
+  shouldNormalizeTo(r"$a && $b", r"$a && $b");
+
+  // Collapse identical clauses.
+  shouldNormalizeTo(r"$a && $a", r"$a");
+  shouldNormalizeTo(r"$a && !$a", r"$a && !$a");
+  shouldNormalizeTo(r"$a == b && $a == b", r"$a == b");
+  shouldNormalizeTo(r"$a == b && $a != b", r"$a == b && $a != b");
+  shouldNormalizeTo(r"$a && $b || $b && $a", r"$a && $b");
+
+  // Order logic clauses.
+  shouldNormalizeTo(
+      r"$b || ! $b || $b == b || $b && $d || $a || ! $a || $a == a || $a && $c",
+      r"$a == a || $b == b || $a || !$a || $b || !$b || $a && $c || $b && $d");
+
+  // Recursively normalize.
+  shouldNormalizeTo(r"$c == true || $b && $a", r"$c || $a && $b");
+}
+
+void testCompareTo() {
+  shouldCompare(String a, String b, int comparison) {
+    var expressionA = Expression.parse(a);
+    var expressionB = Expression.parse(b);
+    Expect.equals(comparison, expressionA.compareTo(expressionB));
+    Expect.equals(-comparison, expressionB.compareTo(expressionA));
+  }
+
+  shouldCompareEqual(String a, String b) {
+    shouldCompare(a, b, 0);
+  }
+
+  shouldCompareLess(String a, String b) {
+    shouldCompare(a, b, -1);
+  }
+
+  // Same.
+  shouldCompareEqual(r"$a", r"$a");
+  shouldCompareEqual(r"! $a", r"! $a");
+
+  // Order comparisons before variables.
+  shouldCompareLess(r"$b == c", r"$a");
+
+  // Order variable clauses by name then negation.
+  shouldCompareLess(r"$a", r"$b");
+  shouldCompareLess(r"$a", r"!$b");
+  shouldCompareLess(r"$a", r"!$a");
+
+  // Order comparisons by variable then value then negation.
+  shouldCompareLess(r"$a == x", r"$b != w");
+  shouldCompareLess(r"$a == w", r"$a != x");
+  shouldCompareLess(r"$a == x", r"$a != x");
+
+  // Order variables before logic.
+  shouldCompareLess(r"$b", r"$a && $b");
+
+  // Order comparisons before logic.
+  shouldCompareLess(r"$b == c", r"$a && $b");
+
+  // Order && before ||.
+  shouldCompareLess(r"$a && $b", r"$a || $b");
+
+  // Order logic by their clauses from left to right.
+  shouldCompareLess(r"$b && $a", r"$c && $d");
 }
