@@ -65,6 +65,11 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 io/compile_all_test: Skip # Incompatible flag --compile_all
 
 [ $runtime == dart_precompiled ]
+io/https_bad_certificate_test: RuntimeError # Issue 31310
+io/raw_secure_server_socket_test: RuntimeError # Issue 31310
+io/raw_datagram_socket_test: RuntimeError # Issue 31310
+
+[ $runtime == dart_precompiled ]
 # These tests attempt to spawn another script using the precompiled runtime.
 verbose_gc_to_bmu_test: Skip
 
