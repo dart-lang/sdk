@@ -3765,6 +3765,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
  */
 class ImportsVerifier {
   /**
+   * All [ImportDirective]s of the current library.
+   */
+  final List<ImportDirective> _allImports = <ImportDirective>[];
+
+  /**
    * A list of [ImportDirective]s that the current library imports, but does not use.
    *
    * As identifiers are visited by this visitor and an import has been identified as being used
@@ -3782,23 +3787,7 @@ class ImportsVerifier {
   final List<ImportDirective> _duplicateImports = <ImportDirective>[];
 
   /**
-   * This is a map between the set of [LibraryElement]s that the current library imports, and the
-   * list of [ImportDirective]s that import each [LibraryElement]. In cases where the current
-   * library imports a library with a single directive (such as `import lib1.dart;`), the library
-   * element will map to a list of one [ImportDirective], which will then be removed from the
-   * [unusedImports] list. In cases where the current library imports a library with multiple
-   * directives (such as `import lib1.dart; import lib1.dart show C;`), the [LibraryElement] will
-   * be mapped to a list of the import directives, and the namespace will need to be used to
-   * compute the correct [ImportDirective] being used; see [_namespaceMap].
-   */
-  final HashMap<LibraryElement, List<ImportDirective>> _libraryMap =
-      new HashMap<LibraryElement, List<ImportDirective>>();
-
-  /**
-   * In cases where there is more than one import directive per library element, this mapping is
-   * used to determine which of the multiple import directives are used by generating a
-   * [Namespace] for each of the imports to do lookups in the same way that they are done from
-   * the [ElementResolver].
+   * The cache of [Namespace]s for [ImportDirective]s.
    */
   final HashMap<ImportDirective, Namespace> _namespaceMap =
       new HashMap<ImportDirective, Namespace>();
@@ -3840,6 +3829,7 @@ class ImportsVerifier {
         if (libraryElement == null) {
           continue;
         }
+        _allImports.add(directive);
         _unusedImports.add(directive);
         //
         // Initialize prefixElementMap
@@ -3859,16 +3849,6 @@ class ImportsVerifier {
             // TODO (jwren) Can the element ever not be a PrefixElement?
           }
         }
-        //
-        // Initialize libraryMap: libraryElement -> importDirective
-        //
-        _putIntoLibraryMap(libraryElement, directive);
-        //
-        // For this new addition to the libraryMap, also recursively add any
-        // exports from the libraryElement.
-        //
-        _addAdditionalLibrariesForExports(
-            libraryElement, directive, new HashSet<LibraryElement>());
         _addShownNames(directive);
       }
     }
@@ -3995,50 +3975,15 @@ class ImportsVerifier {
       if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
         return;
       }
-      // Prepare import directives for this element's library.
-      LibraryElement library = element.library;
-      List<ImportDirective> importsLibrary = _libraryMap[library];
-      if (importsLibrary == null) {
-        // element's library is not imported. Must be the current library.
-        continue;
-      }
-      // If there is only one import directive for this library, then it must be
-      // the directive that this element is imported with, remove it from the
-      // unusedImports list.
-      if (importsLibrary.length == 1) {
-        ImportDirective usedImportDirective = importsLibrary[0];
-        _unusedImports.remove(usedImportDirective);
-        _removeFromUnusedShownNamesMap(element, usedImportDirective);
-        continue;
-      }
-      // Otherwise, find import directives using namespaces.
-      String name = element.displayName;
-      for (ImportDirective importDirective in importsLibrary) {
+      // Find import directives using namespaces.
+      String name = element.name;
+      for (ImportDirective importDirective in _allImports) {
         Namespace namespace = _computeNamespace(importDirective);
         if (namespace?.get(name) != null) {
           _unusedImports.remove(importDirective);
           _removeFromUnusedShownNamesMap(element, importDirective);
         }
       }
-    }
-  }
-
-  /**
-   * Recursively add any exported library elements into the [libraryMap].
-   */
-  void _addAdditionalLibrariesForExports(LibraryElement library,
-      ImportDirective importDirective, Set<LibraryElement> visitedLibraries) {
-    if (library == null || !visitedLibraries.add(library)) {
-      return;
-    }
-    List<ExportElement> exports = library.exports;
-    int length = exports.length;
-    for (int i = 0; i < length; i++) {
-      ExportElement exportElt = exports[i];
-      LibraryElement exportedLibrary = exportElt.exportedLibrary;
-      _putIntoLibraryMap(exportedLibrary, importDirective);
-      _addAdditionalLibrariesForExports(
-          exportedLibrary, importDirective, visitedLibraries);
     }
   }
 
@@ -4084,22 +4029,6 @@ class ImportsVerifier {
       }
     }
     return namespace;
-  }
-
-  /**
-   * The [libraryMap] is a mapping between a library elements and a list of import
-   * directives, but when adding these mappings into the [libraryMap], this method can be
-   * used to simply add the mapping between the library element an an import directive without
-   * needing to check to see if a list needs to be created.
-   */
-  void _putIntoLibraryMap(
-      LibraryElement libraryElement, ImportDirective importDirective) {
-    List<ImportDirective> importList = _libraryMap[libraryElement];
-    if (importList == null) {
-      importList = new List<ImportDirective>();
-      _libraryMap[libraryElement] = importList;
-    }
-    importList.add(importDirective);
   }
 
   /**
