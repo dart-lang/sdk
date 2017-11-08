@@ -1219,7 +1219,9 @@ closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_import_string_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+conditional_import_string_test: RuntimeError
 conditional_import_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+conditional_import_test: RuntimeError
 conditional_method_invocation_test/05: MissingCompileTimeError
 conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
@@ -1318,29 +1320,46 @@ covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 deferred_closurize_load_library_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_constraints_constants_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_constraints_constants_test/reference_after_load: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_constraints_type_annotation_test/as_operation: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_before_load: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_generic2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_generic3: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation1: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_null: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_load_constants_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_load_constants_test/none: RuntimeError
 deferred_load_library_wrong_args_test/01: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_redirecting_factory_test: RuntimeError
 deferred_super_dependency_test/01: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
@@ -1398,12 +1417,15 @@ generic_field_mixin4_test: Crash # Assertion failure: Runtime type information n
 generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin6_test/none: RuntimeError
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
+generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 getter_override2_test/02: MissingCompileTimeError
@@ -1579,37 +1601,19 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
+regress_22976_test/01: CompileTimeError
+regress_22976_test/02: CompileTimeError
+regress_22976_test/none: CompileTimeError
 regress_23408_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 regress_24283_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
-conditional_import_string_test: RuntimeError
-conditional_import_test: RuntimeError
-deferred_closurize_load_library_test: RuntimeError
-deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
-deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_library_wrong_args_test/01: MissingRuntimeError
-deferred_redirecting_factory_test: RuntimeError
-regress_22976_test/01: CompileTimeError
-regress_22976_test/02: CompileTimeError
-regress_22976_test/none: CompileTimeError
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
+regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -1660,7 +1664,9 @@ closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_import_string_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+conditional_import_string_test: RuntimeError
 conditional_import_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+conditional_import_test: RuntimeError
 conditional_method_invocation_test/05: MissingCompileTimeError
 conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
@@ -1759,29 +1765,46 @@ covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
 deferred_closurize_load_library_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_constraints_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_constraints_constants_test/reference_after_load: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_constraints_type_annotation_test/as_operation: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_before_load: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_generic2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_generic3: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation1: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_null: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_load_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_load_constants_test/none: RuntimeError
 deferred_load_library_wrong_args_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_redirecting_factory_test: RuntimeError
 deferred_super_dependency_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
@@ -1841,12 +1864,15 @@ generic_field_mixin4_test: Crash # Assertion failure: Runtime type information n
 generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
 generic_field_mixin6_test/none: RuntimeError
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in ()in j:constructor(C3.).
+generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_function_dcall_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
 getter_override2_test/02: MissingCompileTimeError
@@ -2029,28 +2055,10 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
-conditional_import_string_test: RuntimeError
-conditional_import_test: RuntimeError
-deferred_closurize_load_library_test: RuntimeError
-deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
-deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_library_wrong_args_test/01: MissingRuntimeError
-deferred_redirecting_factory_test: RuntimeError
 regress_28341_test: RuntimeError
 regress_29784_test/01: Crash # Issue 29784
 regress_29784_test/02: Crash # Issue 29784
+regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError
