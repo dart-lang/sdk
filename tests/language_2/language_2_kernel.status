@@ -33,6 +33,7 @@ const_locals_test: RuntimeError
 const_string_test: RuntimeError
 const_syntax_test/08: MissingCompileTimeError
 redirecting_factory_reflection_test: Crash, Pass
+type_promotion_functions_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]
 assertion_initializer_const_error2_test/none: CompileTimeError

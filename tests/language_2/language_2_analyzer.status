@@ -1132,6 +1132,7 @@ string_unicode4_negative_test: CompileTimeError
 string_split_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 switch_case_test/none: CompileTimeError
+type_promotion_functions_test/01: Pass
 
 vm/lazy_deopt_with_exception_test: CompileTimeError
 prefix6_negative_test: CompileTimeError, OK
@@ -1617,6 +1618,7 @@ malbounded_redirecting_factory_test/03: MissingCompileTimeError
 malbounded_redirecting_factory_test/04: MissingCompileTimeError
 malbounded_redirecting_factory_test/05: MissingCompileTimeError
 malbounded_type_cast2_test: MissingCompileTimeError
+type_promotion_functions_test/01: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_error2_test/none: CompileTimeError
