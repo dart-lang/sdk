@@ -2540,10 +2540,10 @@ class FastaParserTestCase extends Object
   @override
   Expression parsePrimaryExpression(String code) {
     return _runParser(
-            code,
-            (parser) => (token) =>
-                parser.parsePrimary(token, IdentifierContext.expression))
-        as Expression;
+        code,
+        (parser) => (token) => parser.parsePrimary(
+            parser.syntheticPreviousToken(token),
+            IdentifierContext.expression)) as Expression;
   }
 
   @override
