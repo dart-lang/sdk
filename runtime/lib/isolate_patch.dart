@@ -270,9 +270,9 @@ void _startIsolate(
 
     if (isSpawnUri) {
       if (entryPoint is _BinaryFunction) {
-        entryPoint(args, message);
+        (entryPoint as dynamic)(args, message);
       } else if (entryPoint is _UnaryFunction) {
-        entryPoint(args);
+        (entryPoint as dynamic)(args);
       } else {
         entryPoint();
       }
