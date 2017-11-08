@@ -364,6 +364,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   @override
   int finishPatch() {
     if (!isPatch) return 0;
+    origin.procedure.isAbstract = procedure.isAbstract;
     origin.procedure.isExternal = procedure.isExternal;
     origin.procedure.function = procedure.function;
     origin.procedure.function.parent = origin.procedure;
