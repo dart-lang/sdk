@@ -334,6 +334,79 @@
           "arguments": [ "create_sdk" ]
         }
       ]
+    },
+    {
+      "builders": [
+        "analyzer-linux-release",
+        "analyzer-mac-release",
+        "analyzer-win-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the analyzer builders not running strong mode."
+      },
+      "steps": [
+        {
+          "name": "analyze tests",
+          "arguments": ["--compiler=dart2analyzer", "--use-sdk"]
+        },
+        {
+          "name": "analyze tests checked",
+          "arguments": ["--compiler=dart2analyzer", "--use-sdk", "--checked"]
+        },
+        {
+          "name": "analyze pkg tests",
+          "arguments": ["--compiler=dart2analyzer", "--use-sdk", "pkg"]
+        },
+        {
+          "name": "analyze pkg tests checked",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-sdk",
+            "--checked",
+            "pkg"
+          ]
+        },
+        {
+          "name": "analyze unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked",
+            "--use-sdk",
+            "pkg/analyzer"
+          ]
+        },
+        {
+          "name": "analysis_server unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked",
+            "--use-sdk",
+            "pkg/analysis_server"
+          ]
+        },
+        {
+          "name": "analysis_cli unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked",
+            "--use-sdk",
+            "pkg/analyzer_cli"
+          ]
+        },
+        {
+          "name": "front end unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked",
+            "--use-sdk",
+            "pkg/front_end"
+          ]
+        }
+      ]
     }
   ]
 }
