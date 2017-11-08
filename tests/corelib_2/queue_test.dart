@@ -38,11 +38,11 @@ abstract class QueueTest {
     queue.removeFirst();
     checkQueue(queue, 3, 1110);
 
-    int mapTest(int value) {
-      return value ~/ 10;
+    int mapTest(Object value) {
+      return (value as int) ~/ 10;
     }
 
-    bool is10(int value) {
+    bool is10(Object value) {
       return (value == 10);
     }
 
@@ -58,7 +58,7 @@ abstract class QueueTest {
 
     Expect.equals(true, queue.any(is10));
 
-    bool isInstanceOfInt(int value) {
+    bool isInstanceOfInt(Object value) {
       return (value is int);
     }
 
@@ -66,7 +66,7 @@ abstract class QueueTest {
 
     Expect.equals(false, queue.every(is10));
 
-    bool is1(int value) {
+    bool is1(Object value) {
       return (value == 1);
     }
 
@@ -100,8 +100,8 @@ abstract class QueueTest {
 
     queue.addLast(3);
     Expect.equals(3, queue.last);
-    bool isGreaterThanOne(int value) {
-      return (value > 1);
+    bool isGreaterThanOne(Object value) {
+      return ((value as int) > 1);
     }
 
     other = newQueueFrom(queue.where(isGreaterThanOne));
@@ -126,8 +126,8 @@ abstract class QueueTest {
   void checkQueue(Queue queue, int expectedSize, int expectedSum) {
     testLength(expectedSize, queue);
     int sum = 0;
-    void sumElements(int value) {
-      sum += value;
+    void sumElements(Object value) {
+      sum += value as int;
     }
 
     queue.forEach(sumElements);
