@@ -78,13 +78,8 @@ void testConstructor() {
     Expect.equals(length, list.length);
   }
 
-  // TODO(rnystrom): Checked-mode specific behavior does not apply to Dart 2.0.
-  // Revisit this.
-  bool checked = false;
-  assert((checked = true));
-  testThrowsOrTypeError(fn, test, [name]) {
-    Expect.throws(
-        fn, checked ? null : test, checked ? name : "$name w/ TypeError");
+  testThrowsOrTypeError(fn, [name]) {
+    Expect.throws(fn, null, name);
   }
 
   testFixedLength(new List<int>(0));
@@ -99,10 +94,8 @@ void testConstructor() {
   Expect.throwsArgumentError(() => new List<int>(null), "null");
   testThrowsOrTypeError(
       () => new List([] as Object), // Cast to avoid warning.
-      (e) => e is ArgumentError,
       'list');
-  testThrowsOrTypeError(
-      () => new List([42] as Object), (e) => e is ArgumentError, "list2");
+  testThrowsOrTypeError(() => new List([42] as Object), "list2");
 }
 
 void testConcurrentModification() {
