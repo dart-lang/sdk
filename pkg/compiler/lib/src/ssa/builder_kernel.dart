@@ -2551,6 +2551,57 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return values;
   }
 
+  /// Build the argument list for JS-interop invocations, which have slightly
+  /// different semantics than dart because of JS's null vs undefined and lack
+  /// of named arguments. Return null if the arguments could not be correctly
+  /// parsed because the user provided code with named parameters in a JS (non
+  /// factory) function.
+  List<HInstruction> _visitArgumentsForNativeStaticTarget(
+      ir.FunctionNode target, ir.Arguments arguments) {
+    // Visit arguments in source order, then re-order and fill in defaults.
+    var values = _visitPositionalArguments(arguments);
+
+    if (target.namedParameters.isNotEmpty) {
+      // Only anonymous factory constructors involving JS interop are allowed to
+      // have named parameters. Otherwise, throw an error.
+      FunctionEntity function = _elementMap.getMember(target.parent);
+      if (function is ConstructorEntity && function.isFactoryConstructor) {
+        // TODO(sra): Have a "CompiledArguments" structure to just update with
+        // what values we have rather than creating a map and de-populating it.
+        var namedValues = <String, HInstruction>{};
+        for (ir.NamedExpression argument in arguments.named) {
+          argument.value.accept(this);
+          namedValues[argument.name] = pop();
+        }
+
+        // Visit named arguments in parameter-position order, selecting provided
+        // or default value.
+        // TODO(sra): Ensure the stored order is canonical so we don't have to
+        // sort. The old builder uses CallStructure.makeArgumentList which
+        // depends on the old element model.
+        var namedParameters = target.namedParameters.toList()
+          ..sort((ir.VariableDeclaration a, ir.VariableDeclaration b) =>
+              a.name.compareTo(b.name));
+        for (ir.VariableDeclaration parameter in namedParameters) {
+          HInstruction value = namedValues[parameter.name];
+          values.add(value);
+          if (value != null) {
+            namedValues.remove(parameter.name);
+          }
+        }
+        assert(namedValues.isEmpty);
+      } else {
+        // Throw an error because JS cannot handle named parameters.
+        reporter.reportErrorMessage(
+            _elementMap.getSpannable(targetElement, target),
+            MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+            {'method': function.name});
+        return null;
+      }
+    }
+    return values;
+  }
+
   /// Build argument list in canonical order for a static [target], including
   /// filling in the default argument value.
   List<HInstruction> _visitArgumentsForStaticTarget(
@@ -2621,10 +2672,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
     FunctionEntity function = _elementMap.getMember(target);
     TypeMask typeMask = _typeInferenceMap.getReturnTypeOf(function);
 
-    // TODO(sra): For JS interop external functions, use a different function to
-    // build arguments.
-    List<HInstruction> arguments =
-        _visitArgumentsForStaticTarget(target.function, invocation.arguments);
+    List<HInstruction> arguments = closedWorld.nativeData
+            .isJsInteropMember(function)
+        ? _visitArgumentsForNativeStaticTarget(
+            target.function, invocation.arguments)
+        : _visitArgumentsForStaticTarget(target.function, invocation.arguments);
+
+    // Error in the arguments provided. Do not process futher.
+    if (arguments == null) {
+      stack.add(graph.addConstantNull(closedWorld)); // Result expected on stack
+      return;
+    }
 
     if (function is ConstructorEntity && function.isFactoryConstructor) {
       handleInvokeFactoryConstructor(invocation, function, typeMask, arguments);

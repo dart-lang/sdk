@@ -325,22 +325,14 @@ custom/mirrors_2_test: RuntimeError
 custom/mirrors_test: RuntimeError
 fileapi_test/entry: RuntimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
-js_typed_interop_default_arg_test/none: RuntimeError
-js_typed_interop_test/object literal: RuntimeError
-js_typed_interop_test/static_method_call: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
-js_util_test/hasProperty: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 custom/mirrors_2_test: RuntimeError
 custom/mirrors_test: RuntimeError
 fileapi_test/entry: RuntimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
-js_typed_interop_default_arg_test/none: RuntimeError
-js_typed_interop_test/object literal: RuntimeError
-js_typed_interop_test/static_method_call: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
-js_util_test/hasProperty: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
 custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
