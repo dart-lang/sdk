@@ -1064,7 +1064,6 @@ const_types_test/15: MissingCompileTimeError # Incorrectly allows using type par
 error_stacktrace_test/00: Pass
 generic_list_checked_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
-generic_methods_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError

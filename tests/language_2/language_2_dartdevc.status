@@ -49,7 +49,6 @@ generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 generic_methods_shadowing_test: CompileTimeError # Issue 29920
 generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
-generic_methods_test: CompileTimeError
 generic_methods_type_expression_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
