@@ -1274,6 +1274,7 @@ class CodeGenerator extends Object
     emitDeferredType(DartType t) {
       if (t is InterfaceType && t.typeArguments.isNotEmpty) {
         if (t == classElem.type) return className;
+        _declareBeforeUse(t.element);
         return _emitGenericClassType(
             t, t.typeArguments.map(emitDeferredType).toList());
       }
