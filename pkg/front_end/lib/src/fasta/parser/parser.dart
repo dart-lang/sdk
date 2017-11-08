@@ -4084,6 +4084,15 @@ class Parser {
     token = parseUnaryExpression(token, allowCascades);
     TokenType type = token.type;
     int tokenLevel = type.precedence;
+    Token typeArguments;
+    if (isValidMethodTypeArguments(token)) {
+      // For example a(b)<T>(c), where token is '<'.
+      typeArguments = token;
+      token = parseTypeArgumentsOpt(token);
+      assert(optional('(', token));
+      type = token.type;
+      tokenLevel = type.precedence;
+    }
     for (int level = tokenLevel; level >= precedence; --level) {
       while (identical(tokenLevel, level)) {
         Token operator = token;
@@ -4110,7 +4119,7 @@ class Parser {
             listener.endBinaryExpression(operator);
           } else if ((identical(type, TokenType.OPEN_PAREN)) ||
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
-            token = parseArgumentOrIndexStar(token);
+            token = parseArgumentOrIndexStar(token, typeArguments);
           } else if ((identical(type, TokenType.PLUS_PLUS)) ||
               (identical(type, TokenType.MINUS_MINUS))) {
             listener.handleUnaryPostfixAssignmentExpression(token);
@@ -4122,7 +4131,7 @@ class Parser {
                 new Token(
                     TokenType.CLOSE_SQUARE_BRACKET, token.charOffset + 1));
             token = rewriter.replaceToken(token, replacement);
-            token = parseArgumentOrIndexStar(token);
+            token = parseArgumentOrIndexStar(token, null);
           } else {
             token = reportUnexpectedToken(token).next;
           }
@@ -4160,7 +4169,7 @@ class Parser {
     listener.beginCascade(token);
     Token cascadeOperator = token;
     if (optional('[', token.next)) {
-      token = parseArgumentOrIndexStar(token.next);
+      token = parseArgumentOrIndexStar(token.next, null);
     } else if (token.next.isIdentifier) {
       token = parseSend(token.next, IdentifierContext.expressionContinuation);
       listener.endBinaryExpression(cascadeOperator);
@@ -4175,7 +4184,14 @@ class Parser {
         token = parseSend(token.next, IdentifierContext.expressionContinuation);
         listener.endBinaryExpression(period);
       }
-      token = parseArgumentOrIndexStar(token);
+      Token typeArguments;
+      if (isValidMethodTypeArguments(token)) {
+        // For example a(b)..<T>(c), where token is '<'.
+        typeArguments = token;
+        token = parseTypeArgumentsOpt(token);
+        assert(optional('(', token));
+      }
+      token = parseArgumentOrIndexStar(token, typeArguments);
     } while (!identical(mark, token));
 
     if (identical(token.type.precedence, ASSIGNMENT_PRECEDENCE)) {
@@ -4226,12 +4242,14 @@ class Parser {
     }
   }
 
-  Token parseArgumentOrIndexStar(Token token) {
+  Token parseArgumentOrIndexStar(Token token, Token typeArguments) {
+    // TODO(danrubel): Accept the token before typeArguments
     // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
     Token beginToken = token;
     while (true) {
       if (optional('[', token)) {
+        assert(typeArguments == null);
         Token openSquareBracket = token;
         bool old = mayParseFunctionExpressions;
         mayParseFunctionExpressions = true;
@@ -4246,14 +4264,17 @@ class Parser {
         listener.handleIndexedExpression(openSquareBracket, token);
         token = token.next;
       } else if (optional('(', token)) {
-        token = listener.injectGenericCommentTypeList(token);
-        if (isValidMethodTypeArguments(token)) {
-          token = parseTypeArgumentsOpt(token);
-        } else {
-          listener.handleNoTypeArguments(token);
+        if (typeArguments == null) {
+          token = listener.injectGenericCommentTypeList(token);
+          if (isValidMethodTypeArguments(token)) {
+            token = parseTypeArgumentsOpt(token);
+          } else {
+            listener.handleNoTypeArguments(token);
+          }
         }
         token = parseArguments(token).next;
         listener.handleSend(beginToken, token);
+        typeArguments = null;
       } else {
         break;
       }

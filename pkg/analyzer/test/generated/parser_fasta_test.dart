@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
@@ -67,14 +67,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
-  @override
-  @failingTest
-  void test_assignableExpression_arguments_normal_chain_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following a
-    // function-valued expression, returning the binary expression "a<E>(b) < F".
-    super.test_assignableExpression_arguments_normal_chain_typeArguments();
-  }
-
   @override
   @failingTest
   void test_equalityExpression_normal() {
@@ -2170,38 +2162,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
   @override
   @failingTest
-  void test_parseAssignableExpression_expression_args_dot_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following a
-    // function-valued expression.
-    super.test_parseAssignableExpression_expression_args_dot_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_ia_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following an
-    // index expression.
-    super.test_parseCascadeSection_ia_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_paa_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following a
-    // function-valued expression.
-    super.test_parseCascadeSection_paa_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_paapaa_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following a
-    // function-valued expression.
-    super.test_parseCascadeSection_paapaa_typeArguments();
-  }
-
-  @override
-  @failingTest
   void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
     // TODO(brianwilkerson) Does not inject generic type arguments.
     super
@@ -2870,21 +2830,20 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   ClassMember parseClassMember(String className) {
-    final ast = new AstFactoryImpl();
-    _astBuilder.classDeclaration = ast.classDeclaration(
+    _astBuilder.classDeclaration = astFactory.classDeclaration(
       null,
       null,
       null,
       new analyzer.Token(analyzer.Keyword.CLASS, 0),
-      ast.simpleIdentifier(
+      astFactory.simpleIdentifier(
           new fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
       null,
       null,
       null,
       null,
-      null, // leftBracket
+      null /* leftBracket */,
       <ClassMember>[],
-      null, // rightBracket
+      null /* rightBracket */,
     );
     _eventListener.begin('CompilationUnit');
     _run((parser) => (token) => parser.parseMember(token).next, nodeCount: 0);
