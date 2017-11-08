@@ -8,7 +8,8 @@ apply(Function function, List positional, Map<Symbol, dynamic> named) {
   return Function.apply(function, positional, named);
 }
 
-void throwsNSME(function, positional, named) {
+void throwsNSME(
+    Function function, List positional, Map<Symbol, dynamic> named) {
   Expect.throwsNoSuchMethodError(() => apply(function, positional, named));
 }
 
