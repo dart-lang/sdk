@@ -220,6 +220,9 @@ library dart:core:
     - unary-
   - class Error
     - stackTrace
+  - class FallThroughError
+    - dart.core::_create
+    - toString
   - class _ConstantExpressionError
     - (default constructor)
   - class Function

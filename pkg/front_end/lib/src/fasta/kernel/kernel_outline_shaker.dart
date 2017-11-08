@@ -557,6 +557,7 @@ class _RetainedDataBuilder extends RecursiveVisitor implements _RetainedData {
     markMember(coreTypes.constantExpressionErrorDefaultConstructor);
     markMember(coreTypes.duplicatedFieldInitializerErrorDefaultConstructor);
     markMember(coreTypes.externalNameDefaultConstructor);
+    markMember(coreTypes.fallThroughErrorUrlAndLineConstructor);
 
     // These are needed by the continuation (async/await) transformer:
     markClass(coreTypes.iteratorClass);

@@ -274,6 +274,10 @@ class Duration extends self::Object implements self::Comparable<self::Duration> 
 class Error extends self::Object {
   external get stackTrace() → self::StackTrace;
 }
+class FallThroughError extends self::Error {
+  external constructor _create(self::String url, self::int line) → void;
+  external method toString() → self::String;
+}
 class _ConstantExpressionError extends self::Object {
   const constructor •() → void;
 }
