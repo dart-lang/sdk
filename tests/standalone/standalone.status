@@ -22,6 +22,9 @@ no_assert_test: Fail, OK # This is testing a vm flag.
 [ $runtime != vm || $compiler != none ]
 script_snapshot_not_executed_test: SkipByDesign # Only makes sense running from source.
 
+[ (($hot_reload) || ($hot_reload_rollback)) ]
+script_snapshot_not_executed_test: RuntimeError
+
 [ $system == macos && $builder_tag == swarming ]
 io/*: Skip # Issue 30618
 
@@ -83,4 +86,6 @@ io/raw_datagram_socket_test: Skip # Flaky.
 
 [ $compiler == dartkp ]
 dwarf_stack_trace_test: RuntimeError
+io/https_bad_certificate_test: Skip # Flaky.
+io/raw_datagram_socket_test: Skip # Flaky.
 

@@ -39,11 +39,11 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 dwarf_stack_trace_test: RuntimeError
 
 [ $compiler == dartk && $strong ]
-io/http_basic_test: RuntimeError
-io/http_client_request_test: Timeout
+io/http_basic_test: Pass, RuntimeError
+io/http_client_request_test: Pass, Timeout
 io/http_compression_test: RuntimeError
-io/secure_builtin_roots_test: RuntimeError
-io/socket_finalizer_test: Timeout
+io/secure_builtin_roots_test: Timeout, RuntimeError
+io/socket_finalizer_test: Pass, Timeout
 
 [ $compiler == dartkp && $strong ]
 io/arguments_test: RuntimeError
@@ -197,8 +197,8 @@ typed_data_isolate_test: Crash
 
 [ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug]
 io/raw_socket_test: Crash
-io/socket_exception_test: Crash
-io/socket_finalizer_test: Crash
-io/socket_info_ipv4_test: Crash
-io/socket_info_ipv6_test: Crash
-io/socket_port_test: Crash
+io/socket_exception_test: Pass, Crash
+io/socket_finalizer_test: Pass, Crash
+io/socket_info_ipv4_test: Pass, Crash
+io/socket_info_ipv6_test: Pass, Crash
+io/socket_port_test: Pass, Crash
