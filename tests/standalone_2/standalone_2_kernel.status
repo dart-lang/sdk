@@ -39,7 +39,6 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 dwarf_stack_trace_test: RuntimeError
 
 [ $compiler == dartk && $strong ]
-io/http_basic_test: Pass, RuntimeError
 io/http_client_request_test: Pass, Timeout
 io/http_compression_test: RuntimeError
 io/secure_builtin_roots_test: Timeout, RuntimeError
