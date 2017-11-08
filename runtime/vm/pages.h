@@ -68,6 +68,8 @@ class HeapPage {
     return Utils::RoundUp(sizeof(HeapPage), OS::kMaxPreferredCodeAlignment);
   }
 
+  // Warning: This does not work for objects on image pages because image pages
+  // are not aligned.
   static HeapPage* Of(RawObject* obj) {
     ASSERT(obj->IsHeapObject());
     ASSERT(obj->IsOldObject());

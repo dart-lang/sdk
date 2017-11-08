@@ -40,6 +40,7 @@ class GCCompactor : public ValueObject,
   void MoveToContiguousSize(intptr_t size);
 
   void ForwardPointersForSliding();
+  void ForwardPointerForSliding(RawObject** ptr);
   void VisitPointers(RawObject** first, RawObject** last);
   void VisitHandle(uword addr);
 
@@ -49,6 +50,15 @@ class GCCompactor : public ValueObject,
   uword free_current_;
   uword free_end_;
   FreeList* freelist_;
+
+  struct ImagePageRange {
+    uword base;
+    uword size;
+  };
+  // There are up to 4 images to consider:
+  // {instructions, data} x {vm isolate, current isolate}
+  static const intptr_t kMaxImagePages = 4;
+  ImagePageRange image_page_ranges_[kMaxImagePages];
 };
 
 }  // namespace dart

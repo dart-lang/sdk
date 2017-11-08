@@ -329,18 +329,27 @@ void GCCompactor::MoveToContiguousSize(intptr_t size) {
 }
 
 DART_FORCE_INLINE
-static void ForwardPointerForSliding(RawObject** ptr) {
+void GCCompactor::ForwardPointerForSliding(RawObject** ptr) {
   RawObject* old_target = *ptr;
   if (old_target->IsSmiOrNewObject()) {
     return;  // Not moved.
   }
+
+  uword old_addr = RawObject::ToAddr(old_target);
+  for (intptr_t i = 0; i < kMaxImagePages; i++) {
+    if ((old_addr - image_page_ranges_[i].base) < image_page_ranges_[i].size) {
+      return;  // Not moved (unaligned image page).
+    }
+  }
+
   HeapPage* page = HeapPage::Of(old_target);
   ForwardingPage* forwarding_page = page->forwarding_page();
   if (forwarding_page == NULL) {
-    return;  // Not moved (VM isolate, image page, large page, code page).
+    return;  // Not moved (VM isolate, large page, code page).
   }
-  RawObject* new_target = RawObject::FromAddr(
-      forwarding_page->Lookup(RawObject::ToAddr(old_target)));
+
+  RawObject* new_target =
+      RawObject::FromAddr(forwarding_page->Lookup(old_addr));
   *ptr = new_target;
 }
 
@@ -359,6 +368,31 @@ void GCCompactor::VisitHandle(uword addr) {
 void GCCompactor::ForwardPointersForSliding() {
   // N.B.: This pointer visitor is not idempotent. We must take care to visit
   // each pointer exactly once.
+
+  // Collect image page boundaries.
+  for (intptr_t i = 0; i < kMaxImagePages; i++) {
+    image_page_ranges_[i].base = 0;
+    image_page_ranges_[i].size = 0;
+  }
+  intptr_t next_offset = 0;
+  HeapPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
+  while (image_page != NULL) {
+    RELEASE_ASSERT(next_offset <= kMaxImagePages);
+    image_page_ranges_[next_offset].base = image_page->object_start();
+    image_page_ranges_[next_offset].size =
+        image_page->object_end() - image_page->object_start();
+    image_page = image_page->next();
+    next_offset++;
+  }
+  image_page = heap_->old_space()->image_pages_;
+  while (image_page != NULL) {
+    RELEASE_ASSERT(next_offset <= kMaxImagePages);
+    image_page_ranges_[next_offset].base = image_page->object_start();
+    image_page_ranges_[next_offset].size =
+        image_page->object_end() - image_page->object_start();
+    image_page = image_page->next();
+    next_offset++;
+  }
 
   // Heap pointers.
   // N.B.: We forward the heap before forwarding the stack. This limits the

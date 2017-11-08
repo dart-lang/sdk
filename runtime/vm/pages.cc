@@ -992,8 +992,7 @@ void PageSpace::MarkSweep() {
 
       if (FLAG_use_compactor_evacuating && !dbc) {
         EvacuatingCompact(thread);
-      } else if (FLAG_use_compactor_sliding && !dbc && (image_pages_ == NULL)) {
-        // TODO(rmacnak): Align image pages.
+      } else if (FLAG_use_compactor_sliding && !dbc) {
         SlidingCompact(thread);
       } else if (FLAG_concurrent_sweep) {
         ConcurrentSweep(isolate);
