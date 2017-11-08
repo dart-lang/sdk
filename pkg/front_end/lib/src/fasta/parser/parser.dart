@@ -898,15 +898,14 @@ class Parser {
     if (optional("<", token.next)) {
       reportRecoverableError(token.next, fasta.messageMetadataTypeArguments);
     }
-    token = parseTypeArgumentsOpt(token.next);
+    token = parseTypeArgumentsOpt(token);
     Token period = null;
-    if (optional('.', token)) {
-      period = token;
-      token = ensureIdentifier(token.next,
-              IdentifierContext.metadataContinuationAfterTypeArguments)
-          .next;
+    if (optional('.', token.next)) {
+      period = token.next;
+      token = ensureIdentifier(period.next,
+          IdentifierContext.metadataContinuationAfterTypeArguments);
     }
-    token = parseArgumentsOpt(token);
+    token = parseArgumentsOpt(token.next);
     listener.endMetadata(atToken, period, token);
     return token;
   }
@@ -949,16 +948,16 @@ class Parser {
     if (afterType == null) {
       token = ensureIdentifier(
           typedefKeyword.next, IdentifierContext.typedefDeclaration);
-      token = parseTypeVariablesOpt(token.next);
+      token = parseTypeVariablesOpt(token).next;
       equals = token;
       expect('=', token);
       token = parseType(token.next);
     } else {
       token = ensureIdentifier(afterType, IdentifierContext.typedefDeclaration);
-      token = parseTypeVariablesOpt(token.next);
-      token =
-          parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias)
-              .next;
+      token = parseTypeVariablesOpt(token);
+      token = parseFormalParametersRequiredOpt(
+              token.next, MemberKind.FunctionTypeAlias)
+          .next;
     }
     token = ensureSemicolon(token);
     listener.endFunctionTypeAlias(typedefKeyword, equals, token);
@@ -1338,13 +1337,13 @@ class Parser {
     expect("class", token);
     Token name = ensureIdentifier(
         token.next, IdentifierContext.classOrNamedMixinDeclaration);
-    token = parseTypeVariablesOpt(name.next);
-    if (optional('=', token)) {
+    token = parseTypeVariablesOpt(name);
+    if (optional('=', token.next)) {
       listener.beginNamedMixinApplication(begin, name);
-      return parseNamedMixinApplication(token, begin, classKeyword);
+      return parseNamedMixinApplication(token.next, begin, classKeyword);
     } else {
       listener.beginClassDeclaration(begin, name);
-      return parseClass(token, begin, classKeyword);
+      return parseClass(token.next, begin, classKeyword);
     }
   }
 
@@ -1974,7 +1973,7 @@ class Parser {
       int count = 0;
       for (Token typeVariableStart in typeVariableStarters) {
         count++;
-        parseTypeVariablesOpt(typeVariableStart.next);
+        parseTypeVariablesOpt(typeVariableStart);
         listener.beginFunctionType(begin);
       }
       assert(count == functionTypes);
@@ -1993,7 +1992,7 @@ class Parser {
         token = parseQualifiedRestOpt(
             token, IdentifierContext.typeReferenceContinuation);
         assert(typeArguments == null || typeArguments == token.next);
-        token = parseTypeArgumentsOpt(token.next);
+        token = parseTypeArgumentsOpt(token).next;
         listener.handleType(begin, token);
       }
 
@@ -2129,7 +2128,7 @@ class Parser {
 
               // Although it looks like there are no type variables here, they
               // may get injected from a comment.
-              Token formals = parseTypeVariablesOpt(token.next);
+              Token formals = parseTypeVariablesOpt(token).next;
 
               listener.beginLocalFunctionDeclaration(begin);
               listener.handleModifiers(0);
@@ -2147,7 +2146,7 @@ class Parser {
               if (looksLikeFunctionBody(closeBraceTokenFor(formals).next)) {
                 // We are looking at "type identifier '<' ... '>' '(' ... ')'"
                 // followed by '{', '=>', 'async', or 'sync'.
-                parseTypeVariablesOpt(token.next);
+                parseTypeVariablesOpt(token);
                 listener.beginLocalFunctionDeclaration(begin);
                 listener.handleModifiers(0);
                 if (voidToken != null) {
@@ -2171,7 +2170,7 @@ class Parser {
 
               // Although it looks like there are no type variables here, they
               // may get injected from a comment.
-              Token formals = parseTypeVariablesOpt(token.next);
+              Token formals = parseTypeVariablesOpt(token).next;
 
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
@@ -2186,7 +2185,7 @@ class Parser {
                   closeBraceTokenFor(afterTypeVariables).next)) {
                 // We are looking at `identifier '<' ... '>' '(' ... ')'`
                 // followed by `'{'`, `'=>'`, `'async'`, or `'sync'`.
-                parseTypeVariablesOpt(token.next);
+                parseTypeVariablesOpt(token);
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
                 listener.handleNoType(token);
@@ -2237,7 +2236,7 @@ class Parser {
           return parseSend(begin, continuationContext);
         }
 
-        Token formals = parseTypeVariablesOpt(name.next);
+        Token formals = parseTypeVariablesOpt(name).next;
         listener.beginNamedFunctionExpression(begin);
         listener.handleModifiers(0);
         if (hasReturnType) {
@@ -2359,7 +2358,7 @@ class Parser {
         }
 
         if (inlineFunctionTypeStart != null) {
-          token = parseTypeVariablesOpt(inlineFunctionTypeStart.next);
+          token = parseTypeVariablesOpt(inlineFunctionTypeStart);
           listener
               .beginFunctionTypedFormalParameter(inlineFunctionTypeStart.next);
           if (!untyped) {
@@ -2374,7 +2373,7 @@ class Parser {
             listener.handleNoType(begin);
           }
           token = parseFormalParametersRequiredOpt(
-                  token, MemberKind.FunctionTypedParameter)
+                  token.next, MemberKind.FunctionTypedParameter)
               .next;
           listener.endFunctionTypedFormalParameter();
 
@@ -2430,8 +2429,6 @@ class Parser {
   }
 
   Token parseTypeArgumentsOpt(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     return parseStuff(
         token,
         (t) => listener.beginTypeArguments(t),
@@ -2441,8 +2438,6 @@ class Parser {
   }
 
   Token parseTypeVariablesOpt(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     return parseStuff(
         token,
         (t) => listener.beginTypeVariables(t),
@@ -2454,11 +2449,13 @@ class Parser {
   /// TODO(ahe): Clean this up.
   Token parseStuff(Token token, Function beginStuff, Function stuffParser,
       Function endStuff, Function handleNoStuff) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     // TODO(brianwilkerson): Rename to `parseStuffOpt`?
-    token = listener.injectGenericCommentTypeList(token);
-    if (optional('<', token)) {
+    // TODO(brianwilkerson): Remove the invocation of `previous` when
+    // `injectGenericCommentTypeList` returns the last consumed token.
+    token = listener.injectGenericCommentTypeList(token.next).previous;
+    Token next = token.next;
+    if (optional('<', next)) {
+      token = next;
       Token begin = token;
       beginStuff(begin);
       int count = 0;
@@ -2472,9 +2469,10 @@ class Parser {
         token = rewriter.replaceToken(token, replacement);
       }
       endStuff(count, begin, token);
-      return expect('>', token);
+      expect('>', token);
+      return token;
     }
-    handleNoStuff(token);
+    handleNoStuff(next);
     return token;
   }
 
@@ -2644,14 +2642,14 @@ class Parser {
 
     bool isGetter = false;
     if (getOrSet == null) {
-      token = parseTypeVariablesOpt(name.next);
+      token = parseTypeVariablesOpt(name);
     } else {
       isGetter = optional("get", getOrSet);
-      token = name.next;
-      listener.handleNoTypeVariables(token);
+      token = name;
+      listener.handleNoTypeVariables(token.next);
     }
-    checkFormals(isGetter, name, token);
-    token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
+    checkFormals(isGetter, name, token.next);
+    token = parseFormalParametersOpt(token.next, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token;
     token = parseAsyncModifier(token);
@@ -3354,20 +3352,20 @@ class Parser {
       token = ensureIdentifier(name, IdentifierContext.methodDeclaration);
     }
 
-    // TODO(brianwilkerson): Can the next statement be moved inside the else above?
+    // TODO(brianwilkerson): Move the next statement inside the else above
+    // because operator names can't be qualified.
     token = parseQualifiedRestOpt(
         token, IdentifierContext.methodDeclarationContinuation);
     bool isGetter = false;
     if (getOrSet == null) {
-      token = parseTypeVariablesOpt(token.next);
+      token = parseTypeVariablesOpt(token);
     } else {
       isGetter = optional("get", getOrSet);
-      token = token.next;
-      listener.handleNoTypeVariables(token);
+      listener.handleNoTypeVariables(token.next);
     }
-    checkFormals(isGetter, name, token);
+    checkFormals(isGetter, name, token.next);
     token = parseFormalParametersOpt(
-        token,
+        token.next,
         staticModifier != null
             ? MemberKind.StaticMethod
             : MemberKind.NonStaticMethod);
@@ -3559,7 +3557,7 @@ class Parser {
     listener.beginConstructorReference(start);
     token = parseQualifiedRestOpt(
         start, IdentifierContext.constructorReferenceContinuation);
-    token = parseTypeArgumentsOpt(token.next);
+    token = parseTypeArgumentsOpt(token).next;
     Token period = null;
     if (optional('.', token)) {
       period = token;
@@ -4100,7 +4098,7 @@ class Parser {
       typeArguments = token;
       // TODO(brianwilkerson): Remove the invocation of `previous` when
       // `parseUnaryExpression` (invoked above) returns the last consumed token.
-      token = parseTypeArgumentsOpt(token.previous.next);
+      token = parseTypeArgumentsOpt(token.previous).next;
       assert(optional('(', token));
       type = token.type;
       tokenLevel = type.precedence;
@@ -4202,7 +4200,7 @@ class Parser {
         // TODO(brianwilkerson): Remove the invocation of `previous` when this
         // method accepts the last consumed token and the methods invoked above
         // that are assigned to `token` return the last consumed token.
-        token = parseTypeArgumentsOpt(token.previous.next);
+        token = parseTypeArgumentsOpt(token.previous).next;
         assert(optional('(', token));
       }
       token = parseArgumentOrIndexStar(token, typeArguments);
@@ -4283,7 +4281,7 @@ class Parser {
             // TODO(brianwilkerson): Remove the invocation of `previous` when
             // `injectGenericCommentTypeList` (invoked above) returns the last
             // consumed token.
-            token = parseTypeArgumentsOpt(token.previous.next);
+            token = parseTypeArgumentsOpt(token.previous).next;
           } else {
             listener.handleNoTypeArguments(token);
           }
@@ -4564,10 +4562,10 @@ class Parser {
     if (constKeyword == null &&
         closeBrace != null &&
         identical(closeBrace.next.kind, OPEN_PAREN_TOKEN)) {
-      token = parseTypeVariablesOpt(token.next);
-      return parseLiteralFunctionSuffix(token);
+      token = parseTypeVariablesOpt(token);
+      return parseLiteralFunctionSuffix(token.next);
     } else {
-      token = parseTypeArgumentsOpt(token.next);
+      token = parseTypeArgumentsOpt(token).next;
       if (optional('{', token)) {
         return parseLiteralMapSuffix(token, constKeyword).next;
       } else if ((optional('[', token)) || (optional('[]', token))) {
@@ -4823,12 +4821,11 @@ class Parser {
     // `injectGenericCommentTypeList` returns the last consumed token.
     token = listener.injectGenericCommentTypeList(beginToken.next).previous;
     if (isValidMethodTypeArguments(token.next)) {
-      token = parseTypeArgumentsOpt(token.next);
+      token = parseTypeArgumentsOpt(token);
     } else {
-      token = token.next;
-      listener.handleNoTypeArguments(token);
+      listener.handleNoTypeArguments(token.next);
     }
-    token = parseArgumentsOpt(token);
+    token = parseArgumentsOpt(token.next);
     listener.handleSend(beginToken, token);
     return token;
   }

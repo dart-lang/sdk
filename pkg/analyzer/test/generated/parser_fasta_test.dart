@@ -2925,8 +2925,9 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   TypeArgumentList parseTypeArgumentList() {
-    return _run((parser) => (token) => parser.parseTypeArgumentsOpt(token))
-        as TypeArgumentList;
+    return _run((parser) => (token) => parser
+        .parseTypeArgumentsOpt(parser.syntheticPreviousToken(token))
+        .next) as TypeArgumentList;
   }
 
   @override
@@ -2943,8 +2944,9 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   TypeParameterList parseTypeParameterList() {
-    return _run((parser) => (token) => parser.parseTypeVariablesOpt(token))
-        as TypeParameterList;
+    return _run((parser) => (token) => parser
+        .parseTypeVariablesOpt(parser.syntheticPreviousToken(token))
+        .next) as TypeParameterList;
   }
 
   /**
