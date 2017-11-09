@@ -1561,27 +1561,15 @@ int main(int argc, char** argv) {
     result = Dart_SetEnvironmentCallback(EnvironmentCallback);
     CHECK_RESULT(result);
 
-    // Set up the library tag handler in such a manner that it will use the
-    // URL mapping specified on the command line to load the libraries.
-    result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
-    CHECK_RESULT(result);
-
-    if (commandline_packages_file != NULL) {
-      AddDependency(commandline_packages_file);
-    }
-
-    if (kernel_program != NULL) {
-      Dart_Handle resolved_uri = ResolveUriInWorkingDirectory(app_script_name);
-      CHECK_RESULT(resolved_uri);
-      Dart_Handle library =
-          Dart_LoadScript(resolved_uri, Dart_Null(),
-                          reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
-      CHECK_RESULT(library);
-    } else {
+    if (kernel_program == NULL) {
       // Set up the library tag handler in such a manner that it will use the
       // URL mapping specified on the command line to load the libraries.
       result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
       CHECK_RESULT(result);
+    }
+
+    if (commandline_packages_file != NULL) {
+      AddDependency(commandline_packages_file);
     }
 
     SetupStubNativeResolversForPrecompilation(entry_points);
