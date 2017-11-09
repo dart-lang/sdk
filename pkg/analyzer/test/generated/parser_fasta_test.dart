@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
-import 'package:analyzer/dart/ast/token.dart' show TokenType;
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -2796,6 +2796,7 @@ class ParserProxy extends analyzer.ParserAdapter {
             allowNativeClause: allowNativeClause,
             enableGenericMethodComments: enableGenericMethodComments) {
     _eventListener = new ForwardingTestListener(astBuilder);
+    fastaParser.listener = _eventListener;
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -2812,7 +2813,7 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   ClassMember parseClassMember(String className) {
-    return _run2('CompilationUnit', () => super.parseClassMember(className));
+    return _run2('ClassBody', () => super.parseClassMember(className));
   }
 
   List<Combinator> parseCombinators() {
@@ -2830,42 +2831,42 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   Configuration parseConfiguration() {
-    return _run((parser) => (token) => parser.parseConditionalUri(token).next)
-        as Configuration;
+    return _run2('ConditionalUris', () => super.parseConfiguration());
   }
 
   @override
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
-    return _run((parser) => (token) => parser
-        .parseFormalParametersRequiredOpt(
-            parser.syntheticPreviousToken(token),
-            inFunctionType
-                ? fasta.MemberKind.GeneralizedFunctionType
-                : fasta.MemberKind.StaticMethod)
-        .next) as FormalParameterList;
+    return _run2('unspecified',
+        () => super.parseFormalParameterList(inFunctionType: inFunctionType));
   }
 
   @override
   FunctionBody parseFunctionBody(
       bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
-    return _run((parser) => (token) {
-          token = parser.parseAsyncModifier(token);
-          token = parser.parseFunctionBody(token, inExpression, mayBeEmpty);
-          if (!inExpression) {
-            if (![';', '}'].contains(token.lexeme)) {
-              fail('Expected ";" or "}", but found: ${token.lexeme}');
-            }
-            token = token.next;
-          }
-          return token;
-        }) as FunctionBody;
+    Token lastToken;
+    FunctionBody body = _run2('unspecified', () {
+      FunctionBody body =
+          super.parseFunctionBody(mayBeEmpty, emptyErrorCode, inExpression);
+      lastToken = currentToken;
+      currentToken = currentToken.next;
+      return body;
+    });
+    if (!inExpression) {
+      if (![';', '}'].contains(lastToken.lexeme)) {
+        fail('Expected ";" or "}", but found: ${lastToken.lexeme}');
+      }
+    }
+    return body;
+  }
+
+  @override
+  Statement parseStatement(Token token) {
+    return _run2('unspecified', () => super.parseStatement(token));
   }
 
   @override
   Statement parseStatement2() {
-    return _run((parser) => (token) =>
-            parser.parseStatementOpt(parser.syntheticPreviousToken(token)).next)
-        as Statement;
+    return parseStatement(currentToken);
   }
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {

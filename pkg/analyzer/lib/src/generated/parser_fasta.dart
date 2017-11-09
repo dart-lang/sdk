@@ -120,6 +120,41 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser.parseUnit(currentToken);
     return astBuilder.pop();
   }
+
+  @override
+  Configuration parseConfiguration() {
+    currentToken = fastaParser.parseConditionalUri(currentToken).next;
+    return astBuilder.pop();
+  }
+
+  @override
+  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
+    currentToken = fastaParser
+        .parseFormalParametersRequiredOpt(
+            fastaParser.syntheticPreviousToken(currentToken),
+            inFunctionType
+                ? fasta.MemberKind.GeneralizedFunctionType
+                : fasta.MemberKind.StaticMethod)
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  FunctionBody parseFunctionBody(
+      bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
+    currentToken = fastaParser.parseAsyncModifier(currentToken);
+    currentToken =
+        fastaParser.parseFunctionBody(currentToken, inExpression, mayBeEmpty);
+    return astBuilder.pop();
+  }
+
+  @override
+  Statement parseStatement(Token token) {
+    currentToken = fastaParser
+        .parseStatementOpt(fastaParser.syntheticPreviousToken(token))
+        .next;
+    return astBuilder.pop();
+  }
 }
 
 /**
