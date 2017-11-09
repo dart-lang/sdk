@@ -49,6 +49,7 @@ import 'dart:io' hide FileSystemEntity;
 import 'package:args/args.dart';
 import 'package:front_end/file_system.dart' show FileSystemEntity;
 import 'package:front_end/front_end.dart';
+import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
@@ -78,8 +79,11 @@ main(List<String> args) async {
         _resolveOverlayUri(options["sdk-library-specification"]);
   }
   if (options['target'] == 'flutter') {
-    compilerOptions..target = new FlutterTarget(new TargetFlags());
+    compilerOptions.target = new FlutterTarget(new TargetFlags());
   }
+
+  var dir = Directory.systemTemp.createTempSync('ikg-cache');
+  compilerOptions.byteStore = new ProtectedFileByteStore(dir.path);
 
   var timer1 = new Stopwatch()..start();
   var generator =
@@ -102,6 +106,8 @@ main(List<String> args) async {
     print("Change '${changeSet.name}' - "
         "Incremental compilation took: ${iterTimer.elapsedMilliseconds}ms");
   }
+
+  dir.deleteSync(recursive: true);
 }
 
 /// Apply all edits of a single iteration by updating the copy of the file in
