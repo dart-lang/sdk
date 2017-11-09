@@ -1747,6 +1747,7 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
           cls, selector.name,
           setter: selector.isSetter);
       if (member != null &&
+          !member.isAbstract &&
           (!selector.memberName.isPrivate ||
               member.library == selector.library)) {
         return member == element;

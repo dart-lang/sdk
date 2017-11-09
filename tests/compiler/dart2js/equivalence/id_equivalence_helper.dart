@@ -98,6 +98,9 @@ Future<CompiledData> computeData(
   }
 
   void processMember(MemberEntity member) {
+    if (member.isAbstract) {
+      return;
+    }
     if (skipUnprocessedMembers &&
         !closedWorld.processedMembers.contains(member)) {
       return;
@@ -455,6 +458,7 @@ Future<bool> compareData(
     bool skipUnprocessedMembers: false,
     bool skipFailedCompilations: false,
     bool verbose: false}) async {
+  print('--from ast----------------------------------------------------------');
   CompiledData data1 = await computeData(
       entryPoint, memorySourceFiles, computeAstData,
       options: options,
@@ -462,6 +466,7 @@ Future<bool> compareData(
       skipUnprocessedMembers: skipUnprocessedMembers,
       skipFailedCompilations: skipFailedCompilations);
   if (data1 == null) return false;
+  print('--from kernel-------------------------------------------------------');
   CompiledData data2 = await computeData(
       entryPoint, memorySourceFiles, computeIrData,
       options: [Flags.useKernel]..addAll(options),
