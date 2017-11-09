@@ -6,6 +6,7 @@ homepage: http://www.dartlang.org
 #  sdk: '>=1.0.0 <2.0.0'
 dependencies:
   path: "^1.4.0"
+  args: "^0.13.7"
 dev_dependencies:
   expect:
     path: ../expect
