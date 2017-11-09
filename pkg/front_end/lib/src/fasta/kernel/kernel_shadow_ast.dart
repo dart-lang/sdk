@@ -600,39 +600,6 @@ class ShadowContinueSwitchStatement extends ContinueSwitchStatement
   }
 }
 
-/// Shadow object for [DirectMethodInvocation].
-class ShadowDirectMethodInvocation extends DirectMethodInvocation
-    implements ShadowExpression {
-  ShadowDirectMethodInvocation(
-      Expression receiver, Procedure target, Arguments arguments)
-      : super(receiver, target, arguments);
-
-  @override
-  DartType _inferExpression(
-      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-        'target', new InstrumentationValueForMember(target));
-    return inferrer.inferMethodInvocation(
-        this, receiver, fileOffset, false, typeContext, typeNeeded,
-        interfaceMember: target, methodName: target.name, arguments: arguments);
-  }
-}
-
-/// Shadow object for [DirectPropertyGet].
-class ShadowDirectPropertyGet extends DirectPropertyGet
-    implements ShadowExpression {
-  ShadowDirectPropertyGet(Expression receiver, Member target)
-      : super(receiver, target);
-
-  @override
-  DartType _inferExpression(
-      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    return inferrer.inferPropertyGet(
-        this, receiver, fileOffset, typeContext, typeNeeded,
-        propertyName: target.name);
-  }
-}
-
 /// Concrete shadow object representing a do loop in kernel form.
 class ShadowDoStatement extends DoStatement implements ShadowStatement {
   ShadowDoStatement(Statement body, Expression condition)
