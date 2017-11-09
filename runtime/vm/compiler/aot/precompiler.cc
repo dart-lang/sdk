@@ -1427,8 +1427,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
                                         parsed_function,
                                         /* optimized = */ true);
-  bool success = helper.Compile(&pipeline);
-  ASSERT(success);
+  helper.Compile(&pipeline);
 
   if (compute_type && field.is_final()) {
     intptr_t result_cid = pipeline.result_type().ToCid();

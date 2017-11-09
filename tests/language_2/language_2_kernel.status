@@ -10,7 +10,6 @@ closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
 const_string_test: RuntimeError
-const_syntax_test/08: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
@@ -31,7 +30,6 @@ syntax_test/33: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError
 const_locals_test: RuntimeError
 const_string_test: RuntimeError
-const_syntax_test/08: MissingCompileTimeError
 redirecting_factory_reflection_test: Crash, Pass
 type_promotion_functions_test/01: MissingCompileTimeError
 

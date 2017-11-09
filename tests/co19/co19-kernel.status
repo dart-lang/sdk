@@ -125,8 +125,6 @@ Language/Classes/Instance_Variables/constant_t01: Crash
 
 # dartk: JIT failures
 [ $compiler == dartk ]
-Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
 Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
@@ -139,22 +137,12 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
-Language/Expressions/Constants/depending_on_itself_t01: Crash
-Language/Expressions/Constants/depending_on_itself_t02: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Crash
-Language/Expressions/Constants/no_other_constant_expressions_t11: Crash # Issue 31298
 
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
 Language/Expressions/Constants/bitwise_operators_t05: Crash
-Language/Expressions/Constants/exception_t01: Crash
-Language/Expressions/Constants/exception_t02: Crash
-Language/Expressions/Constants/exception_t03: Crash
-Language/Expressions/Constants/logical_expression_t02: Crash
 Language/Expressions/Constants/logical_expression_t04: Crash
-Language/Expressions/Constants/math_operators_t02: Crash
-Language/Expressions/Constants/math_operators_t03: Crash
-Language/Expressions/Constants/ternary_operator_t02: Crash
 Language/Expressions/Instance_Creation/Const/exception_t01: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Pass
 Language/Overview/Scoping/hiding_declaration_t12: Pass

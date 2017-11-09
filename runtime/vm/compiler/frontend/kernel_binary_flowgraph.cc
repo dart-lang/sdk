@@ -2794,9 +2794,31 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
     if (!field.is_const()) {
       H.ReportError(script_, position, "Not a constant field.");
     }
-    if (field.StaticValue() == Object::sentinel().raw() ||
-        field.StaticValue() == Object::transition_sentinel().raw()) {
-      field.EvaluateInitializer();
+    if (field.StaticValue() == Object::transition_sentinel().raw()) {
+      H.ReportError(script_, position, "Not a constant expression.");
+    } else if (field.StaticValue() == Object::sentinel().raw()) {
+      field.SetStaticValue(Object::transition_sentinel());
+      const Object& value =
+          Object::Handle(Compiler::EvaluateStaticInitializer(field));
+      if (value.IsError()) {
+        field.SetStaticValue(Object::null_instance());
+        H.ReportError(Error::Cast(value), script_, position,
+                      "Not a constant expression.");
+        UNREACHABLE();
+      }
+      Thread* thread = H.thread();
+      const Error& error =
+          Error::Handle(thread->zone(), thread->sticky_error());
+      if (!error.IsNull()) {
+        field.SetStaticValue(Object::null_instance());
+        thread->clear_sticky_error();
+        H.ReportError(error, script_, position, "Not a constant expression.");
+        UNREACHABLE();
+      }
+      ASSERT(value.IsNull() || value.IsInstance());
+      field.SetStaticValue(value.IsNull() ? Instance::null_instance()
+                                          : Instance::Cast(value));
+
       result_ = field.StaticValue();
       result_ = H.Canonicalize(result_);
       field.SetStaticValue(result_, true);

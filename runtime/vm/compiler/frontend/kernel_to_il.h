@@ -415,6 +415,11 @@ class TranslationHelper {
                    const char* format,
                    ...);
   void ReportError(const Error& prev_error, const char* format, ...);
+  void ReportError(const Error& prev_error,
+                   const Script& script,
+                   const TokenPosition position,
+                   const char* format,
+                   ...);
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol

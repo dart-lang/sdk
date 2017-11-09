@@ -694,6 +694,18 @@ void TranslationHelper::ReportError(const Error& prev_error,
   UNREACHABLE();
 }
 
+void TranslationHelper::ReportError(const Error& prev_error,
+                                    const Script& script,
+                                    const TokenPosition position,
+                                    const char* format,
+                                    ...) {
+  va_list args;
+  va_start(args, format);
+  Report::LongJumpV(prev_error, script, position, format, args);
+  va_end(args);
+  UNREACHABLE();
+}
+
 String& TranslationHelper::ManglePrivateName(NameIndex parent,
                                              String* name_to_modify,
                                              bool symbolize) {
