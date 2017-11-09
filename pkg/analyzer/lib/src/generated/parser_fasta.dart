@@ -155,6 +155,32 @@ abstract class ParserAdapter implements Parser {
         .next;
     return astBuilder.pop();
   }
+
+  AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
+    currentToken = fastaParser.parseTopLevelDeclaration(currentToken);
+    return (isDirective ? astBuilder.directives : astBuilder.declarations)
+        .removeLast();
+  }
+
+  @override
+  TypeAnnotation parseTypeAnnotation(bool inExpression) {
+    currentToken = fastaParser.parseType(currentToken);
+    return astBuilder.pop();
+  }
+
+  @override
+  TypeArgumentList parseTypeArgumentList() {
+    currentToken = fastaParser
+        .parseTypeArgumentsOpt(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  TypeName parseTypeName(bool inExpression) {
+    currentToken = fastaParser.parseType(currentToken);
+    return astBuilder.pop();
+  }
 }
 
 /**

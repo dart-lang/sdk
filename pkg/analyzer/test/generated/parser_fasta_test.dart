@@ -2869,34 +2869,25 @@ class ParserProxy extends analyzer.ParserAdapter {
     return parseStatement(currentToken);
   }
 
+  @override
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
-    _eventListener.begin('CompilationUnit');
-    currentToken = fastaParser.parseTopLevelDeclaration(currentToken);
-    expect(currentToken.isEof, isTrue);
-    expect(astBuilder.stack, hasLength(0));
-    expect(astBuilder.scriptTag, isNull);
-    expect(astBuilder.directives, hasLength(isDirective ? 1 : 0));
-    expect(astBuilder.declarations, hasLength(isDirective ? 0 : 1));
-    _eventListener.end('CompilationUnit');
-    return (isDirective ? astBuilder.directives : astBuilder.declarations)
-        .first;
+    return _run2(
+        'CompilationUnit', () => super.parseTopLevelDeclaration(isDirective));
   }
 
   @override
   TypeAnnotation parseTypeAnnotation(bool inExpression) {
-    return _run((parser) => parser.parseType) as TypeAnnotation;
+    return _run2('unspecified', () => super.parseTypeAnnotation(inExpression));
   }
 
   @override
   TypeArgumentList parseTypeArgumentList() {
-    return _run((parser) => (token) => parser
-        .parseTypeArgumentsOpt(parser.syntheticPreviousToken(token))
-        .next) as TypeArgumentList;
+    return _run2('unspecified', () => super.parseTypeArgumentList());
   }
 
   @override
   TypeName parseTypeName(bool inExpression) {
-    return _run((parser) => parser.parseType) as TypeName;
+    return _run2('unspecified', () => super.parseTypeName(inExpression));
   }
 
   @override
@@ -2951,6 +2942,8 @@ class ParserProxy extends analyzer.ParserAdapter {
     _eventListener.end(enclosingEvent);
     expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
     expect(astBuilder.stack, hasLength(0));
+    expect(astBuilder.directives, hasLength(0));
+    expect(astBuilder.declarations, hasLength(0));
     return result;
   }
 }
