@@ -2426,7 +2426,7 @@ class FastaParserTestCase extends Object
         (parser) => (analyzer.Token token) {
               return parser
                   .parseFormalParametersRequiredOpt(
-                      token,
+                      parser.syntheticPreviousToken(token),
                       inFunctionType
                           ? fasta.MemberKind.GeneralizedFunctionType
                           : fasta.MemberKind.NonStaticMethod)
@@ -2838,7 +2838,7 @@ class ParserProxy extends analyzer.ParserAdapter {
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
     return _run((parser) => (token) => parser
         .parseFormalParametersRequiredOpt(
-            token,
+            parser.syntheticPreviousToken(token),
             inFunctionType
                 ? fasta.MemberKind.GeneralizedFunctionType
                 : fasta.MemberKind.StaticMethod)

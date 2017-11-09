@@ -29,7 +29,7 @@ class ClassMemberParser extends Parser {
     } else {
       // TODO(brianwilkerson) Remove the invocation of `previous` when
       // `skipExpression` returns the last consumed token.
-      return skipExpression(token).previous;
+      return skipExpression(token.next).previous;
     }
   }
 
