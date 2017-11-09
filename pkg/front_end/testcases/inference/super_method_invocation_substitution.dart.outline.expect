@@ -3,14 +3,24 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+class D<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    ;
+}
+class E<T extends core::Object> extends self::D<self::E::T> {
+  default constructor •() → void
+    ;
+}
 class B<T extends core::Object> extends core::Object {
   default constructor •() → void
     ;
-  method g(core::Map<core::int, self::B::T> x) → core::List<self::B::T>
+  method g(self::E<self::B::T> x) → self::D<self::B::T>
     ;
 }
 class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
   default constructor •() → void
+    ;
+  method g(core::Object x) → self::E<asy::Future<self::C::U>>
     ;
   method h() → void
     ;

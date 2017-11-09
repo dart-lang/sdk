@@ -9,14 +9,19 @@ import 'dart:async';
 
 T f<T>() => null;
 
+class D<T> {}
+
+class E<T> extends D<T> {}
+
 class B<T> {
-  List<T> g(Map<int, T> x) => null;
+  D<T> g(E<T> x) => null;
 }
 
 class C<U> extends B<Future<U>> {
+  E<Future<U>> g(Object x) => null;
   void h() {
-    var /*@type=List<Future<C::U>>*/ x =
-        super. /*@target=B::g*/ g(/*@typeArgs=Map<int, Future<C::U>>*/ f());
+    var /*@type=D<Future<C::U>>*/ x =
+        super. /*@target=B::g*/ g(/*@typeArgs=E<Future<C::U>>*/ f());
   }
 }
 

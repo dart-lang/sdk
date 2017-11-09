@@ -1730,9 +1730,13 @@ class ShadowSuperPropertyGet extends SuperPropertyGet
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    if (interfaceTarget != null) {
+      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
+          'target', new InstrumentationValueForMember(interfaceTarget));
+    }
     return inferrer.inferPropertyGet(
         this, new ShadowThisExpression(), fileOffset, typeContext, typeNeeded,
-        propertyName: name);
+        interfaceMember: interfaceTarget, propertyName: name);
   }
 }
 

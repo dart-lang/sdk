@@ -3,8 +3,18 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+class D<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E<T extends core::Object> extends self::D<self::E::T> {
+  default constructor •() → void
+    : super self::D::•()
+    ;
+}
 class B<T extends core::Object> extends core::Object {
-  generic-covariant-impl generic-covariant-interface field core::List<self::B::T> x = null;
+  generic-covariant-impl generic-covariant-interface field self::D<self::B::T> x = null;
   default constructor •() → void
     : super core::Object::•()
     ;
@@ -13,8 +23,11 @@ class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
   default constructor •() → void
     : super self::B::•()
     ;
+  get x() → self::E<asy::Future<self::C::U>>
+    return null;
+  set x(generic-covariant-impl core::Object x) → void {}
   method g() → void {
-    core::List<asy::Future<self::C::U>> y = super.{self::B::x};
+    self::D<asy::Future<self::C::U>> y = super.{self::B::x};
   }
 }
 static method main() → dynamic {}

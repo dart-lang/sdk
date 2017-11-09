@@ -3,19 +3,31 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
+class D<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class E<T extends core::Object> extends self::D<self::E::T> {
+  default constructor •() → void
+    : super self::D::•()
+    ;
+}
 class B<T extends core::Object> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  method g(generic-covariant-impl generic-covariant-interface core::Map<core::int, self::B::T> x) → core::List<self::B::T>
+  method g(generic-covariant-impl generic-covariant-interface self::E<self::B::T> x) → self::D<self::B::T>
     return null;
 }
 class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
   default constructor •() → void
     : super self::B::•()
     ;
+  method g(generic-covariant-impl core::Object x) → self::E<asy::Future<self::C::U>>
+    return null;
   method h() → void {
-    core::List<asy::Future<self::C::U>> x = super.{self::B::g}(self::f<core::Map<core::int, asy::Future<self::C::U>>>());
+    self::D<asy::Future<self::C::U>> x = super.{self::B::g}(self::f<self::E<asy::Future<self::C::U>>>());
   }
 }
 static method f<T extends core::Object>() → self::f::T

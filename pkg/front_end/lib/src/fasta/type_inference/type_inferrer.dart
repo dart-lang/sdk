@@ -1039,6 +1039,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       int fileOffset, DartType typeContext, bool typeNeeded,
       {VariableDeclaration receiverVariable,
       PropertyGet desugaredGet,
+      Object interfaceMember,
       Name propertyName}) {
     typeNeeded =
         listener.propertyGetEnter(expression, typeContext) || typeNeeded;
@@ -1048,10 +1049,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       receiverVariable?.type = receiverType;
     }
     propertyName ??= desugaredGet.name;
-    var interfaceMember =
-        findInterfaceMember(receiverType, propertyName, fileOffset);
-    if (interfaceMember is Member) {
-      desugaredGet?.interfaceTarget = interfaceMember;
+    if (desugaredGet != null) {
+      interfaceMember =
+          findInterfaceMember(receiverType, propertyName, fileOffset);
+      if (interfaceMember is Member) {
+        desugaredGet.interfaceTarget = interfaceMember;
+      }
     }
     var inferredType = getCalleeType(interfaceMember, receiverType);
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
