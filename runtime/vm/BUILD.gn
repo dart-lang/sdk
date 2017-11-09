@@ -608,34 +608,9 @@ compile_platform("vm_platform") {
   ]
 }
 
-compile_platform("vmservice_dill") {
-  sources = [
-    "../../sdk/lib/vmservice_libraries.json",
-  ]
-
-  outputs = [
-    "$root_out_dir/vmservice_io.dill",
-    "$root_out_dir/vmservice_io_outline.dill",
-  ]
-
-  inputs = [
-    "$root_out_dir/vm_platform.dill",
-  ]
-
-  deps = [
-    ":vm_legacy_platform",
-  ]
-
-  args = [
-    "--platform=" + rebase_path(inputs[0], root_build_dir),
-    "dart:vmservice_io",
-  ]
-}
-
 group("kernel_platform_files") {
   public_deps = [
     ":vm_legacy_platform",
     ":vm_platform",
-    ":vmservice_dill",
   ]
 }

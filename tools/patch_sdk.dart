@@ -83,11 +83,10 @@ void usage(String mode) {
   exit(1);
 }
 
-const validModes = const ['vm', 'dart2js', 'flutter', 'flutter_release'];
+const validModes = const ['vm', 'dart2js', 'flutter'];
 String mode;
 bool get forVm => mode == 'vm';
-bool get forFlutter => mode == 'flutter' || mode == 'flutter_release';
-bool get forFlutterRelease => mode == 'flutter_release';
+bool get forFlutter => mode == 'flutter';
 bool get forDart2js => mode == 'dart2js';
 
 Future _main(List<String> argv) async {
@@ -205,9 +204,6 @@ Future<List<Uri>> compilePlatform(
     ..target = target;
 
   var inputs = [Uri.parse('dart:core')];
-  if (forFlutter && !forFlutterRelease) {
-    inputs.add(Uri.parse('dart:vmservice_sky'));
-  }
   var result = await generateKernel(
       new ProcessedOptions(
           options,
@@ -277,6 +273,20 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
       "profiler/profiler.dart",
       maturity: Maturity.DEPRECATED,
       documented: false),
+
+  "_vmservice": const LibraryInfo(
+      "vmservice/vmservice.dart",
+      categories: "Client,Server",
+      implementation: true,
+      documented: false,
+      platforms: VM_PLATFORM),
+
+  "vmservice_io": const LibraryInfo(
+      "vmservice_io/vmservice_io.dart",
+      categories: "Client,Server",
+      implementation: true,
+      documented: false,
+      platforms: VM_PLATFORM),
   ''');
 
   if (forFlutter) {
@@ -287,27 +297,7 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
           implementation: true,
           documented: false,
           platforms: VM_PLATFORM),
-    ''');
-
-    if (!forFlutterRelease) {
-      // vmservice should be present unless we build release flavor of Flutter.
-      extraLibraries.write('''
-       "_vmservice": const LibraryInfo(
-           "vmservice/vmservice.dart",
-           categories: "Client,Server",
-           implementation: true,
-           documented: false,
-           platforms: VM_PLATFORM),
-
-        "vmservice_sky": const LibraryInfo(
-            "vmservice_sky/vmservice_io.dart",
-            categories: "Client,Server",
-            implementation: true,
-            documented: false,
-            platforms: VM_PLATFORM),
-
-      ''');
-    }
+  ''');
   }
 
   libContents = libContents.replaceAll(
@@ -331,6 +321,15 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
   var builtinLibraryOut = path.join(sdkOut, '_builtin', '_builtin.dart');
   _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
   addLocation(locations, '_builtin', path.join('_builtin', '_builtin.dart'));
+  for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
+    var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
+    var libraryOut = path.join(sdkOut, 'vmservice_io', file);
+    _writeSync(libraryOut, readInputFile(libraryIn));
+  }
+  addLocation(locations, 'vmservice_io',
+      path.join('vmservice_io', 'vmservice_io.dart'));
+  addLocation(
+      locations, '_vmservice', path.join('vmservice', 'vmservice.dart'));
 
   if (forFlutter) {
     // Flutter repo has this layout:
@@ -352,22 +351,6 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
       _writeSync(uiLibraryOut, readInputFile(file.path));
     }
     addLocation(locations, 'ui', path.join('ui', 'ui.dart'));
-
-    if (!forFlutterRelease) {
-      // vmservice should be present unless we build release flavor of Flutter.
-      //
-      // TODO(dartbug.com/30158): Consider producing separate Flutter
-      // vmservice.dill with these vmservice libraries.
-      for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
-        var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
-        var libraryOut = path.join(sdkOut, 'vmservice_io', file);
-        _writeSync(libraryOut, readInputFile(libraryIn));
-      }
-      addLocation(locations, 'vmservice_sky',
-          path.join('vmservice_io', 'vmservice_io.dart'));
-      addLocation(
-          locations, '_vmservice', path.join('vmservice', 'vmservice.dart'));
-    }
   }
 }
 

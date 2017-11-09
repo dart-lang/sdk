@@ -149,14 +149,15 @@ static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
 const char* VmService::error_msg_ = NULL;
 char VmService::server_uri_[kServerUriStringBufferSize];
 
-bool VmService::LoadForGenPrecompiled(void* vmservice_kernel) {
+bool VmService::LoadForGenPrecompiled(bool use_dart_frontend) {
   Dart_Handle result;
   Dart_SetLibraryTagHandler(LibraryTagHandler);
   Dart_Handle library;
-  if (vmservice_kernel != NULL) {
-    library = Dart_LoadLibrary(
-        Dart_NewStringFromCString(kVMServiceIOLibraryUri), Dart_Null(),
-        reinterpret_cast<Dart_Handle>(vmservice_kernel), 0, 0);
+  if (use_dart_frontend) {
+    // The vmservice_io library should have already been loaded as part of
+    // creating the service isolate, we should be able to look it up.
+    library =
+        Dart_LookupLibrary(Dart_NewStringFromCString(kVMServiceIOLibraryUri));
   } else {
     library = LookupOrLoadLibrary(kVMServiceIOLibraryScriptResourceName);
   }

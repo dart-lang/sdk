@@ -529,7 +529,6 @@ copy("copy_dill_files") {
     "$root_out_dir/vm_outline_strong.dill",
     "$root_out_dir/vm_platform.dill",
     "$root_out_dir/vm_platform_strong.dill",
-    "$root_out_dir/vmservice_io.dill",
     "$root_out_dir/dart2js_platform.dill",
   ]
   outputs = [

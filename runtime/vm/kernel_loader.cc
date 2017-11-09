@@ -9,10 +9,12 @@
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/dart_api_impl.h"
+#include "vm/flags.h"
 #include "vm/kernel_binary.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/service_isolate.h"
 #include "vm/symbols.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -23,6 +25,8 @@ namespace kernel {
 #define I (isolate_)
 #define T (builder_.type_translator_)
 #define H (translation_helper_)
+
+static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
 
 class SimpleExpressionConverter {
  public:
@@ -159,6 +163,7 @@ KernelLoader::KernelLoader(Program* program)
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       isolate_(thread_->isolate()),
+      is_service_isolate_(ServiceIsolate::NameEquals(I->name())),
       patch_classes_(Array::ZoneHandle(zone_)),
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
       correction_offset_(-1),      // Set to the correct value in LoadLibrary
@@ -364,11 +369,6 @@ Object& KernelLoader::LoadProgram(bool process_pending_classes) {
       LoadLibrary(i);
     }
 
-    for (intptr_t i = 0; i < length; i++) {
-      Library& library = LookupLibrary(library_canonical_name(i));
-      if (!library.Loaded()) library.SetLoaded();
-    }
-
     if (process_pending_classes && ClassFinalizer::ProcessPendingClasses()) {
       // If 'main' is not found return a null library, this is the case
       // when bootstrapping is in progress.
@@ -489,6 +489,16 @@ void KernelLoader::LoadLibrary(intptr_t index) {
 
   LibraryHelper library_helper(&builder_);
   library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
+  if (!is_service_isolate_ && !FLAG_precompiled_mode) {
+    StringIndex lib_name_index =
+        H.CanonicalNameString(library_helper.canonical_name_);
+    if (H.StringEquals(lib_name_index, kVMServiceIOLibraryUri)) {
+      // We are not the service isolate and we are not generating an AOT
+      // snapshot so we skip loading 'dart:vmservice_io'.
+      return;
+    }
+  }
+
   Library& library = LookupLibrary(library_helper.canonical_name_);
   // The Kernel library is external implies that it is already loaded.
   ASSERT(!library_helper.IsExternal() || library.Loaded());
@@ -603,6 +613,7 @@ void KernelLoader::LoadLibrary(intptr_t index) {
 
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
   classes.Add(toplevel_class, Heap::kOld);
+  if (!library.Loaded()) library.SetLoaded();
 }
 
 void KernelLoader::LoadLibraryImportsAndExports(Library* library) {

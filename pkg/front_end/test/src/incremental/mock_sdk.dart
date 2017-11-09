@@ -311,6 +311,8 @@ external double sin(num radians);
   addSdkLibrary('profiler', 'library dart.profiler;');
   addSdkLibrary('typed_data', 'library dart.typed_data;');
   addSdkLibrary('_builtin', 'library dart._builtin;');
+  addSdkLibrary('_vmservice', 'library dart._vmservice;');
+  addSdkLibrary('vmservice_io', 'library dart.vmservice_io;');
   addSdkLibrary('_internal', '''
 library dart._internal;
 class Symbol {}

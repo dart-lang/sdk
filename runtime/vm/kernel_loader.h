@@ -226,6 +226,7 @@ class KernelLoader {
   Thread* thread_;
   Zone* zone_;
   Isolate* isolate_;
+  bool is_service_isolate_;
   Array& patch_classes_;
   ActiveClass active_class_;
   // This is the offset of the current library within

@@ -324,7 +324,6 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
       const String& kernel_name = loader.LibraryUri(j);
       if (kernel_name.Equals(dart_name)) {
         loader.LoadLibrary(j);
-        library.SetLoaded();
         break;
       }
     }

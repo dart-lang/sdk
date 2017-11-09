@@ -131,3 +131,9 @@ vm:
     typed_data:
       uri: "typed_data/typed_data.dart"
       patches: "../../runtime/lib/typed_data_patch.dart"
+      
+    _vmservice:
+      uri: "vmservice/vmservice.dart"
+
+    vmservice_io:
+      uri: "../../runtime/bin/vmservice/vmservice_io.dart"

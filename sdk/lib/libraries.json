@@ -129,6 +129,12 @@
       },
       "_http": {
         "uri": "_http/http.dart"
+      },
+      "_vmservice": {
+        "uri": "vmservice/vmservice.dart"
+      },
+      "vmservice_io": {
+        "uri": "../../runtime/bin/vmservice/vmservice_io.dart"
       }
     }
   }

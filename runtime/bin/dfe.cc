@@ -14,13 +14,11 @@ namespace bin {
 
 const char kPlatformBinaryName[] = "vm_platform.dill";
 const char kPlatformStrongBinaryName[] = "vm_platform_strong.dill";
-const char kVMServiceIOBinaryName[] = "vmservice_io.dill";
 
 DFE::DFE()
     : frontend_filename_(NULL),
       kernel_binaries_path_(NULL),
       platform_binary_filename_(NULL),
-      vmservice_io_binary_filename_(NULL),
       kernel_platform_(NULL),
       kernel_file_specified_(false) {}
 
@@ -33,9 +31,6 @@ DFE::~DFE() {
   free(platform_binary_filename_);
   platform_binary_filename_ = NULL;
 
-  free(vmservice_io_binary_filename_);
-  vmservice_io_binary_filename_ = NULL;
-
   if (kernel_platform_ != NULL) {
     delete reinterpret_cast<kernel::Program*>(kernel_platform_);
     kernel_platform_ = NULL;
@@ -44,9 +39,6 @@ DFE::~DFE() {
 
 void DFE::SetKernelBinaries(const char* name) {
   kernel_binaries_path_ = strdup(name);
-  vmservice_io_binary_filename_ =
-      OS::SCreate(/*zone=*/NULL, "%s%s%s", name, File::PathSeparator(),
-                  kVMServiceIOBinaryName);
 }
 
 const char* DFE::GetPlatformBinaryFilename() {
@@ -119,10 +111,6 @@ void* DFE::CompileAndReadScript(const char* script_uri,
 
 void* DFE::ReadPlatform() {
   return ReadScript(GetPlatformBinaryFilename());
-}
-
-void* DFE::ReadVMServiceIO() const {
-  return ReadScript(vmservice_io_binary_filename_);
 }
 
 void* DFE::ReadScript(const char* script_uri) const {
