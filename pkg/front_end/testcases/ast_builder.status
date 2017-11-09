@@ -267,6 +267,8 @@ inference/refine_binary_expression_type_type_parameter_t_int: Crash
 inference/refine_binary_expression_type_type_parameter_t_t: Crash
 inference/static_method_tear_off: Crash
 inference/string_literal: Crash
+inference/super_index_set: Crash
+inference/super_index_set_substitution: Crash
 inference/super_initializer: Crash
 inference/super_method_invocation: Crash
 inference/super_property_get: Crash
@@ -340,6 +342,8 @@ inference_new/property_assign_combiner: Crash
 inference_new/property_get_toplevel: Crash
 inference_new/static_assign_combiner: Crash
 inference_new/strongly_connected_component: Crash
+inference_new/super_index_get: Crash
+inference_new/super_index_get_substitution: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
 invalid_assignment: Crash
