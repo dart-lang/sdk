@@ -1,0 +1,18 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class B<T extends core::Object> extends core::Object {
+  field core::List<self::B::T> x;
+  default constructor •() → void
+    ;
+}
+class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
+  default constructor •() → void
+    ;
+  method g() → void
+    ;
+}
+static method main() → dynamic
+  ;

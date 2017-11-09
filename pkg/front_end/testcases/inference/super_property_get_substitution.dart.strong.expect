@@ -1,0 +1,20 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class B<T extends core::Object> extends core::Object {
+  generic-covariant-impl generic-covariant-interface field core::List<self::B::T> x = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+  method g() → void {
+    core::List<asy::Future<self::C::U>> y = super.{self::B::x};
+  }
+}
+static method main() → dynamic {}

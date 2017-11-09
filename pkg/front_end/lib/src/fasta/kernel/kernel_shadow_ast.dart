@@ -31,6 +31,7 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart'
     hide InvalidExpression, InvalidInitializer, InvalidStatement;
 import 'package:kernel/frontend/accessors.dart';
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../problems.dart' show unhandled, unsupported;
@@ -1682,8 +1683,17 @@ class ShadowSuperInitializer extends SuperInitializer
   @override
   void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.superInitializerEnter(this);
-    inferrer.inferInvocation(null, false, fileOffset,
-        target.function.functionType, target.enclosingClass.thisType, arguments,
+    var substitution = Substitution.fromSupertype(inferrer.classHierarchy
+        .getClassAsInstanceOf(
+            inferrer.thisType.classNode, target.enclosingClass));
+    inferrer.inferInvocation(
+        null,
+        false,
+        fileOffset,
+        substitution
+            .substituteType(target.function.functionType.withoutTypeParameters),
+        inferrer.thisType,
+        arguments,
         skipTypeArgumentInference: true);
     inferrer.listener.superInitializerExit(this);
   }

@@ -270,11 +270,15 @@ inference/string_literal: Crash
 inference/super_index_set: Crash
 inference/super_index_set_substitution: Crash
 inference/super_initializer: Crash
+inference/super_initializer_substitution: Crash
 inference/super_method_invocation: Crash
+inference/super_method_invocation_substitution: Crash
 inference/super_property_get: Crash
+inference/super_property_get_substitution: Crash
 inference/super_property_get_invoke_function_typed: Crash
 inference/super_property_get_invoke_implicit_call: Crash
 inference/super_property_get_tearoff: Crash
+inference/super_property_set_substitution: Crash
 inference/switch_continue: Crash
 inference/this_reference: Crash
 inference/top_level_return_and_yield: Crash

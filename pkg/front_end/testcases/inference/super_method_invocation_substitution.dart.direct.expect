@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class B<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method g(core::Map<core::int, self::B::T> x) → core::List<self::B::T>
+    return null;
+}
+class C<U extends core::Object> extends self::B<asy::Future<self::C::U>> {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+  method h() → void {
+    dynamic x = super.{self::B::g}(self::f<dynamic>());
+  }
+}
+static method f<T extends core::Object>() → self::f::T
+  return null;
+static method main() → dynamic {}
