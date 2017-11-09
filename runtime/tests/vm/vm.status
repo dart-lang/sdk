@@ -438,3 +438,6 @@ cc/Parser_AllocateVariables_TwoChains: Crash
 dart/inline_stack_frame_test: Skip
 dart/optimized_stacktrace_line_test: Skip
 
+
+[ ($compiler == dartkp) ]
+dart/truncating_ints_test: CompileTimeError # Issue 31339
