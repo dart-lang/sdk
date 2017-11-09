@@ -17,7 +17,6 @@ stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
 [ $compiler == none && $runtime == drt && !$checked ]
-assertion_initializer_const_error2_test/cc02: Fail
 assertion_initializer_const_error_test/01: Fail
 
 [ !$checked && $compiler != dartdevc ]

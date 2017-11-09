@@ -9,7 +9,10 @@ abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeE
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
-assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/*: Crash # Issue #27809
+assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue #31319
+assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue #31319
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
@@ -346,8 +349,6 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
-assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError

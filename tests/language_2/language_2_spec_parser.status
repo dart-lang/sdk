@@ -102,8 +102,6 @@ const_native_factory_test: Skip # Uses `native`.
 built_in_identifier_prefix_test: Skip # A built-in identifier can _not_ be a prefix.
 
 # Tests with unintended syntax errors.
-assertion_initializer_const_error2_test/*: Fail # Misplaced comma.
-assertion_initializer_const_error2_test/cc02: Pass
 external_test/21: Fail # Test expects `runtime error`, it is a syntax error.
 
 # Tests using constructs which are not Dart syntax.

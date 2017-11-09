@@ -34,7 +34,6 @@ redirecting_factory_reflection_test: Crash, Pass
 type_promotion_functions_test/01: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm ]
-assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
@@ -246,7 +245,6 @@ void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked ]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 checked_setter_test: RuntimeError
 checked_setter3_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
@@ -265,7 +263,6 @@ regress_30339_test: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 assert_with_type_test_or_cast_test: Pass, Crash
-assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_test: Crash
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
@@ -304,10 +301,6 @@ generic_methods_reuse_type_variables_test: Pass
 generic_no_such_method_dispatcher_test : CompileTimeError
 generic_tearoff_test: CompileTimeError
 typevariable_substitution2_test/02: RuntimeError
-
-
-[ $compiler == dartkp && $runtime == dart_precompiled && !$checked ]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
 assertion_initializer_const_error2_test/cc02: Crash

@@ -782,17 +782,8 @@ vm/*: SkipByDesign # Tests for the VM.
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 accessor_conflict_export2_test: Crash # Issue 25626
 accessor_conflict_export_test: Crash # Issue 25626
-assertion_initializer_const_error2_test/cc01: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc02: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc03: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc04: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc05: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc06: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc07: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc08: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc09: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc10: Crash # Issue 30038
-assertion_initializer_const_error2_test/cc11: Crash # Issue 30038
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/*: Crash # Issue 30038
 assertion_initializer_test: Crash
 bad_constructor_test/05: CompileTimeError
 bad_typedef_test/00: Crash # Issue 28214
@@ -1192,7 +1183,6 @@ function_type_alias2_test: RuntimeError
 vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -1613,7 +1603,6 @@ type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_mixin
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -2474,6 +2463,8 @@ checked_setter2_test: RuntimeError # Issue 31128
 checked_setter3_test: RuntimeError # Issue 31128
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError

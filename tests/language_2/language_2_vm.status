@@ -1003,7 +1003,6 @@ generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
 
 [ $runtime == vm && $compiler == none && !$checked ]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
@@ -1071,7 +1070,6 @@ generic_local_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ $runtime == vm && $compiler == app_jit && !$checked ]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError

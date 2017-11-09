@@ -20,17 +20,8 @@ accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
-assertion_initializer_const_error2_test/cc01: Crash
-assertion_initializer_const_error2_test/cc02: Crash
-assertion_initializer_const_error2_test/cc03: Crash
-assertion_initializer_const_error2_test/cc04: Crash
-assertion_initializer_const_error2_test/cc05: Crash
-assertion_initializer_const_error2_test/cc06: Crash
-assertion_initializer_const_error2_test/cc07: Crash
-assertion_initializer_const_error2_test/cc08: Crash
-assertion_initializer_const_error2_test/cc09: Crash
-assertion_initializer_const_error2_test/cc10: Crash
-assertion_initializer_const_error2_test/cc11: Crash
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/*: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_const_function_error_test/01: Crash
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
@@ -165,15 +156,10 @@ conditional_import_string_test: Fail # Issue 30615
 conditional_import_test: Fail # Issue 30615
 
 [ $compiler == dart2js && $fast_startup && !$dart2js_with_kernel ]
-assertion_initializer_const_error2_test/cc01: Crash
-assertion_initializer_const_error2_test/cc02: Crash
-assertion_initializer_const_error2_test/cc03: Crash
-assertion_initializer_const_error2_test/cc04: Crash
-assertion_initializer_const_error2_test/cc05: Crash
-assertion_initializer_const_error2_test/cc06: Crash
-assertion_initializer_const_error2_test/cc07: Crash
-assertion_initializer_const_error2_test/cc08: Crash
-assertion_initializer_const_error2_test/cc09: Crash
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/*: Crash
+assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue #31321
+assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue #31321
 assertion_initializer_const_function_error_test/01: Crash
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: Crash
@@ -336,8 +322,11 @@ regress_26855_test/4: Crash # Issue 26867
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status
 
+[ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
+
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
-assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.

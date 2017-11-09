@@ -30,10 +30,6 @@ test_negative_test: Fail # Negative, uses non-terminated string literal.
 unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
 unhandled_exception_negative_test: Fail # Negative, defaults required parameter.
 
-# Tests with unintended syntax errors.
-assertion_initializer_const_error2_test/*: Fail # Misplaced comma.
-assertion_initializer_const_error2_test/cc02: Pass
-
 # Tests using constructs which are not Dart syntax.
 vm/debug_break_enabled_vm_test: Fail # Uses debug break.
 const_native_factory_test/01: Fail # Uses `native`.
