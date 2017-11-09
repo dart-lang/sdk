@@ -1447,7 +1447,8 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Array& argument_names,
                                       ICData::RebindRule rebind_rule,
                                       intptr_t type_args_count) {
-  ArgumentArray arguments = GetArguments(argument_count);
+  const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z)
       StaticCallInstr(position, target, type_args_count, argument_names,
                       arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);

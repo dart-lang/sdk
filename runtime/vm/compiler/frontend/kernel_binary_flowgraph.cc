@@ -6319,7 +6319,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   Fragment instructions;
+
   intptr_t type_args_len = 0;
+  LocalVariable* type_arguments_temp = NULL;
   if (I->reify_generic_functions()) {
     AlternativeReadingScope alt(reader_);
     SkipExpression();                         // skip receiver
@@ -6330,7 +6332,15 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       const TypeArguments& type_arguments =
           T.BuildTypeArguments(list_length);  // read types.
       instructions += TranslateInstantiatedTypeArguments(type_arguments);
-      instructions += PushArgument();
+      if (direct_call.check_receiver_for_null_) {
+        // Don't yet push type arguments if we need to check receiver for null.
+        // In this case receiver will be duplicated so instead of pushing
+        // type arguments here we need to push it between receiver_temp
+        // and actual receiver. See the code below.
+        type_arguments_temp = MakeTemporary();
+      } else {
+        instructions += PushArgument();
+      }
     }
     type_args_len = list_length;
   }
@@ -6356,11 +6366,20 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
            StrictCompare(strict_cmp_kind, /*number_check = */ true);
   }
 
-  LocalVariable* receiver = NULL;
+  LocalVariable* receiver_temp = NULL;
   if (direct_call.check_receiver_for_null_) {
     // Duplicate receiver for CheckNull before it is consumed by PushArgument.
-    receiver = MakeTemporary();
-    instructions += LoadLocal(receiver);
+    receiver_temp = MakeTemporary();
+    if (type_arguments_temp != NULL) {
+      // If call has type arguments then push them before pushing the receiver.
+      // The stack will contain:
+      //
+      //   [type_arguments_temp][receiver_temp][type_arguments][receiver] ...
+      //
+      instructions += LoadLocal(type_arguments_temp);
+      instructions += PushArgument();
+    }
+    instructions += LoadLocal(receiver_temp);
   }
 
   instructions += PushArgument();  // push receiver as argument.
@@ -6393,7 +6412,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   }
 
   if (direct_call.check_receiver_for_null_) {
-    instructions += CheckNull(position, receiver);
+    instructions += CheckNull(position, receiver_temp);
   }
 
   if (!direct_call.target_.IsNull()) {
@@ -6407,8 +6426,12 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
                      argument_names, checked_argument_count, *interface_target);
   }
 
-  if (direct_call.check_receiver_for_null_) {
-    instructions += DropTempsPreserveTop(1);  // Drop receiver, preserve result.
+  // Drop temporaries preserving result on the top of the stack.
+  ASSERT((receiver_temp != NULL) || (type_arguments_temp == NULL));
+  if (receiver_temp != NULL) {
+    const intptr_t num_temps =
+        (receiver_temp != NULL ? 1 : 0) + (type_arguments_temp != NULL ? 1 : 0);
+    instructions += DropTempsPreserveTop(num_temps);
   }
 
   // Later optimization passes assume that result of a x.[]=(...) call is not
@@ -6481,7 +6504,6 @@ Fragment StreamingFlowGraphBuilder::BuildDirectMethodInvocation(
   instructions +=
       BuildArguments(&argument_names, &argument_count);  // read arguments.
   ++argument_count;
-  if (type_args_len > 0) ++argument_count;
   return instructions + StaticCall(position, target, argument_count,
                                    argument_names, ICData::kNoRebind,
                                    type_args_len);
@@ -6618,7 +6640,6 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
     instructions +=
         BuildArguments(&argument_names, &argument_count);  // read arguments.
     ++argument_count;                                      // include receiver
-    if (type_args_len > 0) ++argument_count;
     SkipCanonicalNameReference();  // interfaceTargetReference
     return instructions + StaticCall(position,
                                      Function::ZoneHandle(Z, function.raw()),
@@ -6711,7 +6732,6 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ASSERT(argument_count == 2);
     instructions += StrictCompare(Token::kEQ_STRICT, /*number_check=*/true);
   } else {
-    if (type_args_len) ++argument_count;
     instructions += StaticCall(position, target, argument_count, argument_names,
                                ICData::kStatic, type_args_len);
     if (target.IsGenerativeConstructor()) {
