@@ -409,6 +409,31 @@
       ]
     },
     {
+      "builders": [
+        "analyzer-strong-linux-release",
+        "analyzer-strong-mac-release",
+        "analyzer-strong-win-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the analyzer builders running strong mode."
+      },
+      "steps": [
+        {
+          "name": "analyze tests strong",
+          "arguments": ["--compiler=dart2analyzer", "--use-sdk", "--strong"]
+        },
+        {
+          "name": "analyze pkg tests",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-sdk",
+            "--strong",
+            "pkg"
+          ]
+        }
+      ]
+    },
+    {
       "builders": ["analyzer-analysis-server-linux"],
       "steps": [
         {
