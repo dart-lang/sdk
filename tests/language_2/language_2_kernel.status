@@ -57,24 +57,24 @@ default_factory2_test/01: MissingCompileTimeError
 deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: DartkCrash
 deferred_constant_list_test: RuntimeError
-deferred_constraints_type_annotation_test/as_operation: Crash
-deferred_constraints_type_annotation_test/catch_check: Crash
-deferred_constraints_type_annotation_test/is_check: Crash
-deferred_constraints_type_annotation_test/new: Crash
-deferred_constraints_type_annotation_test/new_before_load: Crash
-deferred_constraints_type_annotation_test/new_generic1: Crash
-deferred_constraints_type_annotation_test/new_generic2: Crash
-deferred_constraints_type_annotation_test/new_generic3: Crash
-deferred_constraints_type_annotation_test/none: Crash
-deferred_constraints_type_annotation_test/static_method: Crash
-deferred_constraints_type_annotation_test/type_annotation1: Crash
-deferred_constraints_type_annotation_test/type_annotation_generic1: Crash
-deferred_constraints_type_annotation_test/type_annotation_generic2: Crash
-deferred_constraints_type_annotation_test/type_annotation_generic3: Crash
-deferred_constraints_type_annotation_test/type_annotation_generic4: Crash
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash
-deferred_constraints_type_annotation_test/type_annotation_null: Crash
-deferred_constraints_type_annotation_test/type_annotation_top_level: Crash
+deferred_constraints_type_annotation_test/as_operation: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/catch_check: Pass # Passes by mistake. Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/is_check: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/new: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/new_before_load: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/new_generic1: CompileTimeError # Deferred loading kernel issue 28335 
+deferred_constraints_type_annotation_test/new_generic2: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/new_generic3: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/none: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/static_method: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation1: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/type_annotation_generic1: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/type_annotation_generic2: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/type_annotation_generic3: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/type_annotation_generic4: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError # Deferred loading kernel issue 28335.
+deferred_constraints_type_annotation_test/type_annotation_null: Pass # Passes by mistake. Deferred loading kernel issue 28335
+deferred_constraints_type_annotation_test/type_annotation_top_level: Pass # Passes by mistake. Deferred loading kernel issue 28335.
 deferred_function_type_test: RuntimeError
 deferred_inlined_test: RuntimeError
 deferred_load_inval_code_test: RuntimeError
@@ -158,7 +158,7 @@ if_null_precedence_test/none: RuntimeError
 import_combinators2_test/00: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
-issue_1751477_test: RuntimeError
+issue_1751477_test: CompileTimeError # Deferred loading kernel issue 28335.
 main_not_a_function_test: DartkCrash
 malbounded_type_cast_test/00: MissingCompileTimeError
 malbounded_type_cast_test/01: MissingCompileTimeError
@@ -374,9 +374,9 @@ redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 
 [ $compiler == dartk || $compiler == dartkp ]
-cha_deopt1_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt2_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-cha_deopt3_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt2_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+cha_deopt3_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
@@ -388,40 +388,40 @@ constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer r
 covariant_subtyping_test: DartkCrash
 cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-deferred_closurize_load_library_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_constant_list_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_constraints_constants_test/none: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_constraints_constants_test/reference_after_load: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_constraints_constants_test/default_argument2: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_function_type_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_global_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_import_core_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_closurize_load_library_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constant_list_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/reference_after_load: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_constraints_constants_test/default_argument2: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
+deferred_function_type_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_global_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_import_core_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-deferred_inlined_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_load_constants_test/none: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_load_constants_test/none: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_load_inval_code_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_load_library_wrong_args_test/none: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_load_library_wrong_args_test/01: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_mixin_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_no_such_method_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_inlined_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_constants_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_constants_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_inval_code_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_library_wrong_args_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
+deferred_mixin_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_no_such_method_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-deferred_only_constant_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_optimized_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_redirecting_factory_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_regression_22995_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_regression_28678_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_shadow_load_library_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_shared_and_unshared_classes_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_static_seperate_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_super_dependency_test/01: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_type_dependency_test/as: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_type_dependency_test/is: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_type_dependency_test/none: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_type_dependency_test/type_annotation: Crash # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_only_constant_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_optimized_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_redirecting_factory_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_regression_22995_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_regression_28678_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_shadow_load_library_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_shared_and_unshared_classes_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_static_seperate_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_super_dependency_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/as: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/is: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_type_dependency_test/type_annotation: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
 final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
 final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
@@ -547,15 +547,15 @@ external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 factory_redirection_test/07: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
-regress_22443_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-regress_23408_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
+regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
 final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
-conditional_import_string_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-conditional_import_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
+conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_map2_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -571,7 +571,7 @@ const_instance_field_test/01: MissingCompileTimeError # Fasta bug: Const instanc
 const_optional_args_negative_test: Fail # Fasta bug: Default parameter values must be const.
 const_constructor_nonconst_field_test/01: MissingCompileTimeError # Fasta bug: Non-const expression in field initializer.
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
-regress_28278_test: Crash # KernelVM bug: Deferred loading kernel issue 28335.
+regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 switch_bad_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_bad_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_case_test/00: MissingCompileTimeError # KernelVM bug: Constant evaluation.

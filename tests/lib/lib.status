@@ -515,9 +515,9 @@ mirrors/reflected_type_generics_test/02: Pass
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk || $compiler == dartkp ]
-mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
-mirrors/library_import_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
-mirrors/typedef_deferred_library_test: Crash # Deferred loading kernel issue 28335.
+mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
 
 [ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.

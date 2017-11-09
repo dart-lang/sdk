@@ -275,29 +275,7 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       intptr_t list_length =
           builder_->ReadListLength();  // read initializers list length.
       for (intptr_t i = 0; i < list_length; i++) {
-        Tag tag = builder_->ReadTag();
-        builder_->ReadByte();  // read isSynthetic.
-        switch (tag) {
-          case kInvalidInitializer:
-            continue;
-          case kFieldInitializer:
-            builder_->SkipCanonicalNameReference();  // read field_reference.
-            builder_->SkipExpression();              // read value.
-            continue;
-          case kSuperInitializer:
-            builder_->SkipCanonicalNameReference();  // read target_reference.
-            builder_->SkipArguments();               // read arguments.
-            continue;
-          case kRedirectingInitializer:
-            builder_->SkipCanonicalNameReference();  // read target_reference.
-            builder_->SkipArguments();               // read arguments.
-            continue;
-          case kLocalInitializer:
-            builder_->SkipVariableDeclaration();  // read variable.
-            continue;
-          default:
-            UNREACHABLE();
-        }
+        builder_->SkipInitializer();
       }
       if (++next_read_ == field) return;
     }
@@ -1149,6 +1127,7 @@ void StreamingScopeBuilder::VisitInitializer() {
       VisitVariableDeclaration();  // read variable.
       return;
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -1418,6 +1397,7 @@ void StreamingScopeBuilder::VisitExpression() {
       builder_->SkipListOfDartTypes();  // read type arguments.
       return;
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -1684,6 +1664,7 @@ void StreamingScopeBuilder::VisitStatement() {
       return;
     }
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -1777,6 +1758,7 @@ void StreamingScopeBuilder::VisitDartType() {
       VisitTypeParameterType();
       return;
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -2217,6 +2199,7 @@ void StreamingDartTypeTranslator::BuildTypeInternal(bool invalid_as_dynamic) {
       BuildTypeParameterType();
       break;
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -3439,6 +3422,7 @@ void StreamingFlowGraphBuilder::ReadUntilFunctionNode() {
   } else if (tag == kFunctionNode) {
     // Already at start of FunctionNode.
   } else {
+    H.ReportError("Unsupported tag at this point: %d.", tag);
     UNREACHABLE();
   }
   return;
@@ -3810,6 +3794,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           break;
         }
         default:
+          H.ReportError("Unsupported tag at this point: %d.", tag);
           UNREACHABLE();
       }
     }
@@ -4414,6 +4399,7 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kClosureCreation:
       return BuildClosureCreation(position);
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 
@@ -4466,6 +4452,7 @@ Fragment StreamingFlowGraphBuilder::BuildStatement() {
     case kFunctionDeclaration:
       return BuildFunctionDeclaration();
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
   return Fragment();
@@ -4612,6 +4599,7 @@ void StreamingFlowGraphBuilder::SkipDartType() {
       SkipOptionalDartType();  // read bound bound.
       return;
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -4721,6 +4709,7 @@ void StreamingFlowGraphBuilder::SkipInitializer() {
       SkipVariableDeclaration();  // read variable.
       return;
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -4946,6 +4935,7 @@ void StreamingFlowGraphBuilder::SkipExpression() {
     case kNullLiteral:
       return;
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -5084,6 +5074,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       SkipFunctionNode();         // read function node.
       return;
     default:
+      H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
   }
 }
@@ -8857,6 +8848,7 @@ void StreamingFlowGraphBuilder::CollectTokenPositionsFor(
     FieldHelper field_helper(this);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
   } else {
+    H.ReportError("Unsupported tag at this point: %d.", tag);
     UNREACHABLE();
   }
 
