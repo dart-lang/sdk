@@ -1,0 +1,14 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  static method m({core::int a = 0}) → dynamic {}
+}
+static method test() → void {
+  self::C::m(a: const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/duplicated_named_args_3.dart:13:19: Error: Duplicated named argument 'a'.\n  C.m(a: 1, a: 2, a: 3);\n                  ^")));
+}
+static method main() → dynamic {}

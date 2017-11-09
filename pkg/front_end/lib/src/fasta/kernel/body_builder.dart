@@ -765,9 +765,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         for (NamedExpression expression in named) {
           if (seenNames.containsKey(expression.name)) {
             hasProblem = true;
-            seenNames[expression.name].value = deprecated_buildCompileTimeError(
+            var prevNamedExpression = seenNames[expression.name];
+            prevNamedExpression.value = deprecated_buildCompileTimeError(
                 "Duplicated named argument '${expression.name}'.",
-                expression.fileOffset);
+                expression.fileOffset)
+              ..parent = prevNamedExpression;
           } else {
             seenNames[expression.name] = expression;
           }

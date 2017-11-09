@@ -18,6 +18,7 @@ classes: Crash
 closure: Crash
 covariant_generic: Crash
 default_values: Crash
+duplicated_named_args_3: Crash
 escape: Crash
 expressions: Crash
 external: Crash

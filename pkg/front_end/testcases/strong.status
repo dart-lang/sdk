@@ -22,6 +22,7 @@ closure: Fail
 covariant_generic: Fail
 cycles: Fail
 default_values: Fail
+duplicated_named_args_3: TypeCheckError
 escape: Fail
 expressions: Fail
 external: Fail
