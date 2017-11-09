@@ -106,7 +106,6 @@ class ObjectPointerVisitor;
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
   V(On, "on")                                                                  \
   V(Of, "of")                                                                  \
-  V(Deferred, "deferred")                                                      \
   V(Show, "show")                                                              \
   V(Hide, "hide")                                                              \
   V(Async, "async")                                                            \

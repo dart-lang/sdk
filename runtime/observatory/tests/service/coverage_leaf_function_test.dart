@@ -46,7 +46,7 @@ var tests = [
     var expectedRange = {
       'scriptIndex': 0,
       'startPos': ifKernel(456, 26),
-      'endPos': ifKernel(499, 37),
+      'endPos': ifKernel(499, 38),
       'compiled': true,
       'coverage': {
         'hits': ifKernel([], []),
@@ -87,7 +87,7 @@ var tests = [
     var expectedRange = {
       'scriptIndex': 0,
       'startPos': ifKernel(456, 26),
-      'endPos': ifKernel(499, 37),
+      'endPos': ifKernel(499, 38),
       'compiled': true,
       'coverage': {
         'hits': ifKernel([456], [26]),

@@ -6264,7 +6264,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
     ReportError("library url expected");
   }
   bool is_deferred_import = false;
-  if (is_import && (IsSymbol(Symbols::Deferred()))) {
+  if (is_import && (CurrentToken() == Token::kDEFERRED)) {
     is_deferred_import = true;
     ConsumeToken();
     CheckToken(Token::kAS, "'as' expected");
@@ -6274,7 +6274,8 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
     prefix_pos = TokenPos();
-    prefix = ExpectIdentifier("prefix identifier expected")->raw();
+    prefix =
+        ExpectUserDefinedTypeIdentifier("prefix identifier expected")->raw();
   }
 
   Array& show_names = Array::Handle(Z);
