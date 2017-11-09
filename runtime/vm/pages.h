@@ -342,12 +342,6 @@ class PageSpace {
   // Prefer small freelist blocks, then chip away at the bump block.
   uword TryAllocatePromoLocked(intptr_t size, GrowthPolicy growth_policy);
 
-  // Bump block allocation from generated code.
-  uword* TopAddress() { return &bump_top_; }
-  uword* EndAddress() { return &bump_end_; }
-  static intptr_t top_offset() { return OFFSET_OF(PageSpace, bump_top_); }
-  static intptr_t end_offset() { return OFFSET_OF(PageSpace, bump_end_); }
-
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 
   // Return any bump allocation block to the freelist.
