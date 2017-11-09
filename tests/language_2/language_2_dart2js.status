@@ -1450,7 +1450,6 @@ method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_black_listed_test/02: MissingCompileTimeError
-mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -1508,13 +1507,8 @@ mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
-mixin_super_constructor2_test: RuntimeError
-mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
-mixin_super_constructor_named_test/none: RuntimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
-mixin_super_constructor_positionals_test/none: RuntimeError
-mixin_super_constructor_test: RuntimeError
 mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
 mixin_superclass_test: CompileTimeError
@@ -1878,7 +1872,6 @@ method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_black_listed_test/02: MissingCompileTimeError
-mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -1930,13 +1923,8 @@ mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
-mixin_super_constructor2_test: RuntimeError
-mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
-mixin_super_constructor_named_test/none: RuntimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
-mixin_super_constructor_positionals_test/none: RuntimeError
-mixin_super_constructor_test: RuntimeError
 mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
 mixin_superclass_test: CompileTimeError

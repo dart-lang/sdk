@@ -364,8 +364,8 @@ class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
 closure_self_reference_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/nodes.dart': Failed assertion: line 641 pos 12: 'isClosed()': is not true.
-conditional_import_string_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-conditional_import_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+conditional_import_string_test: RuntimeError
+conditional_import_test: RuntimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
@@ -389,20 +389,20 @@ constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 cyclic_constructor_test/01: Crash # Issue 30856
-deferred_closurize_load_library_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_constraints_constants_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_constraints_constants_test/reference_after_load: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_constraints_type_annotation_test/as_operation: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_constraints_type_annotation_test/catch_check: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_constraints_type_annotation_test/is_check: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_constraints_type_annotation_test/as_operation: RuntimeError
+deferred_constraints_type_annotation_test/catch_check: RuntimeError
+deferred_constraints_type_annotation_test/is_check: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_load_constants_test/none: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_load_library_wrong_args_test/01: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_load_constants_test/none: RuntimeError
+deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
-deferred_redirecting_factory_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -470,7 +470,6 @@ method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_black_listed_test/02: MissingCompileTimeError
-mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -552,13 +551,8 @@ mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
-mixin_super_constructor2_test: RuntimeError
-mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
-mixin_super_constructor_named_test/none: RuntimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
-mixin_super_constructor_positionals_test/none: RuntimeError
-mixin_super_constructor_test: RuntimeError
 mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
 mixin_superclass_test: CompileTimeError
@@ -637,15 +631,6 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
-conditional_import_string_test: RuntimeError
-conditional_import_test: RuntimeError
-deferred_closurize_load_library_test: RuntimeError
-deferred_constraints_type_annotation_test/as_operation: RuntimeError
-deferred_constraints_type_annotation_test/catch_check: RuntimeError
-deferred_constraints_type_annotation_test/is_check: RuntimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_library_wrong_args_test/01: MissingRuntimeError
-deferred_redirecting_factory_test: RuntimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -695,7 +680,9 @@ class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
 conditional_import_string_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+conditional_import_string_test: RuntimeError
 conditional_import_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+conditional_import_test: RuntimeError
 config_import_corelib_test: RuntimeError
 config_import_test: RuntimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
@@ -726,19 +713,26 @@ cyclic_type_test/02: RuntimeError
 cyclic_type_test/03: RuntimeError
 cyclic_type_test/04: RuntimeError
 deferred_closurize_load_library_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_constraints_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_constraints_constants_test/reference_after_load: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_constraints_type_annotation_test/as_operation: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/as_operation: RuntimeError
 deferred_constraints_type_annotation_test/catch_check: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/catch_check: RuntimeError
 deferred_constraints_type_annotation_test/is_check: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_constraints_type_annotation_test/is_check: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_load_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_load_constants_test/none: RuntimeError
 deferred_load_library_wrong_args_test/01: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred_redirecting_factory_test: RuntimeError
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -812,7 +806,6 @@ method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_black_listed_test/02: MissingCompileTimeError
-mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -895,13 +888,8 @@ mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
-mixin_super_constructor2_test: RuntimeError
-mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
-mixin_super_constructor_named_test/none: RuntimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
-mixin_super_constructor_positionals_test/none: RuntimeError
-mixin_super_constructor_test: RuntimeError
 mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
 mixin_superclass_test: CompileTimeError
@@ -981,15 +969,6 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
-conditional_import_string_test: RuntimeError
-conditional_import_test: RuntimeError
-deferred_closurize_load_library_test: RuntimeError
-deferred_constraints_type_annotation_test/as_operation: RuntimeError
-deferred_constraints_type_annotation_test/catch_check: RuntimeError
-deferred_constraints_type_annotation_test/is_check: RuntimeError
-deferred_load_constants_test/none: RuntimeError
-deferred_load_library_wrong_args_test/01: MissingRuntimeError
-deferred_redirecting_factory_test: RuntimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError
