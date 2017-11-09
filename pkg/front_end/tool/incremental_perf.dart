@@ -47,12 +47,13 @@ import 'dart:convert';
 import 'dart:io' hide FileSystemEntity;
 
 import 'package:args/args.dart';
+import 'package:front_end/byte_store.dart';
 import 'package:front_end/file_system.dart' show FileSystemEntity;
 import 'package:front_end/front_end.dart';
-import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:kernel/target/flutter.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -83,7 +84,7 @@ main(List<String> args) async {
   }
 
   var dir = Directory.systemTemp.createTempSync('ikg-cache');
-  compilerOptions.byteStore = new ProtectedFileByteStore(dir.path);
+  compilerOptions.byteStore = createByteStore(options['cache'], dir.path);
 
   var timer1 = new Stopwatch()..start();
   var generator =
@@ -197,6 +198,21 @@ class OverlayFileSystemEntity implements FileSystemEntity {
       _fs.memory.entityForUri(uri).writeAsStringSync(contents);
 }
 
+ByteStore createByteStore(String cachePolicy, String path) {
+  switch (cachePolicy) {
+    case 'memory':
+      return new MemoryByteStore();
+    case 'protected':
+      return new ProtectedFileByteStore(path);
+    case 'evicting':
+      return new MemoryCachingByteStore(
+          new EvictingFileByteStore(path, 1024 * 1024 * 1024 /* 1G */),
+          64 * 1024 * 1024 /* 64M */);
+    default:
+      throw new UnsupportedError('Unknown cache policy: $cachePolicy');
+  }
+}
+
 /// A string replacement edit in a source file.
 class Edit {
   final Uri uri;
@@ -225,6 +241,10 @@ _resolveOverlayUri(uriString) =>
 ArgParser argParser = new ArgParser()
   ..addOption('target',
       help: 'target platform', defaultsTo: 'vm', allowed: ['vm', 'flutter'])
+  ..addOption('cache',
+      help: 'caching policy used by the compiler',
+      defaultsTo: 'protected',
+      allowed: ['evicting', 'memory', 'protected'])
   ..addOption('sdk-summary', help: 'Location of the sdk outline.dill file')
   ..addOption('sdk-library-specification',
       help: 'Location of the '
