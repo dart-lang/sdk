@@ -192,13 +192,13 @@
         "vm-precomp-android-release"
       ],
       "meta": {
-        "description": "This is the configuration for the android precomp builder. This has its own configuration because it needs to pass os and system as arguments."
+        "description": "This is the configuration for the android precomp builder. This has its own configuration because it needs to pass arch and os as arguments to build and system to test.py."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["--os=android","runtime","runtime_precompiled"]
+          "arguments": ["--arch=arm","--os=android","runtime","runtime_precompiled"]
         },
         {
           "name": "vm tests",
