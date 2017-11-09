@@ -291,10 +291,140 @@
     },
     {
       "builders": [
+        "dart2js-hostchecked-linux-ia32-d8"
+      ],
+      "meta": {
+        "description": "This configuration is for the host-checked d8 builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["dart2js_bot","patched_dart2js_sdk"]
+        },
+        {
+          "name": "dart2js tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"]
+        },
+        {
+          "name": "dart2js package tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "dart2js observatory-ui tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "tests": ["observatory_ui"]
+        },
+        {
+          "name": "dart2js extra tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "tests": ["dart2js_extra","dart2js_native"]
+        },
+        {
+          "name": "dart2js co19 tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "tests": ["co19"]
+        },
+        {
+          "name": "dart2js checked tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"]
+        },
+        {
+          "name": "dart2js checked package tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "dart2js checked observatory-ui tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "tests": ["observatory_ui"]
+        },
+        {
+          "name": "dart2js checked extra tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "tests": ["dart2js_extra","dart2js_native"]
+        },
+        {
+          "name": "dart2js checked co19 tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "tests": ["co19"]
+        },
+        {
+          "name": "dart2js checked unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--reset-browser-configuration",
+            "--checked"
+          ],
+          "tests": ["dart2js"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
       "meta": {
-        "description": "This configuration is used by the linux sdk builder. The difference between this configuration and the other sdk builder configuration is that this one also generates the api docs."
+        "description": "This configuration is used by the linux sdk builder. The difference between this configuration and the other sdk builder configurations is that this one also generates the api docs."
       },
       "steps": [
         {
