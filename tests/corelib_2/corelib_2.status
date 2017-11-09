@@ -206,7 +206,6 @@ list_removeat_test: RuntimeError # Issue 29921
 list_replace_range_test: RuntimeError # Issue 29921
 list_set_all_test: RuntimeError # Issue 29921
 json_map_test: RuntimeError # Issue 29921
-uri_query_test: RuntimeError # Issue 29921 - runtime cast failure
 int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/02: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
