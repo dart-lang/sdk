@@ -27,7 +27,9 @@ class ClassMemberParser extends Parser {
     if (kind == Assert.Statement) {
       return super.parseAssert(token, kind);
     } else {
-      return skipExpression(token);
+      // TODO(brianwilkerson) Remove the invocation of `previous` when
+      // `skipExpression` returns the last consumed token.
+      return skipExpression(token).previous;
     }
   }
 

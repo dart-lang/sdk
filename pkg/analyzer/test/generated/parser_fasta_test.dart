@@ -2830,7 +2830,8 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   Configuration parseConfiguration() {
-    return _run((parser) => parser.parseConditionalUri) as Configuration;
+    return _run((parser) => (token) => parser.parseConditionalUri(token).next)
+        as Configuration;
   }
 
   @override
