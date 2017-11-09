@@ -167,6 +167,17 @@ test_shl(var v2, var v3, var v8, var v40) {
   }
 }
 
+test_literals() {
+  Expect.equals(0x7fffffffffffffff, 9223372036854775807);
+  Expect.equals(0x8000000000000000, -9223372036854775808);
+  Expect.equals(0x8000000000000000, -0x8000000000000000);
+  Expect.equals(0x8000000000000001, -0x7fffffffffffffff);
+  Expect.equals(0xabcdef0123456789, -0x543210FEDCBA9877);
+  Expect.equals(0xffffffffffffffff, -1);
+  Expect.equals(-9223372036854775808, -0x8000000000000000);
+  Expect.equals(9223372036854775807 + 1, -9223372036854775808);
+}
+
 main() {
   var v2 = 2; // smi
   var v3 = 3; // smi
@@ -181,4 +192,5 @@ main() {
   test_sub(v2, v3, v3fxx, v5fxx, v7fxx, n60xx);
   test_mul(v2, v3, v3fxx, v5fxx, v7fxx, n60xx);
   test_shl(v2, v3, v8, v40);
+  test_literals();
 }

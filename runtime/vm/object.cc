@@ -18313,12 +18313,22 @@ const char* Integer::ToCString() const {
   return "NULL Integer";
 }
 
+// String representation of kMaxInt64 + 1.
+static const char* kMaxInt64Plus1 = "9223372036854775808";
+
 RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
-  int64_t value;
-  if (!OS::StringToInt64(str.ToCString(), &value)) {
+  int64_t value = 0;
+  const char* cstr = str.ToCString();
+  if (!OS::StringToInt64(cstr, &value)) {
     if (FLAG_limit_ints_to_64_bits) {
+      if (strcmp(cstr, kMaxInt64Plus1) == 0) {
+        // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
+        // of unary minus to produce MIN_INT64 value. The value is automatically
+        // wrapped to MIN_INT64.
+        return Integer::New(kMinInt64, space);
+      }
       // Out of range.
       return Integer::null();
     }
@@ -18334,9 +18344,16 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
 RawInteger* Integer::NewCanonical(const String& str) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
-  int64_t value;
-  if (!OS::StringToInt64(str.ToCString(), &value)) {
+  int64_t value = 0;
+  const char* cstr = str.ToCString();
+  if (!OS::StringToInt64(cstr, &value)) {
     if (FLAG_limit_ints_to_64_bits) {
+      if (strcmp(cstr, kMaxInt64Plus1) == 0) {
+        // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
+        // of unary minus to produce MIN_INT64 value. The value is automatically
+        // wrapped to MIN_INT64.
+        return Mint::NewCanonical(kMinInt64);
+      }
       // Out of range.
       return Integer::null();
     }
