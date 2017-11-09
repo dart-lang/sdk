@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 static field dynamic h = null;
 static method foo((core::Object) → core::int f) → void {}
-static method main() → dynamic {
+static method test() → dynamic {
   dynamic f = (core::Object x) → dynamic {
     return null;
   };
@@ -17,3 +17,4 @@ static method main() → dynamic {
     throw "not implemented";
   });
 }
+static method main() → dynamic {}

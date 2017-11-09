@@ -7,9 +7,7 @@ import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -67,23 +65,6 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
     with ComplexParserTestMixin {
-  @override
-  @failingTest
-  void test_assignableExpression_arguments_normal_chain_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following a
-    // function-valued expression, returning "a<E>(b)(c).d<G>(e).f".
-    super
-        .test_assignableExpression_arguments_normal_chain_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_assignableExpression_arguments_normal_chain_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following a
-    // function-valued expression, returning the binary expression "a<E>(b) < F".
-    super.test_assignableExpression_arguments_normal_chain_typeArguments();
-  }
-
   @override
   @failingTest
   void test_equalityExpression_normal() {
@@ -2179,72 +2160,6 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     with ExpressionParserTestMixin {
   @override
   @failingTest
-  void
-      test_parseAssignableExpression_expression_args_dot_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following a
-    // function-valued expression.
-    super
-        .test_parseAssignableExpression_expression_args_dot_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseAssignableExpression_expression_args_dot_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following a
-    // function-valued expression.
-    super.test_parseAssignableExpression_expression_args_dot_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_ia_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following an
-    // index expression.
-    super.test_parseCascadeSection_ia_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_ia_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following an
-    // index expression.
-    super.test_parseCascadeSection_ia_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_paa_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following a
-    // function-valued expression.
-    super.test_parseCascadeSection_paa_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_paa_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following a
-    // function-valued expression.
-    super.test_parseCascadeSection_paa_typeArguments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_paapaa_typeArgumentComments() {
-    // TODO(brianwilkerson) Does not inject generic type arguments following a
-    // function-valued expression.
-    super.test_parseCascadeSection_paapaa_typeArgumentComments();
-  }
-
-  @override
-  @failingTest
-  void test_parseCascadeSection_paapaa_typeArguments() {
-    // TODO(brianwilkerson) Does not parse generic type arguments following a
-    // function-valued expression.
-    super.test_parseCascadeSection_paapaa_typeArguments();
-  }
-
-  @override
-  @failingTest
   void test_parseInstanceCreationExpression_type_named_typeArgumentComments() {
     // TODO(brianwilkerson) Does not inject generic type arguments.
     super
@@ -2623,10 +2538,10 @@ class FastaParserTestCase extends Object
   @override
   Expression parsePrimaryExpression(String code) {
     return _runParser(
-            code,
-            (parser) => (token) =>
-                parser.parsePrimary(token, IdentifierContext.expression))
-        as Expression;
+        code,
+        (parser) => (token) => parser.parsePrimary(
+            parser.syntheticPreviousToken(token),
+            IdentifierContext.expression)) as Expression;
   }
 
   @override
@@ -2653,7 +2568,9 @@ class FastaParserTestCase extends Object
   Statement parseStatement(String source,
       [bool enableLazyAssignmentOperators]) {
     return _runParser(
-        source, (parser) => (token) => parser.parseStatementOpt(token).next,
+        source,
+        (parser) => (token) =>
+            parser.parseStatementOpt(parser.syntheticPreviousToken(token)).next,
         codes: NO_ERROR_COMPARISON) as Statement;
   }
 
@@ -2839,35 +2756,19 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
  * This allows many of the analyzer parser tests to be run on Fasta, even if
  * they call into the analyzer parser class directly.
  */
-class ParserProxy implements analyzer.Parser {
-  /**
-   * The token to parse next.
-   */
-  analyzer.Token _currentFastaToken;
-
-  /**
-   * The fasta parser being wrapped.
-   */
-  final fasta.Parser _fastaParser;
-
-  /**
-   * The builder which creates the analyzer AST data structures expected by the
-   * analyzer parser tests.
-   */
-  final AstBuilder _astBuilder;
-
+class ParserProxy extends analyzer.ParserAdapter {
   /**
    * The error listener to which scanner and parser errors will be reported.
    */
   final GatheringErrorListener _errorListener;
 
-  final ForwardingTestListener _eventListener;
+  ForwardingTestListener _eventListener;
 
   /**
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
-  factory ParserProxy(analyzer.Token startingToken,
+  factory ParserProxy(analyzer.Token firstToken,
       {bool allowNativeClause: false,
       bool enableGenericMethodComments: false}) {
     var library = new KernelLibraryBuilderProxy();
@@ -2876,71 +2777,53 @@ class ParserProxy implements analyzer.Parser {
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
-    var astBuilder =
-        new AstBuilder(errorReporter, library, member, scope, true);
-    astBuilder.allowNativeClause = allowNativeClause;
-    astBuilder.parseGenericMethodComments = enableGenericMethodComments;
-    var eventListener = new ForwardingTestListener(astBuilder);
-    var fastaParser = new fasta.Parser(eventListener);
-    astBuilder.parser = fastaParser;
     return new ParserProxy._(
-        startingToken, fastaParser, astBuilder, errorListener, eventListener);
+        firstToken, errorReporter, library, member, scope, errorListener,
+        allowNativeClause: allowNativeClause,
+        enableGenericMethodComments: enableGenericMethodComments);
   }
 
-  ParserProxy._(this._currentFastaToken, this._fastaParser, this._astBuilder,
-      this._errorListener, this._eventListener);
+  ParserProxy._(
+      analyzer.Token firstToken,
+      ErrorReporter errorReporter,
+      KernelLibraryBuilder library,
+      Builder member,
+      Scope scope,
+      this._errorListener,
+      {bool allowNativeClause: false,
+      bool enableGenericMethodComments: false})
+      : super(firstToken, errorReporter, library, member, scope,
+            allowNativeClause: allowNativeClause,
+            enableGenericMethodComments: enableGenericMethodComments) {
+    _eventListener = new ForwardingTestListener(astBuilder);
+  }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   Annotation parseAnnotation() {
-    return _run((parser) => parser.parseMetadata) as Annotation;
+    return _run2('MetadataStar', () => super.parseAnnotation());
   }
 
   @override
   ArgumentList parseArgumentList() {
-    Object result =
-        _run((parser) => (token) => parser.parseArguments(token).next);
-    if (result is MethodInvocation) {
-      return result.argumentList;
-    }
-    return result as ArgumentList;
+    return _run2('unspecified', () => super.parseArgumentList());
   }
 
   @override
   ClassMember parseClassMember(String className) {
-    final ast = new AstFactoryImpl();
-    _astBuilder.classDeclaration = ast.classDeclaration(
-      null,
-      null,
-      null,
-      new analyzer.Token(analyzer.Keyword.CLASS, 0),
-      ast.simpleIdentifier(
-          new fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
-      null,
-      null,
-      null,
-      null,
-      null, // leftBracket
-      <ClassMember>[],
-      null, // rightBracket
-    );
-    _eventListener.begin('CompilationUnit');
-    _run((parser) => (token) => parser.parseMember(token).next, nodeCount: 0);
-    _eventListener.end('CompilationUnit');
-    ClassDeclaration declaration = _astBuilder.classDeclaration;
-    _astBuilder.classDeclaration = null;
-    expect(declaration.members, hasLength(1));
-    return declaration.members.first;
+    return _run2('CompilationUnit', () => super.parseClassMember(className));
   }
 
   List<Combinator> parseCombinators() {
-    return _run((parser) => parser.parseCombinators);
+    return _run2('Import', () => super.parseCombinators());
   }
 
   @override
   CompilationUnit parseCompilationUnit2() {
-    var result = _run(null) as CompilationUnit;
+    CompilationUnit result = super.parseCompilationUnit2();
+    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
+    expect(astBuilder.stack, hasLength(0));
     _eventListener.expectEmpty();
     return result;
   }
@@ -2979,21 +2862,21 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   Statement parseStatement2() {
-    return _run((parser) => (token) => parser.parseStatementOpt(token).next)
+    return _run((parser) => (token) =>
+            parser.parseStatementOpt(parser.syntheticPreviousToken(token)).next)
         as Statement;
   }
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
     _eventListener.begin('CompilationUnit');
-    _currentFastaToken =
-        _fastaParser.parseTopLevelDeclaration(_currentFastaToken);
-    expect(_currentFastaToken.isEof, isTrue);
-    expect(_astBuilder.stack, hasLength(0));
-    expect(_astBuilder.scriptTag, isNull);
-    expect(_astBuilder.directives, hasLength(isDirective ? 1 : 0));
-    expect(_astBuilder.declarations, hasLength(isDirective ? 0 : 1));
+    currentToken = fastaParser.parseTopLevelDeclaration(currentToken);
+    expect(currentToken.isEof, isTrue);
+    expect(astBuilder.stack, hasLength(0));
+    expect(astBuilder.scriptTag, isNull);
+    expect(astBuilder.directives, hasLength(isDirective ? 1 : 0));
+    expect(astBuilder.declarations, hasLength(isDirective ? 0 : 1));
     _eventListener.end('CompilationUnit');
-    return (isDirective ? _astBuilder.directives : _astBuilder.declarations)
+    return (isDirective ? astBuilder.directives : astBuilder.declarations)
         .first;
   }
 
@@ -3004,8 +2887,9 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   TypeArgumentList parseTypeArgumentList() {
-    return _run((parser) => (token) => parser.parseTypeArgumentsOpt(token))
-        as TypeArgumentList;
+    return _run((parser) => (token) => parser
+        .parseTypeArgumentsOpt(parser.syntheticPreviousToken(token))
+        .next) as TypeArgumentList;
   }
 
   @override
@@ -3022,8 +2906,9 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   TypeParameterList parseTypeParameterList() {
-    return _run((parser) => (token) => parser.parseTypeVariablesOpt(token))
-        as TypeParameterList;
+    return _run((parser) => (token) => parser
+        .parseTypeVariablesOpt(parser.syntheticPreviousToken(token))
+        .next) as TypeParameterList;
   }
 
   /**
@@ -3036,20 +2921,35 @@ class ParserProxy implements analyzer.Parser {
       {int nodeCount: 1}) {
     ParseFunction parseFunction;
     if (getParseFunction != null) {
-      parseFunction = getParseFunction(_fastaParser);
+      parseFunction = getParseFunction(fastaParser);
     } else {
-      parseFunction = _fastaParser.parseUnit;
+      parseFunction = fastaParser.parseUnit;
       // firstToken should be set by beginCompilationUnit event.
     }
-    _currentFastaToken = parseFunction(_currentFastaToken);
-    expect(_currentFastaToken.isEof, isTrue, reason: _currentFastaToken.lexeme);
+    currentToken = parseFunction(currentToken);
+    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
     if (nodeCount >= 0) {
-      expect(_astBuilder.stack, hasLength(nodeCount));
+      expect(astBuilder.stack, hasLength(nodeCount));
     }
     if (nodeCount != 1) {
-      return _astBuilder.stack.values;
+      return astBuilder.stack.values;
     }
-    return _astBuilder.pop();
+    return astBuilder.pop();
+  }
+
+  /**
+   * Runs the specified function and returns the result.
+   * It checks the enclosing listener events,
+   * that the parse consumed all of the tokens,
+   * and that the result stack is empty.
+   */
+  _run2(String enclosingEvent, f()) {
+    _eventListener.begin(enclosingEvent);
+    var result = f();
+    _eventListener.end(enclosingEvent);
+    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
+    expect(astBuilder.stack, hasLength(0));
+    return result;
   }
 }
 
@@ -3537,6 +3437,19 @@ class TopLevelParserTest_Fasta extends FastaParserTestCase
   void test_parseClassDeclaration_native_allowed() {
     allowNativeClause = true;
     test_parseClassDeclaration_native();
+  }
+
+  void test_parseClassDeclaration_native_allowedWithFields() {
+    allowNativeClause = true;
+    createParser(r'''
+class A native 'something' {
+  final int x;
+  A() {}
+}
+''');
+    CompilationUnitMember member = parseFullCompilationUnitMember();
+    expect(member, isNotNull);
+    assertNoErrors();
   }
 
   void test_parseClassDeclaration_native_missing_literal() {

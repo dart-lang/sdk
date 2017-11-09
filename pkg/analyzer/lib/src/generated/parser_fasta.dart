@@ -21,23 +21,111 @@ class _KernelLibraryBuilder implements KernelLibraryBuilder {
 }
 
 /**
- * Replacement parser based on Fasta.
+ * Proxy implementation of the analyzer parser, implemented in terms of the
+ * Fasta parser.
  */
-class _Parser2 implements Parser {
+abstract class ParserAdapter implements Parser {
   @override
   Token currentToken;
+
+  /**
+   * The fasta parser being wrapped.
+   */
+  final fasta.Parser fastaParser;
 
   /**
    * The builder which creates the analyzer AST data structures
    * based on the Fasta parser.
    */
-  final AstBuilder _astBuilder;
+  final AstBuilder astBuilder;
 
-  /**
-   * The fasta parser being wrapped.
-   */
-  final fasta.Parser _fastaParser;
+  ParserAdapter(this.currentToken, ErrorReporter errorReporter,
+      KernelLibraryBuilder library, Builder member, Scope scope,
+      {bool allowNativeClause: false, bool enableGenericMethodComments: false})
+      : fastaParser = new fasta.Parser(null),
+        astBuilder =
+            new AstBuilder(errorReporter, library, member, scope, true) {
+    fastaParser.listener = astBuilder;
+    astBuilder.parser = fastaParser;
+    astBuilder.allowNativeClause = allowNativeClause;
+    astBuilder.parseGenericMethodComments = enableGenericMethodComments;
+  }
 
+  @override
+  set allowNativeClause(bool value) {
+    astBuilder.allowNativeClause = value;
+  }
+
+  @override
+  bool get parseGenericMethodComments => astBuilder.parseGenericMethodComments;
+
+  @override
+  set parseGenericMethodComments(bool value) {
+    astBuilder.parseGenericMethodComments = value;
+  }
+
+  @override
+  Annotation parseAnnotation() {
+    currentToken = fastaParser
+        .parseMetadata(fastaParser.syntheticPreviousToken(currentToken));
+    return astBuilder.pop();
+  }
+
+  @override
+  ArgumentList parseArgumentList() {
+    currentToken = fastaParser.parseArguments(currentToken).next;
+    var result = astBuilder.pop();
+    return result is MethodInvocation ? result.argumentList : result;
+  }
+
+  @override
+  ClassMember parseClassMember(String className) {
+    astBuilder.classDeclaration = astFactory.classDeclaration(
+      null,
+      null,
+      null,
+      new Token(Keyword.CLASS, 0),
+      astFactory.simpleIdentifier(
+          new fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
+      null,
+      null,
+      null,
+      null,
+      null /* leftBracket */,
+      <ClassMember>[],
+      null /* rightBracket */,
+    );
+    currentToken = fastaParser
+        .parseClassMember(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    ClassDeclaration declaration = astBuilder.classDeclaration;
+    astBuilder.classDeclaration = null;
+    return declaration.members[0];
+  }
+
+  @override
+  List<Combinator> parseCombinators() {
+    currentToken = fastaParser.parseCombinators(currentToken);
+    return astBuilder.pop();
+  }
+
+  @override
+  CompilationUnit parseCompilationUnit(Token token) {
+    currentToken = token;
+    return parseCompilationUnit2();
+  }
+
+  @override
+  CompilationUnit parseCompilationUnit2() {
+    currentToken = fastaParser.parseUnit(currentToken);
+    return astBuilder.pop();
+  }
+}
+
+/**
+ * Replacement parser based on Fasta.
+ */
+class _Parser2 extends ParserAdapter {
   /**
    * The source being parsed.
    */
@@ -54,35 +142,12 @@ class _Parser2 implements Parser {
     var library = new _KernelLibraryBuilder(source.uri);
     var member = new _Builder();
     var scope = new Scope.top(isModifiable: true);
-
-    AstBuilder astBuilder =
-        new AstBuilder(errorReporter, library, member, scope, true);
-    fasta.Parser fastaParser = new fasta.Parser(astBuilder);
-    astBuilder.parser = fastaParser;
-    return new _Parser2._(source, fastaParser, astBuilder);
+    return new _Parser2._(source, errorReporter, library, member, scope);
   }
 
-  _Parser2._(this._source, this._fastaParser, this._astBuilder);
-
-  @override
-  bool get parseGenericMethodComments => _astBuilder.parseGenericMethodComments;
-
-  @override
-  set parseGenericMethodComments(bool value) {
-    _astBuilder.parseGenericMethodComments = value;
-  }
+  _Parser2._(this._source, ErrorReporter errorReporter,
+      KernelLibraryBuilder library, Builder member, Scope scope)
+      : super(null, errorReporter, library, member, scope);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  CompilationUnit parseCompilationUnit(Token token) {
-    currentToken = token;
-    return parseCompilationUnit2();
-  }
-
-  @override
-  CompilationUnit parseCompilationUnit2() {
-    currentToken = _fastaParser.parseUnit(currentToken);
-    return _astBuilder.pop();
-  }
 }

@@ -1135,7 +1135,9 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
   Isolate* I = Dart::CreateIsolate(isolate_name, *flags);
   free(isolate_name);
   if (I == NULL) {
-    *error = strdup("Isolate creation failed");
+    if (error != NULL) {
+      *error = strdup("Isolate creation failed");
+    }
     return reinterpret_cast<Dart_Isolate>(NULL);
   }
   {
@@ -1164,9 +1166,14 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
       // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
       T->set_execution_state(Thread::kThreadInNative);
       T->EnterSafepoint();
+      if (error != NULL) {
+        *error = NULL;
+      }
       return Api::CastIsolate(I);
     }
-    *error = strdup(error_obj.ToErrorCString());
+    if (error != NULL) {
+      *error = strdup(error_obj.ToErrorCString());
+    }
     // We exit the API scope entered above.
     Dart_ExitScope();
   }

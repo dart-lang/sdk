@@ -675,12 +675,13 @@ class DietListener extends StackListener {
       Parser parser = new Parser(listener);
       List metadataConstants;
       if (metadata != null) {
-        parser.parseMetadataStar(metadata);
+        parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
         metadataConstants = listener.pop();
       }
-      token = parser.parseFormalParametersOpt(token, kind);
+      token = parser.parseFormalParametersOpt(
+          parser.syntheticPreviousToken(token), kind);
       var formals = listener.pop();
-      listener.checkEmpty(token.charOffset);
+      listener.checkEmpty(token.next.charOffset);
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifier(token);
       AsyncMarker asyncModifier = getAsyncMarker(listener) ?? AsyncMarker.Sync;
@@ -705,7 +706,8 @@ class DietListener extends StackListener {
     if (isTopLevel) {
       // There's a slight asymmetry between [parseTopLevelMember] and
       // [parseMember] because the former doesn't call `parseMetadataStar`.
-      token = parser.parseMetadataStar(metadata ?? token);
+      token = parser
+          .parseMetadataStar(parser.syntheticPreviousToken(metadata ?? token));
       token = parser.parseTopLevelMember(token).next;
     } else {
       token = parser.parseMember(metadata ?? token).next;
@@ -789,7 +791,7 @@ class DietListener extends StackListener {
     if (metadata != null) {
       var listener = createListener(builder, memberScope, false);
       var parser = new Parser(listener);
-      parser.parseMetadataStar(metadata);
+      parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata();
     }
     return null;

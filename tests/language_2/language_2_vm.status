@@ -35,6 +35,15 @@ async_await_syntax_test/b10a: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
+async_congruence_local_test/none: RuntimeError
+async_congruence_local_test/01: MissingCompileTimeError
+async_congruence_local_test/02: MissingCompileTimeError
+async_congruence_method_test/none: RuntimeError
+async_congruence_method_test/01: MissingCompileTimeError
+async_congruence_top_level_test: RuntimeError
+async_congruence_unnamed_test/none: RuntimeError
+async_congruence_unnamed_test/01: MissingCompileTimeError
+async_congruence_unnamed_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
@@ -653,7 +662,6 @@ return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError # Issue 14736
-setter_override2_test/none: CompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 static_field1_test/01: MissingCompileTimeError
@@ -960,6 +968,7 @@ typevariable_substitution2_test/02: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
+implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 
 [ $runtime == vm && $checked && $mode == debug ]
@@ -994,7 +1003,6 @@ generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
 
 [ $runtime == vm && $compiler == none && !$checked ]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
@@ -1062,7 +1070,6 @@ generic_local_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ $runtime == vm && $compiler == app_jit && !$checked ]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/02: MissingRuntimeError
@@ -1089,3 +1096,4 @@ deferred_not_loaded_check_test: RuntimeError
 
 [ $runtime == vm && $compiler != dartk ]
 generic_no_such_method_dispatcher_simple_test: Skip # This test is only for kernel.
+type_promotion_functions_test/01: MissingCompileTimeError

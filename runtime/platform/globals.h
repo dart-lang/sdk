@@ -48,6 +48,7 @@
 
 #include <Rpc.h>
 #include <VersionHelpers.h>
+#include <intrin.h>
 #include <shellapi.h>
 #include <windows.h>
 #include <winsock2.h>

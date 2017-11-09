@@ -467,6 +467,12 @@ mixin_invalid_bound_test/10: MissingCompileTimeError
 [ $compiler == dart2analyzer ]
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
 
+[ $compiler == dart2analyzer && $checked ]
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/*: MissingCompileTimeError # Issue #
+assertion_initializer_const_error2_test/cc10: Pass # Issue #31321
+assertion_initializer_const_error2_test/cc11: Pass # Issue #31321
+
 [ $compiler == dart2analyzer && ! $strong && $checked ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
@@ -916,7 +922,6 @@ generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_test: StaticWarning
 generics_test: StaticWarning
-get_set_syntax_test/none: Fail # Issue 11575
 getter_declaration_negative_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 import_core_prefix_test: StaticWarning
@@ -1065,7 +1070,6 @@ const_types_test/15: MissingCompileTimeError # Incorrectly allows using type par
 error_stacktrace_test/00: Pass
 generic_list_checked_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
-generic_methods_test: CompileTimeError
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
@@ -1125,7 +1129,6 @@ prefix15_negative_test: CompileTimeError, OK
 prefix18_negative_test: CompileTimeError, OK
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError
-setter_override2_test/none: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 string_unicode1_negative_test: CompileTimeError
 string_unicode2_negative_test: CompileTimeError
@@ -1134,6 +1137,7 @@ string_unicode4_negative_test: CompileTimeError
 string_split_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 switch_case_test/none: CompileTimeError
+type_promotion_functions_test/01: Pass
 
 vm/lazy_deopt_with_exception_test: CompileTimeError
 prefix6_negative_test: CompileTimeError, OK
@@ -1191,8 +1195,14 @@ additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTi
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 additional_interface_adds_optional_args_test: StaticWarning
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue 31320
+assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue 31320
 assertion_initializer_const_function_test/01: MissingStaticWarning
+async_congruence_local_test/01: MissingCompileTimeError
+async_congruence_local_test/02: MissingCompileTimeError
+async_congruence_method_test/01: MissingCompileTimeError
+async_congruence_unnamed_test/01: MissingCompileTimeError
+async_congruence_unnamed_test/02: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
@@ -1472,7 +1482,6 @@ setter4_test: MissingCompileTimeError
 setter_no_getter_call_test/01: StaticWarning
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
-setter_override2_test/none: CompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError
@@ -1620,9 +1629,11 @@ malbounded_redirecting_factory_test/03: MissingCompileTimeError
 malbounded_redirecting_factory_test/04: MissingCompileTimeError
 malbounded_redirecting_factory_test/05: MissingCompileTimeError
 malbounded_type_cast2_test: MissingCompileTimeError
+type_promotion_functions_test/01: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $runtime == none ]
-assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue 31320
+assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue 31320
 assertion_initializer_const_function_test/01: CompileTimeError
 assertion_initializer_test: CompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError

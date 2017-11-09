@@ -112,11 +112,11 @@ void startRootIsolate(entry, args) {
   _globalState.currentContext = rootContext;
   if (entry is _MainFunctionArgs) {
     rootContext.eval(() {
-      entry(args);
+      (entry as dynamic)(args);
     });
   } else if (entry is _MainFunctionArgsMessage) {
     rootContext.eval(() {
-      entry(args, null);
+      (entry as dynamic)(args, null);
     });
   } else {
     rootContext.eval(entry);
@@ -725,8 +725,8 @@ bool get globalPostMessageDefined {
 }
 
 typedef _MainFunction();
-typedef _MainFunctionArgs(args);
-typedef _MainFunctionArgsMessage(args, message);
+typedef _MainFunctionArgs(Null args);
+typedef _MainFunctionArgsMessage(Null args, Null message);
 
 /// Note: IsolateNatives depends on _globalState which is only set up correctly
 /// when 'dart:isolate' has been imported.
@@ -1069,9 +1069,9 @@ class IsolateNatives {
       if (!isSpawnUri) {
         topLevel(message);
       } else if (topLevel is _MainFunctionArgsMessage) {
-        topLevel(args, message);
+        (topLevel as dynamic)(args, message);
       } else if (topLevel is _MainFunctionArgs) {
-        topLevel(args);
+        (topLevel as dynamic)(args);
       } else {
         topLevel();
       }

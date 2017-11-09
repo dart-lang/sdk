@@ -1168,6 +1168,19 @@ void IsolateReloadContext::VerifyMaps() {
 static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
                           const Class& old_cls,
                           const Class& new_cls) {
+  // Don't report synthetic classes like the superclass of
+  // `class MA extends S with M {}` or `class MA = S with M'. The relevant
+  // changes with be reported as changes in M.
+  if (new_cls.IsMixinApplication() || new_cls.is_mixin_app_alias()) {
+    return;
+  }
+
+  // Don't report `typedef bool Predicate(Object o)` as unused. There is nothing
+  // to execute.
+  if (new_cls.IsTypedefClass()) {
+    return;
+  }
+
   if (new_cls.raw() == old_cls.raw()) {
     // A new class maps to itself. All its functions, field initizers, and so
     // on are new.

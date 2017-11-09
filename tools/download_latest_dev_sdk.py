@@ -18,9 +18,6 @@ HOST_OS = utils.GuessOS()
 HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-FUCHSIA_ROOT = os.path.realpath(os.path.join(DART_ROOT, '..', '..'))
-FLUTTER_ROOT = os.path.join(FUCHSIA_ROOT, 'third_party', 'dart-pkg', 'git',
-                            'flutter')
 
 DEFAULT_DART_VERSION = 'latest'
 BASE_URL = 'http://gsdview.appspot.com/dart-archive/channels/dev/raw/%s/sdk/%s'
@@ -57,15 +54,7 @@ def main(argv):
   remote_sha_path = os.path.join(sdk_path, sha_file + '.remote')
   zip_path = os.path.join(sdk_path, zip_file)
 
-  # If we're in a Fuchsia checkout with Flutter nearby, pull the same dev SDK
-  # version that Flutter says it wants. Otherwise, pull the latest dev SDK.
-  sdk_version_path = os.path.join(
-      FLUTTER_ROOT, 'bin', 'internal', 'dart-sdk.version')
   sdk_version = DEFAULT_DART_VERSION
-  if os.path.isfile(sdk_version_path):
-    with open(sdk_version_path, 'r') as fp:
-      sdk_version = fp.read().strip()
-
   sha_url = (BASE_URL % (sdk_version, sha_file))
   zip_url = (BASE_URL % (sdk_version, zip_file))
 

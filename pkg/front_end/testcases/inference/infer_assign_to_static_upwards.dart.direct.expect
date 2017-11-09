@@ -15,7 +15,6 @@ static method test1() → void {
   dynamic v1 = self::topLevelInt = self::getInt();
   dynamic v4 = let final dynamic #t1 = self::topLevelInt in #t1.==(null) ? self::topLevelInt = self::getInt() : #t1;
   dynamic v7 = self::topLevelInt = self::topLevelInt.+(self::getInt());
-  dynamic v8 = self::topLevelInt = self::topLevelInt.+(self::getNum());
   dynamic v10 = self::topLevelInt = self::topLevelInt.+(1);
   dynamic v11 = let final dynamic #t2 = self::topLevelInt in let final dynamic #t3 = self::topLevelInt = #t2.+(1) in #t2;
 }

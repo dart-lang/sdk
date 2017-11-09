@@ -118,7 +118,7 @@ Future<ResultKind> mainInternal(List<String> args,
       diagnosticHandler: collector,
       options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler1.resolution.retainCachesForTesting = true;
+  compiler1.impactCacheDeleter.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
   if (collector.crashes.isNotEmpty) {
     print('Skipping due to crashes.');

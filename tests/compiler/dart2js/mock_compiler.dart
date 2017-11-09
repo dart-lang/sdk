@@ -36,8 +36,10 @@ import 'package:compiler/src/elements/modelx.dart'
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/common/tasks.dart' show Measurer;
 
-import 'package:compiler/src/deferred_load.dart'
-    show DeferredLoadTask, OutputUnit;
+import 'package:compiler/src/deferred_load.dart' show OutputUnit;
+
+import 'package:compiler/src/resolution/deferred_load.dart'
+    show AstDeferredLoadTask;
 
 import 'mock_libraries.dart';
 import 'diagnostic_helper.dart';
@@ -327,7 +329,7 @@ class MockTypeVariablesScope extends TypeVariablesScope {
 }
 
 // The mock compiler does not split the program in output units.
-class MockDeferredLoadTask extends DeferredLoadTask {
+class MockDeferredLoadTask extends AstDeferredLoadTask {
   MockDeferredLoadTask(Compiler compiler) : super(compiler);
 
   OutputUnit getElementOutputUnit(dynamic dependency) {

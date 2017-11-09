@@ -7,7 +7,7 @@
 class StringInterpolation4NegativeTest {
   static testMain() {
     // Dollar not followed by "{" or identifier.
-    print("-" + "$" + "foo"); //# 01: compile-time error
+    print("-" + "$" + "foo"); //# 01: syntax error
   }
 }
 

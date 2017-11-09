@@ -6,16 +6,16 @@
 
 get f1 => null;
 get f2
-() //# 01: compile-time error
+() //# 01: syntax error
     => null;
 get f3
-(arg) //# 02: compile-time error
+(arg) //# 02: syntax error
     => null;
 get f4
-([arg]) //# 03: compile-time error
+([arg]) //# 03: syntax error
     => null;
 get f5
-({arg}) //# 04: compile-time error
+({arg}) //# 04: syntax error
     => null;
 
 main() {

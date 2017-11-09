@@ -427,6 +427,14 @@ ExternalConstructorWithBody:
   analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
   dart2jsCode: "*ignored*"
   script:
+    - "class C { external C() {} }"
+
+ExternalFactoryWithBody:
+  template: "External factories can't have a body."
+  tip: "Try removing the body of the factory, or removing the keyword 'external'."
+  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*ignored*"
+  script:
     - "class C { external factory C() {} }"
 
 ExternalField:
@@ -895,6 +903,7 @@ FastaUsageShort:
       -h        Display this message (add -v for information about all options).
 
 FastaUsageLong:
+  # TODO(ahe): Consider if the reference to platform.dill needs to change below?
   template: |
     Supported options:
 
@@ -932,10 +941,11 @@ FastaUsageLong:
       --exclude-source
         Do not include source code in the dill file.
 
-      --compile-sdk=<patched_sdk>
-        Compile the SDK from scratch instead of reading it from 'platform.dill'.
+      --compile-sdk=<sdk>
+        Compile the SDK from scratch instead of reading it from a .dill file
+        (see --platform).
 
-      --sdk=<patched_sdk>
+      --sdk=<sdk>
         Location of the SDK sources for use when compiling additional platform
         libraries.
 
@@ -1351,7 +1361,7 @@ PartOfUseUri:
   tip: "Try changing the 'part of' declaration to use a relative file name."
 
 PartOfUriMismatch:
-  template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#string'."
+  template: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'."
 
 MissingMain:
   template: "No 'main' method found."
@@ -1460,6 +1470,9 @@ InvalidPackageUri:
 CouldNotParseUri:
   template: "Couldn't parse URI '#string':\n  #string2."
 
+ExpectedUri:
+  template: "Expected a URI."
+
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."
   tip: "Try using BigInt (from 'dart:typed_data' library) if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
@@ -1473,6 +1486,8 @@ ColonInPlaceOfIn:
 ExternalFactoryRedirection:
   template: "A redirecting factory can't be external."
   tip: "Try removing the 'external' modifier."
+  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_BODY
+  dart2jsCode: "*ignored*"
 
 InvalidAssignment:
   template: "A value of type '#type' can't be assigned to a variable of type '#type2'."
@@ -1484,3 +1499,24 @@ InvalidAssignment:
       int i;
       i = 1.5;
     }
+
+PatchClassTypeVariablesMismatch:
+  template: "A patch class must have the same number of type variables as its origin class."
+
+PatchClassOrigin:
+  template: "This is the origin class."
+
+PatchDeclarationMismatch:
+  template: "This patch doesn't match origin declaration."
+
+PatchDeclarationOrigin:
+  template: "This is the origin declaration."
+
+PatchInjectionFailed:
+  template: "Can't inject '#name' into '#uri'."
+  tip: "Try adding '@patch'."
+
+PatchNonExternal:
+  template: "Can't apply this patch as its origin declaration isn't external."
+  tip: "Try adding 'external' to the origin declaration."
+

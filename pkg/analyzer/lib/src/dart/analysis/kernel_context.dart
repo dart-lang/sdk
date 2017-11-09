@@ -22,7 +22,7 @@ import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
@@ -162,14 +162,16 @@ class KernelContext {
       // Remember Kernel libraries required to resynthesize the target.
       var libraryMap = <String, kernel.Library>{};
       var libraryExistMap = <String, bool>{};
-      for (var cycleResult in kernelResult.results) {
-        for (var library in cycleResult.kernelLibraries) {
-          String uriStr = library.importUri.toString();
-          libraryMap[uriStr] = library;
-          FileState file = fsState.getFileForUri(library.importUri);
-          libraryExistMap[uriStr] = file?.exists ?? false;
-        }
+
+      void addLibrary(kernel.Library library) {
+        String uriStr = library.importUri.toString();
+        libraryMap[uriStr] = library;
+        FileState file = fsState.getFileForUri(library.importUri);
+        libraryExistMap[uriStr] = file?.exists ?? false;
       }
+
+      kernelResult.dependencies.forEach(addLibrary);
+      addLibrary(kernelResult.library);
 
       if (DEBUG) {
         print('----------- ${targetLibrary.uriStr}');

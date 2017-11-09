@@ -794,7 +794,7 @@ class BinaryBuilder {
     var name = readName();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'constructor');
-    var function = readFunctionNode(false);
+    var function = readFunctionNode(false, -1);
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
     if (shouldWriteData) {
@@ -841,7 +841,7 @@ class BinaryBuilder {
     bool readFunctionNodeNow =
         (kind == ProcedureKind.Factory && functionNodeSize <= 50) ||
             _disableLazyReading;
-    var function = readFunctionNodeOption(!readFunctionNodeNow);
+    var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
     debugPath.removeLast();
     if (shouldWriteData) {
@@ -886,11 +886,13 @@ class BinaryBuilder {
     }
   }
 
-  FunctionNode readFunctionNodeOption(bool lazyLoadBody) {
-    return readAndCheckOptionTag() ? readFunctionNode(lazyLoadBody) : null;
+  FunctionNode readFunctionNodeOption(bool lazyLoadBody, int outerEndOffset) {
+    return readAndCheckOptionTag()
+        ? readFunctionNode(lazyLoadBody, outerEndOffset)
+        : null;
   }
 
-  FunctionNode readFunctionNode(bool lazyLoadBody) {
+  FunctionNode readFunctionNode(bool lazyLoadBody, int outerEndOffset) {
     int tag = readByte();
     assert(tag == Tag.FunctionNode);
     int offset = readOffset();
@@ -906,6 +908,11 @@ class BinaryBuilder {
     var named = readAndPushVariableDeclarationList();
     var returnType = readDartType();
     int oldLabelStackBase = labelStackBase;
+
+    if (lazyLoadBody && outerEndOffset > 0) {
+      lazyLoadBody = outerEndOffset - _byteOffset >
+          2; // e.g. outline has Tag.Something and Tag.EmptyStatement
+    }
 
     var body;
     if (!lazyLoadBody) {
@@ -925,28 +932,8 @@ class BinaryBuilder {
       ..fileEndOffset = endOffset;
 
     if (lazyLoadBody) {
-      final int savedByteOffset = _byteOffset;
-      final int programStartOffset = _programStartOffset;
-      final List<TypeParameter> typeParameters = typeParameterStack.toList();
-      final List<VariableDeclaration> variables = variableStack.toList();
-      result.lazyBuilder = () {
-        _byteOffset = savedByteOffset;
-        typeParameterStack.clear();
-        typeParameterStack.addAll(typeParameters);
-        variableStack.clear();
-        variableStack.addAll(variables);
-        _programStartOffset = programStartOffset;
-
-        result.body = readStatementOption();
-        result.body?.parent = result;
-        labelStackBase = oldLabelStackBase;
-        variableStack.length = variableStackHeight;
-        typeParameterStack.length = typeParameterStackHeight;
-        if (result.parent is Procedure) {
-          Procedure parent = result.parent;
-          parent.transformerFlags |= getAndResetTransformerFlags();
-        }
-      };
+      _setLazyLoadFunction(result, oldLabelStackBase, variableStackHeight,
+          typeParameterStackHeight);
     }
 
     labelStackBase = oldLabelStackBase;
@@ -954,6 +941,32 @@ class BinaryBuilder {
     typeParameterStack.length = typeParameterStackHeight;
 
     return result;
+  }
+
+  void _setLazyLoadFunction(FunctionNode result, int oldLabelStackBase,
+      int variableStackHeight, int typeParameterStackHeight) {
+    final int savedByteOffset = _byteOffset;
+    final int programStartOffset = _programStartOffset;
+    final List<TypeParameter> typeParameters = typeParameterStack.toList();
+    final List<VariableDeclaration> variables = variableStack.toList();
+    result.lazyBuilder = () {
+      _byteOffset = savedByteOffset;
+      typeParameterStack.clear();
+      typeParameterStack.addAll(typeParameters);
+      variableStack.clear();
+      variableStack.addAll(variables);
+      _programStartOffset = programStartOffset;
+
+      result.body = readStatementOption();
+      result.body?.parent = result;
+      labelStackBase = oldLabelStackBase;
+      variableStack.length = variableStackHeight;
+      typeParameterStack.length = typeParameterStackHeight;
+      if (result.parent is Procedure) {
+        Procedure parent = result.parent;
+        parent.transformerFlags |= getAndResetTransformerFlags();
+      }
+    };
   }
 
   void pushVariableDeclaration(VariableDeclaration variable) {
@@ -1201,7 +1214,7 @@ class BinaryBuilder {
         return new AwaitExpression(readExpression());
       case Tag.FunctionExpression:
         int offset = readOffset();
-        return new FunctionExpression(readFunctionNode(false))
+        return new FunctionExpression(readFunctionNode(false, -1))
           ..fileOffset = offset;
       case Tag.Let:
         var variable = readVariableDeclaration();
@@ -1378,7 +1391,7 @@ class BinaryBuilder {
         int offset = readOffset();
         var variable = readVariableDeclaration();
         variableStack.add(variable); // Will be popped by the enclosing scope.
-        var function = readFunctionNode(false);
+        var function = readFunctionNode(false, -1);
         return new FunctionDeclaration(variable, function)..fileOffset = offset;
       default:
         throw fail('Invalid statement tag: $tag');
@@ -1819,9 +1832,9 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  FunctionNode readFunctionNode(bool lazyLoadBody) {
+  FunctionNode readFunctionNode(bool lazyLoadBody, int outerEndOffset) {
     final nodeOffset = _byteOffset;
-    final result = super.readFunctionNode(lazyLoadBody);
+    final result = super.readFunctionNode(lazyLoadBody, outerEndOffset);
     return _associateMetadata(result, nodeOffset);
   }
 

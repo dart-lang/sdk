@@ -66,7 +66,7 @@ import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:front_end/byte_store.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
 import 'package:watcher/watcher.dart';
@@ -281,6 +281,13 @@ class AnalysisServer {
 
   ByteStore byteStore;
   nd.AnalysisDriverScheduler analysisDriverScheduler;
+
+  /**
+   * The controller for [onAnalysisSetChanged].
+   */
+  StreamController _onAnalysisSetChangedController =
+      new StreamController.broadcast();
+
   /**
    * This exists as a temporary stopgap for plugins, until the official plugin
    * API is complete.
@@ -467,6 +474,15 @@ class AnalysisServer {
     }
     return _onAnalysisCompleteCompleter.future;
   }
+
+  /**
+   * The stream that is notified when the analysis set is changed - this might
+   * be a change to a file, external via a watch event, or internal via
+   * overlay. This means that the resolved world might have changed.
+   *
+   * The type of produced elements is not specified and should not be used.
+   */
+  Stream get onAnalysisSetChanged => _onAnalysisSetChangedController.stream;
 
   /**
    * The stream that is notified with `true` when analysis is started.
@@ -947,6 +963,7 @@ class AnalysisServer {
    * Implementation for `analysis.updateContent`.
    */
   void updateContent(String id, Map<String, dynamic> changes) {
+    _onAnalysisSetChangedController.add(null);
     changes.forEach((file, change) {
       // Prepare the new contents.
       String oldContents = fileContentOverlay[file];
@@ -1242,6 +1259,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
+  }
+
+  @override
+  void afterWatchEvent(WatchEvent event) {
+    analysisServer._onAnalysisSetChangedController.add(null);
   }
 
   @override

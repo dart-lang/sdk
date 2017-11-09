@@ -80,23 +80,21 @@ rasta/parser_error: Fail
 rasta/super: Fail
 rasta/super_initializer: Fail
 rasta/super_operator: Fail
-rasta/supports_reflection: VerificationError
 rasta/try_label: Fail
 rasta/type_literals: Fail
 rasta/type_with_parse_error: Fail
 rasta/typedef: Fail
 rasta/unresolved: Fail
 rasta/unresolved_constructor: Fail
-rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
-regress/issue_29977: Crash # Issue 30997.
 regress/issue_29982: Fail # Issue 29982.
-regress/issue_29987: Crash # Issue 30997.
+regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31155: Crash # Issue 31155.
 
+runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics

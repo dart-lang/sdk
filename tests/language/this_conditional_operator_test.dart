@@ -12,7 +12,7 @@ class B {
   method() => 1;
 
   B.forward()
-    : this?.namedConstructor() //# 01: compile-time error
+    : this?.namedConstructor() //# 01: syntax error
   ;
 
   test() {

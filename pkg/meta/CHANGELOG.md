@@ -1,6 +1,6 @@
 ## 1.1.4
 
-* Add `@dart2js.noInline` and `@dart2js.tryInline` annotations.
+* Added dart2js.dart.
 
 ## 1.1.2
 

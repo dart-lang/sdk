@@ -46,8 +46,10 @@ RegExp dartExtension = new RegExp(r'\.dart$');
 typedef bool Predicate<T>(T arg);
 
 typedef void CreateTest(Path filePath, Path originTestPath,
-    bool hasCompileError, bool hasRuntimeError,
-    {bool isNegativeIfChecked,
+    {bool hasSyntaxError,
+    bool hasCompileError,
+    bool hasRuntimeError,
+    bool isNegativeIfChecked,
     bool hasCompileErrorIfChecked,
     bool hasStaticWarning,
     String multitestKey});
@@ -521,6 +523,7 @@ class TestInformation {
   Path filePath;
   Path originTestPath;
   Map<String, dynamic> optionsFromFile;
+  bool hasSyntaxError;
   bool hasCompileError;
   bool hasRuntimeError;
   bool isNegativeIfChecked;
@@ -532,6 +535,7 @@ class TestInformation {
       this.filePath,
       this.originTestPath,
       this.optionsFromFile,
+      this.hasSyntaxError,
       this.hasCompileError,
       this.hasRuntimeError,
       this.isNegativeIfChecked,
@@ -551,6 +555,7 @@ class HtmlTestInformation extends TestInformation {
             filePath,
             filePath,
             {'isMultitest': false, 'isMultiHtmlTest': false},
+            false,
             false,
             false,
             false,
@@ -744,11 +749,10 @@ class StandardTestSuite extends TestSuite {
       group.add(doMultitest(filePath, buildDir, suiteDir, createTestCase,
           configuration.hotReload || configuration.hotReloadRollback));
     } else {
-      createTestCase(
-          filePath,
-          filePath,
-          optionsFromFile['hasCompileError'] as bool,
-          optionsFromFile['hasRuntimeError'] as bool,
+      createTestCase(filePath, filePath,
+          hasSyntaxError: optionsFromFile['hasSyntaxError'] as bool,
+          hasCompileError: optionsFromFile['hasCompileError'] as bool,
+          hasRuntimeError: optionsFromFile['hasRuntimeError'] as bool,
           hasStaticWarning: optionsFromFile['hasStaticWarning'] as bool);
     }
   }
@@ -916,9 +920,11 @@ class StandardTestSuite extends TestSuite {
   }
 
   CreateTest makeTestCaseCreator(Map<String, dynamic> optionsFromFile) {
-    return (Path filePath, Path originTestPath, bool hasCompileError,
+    return (Path filePath, Path originTestPath,
+        {bool hasSyntaxError,
+        bool hasCompileError,
         bool hasRuntimeError,
-        {bool isNegativeIfChecked: false,
+        bool isNegativeIfChecked: false,
         bool hasCompileErrorIfChecked: false,
         bool hasStaticWarning: false,
         String multitestKey}) {
@@ -927,6 +933,7 @@ class StandardTestSuite extends TestSuite {
           filePath,
           originTestPath,
           optionsFromFile,
+          hasSyntaxError,
           hasCompileError,
           hasRuntimeError,
           isNegativeIfChecked,
@@ -1524,7 +1531,9 @@ class StandardTestSuite extends TestSuite {
     //
     // Redo this code once we have a more precise test framework for detecting
     // and locating these errors.
-    var hasCompileError = contents.contains("/*@compile-error=");
+    var hasSyntaxError = contents.contains("/*@syntax-error=");
+    var hasCompileError =
+        hasSyntaxError || contents.contains("/*@compile-error=");
 
     return {
       "vmOptions": result,
@@ -1532,6 +1541,7 @@ class StandardTestSuite extends TestSuite {
       "dartOptions": dartOptions,
       "packageRoot": packageRoot,
       "packages": packages,
+      "hasSyntaxError": hasSyntaxError,
       "hasCompileError": hasCompileError,
       "hasRuntimeError": false,
       "hasStaticWarning": false,
@@ -1552,6 +1562,7 @@ class StandardTestSuite extends TestSuite {
       "dartOptions": null,
       "packageRoot": null,
       "packages": null,
+      "hasSyntaxError": false,
       "hasCompileError": false,
       "hasRuntimeError": false,
       "hasStaticWarning": false,
@@ -1605,7 +1616,9 @@ class StandardTestSuite extends TestSuite {
     String contents =
         decodeUtf8(new File(filePath.toNativePath()).readAsBytesSync());
 
-    bool hasCompileError = contents.contains("@compile-error");
+    bool hasSyntaxError = contents.contains("@syntax-error");
+    bool hasCompileError =
+        hasSyntaxError || contents.contains("@compile-error");
     bool hasRuntimeError = contents.contains("@runtime-error");
     bool hasStaticWarning = contents.contains("@static-warning");
     bool isMultitest = multiTestRegExp.hasMatch(contents);
@@ -1615,6 +1628,7 @@ class StandardTestSuite extends TestSuite {
       "sharedOptions": <String>[],
       "dartOptions": null,
       "packageRoot": null,
+      "hasSyntaxError": hasSyntaxError,
       "hasCompileError": hasCompileError,
       "hasRuntimeError": hasRuntimeError,
       "hasStaticWarning": hasStaticWarning,

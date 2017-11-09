@@ -1,0 +1,51 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  generic-contravariant final field (self::C::T) → core::num plusResult;
+  constructor •((self::C::T) → core::num plusResult) → void
+    : self::C::plusResult = plusResult, super core::Object::•()
+    ;
+  generic-contravariant operator +(core::int i) → (self::C::T) → core::num
+    return this.{self::C::plusResult};
+}
+class D extends core::Object {
+  final field self::C<core::num> getValue;
+  field (core::int) → core::int setValue = null;
+  constructor •(self::C<core::num> getValue) → void
+    : self::D::getValue = getValue, super core::Object::•()
+    ;
+  get value() → self::C<core::num>
+    return this.{self::D::getValue};
+  set value((core::int) → core::int value) → void {
+    this.{self::D::setValue} = value;
+  }
+}
+static method expectTypeError(() → void callback) → void {
+  try {
+    callback.call();
+    throw "Expected TypeError, did not occur";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}
+static method expect(core::Object value, core::Object expected) → void {
+  if(!value.{core::Object::==}(expected)) {
+    throw "Expected ${expected}, got ${value}";
+  }
+}
+static method numToInt(core::num n) → core::int
+  return 1;
+static method numToNum(core::num n) → core::num
+  return 2;
+static method main() → void {
+  self::D d = new self::D::•(new self::C::•<core::num>(self::numToInt));
+  let final self::D #t1 = d in #t1.{self::D::value} = (#t1.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num) as{TypeError} (core::int) → core::int;
+  self::expect(d.{self::D::setValue}(0), 1);
+  d = new self::D::•(new self::C::•<core::num>(self::numToNum));
+  self::expectTypeError(() → core::Null {
+    let final self::D #t2 = d in #t2.{self::D::value} = (#t2.{self::D::value}.{self::C::+}(1) as{TypeError} (core::num) → core::num) as{TypeError} (core::int) → core::int;
+  });
+  self::expect(d.{self::D::setValue}, null);
+}

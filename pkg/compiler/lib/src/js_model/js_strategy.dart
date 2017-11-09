@@ -12,6 +12,7 @@ import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/constant_system.dart';
+import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
@@ -24,6 +25,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
@@ -73,6 +75,31 @@ class JsBackendStrategy implements KernelBackendStrategy {
         new JsClosedWorldBuilder(_elementMap, _closureDataLookup);
     return closedWorldBuilder._convertClosedWorld(
         closedWorld, strategy.closureModels);
+  }
+
+  @override
+  OutputUnitData convertOutputUnitData(OutputUnitData data) {
+    JsToFrontendMapImpl map = new JsToFrontendMapImpl(_elementMap);
+
+    // TODO(sigmund): make this more flexible to support scenarios where we have
+    // a 1-n mapping (a k-entity that maps to multiple j-entities).
+    Entity toBackendEntity(Entity entity) {
+      if (entity is ClassEntity) return map.toBackendClass(entity);
+      if (entity is MemberEntity) return map.toBackendMember(entity);
+      if (entity is TypeVariableEntity) {
+        return map.toBackendTypeVariable(entity);
+      }
+      if (entity is Local) {
+        // TODO(sigmund): ensure we don't store locals in OuputUnitData
+        return entity;
+      }
+      assert(
+          entity is LibraryEntity, 'unexpected entity ${entity.runtimeType}');
+      return map.toBackendLibrary(entity);
+    }
+
+    return new OutputUnitData.from(data,
+        (m) => convertMap<Entity, OutputUnit>(m, toBackendEntity, (v) => v));
   }
 
   @override
@@ -219,11 +246,12 @@ class JsClosedWorldBuilder {
 
     var classesNeedingRti =
         map.toBackendClassSet(kernelRtiNeed.classesNeedingRti);
-    _closureConversionTask.createClosureEntities(
-        this,
-        map.toBackendMemberMap(closureModels, identity),
-        localFunctionsNodes,
-        classesNeedingRti);
+    Iterable<FunctionEntity> callMethods =
+        _closureConversionTask.createClosureEntities(
+            this,
+            map.toBackendMemberMap(closureModels, identity),
+            localFunctionsNodes,
+            classesNeedingRti);
 
     List<FunctionEntity> callMethodsNeedingRti = <FunctionEntity>[];
     for (ir.Node node in localFunctionsNodes) {
@@ -234,12 +262,19 @@ class JsClosedWorldBuilder {
     RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(map, backendUsage,
         kernelRtiNeed, callMethodsNeedingRti, classesNeedingRti);
 
+    NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
+    NoSuchMethodData noSuchMethodData = new NoSuchMethodDataImpl(
+        map.toBackendFunctionSet(oldNoSuchMethodData.throwingImpls),
+        map.toBackendFunctionSet(oldNoSuchMethodData.otherImpls),
+        map.toBackendFunctionSet(oldNoSuchMethodData.forwardingSyntaxImpls));
+
     return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
         dartTypes: _elementMap.types,
         commonElements: _commonElements,
         constantSystem: const JavaScriptConstantSystem(),
         backendUsage: backendUsage,
+        noSuchMethodData: noSuchMethodData,
         nativeData: nativeData,
         interceptorData: interceptorData,
         rtiNeed: rtiNeed,
@@ -247,7 +282,7 @@ class JsClosedWorldBuilder {
         classSets: _classSets,
         implementedClasses: implementedClasses,
         liveNativeClasses: liveNativeClasses,
-        liveInstanceMembers: liveInstanceMembers,
+        liveInstanceMembers: liveInstanceMembers..addAll(callMethods),
         assignedInstanceMembers: assignedInstanceMembers,
         processedMembers: processedMembers,
         mixinUses: mixinUses,
@@ -459,6 +494,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       this.rtiNeed,
+      NoSuchMethodData noSuchMethodData,
       Set<ClassEntity> implementedClasses,
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
@@ -477,6 +513,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             nativeData,
             interceptorData,
             backendUsage,
+            noSuchMethodData,
             implementedClasses,
             liveNativeClasses,
             liveInstanceMembers,

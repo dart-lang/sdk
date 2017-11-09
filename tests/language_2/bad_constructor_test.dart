@@ -10,7 +10,7 @@ class A {
 
 // A factory constructor can't be static.
 class B {
-  static //# 01: compile-time error
+  static //# 01: syntax error
   factory B() { return null; }
 }
 

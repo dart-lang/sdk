@@ -86,11 +86,13 @@ apply3_test: Fail # mirrors not supported
 dynamic_nosuchmethod_test: Fail # mirrors not supported
 
 [ $compiler == precompiler ]
-apply3_test: SkipByDesign
-dynamic_nosuchmethod_test: SkipByDesign
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
+
+[ $compiler == precompiler || $compiler == dartkp ]
+apply3_test: SkipByDesign
+dynamic_nosuchmethod_test: SkipByDesign
 
 [ $compiler == dart2js && $runtime != none && !$checked ]
 growable_list_test: RuntimeError # Concurrent modifications test always runs
@@ -204,9 +206,6 @@ list_removeat_test: RuntimeError # Issue 29921
 list_replace_range_test: RuntimeError # Issue 29921
 list_set_all_test: RuntimeError # Issue 29921
 json_map_test: RuntimeError # Issue 29921
-core_runtime_types_test: RuntimeError # Issue 29921 - runtime cast failure
-string_fromcharcodes_test: RuntimeError # Issue 29921 - runtime cast failure
-uri_query_test: RuntimeError # Issue 29921 - runtime cast failure
 int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/02: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
@@ -313,7 +312,6 @@ string_from_environment3_test/03: MissingCompileTimeError
 string_from_environment3_test/04: MissingCompileTimeError
 
 [ $compiler == dartkp ]
-apply3_test: Crash
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -413,11 +411,13 @@ from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
+[ $compiler == dart2js ]
+date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
+
 [ $compiler == dart2js && $runtime == safari ]
 regexp/no-extensions_test: RuntimeError
 regexp/lookahead_test: RuntimeError
 regexp/overflow_test: RuntimeError
-date_time11_test: RuntimeError, OK # Bug in Safari.
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
@@ -535,12 +535,28 @@ iterable_to_list_test/01: RuntimeError
 iterable_to_set_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(_LinkedCustomHashSet.#x), local(_LinkedCustomHashSet.#)) for j:closure_call(_LinkedCustomHashSet__LinkedCustomHashSet_closure.call).
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
-map_test: Crash # tests/corelib_2/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
+map_test: Crash # tests/map_test.dart:870:7: Internal problem: Unhandled Null in installDefaultConstructor.
 splay_tree_from_iterable_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeMap.#v), local(SplayTreeMap.#)) for j:closure_call(SplayTreeMap_SplayTreeMap_closure.call).
 splay_tree_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 splay_tree_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(SplayTreeSet.#v), local(SplayTreeSet.#)) for j:closure_call(SplayTreeSet_SplayTreeSet_closure.call).
 symbol_operator_test/03: RuntimeError
 symbol_operator_test/none: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
+
+[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_to_list_test/01: RuntimeError
+list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
+list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
+map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
 symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
@@ -605,28 +621,72 @@ list_concurrent_modify_test: Crash # Issue 30559
 
 [ $compiler == dartk && $strong ]
 collection_removes_test: RuntimeError
-date_time11_test: RuntimeError
 iterable_generate_test/01: Pass
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 iterable_to_set_test: Pass
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
-main_test: RuntimeError
 map_keys2_test: Pass
 
 [ $compiler == dartkp && $strong ]
 collection_removes_test: RuntimeError
 int_parse_with_limited_ints_test: Crash
-iterable_expand_test: Crash
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
 list_insert_test: RuntimeError
-stacktrace_fromstring_test: Crash
 typed_data_with_limited_ints_test: Crash
 
 [ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug ]
 list_test/none: Crash
 list_test/01: Crash
+
+[ $compiler == dartdevk ]
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/03: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+from_environment_const_type_test/01: Pass
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/05: Pass
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/10: Pass
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/15: Pass
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_test/none: Pass
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+string_from_environment3_test/01: MissingCompileTimeError
+string_from_environment3_test/02: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+string_from_environment3_test/04: MissingCompileTimeError
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/01: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+map_test: Crash # crash in front_end.

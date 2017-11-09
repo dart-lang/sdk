@@ -1323,16 +1323,14 @@ class Class : public Object {
 
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return NULL;
+    return -1;
 #else
     return raw_ptr()->kernel_offset_;
 #endif
   }
 
   void set_kernel_offset(intptr_t offset) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
-#endif
+    NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
   }
 
   void DisableAllocationStub() const;
@@ -1609,10 +1607,15 @@ class PatchClass : public Object {
   void set_library_kernel_data(const TypedData& data) const;
 
   intptr_t library_kernel_offset() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
     return raw_ptr()->library_kernel_offset_;
+#else
+    return -1;
+#endif
   }
   void set_library_kernel_offset(intptr_t offset) const {
-    StoreNonPointer(&raw_ptr()->library_kernel_offset_, offset);
+    NOT_IN_PRECOMPILED(
+        StoreNonPointer(&raw_ptr()->library_kernel_offset_, offset));
   }
 
   static intptr_t InstanceSize() {
@@ -3761,9 +3764,15 @@ class Library : public Object {
   RawTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
   void set_kernel_data(const TypedData& data) const;
 
-  intptr_t kernel_offset() const { return raw_ptr()->kernel_offset_; }
+  intptr_t kernel_offset() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->kernel_offset_;
+#else
+    return -1;
+#endif
+  }
   void set_kernel_offset(intptr_t offset) {
-    StoreNonPointer(&raw_ptr()->kernel_offset_, offset);
+    NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
   }
 
   static RawLibrary* LookupLibrary(Thread* thread, const String& url);

@@ -3,21 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartkp ]
-isolate/message3_test/byteBuffer: Crash
-isolate/message3_test/constInstance: Crash
-isolate/message3_test/constList: Crash
-isolate/message3_test/constList_identical: Crash
-isolate/message3_test/constMap: Crash
-isolate/message3_test/fun: Crash
-isolate/message3_test/none: Crash
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 html/*: SkipByDesign # dart:html not supported on VM.
-isolate/typed_message_test: Crash
 
 [ $compiler == dartk || $compiler == dartkp ]
 async/future_or_strong_test: RuntimeError
 async/timer_not_available_test: RuntimeError
-isolate/issue_21398_parent_isolate2_test/01: Crash # Deferred loading kernel issue 28335.
+isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: RuntimeError
@@ -37,9 +29,6 @@ mirrors/reflected_type_test/01: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
 
-[ $compiler == dartkp ]
-async/stream_timeout_test: RuntimeError
-
 [ $compiler == dartk ]
 mirrors/abstract_class_test: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError
@@ -55,9 +44,9 @@ mirrors/empty_test: Crash
 mirrors/enum_test: RuntimeError
 mirrors/equality_test: RuntimeError
 mirrors/deferred_mirrors_test: Crash
-mirrors/deferred_mirrors_metadata_test: Crash # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_update_test: Crash # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
@@ -93,8 +82,8 @@ mirrors/library_metadata_test: RuntimeError
 mirrors/list_constructor_test/01: Crash
 mirrors/list_constructor_test/none: Crash
 mirrors/load_library_test: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
-mirrors/library_import_deferred_loading_test: Crash # Deferred loading kernel issue 28335.
+mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/mirrors_test: Crash
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
@@ -131,7 +120,7 @@ mirrors/symbol_validation_test/none: RuntimeError
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
-mirrors/typedef_deferred_library_test: Crash # Deferred loading kernel issue 28335.
+mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
 mirrors/typedef_reflected_type_test/01: RuntimeError
@@ -244,8 +233,8 @@ mirrors/reflected_type_generics_test/02: Pass
 
 [ ($compiler == dartk || $compiler == dartkp) ]
 isolate/compile_time_error_test/01: MissingCompileTimeError
-isolate/deferred_in_isolate2_test: Crash # Deferred loading kernel issue 28335.
-isolate/deferred_in_isolate_test: Crash # Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/message3_test/int32x4: Crash
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
@@ -260,15 +249,9 @@ async/timer_cancel2_test: RuntimeError
 async/timer_cancel_test: RuntimeError
 async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
-isolate/compile_time_error_test/none: RuntimeError
-isolate/cross_isolate_message_test: RuntimeError
 isolate/isolate_import_test/01: MissingCompileTimeError
-isolate/issue_21398_parent_isolate1_test: Timeout
-isolate/issue_21398_parent_isolate_test: Timeout
 isolate/issue_22778_test: Crash
 isolate/issue_24243_parent_isolate_test: RuntimeError
-isolate/kill_self_synchronously_test: RuntimeError
-isolate/mandel_isolate_test: RuntimeError
 isolate/message2_test: RuntimeError
 isolate/message3_test/byteBuffer: RuntimeError
 isolate/message3_test/constInstance: RuntimeError
@@ -280,18 +263,7 @@ isolate/message3_test/int32x4: RuntimeError
 isolate/message3_test/none: RuntimeError
 isolate/message_test: RuntimeError
 isolate/mint_maker_test: RuntimeError
-isolate/nested_spawn2_test: RuntimeError
-isolate/ondone_test: RuntimeError
-isolate/raw_port_test: RuntimeError
-isolate/simple_message_test/none: RuntimeError
-isolate/spawn_uri_missing_from_isolate_test: RuntimeError
-isolate/spawn_uri_multi_test/01: Timeout
-isolate/spawn_uri_multi_test/none: Timeout
-isolate/spawn_uri_test: Timeout
-isolate/spawn_uri_vm_test: Timeout
 isolate/stacktrace_message_test: RuntimeError
-isolate/start_paused_test: RuntimeError
-isolate/static_function_test: RuntimeError
 isolate/typed_message_test: RuntimeError
 mirrors/metadata_const_map_test: Crash
 mirrors/reflect_class_test/01: MissingCompileTimeError
@@ -304,138 +276,17 @@ mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/regress_16321_test/01: Crash
 mirrors/regress_16321_test/none: Crash
-mirrors/spawn_function_root_library_test: RuntimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
 [ $compiler == dartkp && $strong ]
-async/async_await_sync_completer_test: Crash
-async/async_await_zones_test: Crash
-async/catch_errors12_test: Crash
-async/catch_errors15_test: Crash
-async/catch_errors16_test: Crash
-async/catch_errors17_test: Crash
-async/catch_errors21_test: Crash
-async/catch_errors22_test: Crash
-async/catch_errors23_test: Crash
-async/catch_errors24_test: Crash
-async/catch_errors26_test: Crash
-async/catch_errors27_test: Crash
-async/catch_errors3_test: Crash
-async/catch_errors6_test: Crash
-async/catch_errors7_test: Crash
-async/catch_errors8_test: Crash
-async/first_regression_test: Crash
-async/future_constructor2_test: Crash
-async/future_constructor_test: Crash
-async/future_foreach_test: Crash
-async/future_microtask_test: Crash
 async/future_or_only_in_async_test/00: MissingCompileTimeError
-async/future_test/01: Crash
-async/future_test/none: Crash
-async/futures_test: Crash
-async/schedule_microtask_test: Crash
-async/slow_consumer2_test: Crash
-async/slow_consumer3_test: Crash
-async/slow_consumer_test: Crash
-async/stack_trace03_test: Crash
-async/stack_trace04_test: Crash
-async/stack_trace05_test: Crash
-async/stack_trace06_test: Crash
-async/stack_trace07_test: Crash
-async/stack_trace08_test: Crash
-async/stack_trace11_test: Crash
-async/stack_trace12_test: Crash
-async/stack_trace13_test: Crash
-async/stack_trace14_test: Crash
-async/stack_trace15_test: Crash
-async/stack_trace16_test: Crash
-async/stack_trace17_test: Crash
-async/stack_trace18_test: Crash
-async/stack_trace19_test: Crash
-async/stack_trace25_test: Crash
-async/stream_controller_async_test: Crash
-async/stream_controller_test: Crash
-async/stream_distinct_test: Crash
-async/stream_event_transformed_test: Crash
-async/stream_first_where_test: Crash
-async/stream_from_futures_test: Crash
-async/stream_from_iterable_test: Crash
-async/stream_iterator_double_cancel_test: Crash
-async/stream_iterator_test: Crash
-async/stream_join_test: Crash
-async/stream_last_where_test: Crash
-async/stream_periodic2_test: Crash
-async/stream_periodic3_test: Crash
-async/stream_periodic4_test: Crash
-async/stream_periodic5_test: Crash
-async/stream_periodic6_test: Crash
-async/stream_periodic_test: Crash
-async/stream_single_test: Crash
-async/stream_single_to_multi_subscriber_test: Crash
-async/stream_state_nonzero_timer_test: Crash
-async/stream_state_test: Crash
-async/stream_subscription_as_future_test: Crash
-async/stream_subscription_cancel_test: Crash
-async/stream_take_test: Crash
-async/stream_timeout_test: Crash
-async/stream_transform_test: Crash
-async/stream_transformation_broadcast_test: Crash
-async/stream_transformer_test: Crash
-async/stream_zones_test: Crash
-async/timer_cancel1_test: Crash
-async/timer_cancel2_test: Crash
-async/timer_cancel_test: Crash
-async/timer_isActive_test: Crash
-async/timer_repeat_test: Crash
-async/timer_test: Crash
-async/wait_for_cancel_test: Crash
-async/zone_bind_callback_test: Crash
-async/zone_bind_callback_unary_test: Crash
-async/zone_debug_test: Crash
-async/zone_error_callback_test: Crash
-async/zone_fork_test: Crash
-async/zone_future_schedule_microtask_test: Crash
-async/zone_register_callback_test: Crash
-async/zone_register_callback_unary_test: Crash
-async/zone_run_guarded_test: Crash
-async/zone_run_test: Crash
-async/zone_run_unary_test: Crash
-convert/codec1_test: Crash
-convert/codec2_test: Crash
-convert/encoding_test: Crash
-convert/html_escape_test: Crash
-convert/line_splitter_test: Crash
-convert/streamed_conversion_json_encode1_test: Crash
-convert/streamed_conversion_json_utf8_decode_test: Crash
-convert/streamed_conversion_json_utf8_encode_test: Crash
-convert/streamed_conversion_utf8_decode_test: Crash
-convert/streamed_conversion_utf8_encode_test: Crash
 isolate/compile_time_error_test/01: Crash
-isolate/compile_time_error_test/none: Crash
-isolate/function_send1_test: Crash
-isolate/function_send_test: Crash
-isolate/handle_error2_test: Crash
-isolate/handle_error3_test: Crash
-isolate/handle_error_test: Crash
-isolate/isolate_current_test: Crash
 isolate/isolate_import_test/01: MissingCompileTimeError
-isolate/issue_21398_parent_isolate2_test/01: CompileTimeError
 isolate/issue_22778_test: Crash
-isolate/kill2_test: Crash
-isolate/kill_self_test: Crash
-isolate/kill_test: Crash
-isolate/object_leak_test: Crash
-isolate/ondone_test: Crash
-isolate/pause_test: Crash
 isolate/ping_pause_test: Crash
-isolate/ping_test: Crash
-isolate/simple_message_test/01: Crash
-isolate/simple_message_test/none: Crash
-isolate/start_paused_test: Crash
-isolate/timer_isolate_test: Crash
 profiler/metrics_num_test: RuntimeError
 profiler/metrics_test: Crash
 typed_data/float32x4_static_test: MissingCompileTimeError

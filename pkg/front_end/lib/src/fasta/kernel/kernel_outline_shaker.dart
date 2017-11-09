@@ -26,15 +26,7 @@ void serializeTrimmedOutline(
     data.markAdditionalExports(library);
     for (var clazz in library.classes) {
       if (clazz.name.startsWith('_')) continue;
-      data.markClass(clazz);
-      for (var field in clazz.fields) {
-        if (field.name.isPrivate) continue;
-        data.markMember(field);
-      }
-      for (var constructor in clazz.constructors) {
-        if (constructor.name.isPrivate) continue;
-        data.markMember(constructor);
-      }
+      data.markClassForExport(clazz);
     }
     for (var field in library.fields) {
       if (field.name.isPrivate) continue;
@@ -392,13 +384,15 @@ class _RetainedDataBuilder extends RecursiveVisitor implements _RetainedData {
     markLibrary(node.parent);
     markAnnotations(node.annotations);
 
-    FunctionType type = node.type;
-    type.returnType?.accept(typeMarker);
-    for (var positionalType in type.positionalParameters) {
-      positionalType.accept(typeMarker);
-    }
-    for (var namedType in type.namedParameters) {
-      namedType.type.accept(typeMarker);
+    DartType type = node.type;
+    if (type is FunctionType) {
+      type.returnType?.accept(typeMarker);
+      for (var positionalType in type.positionalParameters) {
+        positionalType.accept(typeMarker);
+      }
+      for (var namedType in type.namedParameters) {
+        namedType.type.accept(typeMarker);
+      }
     }
   }
 
@@ -559,7 +553,11 @@ class _RetainedDataBuilder extends RecursiveVisitor implements _RetainedData {
     markClass(coreTypes.typeClass);
     markClass(coreTypes.functionClass);
     markClass(coreTypes.invocationClass);
+    markMember(coreTypes.compileTimeErrorDefaultConstructor);
+    markMember(coreTypes.constantExpressionErrorDefaultConstructor);
+    markMember(coreTypes.duplicatedFieldInitializerErrorDefaultConstructor);
     markMember(coreTypes.externalNameDefaultConstructor);
+    markMember(coreTypes.fallThroughErrorUrlAndLineConstructor);
 
     // These are needed by the continuation (async/await) transformer:
     markClass(coreTypes.iteratorClass);

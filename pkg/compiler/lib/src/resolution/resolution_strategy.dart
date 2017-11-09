@@ -17,6 +17,7 @@ import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
@@ -46,6 +47,8 @@ import '../universe/class_hierarchy_builder.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
+
+import 'deferred_load.dart';
 import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
@@ -99,6 +102,9 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
   AnnotationProcessor get annotationProcesser => _annotationProcessor ??=
       new _ElementAnnotationProcessor(_compiler, nativeBasicDataBuilder);
 
+  DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
+      new AstDeferredLoadTask(_compiler);
+
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
     return new ResolutionNativeClassFinder(
@@ -133,6 +139,7 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries) {
@@ -145,6 +152,7 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
         backendUsageBuilder,
         rtiNeedBuilder,
         nativeResolutionEnqueuer,
+        noSuchMethodRegistry,
         selectorConstraintsStrategy,
         classHierarchyBuilder,
         classQueries);
@@ -153,7 +161,8 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
   WorkItemBuilder createResolutionWorkItemBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
-      ImpactTransformer impactTransformer) {
+      ImpactTransformer impactTransformer,
+      Map<Entity, WorldImpact> impactCache) {
     return new ResolutionWorkItemBuilder(_compiler.resolution);
   }
 
@@ -751,6 +760,11 @@ class _CompilerElementEnvironment extends ElementEnvironment {
   }
 
   @override
+  Iterable<ImportEntity> getImports(covariant LibraryElement library) {
+    return library.imports;
+  }
+
+  @override
   Iterable<ConstantValue> getClassMetadata(covariant ClassElement element) {
     return _getMetadataOf(element);
   }
@@ -781,6 +795,11 @@ class _CompilerElementEnvironment extends ElementEnvironment {
     if (result.isMalformed) return null;
     return result;
   }
+
+  @override
+  ResolutionTypedefType getTypedefTypeOfTypedef(
+          covariant TypedefElement typedef) =>
+      typedef.thisType;
 
   @override
   bool isEnumClass(covariant ClassElement cls) => cls.isEnumClass;

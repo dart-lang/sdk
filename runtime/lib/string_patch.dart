@@ -185,7 +185,7 @@ abstract class _StringBase implements String {
     List<int> charCodeList;
     int bits = 0; // Bitwise-or of all char codes in list.
     if (end == null) {
-      var list = [];
+      var list = <int>[];
       while (it.moveNext()) {
         int code = it.current;
         bits |= code;

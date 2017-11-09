@@ -37,7 +37,7 @@ testFuncAtoDyn() {
   FuncAtoDyn funcAtoDyn = func;
   a = funcAtoDyn(new A());
   b = funcAtoDyn(new B());
-  c = funcAtoDyn(new C()); //# 01: static type warning
+  c = funcAtoDyn(new C()); //# 01: compile-time error
 
   if (funcAtoDyn is FuncDynToDyn) {
     // No promotion: FuncDynToDyn !<< FuncAtoDyn.

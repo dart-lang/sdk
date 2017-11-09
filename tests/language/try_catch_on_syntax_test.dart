@@ -15,11 +15,11 @@ void test1() {
   try {
     throw new MyException1();
   }
-  on on MyException2 catch (e) { } //# 02: compile-time error
-  catch MyException2 catch (e) { } //# 03: compile-time error
-  catch catch catch (e) { } //# 04: compile-time error
-  on (e) { } //# 05: compile-time error
-  catch MyException2 catch (e) { } //# 06: compile-time error
+  on on MyException2 catch (e) { } //# 02: syntax error
+  catch MyException2 catch (e) { } //# 03: syntax error
+  catch catch catch (e) { } //# 04: syntax error
+  on (e) { } //# 05: syntax error
+  catch MyException2 catch (e) { } //# 06: syntax error
   on MyException2 catch (e) {
     foo = 1;
   } on MyException1 catch (e) {

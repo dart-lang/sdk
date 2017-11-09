@@ -6,7 +6,7 @@
 import "package:expect/expect.dart";
 
 class Param2Test {
-  static forEach(List<int> a, int f(k)) {
+  static forEach(List<int> a, int f(int k)) {
     for (int i = 0; i < a.length; i++) {
       a[i] = f(a[i]);
     }

@@ -1269,6 +1269,13 @@ Message _withArgumentsExpectedType(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedUri = messageExpectedUri;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedUri =
+    const MessageCode("ExpectedUri", message: r"""Expected a URI.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1431,8 +1438,22 @@ const Code<Null> codeExternalFactoryRedirection =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryRedirection = const MessageCode(
     "ExternalFactoryRedirection",
+    analyzerCode: "EXTERNAL_CONSTRUCTOR_WITH_BODY",
+    dart2jsCode: "*ignored*",
     message: r"""A redirecting factory can't be external.""",
     tip: r"""Try removing the 'external' modifier.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExternalFactoryWithBody = messageExternalFactoryWithBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExternalFactoryWithBody = const MessageCode(
+    "ExternalFactoryWithBody",
+    analyzerCode: "EXTERNAL_CONSTRUCTOR_WITH_BODY",
+    dart2jsCode: "*ignored*",
+    message: r"""External factories can't have a body.""",
+    tip:
+        r"""Try removing the body of the factory, or removing the keyword 'external'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalField = messageExternalField;
@@ -1567,10 +1588,11 @@ const MessageCode messageFastaUsageLong =
   --exclude-source
     Do not include source code in the dill file.
 
-  --compile-sdk=<patched_sdk>
-    Compile the SDK from scratch instead of reading it from 'platform.dill'.
+  --compile-sdk=<sdk>
+    Compile the SDK from scratch instead of reading it from a .dill file
+    (see --platform).
 
-  --sdk=<patched_sdk>
+  --sdk=<sdk>
     Location of the SDK sources for use when compiling additional platform
     libraries.
 
@@ -3137,29 +3159,30 @@ const Template<
     Message Function(
         Uri uri_,
         Uri uri2_,
-        String
-            string)> templatePartOfUriMismatch = const Template<
-        Message Function(Uri uri_, Uri uri2_, String string)>(
+        Uri
+            uri3_)> templatePartOfUriMismatch = const Template<
+        Message Function(Uri uri_, Uri uri2_, Uri uri3_)>(
     messageTemplate:
-        r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#string'.""",
+        r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'.""",
     withArguments: _withArgumentsPartOfUriMismatch);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Uri uri_, Uri uri2_, String string)>
+const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>
     codePartOfUriMismatch =
-    const Code<Message Function(Uri uri_, Uri uri2_, String string)>(
+    const Code<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>(
   "PartOfUriMismatch",
   templatePartOfUriMismatch,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsPartOfUriMismatch(Uri uri_, Uri uri2_, String string) {
+Message _withArgumentsPartOfUriMismatch(Uri uri_, Uri uri2_, Uri uri3_) {
   String uri = relativizeUri(uri_);
   String uri2 = relativizeUri(uri2_);
+  String uri3 = relativizeUri(uri3_);
   return new Message(codePartOfUriMismatch,
       message:
-          """Using '$uri' as part of '$uri2' but its 'part of' declaration says '$string'.""",
-      arguments: {'uri': uri_, 'uri2': uri2_, 'string': string});
+          """Using '$uri' as part of '$uri2' but its 'part of' declaration says '$uri3'.""",
+      arguments: {'uri': uri_, 'uri2': uri2_, 'uri3': uri3_});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3215,6 +3238,74 @@ Message _withArgumentsPartTwice(Uri uri_) {
       message: """Can't use '$uri' as a part more than once.""",
       arguments: {'uri': uri_});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchClassOrigin = messagePatchClassOrigin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchClassOrigin = const MessageCode(
+    "PatchClassOrigin",
+    message: r"""This is the origin class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchClassTypeVariablesMismatch =
+    messagePatchClassTypeVariablesMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchClassTypeVariablesMismatch = const MessageCode(
+    "PatchClassTypeVariablesMismatch",
+    message:
+        r"""A patch class must have the same number of type variables as its origin class.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchDeclarationMismatch = messagePatchDeclarationMismatch;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchDeclarationMismatch = const MessageCode(
+    "PatchDeclarationMismatch",
+    message: r"""This patch doesn't match origin declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchDeclarationOrigin = messagePatchDeclarationOrigin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchDeclarationOrigin = const MessageCode(
+    "PatchDeclarationOrigin",
+    message: r"""This is the origin declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, Uri uri_)>
+    templatePatchInjectionFailed =
+    const Template<Message Function(String name, Uri uri_)>(
+        messageTemplate: r"""Can't inject '#name' into '#uri'.""",
+        tipTemplate: r"""Try adding '@patch'.""",
+        withArguments: _withArgumentsPatchInjectionFailed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, Uri uri_)> codePatchInjectionFailed =
+    const Code<Message Function(String name, Uri uri_)>(
+  "PatchInjectionFailed",
+  templatePatchInjectionFailed,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
+  String uri = relativizeUri(uri_);
+  return new Message(codePatchInjectionFailed,
+      message: """Can't inject '$name' into '$uri'.""",
+      tip: """Try adding '@patch'.""",
+      arguments: {'name': name, 'uri': uri_});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codePatchNonExternal = messagePatchNonExternal;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messagePatchNonExternal = const MessageCode(
+    "PatchNonExternal",
+    message:
+        r"""Can't apply this patch as its origin declaration isn't external.""",
+    tip: r"""Try adding 'external' to the origin declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codePlatformPrivateLibraryAccess =

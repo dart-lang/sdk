@@ -103,7 +103,7 @@ abstract class Loader<L> {
         firstSourceUri ??= uri;
         first ??= library;
       }
-      if (target.backendTarget.mayDefineRestrictedType(uri)) {
+      if (target.backendTarget.mayDefineRestrictedType(origin?.uri ?? uri)) {
         library.mayImplementRestrictedTypes = true;
       }
       if (uri.scheme == "dart") {

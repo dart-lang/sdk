@@ -411,6 +411,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
 
   DartType _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
+    var writeOffset = write == null ? -1 : write.fileOffset;
     DartType combinedType;
     if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
@@ -422,7 +423,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       }
       DartType rhsType;
       var combinerType =
-          inferrer.getCalleeFunctionType(combinerMember, writeContext, false);
+          inferrer.getCalleeFunctionType(combinerMember, readType, false);
       if (isPreIncDec || isPostIncDec) {
         rhsType = inferrer.coreTypes.intClass.rawType;
       } else {
@@ -447,11 +448,17 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
           combinedType,
           combinerType,
           combiner.fileOffset);
+      var replacedCombiner2 = inferrer.checkAssignability(
+          writeContext, combinedType, replacedCombiner, writeOffset);
+      if (replacedCombiner2 != null) {
+        combinedType = writeContext;
+        replacedCombiner = replacedCombiner2;
+      }
       _storeLetType(inferrer, replacedCombiner, combinedType);
     } else {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
-      var replacedRhs = inferrer.checkAssignability(
-          writeContext, rhsType, rhs, write == null ? -1 : write.fileOffset);
+      var replacedRhs =
+          inferrer.checkAssignability(writeContext, rhsType, rhs, writeOffset);
       if (replacedRhs != null) {
         rhsType = writeContext;
       }

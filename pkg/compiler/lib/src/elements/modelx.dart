@@ -1009,6 +1009,9 @@ class ImportElementX extends LibraryDependencyElementX
 
   @override
   bool get isDeferred => node.isDeferred;
+
+  @override
+  String get name => prefix?.name;
 }
 
 class SyntheticImportElement extends ImportElementX {

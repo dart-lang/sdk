@@ -11,19 +11,19 @@ enum Fisk {
   torsk,
 }
 
-isolate1(SendPort port) {
-  port.send(Fisk.torsk);
+isolate1(Object port) {
+  (port as SendPort).send(Fisk.torsk);
 }
 
-isolate2(SendPort port) {
-  port.send([Fisk.torsk]);
+isolate2(Object port) {
+  (port as SendPort).send([Fisk.torsk]);
 }
 
-isolate3(SendPort port) {
+isolate3(Object port) {
   var x = new Map<int, Fisk>();
   x[0] = Fisk.torsk;
   x[1] = Fisk.torsk;
-  port.send(x);
+  (port as SendPort).send(x);
 }
 
 main() async {

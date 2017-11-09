@@ -12,7 +12,6 @@ static method test1(core::int t) → void {
   dynamic v1 = t = self::getInt();
   dynamic v4 = let final dynamic #t1 = t in #t1.==(null) ? t = self::getInt() : #t1;
   dynamic v7 = t = t.+(self::getInt());
-  dynamic v8 = t = t.+(self::getNum());
   dynamic v10 = t = t.+(1);
   dynamic v11 = let final dynamic #t2 = t in let final dynamic #t3 = t = #t2.+(1) in #t2;
 }

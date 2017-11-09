@@ -65,10 +65,10 @@ template("build_libdart_vm") {
   }
   source_set(target_name) {
     configs += [
-      "..:dart_arch_config",
-      "..:dart_config",
-      "..:dart_os_config",
-    ] + extra_configs
+                 "..:dart_arch_config",
+                 "..:dart_config",
+                 "..:dart_os_config",
+               ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
       deps = [
@@ -207,10 +207,10 @@ template("build_libdart_lib") {
   }
   source_set(target_name) {
     configs += [
-      "..:dart_arch_config",
-      "..:dart_config",
-      "..:dart_os_config",
-    ] + extra_configs
+                 "..:dart_arch_config",
+                 "..:dart_config",
+                 "..:dart_os_config",
+               ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -573,7 +573,7 @@ generate_vm_patched_sdk("patched_sdk") {
 
 compile_platform("vm_legacy_platform") {
   sources = [
-    "$root_out_dir/patched_sdk/lib/libraries.json",
+    "../../sdk/lib/libraries.json",
   ]
 
   outputs = [
@@ -581,8 +581,8 @@ compile_platform("vm_legacy_platform") {
     "$root_out_dir/vm_outline.dill",
   ]
 
-  deps = [
-    ":patched_sdk",
+  inputs = [
+    "../../sdk/lib/libraries.yaml",
   ]
 
   args = [ "dart:core" ]

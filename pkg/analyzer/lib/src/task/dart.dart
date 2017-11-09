@@ -55,27 +55,7 @@ import 'package:analyzer/task/model.dart';
  * The [ResultCachingPolicy] for ASTs.
  */
 const ResultCachingPolicy<CompilationUnit> AST_CACHING_POLICY =
-    const SimpleResultCachingPolicy(16384, 32);
-
-/**
- * The [ResultCachingPolicy] for fully resolved ASTs.  It is separated from
- * [AST_CACHING_POLICY] because we want to keep some number of fully resolved
- * ASTs when users switch between contexts, and they should not be pushed out
- * of the cache by temporary partially resolved ASTs.
- */
-const ResultCachingPolicy<CompilationUnit> AST_RESOLVED_CACHING_POLICY =
-    const SimpleResultCachingPolicy(1024, 32);
-
-/**
- * The [ResultCachingPolicy] for ASTs that can be reused when a library
- * on which the source depends is changed.  It is worth to keep some number
- * of these ASTs in memory in order to avoid parsing sources.  In contrast,
- * none of [AST_CACHING_POLICY] managed ASTs can be reused after a change, so
- * it is worth to keep them in memory while analysis is being performed, but
- * once analysis is done, they can be flushed.
- */
-const ResultCachingPolicy<CompilationUnit> AST_REUSABLE_CACHING_POLICY =
-    const SimpleResultCachingPolicy(1024, 64);
+    const SimpleResultCachingPolicy(1024 * 64, 32);
 
 /**
  * The [ResultCachingPolicy] for lists of [ConstantEvaluationTarget]s.
@@ -751,7 +731,7 @@ final ListResultDescriptor<AnalysisError> RESOLVE_UNIT_ERRORS =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT1 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT1', null,
-        cachingPolicy: AST_REUSABLE_CACHING_POLICY);
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The resolved [CompilationUnit] associated with a compilation unit in which
@@ -794,7 +774,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT12 =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT2', null,
-        cachingPolicy: AST_REUSABLE_CACHING_POLICY);
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a compilation unit.
@@ -807,7 +787,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
  */
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null,
-        cachingPolicy: AST_REUSABLE_CACHING_POLICY);
+        cachingPolicy: AST_CACHING_POLICY);
 
 /**
  * The partially resolved [CompilationUnit] associated with a compilation unit.

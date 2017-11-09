@@ -17,8 +17,6 @@ additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTi
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
-assertion_initializer_const_error2_test/cc02: Crash, MissingCompileTimeError
-assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_test: RuntimeError # Issue 30326
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
@@ -36,6 +34,15 @@ async_await_syntax_test/b10a: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
+async_congruence_local_test/none: RuntimeError
+async_congruence_local_test/01: MissingCompileTimeError
+async_congruence_local_test/02: MissingCompileTimeError
+async_congruence_method_test/none: RuntimeError
+async_congruence_method_test/01: MissingCompileTimeError
+async_congruence_top_level_test: RuntimeError
+async_congruence_unnamed_test/none: RuntimeError
+async_congruence_unnamed_test/01: MissingCompileTimeError
+async_congruence_unnamed_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
@@ -768,7 +775,6 @@ return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
-setter_override2_test/none: CompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -829,6 +835,7 @@ try_catch_on_syntax_test/11: MissingCompileTimeError
 try_catch_syntax_test/08: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
+type_promotion_functions_test/01: MissingCompileTimeError
 type_promotion_parameter_test/01: MissingCompileTimeError
 type_promotion_parameter_test/02: MissingCompileTimeError
 type_promotion_parameter_test/03: MissingCompileTimeError
@@ -940,6 +947,8 @@ void_block_return_test/00: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 
+[ $runtime == dart_precompiled && $compiler == dartkp ]
+
 [ $runtime == dart_precompiled && $compiler != dartkp ]
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
@@ -963,7 +972,6 @@ generic_local_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ $runtime == dart_precompiled && !$checked ]
-assertion_initializer_const_error2_test/cc02: CompileTimeError
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 callable_test/none: RuntimeError
@@ -974,6 +982,7 @@ function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
+implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
@@ -982,7 +991,6 @@ type_check_const_function_typedef2_test: MissingCompileTimeError
 [ $runtime == dart_precompiled && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
 setter4_test: MissingCompileTimeError
-setter_override2_test/none: CompileTimeError
 
 [ $runtime == dart_precompiled && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.

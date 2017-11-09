@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // There is no unary plus operator in Dart.
-// Only a number literal can be preceded by a "+'".
 
 main() {
-  var a = + 1; //      //# 01: compile-time error
-  var x = +"foo"; //   //# 02: compile-time error
-  var x = + "foo"; //  //# 03: compile-time error
+  var a = + 1; //      //# 01: syntax error
+  var x = +"foo"; //   //# 02: syntax error
+  var x = + "foo"; //  //# 03: syntax error
 }

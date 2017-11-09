@@ -172,6 +172,7 @@ _platform_sdk_libraries = [
   "convert",
   "core",
   "developer",
+  "html",
   "_http",
   "internal",
   "io",

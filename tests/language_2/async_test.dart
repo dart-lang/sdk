@@ -52,27 +52,27 @@ main() {
 
   asyncReturn = topLevelWithParameter(4);
   Expect.isTrue(asyncReturn is Future);
-  asyncReturn.then((int result) => Expect.equals(result, 11));
+  asyncReturn.then((Object result) => Expect.equals(result, 11));
 
   asyncReturn = topLevelGetter;
   Expect.isTrue(asyncReturn is Future);
-  asyncReturn.then((String result) =>
+  asyncReturn.then((Object result) =>
       Expect.stringEquals(result, 'I want to be an async getter'));
 
   asyncReturn = A.staticMethod(2);
   Expect.isTrue(asyncReturn is Future);
-  asyncReturn.then((int result) => Expect.equals(result, 3));
+  asyncReturn.then((Object result) => Expect.equals(result, 3));
 
   asyncReturn = A.staticGetter;
   Expect.isTrue(asyncReturn is Future);
-  asyncReturn.then((int result) => Expect.equals(result, 4));
+  asyncReturn.then((Object result) => Expect.equals(result, 4));
 
   A a = new A(13);
 
   var b = new A(9);
   asyncReturn = a + b;
   Expect.isTrue(asyncReturn is Future);
-  asyncReturn.then((A result) => Expect.equals(result.value, 22));
+  asyncReturn.then((Object result) => Expect.equals((result as A).value, 22));
 
   var foo = 17;
   bar(int p1, p2) async {
@@ -82,7 +82,7 @@ main() {
 
   asyncReturn = bar(1, 2);
   Expect.isTrue(asyncReturn is Future);
-  asyncReturn.then((int result) => Expect.equals(result, 27));
+  asyncReturn.then((Object result) => Expect.equals(result, 27));
 
   var moreNesting = (int shadowP1, String p2, num p3) {
     var z = 3;
@@ -94,7 +94,7 @@ main() {
   };
   asyncReturn = moreNesting(1, "ignore", 2);
   Expect.isTrue(asyncReturn is Future);
-  asyncReturn.then((num result) => Expect.equals(result, 28));
+  asyncReturn.then((Object result) => Expect.equals(result, 28));
 
   var checkAsync = (var someFunc) {
     var toTest = someFunc();

@@ -53,8 +53,6 @@ import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
-import 'package:analyzer/src/fasta/analyzer_target.dart' show AnalyzerTarget;
-
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
 
@@ -71,6 +69,8 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
 export 'package:testing/testing.dart' show Chain, runMe;
+
+import 'analyzer_target.dart' show AnalyzerTarget;
 
 const String STRONG_MODE = " strong mode ";
 
@@ -239,11 +239,9 @@ class Run extends Step<Uri, int, FastaContext> {
     File generated = new File.fromUri(uri);
     StdioProcess process;
     try {
-      var args = [
-        '--kernel-binaries=${context.platformBinaries.toFilePath()}',
-        generated.path,
-        "Hello, World!"
-      ];
+      var args = ['--kernel-binaries=${context.platformBinaries.toFilePath()}'];
+      if (context.strongMode) args.add('--strong');
+      args.add(generated.path);
       process = await StdioProcess.run(context.vm.toFilePath(), args);
       print(process.output);
     } finally {

@@ -4438,7 +4438,7 @@ class BottomType extends DartType {
 
 @coq
 class InterfaceType extends DartType {
-  final Reference className;
+  Reference className;
   @nocoq
   final List<DartType> typeArguments;
 
@@ -4856,7 +4856,7 @@ class TypeParameter extends TreeNode {
 }
 
 class Supertype extends Node {
-  final Reference className;
+  Reference className;
   final List<DartType> typeArguments;
 
   Supertype(Class classNode, List<DartType> typeArguments)

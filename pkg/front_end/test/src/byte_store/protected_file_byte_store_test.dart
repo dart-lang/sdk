@@ -38,9 +38,7 @@ class ProtectedFileByteStoreTest {
     io.Directory systemTemp = io.Directory.systemTemp;
     cacheDirectory = systemTemp.createTempSync('ProtectedFileByteStoreTest');
     cachePath = cacheDirectory.absolute.path;
-    store = new ProtectedFileByteStore(
-        cachePath, new Duration(milliseconds: 10),
-        cacheSizeBytes: 256, getCurrentTime: _getTime);
+    _createStore();
   }
 
   void tearDown() {
@@ -120,6 +118,18 @@ class ProtectedFileByteStoreTest {
     _assertKeys({'c': 10, 'd': 11});
   }
 
+  test_updateProtectedKeys_add_removeTooOld_nullDuration() {
+    _createStore(protectionDuration: null);
+
+    store.updateProtectedKeys(add: ['a', 'b']);
+    _assertKeys({'a': 0, 'b': 0});
+
+    // Move time far into the future, both 'a' and 'b' are still alive.
+    time = 1 << 30;
+    store.updateProtectedKeys(add: ['c']);
+    _assertKeys({'a': 0, 'b': 0, 'c': time});
+  }
+
   test_updateProtectedKeys_addRemove() {
     store.updateProtectedKeys(add: ['a', 'b', 'c']);
     _assertKeys({'a': 0, 'b': 0, 'c': 0});
@@ -173,6 +183,14 @@ class ProtectedFileByteStoreTest {
     expected.forEach((key, start) {
       expect(keys.map, containsPair(key, start));
     });
+  }
+
+  void _createStore(
+      {Duration protectionDuration: const Duration(milliseconds: 10)}) {
+    store = new ProtectedFileByteStore(cachePath,
+        protectionDuration: protectionDuration,
+        cacheSizeBytes: 256,
+        getCurrentTime: _getTime);
   }
 
   int _getTime() => time;

@@ -6,7 +6,7 @@
 
 main() {
   var foo = -10
-    >>> 1 //# 01: compile-time error
+    >>> 1 //# 01: syntax error
       ;
-  foo >>>= 1; //# 02: compile-time error
+  foo >>>= 1; //# 02: syntax error
 }

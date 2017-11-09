@@ -167,6 +167,16 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return _analyzedNode.accept(this);
   }
 
+  bool isIncompatibleInvoke(FunctionEntity function, ArgumentsTypes arguments) {
+    ParameterStructure parameterStructure = function.parameterStructure;
+
+    return arguments.positional.length <
+            parameterStructure.requiredParameters ||
+        arguments.positional.length > parameterStructure.positionalParameters ||
+        arguments.named.keys
+            .any((name) => !parameterStructure.namedParameters.contains(name));
+  }
+
   void recordReturnType(TypeInformation type) {
     FunctionEntity analyzedMethod = _analyzedMember;
     _returnType =
@@ -204,7 +214,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     DartType type = _localsMap.getLocalType(_elementMap, local);
     _locals.update(local, _inferrer.typeOfParameter(local), node, type);
     if (isOptional) {
-      TypeInformation type = visit(node.initializer);
+      TypeInformation type;
+      if (node.initializer != null) {
+        type = visit(node.initializer);
+      } else {
+        type = _types.nullType;
+      }
       _inferrer.setDefaultTypeOfParameter(local, type,
           isInstanceMember: _analyzedMember.isInstanceMember);
     }
@@ -701,6 +716,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
       ClosureRepresentationInfo info =
           _closureDataLookup.getClosureInfo(receiver.variable.parent);
+      if (isIncompatibleInvoke(info.callMethod, arguments)) {
+        return _types.dynamicType;
+      }
+
       return handleStaticInvoke(
           node, selector, mask, info.callMethod, arguments);
     }
@@ -1555,6 +1574,15 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     return _types.nonNullEmpty();
   }
 
+  TypeInformation handleSuperNoSuchMethod(ir.Node node, Selector selector,
+      TypeMask mask, ArgumentsTypes arguments) {
+    // Ensure we create a node, to make explicit the call to the
+    // `noSuchMethod` handler.
+    FunctionEntity noSuchMethod =
+        _elementMap.getSuperNoSuchMethod(_analyzedMember.enclosingClass);
+    return handleStaticInvoke(node, selector, mask, noSuchMethod, arguments);
+  }
+
   @override
   TypeInformation visitSuperPropertyGet(ir.SuperPropertyGet node) {
     // TODO(herhut): We could do better here if we knew what we
@@ -1564,8 +1592,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
     TypeMask mask = _memberData.typeOfSend(node);
-    return handleStaticInvoke(
-        node, new Selector.getter(member.memberName), mask, member, null);
+    Selector selector = new Selector.getter(_elementMap.getName(node.name));
+    if (member == null) {
+      return handleSuperNoSuchMethod(node, selector, mask, null);
+    } else {
+      return handleStaticInvoke(node, selector, mask, member, null);
+    }
   }
 
   @override
@@ -1578,9 +1610,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     MemberEntity member = _elementMap.getSuperMember(
         _analyzedMember, node.name, node.interfaceTarget);
     TypeMask mask = _memberData.typeOfSend(node);
-    handleStaticInvoke(node, new Selector.setter(member.memberName), mask,
-        member, new ArgumentsTypes([rhsType], null));
-    return rhsType;
+    Selector selector = new Selector.setter(_elementMap.getName(node.name));
+    ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
+    if (member == null) {
+      return handleSuperNoSuchMethod(node, selector, mask, arguments);
+    } else {
+      handleStaticInvoke(node, selector, mask, member, arguments);
+      return rhsType;
+    }
   }
 
   @override
@@ -1594,8 +1631,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = _elementMap.getSelector(node);
     TypeMask mask = _memberData.typeOfSend(node);
-    if (member.isFunction) {
-      return handleStaticInvoke(node, selector, mask, member, arguments);
+    if (member == null) {
+      return handleSuperNoSuchMethod(node, selector, mask, arguments);
+    } else if (member.isFunction) {
+      if (isIncompatibleInvoke(member, arguments)) {
+        return handleSuperNoSuchMethod(node, selector, mask, arguments);
+      } else {
+        return handleStaticInvoke(node, selector, mask, member, arguments);
+      }
     } else {
       return handleClosureCall(node, selector, mask, member, arguments);
     }

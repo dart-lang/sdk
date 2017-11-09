@@ -13,19 +13,27 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-const usage = '''
+final usage = '''
 Usage: binary_bench.dart [--golem] <Benchmark> <SourceDill>
 
-Benchmark can be one of the following:
-
-* ast-to-binary
-* ast-from-binary-lazy
-* ast-from-binary-eager
+Benchmark can be one of: ${benchmarks.keys.join(', ')}
 ''';
 
-enum Mode { astToBinary, astFromBinaryLazy, astFromBinaryEager }
+typedef void Benchmark(Uint8List bytes);
 
-Mode mode;
+final benchmarks = <String, Benchmark>{
+  'AstFromBinaryEager': (Uint8List bytes) {
+    return _benchmarkAstFromBinary(bytes, eager: true);
+  },
+  'AstFromBinaryLazy': (Uint8List bytes) {
+    return _benchmarkAstFromBinary(bytes, eager: false);
+  },
+  'AstToBinary': (Uint8List bytes) {
+    return _benchmarkAstToBinary(bytes);
+  },
+};
+
+Benchmark benchmark;
 File sourceDill;
 bool forGolem = false;
 
@@ -36,17 +44,7 @@ main(List<String> args) async {
   }
 
   final bytes = sourceDill.readAsBytesSync();
-  switch (mode) {
-    case Mode.astFromBinaryLazy:
-      _benchmarkAstFromBinary(bytes, eager: false);
-      break;
-    case Mode.astFromBinaryEager:
-      _benchmarkAstFromBinary(bytes, eager: true);
-      break;
-    case Mode.astToBinary:
-      _benchmarkAstToBinary(bytes);
-      break;
-  }
+  benchmark(bytes);
 }
 
 const warmupIterations = 100;
@@ -149,18 +147,9 @@ bool _parseArgs(List<String> args) {
     args = args.skip(1).toList(growable: false);
   }
 
-  switch (args[0]) {
-    case 'ast-to-binary':
-      mode = Mode.astToBinary;
-      break;
-    case 'ast-from-binary-lazy':
-      mode = Mode.astFromBinaryLazy;
-      break;
-    case 'ast-from-binary-eager':
-      mode = Mode.astFromBinaryEager;
-      break;
-    default:
-      return false;
+  benchmark = benchmarks[args[0]];
+  if (benchmark == null) {
+    return false;
   }
 
   sourceDill = new File(args[1]);

@@ -403,6 +403,9 @@ class TranslationHelper {
   RawFunction* LookupConstructorByKernelConstructor(NameIndex constructor);
   RawFunction* LookupConstructorByKernelConstructor(const Class& owner,
                                                     NameIndex constructor);
+  RawFunction* LookupConstructorByKernelConstructor(
+      const Class& owner,
+      StringIndex constructor_name);
 
   Type& GetCanonicalType(const Class& klass);
 
@@ -412,6 +415,11 @@ class TranslationHelper {
                    const char* format,
                    ...);
   void ReportError(const Error& prev_error, const char* format, ...);
+  void ReportError(const Error& prev_error,
+                   const Script& script,
+                   const TokenPosition position,
+                   const char* format,
+                   ...);
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -419,6 +427,9 @@ class TranslationHelper {
   // returned.  If the name is private, the canonical name [parent] will be used
   // to get the import URI of the library where the name is visible.
   String& ManglePrivateName(NameIndex parent,
+                            String* name_to_modify,
+                            bool symbolize = true);
+  String& ManglePrivateName(const Library& library,
                             String* name_to_modify,
                             bool symbolize = true);
 

@@ -142,6 +142,7 @@ mirror_printer_test: Pass, Slow # Issue 25940, 16473
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 expose_this1_test: RuntimeError # Issue 31254
 expose_this2_test: RuntimeError # Issue 31254
+local_function_call_test: RuntimeError # Issue 31316
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 21666_test: RuntimeError
@@ -149,25 +150,22 @@ closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/default_arg_is_tearoff_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/deferred_class_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/deferred_constant2_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/deferred_constant3_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/deferred_constant4_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/deferred_function_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/deferred_mirrors1_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/deferred_mirrors2_test: RuntimeError
-deferred/deferred_overlapping_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/interface_type_variable_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/multiple_default_arg_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/reflect_multiple_annotations_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/reflect_multiple_default_arg_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/uninstantiated_type_variable_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_custom_loader_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_fail_and_retry_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred_fail_and_retry_worker_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_inheritance_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_split_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
+deferred/deferred_constant3_test: RuntimeError
+deferred/deferred_constant4_test: RuntimeError
+deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred_custom_loader_test: RuntimeError
+deferred_fail_and_retry_test: RuntimeError
+deferred_fail_and_retry_worker_test: Fail
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
 mirror_invalid_field_access2_test: RuntimeError
@@ -207,25 +205,22 @@ unconditional_dartio_import_test: RuntimeError # Issue 30902
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/default_arg_is_tearoff_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/deferred_class_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/deferred_constant2_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/deferred_constant3_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/deferred_constant4_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/deferred_function_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/deferred_mirrors1_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/deferred_mirrors2_test: RuntimeError
-deferred/deferred_overlapping_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/interface_type_variable_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/reflect_multiple_annotations_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/reflect_multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/uninstantiated_type_variable_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_custom_loader_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_fail_and_retry_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_fail_and_retry_worker_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_inheritance_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_split_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
+deferred/deferred_constant3_test: RuntimeError
+deferred/deferred_constant4_test: RuntimeError
+deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred_custom_loader_test: RuntimeError
+deferred_fail_and_retry_test: RuntimeError
+deferred_fail_and_retry_worker_test: Fail
 dummy_compiler_test: CompileTimeError
 invalid_annotation2_test/none: RuntimeError
 label_test/06: MissingCompileTimeError
@@ -260,4 +255,34 @@ string_interpolation_dynamic_test: RuntimeError
 string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
+
+[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+23056_test: Pass
+mirror_enqueuer_regression_test: Pass
+closure_capture2_test: RuntimeError
+constant_javascript_semantics_test/01: MissingCompileTimeError
+deferred/deferred_constant3_test: RuntimeError
+deferred/deferred_constant4_test: RuntimeError
+deferred/deferred_mirrors1_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/uninstantiated_type_variable_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+deferred_custom_loader_test: RuntimeError
+deferred_fail_and_retry_test: RuntimeError
+deferred_fail_and_retry_worker_test: Fail
+dummy_compiler_test: CompileTimeError
+label_test/06: MissingCompileTimeError
+private_symbol_literal_test/01: MissingCompileTimeError
+private_symbol_literal_test/02: MissingCompileTimeError
+private_symbol_literal_test/03: MissingCompileTimeError
+private_symbol_literal_test/04: MissingCompileTimeError
+private_symbol_literal_test/05: MissingCompileTimeError
+private_symbol_literal_test/06: MissingCompileTimeError
+recursive_import_test: CompileTimeError
+regress/4562_test/none: CompileTimeError
+string_interpolation_dynamic_test: RuntimeError
+string_interpolation_test: RuntimeError
+type_constant_switch_test/01: MissingCompileTimeError
+unconditional_dartio_import_test: RuntimeError
 

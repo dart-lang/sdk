@@ -6,6 +6,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
@@ -20,9 +21,9 @@ import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
     show
-        Code,
         Message,
         codeExpectedFunctionBody,
+        messageDirectiveAfterDeclaration,
         messageNativeClauseShouldBeAnnotation;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show Builder, KernelLibraryBuilder, Scope;
@@ -30,14 +31,13 @@ import 'package:front_end/src/fasta/quote.dart';
 import 'package:front_end/src/fasta/scanner/token_constants.dart';
 import 'package:front_end/src/fasta/source/scope_listener.dart'
     show JumpTargetKind, NullValue, ScopeListener;
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:kernel/ast.dart' show AsyncMarker;
 
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends ScopeListener {
   final AstFactory ast = standard.astFactory;
 
-  final ErrorReporter errorReporter;
+  final FastaErrorReporter errorReporter;
   final KernelLibraryBuilder library;
   final Builder member;
 
@@ -74,10 +74,11 @@ class AstBuilder extends ScopeListener {
 
   StringLiteral nativeName;
 
-  AstBuilder(this.errorReporter, this.library, this.member, Scope scope,
-      this.isFullAst,
+  AstBuilder(ErrorReporter errorReporter, this.library, this.member,
+      Scope scope, this.isFullAst,
       [Uri uri])
-      : uri = uri ?? library.fileUri,
+      : this.errorReporter = new FastaErrorReporter(errorReporter),
+        uri = uri ?? library.fileUri,
         super(scope);
 
   createJumpTarget(JumpTargetKind kind, int charOffset) {
@@ -2166,7 +2167,9 @@ class AstBuilder extends ScopeListener {
   AstNode finishFields() {
     debugEvent("finishFields");
 
-    return declarations.removeLast();
+    return classDeclaration != null
+        ? classDeclaration.members.removeAt(classDeclaration.members.length - 1)
+        : declarations.removeLast();
   }
 
   @override
@@ -2352,428 +2355,11 @@ class AstBuilder extends ScopeListener {
 
   @override
   void addCompileTimeError(Message message, int offset, int length) {
-    Code code = message.code;
-    Map<String, dynamic> arguments = message.arguments;
-
-    String stringOrTokenLexeme() {
-      var text = arguments['string'];
-      if (text == null) {
-        Token token = arguments['token'];
-        if (token != null) {
-          text = token.lexeme;
-        }
-      }
-      return text;
+    if (directives.isEmpty &&
+        message.code.analyzerCode == 'NON_PART_OF_DIRECTIVE_IN_PART') {
+      message = messageDirectiveAfterDeclaration;
     }
-
-    switch (code.analyzerCode) {
-      case "ABSTRACT_CLASS_MEMBER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ABSTRACT_CLASS_MEMBER, offset, length);
-        return;
-      case "ANNOTATION_ON_ENUM_CONSTANT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT, offset, length);
-        return;
-      case "ASYNC_FOR_IN_WRONG_CONTEXT":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, offset, length);
-        return;
-      case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, offset, length);
-        return;
-      case "BUILT_IN_IDENTIFIER_AS_TYPE":
-        String name = stringOrTokenLexeme();
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-            offset,
-            length,
-            [name]);
-        return;
-      case "CLASS_IN_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CLASS_IN_CLASS, offset, length);
-        return;
-      case "COLON_IN_PLACE_OF_IN":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COLON_IN_PLACE_OF_IN, offset, length);
-        return;
-      case "CONST_AFTER_FACTORY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_AFTER_FACTORY, offset, length);
-        return;
-      case "CONST_AND_COVARIANT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_AND_COVARIANT, offset, length);
-        return;
-      case "CONST_AND_FINAL":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_AND_FINAL, offset, length);
-        return;
-      case "CONST_AND_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_AND_VAR, offset, length);
-        return;
-      case "CONST_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_CLASS, offset, length);
-        return;
-      case "CONST_FACTORY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.CONST_FACTORY, offset, length);
-        return;
-      case "CONST_NOT_INITIALIZED":
-        String name = arguments['name'];
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
-        return;
-      case "COVARIANT_AFTER_FINAL":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COVARIANT_AFTER_FINAL, offset, length);
-        return;
-      case "COVARIANT_AFTER_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COVARIANT_AFTER_VAR, offset, length);
-        return;
-      case "COVARIANT_AND_STATIC":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COVARIANT_AND_STATIC, offset, length);
-        return;
-      case "DEFAULT_VALUE_IN_FUNCTION_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, offset, length);
-        return;
-      case "COVARIANT_MEMBER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.COVARIANT_MEMBER, offset, length);
-        return;
-      case "DEFERRED_AFTER_PREFIX":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DEFERRED_AFTER_PREFIX, offset, length);
-        return;
-      case "DIRECTIVE_AFTER_DECLARATION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, offset, length);
-        return;
-      case "DUPLICATE_DEFERRED":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_DEFERRED, offset, length);
-        return;
-      case "DUPLICATED_MODIFIER":
-        String text = stringOrTokenLexeme();
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATED_MODIFIER, offset, length, [text]);
-        return;
-      case "DUPLICATE_PREFIX":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.DUPLICATE_PREFIX, offset, length);
-        return;
-      case "EMPTY_ENUM_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EMPTY_ENUM_BODY, offset, length);
-        return;
-      case "ENUM_IN_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.ENUM_IN_CLASS, offset, length);
-        return;
-      case "EXPECTED_EXECUTABLE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);
-        return;
-      case "EXPECTED_STRING_LITERAL":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_STRING_LITERAL, offset, length);
-        return;
-      case "EXPECTED_TOKEN":
-        String text = stringOrTokenLexeme();
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TOKEN, offset, length, [text]);
-        return;
-      case "EXPECTED_TYPE_NAME":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPECTED_TYPE_NAME, offset, length);
-        return;
-      case "EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-            offset,
-            length);
-        return;
-      case "EXTERNAL_AFTER_CONST":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_AFTER_CONST, offset, length);
-        return;
-      case "EXTERNAL_AFTER_FACTORY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_AFTER_FACTORY, offset, length);
-        return;
-      case "EXTERNAL_AFTER_STATIC":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_AFTER_STATIC, offset, length);
-        return;
-      case "EXTERNAL_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_CLASS, offset, length);
-        return;
-      case "EXTERNAL_CONSTRUCTOR_WITH_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, offset, length);
-        return;
-      case "EXTERNAL_ENUM":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_ENUM, offset, length);
-        return;
-      case "EXTERNAL_FIELD":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_FIELD, offset, length);
-        return;
-      case "EXTERNAL_METHOD_WITH_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, offset, length);
-        return;
-      case "EXTERNAL_TYPEDEF":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTERNAL_TYPEDEF, offset, length);
-        return;
-      case "EXTRANEOUS_MODIFIER":
-        String text = stringOrTokenLexeme();
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.EXTRANEOUS_MODIFIER, offset, length, [text]);
-        return;
-      case "FACTORY_TOP_LEVEL_DECLARATION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION, offset, length);
-        return;
-      case "FINAL_AND_COVARIANT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FINAL_AND_COVARIANT, offset, length);
-        return;
-      case "FINAL_AND_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.FINAL_AND_VAR, offset, length);
-        return;
-      case "FINAL_NOT_INITIALIZED":
-        String name = arguments['name'];
-        errorReporter?.reportErrorForOffset(
-            StaticWarningCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
-        return;
-      case "GETTER_WITH_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.GETTER_WITH_PARAMETERS, offset, length);
-        return;
-      case "ILLEGAL_CHARACTER":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
-        return;
-      case "INVALID_AWAIT_IN_FOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_AWAIT_IN_FOR, offset, length);
-        return;
-      case "IMPLEMENTS_BEFORE_EXTENDS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS, offset, length);
-        return;
-      case "IMPLEMENTS_BEFORE_WITH":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.IMPLEMENTS_BEFORE_WITH, offset, length);
-        return;
-      case "IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
-            offset,
-            length);
-        return;
-      case "INVALID_MODIFIER_ON_SETTER":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);
-        return;
-      case "INVALID_OPERATOR_FOR_SUPER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, offset, length);
-        return;
-      case "LIBRARY_DIRECTIVE_NOT_FIRST":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, offset, length);
-        return;
-      case "MISSING_CATCH_OR_FINALLY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CATCH_OR_FINALLY, offset, length);
-        return;
-      case "MISSING_CLASS_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CLASS_BODY, offset, length);
-        return;
-      case "MISSING_CONST_FINAL_VAR_OR_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, offset, length);
-        return;
-      case "MISSING_DIGIT":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.MISSING_DIGIT, offset, length);
-        return;
-      case "MISSING_FUNCTION_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_FUNCTION_PARAMETERS, offset, length);
-        return;
-      case "MISSING_HEX_DIGIT":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
-        return;
-      case "MISSING_METHOD_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_METHOD_PARAMETERS, offset, length);
-        return;
-      case "MISSING_STAR_AFTER_SYNC":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_STAR_AFTER_SYNC, offset, length);
-        return;
-      case "MISSING_TYPEDEF_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, offset, length);
-        return;
-      case "MULTIPLE_EXTENDS_CLAUSES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES, offset, length);
-        return;
-      case "MULTIPLE_IMPLEMENTS_CLAUSES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES, offset, length);
-        return;
-      case "MULTIPLE_LIBRARY_DIRECTIVES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES, offset, length);
-        return;
-      case "MULTIPLE_WITH_CLAUSES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_WITH_CLAUSES, offset, length);
-        return;
-      case "MISSING_FUNCTION_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);
-        return;
-      case "MISSING_FUNCTION_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_FUNCTION_PARAMETERS, offset, length);
-        return;
-      case "MISSING_IDENTIFIER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_IDENTIFIER, offset, length);
-        return;
-      case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, offset, length);
-        return;
-      case "MULTIPLE_PART_OF_DIRECTIVES":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES, offset, length);
-        return;
-      case "NAMED_FUNCTION_EXPRESSION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NAMED_FUNCTION_EXPRESSION, offset, length);
-        return;
-      case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, offset, length);
-        return;
-      case "NON_PART_OF_DIRECTIVE_IN_PART":
-        if (directives.isEmpty) {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, offset, length);
-        } else {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART, offset, length);
-        }
-        return;
-      case "POSITIONAL_AFTER_NAMED_ARGUMENT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, offset, length);
-        return;
-      case "PREFIX_AFTER_COMBINATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
-        return;
-      case "RETURN_IN_GENERATOR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);
-        return;
-      case "STATIC_AFTER_CONST":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_AFTER_CONST, offset, length);
-        return;
-      case "STATIC_AFTER_FINAL":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_AFTER_FINAL, offset, length);
-        return;
-      case "STATIC_AFTER_VAR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_AFTER_VAR, offset, length);
-        return;
-      case "STATIC_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.STATIC_OPERATOR, offset, length);
-        return;
-      case "TOP_LEVEL_OPERATOR":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.TOP_LEVEL_OPERATOR, offset, length);
-        return;
-      case "TYPEDEF_IN_CLASS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
-        return;
-      case "UNEXPECTED_TOKEN":
-        String text = stringOrTokenLexeme();
-        if (text == ';') {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.EXPECTED_TOKEN, offset, length, [text]);
-        } else {
-          errorReporter?.reportErrorForOffset(
-              ParserErrorCode.UNEXPECTED_TOKEN, offset, length, [text]);
-        }
-        return;
-      case "UNTERMINATED_MULTI_LINE_COMMENT":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, offset, length);
-        return;
-      case "UNTERMINATED_STRING_LITERAL":
-        errorReporter?.reportErrorForOffset(
-            ScannerErrorCode.UNTERMINATED_STRING_LITERAL, offset, length);
-        return;
-      case "VAR_AND_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.VAR_AND_TYPE, offset, length);
-        return;
-      case "VAR_RETURN_TYPE":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.VAR_RETURN_TYPE, offset, length);
-        return;
-      case "WITH_BEFORE_EXTENDS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.WITH_BEFORE_EXTENDS, offset, length);
-        return;
-      case "WITH_WITHOUT_EXTENDS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.WITH_WITHOUT_EXTENDS, offset, length);
-        return;
-      case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-            offset,
-            length);
-        return;
-      case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
-            offset,
-            length);
-        return;
-      case "YIELD_IN_NON_GENERATOR":
-        errorReporter?.reportErrorForOffset(
-            CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, offset, length);
-        return;
-      default:
-      // fall through
-    }
+    errorReporter.reportMessage(message, offset, length);
   }
 
   /// Return `true` if [token] is either `null` or is the symbol or keyword

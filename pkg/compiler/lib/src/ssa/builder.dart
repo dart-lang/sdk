@@ -32,6 +32,7 @@ import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
+import '../resolution/deferred_load.dart' show AstDeferredLoadTask;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
@@ -186,6 +187,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   final JavaScriptBackend backend;
 
   Compiler get compiler => backend.compiler;
+
+  AstDeferredLoadTask get deferredLoadTask => super.deferredLoadTask;
 
   final ConstantSystem constantSystem;
   final RuntimeTypesSubstitutions rtiSubstitutions;
@@ -532,7 +535,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
       // Don't inline across deferred import to prevent leaking code. The only
       // exception is an empty function (which does not contain code).
-      bool hasOnlyNonDeferredImportPaths = deferredLoadTask
+      bool hasOnlyNonDeferredImportPaths = backend.outputUnitData
           .hasOnlyNonDeferredImportPaths(compiler.currentElement, function);
 
       if (!hasOnlyNonDeferredImportPaths) {
@@ -2106,15 +2109,14 @@ class SsaAstGraphBuilder extends ast.Visitor
         sourceInformation: sourceInformationBuilder.buildGet(send));
   }
 
-  /// Inserts a call to checkDeferredIsLoaded for [prefixElement].
-  /// If [prefixElement] is [null] ndo nothing.
+  /// Inserts a call to checkDeferredIsLoaded for a deferred [import].
+  /// If [import] is [null], do nothing.
   void generateIsDeferredLoadedCheckIfNeeded(
-      PrefixElement prefixElement, ast.Node location) {
-    if (prefixElement == null) return;
-    String loadId =
-        deferredLoadTask.getImportDeferName(location, prefixElement);
+      ImportElement import, ast.Node location) {
+    if (import == null) return;
+    String loadId = deferredLoadTask.getImportDeferName(location, import);
     HInstruction loadIdConstant = addConstantString(loadId);
-    String uri = prefixElement.deferredImport.uri.toString();
+    String uri = import.uri.toString();
     HInstruction uriConstant = addConstantString(uri);
     MethodElement helper = commonElements.checkDeferredIsLoaded;
     pushInvokeStatic(location, helper, [loadIdConstant, uriConstant]);
@@ -2125,7 +2127,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   /// resolves to a deferred library.
   void generateIsDeferredLoadedCheckOfSend(ast.Send node) {
     generateIsDeferredLoadedCheckIfNeeded(
-        deferredLoadTask.deferredPrefixElement(node, elements), node);
+        deferredLoadTask.deferredImportElement(node, elements), node);
   }
 
   void handleInvalidStaticGet(ast.Send node, Element element) {
@@ -2158,11 +2160,11 @@ class SsaAstGraphBuilder extends ast.Visitor
     HConstant instruction;
     // Constants that are referred via a deferred prefix should be referred
     // by reference.
-    PrefixElement prefix =
-        deferredLoadTask.deferredPrefixElement(node, elements);
-    if (prefix != null) {
+    ImportElement deferredImport =
+        deferredLoadTask.deferredImportElement(node, elements);
+    if (deferredImport != null) {
       instruction = graph.addDeferredConstant(
-          value, prefix, sourceInformation, compiler, closedWorld);
+          value, deferredImport, sourceInformation, compiler, closedWorld);
     } else {
       instruction = graph.addConstant(value, closedWorld,
           sourceInformation: sourceInformation);
@@ -2182,7 +2184,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
-    generateIsDeferredLoadedCheckIfNeeded(prefix, node);
+    generateIsDeferredLoadedCheckIfNeeded(prefix.deferredImport, node);
   }
 
   /// Read a static or top level [field].
@@ -3062,7 +3064,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
     FunctionEntity loadFunction = commonElements.loadLibraryWrapper;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
-    String loadId = deferredLoadTask.getImportDeferName(node, prefixElement);
+    String loadId =
+        deferredLoadTask.getImportDeferName(node, prefixElement.deferredImport);
     var inputs = [graph.addConstantString(loadId, closedWorld)];
     push(new HInvokeStatic(loadFunction, inputs, commonMasks.nonNullType,
         targetCanThrow: false)
@@ -3422,7 +3425,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       while (target.isRedirectingFactory) {
         if (constructorDeclaration.redirectionDeferredPrefix != null) {
           generateIsDeferredLoadedCheckIfNeeded(
-              target.redirectionDeferredPrefix, node);
+              target.redirectionDeferredPrefix.deferredImport, node);
         }
         target = target.immediateRedirectionTarget;
       }

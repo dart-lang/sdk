@@ -7,7 +7,7 @@
 class StringInterpolation3NegativeTest {
   static testMain() {
     // Dollar followed by a number.
-    print('F;P4;F$2R'); //# 01: compile-time error
+    print('F;P4;F$2R'); //# 01: syntax error
   }
 }
 

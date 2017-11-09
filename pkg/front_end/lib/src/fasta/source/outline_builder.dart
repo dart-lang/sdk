@@ -20,7 +20,6 @@ import '../fasta_codes.dart'
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
         templateDuplicatedParameterNameCause,
-        templateCouldNotParseUri,
         templateOperatorMinusParameterMismatch,
         templateOperatorParameterMismatch0,
         templateOperatorParameterMismatch1,
@@ -150,13 +149,11 @@ class OutlineBuilder extends UnhandledListener {
     debugEvent("Export");
     List<Combinator> combinators = pop();
     Unhandled conditionalUris = pop();
-    popCharOffset();
+    int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    if (uri != null) {
-      library.addExport(metadata, uri, conditionalUris, combinators,
-          exportKeyword.charOffset);
-    }
+    library.addExport(metadata, uri, conditionalUris, combinators,
+        exportKeyword.charOffset, uriOffset);
     checkEmpty(exportKeyword.charOffset);
   }
 
@@ -183,20 +180,8 @@ class OutlineBuilder extends UnhandledListener {
     int uriOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    if (uri != null) {
-      try {
-        library.addImport(metadata, uri, conditionalUris, prefix, combinators,
-            isDeferred, importKeyword.charOffset, prefixOffset);
-      } on FormatException catch (e) {
-        // Point to position in string indicated by the exception,
-        // or to the initial quote if no position is given.
-        // (Assumes the import is using a single-line string.)
-        addCompileTimeError(
-            templateCouldNotParseUri.withArguments(uri, e.message),
-            uriOffset + 1 + (e.offset ?? -1),
-            1);
-      }
-    }
+    library.addImport(metadata, uri, conditionalUris, prefix, combinators,
+        isDeferred, importKeyword.charOffset, prefixOffset, uriOffset);
     checkEmpty(importKeyword.charOffset);
   }
 
@@ -223,9 +208,7 @@ class OutlineBuilder extends UnhandledListener {
     int charOffset = popCharOffset();
     String uri = pop();
     List<MetadataBuilder> metadata = pop();
-    if (uri != null) {
-      library.addPart(metadata, uri, charOffset);
-    }
+    library.addPart(metadata, uri, charOffset);
     checkEmpty(partKeyword.charOffset);
   }
 
@@ -890,13 +873,13 @@ class OutlineBuilder extends UnhandledListener {
   void endPartOf(
       Token partKeyword, Token ofKeyword, Token semicolon, bool hasName) {
     debugEvent("endPartOf");
-    popCharOffset();
+    int charOffset = popCharOffset();
     Object containingLibrary = pop();
     List<MetadataBuilder> metadata = pop();
     if (hasName) {
-      library.addPartOf(metadata, "$containingLibrary", null);
+      library.addPartOf(metadata, "$containingLibrary", null, charOffset);
     } else {
-      library.addPartOf(metadata, null, containingLibrary);
+      library.addPartOf(metadata, null, containingLibrary, charOffset);
     }
   }
 
@@ -1001,6 +984,12 @@ class OutlineBuilder extends UnhandledListener {
   void endMember() {
     debugEvent("Member");
     assert(nativeMethodName == null);
+  }
+
+  @override
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    debugEvent("ClassHeader");
+    nativeMethodName = null;
   }
 
   @override

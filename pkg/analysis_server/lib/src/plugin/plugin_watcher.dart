@@ -53,17 +53,23 @@ class PluginWatcher implements DriverWatcher {
     _driverInfo[driver] = new _DriverInfo(
         contextRoot, <String>[contextRoot.root, _getSdkPath(driver)]);
     List<String> enabledPlugins = driver.analysisOptions.enabledPluginNames;
-    for (String package in enabledPlugins) {
+    for (String hostPackageName in enabledPlugins) {
       //
       // Determine whether the package exists and defines a plugin.
       //
-      Source source =
-          driver.sourceFactory.forUri('package:$package/$package.dart');
-      if (source != null) {
+      String uri = 'package:$hostPackageName/$hostPackageName.dart';
+      Source source = driver.sourceFactory.forUri(uri);
+      if (source == null) {
+        manager.recordPluginFailure(hostPackageName,
+            'Could not resolve "$uri" in ${contextRoot.root}.');
+      } else {
         Context context = resourceProvider.pathContext;
         String packageRoot = context.dirname(context.dirname(source.fullName));
         String pluginPath = _locator.findPlugin(packageRoot);
-        if (pluginPath != null) {
+        if (pluginPath == null) {
+          manager.recordPluginFailure(
+              hostPackageName, 'Could not find plugin in "$packageRoot".');
+        } else {
           //
           // Add the plugin to the context root.
           //

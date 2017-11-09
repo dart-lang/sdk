@@ -210,6 +210,9 @@ main() {
       expect(l.y, equals("foo"));
       expect(l.z, isNull);
       expect(stringify(l), equals('{"x":3,"y":"foo"}'));
+      var l2 = new ExampleLiteral(y: "foo", x: 3);
+      expect(l2.x, equals(l.x));
+      expect(l2.y, equals(l.y));
       l = new ExampleLiteral(z: 100);
       expect(l.x, isNull);
       expect(l.y, isNull);

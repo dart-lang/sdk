@@ -152,7 +152,11 @@ class Utf8BytesScanner extends ArrayBasedScanner {
       scanSlackOffset = byteOffset;
       stringOffsetSlackOffset = byteOffset;
       // In case of a surrogate pair, return a single code point.
-      return codePoint.runes.single;
+      // Gracefully degrade given invalid UTF-8.
+      var runes = codePoint.runes.iterator;
+      if (!runes.moveNext()) return unicodeReplacementCharacter;
+      var codeUnit = runes.current;
+      return !runes.moveNext() ? codeUnit : unicodeReplacementCharacter;
     } else {
       return unicodeReplacementCharacter;
     }

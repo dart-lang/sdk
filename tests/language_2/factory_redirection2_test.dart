@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 class Foo {
   Foo()
-  = Bar //# 01: compile-time error
+  = Bar //# 01: syntax error
   ;
 }
 

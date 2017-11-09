@@ -70,23 +70,18 @@ class BinaryPrinter extends Visitor implements BinarySink {
   void writeUInt30(int value) {
     assert(value >= 0 && value >> 30 == 0);
     if (value < 0x80) {
-      writeByte(value);
+      _sink.addByte(value);
     } else if (value < 0x4000) {
-      writeByte((value >> 8) | 0x80);
-      writeByte(value & 0xFF);
+      _sink.addByte2((value >> 8) | 0x80, value & 0xFF);
     } else {
-      writeByte((value >> 24) | 0xC0);
-      writeByte((value >> 16) & 0xFF);
-      writeByte((value >> 8) & 0xFF);
-      writeByte(value & 0xFF);
+      _sink.addByte4((value >> 24) | 0xC0, (value >> 16) & 0xFF,
+          (value >> 8) & 0xFF, value & 0xFF);
     }
   }
 
   void writeUInt32(int value) {
-    writeByte((value >> 24) & 0xFF);
-    writeByte((value >> 16) & 0xFF);
-    writeByte((value >> 8) & 0xFF);
-    writeByte(value & 0xFF);
+    _sink.addByte4((value >> 24) & 0xFF, (value >> 16) & 0xFF,
+        (value >> 8) & 0xFF, value & 0xFF);
   }
 
   void writeByteList(List<int> utf8Bytes) {
@@ -138,7 +133,12 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   void writeNodeList(List<Node> nodes) {
-    writeList(nodes, writeNode);
+    final len = nodes.length;
+    writeUInt30(len);
+    for (var i = 0; i < len; i++) {
+      final node = nodes[i];
+      writeNode(node);
+    }
   }
 
   void writeNode(Node node) {
@@ -584,7 +584,12 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   void writeAnnotationList(List<Expression> annotations) {
-    writeList(annotations, writeAnnotation);
+    final len = annotations.length;
+    writeUInt30(len);
+    for (var i = 0; i < len; i++) {
+      final annotation = annotations[i];
+      writeAnnotation(annotation);
+    }
   }
 
   int _encodeClassFlags(bool isAbstract, bool isEnum,
@@ -734,9 +739,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
     assert(_variableIndexer != null);
     _variableIndexer.pushScope();
     var oldLabels = _labelIndexer;
-    _labelIndexer = new LabelIndexer();
+    _labelIndexer = null;
     var oldCases = _switchCaseIndexer;
-    _switchCaseIndexer = new SwitchCaseIndexer();
+    _switchCaseIndexer = null;
     // Note: FunctionNode has no tag.
     _typeParameterIndexer.enter(node.typeParameters);
     writeOffset(node.fileOffset);
@@ -1145,6 +1150,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   visitLabeledStatement(LabeledStatement node) {
+    if (_labelIndexer == null) {
+      _labelIndexer = new LabelIndexer();
+    }
     _labelIndexer.enter(node);
     writeByte(Tag.LabeledStatement);
     writeNode(node.body);
@@ -1194,6 +1202,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   visitSwitchStatement(SwitchStatement node) {
+    if (_switchCaseIndexer == null) {
+      _switchCaseIndexer = new SwitchCaseIndexer();
+    }
     _switchCaseIndexer.enter(node);
     writeByte(Tag.SwitchStatement);
     writeOffset(node.fileOffset);
@@ -1506,10 +1517,13 @@ class StringIndexer {
   int get numberOfStrings => index.length;
 
   int put(String string) {
-    return index.putIfAbsent(string, () {
+    var result = index[string];
+    if (result == null) {
       entries.add(new StringTableEntry(string));
-      return index.length;
-    });
+      result = index.length;
+      index[string] = result;
+    }
+    return result;
   }
 
   int operator [](String string) => index[string];
@@ -1565,6 +1579,7 @@ class GlobalIndexer extends TreeVisitor {
 /// Puts a buffer in front of a [Sink<List<int>>].
 class BufferedSink {
   static const int SIZE = 100000;
+  static const int SAFE_SIZE = SIZE - 5;
   static const int SMALL = 10000;
   final Sink<List<int>> _sink;
   Uint8List _buffer = new Uint8List(SIZE);
@@ -1580,6 +1595,30 @@ class BufferedSink {
       _buffer = new Uint8List(SIZE);
       length = 0;
       flushedLength += SIZE;
+    }
+  }
+
+  void addByte2(int byte1, int byte2) {
+    if (length < SAFE_SIZE) {
+      _buffer[length++] = byte1;
+      _buffer[length++] = byte2;
+    } else {
+      addByte(byte1);
+      addByte(byte2);
+    }
+  }
+
+  void addByte4(int byte1, int byte2, int byte3, int byte4) {
+    if (length < SAFE_SIZE) {
+      _buffer[length++] = byte1;
+      _buffer[length++] = byte2;
+      _buffer[length++] = byte3;
+      _buffer[length++] = byte4;
+    } else {
+      addByte(byte1);
+      addByte(byte2);
+      addByte(byte3);
+      addByte(byte4);
     }
   }
 

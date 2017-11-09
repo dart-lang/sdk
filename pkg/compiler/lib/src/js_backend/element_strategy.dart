@@ -11,6 +11,7 @@ import '../common/codegen.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../compiler.dart';
+import '../deferred_load.dart' show OutputUnitData;
 import '../elements/elements.dart';
 import '../enqueue.dart';
 import '../inferrer/type_graph_inferrer.dart' show AstTypeGraphInferrer;
@@ -61,6 +62,9 @@ class ElementBackendStrategy extends ComputeSpannableMixin
         closedWorld,
         selectorConstraintsStrategy);
   }
+
+  @override
+  OutputUnitData convertOutputUnitData(OutputUnitData data) => data;
 
   @override
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {

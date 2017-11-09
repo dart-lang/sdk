@@ -62,7 +62,8 @@ class VmTarget extends Target {
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {
-    transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries);
+    transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
+        doSuperResolution: false /* resolution is done in Dart VM */);
     logger?.call("Transformed mixin applications");
 
     // TODO(kmillikin): Make this run on a per-method basis.
@@ -99,13 +100,19 @@ class VmTarget extends Target {
               arguments.types.map((t) => new TypeLiteral(t)).toList(),
               arguments.fileOffset),
           _fixedLengthList(arguments.positional, arguments.fileOffset),
-          new MapLiteral(new List<MapEntry>.from(
-              arguments.named.map((NamedExpression arg) {
-            return new MapEntry(
-                new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
-                arg.value)
-              ..fileOffset = arg.fileOffset;
-          })))
+          new StaticInvocation(
+              coreTypes.mapUnmodifiable,
+              new Arguments([
+                new MapLiteral(new List<MapEntry>.from(
+                    arguments.named.map((NamedExpression arg) {
+                  return new MapEntry(
+                      new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
+                      arg.value)
+                    ..fileOffset = arg.fileOffset;
+                })))
+                  ..isConst = (arguments.named.length == 0)
+                  ..fileOffset = arguments.fileOffset
+              ]))
             ..fileOffset = arguments.fileOffset,
           new BoolLiteral(isSuper)..fileOffset = arguments.fileOffset
         ]))
@@ -149,14 +156,24 @@ class VmTarget extends Target {
                     arguments.types.map((t) => new TypeLiteral(t)).toList(),
                     arguments.fileOffset),
                 _fixedLengthList(arguments.positional, arguments.fileOffset),
-                new MapLiteral(new List<MapEntry>.from(
-                    arguments.named.map((NamedExpression arg) {
-                  return new MapEntry(
-                      new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
-                      arg.value)
-                    ..fileOffset = arg.fileOffset;
-                })))
-                  ..fileOffset = arguments.fileOffset
+                new StaticInvocation(
+                    coreTypes.mapUnmodifiable,
+                    new Arguments([
+                      new MapLiteral(new List<MapEntry>.from(
+                          arguments.named.map((NamedExpression arg) {
+                        return new MapEntry(
+                            new SymbolLiteral(arg.name)
+                              ..fileOffset = arg.fileOffset,
+                            arg.value)
+                          ..fileOffset = arg.fileOffset;
+                      })))
+                        ..isConst = (arguments.named.length == 0)
+                        ..fileOffset = arguments.fileOffset
+                    ], types: [
+                      new DynamicType(),
+                      new DynamicType()
+                    ]))
+                  ..fileOffset = offset
               ]))
         ]));
   }
@@ -235,6 +252,12 @@ class VmTarget extends Target {
     // list first, and then populate it. That would create fewer objects. But as
     // this is currently only used in (statically resolved) no-such-method
     // handling, the current approach seems sufficient.
+
+    // The 0-element list must be exactly 'const[]'.
+    if (elements.length == 0) {
+      return new ListLiteral([])..isConst = true;
+    }
+
     return new MethodInvocation(
         new ListLiteral(elements)..fileOffset = offset,
         new Name("toList"),

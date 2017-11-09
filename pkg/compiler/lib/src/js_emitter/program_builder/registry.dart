@@ -68,7 +68,7 @@ class LibrariesMap {
 ///
 /// Registered holders are assigned a name.
 class Registry {
-  final DeferredLoadTask _deferredLoadTask;
+  final OutputUnit _mainOutputUnit;
   final Sorter _sorter;
   final Map<String, Holder> _holdersMap = <String, Holder>{};
   final Map<OutputUnit, LibrariesMap> _deferredLibrariesMap =
@@ -87,9 +87,7 @@ class Registry {
 
   LibrariesMap mainLibrariesMap;
 
-  Registry(this._deferredLoadTask, this._sorter);
-
-  OutputUnit get _mainOutputUnit => _deferredLoadTask.mainOutputUnit;
+  Registry(this._mainOutputUnit, this._sorter);
 
   LibrariesMap _mapUnitToLibrariesMap(OutputUnit targetUnit) {
     if (targetUnit == _lastOutputUnit) return _lastLibrariesMap;
@@ -107,8 +105,7 @@ class Registry {
   void registerOutputUnit(OutputUnit outputUnit) {
     if (outputUnit == _mainOutputUnit) {
       assert(mainLibrariesMap == null);
-      mainLibrariesMap =
-          new LibrariesMap.main(_deferredLoadTask.mainOutputUnit);
+      mainLibrariesMap = new LibrariesMap.main(_mainOutputUnit);
     } else {
       assert(!_deferredLibrariesMap.containsKey(outputUnit));
       String name = outputUnit.name;

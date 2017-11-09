@@ -13,26 +13,26 @@ class Foo {
   Foo() : x = 0;
 
   // fields can't be declared external
-  external var x01; // //# 01: compile-time error
-  external int x02; // //# 02: compile-time error
+  external var x01; // //# 01: syntax error
+  external int x02; // //# 02: syntax error
 
   external f10(); //  //# 10: runtime error
-  external f11() { } // //# 11: compile-time error
-  external f12() => 1; // //# 12: compile-time error
+  external f11() { } // //# 11: syntax error
+  external f12() => 1; // //# 12: syntax error
   external static f13(); // //# 13: runtime error
-  static external f14(); // //# 14: compile-time error
-  int external f16(); // //# 16: compile-time error
+  static external f14(); // //# 14: syntax error
+  int external f16(); // //# 16: syntax error
 
   external Foo.n20(val); // //# 20: runtime error
   external Foo.n21(val) : x = 1; // //# 21: runtime error
-  external Foo.n22(val) { x = 1; } // //# 22: compile-time error
-  external factory Foo.n23(val) => new Foo(); // //# 23: compile-time error
+  external Foo.n22(val) { x = 1; } // //# 22: syntax error
+  external factory Foo.n23(val) => new Foo(); // //# 23: syntax error
   external Foo.n24(this.x); // //# 24: runtime error
-  external factory Foo.n25(val) = Bar; // //# 25: compile-time error
+  external factory Foo.n25(val) = Bar; // //# 25: syntax error
 }
 
-external int t06(int i) { } // //# 30: compile-time error
-external int t07(int i) => i + 1; // //# 31: compile-time error
+external int t06(int i) { } // //# 30: syntax error
+external int t07(int i) => i + 1; // //# 31: syntax error
 
 main() {
   // Ensure Foo class is compiled.

@@ -19,7 +19,7 @@ bool _isJSLibrary(Library library) {
 
 bool _annotationIsFromJSLibrary(String expectedName, Expression value) {
   if (value is ConstructorInvocation) {
-    var c = value.constructedType.classNode;
+    var c = value.target.enclosingClass;
     return c.name == expectedName && _isJSLibrary(getLibrary(c));
   }
   return false;
@@ -47,7 +47,7 @@ bool isJSAnonymousAnnotation(Expression value) =>
 bool _isBuiltinAnnotation(
     Expression value, String libraryName, String annotationName) {
   if (value is ConstructorInvocation) {
-    var c = value.constructedType.classNode;
+    var c = value.target.enclosingClass;
     if (c.name == annotationName) {
       var uri = c.enclosingLibrary.importUri;
       return uri.scheme == 'dart' && uri.pathSegments[0] == libraryName;
@@ -86,7 +86,8 @@ bool isJSAnonymousType(Class namedClass) {
       findAnnotation(namedClass, isJSAnonymousAnnotation) != null;
 }
 
-bool isJSReference(NamedNode n) {
+// TODO(jmesserly): rename this after port
+bool isJSElement(NamedNode n) {
   var library = getLibrary(n);
   return library != null &&
       _isJSNative(library) &&

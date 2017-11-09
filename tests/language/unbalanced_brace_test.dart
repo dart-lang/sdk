@@ -6,11 +6,11 @@
 
 class A {
   m() {
-  /* //# 01: compile-time error
+  /* //# 01: syntax error
   }
   // */
 
-/* //# 02: compile-time error
+/* //# 02: syntax error
 }
 // */
 

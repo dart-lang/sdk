@@ -19,8 +19,8 @@ public class SpecParser {
   }
 
   private static void compileTimeErrorExit() {
-    // Terminate with exit code indicating compile-time error.
-    System.exit(254);
+    // Terminate with exit code indicating a parse error.
+    System.exit(245);
   }
 
   private static void helpAndExit() {
@@ -54,7 +54,8 @@ public class SpecParser {
       result = parseFiles(lineArgs);
       // Write stderr end token and flush.
       System.err.println(">>> EOF STDERR");
-      String resultPassString = result.numberOfFailures == 0 ? "PASS" : "FAIL";
+      String resultPassString =
+          result.numberOfFailures == 0 ? "PASS" : "PARSE_FAIL";
       System.out.println(">>> TEST " + resultPassString + " " +
           (System.currentTimeMillis() - startTime) + "ms");
       startTime = System.currentTimeMillis();

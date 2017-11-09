@@ -109,7 +109,7 @@ class TypeVariableCodegenAnalysis {
       TypeVariableEntity typeVariableElement = currentTypeVariable.element;
 
       // TODO(sigmund): use output unit for `cls` (Issue #31032)
-      OutputUnit outputUnit = _backend.compiler.deferredLoadTask.mainOutputUnit;
+      OutputUnit outputUnit = _backend.outputUnitData.mainOutputUnit;
       jsAst.Expression boundIndex = _metadataCollector.reifyType(
           _elementEnvironment.getTypeVariableBound(typeVariableElement),
           outputUnit);

@@ -4,9 +4,17 @@
 
 /*@testedFeatures=warning*/
 
-test(int i, String s) {
+class A {
+  String operator +(int i) => '';
+}
+
+test(int i, String s, A a) {
+  i = 1;
   /*@warning=InvalidAssignment*/ i = s;
+  i ??= 1;
   /*@warning=InvalidAssignment*/ i ??= s;
+  a = new A();
+  /*@warning=InvalidAssignment*/ a += 1;
 }
 
 main() {}

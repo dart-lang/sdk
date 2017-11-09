@@ -29,6 +29,7 @@
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
 #include "vm/json_parser.h"
+#include "vm/json_writer.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -660,6 +661,182 @@ static Dart_QualifiedFunctionName vm_entry_points[] = {
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
 };
 
+class PrecompilerEntryPointsPrinter : public ValueObject {
+ public:
+  explicit PrecompilerEntryPointsPrinter(Zone* zone);
+
+  void AddInstantiatedClass(const Class& cls);
+  void AddEntryPoint(const Object& entry_point);
+
+  void Print();
+
+ private:
+  Zone* zone() const { return zone_; }
+
+  void DescribeClass(JSONWriter* writer, const Class& cls);
+
+  Zone* zone_;
+  const GrowableObjectArray& instantiated_classes_;
+  const GrowableObjectArray& entry_points_;
+};
+
+PrecompilerEntryPointsPrinter::PrecompilerEntryPointsPrinter(Zone* zone)
+    : zone_(zone),
+      instantiated_classes_(GrowableObjectArray::Handle(
+          zone,
+          FLAG_print_precompiler_entry_points ? GrowableObjectArray::New()
+                                              : GrowableObjectArray::null())),
+      entry_points_(GrowableObjectArray::Handle(
+          zone,
+          FLAG_print_precompiler_entry_points ? GrowableObjectArray::New()
+                                              : GrowableObjectArray::null())) {}
+
+void PrecompilerEntryPointsPrinter::AddInstantiatedClass(const Class& cls) {
+  if (!FLAG_print_precompiler_entry_points) {
+    return;
+  }
+
+  if (!cls.is_abstract()) {
+    instantiated_classes_.Add(cls);
+  }
+}
+
+void PrecompilerEntryPointsPrinter::AddEntryPoint(const Object& entry_point) {
+  ASSERT(entry_point.IsFunction() || entry_point.IsField());
+
+  if (!FLAG_print_precompiler_entry_points) {
+    return;
+  }
+  entry_points_.Add(entry_point);
+}
+
+// Prints precompiler entry points as JSON.
+// The format is described in [entry_points_json.md].
+void PrecompilerEntryPointsPrinter::Print() {
+  if (!FLAG_print_precompiler_entry_points) {
+    return;
+  }
+
+  JSONWriter writer;
+
+  writer.OpenObject();
+
+  writer.OpenArray("roots");
+
+  for (intptr_t i = 0; i < instantiated_classes_.Length(); ++i) {
+    const Class& cls = Class::CheckedHandle(Z, instantiated_classes_.At(i));
+
+    writer.OpenObject();
+    DescribeClass(&writer, cls);
+    writer.PrintProperty("action", "create-instance");
+    writer.CloseObject();
+  }
+
+  for (intptr_t i = 0; i < entry_points_.Length(); ++i) {
+    const Object& entry_point = Object::Handle(Z, entry_points_.At(i));
+
+    if (entry_point.IsFunction()) {
+      const Function& func = Function::Cast(entry_point);
+
+      writer.OpenObject();
+      DescribeClass(&writer, Class::Handle(Z, func.Owner()));
+
+      String& name = String::Handle(Z);
+      if (func.IsGetterFunction() || func.IsImplicitGetterFunction() ||
+          (func.kind() == RawFunction::kImplicitStaticFinalGetter)) {
+        name = func.name();
+        name = Field::NameFromGetter(name);
+        name = String::ScrubName(name);
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "get");
+      } else if (func.IsSetterFunction() || func.IsImplicitSetterFunction()) {
+        name = func.name();
+        name = Field::NameFromSetter(name);
+        name = String::ScrubName(name);
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "set");
+      } else {
+        name = func.UserVisibleName();
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "call");
+      }
+      writer.CloseObject();
+    } else {
+      const Field& field = Field::Cast(entry_point);
+      const Class& owner = Class::Handle(Z, field.Owner());
+      const String& name = String::Handle(Z, field.UserVisibleName());
+
+      {
+        writer.OpenObject();
+        DescribeClass(&writer, owner);
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "get");
+        writer.CloseObject();
+      }
+
+      {
+        writer.OpenObject();
+        DescribeClass(&writer, owner);
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "set");
+        writer.CloseObject();
+      }
+    }
+  }
+
+  writer.CloseArray();  // roots
+
+  writer.OpenObject("native-methods");
+
+  GrowableObjectArray& recognized_methods = GrowableObjectArray::Handle(
+      Z, MethodRecognizer::QueryRecognizedMethods(Z));
+  ASSERT(!recognized_methods.IsNull());
+
+  for (intptr_t i = 0; i < recognized_methods.Length(); ++i) {
+    const Function& func = Function::CheckedHandle(Z, recognized_methods.At(i));
+    if (!func.is_native()) {
+      continue;
+    }
+
+    intptr_t result_cid = MethodRecognizer::ResultCid(func);
+    if (result_cid == kDynamicCid) {
+      continue;
+    }
+
+    ASSERT(Isolate::Current()->class_table()->HasValidClassAt(result_cid));
+
+    writer.OpenArray(String::Handle(func.native_name()).ToCString());
+    writer.OpenObject();
+
+    writer.PrintProperty("action", "return");
+
+    const Class& result_cls =
+        Class::Handle(Isolate::Current()->class_table()->At(result_cid));
+    DescribeClass(&writer, result_cls);
+
+    writer.PrintProperty("nullable", "false");
+
+    writer.CloseObject();
+    writer.CloseArray();
+  }
+
+  writer.CloseObject();  // native-methods
+
+  writer.CloseObject();  // top-level
+
+  THR_Print("%s\n", writer.ToCString());
+}
+
+void PrecompilerEntryPointsPrinter::DescribeClass(JSONWriter* writer,
+                                                  const Class& cls) {
+  const Library& library = Library::Handle(Z, cls.library());
+  writer->PrintPropertyStr("library", String::Handle(Z, library.url()));
+
+  if (!cls.IsTopLevel()) {
+    writer->PrintPropertyStr("class", String::Handle(Z, cls.ScrubbedName()));
+  }
+}
+
 void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   // Note that <rootlibrary>.main is not a root. The appropriate main will be
   // discovered through _getMainClosure.
@@ -667,6 +844,8 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   AddSelector(Symbols::NoSuchMethod());
 
   AddSelector(Symbols::Call());  // For speed, not correctness.
+
+  PrecompilerEntryPointsPrinter entry_points_printer(zone());
 
   // Allocated from C++.
   Class& cls = Class::Handle(Z);
@@ -682,10 +861,14 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     }
     cls = isolate()->class_table()->At(cid);
     AddInstantiatedClass(cls);
+    entry_points_printer.AddInstantiatedClass(cls);
   }
 
-  AddEntryPoints(vm_entry_points);
-  AddEntryPoints(embedder_entry_points);
+  AddEntryPoints(vm_entry_points, &entry_points_printer);
+  AddEntryPoints(embedder_entry_points, &entry_points_printer);
+
+  entry_points_printer.Print();
+
   const Library& lib = Library::Handle(I->object_store()->root_library());
   const String& name = String::Handle(String::New("main"));
   const Object& main_closure = Object::Handle(lib.GetFunctionClosure(name));
@@ -709,7 +892,9 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   }
 }
 
-void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
+void Precompiler::AddEntryPoints(
+    Dart_QualifiedFunctionName entry_points[],
+    PrecompilerEntryPointsPrinter* entry_points_printer) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Function& func = Function::Handle(Z);
@@ -773,6 +958,7 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
 
     if (!func.IsNull()) {
       AddFunction(func);
+      entry_points_printer->AddEntryPoint(func);
       if (func.IsGenerativeConstructor()) {
         // Allocation stubs are referenced from the call site of the
         // constructor, not in the constructor itself. So compiling the
@@ -780,10 +966,12 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
         // instantiated if the class isn't otherwise instantiated from Dart
         // code and only instantiated from C++.
         AddInstantiatedClass(cls);
+        entry_points_printer->AddInstantiatedClass(cls);
       }
     }
     if (!field.IsNull()) {
       AddField(field);
+      entry_points_printer->AddEntryPoint(field);
     }
   }
 }
@@ -1239,8 +1427,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
                                         parsed_function,
                                         /* optimized = */ true);
-  bool success = helper.Compile(&pipeline);
-  ASSERT(success);
+  helper.Compile(&pipeline);
 
   if (compute_type && field.is_final()) {
     intptr_t result_cid = pipeline.result_type().ToCid();

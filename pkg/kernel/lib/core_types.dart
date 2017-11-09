@@ -65,8 +65,11 @@ class CoreTypes {
   Procedure _printProcedure;
   Procedure _identicalProcedure;
   Constructor _constantExpressionErrorDefaultConstructor;
+  Constructor _duplicatedFieldInitializerErrorDefaultConstructor;
   Constructor _fallThroughErrorUrlAndLineConstructor;
   Constructor _compileTimeErrorDefaultConstructor;
+  Procedure _objectEquals;
+  Procedure _mapUnmodifiable;
 
   Class _internalSymbolClass;
 
@@ -260,6 +263,11 @@ class CoreTypes {
     return _mapClass ??= _index.getClass('dart:core', 'Map');
   }
 
+  Procedure get mapUnmodifiable {
+    return _mapUnmodifiable ??=
+        _index.getMember('dart:core', 'Map', 'unmodifiable');
+  }
+
   Library get mirrorsLibrary {
     return _mirrorsLibrary ??= _index.tryGetLibrary('dart:mirrors');
   }
@@ -285,6 +293,10 @@ class CoreTypes {
 
   Class get objectClass {
     return _objectClass ??= _index.getClass('dart:core', 'Object');
+  }
+
+  Procedure get objectEquals {
+    return _objectEquals ??= _index.getMember('dart:core', 'Object', '==');
   }
 
   Procedure get printProcedure {
@@ -352,6 +364,11 @@ class CoreTypes {
   Constructor get constantExpressionErrorDefaultConstructor {
     return _constantExpressionErrorDefaultConstructor ??=
         _index.getMember('dart:core', '_ConstantExpressionError', '');
+  }
+
+  Constructor get duplicatedFieldInitializerErrorDefaultConstructor {
+    return _duplicatedFieldInitializerErrorDefaultConstructor ??=
+        _index.getMember('dart:core', '_DuplicatedFieldInitializerError', '');
   }
 
   Constructor get fallThroughErrorUrlAndLineConstructor {

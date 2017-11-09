@@ -20,6 +20,7 @@ import 'elements/types.dart';
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
+import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
 import 'js_backend/runtime_types.dart'
     show RuntimeTypesNeed, RuntimeTypesNeedBuilder;
 import 'ordered_typeset.dart';
@@ -61,6 +62,8 @@ abstract class ClosedWorld implements World {
   ConstantSystem get constantSystem;
 
   RuntimeTypesNeed get rtiNeed;
+
+  NoSuchMethodData get noSuchMethodData;
 
   Iterable<ClassEntity> get liveNativeClasses;
 
@@ -410,6 +413,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final NativeData nativeData;
   final InterceptorData interceptorData;
   final BackendUsage backendUsage;
+  final NoSuchMethodData noSuchMethodData;
 
   FunctionSet _allFunctions;
 
@@ -467,6 +471,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.nativeData,
       this.interceptorData,
       this.backendUsage,
+      this.noSuchMethodData,
       Set<ClassEntity> implementedClasses,
       this.liveNativeClasses,
       this.liveInstanceMembers,
@@ -1210,6 +1215,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
+      NoSuchMethodData noSuchMethodData,
       ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       Set<ClassEntity> implementedClasses,
@@ -1230,6 +1236,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
             nativeData,
             interceptorData,
             backendUsage,
+            noSuchMethodData,
             implementedClasses,
             liveNativeClasses,
             liveInstanceMembers,

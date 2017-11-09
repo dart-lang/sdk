@@ -16,8 +16,9 @@ void main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
-    var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
+    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     dynamic lib =
         compiler.libraryLoader.lookupLibrary(Uri.parse("memory:lib.dart"));
     var f1 = lib.find("f1");

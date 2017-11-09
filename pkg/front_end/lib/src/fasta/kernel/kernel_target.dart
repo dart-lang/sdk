@@ -206,7 +206,7 @@ class KernelTarget extends TargetImplementation {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       library.forEach((String name, Builder member) {
-        if (member is SourceClassBuilder) {
+        if (member is SourceClassBuilder && !member.isPatch) {
           result.add(member);
         }
       });
@@ -293,6 +293,7 @@ class KernelTarget extends TargetImplementation {
       loader.finishDeferredLoadTearoffs();
       finishAllConstructors();
       loader.finishNativeMethods();
+      loader.finishPatchMethods();
       runBuildTransformations();
 
       if (verify) this.verify();
@@ -420,6 +421,7 @@ class KernelTarget extends TargetImplementation {
   void installDefaultConstructor(SourceClassBuilder builder) {
     if (builder.isMixinApplication && !builder.isNamedMixinApplication) return;
     if (builder.constructors.local.isNotEmpty) return;
+    if (builder.isPatch) return;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
@@ -541,6 +543,7 @@ class KernelTarget extends TargetImplementation {
   /// Ensure constructors of [cls] have the correct initializers and other
   /// requirements.
   void finishConstructors(SourceClassBuilder builder) {
+    if (builder.isPatch) return;
     Class cls = builder.target;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
@@ -679,7 +682,7 @@ class KernelTarget extends TargetImplementation {
           KernelLibraryBuilder part =
               library.loader.read(patch, -1, fileUri: patch);
           first.parts.add(part);
-          part.addPartOf(null, null, "${first.uri}");
+          part.addPartOf(null, null, "${first.uri}", -1);
         }
       }
     }

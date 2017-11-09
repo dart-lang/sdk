@@ -1864,16 +1864,6 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         }
         Print("test%c rax,", operand_size_code());
         PrintImmediateValue(value);
-        // A 4-byte immediate test of EAX followed by an int3 instruction is a
-        // Stop instruction.
-        if (operand_size() == DOUBLEWORD_SIZE && data[0] == 0xcc) {
-          uintptr_t message = *reinterpret_cast<uint32_t*>(data - 4);
-          if (((message - 1) & message) != 0) {
-            const char* msg = reinterpret_cast<const char*>(message);
-            Print("  STOP: '%s'", msg);
-            break;
-          }
-        }
         break;
       }
       case 0xD1:  // fall through

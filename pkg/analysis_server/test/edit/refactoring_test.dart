@@ -399,9 +399,51 @@ main() {
     });
   }
 
-  @failingTest
-  test_resetOnFileChange() async {
-    // The reset count is one less than expected.
+  test_resetOnAnalysisSetChanged_overlay() async {
+    addTestFile('''
+main() {
+  print(1 + 2); // 0
+}
+''');
+
+    Future<Null> checkUpdate(doUpdate()) async {
+      await getRefactoringResult(() {
+        return sendStringRequest('1 + 2', 'res', true);
+      });
+      int initialResetCount = test_resetCount;
+      doUpdate();
+      await pumpEventQueue();
+      expect(test_resetCount, initialResetCount + 1);
+    }
+
+    await checkUpdate(() {
+      server.updateContent('u1', {
+        testFile: new AddContentOverlay('''
+main() {
+  print(1 + 2); // 1
+}
+''')
+      });
+    });
+
+    await checkUpdate(() {
+      server.updateContent('u2', {
+        testFile: new ChangeContentOverlay([
+          new SourceEdit(0, 0, '''
+main() {
+  print(1 + 2); // 2
+}
+''')
+        ])
+      });
+    });
+
+    await checkUpdate(() {
+      server.updateContent('u3', {testFile: new RemoveContentOverlay()});
+    });
+  }
+
+  test_resetOnAnalysisSetChanged_watch_otherFile() async {
     String otherFile = '$testFolder/other.dart';
     addFile(otherFile, '// other 1');
     addTestFile('''
@@ -420,10 +462,30 @@ foo(int myName) {}
     }
     int initialResetCount = test_resetCount;
     // Update the other.dart file.
-    // The refactoring is not reset, because it's a different file.
+    // The refactoring is reset, even though it's a different file. It is up to
+    // analyzer to track dependencies and provide resolved units fast when
+    // possible.
     addFile(otherFile, '// other 2');
     await pumpEventQueue();
-    expect(test_resetCount, initialResetCount);
+    expect(test_resetCount, initialResetCount + 1);
+  }
+
+  test_resetOnAnalysisSetChanged_watch_thisFile() async {
+    addTestFile('''
+main() {
+  foo(1 + 2);
+}
+foo(int myName) {}
+''');
+    // Send the first request.
+    {
+      EditGetRefactoringResult result = await getRefactoringResult(() {
+        return sendStringRequest('1 + 2', 'res', true);
+      });
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.names, contains('myName'));
+    }
+    int initialResetCount = test_resetCount;
     // Update the test.dart file.
     modifyTestFile('''
 main() {
@@ -516,26 +578,6 @@ int res() => 1 + 2;
 ''');
   }
 
-  test_long_expression() {
-    addTestFile('''
-main() {
-  print(1 +
-    2);
-}
-''');
-    _setOffsetLengthForString('1 +\n    2');
-    return assertSuccessfulRefactoring(_computeChange, '''
-main() {
-  print(res());
-}
-
-int res() {
-  return 1 +
-  2;
-}
-''');
-  }
-
   test_expression_hasParameters() {
     addTestFile('''
 main() {
@@ -609,6 +651,26 @@ main(bool b) {
       // ...there is no any feedback
       expect(result.feedback, isNull);
     });
+  }
+
+  test_long_expression() {
+    addTestFile('''
+main() {
+  print(1 +
+    2);
+}
+''');
+    _setOffsetLengthForString('1 +\n    2');
+    return assertSuccessfulRefactoring(_computeChange, '''
+main() {
+  print(res());
+}
+
+int res() {
+  return 1 +
+  2;
+}
+''');
   }
 
   test_names() {
@@ -985,9 +1047,7 @@ main() {
 ''');
   }
 
-  @failingTest
-  test_resetOnFileChange() async {
-    // The reset count is one less than expected.
+  test_resetOnAnalysisSetChanged() async {
     String otherFile = '$testFolder/other.dart';
     addFile(otherFile, '// other 1');
     addTestFile('''
@@ -1001,11 +1061,6 @@ main() {
       return _sendInlineRequest('res = ');
     });
     int initialResetCount = test_resetCount;
-    // Update the other.dart file.
-    // The refactoring is not reset, because it's a different file.
-    addFile(otherFile, '// other 2');
-    await pumpEventQueue();
-    expect(test_resetCount, initialResetCount);
     // Update the test.dart file.
     modifyTestFile('''
 main() {

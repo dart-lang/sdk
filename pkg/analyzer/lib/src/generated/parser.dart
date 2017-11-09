@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/scanner.dart' as fasta;
 
 export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -268,13 +269,15 @@ class Parser {
    */
   bool parseGenericMethodComments = false;
 
+  bool allowNativeClause;
+
   /**
    * Initialize a newly created parser to parse tokens in the given [_source]
    * and to report any errors that are found to the given [_errorListener].
    */
   factory Parser(Source source, AnalysisErrorListener errorListener,
       {bool useFasta}) {
-    if (useFasta ?? Parser.useFasta) {
+    if ((useFasta ?? false) || Parser.useFasta) {
       return new _Parser2(source, errorListener);
     } else {
       return new Parser.withoutFasta(source, errorListener);

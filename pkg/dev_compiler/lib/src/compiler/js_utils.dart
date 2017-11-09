@@ -38,3 +38,19 @@ Block alwaysReturnLastParameter(Block body, Parameter lastParam) {
   }
   return new Block([blockBody, new Return(lastParam)]);
 }
+
+Set<Identifier> findMutatedVariables(Node scope) {
+  var v = new MutationVisitor();
+  scope.accept(v);
+  return v.mutated;
+}
+
+class MutationVisitor extends BaseVisitor {
+  final mutated = new Set<Identifier>();
+  @override
+  visitAssignment(node) {
+    var id = node.leftHandSide;
+    if (id is Identifier) mutated.add(id);
+    super.visitAssignment(node);
+  }
+}

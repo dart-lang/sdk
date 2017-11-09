@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/byte_store.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

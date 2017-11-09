@@ -7,7 +7,7 @@
 // generate a compile-time error.
 
 class A {
-  _this; //                     //# 01: compile-time error
+  _this; //                     //# 01: syntax error
   A(x) : this._this = x; //     //# 01: continued
 }
 

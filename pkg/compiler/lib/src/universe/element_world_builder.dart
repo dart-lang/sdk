@@ -21,6 +21,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries)
@@ -36,6 +37,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
             backendUsageBuilder,
             rtiNeedBuilder,
             nativeResolutionEnqueuer,
+            noSuchMethodRegistry,
             selectorConstraintsStrategy,
             classHierarchyBuilder,
             classQueries);
@@ -152,6 +154,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: _backendUsageBuilder.close(),
+        noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,
         implementedClasses: _implementedClasses,

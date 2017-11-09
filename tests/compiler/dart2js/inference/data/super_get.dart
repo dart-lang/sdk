@@ -7,6 +7,7 @@ main() {
   superFieldAccess();
   superGetterAccess();
   superMethodAccess();
+  missingSuperFieldAccess();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,4 +71,23 @@ class Sub3 extends Super3 {
 /*element: superMethodAccess:[null]*/
 superMethodAccess() {
   new Sub3(). /*invoke: [exact=Sub3]*/ method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Access of missing super field.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super4.:[exact=Super4]*/
+class Super4 {}
+
+/*element: Sub4.:[exact=Sub4]*/
+class Sub4 extends Super4 {
+  /*element: Sub4.method:[empty]*/
+  // ignore: UNDEFINED_SUPER_GETTER
+  method() => super.field;
+}
+
+/*element: missingSuperFieldAccess:[null]*/
+missingSuperFieldAccess() {
+  new Sub4(). /*invoke: [exact=Sub4]*/ method();
 }

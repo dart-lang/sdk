@@ -5,7 +5,7 @@
 library dart2js.js_emitter.full_emitter.container_builder;
 
 import '../../constants/values.dart';
-import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
     show Element, MetadataAnnotation, MethodElement;
 import '../../elements/entities.dart';
@@ -22,12 +22,11 @@ import 'emitter.dart';
 /// Initially, it is just a placeholder for code that is moved from
 /// [CodeEmitterTask].
 class ContainerBuilder extends CodeEmitterHelper {
-  final DeferredLoadTask _deferredLoadTask;
-  ContainerBuilder(this._deferredLoadTask);
+  ContainerBuilder();
 
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
     FunctionEntity member = method.element;
-    OutputUnit outputUnit = _deferredLoadTask.outputUnitForMember(member);
+    OutputUnit outputUnit = backend.outputUnitData.outputUnitForMember(member);
     jsAst.Name name = method.name;
     ParameterStructure parameters = member.parameterStructure;
     jsAst.Expression code = method.code;

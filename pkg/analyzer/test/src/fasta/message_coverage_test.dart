@@ -94,7 +94,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     ClassDeclaration astBuilder = unit.declarations[0];
     expect(astBuilder, isNotNull);
     MethodDeclaration method = astBuilder.members.firstWhere(
-        (x) => x is MethodDeclaration && x.name.name == 'addCompileTimeError',
+        (x) => x is MethodDeclaration && x.name.name == 'reportMessage',
         orElse: () => null);
     expect(method, isNotNull);
     SwitchStatement statement = (method.body as BlockFunctionBody)
@@ -118,9 +118,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         path.join(frontEndPath, 'lib', 'src', 'fasta', 'parser', 'parser.dart');
     Set<String> generatedNames = getGeneratedNames(parserPath);
 
-    String analyzerPath = path.join(package_root.packageRoot, 'analyzer');
-    String messagesPath =
-        path.join(path.dirname(analyzerPath), 'front_end', 'messages.yaml');
+    String messagesPath = path.join(frontEndPath, 'messages.yaml');
     List<String> mappedCodes = getMappedCodes(messagesPath);
 
     generatedNames.removeAll(mappedCodes);
@@ -140,7 +138,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   test_translatedMessageCoverage() {
     String analyzerPath = path.join(package_root.packageRoot, 'analyzer');
     String astBuilderPath =
-        path.join(analyzerPath, 'lib', 'src', 'fasta', 'ast_builder.dart');
+        path.join(analyzerPath, 'lib', 'src', 'fasta', 'error_converter.dart');
     List<String> translatedCodes = getTranslatedCodes(astBuilderPath);
 
     String messagesPath =
@@ -153,7 +151,17 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         untranslated.add(referencedCode);
       }
     }
-    expect(untranslated, isEmpty, reason: 'Referenced but not translated');
+    StringBuffer buffer = new StringBuffer();
+    if (untranslated.isNotEmpty) {
+      buffer
+          .writeln('Analyzer codes used in messages.yaml but not translated:');
+      for (String code in untranslated) {
+        buffer.write('  ');
+        buffer.writeln(code);
+      }
+      buffer.write(
+          'Add a case for these codes to FastaErrorReporter.reportError.');
+    }
 
     List<String> unreferenced = <String>[];
     for (String translatedCode in translatedCodes) {
@@ -161,7 +169,23 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         unreferenced.add(translatedCode);
       }
     }
-    expect(unreferenced, isEmpty, reason: 'Translated but not referenced');
+    if (untranslated.isNotEmpty) {
+      if (buffer.isNotEmpty) {
+        buffer.writeln();
+        buffer.writeln();
+      }
+      buffer.writeln(
+          'Analyzer codes that are translated but not used in messages.yaml:');
+      for (String code in unreferenced) {
+        buffer.write('  ');
+        buffer.writeln(code);
+      }
+      buffer.write(
+          'Remove the cases for these codes from FastaErrorReporter.reportError.');
+    }
+    if (buffer.isNotEmpty) {
+      fail(buffer.toString());
+    }
   }
 }
 

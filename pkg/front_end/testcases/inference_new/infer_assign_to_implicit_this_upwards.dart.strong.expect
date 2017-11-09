@@ -13,7 +13,7 @@ class Test1 extends core::Object {
     core::int v4 = let final core::int #t1 = this.{self::Test1::t} in #t1.{core::num::==}(null) ?{core::int} this.{self::Test1::t} = self::getInt() : #t1;
     core::int v5 = let final core::int #t2 = this.{self::Test1::t} in #t2.{core::num::==}(null) ?{core::int} this.{self::Test1::t} = self::getNum() as{TypeError} core::int : #t2;
     core::int v7 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getInt());
-    core::num v8 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getNum());
+    core::int v8 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getNum()) as{TypeError} core::int;
     core::int v10 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(1);
     core::int v11 = let final core::int #t3 = this.{self::Test1::t} in let final core::int #t4 = this.{self::Test1::t} = #t3.{core::num::+}(1) in #t3;
   }

@@ -45,10 +45,12 @@ import '../fasta_codes.dart'
         LocatedMessage,
         Message,
         codeTypeNotFound,
+        messageExpectedUri,
         messagePartOfSelf,
         messageMemberWithSameNameAsClass,
         templateConflictsWithMember,
         templateConflictsWithSetter,
+        templateCouldNotParseUri,
         templateDeferredPrefixDuplicated,
         templateDeferredPrefixDuplicatedCause,
         templateDuplicatedDefinition,
@@ -66,6 +68,8 @@ import 'source_loader.dart' show SourceLoader;
 
 abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     extends LibraryBuilder<T, R> {
+  static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
+
   final SourceLoader loader;
 
   final DeclarationBuilder<T> libraryDeclaration;
@@ -95,7 +99,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   String partOfName;
 
-  String partOfUri;
+  Uri partOfUri;
 
   List<MetadataBuilder> metadata;
 
@@ -159,11 +163,44 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return previous;
   }
 
-  Uri resolve(String path) => uri.resolve(path);
+  bool uriIsValid(Uri uri) => uri.scheme != MALFORMED_URI_SCHEME;
 
-  void addExport(List<MetadataBuilder> metadata, String uri,
-      Unhandled conditionalUris, List<Combinator> combinators, int charOffset) {
-    var exportedLibrary = loader.read(resolve(uri), charOffset, accessor: this);
+  Uri resolve(Uri baseUri, String uri, int uriOffset, {isPart: false}) {
+    if (uri == null) {
+      addCompileTimeError(messageExpectedUri, uriOffset, this.uri);
+      return new Uri(scheme: MALFORMED_URI_SCHEME);
+    }
+    Uri parsedUri;
+    try {
+      parsedUri = Uri.parse(uri);
+    } on FormatException catch (e) {
+      // Point to position in string indicated by the exception,
+      // or to the initial quote if no position is given.
+      // (Assumes the directive is using a single-line string.)
+      addCompileTimeError(
+          templateCouldNotParseUri.withArguments(uri, e.message),
+          uriOffset + 1 + (e.offset ?? -1),
+          this.uri);
+      return new Uri(
+          scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
+    }
+    if (isPart && baseUri.scheme == "dart") {
+      // Resolve using special rules for dart: URIs
+      return resolveRelativeUri(baseUri, parsedUri);
+    } else {
+      return baseUri.resolveUri(parsedUri);
+    }
+  }
+
+  void addExport(
+      List<MetadataBuilder> metadata,
+      String uri,
+      Unhandled conditionalUris,
+      List<Combinator> combinators,
+      int charOffset,
+      int uriOffset) {
+    var exportedLibrary = loader
+        .read(resolve(this.uri, uri, uriOffset), charOffset, accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
@@ -176,10 +213,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<Combinator> combinators,
       bool deferred,
       int charOffset,
-      int prefixCharOffset) {
+      int prefixCharOffset,
+      int uriOffset) {
     imports.add(new Import(
         this,
-        loader.read(resolve(uri), charOffset, accessor: this),
+        loader.read(resolve(this.uri, uri, uriOffset), charOffset,
+            accessor: this),
         deferred,
         prefix,
         combinators,
@@ -187,25 +226,23 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         prefixCharOffset));
   }
 
-  void addPart(List<MetadataBuilder> metadata, String path, int charOffset) {
+  void addPart(List<MetadataBuilder> metadata, String uri, int charOffset) {
     Uri resolvedUri;
     Uri newFileUri;
-    if (uri.scheme == "dart") {
-      resolvedUri = resolveRelativeUri(uri, Uri.parse(path));
-      newFileUri = fileUri.resolve(path);
-    } else {
-      resolvedUri = uri.resolve(path);
-      if (uri.scheme != "package") {
-        newFileUri = fileUri.resolve(path);
-      }
+    resolvedUri = resolve(this.uri, uri, charOffset, isPart: true);
+    if (this.uri.scheme != "package") {
+      newFileUri = resolve(fileUri, uri, charOffset);
     }
     parts.add(loader.read(resolvedUri, charOffset,
         fileUri: newFileUri, accessor: this));
   }
 
-  void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {
+  void addPartOf(
+      List<MetadataBuilder> metadata, String name, String uri, int uriOffset) {
     partOfName = name;
-    partOfUri = uri;
+    if (uri != null) {
+      partOfUri = resolve(this.uri, uri, uriOffset);
+    }
   }
 
   void addClass(
@@ -463,7 +500,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void includePart(SourceLibraryBuilder<T, R> part) {
     if (part.partOfUri != null) {
-      if (uri.resolve(part.partOfUri) != uri) {
+      if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
         // This is a warning, but the part is still included.
         addWarning(
             templatePartOfUriMismatch.withArguments(
@@ -489,13 +526,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             -1,
             fileUri);
       }
-    } else if (name != null) {
-      // This is an error, and the part isn't included.
+    } else {
+      // This is an error, but the part is still included, so that
+      // metadata annotations can be associated with it.
       assert(!part.isPart);
       addCompileTimeError(
           templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
-      parts.remove(part);
-      return;
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {
@@ -659,6 +695,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
     // TODO(ahe): The input to this method, [typeVariables], shouldn't be just
     // type variables. It should be everything that's in scope, for example,
     // members (of a class) or formal parameters (of a method).
+    // Also, this doesn't work well with patching.
     if (typeVariables == null) {
       // If there are no type variables in the scope, propagate our types to be
       // resolved in the parent declaration.

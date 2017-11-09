@@ -24,7 +24,8 @@ import 'package:kernel/core_types.dart';
 /// This will provide the [Iterable.first] property, without needing to add
 /// `first` to the `Array.prototype`.
 class NativeTypeSet {
-  final CoreTypes types;
+  final sdk = new Map<String, Library>();
+  final CoreTypes coreTypes;
 
   // Abstract types that may be implemented by both native and non-native
   // classes.
@@ -34,39 +35,45 @@ class NativeTypeSet {
   final _nativeTypes = new HashSet<Class>.identity();
   final _pendingLibraries = new HashSet<Library>.identity();
 
-  NativeTypeSet(Program program, this.types) {
-    getLibrary(String name) => program.libraries.firstWhere(
-        (l) => l.importUri.scheme == 'dart' && l.importUri.toString() == name);
+  NativeTypeSet(Program program, this.coreTypes) {
+    for (var l in program.libraries) {
+      var uri = l.importUri;
+      if (uri.scheme == 'dart') sdk[uri.toString()] = l;
+    }
 
     // First, core types:
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
-    _extensibleTypes.add(types.objectClass);
-    _addExtensionType(types.intClass, true);
-    _addExtensionType(types.doubleClass, true);
-    _addExtensionType(types.boolClass, true);
-    _addExtensionType(types.stringClass, true);
-    _addExtensionTypes(getLibrary('dart:_interceptors'));
-    _addExtensionTypes(getLibrary('dart:_native_typed_data'));
+    _extensibleTypes.add(coreTypes.objectClass);
+    _addExtensionType(coreTypes.intClass, true);
+    _addExtensionType(coreTypes.doubleClass, true);
+    _addExtensionType(coreTypes.boolClass, true);
+    _addExtensionType(coreTypes.stringClass, true);
+    _addExtensionTypes(sdk['dart:_interceptors']);
+    _addExtensionTypes(sdk['dart:_native_typed_data']);
 
     // These are used natively by dart:html but also not annotated.
-    _addExtensionTypesForLibrary(types.coreLibrary, ['Comparable', 'Map']);
-    _addExtensionTypesForLibrary(getLibrary('dart:collection'), ['ListMixin']);
-    _addExtensionTypesForLibrary(getLibrary('dart:math'), ['Rectangle']);
+    _addExtensionTypesForLibrary(coreTypes.coreLibrary, ['Comparable', 'Map']);
+    _addExtensionTypesForLibrary(sdk['dart:collection'], ['ListMixin']);
+    _addExtensionTypesForLibrary(sdk['dart:math'], ['Rectangle']);
 
     // Second, html types - these are only searched if we use dart:html, etc.:
-    _addPendingExtensionTypes(getLibrary('dart:html'));
-    _addPendingExtensionTypes(getLibrary('dart:indexed_db'));
-    _addPendingExtensionTypes(getLibrary('dart:svg'));
-    _addPendingExtensionTypes(getLibrary('dart:web_audio'));
-    _addPendingExtensionTypes(getLibrary('dart:web_gl'));
-    _addPendingExtensionTypes(getLibrary('dart:web_sql'));
+    _addPendingExtensionTypes(sdk['dart:html']);
+    _addPendingExtensionTypes(sdk['dart:indexed_db']);
+    _addPendingExtensionTypes(sdk['dart:svg']);
+    _addPendingExtensionTypes(sdk['dart:web_audio']);
+    _addPendingExtensionTypes(sdk['dart:web_gl']);
+    _addPendingExtensionTypes(sdk['dart:web_sql']);
+  }
+
+  Class getClass(String library, String name) {
+    return sdk[library].classes.firstWhere((c) => c.name == name);
   }
 
   bool _isNative(Class c) {
     for (var annotation in c.annotations) {
       if (annotation is ConstructorInvocation) {
-        var c = annotation.constructedType.classNode;
+        var c = annotation.target.enclosingClass;
         if (c.name == 'Native' || c.name == 'JsPeerInterface') {
           if (c.enclosingLibrary.importUri.scheme == 'dart') return true;
         }
@@ -76,7 +83,7 @@ class NativeTypeSet {
   }
 
   void _addExtensionType(Class c, [bool mustBeNative = false]) {
-    if (c == types.objectClass) return;
+    if (c == coreTypes.objectClass) return;
     if (_extensibleTypes.contains(c) || _nativeTypes.contains(c)) {
       return;
     }

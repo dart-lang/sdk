@@ -143,6 +143,27 @@
     },
     {
       "builders": [
+        "ddc-linux-release",
+        "ddc-mac-release",
+        "ddc-win-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the ddc builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["dart2js_bot"]
+        },
+        {
+          "name": "ddc tests",
+          "script": "tools/bots/ddc_tests.py"
+        }
+      ]
+    },
+    {
+      "builders": [
         "precomp-linux-debug-x64",
         "precomp-linux-product-x64",
         "vm-noopt-mac-simarm64",
@@ -171,13 +192,13 @@
         "vm-precomp-android-release"
       ],
       "meta": {
-        "description": "This is the configuration for the android precomp builder. This has its own configuration because it needs to pass os and system as arguments."
+        "description": "This is the configuration for the android precomp builder. This has its own configuration because it needs to pass arch and os as arguments to build and system to test.py."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["--os=android","runtime","runtime_precompiled"]
+          "arguments": ["--arch=arm","--os=android","runtime","runtime_precompiled"]
         },
         {
           "name": "vm tests",
@@ -270,10 +291,140 @@
     },
     {
       "builders": [
+        "dart2js-hostchecked-linux-ia32-d8"
+      ],
+      "meta": {
+        "description": "This configuration is for the host-checked d8 builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["dart2js_bot","patched_dart2js_sdk"]
+        },
+        {
+          "name": "dart2js tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"]
+        },
+        {
+          "name": "dart2js package tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "dart2js observatory-ui tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "tests": ["observatory_ui"]
+        },
+        {
+          "name": "dart2js extra tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "tests": ["dart2js_extra","dart2js_native"]
+        },
+        {
+          "name": "dart2js co19 tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked"
+          ],
+          "tests": ["co19"]
+        },
+        {
+          "name": "dart2js checked tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"]
+        },
+        {
+          "name": "dart2js checked package tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "dart2js checked observatory-ui tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "tests": ["observatory_ui"]
+        },
+        {
+          "name": "dart2js checked extra tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "tests": ["dart2js_extra","dart2js_native"]
+        },
+        {
+          "name": "dart2js checked co19 tests",
+          "arguments": [
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--host-checked",
+            "--checked"
+          ],
+          "tests": ["co19"]
+        },
+        {
+          "name": "dart2js checked unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--reset-browser-configuration",
+            "--checked"
+          ],
+          "tests": ["dart2js"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
       "meta": {
-        "description": "This configuration is used by the linux sdk builder. The difference between this configuration and the other sdk builder configuration is that this one also generates the api docs."
+        "description": "This configuration is used by the linux sdk builder. The difference between this configuration and the other sdk builder configurations is that this one also generates the api docs."
       },
       "steps": [
         {
@@ -311,6 +462,124 @@
           "name": "build dart x64",
           "script": "tools/build.py",
           "arguments": [ "create_sdk" ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "analyzer-linux-release",
+        "analyzer-mac-release",
+        "analyzer-win-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the analyzer builders not running strong mode."
+      },
+      "steps": [
+        {
+          "name": "analyze tests",
+          "arguments": ["--compiler=dart2analyzer", "--use-sdk"]
+        },
+        {
+          "name": "analyze tests checked",
+          "arguments": ["--compiler=dart2analyzer", "--use-sdk", "--checked"]
+        },
+        {
+          "name": "analyze pkg tests",
+          "arguments": ["--compiler=dart2analyzer", "--use-sdk", "pkg"]
+        },
+        {
+          "name": "analyze pkg tests checked",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-sdk",
+            "--checked",
+            "pkg"
+          ]
+        },
+        {
+          "name": "analyze unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked",
+            "--use-sdk",
+            "pkg/analyzer"
+          ]
+        },
+        {
+          "name": "analysis_server unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked",
+            "--use-sdk",
+            "pkg/analysis_server"
+          ]
+        },
+        {
+          "name": "analysis_cli unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked",
+            "--use-sdk",
+            "pkg/analyzer_cli"
+          ]
+        },
+        {
+          "name": "front end unit tests",
+          "arguments": [
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked",
+            "--use-sdk",
+            "pkg/front_end"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "analyzer-strong-linux-release",
+        "analyzer-strong-mac-release",
+        "analyzer-strong-win-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the analyzer builders running strong mode."
+      },
+      "steps": [
+        {
+          "name": "analyze tests strong",
+          "arguments": ["--compiler=dart2analyzer", "--use-sdk", "--strong"]
+        },
+        {
+          "name": "analyze pkg tests",
+          "arguments": [
+            "--compiler=dart2analyzer",
+            "--use-sdk",
+            "--strong",
+            "pkg"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": ["analyzer-analysis-server-linux"],
+      "steps": [
+        {
+          "name": "Analyze analysis_server",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--no-hints","pkg/analysis_server"]
+        },
+        {
+          "name": "Analyze analysis_server",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--no-hints","pkg/analyzer"]
+        },
+        {
+          "name": "Analyze analysis_server",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--no-hints","pkg/analyzer_plugin"]
         }
       ]
     }

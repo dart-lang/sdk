@@ -148,4 +148,16 @@ abstract class Builder {
       covariant LibraryBuilder library, ClassBuilder currentClass) {}
 
   void instrumentTopLevelInference(Instrumentation instrumentation) {}
+
+  /// Applies [patch] to this.
+  void applyPatch(Builder patch) {
+    unsupported("${runtimeType}.applyPatch", charOffset, fileUri);
+  }
+
+  /// Returns the number of patches that was finished.
+  int finishPatch() {
+    if (!isPatch) return 0;
+    unsupported("${runtimeType}.finishPatch", charOffset, fileUri);
+    return 0;
+  }
 }

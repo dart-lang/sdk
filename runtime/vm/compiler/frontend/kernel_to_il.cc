@@ -624,6 +624,22 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
   return function;
 }
 
+RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
+    const Class& owner,
+    StringIndex constructor_name) {
+  GrowableHandlePtrArray<const String> pieces(Z, 3);
+  pieces.Add(DartString(String::Handle(owner.Name()).ToCString(), Heap::kOld));
+  pieces.Add(Symbols::Dot());
+  String& name = DartString(constructor_name);
+  pieces.Add(ManglePrivateName(Library::Handle(owner.library()), &name));
+
+  String& new_name =
+      String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
+  RawFunction* function = owner.LookupConstructorAllowPrivate(new_name);
+  ASSERT(function != Object::null());
+  return function;
+}
+
 Type& TranslationHelper::GetCanonicalType(const Class& klass) {
   ASSERT(!klass.IsNull());
   // Note that if cls is _Closure, the returned type will be _Closure,
@@ -678,6 +694,18 @@ void TranslationHelper::ReportError(const Error& prev_error,
   UNREACHABLE();
 }
 
+void TranslationHelper::ReportError(const Error& prev_error,
+                                    const Script& script,
+                                    const TokenPosition position,
+                                    const char* format,
+                                    ...) {
+  va_list args;
+  va_start(args, format);
+  Report::LongJumpV(prev_error, script, position, format, args);
+  va_end(args);
+  UNREACHABLE();
+}
+
 String& TranslationHelper::ManglePrivateName(NameIndex parent,
                                              String* name_to_modify,
                                              bool symbolize) {
@@ -691,6 +719,16 @@ String& TranslationHelper::ManglePrivateName(NameIndex parent,
   return *name_to_modify;
 }
 
+String& TranslationHelper::ManglePrivateName(const Library& library,
+                                             String* name_to_modify,
+                                             bool symbolize) {
+  if (name_to_modify->Length() >= 1 && name_to_modify->CharAt(0) == '_') {
+    *name_to_modify = library.PrivateName(*name_to_modify);
+  } else if (symbolize) {
+    *name_to_modify = Symbols::New(thread_, *name_to_modify);
+  }
+  return *name_to_modify;
+}
 FlowGraphBuilder::FlowGraphBuilder(
     intptr_t kernel_offset,
     ParsedFunction* parsed_function,
@@ -1421,7 +1459,8 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Array& argument_names,
                                       ICData::RebindRule rebind_rule,
                                       intptr_t type_args_count) {
-  ArgumentArray arguments = GetArguments(argument_count);
+  const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
   StaticCallInstr* call = new (Z)
       StaticCallInstr(position, target, type_args_count, argument_names,
                       arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);

@@ -5,7 +5,7 @@
 // Tests that a "const factory" with body produces a compile-time error.
 
 class ConstFactoryWithBody {
-  const factory ConstFactoryWithBody.one() { } //# 01: compile-time error
+  const factory ConstFactoryWithBody.one() { } //# 01: syntax error
 }
 
 main() {

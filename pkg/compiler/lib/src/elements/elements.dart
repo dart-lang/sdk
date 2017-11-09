@@ -951,11 +951,12 @@ abstract class CompilationUnitElement extends Element {
   void forEachLocalMember(f(Element element));
 }
 
-abstract class ImportElement extends Element {
+abstract class ImportElement extends Element implements ImportEntity {
   Uri get uri;
   LibraryElement get importedLibrary;
   bool get isDeferred;
   PrefixElement get prefix;
+  String get name;
   // TODO(johnniwinther): Remove this when no longer needed in source mirrors.
   Import get node;
 }

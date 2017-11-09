@@ -120,11 +120,12 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
     }
   }
 
-  void createClosureEntities(
+  Iterable<FunctionEntity> createClosureEntities(
       JsClosedWorldBuilder closedWorldBuilder,
       Map<MemberEntity, ScopeModel> closureModels,
       Set<ir.Node> localFunctionsNeedingRti,
       Set<ClassEntity> classesNeedingRti) {
+    List<FunctionEntity> callMethods = <FunctionEntity>[];
     closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =
@@ -170,8 +171,10 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             classesNeedingRti);
         // Add also for the call method.
         _scopeMap[closureClass.callMethod] = closureClass;
+        callMethods.add(closureClass.callMethod);
       }
     });
+    return callMethods;
   }
 
   /// Given what variables are captured at each point, construct closure classes
@@ -538,9 +541,10 @@ class JClosureClass extends JClass {
   String toString() => '${jsElementPrefix}closure_class($name)';
 }
 
-class JClosureField extends JField {
+class JClosureField extends JField implements PrivatelyNamedJSEntity {
+  final Local _declaredEntity;
   JClosureField(String name, KernelClosureClass containingClass, bool isConst,
-      bool isAssignable)
+      bool isAssignable, this._declaredEntity)
       : super(
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity,
@@ -548,6 +552,12 @@ class JClosureField extends JField {
             isAssignable: isAssignable,
             isConst: isConst,
             isStatic: false);
+
+  @override
+  Local get declaredEntity => _declaredEntity;
+
+  @override
+  Entity get rootOfScope => enclosingClass;
 }
 
 /// A container for variables declared in a particular scope that are accessed

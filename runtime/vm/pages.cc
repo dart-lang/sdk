@@ -71,6 +71,7 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words,
   result->memory_ = memory;
   result->next_ = NULL;
   result->used_in_bytes_ = 0;
+  result->forwarding_page_ = NULL;
   result->type_ = type;
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));
@@ -79,6 +80,8 @@ HeapPage* HeapPage::Allocate(intptr_t size_in_words,
 }
 
 void HeapPage::Deallocate() {
+  ASSERT(forwarding_page_ == NULL);
+
   bool image_page = is_image_page();
 
   if (!image_page) {
@@ -1114,11 +1117,7 @@ void PageSpace::EvacuatingCompact(Thread* thread) {
 void PageSpace::SlidingCompact(Thread* thread) {
   thread->isolate()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
-  {
-    MutexLocker ml(pages_lock_);
-    pages_tail_ = compactor.SlidePages(pages_, &freelist_[HeapPage::kData]);
-  }
-  compactor.ForwardPointers();
+  compactor.CompactBySliding(pages_, &freelist_[HeapPage::kData], pages_lock_);
   thread->isolate()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {
@@ -1219,6 +1218,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->next_ = NULL;
   page->object_end_ = memory->end();
   page->used_in_bytes_ = page->object_end_ - page->object_start();
+  page->forwarding_page_ = NULL;
   if (is_executable) {
     ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
     page->type_ = HeapPage::kExecutable;

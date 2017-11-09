@@ -6,5 +6,5 @@
 // declarations.
 
 main() {
-  var enum; //# 01: compile-time error
+  var enum; //# 01: syntax error
 }

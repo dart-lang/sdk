@@ -8,6 +8,11 @@ main() {
   unnamedLocalFunctionInvoke();
   namedLocalFunctionGet();
   recursiveLocalFunction();
+  namedLocalFunctionInvokeMissingArgument();
+  namedLocalFunctionInvokeExtraArgument();
+  namedLocalFunctionInvokeExtraNamedArgument();
+  closureToString();
+  closureCallToString();
 }
 
 /*element: namedLocalFunctionInvoke:[exact=JSUInt31]*/
@@ -32,4 +37,45 @@ namedLocalFunctionGet() {
 recursiveLocalFunction() {
   /*[subclass=Closure]*/ local() => local;
   return local();
+}
+
+/*element: namedLocalFunctionInvokeMissingArgument:[null|subclass=Object]*/
+namedLocalFunctionInvokeMissingArgument() {
+  /*[exact=JSUInt31]*/ local(/*[empty]*/ x) => 0;
+  // ignore: NOT_ENOUGH_REQUIRED_ARGUMENTS
+  return local();
+}
+
+/*element: namedLocalFunctionInvokeExtraArgument:[null|subclass=Object]*/
+namedLocalFunctionInvokeExtraArgument() {
+  /*[exact=JSUInt31]*/ local() => 0;
+  // ignore: EXTRA_POSITIONAL_ARGUMENTS
+  return local(0);
+}
+
+/*element: namedLocalFunctionInvokeExtraNamedArgument:[null|subclass=Object]*/
+namedLocalFunctionInvokeExtraNamedArgument() {
+  /*[exact=JSUInt31]*/ local() => 0;
+  // ignore: UNDEFINED_NAMED_PARAMETER
+  return local(a: 0);
+}
+
+/*element: closureToString:[exact=JSString]*/
+closureToString() {
+  var local = /*[null]*/ () {};
+  local();
+  return local. /*invoke: [subclass=Closure]*/ toString();
+}
+
+// TODO(johnniwinther): Handle .call on closures correctly the old inference.
+/*ast.element: closureCallToString:[empty]*/
+/*kernel.element: closureCallToString:[exact=JSString]*/
+closureCallToString() {
+  var local = /*[null]*/ () {};
+  local.call();
+  return local
+      .
+      /*ast.invoke: [empty]*/
+      /*kernel.invoke: [subclass=Closure]*/
+      toString();
 }

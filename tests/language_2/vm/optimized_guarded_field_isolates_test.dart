@@ -22,8 +22,8 @@ class B extends A {
   var b;
 }
 
-f1(SendPort send_port) {
-  send_port.send(new B("foo", "bar"));
+f1(Object send_port) {
+  (send_port as SendPort).send(new B("foo", "bar"));
 }
 
 test_b(B obj) => obj.a + obj.b;
@@ -50,8 +50,8 @@ class C {
   final List list;
 }
 
-f2(SendPort send_port) {
-  send_port.send(new C(new List(1)));
+f2(Object send_port) {
+  (send_port as SendPort).send(new C(new List(1)));
 }
 
 test_c(C obj) => obj.list[9999];

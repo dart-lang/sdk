@@ -17,7 +17,7 @@ import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
@@ -108,16 +108,17 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
         metadataFactory: new AnalyzerMetadataFactory());
 
     KernelResult kernelResult = await driver.getKernel(testUri);
-
     var libraryMap = <String, kernel.Library>{};
     var libraryExistMap = <String, bool>{};
-    for (var cycleResult in kernelResult.results) {
-      for (var library in cycleResult.kernelLibraries) {
-        String uriStr = library.importUri.toString();
-        libraryMap[uriStr] = library;
-        libraryExistMap[uriStr] = true;
-      }
+
+    void addLibrary(kernel.Library library) {
+      String uriStr = library.importUri.toString();
+      libraryMap[uriStr] = library;
+      libraryExistMap[uriStr] = true;
     }
+
+    kernelResult.dependencies.forEach(addLibrary);
+    addLibrary(kernelResult.library);
 
     if (DEBUG) {
       var library = libraryMap[testUriStr];
@@ -181,6 +182,7 @@ class C {
 
   @failingTest
   @potentialAnalyzerProblem
+  @override
   test_class_type_parameters_bound() async {
     // https://github.com/dart-lang/sdk/issues/29561
     // Fasta does not provide a flag for explicit vs. implicit Object bound.
@@ -194,9 +196,23 @@ class C {
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_named() async {
+    await super.test_constructor_redirected_factory_named();
+  }
+
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
+  }
+
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_named_imported() async {
+    await super.test_constructor_redirected_factory_named_imported();
   }
 
   @failingTest
@@ -206,9 +222,23 @@ class C {
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_named_prefixed() async {
+    await super.test_constructor_redirected_factory_named_prefixed();
+  }
+
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_prefixed_generic() async {
     await super.test_constructor_redirected_factory_named_prefixed_generic();
+  }
+
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_unnamed() async {
+    await super.test_constructor_redirected_factory_unnamed();
   }
 
   @failingTest
@@ -218,9 +248,23 @@ class C {
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_unnamed_imported() async {
+    await super.test_constructor_redirected_factory_unnamed_imported();
+  }
+
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_unnamed_imported_generic() async {
     await super.test_constructor_redirected_factory_unnamed_imported_generic();
+  }
+
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_unnamed_prefixed() async {
+    await super.test_constructor_redirected_factory_unnamed_prefixed();
   }
 
   @failingTest
@@ -332,7 +376,8 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
+  @potentialAnalyzerProblem
+  @override
   test_invalidUris() async {
     await super.test_invalidUris();
   }
@@ -385,12 +430,6 @@ class C {
   test_parameter_checked_inherited() async {
     // @checked is deprecated, use `covariant` instead.
     await super.test_parameter_checked_inherited();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
-  test_parts_invalidUri() async {
-    await super.test_parts_invalidUri();
   }
 
   @failingTest

@@ -32,7 +32,7 @@ import java.util.Stack;
   /// Will print the name of the library and indicate that it has errors.
   static void prepareForErrors() {
     errorHasOccurred = true;
-    System.err.println("Parse errors in " + filePath + ":");
+    System.err.println("Syntax error in " + filePath + ":");
   }
 
   /// Parse library, return true if success, false if errors occurred.
@@ -357,7 +357,8 @@ methodSignature
 declaration
     :    (EXTERNAL CONST? FACTORY constructorName '(') =>
          EXTERNAL factoryConstructorSignature
-    |    EXTERNAL constantConstructorSignature
+    |    (EXTERNAL CONST constructorName '(') =>
+         EXTERNAL constantConstructorSignature
     |    (EXTERNAL constructorName '(') => EXTERNAL constructorSignature
     |    ((EXTERNAL STATIC?)? type? GET identifier) =>
          (EXTERNAL STATIC?)? getterSignature
@@ -886,7 +887,9 @@ identifier
     ;
 
 qualified
-    :    identifier ('.' identifier)?
+    :    typeIdentifier
+    |    typeIdentifier '.' identifier
+    |    typeIdentifier '.' typeIdentifier '.' identifier
     ;
 
 typeIdentifier
@@ -897,7 +900,6 @@ typeIdentifier
     |    ON // Not a built-in identifier.
     |    SHOW // Not a built-in identifier.
     |    SYNC // Not a built-in identifier.
-    |    FUNCTION // Not a built-in identifier.
     |    { asyncEtcPredicate(input.LA(1)) }? (ASYNC|AWAIT|YIELD)
     ;
 
@@ -1134,6 +1136,7 @@ typeNotVoid
 
 typeNotVoidNotFunction
     :    typeName typeArguments?
+    |    FUNCTION
     ;
 
 typeName
@@ -1223,9 +1226,7 @@ typedIdentifier
     ;
 
 constructorDesignation
-    :    typeIdentifier
-    |    identifier '.' identifier
-    |    identifier '.' typeIdentifier '.' identifier
+    :    qualified
     |    typeName typeArguments ('.' identifier)?
     ;
 

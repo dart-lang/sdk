@@ -51,9 +51,6 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
     // Set all non object fields.
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    cls.set_kernel_offset(reader->Read<int32_t>());
-#endif
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // Instance size of a VM defined class is already set up.
       cls.set_instance_size_in_words(reader->Read<int32_t>());
@@ -65,6 +62,9 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_num_native_fields(reader->Read<uint16_t>());
     cls.set_token_pos(TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
     cls.set_state_bits(reader->Read<uint16_t>());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    cls.set_kernel_offset(reader->Read<int32_t>());
+#endif
 
     // Set all the object fields.
     READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to_snapshot(kind),
@@ -103,9 +103,6 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     classid_t class_id = ptr()->id_;
     ASSERT(class_id != kIllegalCid);
     writer->Write<classid_t>(class_id);
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    writer->Write<int32_t>(ptr()->kernel_offset_);
-#endif
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // We don't write the instance size of VM defined classes as they
       // are already setup during initialization as part of pre populating
@@ -119,6 +116,9 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     writer->Write<uint16_t>(ptr()->num_native_fields_);
     writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
     writer->Write<uint16_t>(ptr()->state_bits_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    writer->Write<int32_t>(ptr()->kernel_offset_);
+#endif
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer, kAsReference);
@@ -525,6 +525,10 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
   PatchClass& cls = PatchClass::ZoneHandle(reader->zone(), PatchClass::New());
   reader->AddBackRef(object_id, &cls, kIsDeserialized);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  cls.set_library_kernel_offset(reader->Read<int32_t>());
+#endif
+
   // Set all the object fields.
   READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to_snapshot(kind),
                      kAsReference);
@@ -545,6 +549,11 @@ void RawPatchClass::WriteTo(SnapshotWriter* writer,
   // Write out the class and tags information.
   writer->WriteVMIsolateObject(kPatchClassCid);
   writer->WriteTags(writer->GetObjectTags(this));
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  writer->Write<int32_t>(ptr()->library_kernel_offset_);
+#endif
+
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
   visitor.VisitPointers(from(), to_snapshot(kind));
@@ -1122,6 +1131,10 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
                             reader->Read<bool>());
     library.StoreNonPointer(&library.raw_ptr()->debuggable_,
                             reader->Read<bool>());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    library.StoreNonPointer(&library.raw_ptr()->kernel_offset_,
+                            reader->Read<int32_t>());
+#endif
     library.StoreNonPointer(&library.raw_ptr()->is_in_fullsnapshot_,
                             is_in_fullsnapshot);
     // The native resolver and symbolizer are not serialized.
@@ -1179,6 +1192,9 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->Write<bool>(ptr()->corelib_imported_);
     writer->Write<bool>(ptr()->is_dart_scheme_);
     writer->Write<bool>(ptr()->debuggable_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    writer->Write<int32_t>(ptr()->kernel_offset_);
+#endif
     // We do not serialize the native resolver or symbolizer. These need to be
     // explicitly set after deserialization.
 

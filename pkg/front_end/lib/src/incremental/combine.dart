@@ -32,12 +32,13 @@ class CombineResult {
   final Map<Library, int> _undoLibraryToClasses = {};
   final Map<Library, int> _undoLibraryToFields = {};
   final Map<Library, int> _undoLibraryToProcedures = {};
+  final List<Library> _undoLibrariesWithoutExports = <Library>[];
 
   final Map<Class, int> _undoClassToConstructors = {};
   final Map<Class, int> _undoClassToFields = {};
   final Map<Class, int> _undoClassToProcedures = {};
 
-  final Map<Program, Map<Reference, Reference>> _undoReferenceMap = {};
+  final Map<Program, _ReplacementMap> _undoReplacementMap = {};
 
   bool _undone = false;
 
@@ -78,15 +79,18 @@ class CombineResult {
       child.parent = parent;
     });
 
-    _undoLibraryToClasses.forEach((library, classesLength) {
-      library.classes.length = classesLength;
+    _undoLibraryToClasses.forEach((library, length) {
+      library.classes.length = length;
     });
-    _undoLibraryToFields.forEach((library, fieldsLength) {
-      library.fields.length = fieldsLength;
+    _undoLibraryToFields.forEach((library, length) {
+      library.fields.length = length;
     });
-    _undoLibraryToProcedures.forEach((library, proceduresLength) {
-      library.procedures.length = proceduresLength;
+    _undoLibraryToProcedures.forEach((library, length) {
+      library.procedures.length = length;
     });
+    for (var library in _undoLibrariesWithoutExports) {
+      library.additionalExports.clear();
+    }
 
     _undoClassToConstructors.forEach((class_, length) {
       class_.constructors.length = length;
@@ -98,7 +102,7 @@ class CombineResult {
       class_.procedures.length = length;
     });
 
-    _undoReferenceMap.forEach((outline, map) {
+    _undoReplacementMap.forEach((outline, map) {
       outline.accept(new _ReplaceReferencesVisitor(map, null));
     });
   }
@@ -109,9 +113,9 @@ class _Combiner {
   final List<Program> outlines;
   final CombineResult result = new CombineResult(new Program());
 
-  /// We record here during [_combineOutline], that keys should be replaced
-  /// with values in all places that can use [Reference]s.
-  Map<Reference, Reference> _referenceMap;
+  /// We record here during [_combineOutline], which keys should be replaced
+  /// with which values.
+  _ReplacementMap replacementMap;
 
   _Combiner(this.outlines);
 
@@ -128,6 +132,10 @@ class _Combiner {
   CanonicalName _adoptMemberName(NamedNode target, Member source) {
     String qualifier = CanonicalName.getMemberQualifier(source);
     CanonicalName parentName = target.canonicalName.getChild(qualifier);
+    if (source.name.isPrivate) {
+      Uri libraryUri = source.name.library.importUri;
+      parentName = parentName.getChildFromUri(libraryUri);
+    }
     String sourceName = source.canonicalName.name;
     if (parentName.hasChild(sourceName)) {
       return parentName.getChild(sourceName);
@@ -147,8 +155,16 @@ class _Combiner {
     String name = source.name;
     if (target.canonicalName.hasChild(name)) {
       var existingReference = target.canonicalName.getChild(name).reference;
-      _referenceMap[source.reference] = existingReference;
+      replacementMap.references[source.reference] = existingReference;
       Class existingNode = existingReference.node;
+
+      var numberOfTypeParameters = source.typeParameters.length;
+      assert(numberOfTypeParameters == existingNode.typeParameters.length);
+      for (var i = 0; i < numberOfTypeParameters; i++) {
+        replacementMap.typeParameters[source.typeParameters[i]] =
+            existingNode.typeParameters[i];
+      }
+
       for (var constructor in source.constructors) {
         _combineClassMember(existingNode, constructor);
       }
@@ -179,7 +195,7 @@ class _Combiner {
       result._undoMemberToClass[source] = source.parent;
       target.addMember(source);
     } else {
-      _referenceMap[source.reference] = existing.reference;
+      replacementMap.references[source.reference] = existing.reference;
     }
   }
 
@@ -196,7 +212,7 @@ class _Combiner {
       result._undoFieldToLibrary[source] = source.parent;
       target.addField(source);
     } else {
-      _referenceMap[source.reference] = existing.reference;
+      replacementMap.references[source.reference] = existing.reference;
     }
   }
 
@@ -217,8 +233,12 @@ class _Combiner {
     String name = source.importUri.toString();
     if (target.root.hasChild(name)) {
       var existingReference = target.root.getChild(name).reference;
-      _referenceMap[source.reference] = existingReference;
+      replacementMap.references[source.reference] = existingReference;
       Library existingNode = existingReference.node;
+      if (existingNode.additionalExports.isEmpty &&
+          source.additionalExports.isNotEmpty) {
+        existingNode.additionalExports.addAll(source.additionalExports);
+      }
       for (var class_ in source.classes) {
         _combineClass(existingNode, class_);
       }
@@ -233,6 +253,9 @@ class _Combiner {
       result._undoLibraryToClasses[source] = source.classes.length;
       result._undoLibraryToFields[source] = source.fields.length;
       result._undoLibraryToProcedures[source] = source.procedures.length;
+      if (source.additionalExports.isEmpty) {
+        result._undoLibrariesWithoutExports.add(source);
+      }
       source.classes.forEach(_putUndoForClassMembers);
       target.root.adoptChild(source.canonicalName);
       source.parent = target;
@@ -241,14 +264,14 @@ class _Combiner {
   }
 
   void _combineOutline(Program outline) {
-    _referenceMap = {};
+    replacementMap = new _ReplacementMap();
     for (var library in outline.libraries) {
       _combineLibrary(result.program, library);
     }
-    var undoMap = <Reference, Reference>{};
-    result._undoReferenceMap[outline] = undoMap;
-    outline.accept(new _ReplaceReferencesVisitor(_referenceMap, undoMap));
-    _referenceMap = null;
+    var undoMap = new _ReplacementMap();
+    result._undoReplacementMap[outline] = undoMap;
+    outline.accept(new _ReplaceReferencesVisitor(replacementMap, undoMap));
+    replacementMap = null;
   }
 
   /// If [source] is the first node with a particular name, we remember its
@@ -264,7 +287,7 @@ class _Combiner {
       result._undoProcedureToLibrary[source] = source.parent;
       target.addProcedure(source);
     } else {
-      _referenceMap[source.reference] = existing.reference;
+      replacementMap.references[source.reference] = existing.reference;
     }
   }
 
@@ -275,9 +298,16 @@ class _Combiner {
   }
 }
 
+/// [_Combiner] fills the maps with information which [Reference]s and
+/// [TypeParameter]s should be replaced.
+class _ReplacementMap {
+  Map<Reference, Reference> references = {};
+  Map<TypeParameter, TypeParameter> typeParameters = {};
+}
+
 class _ReplaceReferencesVisitor extends RecursiveVisitor {
-  final Map<Reference, Reference> map;
-  final Map<Reference, Reference> undoMap;
+  final _ReplacementMap map;
+  final _ReplacementMap undoMap;
 
   _ReplaceReferencesVisitor(this.map, this.undoMap);
 
@@ -299,6 +329,19 @@ class _ReplaceReferencesVisitor extends RecursiveVisitor {
   @override
   void visitDirectPropertySet(DirectPropertySet node) {
     node.targetReference = _newReferenceFor(node.targetReference);
+  }
+
+  @override
+  void visitInterfaceType(InterfaceType node) {
+    node.className = _newReferenceFor(node.className);
+  }
+
+  @override
+  void visitLibrary(Library node) {
+    for (var i = 0; i < node.additionalExports.length; i++) {
+      node.additionalExports[i] = _newReferenceFor(node.additionalExports[i]);
+    }
+    super.visitLibrary(node);
   }
 
   @override
@@ -368,10 +411,27 @@ class _ReplaceReferencesVisitor extends RecursiveVisitor {
         _newReferenceFor(node.interfaceTargetReference);
   }
 
+  @override
+  void visitSupertype(Supertype node) {
+    node.className = _newReferenceFor(node.className);
+  }
+
+  @override
+  void visitTypeParameterType(TypeParameterType node) {
+    TypeParameter parameter = node.parameter;
+    TypeParameter newParameter = map.typeParameters[parameter];
+    if (newParameter != null) {
+      if (undoMap != null) {
+        undoMap.typeParameters[newParameter] = parameter;
+      }
+      node.parameter = newParameter;
+    }
+  }
+
   Reference _newReferenceFor(Reference reference) {
-    var newReference = map[reference];
+    var newReference = map.references[reference];
     if (newReference == null) return reference;
-    if (undoMap != null) undoMap[newReference] = reference;
+    if (undoMap != null) undoMap.references[newReference] = reference;
     return newReference;
   }
 }

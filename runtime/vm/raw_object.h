@@ -366,12 +366,19 @@ class RawObject {
   // Like !IsHeapObject() || IsOldObject(), but compiles to a single branch.
   bool IsSmiOrOldObject() const {
     ASSERT(IsWellFormed());
-    COMPILE_ASSERT(kHeapObjectTag == 1);
-    COMPILE_ASSERT(kNewObjectAlignmentOffset == kWordSize);
     static const uword kNewObjectBits =
         (kNewObjectAlignmentOffset | kHeapObjectTag);
     const uword addr = reinterpret_cast<uword>(this);
-    return (addr & kNewObjectBits) != kNewObjectBits;
+    return (addr & kObjectAlignmentMask) != kNewObjectBits;
+  }
+
+  // Like !IsHeapObject() || IsNewObject(), but compiles to a single branch.
+  bool IsSmiOrNewObject() const {
+    ASSERT(IsWellFormed());
+    static const uword kOldObjectBits =
+        (kOldObjectAlignmentOffset | kHeapObjectTag);
+    const uword addr = reinterpret_cast<uword>(this);
+    return (addr & kObjectAlignmentMask) != kOldObjectBits;
   }
 
   // Support for GC marking bit.
@@ -778,7 +785,6 @@ class RawClass : public RawObject {
 
   cpp_vtable handle_vtable_;
   TokenPosition token_pos_;
-  intptr_t kernel_offset_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
@@ -787,6 +793,7 @@ class RawClass : public RawObject {
   int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
   uint16_t num_native_fields_;      // Number of native fields in class.
   uint16_t state_bits_;
+  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
 
   friend class Instance;
   friend class Isolate;
@@ -838,7 +845,7 @@ class RawPatchClass : public RawObject {
     return NULL;
   }
 
-  intptr_t library_kernel_offset_;
+  NOT_IN_PRECOMPILED(intptr_t library_kernel_offset_);
 
   friend class Function;
 };
@@ -1161,14 +1168,15 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   classid_t index_;       // Library id number.
-  intptr_t kernel_offset_;  // Offset of this library's kernel data in the
-                            // overall kernel program.
   uint16_t num_imports_;  // Number of entries in imports_.
   int8_t load_state_;     // Of type LibraryState.
   bool corelib_imported_;
   bool is_dart_scheme_;
   bool debuggable_;          // True if debugger can stop in library.
   bool is_in_fullsnapshot_;  // True if library is in a full snapshot.
+  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);  // Offset of this library's
+                                                // kernel data in the overall
+                                                // kernel program.
 
   friend class Class;
   friend class Isolate;

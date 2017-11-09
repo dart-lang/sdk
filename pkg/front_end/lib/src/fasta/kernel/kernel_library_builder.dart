@@ -18,7 +18,6 @@ import '../fasta_codes.dart'
     show
         Message,
         messageConflictsWithTypeVariableCause,
-        messageExternalFactoryRedirection,
         messageTypeVariableDuplicatedName,
         messageTypeVariableSameNameAsEnclosing,
         templateConflictsWithTypeVariable,
@@ -30,6 +29,7 @@ import '../fasta_codes.dart'
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
         templateLocalDefinitionHidesImport,
+        templatePatchInjectionFailed,
         templateTypeVariableDuplicatedNameCause;
 
 import '../loader.dart' show Loader;
@@ -687,9 +687,6 @@ class KernelLibraryBuilder
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
 
-    if (redirectionTarget != null && procedure.isExternal) {
-      addCompileTimeError(messageExternalFactoryRedirection, charOffset, uri);
-    }
     currentDeclaration.addFactoryDeclaration(procedure, factoryDeclaration);
     addBuilder(procedureName, procedure, charOffset);
     if (nativeMethodName != null) {
@@ -793,6 +790,14 @@ class KernelLibraryBuilder
           builder.fileUri);
       return;
     }
+    if (builder.isPatch) {
+      // The kernel node of a patch is shared with the origin builder. We have
+      // two builders: the origin, and the patch, but only one kernel node
+      // (which corresponds to the final output). Consequently, the node
+      // shouldn't be added to its apparent kernel parent as this would create
+      // a duplicate entry in the parent's list of children/members.
+      return;
+    }
     if (cls != null) {
       library.addClass(cls);
     } else if (member != null) {
@@ -802,38 +807,52 @@ class KernelLibraryBuilder
     }
   }
 
-  @override
-  Library build(LibraryBuilder coreLibrary) {
-    super.build(coreLibrary);
+  void addDependencies(Library library, Set<KernelLibraryBuilder> seen) {
+    if (!seen.add(this)) {
+      return;
+    }
 
-    for (Import import in imports) {
-      Library importedLibrary = import.imported.target;
-      if (importedLibrary != null) {
+    // Merge import and export lists to have the dependencies in source order.
+    // This is required for the DietListener to correctly match up metadata.
+    int importIndex = 0;
+    int exportIndex = 0;
+    while (importIndex < imports.length || exportIndex < exports.length) {
+      if (exportIndex >= exports.length ||
+          (importIndex < imports.length &&
+              imports[importIndex].charOffset <
+                  exports[exportIndex].charOffset)) {
+        // Add import
+        Import import = imports[importIndex++];
         if (import.deferred && import.prefixBuilder?.dependency != null) {
           library.addDependency(import.prefixBuilder.dependency);
         } else {
-          library.addDependency(new LibraryDependency.import(importedLibrary,
+          library.addDependency(new LibraryDependency.import(
+              import.imported.target,
               name: import.prefix,
               combinators: toKernelCombinators(import.combinators))
             ..fileOffset = import.charOffset);
         }
-      }
-    }
-
-    for (Export export in exports) {
-      Library exportedLibrary = export.exported.target;
-      if (exportedLibrary != null) {
-        library.addDependency(new LibraryDependency.export(exportedLibrary,
+      } else {
+        // Add export
+        Export export = exports[exportIndex++];
+        library.addDependency(new LibraryDependency.export(
+            export.exported.target,
             combinators: toKernelCombinators(export.combinators))
           ..fileOffset = export.charOffset);
       }
     }
 
-    for (var part in parts) {
-      // TODO(scheglov): Add support for annotations, see
-      // https://github.com/dart-lang/sdk/issues/30284.
+    for (KernelLibraryBuilder part in parts) {
       library.addPart(new LibraryPart(<Expression>[], part.relativeFileUri));
+      part.addDependencies(library, seen);
     }
+  }
+
+  @override
+  Library build(LibraryBuilder coreLibrary) {
+    super.build(coreLibrary);
+
+    addDependencies(library, new Set<KernelLibraryBuilder>());
 
     loader.target.metadataCollector
         ?.setDocumentationComment(library, documentationComment);
@@ -1064,5 +1083,75 @@ class KernelLibraryBuilder
         }
       }
     });
+  }
+
+  @override
+  void applyPatches() {
+    if (!isPatch) return;
+    origin.forEach((String name, Builder member) {
+      bool isSetter = member.isSetter;
+      Builder patch = isSetter ? scope.setters[name] : scope.local[name];
+      if (patch != null) {
+        // [patch] has the same name as a [member] in [origin] library, so it
+        // must be a patch to [member].
+        member.applyPatch(patch);
+        // TODO(ahe): Verify that patch has the @patch annotation.
+      } else {
+        // No member with [name] exists in this library already. So we need to
+        // import it into the patch library. This ensures that the origin
+        // library is in scope of the patch library.
+        if (isSetter) {
+          scopeBuilder.addSetter(name, member);
+        } else {
+          scopeBuilder.addMember(name, member);
+        }
+      }
+    });
+    forEach((String name, Builder member) {
+      // We need to inject all non-patch members into the origin library. This
+      // should only apply to private members.
+      if (member.isPatch) {
+        // Ignore patches.
+      } else if (name.startsWith("_")) {
+        origin.injectMemberFromPatch(name, member);
+      } else {
+        origin.exportMemberFromPatch(name, member);
+      }
+    });
+  }
+
+  int finishPatchMethods() {
+    if (!isPatch) return 0;
+    int count = 0;
+    forEach((String name, Builder member) {
+      count += member.finishPatch();
+    });
+    return count;
+  }
+
+  void injectMemberFromPatch(String name, Builder member) {
+    if (member.isSetter) {
+      assert(scope.setters[name] == null);
+      scopeBuilder.addSetter(name, member);
+    } else {
+      assert(scope.local[name] == null);
+      scopeBuilder.addMember(name, member);
+    }
+  }
+
+  void exportMemberFromPatch(String name, Builder member) {
+    if (uri.scheme != "dart" || !uri.path.startsWith("_")) {
+      addCompileTimeError(templatePatchInjectionFailed.withArguments(name, uri),
+          member.charOffset, member.fileUri);
+    }
+    // Platform-private libraries, such as "dart:_internal" have special
+    // semantics: public members are injected into the origin library.
+    // TODO(ahe): See if we can remove this special case.
+
+    // If this member already exist in the origin library scope, it should
+    // have been marked as patch.
+    assert((member.isSetter && scope.setters[name] == null) ||
+        (!member.isSetter && scope.local[name] == null));
+    addToExportScope(name, member);
   }
 }

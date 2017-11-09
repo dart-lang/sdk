@@ -7,6 +7,6 @@ main() {
   assert(true,);
   assert(true,"message");
   assert(true,"message",);
-  assert(true,"message",extra);  //# 01: compile-time error
-  assert(true,"message",,);  //# 02: compile-time error
+  assert(true,"message",extra);  //# 01: syntax error
+  assert(true,"message",,);  //# 02: syntax error
 }

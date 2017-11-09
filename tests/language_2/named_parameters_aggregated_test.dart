@@ -17,7 +17,7 @@ class NamedParametersAggregatedTests {
   }
 
   static int f_missing_comma(a
-  [b = 42] //# 02: compile-time error
+  [b = 42] //# 02: syntax error
   ) =>
   a;
 

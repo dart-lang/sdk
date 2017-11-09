@@ -46,11 +46,10 @@ Future main() async {
 
 Future runCompiler(Uri compiler, Uri input, Uri output) async {
   Uri dartVm = Uri.base.resolve(Platform.resolvedExecutable);
-  Uri patchedSdk = dartVm.resolve("patched_sdk/");
   StdioProcess result = await StdioProcess.run(dartVm.toFilePath(), <String>[
     "-c",
     compiler.toFilePath(),
-    "--compile-sdk=${patchedSdk.toFilePath()}",
+    "--compile-sdk=sdk/",
     "--output=${output.toFilePath()}",
     "--verify",
     input.toFilePath(),

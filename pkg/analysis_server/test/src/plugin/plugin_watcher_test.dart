@@ -18,7 +18,7 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/byte_store.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -176,6 +176,9 @@ class TestPluginManager implements PluginManager {
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  void recordPluginFailure(String hostPackageName, String message) {}
 
   @override
   void removedContextRoot(ContextRoot contextRoot) {

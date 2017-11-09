@@ -1052,7 +1052,7 @@ abstract class KElementCreatorMixin implements ElementCreatorMixin {
 
   @override
   IndexedTypedef createTypedef(LibraryEntity library, String name) {
-    throw new UnsupportedError('KElementCreatorMixin.createTypedef');
+    return new KTypedef(library, name);
   }
 
   TypeVariableEntity createTypeVariable(
@@ -1168,6 +1168,11 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
   }
 
   @override
+  ir.Library getLibraryNode(LibraryEntity library) {
+    return _libraries.getData(library).library;
+  }
+
+  @override
   Local getLocalFunction(ir.TreeNode node) {
     assert(
         node is ir.FunctionDeclaration || node is ir.FunctionExpression,
@@ -1216,6 +1221,18 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
     }
     _ensureCallType(cls, data);
     return data.callType is FunctionType;
+  }
+
+  @override
+  ImportEntity getImport(ir.LibraryDependency node) {
+    ir.Library library = node.parent;
+    LibraryData data = _libraries.getData(_getLibrary(library));
+    return data.imports[node];
+  }
+
+  @override
+  MemberDefinition getMemberDefinition(MemberEntity member) {
+    return _getMemberDefinition(member);
   }
 }
 
@@ -1435,7 +1452,8 @@ class KernelElementEnvironment extends ElementEnvironment {
 
   @override
   bool isDeferredLoadLibraryGetter(MemberEntity member) {
-    // TODO(redemption): Support these.
+    // The front-end generates the getter of loadLibrary explicitly as code
+    // so there is no implicit representation based on a "loadLibrary" member.
     return false;
   }
 
@@ -1444,6 +1462,13 @@ class KernelElementEnvironment extends ElementEnvironment {
     assert(elementMap.checkFamily(library));
     LibraryData libraryData = elementMap._libraries.getData(library);
     return libraryData.getMetadata(elementMap);
+  }
+
+  @override
+  Iterable<ImportEntity> getImports(covariant IndexedLibrary library) {
+    assert(elementMap.checkFamily(library));
+    LibraryData libraryData = elementMap._libraries.getData(library);
+    return libraryData.getImports(elementMap);
   }
 
   @override
@@ -1472,6 +1497,11 @@ class KernelElementEnvironment extends ElementEnvironment {
   FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef) {
     // TODO(redemption): Support this.
     throw new UnsupportedError('ElementEnvironment.getFunctionTypeOfTypedef');
+  }
+
+  @override
+  TypedefType getTypedefTypeOfTypedef(TypedefEntity typedef) {
+    return elementMap._typedefs.getData(typedef).rawType;
   }
 
   @override
@@ -1678,6 +1708,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
+      NoSuchMethodRegistry noSuchMethodRegistry,
       SelectorConstraintsStrategy selectorConstraintsStrategy,
       ClassHierarchyBuilder classHierarchyBuilder,
       ClassQueries classQueries)
@@ -1693,6 +1724,7 @@ class KernelResolutionWorldBuilder extends KernelResolutionWorldBuilderBase {
             backendUsageBuilder,
             rtiNeedBuilder,
             nativeResolutionEnqueuer,
+            noSuchMethodRegistry,
             selectorConstraintsStrategy,
             classHierarchyBuilder,
             classQueries);
@@ -1715,6 +1747,7 @@ abstract class KernelClosedWorldMixin implements ClosedWorldBase {
           cls, selector.name,
           setter: selector.isSetter);
       if (member != null &&
+          !member.isAbstract &&
           (!selector.memberName.isPrivate ||
               member.library == selector.library)) {
         return member == element;
@@ -1796,6 +1829,7 @@ class KernelClosedWorld extends ClosedWorldBase
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
+      NoSuchMethodData noSuchMethodData,
       ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       Set<ClassEntity> implementedClasses,
@@ -1816,6 +1850,7 @@ class KernelClosedWorld extends ClosedWorldBase
             nativeData,
             interceptorData,
             backendUsage,
+            noSuchMethodData,
             implementedClasses,
             liveNativeClasses,
             liveInstanceMembers,
@@ -2314,9 +2349,14 @@ class JsKernelToElementMap extends KernelToElementMapBase
     // TODO(efortuna): Limit field number usage to when we need to distinguish
     // between two variables with the same name from different scopes.
     int fieldNumber = 0;
+
+    // For the captured variables that are boxed, ensure this closure has a
+    // field to reference the box. This puts the boxes first in the closure like
+    // the AST front-end, but otherwise there is no reason to separate this loop
+    // from the one below.
+    // TODO(redemption): Merge this loop and the following.
+
     for (ir.Node variable in info.freeVariables) {
-      // Make a corresponding field entity in this closure class for the
-      // free variables in the KernelScopeInfo.freeVariable.
       if (variable is ir.VariableDeclaration) {
         Local capturedLocal = localsMap.getLocalVariable(variable);
         if (_isInRecord(capturedLocal, recordFieldsVisibleInScope)) {
@@ -2329,7 +2369,23 @@ class JsKernelToElementMap extends KernelToElementMapBase
               recordFieldsVisibleInScope,
               fieldNumber);
           if (constructedField) fieldNumber++;
-        } else {
+        }
+      }
+    }
+
+    // Add a field for the captured 'this'.
+    if (info.thisUsedAsFreeVariable) {
+      _constructClosureField(cls.thisLocal, cls, memberThisType, memberMap,
+          getMemberDefinition(member).node, true, false, fieldNumber);
+      fieldNumber++;
+    }
+
+    for (ir.Node variable in info.freeVariables) {
+      // Make a corresponding field entity in this closure class for the
+      // free variables in the KernelScopeInfo.freeVariable.
+      if (variable is ir.VariableDeclaration) {
+        Local capturedLocal = localsMap.getLocalVariable(variable);
+        if (!_isInRecord(capturedLocal, recordFieldsVisibleInScope)) {
           _constructClosureField(
               capturedLocal,
               cls,
@@ -2355,11 +2411,6 @@ class JsKernelToElementMap extends KernelToElementMapBase
       } else {
         throw new UnsupportedError("Unexpected field node type: $variable");
       }
-    }
-    if (info.thisUsedAsFreeVariable) {
-      _constructClosureField(cls.thisLocal, cls, memberThisType, memberMap,
-          getMemberDefinition(member).node, true, false, fieldNumber);
-      fieldNumber++;
     }
   }
 
@@ -2387,8 +2438,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
       return false;
     }
 
-    FieldEntity closureField =
-        new JClosureField('_box_$fieldNumber', cls, true, false);
+    FieldEntity closureField = new JClosureField(
+        '_box_$fieldNumber', cls, true, false, recordField.box);
 
     _members.register<IndexedField, FieldData>(
         closureField,
@@ -2418,7 +2469,8 @@ class JsKernelToElementMap extends KernelToElementMapBase
         _getClosureVariableName(capturedLocal.name, fieldNumber),
         cls,
         isConst,
-        isAssignable);
+        isAssignable,
+        capturedLocal);
 
     _members.register<IndexedField, FieldData>(
         closureField,

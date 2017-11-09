@@ -172,11 +172,6 @@ class ClassPropertyModel {
   /// The value property stores the symbol used for the field's storage slot.
   final virtualFields = <FieldElement, JS.TemporaryId>{};
 
-  /// Static fields that are overridden, this does not matter for Dart but in
-  /// JS we need to take care initializing these because JS classes inherit
-  /// statics.
-  final staticFieldOverrides = new HashSet<FieldElement>();
-
   /// The set of inherited getters, used because JS getters/setters are paired,
   /// so if we're generating a setter we may need to emit a getter that calls
   /// super.
@@ -236,7 +231,7 @@ class ClassPropertyModel {
       // For getter/setter pairs only process them once.
       if (accessor.correspondingGetter != null) continue;
       // Also ignore abstract fields.
-      if (accessor.isAbstract) continue;
+      if (accessor.isAbstract || accessor.isStatic) continue;
 
       var field = accessor.variable;
       var name = field.name;
@@ -249,11 +244,7 @@ class ClassPropertyModel {
                 covariantParameters != null &&
                 covariantParameters.contains(setter.parameters[0]) &&
                 covariantPrivateMembers.contains(setter)) {
-          if (field.isStatic) {
-            staticFieldOverrides.add(field);
-          } else {
-            virtualFields[field] = new JS.TemporaryId(name);
-          }
+          virtualFields[field] = new JS.TemporaryId(name);
         }
       }
     }

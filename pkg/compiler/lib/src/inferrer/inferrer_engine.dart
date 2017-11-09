@@ -65,7 +65,7 @@ abstract class InferrerEngine<T> {
 
   // TODO(johnniwinther): This should be part of [ClosedWorld] or
   // [ClosureWorldRefiner].
-  NoSuchMethodRegistry get noSuchMethodRegistry;
+  NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
   TypeSystem<T> get types;
   Map<T, TypeInformation> get concreteTypes;
@@ -894,6 +894,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
       {bool isInstanceMember}) {
     assert(!(parameter is ParameterElement && !parameter.isImplementation));
+    assert(
+        type != null, failedAt(parameter, "No default type for $parameter."));
     TypeInformation existing = defaultTypeOfParameter[parameter];
     defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOfParameter(parameter);

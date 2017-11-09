@@ -8,31 +8,31 @@
 
 // bool.
 class MyBool implements bool {} //                    //# 01: compile-time error
-abstract class MyBoolInterface implements bool default F { // //# 02: compile-time error
+abstract class MyBoolInterface implements bool default F { // //# 02: syntax error
   MyBoolInterface(); //                               //# 02: continued
 } //                                                  //# 02: continued
 
 // num.
 class MyNum implements num {} //                      //# 03: compile-time error
-abstract class MyNumInterface implements num default F { //   //# 04: compile-time error
+abstract class MyNumInterface implements num default F { //   //# 04: syntax error
   MyNumInterface(); //                                //# 04: continued
 } //                                                  //# 04: continued
 
 // int.
 class MyInt implements int {} //                      //# 05: compile-time error
-abstract class MyIntInterface implements int default F { //   //# 06: compile-time error
+abstract class MyIntInterface implements int default F { //   //# 06: syntax error
   MyIntInterface(); //                                //# 06: continued
 } //                                                  //# 06: continued
 
 // double.
 class MyDouble implements double {} //                    //# 07: compile-time error
-abstract class MyDoubleInterface implements double default F { // //# 08: compile-time error
+abstract class MyDoubleInterface implements double default F { // //# 08: syntax error
   MyDoubleInterface(); //                                 //# 08: continued
 } //                                                      //# 08: continued
 
 // String.
 class MyString implements String {} //                    //# 09: compile-time error
-abstract class MyStringInterface implements String default F { // //# 10: compile-time error
+abstract class MyStringInterface implements String default F { // //# 10: syntax error
   MyStringInterface(); //                                 //# 10: continued
 } //                                                      //# 10: continued
 
@@ -40,13 +40,13 @@ abstract class MyStringInterface implements String default F { // //# 10: compil
 class MyFunction implements Function {}
 
 class MyOtherFunction extends Function {}
-abstract class MyFunctionInterface implements Function default F { // //# 12: compile-time error
+abstract class MyFunctionInterface implements Function default F { // //# 12: syntax error
   MyFunctionInterface(); //                                   //# 12: continued
 } //                                                          //# 12: continued
 
 // dynamic.
 class MyDynamic implements dynamic {} //                     //# 13: compile-time error
-abstract class MyDynamicInterface implements dynamic default F { //  //# 14: compile-time error
+abstract class MyDynamicInterface implements dynamic default F { //  //# 14: syntax error
   MyDynamicInterface(); //                                   //# 14: continued
 } //                                                         //# 14: continued
 

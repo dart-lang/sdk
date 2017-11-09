@@ -76,8 +76,7 @@ main(List<String> args) async {
 
 // TODO(sigmund): use `perf.dart::_findSdkPath` here when fasta can patch the
 // sdk directly.
-Uri sdkRoot =
-    Uri.base.resolve(Platform.resolvedExecutable).resolve('patched_sdk/');
+Uri sdkRoot = Uri.base.resolve("sdk/");
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
 UriTranslator uriResolver;

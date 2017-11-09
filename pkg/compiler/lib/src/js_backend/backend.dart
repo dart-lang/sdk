@@ -16,7 +16,7 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../deferred_load.dart' show DeferredLoadTask;
+import '../deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -415,6 +415,8 @@ class JavaScriptBackend {
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageBuilder _backendUsageBuilder;
   MirrorsDataImpl _mirrorsData;
+  OutputUnitData _outputUnitData;
+
   CheckedModeHelpers _checkedModeHelpers;
 
   final SuperMemberData superMemberData = new SuperMemberData();
@@ -446,7 +448,7 @@ class JavaScriptBackend {
     _mirrorsResolutionAnalysis =
         compiler.frontendStrategy.createMirrorsResolutionAnalysis(this);
 
-    noSuchMethodRegistry = new NoSuchMethodRegistry(
+    noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
@@ -461,6 +463,8 @@ class JavaScriptBackend {
   DiagnosticReporter get reporter => compiler.reporter;
 
   Resolution get resolution => compiler.resolution;
+
+  ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
 
   Target get target => _target;
 
@@ -496,6 +500,8 @@ class JavaScriptBackend {
   MirrorsData get mirrorsData => _mirrorsData;
 
   MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
+
+  OutputUnitData get outputUnitData => _outputUnitData;
 
   /// Resolution support for computing reflectable elements.
   MirrorsResolutionAnalysis get mirrorsResolutionAnalysis =>
@@ -644,8 +650,8 @@ class JavaScriptBackend {
     mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
-  void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
-    noSuchMethodRegistry.onTypeInferenceComplete(results);
+  void onDeferredLoadComplete(OutputUnitData data) {
+    _outputUnitData = compiler.backendStrategy.convertOutputUnitData(data);
   }
 
   /// Called when resolving a call to a foreign function.
@@ -756,11 +762,15 @@ class JavaScriptBackend {
             _backendUsageBuilder,
             rtiNeedBuilder,
             _nativeResolutionEnqueuer,
+            noSuchMethodRegistry,
             const OpenWorldStrategy(),
             classHierarchyBuilder,
             classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(
-            nativeBasicData, _nativeDataBuilder, impactTransformer));
+            nativeBasicData,
+            _nativeDataBuilder,
+            impactTransformer,
+            compiler.impactCache));
   }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
@@ -858,7 +868,7 @@ class JavaScriptBackend {
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
-    noSuchMethodRegistry.emitDiagnostic(reporter);
+    closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
     // TODO(redemption): Support `preMirrorsMethodCount` for entities.
     if (mirrorsCodegenAnalysis.preMirrorsMethodCount != null &&
@@ -1114,10 +1124,6 @@ class JavaScriptBackend {
     }
   }
 
-  /// Enable deferred loading. Returns `true` if the backend supports deferred
-  /// loading.
-  bool enableDeferredLoadingIfSupported(Spannable node) => true;
-
   /// Enable compilation of code with compile time errors. Returns `true` if
   /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
@@ -1184,7 +1190,8 @@ class JavaScriptBackend {
       {bool supportDeferredLoad: true,
       bool supportDumpInfo: true,
       bool supportSerialization: true}) {
-    return new JavaScriptImpactStrategy(resolution, compiler.dumpInfoTask,
+    return new JavaScriptImpactStrategy(
+        impactCacheDeleter, compiler.dumpInfoTask,
         supportDeferredLoad: supportDeferredLoad,
         supportDumpInfo: supportDumpInfo,
         supportSerialization: supportSerialization);
@@ -1194,13 +1201,13 @@ class JavaScriptBackend {
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {
-  final Resolution resolution;
+  final ImpactCacheDeleter impactCacheDeleter;
   final DumpInfoTask dumpInfoTask;
   final bool supportDeferredLoad;
   final bool supportDumpInfo;
   final bool supportSerialization;
 
-  JavaScriptImpactStrategy(this.resolution, this.dumpInfoTask,
+  JavaScriptImpactStrategy(this.impactCacheDeleter, this.dumpInfoTask,
       {this.supportDeferredLoad,
       this.supportDumpInfo,
       this.supportSerialization});
@@ -1215,7 +1222,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       } else {
         impact.apply(visitor);
         if (impactSource is Element) {
-          resolution.uncacheWorldImpact(impactSource);
+          impactCacheDeleter.uncacheWorldImpact(impactSource);
         }
       }
     } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
@@ -1234,7 +1241,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
     if (impactUse == DeferredLoadTask.IMPACT_USE && !supportSerialization) {
       // TODO(johnniwinther): Allow emptying when serialization has been
       // performed.
-      resolution.emptyCache();
+      impactCacheDeleter.emptyCache();
     }
   }
 }

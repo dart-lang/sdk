@@ -26,7 +26,7 @@ static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   if (address == 0) {
     OUT_OF_MEMORY();
   }
-  return reinterpret_cast<RawObject*>(address + kHeapObjectTag);
+  return RawObject::FromAddr(address);
 }
 
 void Deserializer::InitializeHeader(RawObject* raw,
@@ -114,7 +114,9 @@ class ClassSerializationCluster : public SerializationCluster {
       s->UnexpectedObject(cls, "Class with illegal cid");
     }
     s->WriteCid(class_id);
-    s->Write<int32_t>(cls->ptr()->kernel_offset_);
+    if (kind != Snapshot::kFullAOT) {
+      s->Write<int32_t>(cls->ptr()->kernel_offset_);
+    }
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
     s->Write<int32_t>(cls->ptr()->type_arguments_field_offset_in_words_);
@@ -173,7 +175,11 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
       intptr_t class_id = d->ReadCid();
       cls->ptr()->id_ = class_id;
-      cls->ptr()->kernel_offset_ = d->Read<int32_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (kind != Snapshot::kFullAOT) {
+        cls->ptr()->kernel_offset_ = d->Read<int32_t>();
+      }
+#endif
       if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
         cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
         cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
@@ -210,7 +216,11 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->handle_vtable_ = fake.vtable();
 
       cls->ptr()->id_ = class_id;
-      cls->ptr()->kernel_offset_ = d->Read<int32_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (kind != Snapshot::kFullAOT) {
+        cls->ptr()->kernel_offset_ = d->Read<int32_t>();
+      }
+#endif
       cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
       cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
@@ -454,7 +464,9 @@ class PatchClassSerializationCluster : public SerializationCluster {
         s->WriteRef(*p);
       }
 
-      s->Write<int32_t>(cls->ptr()->library_kernel_offset_);
+      if (s->kind() != Snapshot::kFullAOT) {
+        s->Write<int32_t>(cls->ptr()->library_kernel_offset_);
+      }
     }
   }
 
@@ -495,8 +507,11 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
       for (RawObject** p = to_snapshot + 1; p <= to; p++) {
         *p = Object::null();
       }
-
-      cls->ptr()->library_kernel_offset_ = d->Read<int32_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (d->kind() != Snapshot::kFullAOT) {
+        cls->ptr()->library_kernel_offset_ = d->Read<int32_t>();
+      }
+#endif
     }
   }
 };
@@ -1397,12 +1412,14 @@ class LibrarySerializationCluster : public SerializationCluster {
       }
 
       s->Write<int32_t>(lib->ptr()->index_);
-      s->Write<int32_t>(lib->ptr()->kernel_offset_);
       s->Write<uint16_t>(lib->ptr()->num_imports_);
       s->Write<int8_t>(lib->ptr()->load_state_);
       s->Write<bool>(lib->ptr()->corelib_imported_);
       s->Write<bool>(lib->ptr()->is_dart_scheme_);
       s->Write<bool>(lib->ptr()->debuggable_);
+      if (s->kind() != Snapshot::kFullAOT) {
+        s->Write<int32_t>(lib->ptr()->kernel_offset_);
+      }
     }
   }
 
@@ -1446,13 +1463,17 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->native_entry_resolver_ = NULL;
       lib->ptr()->native_entry_symbol_resolver_ = NULL;
       lib->ptr()->index_ = d->Read<int32_t>();
-      lib->ptr()->kernel_offset_ = d->Read<int32_t>();
       lib->ptr()->num_imports_ = d->Read<uint16_t>();
       lib->ptr()->load_state_ = d->Read<int8_t>();
       lib->ptr()->corelib_imported_ = d->Read<bool>();
       lib->ptr()->is_dart_scheme_ = d->Read<bool>();
       lib->ptr()->debuggable_ = d->Read<bool>();
       lib->ptr()->is_in_fullsnapshot_ = true;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (d->kind() != Snapshot::kFullAOT) {
+        lib->ptr()->kernel_offset_ = d->Read<int32_t>();
+      }
+#endif
     }
   }
 };
@@ -4962,7 +4983,7 @@ class SeedInstructionsVisitor : public ObjectVisitor {
 
   void VisitObject(RawObject* obj) {
     if (obj->IsInstructions()) {
-      uword addr = reinterpret_cast<uword>(obj) - kHeapObjectTag;
+      uword addr = RawObject::ToAddr(obj);
       int32_t offset = addr - text_base_;
       heap_->SetObjectId(obj, -offset);
     }

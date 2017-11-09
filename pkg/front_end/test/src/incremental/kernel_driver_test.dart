@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
@@ -42,7 +42,121 @@ class KernelDriverTest {
     _createDriver();
   }
 
-  test_compile_chain() async {
+  test_getKernel_chain() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(bPath, r'''
+import 'a.dart';
+var b = a;
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'a.dart';
+import 'b.dart';
+var c1 = a;
+var c2 = b;
+''');
+
+    {
+      KernelResult result = await driver.getKernel(cUri);
+      _assertKernelResult(result, cUri,
+          includes: [aUri, bUri, Uri.parse('dart:core')]);
+      expect(_getLibraryText(result.library), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::int c1 = a::a;
+static field core::int c2 = b::b;
+''');
+    }
+
+    // Update b.dart and recompile c.dart
+    writeFile(bPath, r'''
+import 'a.dart';
+var b = 1.2;
+''');
+    driver.invalidate(bUri);
+    {
+      KernelResult result = await driver.getKernel(cUri);
+      _assertKernelResult(result, cUri,
+          includes: [aUri, bUri, Uri.parse('dart:core')]);
+      expect(_getLibraryText(result.library), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::int c1 = a::a;
+static field core::double c2 = b::b;
+''');
+    }
+  }
+
+  test_getKernel_cycle() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(bPath, r'''
+import 'c.dart';
+var b1 = c1;
+var b2 = c2;
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'a.dart';
+import 'b.dart';
+var c1 = a;
+var c2 = b1;
+''');
+
+    {
+      KernelResult result = await driver.getKernel(cUri);
+      // b.dart and c.dart form a cycle.
+      // We still get c.dart as the library, and b.dart in dependencies.
+      _assertKernelResult(result, cUri,
+          includes: [aUri, bUri, Uri.parse('dart:core')]);
+      expect(_getLibraryText(result.library), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::int c1 = a::a;
+static field core::int c2 = b::b1;
+''');
+    }
+
+    // Update a.dart and recompile c.dart
+    writeFile(aPath, r'''
+var a = 1.2;
+''');
+    driver.invalidate(aUri);
+    {
+      KernelResult result = await driver.getKernel(cUri);
+      _assertKernelResult(result, cUri,
+          includes: [aUri, bUri, Uri.parse('dart:core')]);
+      expect(_getLibraryText(result.library), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::double c1 = a::a;
+static field core::double c2 = b::b1;
+''');
+    }
+  }
+
+  test_getKernelSequence_chain() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -61,7 +175,7 @@ void main() {}
 ''');
 
     {
-      KernelResult result = await driver.getKernel(cUri);
+      KernelSequenceResult result = await driver.getKernelSequence(cUri);
       _assertLibraryUris(result,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(result, cUri);
@@ -85,7 +199,7 @@ var b = 1.2;
 ''');
     driver.invalidate(bUri);
     {
-      KernelResult result = await driver.getKernel(cUri);
+      KernelSequenceResult result = await driver.getKernelSequence(cUri);
       _assertLibraryUris(result,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(result, cUri);
@@ -103,7 +217,7 @@ static method main() → void {}
     }
   }
 
-  test_compile_export() async {
+  test_getKernelSequence_export() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -117,7 +231,7 @@ import 'c.dart';
 A a;
 ''');
 
-    KernelResult result = await driver.getKernel(dUri);
+    KernelSequenceResult result = await driver.getKernelSequence(dUri);
     Library library = _getLibrary(result, dUri);
     expect(_getLibraryText(_getLibrary(result, bUri)), r'''
 library;
@@ -142,7 +256,7 @@ static field a::A a;
 ''');
   }
 
-  test_compile_export_cycle() async {
+  test_getKernelSequence_export_cycle() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -156,7 +270,7 @@ B b;
 ''');
 
     {
-      KernelResult result = await driver.getKernel(cUri);
+      KernelSequenceResult result = await driver.getKernelSequence(cUri);
       Library library = _getLibrary(result, cUri);
       expect(_getLibraryText(library), r'''
 library;
@@ -180,7 +294,7 @@ int c;
 ''');
     driver.invalidate(cUri);
     {
-      KernelResult result = await driver.getKernel(cUri);
+      KernelSequenceResult result = await driver.getKernelSequence(cUri);
       Library library = _getLibrary(result, cUri);
       expect(_getLibraryText(library), r'''
 library;
@@ -196,7 +310,7 @@ static field core::int c;
     }
   }
 
-  test_compile_export_hideWithLocal() async {
+  test_getKernelSequence_export_hideWithLocal() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -209,7 +323,7 @@ A a;
 B b;
 ''');
 
-    KernelResult result = await driver.getKernel(cUri);
+    KernelSequenceResult result = await driver.getKernelSequence(cUri);
     Library library = _getLibrary(result, cUri);
     expect(_getLibraryText(library), r'''
 library;
@@ -222,7 +336,7 @@ static field b::B b;
 ''');
   }
 
-  test_compile_recompileMixin() async {
+  test_getKernelSequence_recompileMixin() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -247,7 +361,7 @@ class C {
 ''');
 
     {
-      KernelResult result = await driver.getKernel(aUri);
+      KernelSequenceResult result = await driver.getKernelSequence(aUri);
       _assertLibraryUris(result,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
     }
@@ -264,7 +378,7 @@ class C {
 ''');
     driver.invalidate(cUri);
     {
-      KernelResult result = await driver.getKernel(aUri);
+      KernelSequenceResult result = await driver.getKernelSequence(aUri);
       _assertLibraryUris(result,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       // Compiled: c.dart (changed), and b.dart (has mixin).
@@ -272,7 +386,7 @@ class C {
     }
   }
 
-  test_compile_redirectingConstructor() async {
+  test_getKernelSequence_redirectingConstructor() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -292,7 +406,7 @@ var a = new A();
 
     // Initially "new A()" is resolved to "new B()".
     {
-      KernelResult result = await driver.getKernel(bUri);
+      KernelSequenceResult result = await driver.getKernelSequence(bUri);
       Library library = _getLibrary(result, bUri);
       expect(_getLibraryText(library), r'''
 library;
@@ -312,7 +426,7 @@ var a2 = new A();
 ''');
     driver.invalidate(bUri);
     {
-      KernelResult result = await driver.getKernel(bUri);
+      KernelSequenceResult result = await driver.getKernelSequence(bUri);
       Library library = _getLibrary(result, bUri);
       expect(_getLibraryText(library), r'''
 library;
@@ -324,7 +438,7 @@ static field a::A a2 = new a::B::•();
     }
   }
 
-  test_compile_typedef() async {
+  test_getKernelSequence_typedef() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -334,7 +448,7 @@ import 'a.dart';
 F<String> f;
 ''');
 
-    KernelResult result = await driver.getKernel(bUri);
+    KernelSequenceResult result = await driver.getKernelSequence(bUri);
     Library library = _getLibrary(result, bUri);
     expect(_getLibraryText(library), r'''
 library;
@@ -345,7 +459,7 @@ static field (core::String) → core::int f;
 ''');
   }
 
-  test_compile_typedef_storeReference() async {
+  test_getKernelSequence_typedef_storeReference() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -362,7 +476,7 @@ var fc = f;
 
     // Compile first time, b.dart should store F typedef reference.
     {
-      KernelResult result = await driver.getKernel(cUri);
+      KernelSequenceResult result = await driver.getKernelSequence(cUri);
       Library library = _getLibrary(result, cUri);
       expect((library.fields[0].type as FunctionType).typedef.name, 'F');
     }
@@ -375,23 +489,23 @@ import 'b.dart';
 var fc2 = f;
 ''');
       driver.invalidate(cUri);
-      KernelResult result = await driver.getKernel(cUri);
+      KernelSequenceResult result = await driver.getKernelSequence(cUri);
       Library library = _getLibrary(result, cUri);
       expect((library.fields[0].type as FunctionType).typedef.name, 'F');
     }
   }
 
-  test_compile_typeEnvironment() async {
+  test_getKernelSequence_typeEnvironment() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     Uri aUri = writeFile(aPath, 'class A {}');
 
-    KernelResult result = await driver.getKernel(aUri);
+    KernelSequenceResult result = await driver.getKernelSequence(aUri);
     expect(result.types.coreTypes.intClass, isNotNull);
     expect(result.types.hierarchy, isNotNull);
   }
 
-  test_compile_useSdkOutline() async {
+  test_getKernelSequence_useSdkOutline() async {
     List<int> sdkOutlineBytes = await _computeSdkOutlineBytes();
 
     // Configure the driver to use the SDK outline.
@@ -412,7 +526,7 @@ var a = 1;
 Future<String> b;
 ''');
 
-    KernelResult result = await driver.getKernel(bUri);
+    KernelSequenceResult result = await driver.getKernelSequence(bUri);
 
     // SDK libraries were not compiled.
     _assertCompiledUris(
@@ -434,7 +548,7 @@ int getValue() {
 }
 ''');
       driver.invalidate(aUri);
-      var kernelResult = await driver.getKernel(bUri);
+      var kernelResult = await driver.getKernelSequence(bUri);
       var allLibraries = kernelResult.results
           .map((c) => c.kernelLibraries)
           .expand((libs) => libs)
@@ -473,7 +587,7 @@ A a;
 ''');
 
     // Compile all libraries initially.
-    await driver.getKernel(cUri);
+    await driver.getKernelSequence(cUri);
 
     // Update c.dart and compile.
     // When we load "b", we should correctly read its exports.
@@ -483,7 +597,7 @@ A a2;
 ''');
     driver.invalidate(cUri);
     {
-      KernelResult result = await driver.getKernel(cUri);
+      KernelSequenceResult result = await driver.getKernelSequence(cUri);
       Library library = _getLibrary(result, cUri);
 
       Library getDepLib(Library lib, int index) {
@@ -578,7 +692,7 @@ main() {
 }
 ''');
 
-    KernelResult result = await driver.getKernel(bUri);
+    KernelSequenceResult result = await driver.getKernelSequence(bUri);
 
     Program program = new Program(
         nameRoot: result.nameRoot, libraries: _allLibraries(result));
@@ -632,7 +746,7 @@ var a = b;
 
     // Compute the initial state.
     {
-      KernelResult result = await driver.getKernel(aFileUri);
+      KernelSequenceResult result = await driver.getKernelSequence(aFileUri);
       Library library = _getLibrary(result, aFileUri);
       expect(_getLibraryText(library), r'''
 library;
@@ -649,7 +763,7 @@ static field core::int a = b::b;
     writeFile('/test/lib/b.dart', 'var b = 1.2;');
     driver.invalidate(bFileUri);
     {
-      KernelResult result = await driver.getKernel(aFileUri);
+      KernelSequenceResult result = await driver.getKernelSequence(aFileUri);
       _assertLibraryUris(result, includes: [aFileUri, bPackageUri]);
       Library library = _getLibrary(result, aFileUri);
       expect(_getLibraryText(library), r'''
@@ -681,7 +795,7 @@ var d = a;
 ''');
 
     // Check the initial state - types flow between the part and the library.
-    KernelResult result = await driver.getKernel(libUri);
+    KernelSequenceResult result = await driver.getKernelSequence(libUri);
     Library library = _getLibrary(result, libUri);
     expect(_getLibraryText(library), r'''
 library foo;
@@ -703,7 +817,7 @@ var b = 2.3;
 var d = a;
 ''');
       driver.invalidate(partUri);
-      KernelResult result = await driver.getKernel(libUri);
+      KernelSequenceResult result = await driver.getKernelSequence(libUri);
       Library library = _getLibrary(result, libUri);
       expect(_getLibraryText(library), r'''
 library foo;
@@ -728,7 +842,7 @@ var c = b;
 void main() {}
 ''');
       driver.invalidate(libUri);
-      KernelResult result = await driver.getKernel(libUri);
+      KernelSequenceResult result = await driver.getKernelSequence(libUri);
       Library library = _getLibrary(result, libUri);
       expect(_getLibraryText(library), r'''
 library foo;
@@ -762,7 +876,7 @@ import 'a.dart';
     });
 
     {
-      await driver.getKernel(cUri);
+      await driver.getKernelSequence(cUri);
       // We use at least c.dart and a.dart now.
       expect(usedFiles, contains(cUri));
       expect(usedFiles, contains(aUri));
@@ -776,7 +890,7 @@ import 'b.dart';
 ''');
     driver.invalidate(cUri);
     {
-      await driver.getKernel(cUri);
+      await driver.getKernelSequence(cUri);
       // The only new file is b.dart now.
       expect(usedFiles, [bUri]);
       usedFiles.clear();
@@ -791,7 +905,7 @@ import 'b.dart';
     return uri;
   }
 
-  List<Library> _allLibraries(KernelResult result) {
+  List<Library> _allLibraries(KernelSequenceResult result) {
     return result.results
         .map((cycle) => cycle.kernelLibraries)
         .expand((libraries) => libraries)
@@ -813,7 +927,24 @@ import 'b.dart';
     }
   }
 
-  void _assertLibraryUris(KernelResult result,
+  void _assertKernelResult(KernelResult result, Uri libraryUri,
+      {List<Uri> includes: const [], List<Uri> excludes: const []}) {
+    expect(result.library, isNotNull);
+    expect(result.library.importUri, libraryUri);
+
+    List<Uri> dependencyUris = [];
+    for (var library in result.dependencies) {
+      dependencyUris.add(library.importUri);
+    }
+    for (var shouldInclude in includes) {
+      expect(dependencyUris, contains(shouldInclude));
+    }
+    for (var shouldExclude in excludes) {
+      expect(dependencyUris, isNot(contains(shouldExclude)));
+    }
+  }
+
+  void _assertLibraryUris(KernelSequenceResult result,
       {List<Uri> includes: const [], List<Uri> excludes: const []}) {
     Map<String, Source> uriToSource = {};
     List<Uri> libraryUris = [];
@@ -866,7 +997,7 @@ import 'b.dart';
         sdkOutlineBytes: sdkOutlineBytes, fileAddedFn: fileAddedFn);
   }
 
-  Library _getLibrary(KernelResult result, Uri uri) {
+  Library _getLibrary(KernelSequenceResult result, Uri uri) {
     for (var cycleResult in result.results) {
       for (var library in cycleResult.kernelLibraries) {
         if (library.importUri == uri) return library;

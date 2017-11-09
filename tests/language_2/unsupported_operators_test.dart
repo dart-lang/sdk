@@ -9,10 +9,10 @@ library unsupported_operators;
 class C {
   m() {
     print(
-          super === //# 01: compile-time error
+          super === //# 01: syntax error
         null);
     print(
-          super !== //# 02: compile-time error
+          super !== //# 02: syntax error
         null);
   }
 }
@@ -21,9 +21,9 @@ void main() {
   new C().m();
   new C().m();
   print(
-        "foo" === //# 03: compile-time error
+        "foo" === //# 03: syntax error
       null);
   print(
-        "foo" !== //# 04: compile-time error
+        "foo" !== //# 04: syntax error
       null);
 }

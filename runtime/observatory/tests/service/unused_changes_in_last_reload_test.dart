@@ -85,6 +85,8 @@ var tests = [
       'Field(main.dart.fieldLiteralInitializer)',
       'Field(main.dart.initializedField)',
       'Field(main.dart.neverReferencedField)',
+      'ServiceFunction(M.newFunction)',
+      'ServiceFunction(MA1.newFunction2)',
       'ServiceFunction(function)',
       'ServiceFunction(main2)',
     ]));
@@ -103,6 +105,8 @@ var tests = [
       'Field(main.dart.fieldLiteralInitializer)',
       'Field(main.dart.initializedField)',
       'Field(main.dart.neverReferencedField)',
+      // TODO(31265): M.newFunction should be considered used.
+      'ServiceFunction(M.newFunction)',
     ]));
 
     // Reload to v2 again.

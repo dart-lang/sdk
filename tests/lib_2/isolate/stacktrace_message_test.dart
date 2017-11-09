@@ -3,17 +3,27 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
-import "package:unittest/unittest.dart";
-import "remote_unittest_helper.dart";
+import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 
-void main([args, port]) {
-  if (testRemote(main, port)) return;
-  test("stacktrace_message", () {
-    ReceivePort reply = new ReceivePort();
-    Isolate.spawn(runTest, reply.sendPort);
-    reply.first.then(expectAsync((StackTrace stack) {
-      print(stack);
-    }));
+// Test that StackTrace objects can be sent between isolates spawned from
+// the same isolate using Isolate.spawn.
+
+void main() {
+  asyncStart();
+  ReceivePort reply = new ReceivePort();
+  Isolate.spawn(runTest, reply.sendPort);
+  reply.first.then((pair) {
+    StackTrace stack = pair[0];
+    String stackString = pair[1];
+    if (stack == null) {
+      print("Failed to send stack-trace");
+      print(stackString);
+      Expect.fail("Sending stack-trace");
+    }
+    Expect.equals(stackString, "!$stack");
+    print(stack);
+    asyncEnd();
   });
 }
 
@@ -22,11 +32,11 @@ runTest(SendPort sendport) {
     throw 'sorry';
   } catch (e, stack) {
     try {
-      sendport.send(stack);
+      sendport.send([stack, "$stack"]);
       print("Stacktrace sent");
-    } catch (e) {
+    } catch (e, s) {
       print("Stacktrace not sent");
-      sendport.send(null);
+      sendport.send([null, "$e\n$s"]);
     }
   }
 }

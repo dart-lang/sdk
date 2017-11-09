@@ -740,8 +740,11 @@ class BackendImpacts {
   /// Backend impact for accessing a `loadLibrary` function on a deferred
   /// prefix.
   BackendImpact get loadLibrary {
-    return _loadLibrary ??=
-        new BackendImpact(globalUses: [_commonElements.loadLibraryWrapper]);
+    return _loadLibrary ??= new BackendImpact(globalUses: [
+      // TODO(redemption): delete wrapper when we sunset the old frontend.
+      _commonElements.loadLibraryWrapper,
+      _commonElements.loadDeferredLibrary,
+    ]);
   }
 
   BackendImpact _memberClosure;

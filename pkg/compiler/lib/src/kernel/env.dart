@@ -21,6 +21,7 @@ import '../ssa/type_builder.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 import 'element_map_mixins.dart';
+import 'kelements.dart' show KImport;
 
 /// Environment for fast lookup of program libraries.
 class ProgramEnv {
@@ -154,11 +155,29 @@ class LibraryEnv {
 class LibraryData {
   final ir.Library library;
   Iterable<ConstantValue> _metadata;
+  Map<ir.LibraryDependency, ImportEntity> imports;
 
   LibraryData(this.library);
 
   Iterable<ConstantValue> getMetadata(KernelToElementMapBase elementMap) {
     return _metadata ??= elementMap.getMetadata(library.annotations);
+  }
+
+  Iterable<ImportEntity> getImports(KernelToElementMapBase elementMap) {
+    if (imports == null) {
+      List<ir.LibraryDependency> dependencies = library.dependencies;
+      if (dependencies.isEmpty) {
+        imports = const <ir.LibraryDependency, ImportEntity>{};
+      } else {
+        imports = <ir.LibraryDependency, ImportEntity>{};
+        dependencies.forEach((ir.LibraryDependency node) {
+          if (node.isExport) return;
+          imports[node] = new KImport(
+              node.isDeferred, node.name, node.targetLibrary.importUri);
+        });
+      }
+    }
+    return imports.values;
   }
 
   LibraryData copy() {

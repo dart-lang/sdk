@@ -382,6 +382,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           }
           break;
         case SendStructureKind.INVOKE:
+        case SendStructureKind.INCOMPATIBLE_INVOKE:
           switch (sendStructure.semantics.kind) {
             case AccessKind.EXPRESSION:
               computeForNode(node, createInvokeId(node.argumentsNode));
@@ -461,9 +462,18 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         case SendStructureKind.PREFIX:
         case SendStructureKind.POSTFIX:
         case SendStructureKind.COMPOUND:
-          computeForNode(node, createAccessId(node.selector));
-          computeForNode(node, createInvokeId(node.assignmentOperator));
-          computeForNode(node, createUpdateId(node.selector));
+          switch (sendStructure.semantics.kind) {
+            case AccessKind.COMPOUND:
+            case AccessKind.TOPLEVEL_FIELD:
+            case AccessKind.STATIC_FIELD:
+              computeForNode(node, createInvokeId(node.assignmentOperator));
+              break;
+            default:
+              computeForNode(node, createAccessId(node.selector));
+              computeForNode(node, createInvokeId(node.assignmentOperator));
+              computeForNode(node, createUpdateId(node.selector));
+              break;
+          }
           break;
         default:
       }

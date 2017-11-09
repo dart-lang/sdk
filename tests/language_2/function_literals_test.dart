@@ -10,11 +10,11 @@ import "package:expect/expect.dart";
 typedef int IntFunc(int);
 
 class FunctionLiteralsTest {
-  static void checkIntFunction(expected, int f(x), arg) {
+  static void checkIntFunction<T>(expected, int f(T x), arg) {
     Expect.equals(expected, f(arg));
   }
 
-  static void checkIntFuncFunction(expected, IntFunc f(x), arg) {
+  static void checkIntFuncFunction<T>(expected, IntFunc f(T x), arg) {
     Expect.equals(expected, f(arg)(arg));
   }
 

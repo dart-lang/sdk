@@ -920,7 +920,7 @@ class ConstantEquivalence
   bool visitDeferred(DeferredConstantExpression exp1,
       covariant DeferredConstantExpression exp2) {
     return strategy.testElements(
-            exp1, exp2, 'prefix', exp1.prefix, exp2.prefix) &&
+            exp1, exp2, 'import', exp1.import, exp2.import) &&
         strategy.testConstants(
             exp1, exp2, 'expression', exp1.expression, exp2.expression);
   }
@@ -1020,7 +1020,7 @@ class ConstantValueEquivalence
   bool visitDeferred(
       DeferredConstantValue value1, covariant DeferredConstantValue value2) {
     return strategy.testElements(
-            value1, value2, 'prefix', value1.prefix, value2.prefix) &&
+            value1, value2, 'prefix', value1.import, value2.import) &&
         strategy.testConstantValues(
             value1, value2, 'referenced', value1.referenced, value2.referenced);
   }

@@ -114,6 +114,9 @@ class SourceLoader<L> extends Loader<L> {
           templateInternalProblemUriMissingScheme.withArguments(uri),
           -1,
           library.uri);
+    } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+      // Simulate empty file
+      return null;
     }
 
     // Get the library text from the cache, or read from the file system.
@@ -207,6 +210,13 @@ class SourceLoader<L> extends Loader<L> {
     });
     parts.forEach(builders.remove);
     ticker.logMs("Resolved parts");
+
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library is SourceLibraryBuilder) {
+        library.applyPatches();
+      }
+    });
+    ticker.logMs("Applied patches");
   }
 
   void computeLibraryScopes() {
@@ -329,6 +339,14 @@ class SourceLoader<L> extends Loader<L> {
       count += library.finishNativeMethods();
     });
     ticker.logMs("Finished $count native methods");
+  }
+
+  void finishPatchMethods() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      count += library.finishPatchMethods();
+    });
+    ticker.logMs("Finished $count patch methods");
   }
 
   /// Returns all the supertypes (including interfaces) of [cls]
@@ -470,7 +488,10 @@ class SourceLoader<L> extends Loader<L> {
   void buildProgram() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        libraries.add(library.build(coreLibrary));
+        L target = library.build(coreLibrary);
+        if (!library.isPatch) {
+          libraries.add(target);
+        }
       }
     });
     ticker.logMs("Built program");
@@ -556,7 +577,6 @@ class SourceLoader<L> extends Loader<L> {
     // inference info?
     typeInferenceEngine.classHierarchy =
         hierarchy = new IncrementalClassHierarchy();
-    typeInferenceEngine.isTopLevelInferenceComplete = true;
     ticker.logMs("Performed top level inference");
   }
 

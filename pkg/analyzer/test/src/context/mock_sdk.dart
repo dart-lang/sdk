@@ -41,6 +41,7 @@ part 'stream.dart';
 class Future<T> {
   factory Future(computation()) => null;
   factory Future.delayed(Duration duration, [T computation()]) => null;
+  factory Future.microtask(FutureOr<T> computation()) => null;
   factory Future.value([FutureOr<T> result]) => null;
 
   static Future<List<T>> wait<T>(
@@ -60,6 +61,13 @@ abstract class Completer<T> {
   void completeError(Object error, [StackTrace stackTrace]);
   bool get isCompleted;
 }
+
+class _StreamIterator<T> implements StreamIterator<T> {}
+class _AsyncStarStreamController {}
+Function _asyncThenWrapperHelper(continuation) {}
+Function _asyncErrorWrapperHelper(continuation) {}
+Future _awaitHelper(
+    object, Function thenCallback, Function errorCallback, var awaiter) {}
 ''', const <String, String>{
   '$sdkRoot/lib/async/stream.dart': r'''
 part of dart.async;
@@ -110,6 +118,7 @@ const _MockSdkLibrary _LIB_CORE =
 library dart.core;
 
 import 'dart:async';
+import 'dart:_internal';
 
 class Object {
   const Object();
@@ -274,6 +283,7 @@ abstract class Iterable<E> {
 
 class List<E> implements Iterable<E> {
   List();
+  factory List.from(Iterable elements, {bool growable: true}) => null;
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
@@ -329,6 +339,13 @@ class FallThroughError {
   FallThroughError._create(String url, int line);
 }
 
+abstract class _SyncIterable implements Iterable {}
+class _InvocationMirror {
+  _InvocationMirror._withoutType(
+      String _functionName, List<Type> _typeArguments,
+      List _positionalArguments, Map<Symbol, dynamic>_namedArguments,
+      bool _isSuperInvocation);
+}
 ''');
 
 const _MockSdkLibrary _LIB_FOREIGN_HELPER = const _MockSdkLibrary(

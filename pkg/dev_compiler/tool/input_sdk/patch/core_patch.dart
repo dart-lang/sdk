@@ -552,6 +552,13 @@ class StringBuffer {
   }
 }
 
+// TODO(jmesserly): kernel expects to find this in our SDK.
+class _CompileTimeError extends Error {
+  final String _errorMsg;
+  _CompileTimeError(this._errorMsg);
+  String toString() => _errorMsg;
+}
+
 @patch
 class NoSuchMethodError {
   @patch

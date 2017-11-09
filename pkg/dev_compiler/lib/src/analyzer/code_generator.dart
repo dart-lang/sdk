@@ -131,7 +131,7 @@ class CodeGenerator extends Object
   final LibraryElement coreLibrary;
   final LibraryElement dartJSLibrary;
 
-  /// The dart:async `StreamIterator<>` type.
+  /// The dart:async `StreamIterator<T>` type.
   final InterfaceType _asyncStreamIterator;
 
   /// The dart:core `identical` element.
@@ -1114,12 +1114,12 @@ class CodeGenerator extends Object
       if (classElem == types.futureOrType.element) {
         var typeParamT = classElem.typeParameters[0].type;
         var typeT = _emitType(typeParamT);
-        var futureOrT = _emitType(types.futureType.instantiate([typeParamT]));
+        var futureOfT = _emitType(types.futureType.instantiate([typeParamT]));
         body.add(js.statement('''
             #.is = function is_FutureOr(o) {
               return #.is(o) || #.is(o);
             }
-            ''', [className, typeT, futureOrT]));
+            ''', [className, typeT, futureOfT]));
         // TODO(jmesserly): remove the fallback to `dart.as`. It's only for the
         // _ignoreTypeFailure logic.
         body.add(js.statement('''
@@ -1127,13 +1127,13 @@ class CodeGenerator extends Object
               if (o == null || #.is(o) || #.is(o)) return o;
               return #.as(o, this, false);
             }
-            ''', [className, typeT, futureOrT, _runtimeModule]));
+            ''', [className, typeT, futureOfT, _runtimeModule]));
         body.add(js.statement('''
             #._check = function check_FutureOr(o) {
               if (o == null || #.is(o) || #.is(o)) return o;
               return #.as(o, this, true);
             }
-            ''', [className, typeT, futureOrT, _runtimeModule]));
+            ''', [className, typeT, futureOfT, _runtimeModule]));
         return null;
       }
     }
@@ -1274,6 +1274,7 @@ class CodeGenerator extends Object
     emitDeferredType(DartType t) {
       if (t is InterfaceType && t.typeArguments.isNotEmpty) {
         if (t == classElem.type) return className;
+        _declareBeforeUse(t.element);
         return _emitGenericClassType(
             t, t.typeArguments.map(emitDeferredType).toList());
       }
@@ -1494,7 +1495,7 @@ class CodeGenerator extends Object
           jsMethods.add(_emitFactoryConstructor(m));
         }
       } else if (m is MethodDeclaration) {
-        jsMethods.add(_emitMethodDeclaration(type, m));
+        jsMethods.add(_emitMethodDeclaration(m));
 
         if (m.element is PropertyAccessorElement) {
           jsMethods.add(_emitSuperAccessorWrapper(m, type));
@@ -2069,7 +2070,7 @@ class CodeGenerator extends Object
       if (extensions.isEmpty) return;
 
       var names = extensions
-          .map((e) => _propertyName(_jsMemberNameForDartMember(e)))
+          .map((e) => _propertyName(JS.memberNameForDartMember(e)))
           .toList();
       body.add(js.statement('#.#(#, #);', [
         _runtimeModule,
@@ -2609,7 +2610,7 @@ class CodeGenerator extends Object
     }
   }
 
-  JS.Method _emitMethodDeclaration(InterfaceType type, MethodDeclaration node) {
+  JS.Method _emitMethodDeclaration(MethodDeclaration node) {
     if (node.isAbstract) {
       return null;
     }
@@ -2900,11 +2901,14 @@ class CodeGenerator extends Object
       JS.Expression gen = new JS.Fun(jsParams, jsBody,
           isGenerator: true, returnType: emitTypeRef(returnType));
 
-      // Name the function if possible, to get better stack traces.
       var name = element.name;
-      name = _friendlyOperatorName[name] ?? name;
+      name = JS.friendlyNameForDartOperator[name] ?? name;
       if (name.isNotEmpty) {
-        gen = new JS.NamedFunction(new JS.Identifier(name), gen);
+        // Name the function if possible, to get better stack traces.
+        //
+        // Also use a temporary ID so we don't conflict with the function
+        // itself, for recursive calls.
+        gen = new JS.NamedFunction(new JS.TemporaryId(name), gen);
       }
       if (JS.This.foundIn(gen)) gen = js.call('#.bind(this)', gen);
 
@@ -3688,7 +3692,7 @@ class CodeGenerator extends Object
         var fn = js.call(
             'function(#) { return super[#](#); }', [params, jsName, params]);
         var name = method.name;
-        name = _friendlyOperatorName[name] ?? name;
+        name = JS.friendlyNameForDartOperator[name] ?? name;
         return new JS.Method(new JS.TemporaryId(name), fn);
       }
     });
@@ -5835,7 +5839,7 @@ class CodeGenerator extends Object
     }
 
     useExtension ??= _isSymbolizedMember(type, name);
-    name = _jsMemberNameForDartMember(name);
+    name = JS.memberNameForDartMember(name);
     if (useExtension) {
       return _getExtensionSymbolInternal(name);
     }
@@ -5874,28 +5878,6 @@ class CodeGenerator extends Object
     return _propertyName(name);
   }
 
-  /// Returns the JS member name for a public Dart instance member, before it
-  /// is symbolized; generally you should use [_emitMemberName] or
-  /// [_declareMemberName] instead of this.
-  String _jsMemberNameForDartMember(String name) {
-    // When generating synthetic names, we use _ as the prefix, since Dart names
-    // won't have this (eliminated above), nor will static names reach here.
-    switch (name) {
-      case '[]':
-        return '_get';
-      case '[]=':
-        return '_set';
-      case 'unary-':
-        return '_negate';
-      case '==':
-        return '_equals';
-      case 'constructor':
-      case 'prototype':
-        return '_$name';
-    }
-    return name;
-  }
-
   /// This is an internal method used by [_emitMemberName] and the
   /// optimized `dart:_runtime extensionSymbol` builtin to get the symbol
   /// for `dartx.<name>`.
@@ -5903,8 +5885,10 @@ class CodeGenerator extends Object
   /// Do not call this directly; you want [_emitMemberName], which knows how to
   /// handle the many details involved in naming.
   JS.TemporaryId _getExtensionSymbolInternal(String name) {
-    return _extensionSymbols.putIfAbsent(name,
-        () => new JS.TemporaryId('\$${_friendlyOperatorName[name] ?? name}'));
+    return _extensionSymbols.putIfAbsent(
+        name,
+        () => new JS.TemporaryId(
+            '\$${JS.friendlyNameForDartOperator[name] ?? name}'));
   }
 
   var _forwardingCache = new HashMap<Element, Map<String, ExecutableElement>>();
@@ -6330,28 +6314,3 @@ bool _reifyFunctionType(Element e) {
   }
   return true;
 }
-
-final _friendlyOperatorName = {
-  '<': 'lessThan',
-  '>': 'greaterThan',
-  '<=': 'lessOrEquals',
-  '>=': 'greaterOrEquals',
-  '-': 'minus',
-  '+': 'plus',
-  '/': 'divide',
-  '~/': 'floorDivide',
-  '*': 'times',
-  '%': 'modulo',
-  '|': 'bitOr',
-  '^': 'bitXor',
-  '&': 'bitAnd',
-  '<<': 'leftShift',
-  '>>': 'rightShift',
-  '~': 'bitNot',
-  // These ones are always renamed, hence the choice of `_` to avoid conflict
-  // with Dart names. See _emitMemberName.
-  '==': '_equals',
-  '[]': '_get',
-  '[]=': '_set',
-  'unary-': '_negate',
-};

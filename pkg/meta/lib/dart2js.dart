@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Constants for use in metadata annotations to provide hints to dart2js.
-
+///
+/// This is an experimental feature and not expected to be useful except for low
+/// level framwork authors.
+///
+/// Added at sdk version 2.0.0-dev.6.0
 library meta_dart2js;
 
 /// An annotation for methods to request that dart2js does not inline the
@@ -13,7 +17,6 @@ library meta_dart2js;
 ///
 ///     @dart2js.noInline
 ///     String text() => 'A String of unusual size';
-///
 const _NoInline noInline = const _NoInline();
 
 /// An annotation for methods method to request that dart2js always inlines the
@@ -30,7 +33,7 @@ const _NoInline noInline = const _NoInline();
 ///       for (int i in "Hello".runes) print(i);
 ///     }
 ///
-/// It is an error to use both `@noInline` and `@tryInline`.
+/// It is an error to use both `@noInline` and `@tryInline` on the same method.
 const _TryInline tryInline = const _TryInline();
 
 class _NoInline {

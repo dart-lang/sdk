@@ -35,9 +35,9 @@ main() {
 }
 
 final F0 = 42;
-final F1; //                //# 03: compile-time error
+final F1; //                //# 03: syntax error
 final int F2 = 87;
-final int F3; //            //# 04: compile-time error
+final int F3; //            //# 04: syntax error
 
 class Point {
   final x, y;

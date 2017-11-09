@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 
 class FunctionSyntaxTest {
   static void testMain
-/* //# 00: compile-time error
+/* //# 00: syntax error
       ()
 */ //# 00: continued
   {
@@ -22,13 +22,13 @@ class FunctionSyntaxTest {
   }
 
   static void testNestedFunctions
-/* //# 01: compile-time error
+/* //# 01: syntax error
       ()
 */ //# 01: continued
   {
     // No types - braces.
     nb0
-/* //# 02: compile-time error
+/* //# 02: syntax error
         ()
 */ //# 02: continued
     {
@@ -36,7 +36,7 @@ class FunctionSyntaxTest {
     }
 
     nb1
-/* //# 03: compile-time error
+/* //# 03: syntax error
         (a)
 */ //# 03: continued
     {
@@ -44,7 +44,7 @@ class FunctionSyntaxTest {
     }
 
     nb2
-/* //# 04: compile-time error
+/* //# 04: syntax error
         (a, b)
 */ //# 04: continued
     {
@@ -57,19 +57,19 @@ class FunctionSyntaxTest {
 
     // No types - arrows.
     na0
-/* //# 05: compile-time error
+/* //# 05: syntax error
         ()
 */ //# 05: continued
             =>
             42;
     na1
-/* //# 06: compile-time error
+/* //# 06: syntax error
         (a)
 */ //# 06: continued
             =>
             a;
     na2
-/* //# 07: compile-time error
+/* //# 07: syntax error
         (a, b)
 */ //# 07: continued
             =>
@@ -80,7 +80,7 @@ class FunctionSyntaxTest {
 
     // Return type - braces.
     int rb0
-/* //# 08: compile-time error
+/* //# 08: syntax error
         ()
 */ //# 08: continued
     {
@@ -88,7 +88,7 @@ class FunctionSyntaxTest {
     }
 
     int rb1
-/* //# 09: compile-time error
+/* //# 09: syntax error
         (a)
 */ //# 09: continued
     {
@@ -96,7 +96,7 @@ class FunctionSyntaxTest {
     }
 
     int rb2
-/* //# 10: compile-time error
+/* //# 10: syntax error
         (a, b)
 */ //# 10: continued
     {
@@ -109,19 +109,19 @@ class FunctionSyntaxTest {
 
     // Return type - arrows.
     int ra0
-/* //# 11: compile-time error
+/* //# 11: syntax error
         ()
 */ //# 11: continued
             =>
             42;
     int ra1
-/* //# 12: compile-time error
+/* //# 12: syntax error
         (a)
 */ //# 12: continued
             =>
             a;
     int ra2
-/* //# 13: compile-time error
+/* //# 13: syntax error
         (a, b)
 */ //# 13: continued
             =>
@@ -132,7 +132,7 @@ class FunctionSyntaxTest {
 
     // Fully typed - braces.
     int fb1
-/* //# 14: compile-time error
+/* //# 14: syntax error
         (int a)
 */ //# 14: continued
     {
@@ -140,7 +140,7 @@ class FunctionSyntaxTest {
     }
 
     int fb2
-/* //# 15: compile-time error
+/* //# 15: syntax error
         (int a, int b)
 */ //# 15: continued
     {
@@ -153,13 +153,13 @@ class FunctionSyntaxTest {
 
     // Fully typed - arrows.
     int fa1
-/* //# 16: compile-time error
+/* //# 16: syntax error
         (int a)
 */ //# 16: continued
             =>
             a;
     int fa2
-/* //# 17: compile-time error
+/* //# 17: syntax error
         (int a, int b)
 */ //# 17: continued
             =>
@@ -170,7 +170,7 @@ class FunctionSyntaxTest {
 
     // Generic types - braces.
     List<int> gb0
-/* //# 18: compile-time error
+/* //# 18: syntax error
         ()
 */ //# 18: continued
     {
@@ -178,7 +178,7 @@ class FunctionSyntaxTest {
     }
 
     List<int> gb1
-/* //# 19: compile-time error
+/* //# 19: syntax error
         (List<int> a)
 */ //# 19: continued
     {
@@ -190,13 +190,13 @@ class FunctionSyntaxTest {
 
     // Generic types - arrows.
     List<int> ga0
-/* //# 20: compile-time error
+/* //# 20: syntax error
         ()
 */ //# 20: continued
             =>
             [42];
     List<int> ga1
-/* //# 21: compile-time error
+/* //# 21: syntax error
         (List<int> a)
 */ //# 21: continued
             =>
@@ -206,24 +206,24 @@ class FunctionSyntaxTest {
   }
 
   static void testFunctionExpressions
-/* //# 22: compile-time error
+/* //# 22: syntax error
       ()
 */ //# 22: continued
   {
     eval0
-/* //# 23: compile-time error
+/* //# 23: syntax error
         (fn)
 */ //# 23: continued
             =>
             fn();
     eval1
-/* //# 24: compile-time error
+/* //# 24: syntax error
         (fn, a)
 */ //# 24: continued
             =>
             fn(a);
     eval2
-/* //# 25: compile-time error
+/* //# 25: syntax error
         (fn, a, b)
 */ //# 25: continued
             =>
@@ -231,7 +231,7 @@ class FunctionSyntaxTest {
 
     // No types - braces.
     Expect.equals(42, eval0(
-/* //# 26: compile-time error
+/* //# 26: syntax error
         ()
 */ //# 26: continued
         {
@@ -240,7 +240,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         87,
         eval1(
-/* //# 27: compile-time error
+/* //# 27: syntax error
             (a)
 */ //# 27: continued
             {
@@ -249,14 +249,14 @@ class FunctionSyntaxTest {
     Expect.equals(
         1 + 2,
         eval2(
-/* //# 28: compile-time error
+/* //# 28: syntax error
             (a, b)
 */ //# 28: continued
             {
           return a + b;
         }, 1, 2));
     Expect.equals(42, eval0(
-/* //# 29: compile-time error
+/* //# 29: syntax error
         ()
 */ //# 29: continued
         {
@@ -265,7 +265,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         87,
         eval1(
-/* //# 30: compile-time error
+/* //# 30: syntax error
             (a)
 */ //# 30: continued
             {
@@ -274,7 +274,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         1 + 2,
         eval2(
-/* //# 31: compile-time error
+/* //# 31: syntax error
             (a, b)
 */ //# 31: continued
             {
@@ -285,7 +285,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         42,
         eval0(
-/* //# 32: compile-time error
+/* //# 32: syntax error
             ()
 */ //# 32: continued
                 =>
@@ -293,7 +293,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         87,
         eval1(
-/* //# 33: compile-time error
+/* //# 33: syntax error
             (a)
 */ //# 33: continued
                 =>
@@ -302,7 +302,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         1 + 2,
         eval2(
-/* //# 34: compile-time error
+/* //# 34: syntax error
             (a, b)
 */ //# 34: continued
                 =>
@@ -312,7 +312,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         42,
         eval0(
-/* //# 35: compile-time error
+/* //# 35: syntax error
             ()
 */ //# 35: continued
                 =>
@@ -320,7 +320,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         87,
         eval1(
-/* //# 36: compile-time error
+/* //# 36: syntax error
             (a)
 */ //# 36: continued
                 =>
@@ -329,7 +329,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         1 + 2,
         eval2(
-/* //# 37: compile-time error
+/* //# 37: syntax error
             (a, b)
 */ //# 37: continued
                 =>
@@ -339,7 +339,7 @@ class FunctionSyntaxTest {
 
     // Argument types - braces.
     Expect.equals(42, eval0(
-/* //# 44: compile-time error
+/* //# 44: syntax error
         ()
 */ //# 44: continued
         {
@@ -348,7 +348,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         87,
         eval1(
-/* //# 45: compile-time error
+/* //# 45: syntax error
             (int a)
 */ //# 45: continued
             {
@@ -357,14 +357,14 @@ class FunctionSyntaxTest {
     Expect.equals(
         1 + 2,
         eval2(
-/* //# 46: compile-time error
+/* //# 46: syntax error
             (int a, int b)
 */ //# 46: continued
             {
           return a + b;
         }, 1, 2));
     Expect.equals(42, eval0(
-/* //# 47: compile-time error
+/* //# 47: syntax error
         ()
 */ //# 47: continued
         {
@@ -373,7 +373,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         87,
         eval1(
-/* //# 48: compile-time error
+/* //# 48: syntax error
             (int a)
 */ //# 48: continued
             {
@@ -382,7 +382,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         1 + 2,
         eval2(
-/* //# 49: compile-time error
+/* //# 49: syntax error
             (int a, int b)
 */ //# 49: continued
             {
@@ -393,7 +393,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         42,
         eval0(
-/* //# 50: compile-time error
+/* //# 50: syntax error
             ()
 */ //# 50: continued
                 =>
@@ -401,7 +401,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         87,
         eval1(
-/* //# 51: compile-time error
+/* //# 51: syntax error
             (int a)
 */ //# 51: continued
                 =>
@@ -410,7 +410,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         1 + 2,
         eval2(
-/* //# 52: compile-time error
+/* //# 52: syntax error
             (int a, int b)
 */ //# 52: continued
                 =>
@@ -420,7 +420,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         42,
         eval0(
-/* //# 53: compile-time error
+/* //# 53: syntax error
             ()
 */ //# 53: continued
                 =>
@@ -428,7 +428,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         87,
         eval1(
-/* //# 54: compile-time error
+/* //# 54: syntax error
             (int a)
 */ //# 54: continued
                 =>
@@ -437,7 +437,7 @@ class FunctionSyntaxTest {
     Expect.equals(
         1 + 2,
         eval2(
-/* //# 55: compile-time error
+/* //# 55: syntax error
             (int a, int b)
 */ //# 55: continued
                 =>
@@ -447,12 +447,12 @@ class FunctionSyntaxTest {
   }
 
   static void testPrecedence
-/* //# 64: compile-time error
+/* //# 64: syntax error
       ()
 */ //# 64: continued
   {
     expectEvaluatesTo
-/* //# 65: compile-time error
+/* //# 65: syntax error
         (value, fn)
 */ //# 65: continued
     {
@@ -534,7 +534,7 @@ class FunctionSyntaxTest {
 
     // Selector.
     fn
-/* //# 66: compile-time error
+/* //# 66: syntax error
         ()
 */ //# 66: continued
             =>
@@ -547,7 +547,7 @@ class FunctionSyntaxTest {
   }
 
   static void testInitializers
-/* //# 67: compile-time error
+/* //# 67: syntax error
       ()
 */ //# 67: continued
   {
@@ -580,7 +580,7 @@ class FunctionSyntaxTest {
   }
 
   static void testFunctionParameter
-/* //# 68: compile-time error
+/* //# 68: syntax error
       ()
 */ //# 68: continued
   {
@@ -598,14 +598,14 @@ class FunctionSyntaxTest {
   }
 
   static void testFunctionIdentifierExpression
-/* //# 69: compile-time error
+/* //# 69: syntax error
       ()
 */ //# 69: continued
   {
     Expect.equals(
         87,
         (
-/* //# 70: compile-time error
+/* //# 70: syntax error
             ()
 */ //# 70: continued
                 =>
@@ -613,12 +613,12 @@ class FunctionSyntaxTest {
   }
 
   static void testFunctionIdentifierStatement
-/* //# 71: compile-time error
+/* //# 71: syntax error
       ()
 */ //# 71: continued
   {
     function
-/* //# 72: compile-time error
+/* //# 72: syntax error
         ()
 */ //# 72: continued
             =>
@@ -714,7 +714,7 @@ class C {
   C.ra3() : fn = {'x': () => 69}['x'] {}
 
   static wrap
-/* //# 73: compile-time error
+/* //# 73: syntax error
       (fn)
 */ //# 73: continued
   {
@@ -725,7 +725,7 @@ class C {
 }
 
 main
-/* //# 74: compile-time error
+/* //# 74: syntax error
     ()
 */ //# 74: continued
 {

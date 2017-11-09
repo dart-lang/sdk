@@ -20,14 +20,14 @@ import "utils.dart";
 // For each key in the file, a new test file is made containing all
 // the normal lines of the file, and all of the multitest lines containing
 // that key, in the same order as in the source file.  The new test is expected
-// to pass if the error type listed is 'ok', or to fail if there is an error
-// type of type 'compile-time error', 'runtime error', 'static type warning', or
-// 'dynamic type error'.  The type error tests fail only in checked mode.
-// There is also a test created from only the untagged lines of the file,
-// with key "none", which is expected to pass.  This library extracts these
-// tests, writes them into a temporary directory, and passes them to the test
-// runner.  These tests may be referred to in the status files with the
-// pattern [test name]/[key].
+// to pass if the error type listed is 'ok', and to fail if the error type is
+// 'syntax error', 'compile-time error', 'runtime error', 'static type warning',
+// 'dynamic type error', or 'checked mode compile-time error'.  The type error
+// tests fail only in checked mode. There is also a test created from only the
+// untagged lines of the file, with key "none", which is expected to pass.  This
+// library extracts these tests, writes them into a temporary directory, and
+// passes them to the test runner.  These tests may be referred to in the status
+// files with the pattern [test name]/[key].
 //
 // For example: file I_am_a_multitest.dart
 //   aaa
@@ -83,6 +83,7 @@ void ExtractTestsFromMultitest(Path filePath, Map<String, String> tests,
   contents = null;
   var validMultitestOutcomes = [
     'ok',
+    'syntax error',
     'compile-time error',
     'runtime error',
     'static type warning',
@@ -274,8 +275,10 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
       writeFile(multitestFilename.toNativePath(), tests[key]);
       Set<String> outcome = outcomes[key];
       bool hasStaticWarning = outcome.contains('static type warning');
-      bool hasRuntimeErrors = outcome.contains('runtime error');
-      bool hasCompileError = outcome.contains('compile-time error');
+      bool hasRuntimeError = outcome.contains('runtime error');
+      bool hasSyntaxError = outcome.contains('syntax error');
+      bool hasCompileError =
+          hasSyntaxError || outcome.contains('compile-time error');
       bool isNegativeIfChecked = outcome.contains('dynamic type error');
       bool hasCompileErrorIfChecked =
           outcome.contains('checked mode compile-time error');
@@ -286,7 +289,10 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
           continue;
         }
       }
-      doTest(multitestFilename, filePath, hasCompileError, hasRuntimeErrors,
+      doTest(multitestFilename, filePath,
+          hasSyntaxError: hasSyntaxError,
+          hasCompileError: hasCompileError,
+          hasRuntimeError: hasRuntimeError,
           isNegativeIfChecked: isNegativeIfChecked,
           hasCompileErrorIfChecked: hasCompileErrorIfChecked,
           hasStaticWarning: hasStaticWarning,

@@ -72,24 +72,10 @@ Language/Functions/Formal_Parameters/Optional_Formals/default_value_t02: Missing
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t06: MissingCompileTimeError
 Language/Functions/Formal_Parameters/Required_Formals/syntax_t07: MissingCompileTimeError
 Language/Libraries_and_Scripts/Exports/reexport_t01: MissingCompileTimeError
-Language/Libraries_and_Scripts/Imports/syntax_t03: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t04: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t11: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t13: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t18: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t20: Crash # Issue 30997
-Language/Libraries_and_Scripts/Imports/syntax_t21: Crash # Issue 30997
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t01: MissingCompileTimeError
 Language/Libraries_and_Scripts/Imports/same_name_t10: RuntimeError
 Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # No support for deferred libraries.
-Language/Libraries_and_Scripts/Parts/syntax_t01: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/syntax_t03: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/syntax_t05: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/syntax_t07: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/syntax_t08: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/compilation_t07: Crash # Issue 30997
-Language/Libraries_and_Scripts/Parts/compilation_t11: Crash # Issue 30997
 Language/Metadata/before_export_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_import_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
 Language/Metadata/before_library_t01: RuntimeError  # Issue 28434: Kernel IR misses these annotations.
@@ -139,8 +125,6 @@ Language/Classes/Instance_Variables/constant_t01: Crash
 
 # dartk: JIT failures
 [ $compiler == dartk ]
-Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
-Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError
 Language/Expressions/Object_Identity/string_t01: RuntimeError
 Language/Expressions/Strings/adjacent_strings_t02: RuntimeError
@@ -153,28 +137,12 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 
 # dartk: precompilation failures
 [ $compiler == dartkp ]
-Language/Classes/Setters/parameter_t05: Crash
-Language/Classes/Setters/parameter_t07: Crash
-Language/Expressions/Constants/depending_on_itself_t01: Crash
-Language/Expressions/Constants/depending_on_itself_t02: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Crash
 
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
-Language/Expressions/Await_Expressions/evaluation_throws_t03: Crash
-Language/Expressions/Await_Expressions/evaluation_throws_t04: Crash
-Language/Expressions/Await_Expressions/evaluation_throws_t06: Crash
-Language/Expressions/Await_Expressions/evaluation_throws_t07: Crash
 Language/Expressions/Constants/bitwise_operators_t05: Crash
-Language/Expressions/Constants/exception_t01: Crash
-Language/Expressions/Constants/exception_t02: Crash
-Language/Expressions/Constants/exception_t03: Crash
-Language/Expressions/Constants/logical_expression_t02: Crash
 Language/Expressions/Constants/logical_expression_t04: Crash
-Language/Expressions/Constants/math_operators_t02: Crash
-Language/Expressions/Constants/math_operators_t03: Crash
-Language/Expressions/Constants/ternary_operator_t02: Crash
-Language/Expressions/Instance_Creation/Const/exception_t01: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Pass
 Language/Overview/Scoping/hiding_declaration_t12: Pass
 
@@ -205,5 +173,5 @@ Language/Types/Static_Types/malformed_type_t04: RuntimeError
 
 # Deferred loading kernel issue 28335.
 [ $compiler == dartk || $compiler == dartkp ]
-Language/Libraries_and_Scripts/Imports/deferred_import_t01: Crash # Deferred loading kernel issue 28335.
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Deferred loading kernel issue 28335.
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: CompileTimeError # Deferred loading kernel issue 28335.
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: CompileTimeError # Deferred loading kernel issue 28335.

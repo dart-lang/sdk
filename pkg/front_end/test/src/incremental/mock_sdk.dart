@@ -245,7 +245,34 @@ class _SyncIterator<T> implements Iterator<T> {
   Iterable<T> _yieldEachIterable;
 }
 
-class _InvocationMirror {}
+class _InvocationMirror {
+  _InvocationMirror._withoutType(
+      String _functionName, List<Type> _typeArguments,
+      List _positionalArguments, Map<Symbol, dynamic>_namedArguments,
+      bool _isSuperInvocation);
+}
+
+class _CompileTimeError {
+  final String _errorMsg;
+  _CompileTimeError(this._errorMsg);
+}
+
+class _ConstantExpressionError {
+  const _ConstantExpressionError();
+}
+
+class _DuplicatedFieldInitializerError {
+  _DuplicatedFieldInitializerError(String name);
+}
+
+class AbstractClassInstantiationError {
+  AbstractClassInstantiationError(String className);
+}
+
+class FallThroughError {
+  FallThroughError();
+  FallThroughError._create(String url, int line);
+}
 ''';
 
 /// Create SDK libraries which are used by Fasta to perform kernel generation.

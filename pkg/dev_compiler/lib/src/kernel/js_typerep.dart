@@ -86,10 +86,10 @@ class JSUnknown extends JSType {
 }
 
 class JSTypeRep {
-  final TypeEnvironment rules;
-  final CoreTypes types;
+  final TypeEnvironment types;
+  final CoreTypes coreTypes;
 
-  JSTypeRep(this.rules, this.types);
+  JSTypeRep(this.types, this.coreTypes);
 
   JSType typeFor(DartType type) {
     while (type is TypeParameterType) {
@@ -101,16 +101,16 @@ class JSTypeRep {
 
     if (type is InterfaceType) {
       var c = type.classNode;
-      if (c == types.nullClass) return JSType.jsNull;
-      if (c == types.numClass ||
-          c == types.intClass ||
-          c == types.doubleClass) {
+      if (c == coreTypes.nullClass) return JSType.jsNull;
+      if (c == coreTypes.numClass ||
+          c == coreTypes.intClass ||
+          c == coreTypes.doubleClass) {
         return JSType.jsNumber;
       }
-      if (c == types.boolClass.rawType) return JSType.jsBoolean;
-      if (c == types.stringClass.rawType) return JSType.jsString;
-      if (c == types.objectClass) return JSType.jsUnknown;
-      if (c == types.futureOrClass) {
+      if (c == coreTypes.boolClass.rawType) return JSType.jsBoolean;
+      if (c == coreTypes.stringClass.rawType) return JSType.jsString;
+      if (c == coreTypes.objectClass) return JSType.jsUnknown;
+      if (c == coreTypes.futureOrClass) {
         var argumentRep = typeFor(type.typeArguments[0]);
         if (argumentRep is JSObject || argumentRep is JSNull) {
           return JSType.jsObject;
@@ -128,7 +128,7 @@ class JSTypeRep {
   /// bounded by [int], [double] or [num] returns [num].
   /// Otherwise returns [t].
   DartType canonicalizeNumTypes(DartType t) =>
-      isNumber(t) ? types.nullClass.rawType : t;
+      isNumber(t) ? coreTypes.nullClass.rawType : t;
 
   bool isNumber(DartType type) => typeFor(type) is JSNumber;
 

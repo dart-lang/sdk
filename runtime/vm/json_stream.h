@@ -6,8 +6,9 @@
 #define RUNTIME_VM_JSON_STREAM_H_
 
 #include "include/dart_api.h"  // for Dart_Port
+#include "platform/allocation.h"
 #include "platform/text_buffer.h"
-#include "vm/allocation.h"
+#include "vm/json_writer.h"
 #include "vm/service.h"
 #include "vm/token_position.h"
 
@@ -64,10 +65,11 @@ enum JSONRpcErrorCode {
   kFileDoesNotExist = 1003,
 };
 
+// Builds on JSONWriter to provide support for serializing various objects
+// used in the VM service protocol.
 class JSONStream : ValueObject {
  public:
   explicit JSONStream(intptr_t buf_size = 256);
-  ~JSONStream();
 
   void Setup(Zone* zone,
              Dart_Port reply_port,
@@ -85,10 +87,12 @@ class JSONStream : ValueObject {
   void set_id_zone(ServiceIdZone* id_zone) { id_zone_ = id_zone; }
   ServiceIdZone* id_zone() { return id_zone_; }
 
-  TextBuffer* buffer() { return &buffer_; }
-  const char* ToCString() { return buffer_.buf(); }
+  TextBuffer* buffer() { return writer_.buffer(); }
+  const char* ToCString() { return writer_.ToCString(); }
 
-  void Steal(char** buffer, intptr_t* buffer_length);
+  void Steal(char** buffer, intptr_t* buffer_length) {
+    writer_.Steal(buffer, buffer_length);
+  }
 
   void set_reply_port(Dart_Port port);
 
@@ -134,40 +138,59 @@ class JSONStream : ValueObject {
                              intptr_t* count);
 
   // Append |serialized_object| to the stream.
-  void AppendSerializedObject(const char* serialized_object);
-
-  void PrintCommaIfNeeded();
+  void AppendSerializedObject(const char* serialized_object) {
+    writer_.AppendSerializedObject(serialized_object);
+  }
 
   // Append |buffer| to the stream.
-  void AppendSerializedObject(const uint8_t* buffer, intptr_t buffer_length);
+  void AppendSerializedObject(const uint8_t* buffer, intptr_t buffer_length) {
+    writer_.AppendSerializedObject(buffer, buffer_length);
+  }
 
   // Append |serialized_object| to the stream with |property_name|.
   void AppendSerializedObject(const char* property_name,
-                              const char* serialized_object);
+                              const char* serialized_object) {
+    writer_.AppendSerializedObject(property_name, serialized_object);
+  }
+
+  void PrintCommaIfNeeded() { writer_.PrintCommaIfNeeded(); }
 
  private:
-  void Clear();
+  void Clear() { writer_.Clear(); }
+
   void PostNullReply(Dart_Port port);
 
-  void OpenObject(const char* property_name = NULL);
-  void CloseObject();
-  void UncloseObject();
+  void OpenObject(const char* property_name = NULL) {
+    writer_.OpenObject(property_name);
+  }
+  void CloseObject() { writer_.CloseObject(); }
+  void UncloseObject() { writer_.UncloseObject(); }
 
-  void OpenArray(const char* property_name = NULL);
-  void CloseArray();
+  void OpenArray(const char* property_name = NULL) {
+    writer_.OpenArray(property_name);
+  }
+  void CloseArray() { writer_.CloseArray(); }
 
-  void PrintValueNull();
-  void PrintValueBool(bool b);
-  void PrintValue(intptr_t i);
-  void PrintValue64(int64_t i);
-  void PrintValueTimeMillis(int64_t millis);
-  void PrintValueTimeMicros(int64_t micros);
-  void PrintValue(double d);
-  void PrintValueBase64(const uint8_t* bytes, intptr_t length);
-  void PrintValue(const char* s);
-  void PrintValue(const char* s, intptr_t len);
-  void PrintValueNoEscape(const char* s);
+  void PrintValueNull() { writer_.PrintValueNull(); }
+  void PrintValueBool(bool b) { writer_.PrintValueBool(b); }
+  void PrintValue(intptr_t i) { writer_.PrintValue(i); }
+  void PrintValue64(int64_t i) { writer_.PrintValue64(i); }
+  void PrintValueTimeMillis(int64_t millis) { writer_.PrintValue64(millis); }
+  void PrintValueTimeMicros(int64_t micros) { writer_.PrintValue64(micros); }
+  void PrintValue(double d) { writer_.PrintValue(d); }
+  void PrintValueBase64(const uint8_t* bytes, intptr_t length) {
+    writer_.PrintValueBase64(bytes, length);
+  }
+  void PrintValue(const char* s) { writer_.PrintValue(s); }
+  void PrintValueNoEscape(const char* s) { writer_.PrintValueNoEscape(s); }
+  bool PrintValueStr(const String& s, intptr_t offset, intptr_t count) {
+    return writer_.PrintValueStr(s, offset, count);
+  }
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  void VPrintfValue(const char* format, va_list args) {
+    writer_.VPrintfValue(format, args);
+  }
+
   void PrintValue(const Object& o, bool ref = true);
   void PrintValue(Breakpoint* bpt);
   void PrintValue(TokenPosition tp);
@@ -177,29 +200,52 @@ class JSONStream : ValueObject {
   void PrintValue(Isolate* isolate, bool ref = true);
   void PrintValue(ThreadRegistry* reg);
   void PrintValue(Thread* thread);
-  bool PrintValueStr(const String& s, intptr_t offset, intptr_t count);
   void PrintValue(const TimelineEvent* timeline_event);
   void PrintValue(const TimelineEventBlock* timeline_event_block);
   void PrintValueVM(bool ref = true);
 
   void PrintServiceId(const Object& o);
-  void PrintPropertyBool(const char* name, bool b);
-  void PrintProperty(const char* name, intptr_t i);
-  void PrintProperty64(const char* name, int64_t i);
-  void PrintPropertyTimeMillis(const char* name, int64_t millis);
-  void PrintPropertyTimeMicros(const char* name, int64_t micros);
-  void PrintProperty(const char* name, double d);
+
+  void PrintPropertyBool(const char* name, bool b) {
+    writer_.PrintPropertyBool(name, b);
+  }
+  void PrintProperty(const char* name, intptr_t i) {
+    writer_.PrintProperty(name, i);
+  }
+  void PrintProperty64(const char* name, int64_t i) {
+    writer_.PrintProperty64(name, i);
+  }
+  void PrintPropertyTimeMillis(const char* name, int64_t millis) {
+    writer_.PrintProperty64(name, millis);
+  }
+  void PrintPropertyTimeMicros(const char* name, int64_t micros) {
+    writer_.PrintProperty64(name, micros);
+  }
+  void PrintProperty(const char* name, double d) {
+    writer_.PrintProperty(name, d);
+  }
   void PrintPropertyBase64(const char* name,
                            const uint8_t* bytes,
-                           intptr_t length);
-  void PrintProperty(const char* name, const char* s);
+                           intptr_t length) {
+    writer_.PrintPropertyBase64(name, bytes, length);
+  }
+  void PrintProperty(const char* name, const char* s) {
+    writer_.PrintProperty(name, s);
+  }
   bool PrintPropertyStr(const char* name,
                         const String& s,
                         intptr_t offset,
-                        intptr_t count);
-  void PrintPropertyNoEscape(const char* name, const char* s);
+                        intptr_t count) {
+    return writer_.PrintPropertyStr(name, s, offset, count);
+  }
+  void PrintPropertyNoEscape(const char* name, const char* s) {
+    writer_.PrintPropertyNoEscape(name, s);
+  }
   void PrintfProperty(const char* name, const char* format, ...)
       PRINTF_ATTRIBUTE(3, 4);
+  void VPrintfProperty(const char* name, const char* format, va_list args) {
+    writer_.VPrintfProperty(name, format, args);
+  }
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
   void PrintProperty(const char* name, const ServiceEvent* event);
@@ -215,20 +261,13 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name,
                      const TimelineEventBlock* timeline_event_block);
   void PrintPropertyVM(const char* name, bool ref = true);
-  void PrintPropertyName(const char* name);
-  bool NeedComma();
+  void PrintPropertyName(const char* name) { writer_.PrintPropertyName(name); }
 
-  bool AddDartString(const String& s, intptr_t offset, intptr_t count);
-  void AddEscapedUTF8String(const char* s);
-  void AddEscapedUTF8String(const char* s, intptr_t len);
+  void AddEscapedUTF8String(const char* s, intptr_t len) {
+    writer_.AddEscapedUTF8String(s, len);
+  }
 
-  intptr_t nesting_level() const { return open_objects_; }
-
-  // Debug only fatal assertion.
-  static void EnsureIntegerIsRepresentableInJavaScript(int64_t i);
-
-  intptr_t open_objects_;
-  TextBuffer buffer_;
+  JSONWriter writer_;
   // Default service id zone.
   RingServiceIdZone default_id_zone_;
   ServiceIdZone* id_zone_;

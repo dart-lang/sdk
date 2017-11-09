@@ -28,6 +28,10 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
     show
+        messagePatchClassOrigin,
+        messagePatchClassTypeVariablesMismatch,
+        messagePatchDeclarationMismatch,
+        messagePatchDeclarationOrigin,
         templateOverrideFewerNamedArguments,
         templateOverrideFewerPositionalArguments,
         templateOverrideMismatchNamedParameter,
@@ -45,6 +49,7 @@ import 'kernel_builder.dart'
         KernelLibraryBuilder,
         KernelProcedureBuilder,
         KernelTypeBuilder,
+        KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -57,6 +62,8 @@ import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 abstract class KernelClassBuilder
     extends ClassBuilder<KernelTypeBuilder, InterfaceType> {
+  KernelClassBuilder actualOrigin;
+
   KernelClassBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -74,6 +81,11 @@ abstract class KernelClassBuilder
   Class get cls;
 
   Class get target => cls;
+
+  Class get actualCls;
+
+  @override
+  KernelClassBuilder get origin => actualOrigin ?? this;
 
   /// [arguments] have already been built.
   InterfaceType buildTypesWithBuiltArguments(
@@ -107,6 +119,7 @@ abstract class KernelClassBuilder
 
   Supertype buildSupertype(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+    Class cls = isPatch ? origin.target : this.cls;
     if (arguments != null) {
       return new Supertype(cls, buildTypeArguments(library, arguments));
     } else {
@@ -173,7 +186,7 @@ abstract class KernelClassBuilder
     //
     // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
     DillMemberBuilder constructorsField =
-        scope.local.putIfAbsent("_redirecting#", () {
+        origin.scope.local.putIfAbsent("_redirecting#", () {
       ListLiteral literal = new ListLiteral(<Expression>[]);
       Name name = new Name("_redirecting#", library.library);
       Field field = new Field(name,
@@ -287,5 +300,76 @@ abstract class KernelClassBuilder
     return isMixinApplication
         ? "${supertype.fullNameForErrors} with ${mixedInType.fullNameForErrors}"
         : name;
+  }
+
+  @override
+  void applyPatch(Builder patch) {
+    if (patch is KernelClassBuilder) {
+      patch.actualOrigin = this;
+      // TODO(ahe): Complain if `patch.supertype` isn't null.
+      scope.local.forEach((String name, Builder member) {
+        Builder memberPatch = patch.scope.local[name];
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+      scope.setters.forEach((String name, Builder member) {
+        Builder memberPatch = patch.scope.setters[name];
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+      constructors.local.forEach((String name, Builder member) {
+        Builder memberPatch = patch.constructors.local[name];
+        if (memberPatch != null) {
+          member.applyPatch(memberPatch);
+        }
+      });
+
+      int originLength = typeVariables?.length ?? 0;
+      int patchLength = patch.typeVariables?.length ?? 0;
+      if (originLength != patchLength) {
+        patch.addCompileTimeError(
+            messagePatchClassTypeVariablesMismatch, patch.charOffset,
+            context: messagePatchClassOrigin.withLocation(fileUri, charOffset));
+      } else if (typeVariables != null) {
+        int count = 0;
+        for (KernelTypeVariableBuilder t in patch.typeVariables) {
+          typeVariables[count++].applyPatch(t);
+        }
+      }
+    } else {
+      library.addCompileTimeError(
+          messagePatchDeclarationMismatch, patch.charOffset, patch.fileUri,
+          context:
+              messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+    }
+  }
+
+  @override
+  Builder findStaticBuilder(
+      String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
+      {bool isSetter: false}) {
+    Builder builder = super.findStaticBuilder(
+        name, charOffset, fileUri, accessingLibrary,
+        isSetter: isSetter);
+    if (builder == null && isPatch) {
+      return origin.findStaticBuilder(
+          name, charOffset, fileUri, accessingLibrary,
+          isSetter: isSetter);
+    }
+    return builder;
+  }
+
+  @override
+  Builder findConstructorOrFactory(
+      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
+    Builder builder =
+        super.findConstructorOrFactory(name, charOffset, uri, accessingLibrary);
+    if (builder == null && isPatch) {
+      return origin.findConstructorOrFactory(
+          name, charOffset, uri, accessingLibrary);
+    }
+    return builder;
   }
 }

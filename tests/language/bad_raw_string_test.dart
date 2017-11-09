@@ -5,13 +5,13 @@
 main() {
   // Raw String may not contain newline (may not be multi-line).
   String x = ''
-    r' // //# 01: compile-time error
+    r' // //# 01: syntax error
 ' //      //# 01: continued
-    r" // //# 02: compile-time error
+    r" // //# 02: syntax error
 " //      //# 02: continued
       // Test that a raw string containing just one character, a \n char, fails.
       // Enclose the test string in a bigger multiline string, except in case 03:
-    ''' // //# 03: compile-time error
+    ''' // //# 03: syntax error
       """
     ''' // //# 03: continued
     r'

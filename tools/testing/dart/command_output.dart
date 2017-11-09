@@ -57,6 +57,7 @@ class CommandOutput extends UniqueObject {
     // as an invalid snapshot file.
     // In either case an exit code of 253 is considered a crash.
     if (exitCode == 253) return true;
+    if (exitCode == parseFailExitCode) return false;
     if (io.Platform.operatingSystem == 'windows') {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
@@ -73,6 +74,8 @@ class CommandOutput extends UniqueObject {
     }
     return !hasTimedOut && ((exitCode < 0));
   }
+
+  bool get hasSyntaxError => exitCode == parseFailExitCode;
 
   bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
 
@@ -674,6 +677,43 @@ class AnalysisCommandOutput extends CommandOutput {
   }
 }
 
+class SpecParseCommandOutput extends CommandOutput {
+  SpecParseCommandOutput(
+      Command command,
+      int exitCode,
+      bool timedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+            compilationSkipped, 0);
+
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    if (testCase.expectCompileError) {
+      if (testCase.hasSyntaxError) {
+        // A syntax error is expected.
+        return hasSyntaxError
+            ? Expectation.pass
+            : Expectation.missingSyntaxError;
+      } else {
+        // A non-syntax compile-time error is expected by the test, so a run
+        // with no failures is a successful run. A run with failures is an
+        // actual (but unexpected) syntax error.
+        return exitCode == 0 ? Expectation.pass : Expectation.syntaxError;
+      }
+    }
+
+    // No compile-time errors expected (including: no syntax errors).
+    return exitCode == 0 ? Expectation.pass : Expectation.syntaxError;
+  }
+}
+
 class VMCommandOutput extends CommandOutput with UnittestSuiteMessagesMixin {
   static const _dfeErrorExitCode = 252;
   static const _compileErrorExitCode = 254;
@@ -904,6 +944,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AnalysisCommand) {
     return new AnalysisCommandOutput(
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
+  } else if (command is SpecParseCommand) {
+    return new SpecParseCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is VmCommand) {
     return new VMCommandOutput(

@@ -4,178 +4,178 @@
 
 class SyntaxTest {
   // "this" cannot be used as a field name.
-  SyntaxTest this; //# 01: compile-time error
+  SyntaxTest this; //# 01: syntax error
 
   // Syntax error.
-  foo {} //# 02: compile-time error
+  foo {} //# 02: syntax error
 
   // Syntax error.
-  static foo {} //# 03: compile-time error
+  static foo {} //# 03: syntax error
 
   // Syntax error.
-  operator +=() {} //# 04: compile-time error
+  operator +=() {} //# 04: syntax error
 
   // Syntax error.
-  operator -=() {} //# 05: compile-time error
+  operator -=() {} //# 05: syntax error
 
   // Syntax error.
-  operator *=() {} //# 06: compile-time error
+  operator *=() {} //# 06: syntax error
 
   // Syntax error.
-  operator /=() {} //# 07: compile-time error
+  operator /=() {} //# 07: syntax error
 
   // Syntax error.
-  operator ~/=() {} //# 08: compile-time error
+  operator ~/=() {} //# 08: syntax error
 
   // Syntax error.
-  operator %=() {} //# 09: compile-time error
+  operator %=() {} //# 09: syntax error
 
   // Syntax error.
-  operator <<=() {} //# 10: compile-time error
+  operator <<=() {} //# 10: syntax error
 
   // Syntax error.
-  operator >>=() {} //# 11: compile-time error
+  operator >>=() {} //# 11: syntax error
 
   // Syntax error.
-  operator >>>=() {} //# 12: compile-time error
+  operator >>>=() {} //# 12: syntax error
 
   // Syntax error.
-  operator &=() {} //# 13: compile-time error
+  operator &=() {} //# 13: syntax error
 
   // Syntax error.
-  operator ^=() {} //# 14: compile-time error
+  operator ^=() {} //# 14: syntax error
 
   // Syntax error.
-  operator |=() {} //# 15: compile-time error
+  operator |=() {} //# 15: syntax error
 
   // Syntax error.
-  operator ?() {} //# 16: compile-time error
+  operator ?() {} //# 16: syntax error
 
   // Syntax error.
-  operator ||() {} //# 17: compile-time error
+  operator ||() {} //# 17: syntax error
 
   // Syntax error.
-  operator &&() {} //# 18: compile-time error
+  operator &&() {} //# 18: syntax error
 
   // Syntax error.
-  operator !=() {} //# 19: compile-time error
+  operator !=() {} //# 19: syntax error
 
   // Syntax error.
-  operator ===() {} //# 20: compile-time error
+  operator ===() {} //# 20: syntax error
 
   // Syntax error.
-  operator !==() {} //# 21: compile-time error
+  operator !==() {} //# 21: syntax error
 
   // Syntax error.
-  operator is() {} //# 22: compile-time error
+  operator is() {} //# 22: syntax error
 
   // Syntax error.
-  operator !() {} //# 23: compile-time error
+  operator !() {} //# 23: syntax error
 
   // Syntax error.
-  operator ++() {} //# 24: compile-time error
+  operator ++() {} //# 24: syntax error
 
   // Syntax error.
-  operator --() {} //# 25: compile-time error
+  operator --() {} //# 25: syntax error
 
   // Syntax error.
-  bool operator ===(A other) { return true; } //# 26: compile-time error
+  bool operator ===(A other) { return true; } //# 26: syntax error
 
   int sample;
 }
 
-fisk {} //# 27: compile-time error
+fisk {} //# 27: syntax error
 
 class DOMWindow {}
 
 class Window extends DOMWindow
-native "*Window" //# 28: compile-time error
+native "*Window" //# 28: syntax error
 {}
 
 class Console
-native "=(typeof console == 'undefined' ? {} : console)" //# 29: compile-time error
+native "=(typeof console == 'undefined' ? {} : console)" //# 29: syntax error
 {}
 
 class NativeClass
-native "FooBar" //# 30: compile-time error
+native "FooBar" //# 30: syntax error
 {}
 
 abstract class Fisk {}
 
 class BoolImplementation implements Fisk
-native "Boolean" //# 31: compile-time error
+native "Boolean" //# 31: syntax error
 {}
 
 class _JSON
-native 'JSON' //# 32: compile-time error
+native 'JSON' //# 32: syntax error
 {}
 
 class ListFactory<E> implements List<E>
-native "Array" //# 33: compile-time error
+native "Array" //# 33: syntax error
 {}
 
-abstract class I implements UNKNOWN; //# 34: compile-time error
+abstract class I implements UNKNOWN; //# 34: syntax error
 
 class XWindow extends DOMWindow
-hest "*Window" //# 35: compile-time error
+hest "*Window" //# 35: syntax error
 {}
 
 class XConsole
-hest "=(typeof console == 'undefined' ? {} : console)" //# 36: compile-time error
+hest "=(typeof console == 'undefined' ? {} : console)" //# 36: syntax error
 {}
 
 class XNativeClass
-hest "FooBar" //# 37: compile-time error
+hest "FooBar" //# 37: syntax error
 {}
 
 class XBoolImplementation implements Fisk
-hest "Boolean" //# 38: compile-time error
+hest "Boolean" //# 38: syntax error
 {}
 
 class _JSONX
-hest 'JSON' //# 39: compile-time error
+hest 'JSON' //# 39: syntax error
 {}
 
 class XListFactory<E> implements List<E>
-hest "Array" //# 40: compile-time error
+hest "Array" //# 40: syntax error
 {}
 
 class YWindow extends DOMWindow
-for "*Window" //# 41: compile-time error
+for "*Window" //# 41: syntax error
 {}
 
 class YConsole
-for "=(typeof console == 'undefined' ? {} : console)" //# 42: compile-time error
+for "=(typeof console == 'undefined' ? {} : console)" //# 42: syntax error
 {}
 
 class YNativeClass
-for "FooBar" //# 43: compile-time error
+for "FooBar" //# 43: syntax error
 {}
 
 class YBoolImplementation implements Fisk
-for "Boolean" //# 44: compile-time error
+for "Boolean" //# 44: syntax error
 {}
 
 class _JSONY
-for 'JSON' //# 45: compile-time error
+for 'JSON' //# 45: syntax error
 {}
 
 class YListFactory<E> implements List<E>
-for "Array" //# 46: compile-time error
+for "Array" //# 46: syntax error
 {}
 
 class A {
   const A()
-  {} //# 47: compile-time error
+  {} //# 47: syntax error
   ;
 }
 
 abstract class G<T> {}
 
-typedef <T>(); //# 48: compile-time error
+typedef <T>(); //# 48: syntax error
 
 class B
-extends void //# 49: compile-time error
+extends void //# 49: syntax error
 {}
 
 main() {
@@ -210,33 +210,33 @@ main() {
     new YListFactory<Object>();
 
     futureOf(x) {}
-    if (!(fisk futureOf(false))) {} //# 50: compile-time error
+    if (!(fisk futureOf(false))) {} //# 50: syntax error
     if (!(await futureOf(false))) {} //# 51: compile-time error
 
-    void f{} //# 52: compile-time error
-    G<int double> g; //# 53: compile-time error
-    f(void) {}; //# 54: compile-time error
+    void f{} //# 52: syntax error
+    G<int double> g; //# 53: syntax error
+    f(void) {}; //# 54: syntax error
 
     optionalArg([x]) {}
     optionalArg(
-      void (var i) {} //# 55: compile-time error
+      void (var i) {} //# 55: syntax error
         );
 
-    function __PROTO__$(...args) { return 12; } //# 56: compile-time error
-    G<> t; //# 57: compile-time error
-    G<null> t; //# 58: compile-time error
+    function __PROTO__$(...args) { return 12; } //# 56: syntax error
+    G<> t; //# 57: syntax error
+    G<null> t; //# 58: syntax error
     A<void> a = null;
     void v;
     void v = null;
-    print(null is void); //# 59: compile-time error
+    print(null is void); //# 59: syntax error
     new A();
     new B();
 
     new Bad();
 
-    1 + 2 = 1; //# 60: compile-time error
-    new SyntaxTest() = 1; //# 61: compile-time error
-    futureOf(null) = 1; //# 62: compile-time error
+    1 + 2 = 1; //# 60: syntax error
+    new SyntaxTest() = 1; //# 61: syntax error
+    futureOf(null) = 1; //# 62: syntax error
 
     new C();
   } catch (ex) {
@@ -246,7 +246,7 @@ main() {
 }
 
 class Bad {
-  factory Bad<Bad(String type) { return null; } //# 63: compile-time error
+  factory Bad<Bad(String type) { return null; } //# 63: syntax error
 }
 
 class C {

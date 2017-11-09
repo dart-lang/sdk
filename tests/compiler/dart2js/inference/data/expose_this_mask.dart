@@ -280,7 +280,6 @@ abstract class Class8 {
     /*invoke: [subclass=Class8]*/ method8();
   }
 
-  /*element: Class8.method8:[empty]*/
   method8();
 }
 

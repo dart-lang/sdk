@@ -318,3 +318,50 @@ final objectProperties = <String>[
   "__lookupSetter__",
   "__proto__"
 ].toSet();
+
+/// Returns the JS member name for a public Dart instance member, before it
+/// is symbolized; generally you should use [_emitMemberName] or
+/// [_declareMemberName] instead of this.
+String memberNameForDartMember(String name) {
+  // When generating synthetic names, we use _ as the prefix, since Dart names
+  // won't have this, nor will static names reach here.
+  switch (name) {
+    case '[]':
+      return '_get';
+    case '[]=':
+      return '_set';
+    case 'unary-':
+      return '_negate';
+    case '==':
+      return '_equals';
+    case 'constructor':
+    case 'prototype':
+      return '_$name';
+  }
+  return name;
+}
+
+final friendlyNameForDartOperator = {
+  '<': 'lessThan',
+  '>': 'greaterThan',
+  '<=': 'lessOrEquals',
+  '>=': 'greaterOrEquals',
+  '-': 'minus',
+  '+': 'plus',
+  '/': 'divide',
+  '~/': 'floorDivide',
+  '*': 'times',
+  '%': 'modulo',
+  '|': 'bitOr',
+  '^': 'bitXor',
+  '&': 'bitAnd',
+  '<<': 'leftShift',
+  '>>': 'rightShift',
+  '~': 'bitNot',
+  // These ones are always renamed, hence the choice of `_` to avoid conflict
+  // with Dart names. See _emitMemberName.
+  '==': '_equals',
+  '[]': '_get',
+  '[]=': '_set',
+  'unary-': '_negate',
+};

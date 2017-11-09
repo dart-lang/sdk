@@ -453,8 +453,14 @@ part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 *: Skip # Issue 28649
 
 [$compiler == dart2analyzer && $runtime == none]
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
-assertion_initializer_const_error2_test/none: CompileTimeError
+assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue #31320
+assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue #31320
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_test/01: MissingStaticWarning
 assertion_initializer_test: CompileTimeError
+
+[$compiler == dart2analyzer && $runtime == none && $checked]
+assertion_initializer_const_error2_test/none: Pass
+assertion_initializer_const_error2_test/*: MissingCompileTimeError # Issue #
+assertion_initializer_const_error2_test/cc10: Pass # Issue #31321
+assertion_initializer_const_error2_test/cc11: Pass # Issue #31321

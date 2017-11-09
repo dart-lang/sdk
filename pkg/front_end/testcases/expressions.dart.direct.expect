@@ -69,7 +69,7 @@ static method main() → dynamic {
   core::print(core::int);
   core::print(let final dynamic #t5 = core::int in let final dynamic #t6 = #t5.toString() in #t5);
   try {
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#toString, 32, <dynamic>[].toList(growable: false), <dynamic>[].toList(growable: false), <dynamic, dynamic>{})));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#toString, 32, const <dynamic>[], const <dynamic>[], core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{}))));
     throw "Shouldn't work";
   }
   on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {

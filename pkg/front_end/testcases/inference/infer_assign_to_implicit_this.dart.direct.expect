@@ -40,7 +40,6 @@ class Test extends core::Object {
     this.{self::Test::member} = this.{self::Test::member}.-(1);
     dynamic v1 = this.{self::Test::member} = self::f<dynamic>();
     dynamic v2 = let final dynamic #t1 = this.{self::Test::member} in #t1.==(null) ? this.{self::Test::member} = self::f<dynamic>() : #t1;
-    dynamic v3 = this.{self::Test::member} = this.{self::Test::member}.+(self::f<dynamic>());
     dynamic v4 = this.{self::Test::member} = this.{self::Test::member}.*(self::f<dynamic>());
     dynamic v5 = this.{self::Test::member} = this.{self::Test::member}.&(self::f<dynamic>());
     dynamic v6 = this.{self::Test::member} = this.{self::Test::member}.-(1);

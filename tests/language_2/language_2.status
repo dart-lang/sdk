@@ -17,7 +17,6 @@ stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 
 [ $compiler == none && $runtime == drt && !$checked ]
-assertion_initializer_const_error2_test/cc02: Fail
 assertion_initializer_const_error_test/01: Fail
 
 [ !$checked && $compiler != dartdevc ]
@@ -69,11 +68,11 @@ conditional_import_string_test: Crash # Requires deferred libraries
 [ $checked && ! $strong ]
 type_parameter_test/05: Pass
 
-[ ! $checked && ! $strong ]
+[ ! $checked && ! $strong && $compiler != spec_parser ]
 closure_type_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError
 
-[ ! $strong ]
+[ ! $strong && $compiler != spec_parser ]
 class_literal_static_test/none: Pass
 class_literal_static_test: MissingCompileTimeError # Requires strong mode
 class_override_test: MissingCompileTimeError # Requires strong mode

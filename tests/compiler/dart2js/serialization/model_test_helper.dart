@@ -69,7 +69,7 @@ Future checkModels(Uri entryPoint,
   Compiler compilerNormal = await measure(title, 'compile normal', () async {
     Compiler compilerNormal = compilerFor(
         memorySourceFiles: sourceFiles, options: [Flags.analyzeOnly]);
-    compilerNormal.resolution.retainCachesForTesting = true;
+    compilerNormal.impactCacheDeleter.retainCachesForTesting = true;
     await compilerNormal.run(entryPoint);
     ElementEnvironment elementEnvironment =
         compilerNormal.frontendStrategy.elementEnvironment;
@@ -83,7 +83,7 @@ Future checkModels(Uri entryPoint,
         memorySourceFiles: sourceFiles,
         resolutionInputs: resolutionInputs,
         options: [Flags.analyzeOnly]);
-    compilerDeserialized.resolution.retainCachesForTesting = true;
+    compilerDeserialized.impactCacheDeleter.retainCachesForTesting = true;
     await compilerDeserialized.run(entryPoint);
     ElementEnvironment elementEnvironment =
         compilerDeserialized.frontendStrategy.elementEnvironment;
@@ -126,9 +126,9 @@ void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
       "isProgramSplit mismatch");
 
   Iterable<ConstantValue> constants1 =
-      compilerNormal.deferredLoadTask.constantsForTesting;
+      compilerNormal.backend.outputUnitData.constantsForTesting;
   Iterable<ConstantValue> constants2 =
-      compilerDeserialized.deferredLoadTask.constantsForTesting;
+      compilerDeserialized.backend.outputUnitData.constantsForTesting;
   checkSets(
       constants1,
       constants2,
@@ -140,24 +140,26 @@ void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
     checkOutputUnits(
         compilerNormal,
         compilerDeserialized,
-        compilerNormal.deferredLoadTask.outputUnitForConstant(value1),
-        compilerDeserialized.deferredLoadTask.outputUnitForConstant(value2),
+        compilerNormal.backend.outputUnitData.outputUnitForConstant(value1),
+        compilerDeserialized.backend.outputUnitData
+            .outputUnitForConstant(value2),
         'for ${value1.toStructuredText()} '
         'vs ${value2.toStructuredText()}');
   }, onUnfoundElement: (ConstantValue value1) {
     OutputUnit outputUnit1 =
-        compilerNormal.deferredLoadTask.outputUnitForConstant(value1);
+        compilerNormal.backend.outputUnitData.outputUnitForConstant(value1);
     Expect.isTrue(outputUnit1.isMainOutput,
         "Missing deferred constant: ${value1.toStructuredText()}");
   }, onExtraElement: (ConstantValue value2) {
-    OutputUnit outputUnit2 =
-        compilerDeserialized.deferredLoadTask.outputUnitForConstant(value2);
+    OutputUnit outputUnit2 = compilerDeserialized.backend.outputUnitData
+        .outputUnitForConstant(value2);
     Expect.isTrue(outputUnit2.isMainOutput,
         "Extra deferred constant: ${value2.toStructuredText()}");
   }, elementToString: (a) {
-    OutputUnit o1 = compilerNormal.deferredLoadTask.outputUnitForConstant(a);
+    OutputUnit o1 =
+        compilerNormal.backend.outputUnitData.outputUnitForConstant(a);
     OutputUnit o2 =
-        compilerDeserialized.deferredLoadTask.outputUnitForConstant(a);
+        compilerDeserialized.backend.outputUnitData.outputUnitForConstant(a);
     return '${a.toStructuredText()} -> ${o1}/${o2}';
   });
 }
@@ -289,9 +291,9 @@ String nodeToString(Node node) {
 void checkElementOutputUnits(Compiler compiler1, Compiler compiler2,
     Element element1, Element element2) {
   OutputUnit outputUnit1 =
-      compiler1.deferredLoadTask.getOutputUnitForElementForTesting(element1);
+      compiler1.backend.outputUnitData.outputUnitForEntityForTesting(element1);
   OutputUnit outputUnit2 =
-      compiler2.deferredLoadTask.getOutputUnitForElementForTesting(element2);
+      compiler2.backend.outputUnitData.outputUnitForEntityForTesting(element2);
   checkOutputUnits(compiler1, compiler2, outputUnit1, outputUnit2,
       'for $element1 vs $element2');
 }

@@ -24,10 +24,9 @@ import 'package:kernel/target/targets.dart';
 Future<IncrementalCompiler> createIncrementalCompiler(String entry,
     {bool persistent: true, Uri sdkRoot, Target target}) {
   var entryUri = Uri.base.resolve(entry);
-  var dartVm = Uri.base.resolve(Platform.resolvedExecutable);
   var tmpDir = Directory.systemTemp.createTempSync('ikg_cache');
   var options = new CompilerOptions()
-    ..sdkRoot = sdkRoot ?? dartVm.resolve("patched_sdk/")
+    ..sdkRoot = sdkRoot ?? Uri.base.resolve("sdk/")
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..strongMode = false
     ..target = target

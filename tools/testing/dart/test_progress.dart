@@ -734,6 +734,9 @@ class ResultLogWriter extends EventListener {
     if (test.hasRuntimeError) {
       inlineExpectations.add("runtime-error");
     }
+    if (test.hasSyntaxError) {
+      inlineExpectations.add("syntax-error");
+    }
     if (test.hasCompileError) {
       inlineExpectations.add("compile-time-error");
     }

@@ -659,6 +659,10 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
 
     Library& target_library =
         LookupLibrary(dependency_helper.target_library_canonical_name_);
+    if (!FLAG_enable_mirrors &&
+        target_library.url() == Symbols::DartMirrors().raw()) {
+      H.ReportError("import of dart:mirrors with --enable-mirrors=false");
+    }
     String& prefix = H.DartSymbol(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
     if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {

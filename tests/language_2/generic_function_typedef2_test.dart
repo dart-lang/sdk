@@ -9,10 +9,10 @@ class A {}
 
 typedef int F();
 
-typedef G = F; //# 00: compile-time error
-typedef H = int; //# 01: compile-time error
-typedef I = A; //# 02: compile-time error
-typedef J = List<int>; //# 03: compile-time error
+typedef G = F; //# 00: syntax error
+typedef H = int; //# 01: syntax error
+typedef I = A; //# 02: syntax error
+typedef J = List<int>; //# 03: syntax error
 typedef K = Function(
     Function<A>(A
     <int> // //# 04: compile-time error

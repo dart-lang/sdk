@@ -30,8 +30,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30997')
+  @potentialAnalyzerProblem
   test_deferredImportWithInvalidUri() async {
+    // We need to handle invalid URIs in FileState.
     return super.test_deferredImportWithInvalidUri();
   }
 
@@ -157,13 +158,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
-  test_invalidUri_part() async {
-    return super.test_invalidUri_part();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30981')
   test_memberWithClassName_getter() async {
     return super.test_memberWithClassName_getter();
@@ -199,9 +193,9 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
-  test_partOfNonPart() async {
-    return super.test_partOfNonPart();
+  @potentialAnalyzerProblem
+  test_prefix_conditionalPropertyAccess_get_loadLibrary() async {
+    return super.test_prefix_conditionalPropertyAccess_get_loadLibrary();
   }
 
   @override
@@ -230,6 +224,73 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_prefixCollidesWithTopLevelMembers_type() async {
     return super.test_prefixCollidesWithTopLevelMembers_type();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInClassTypeAlias_mixinAndMixin() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInClassTypeAlias_mixinAndMixin();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInClassTypeAlias_mixinAndMixin_indirect() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInClassTypeAlias_mixinAndMixin_indirect();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInClassTypeAlias_superclassAndMixin() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInClassTypeAlias_superclassAndMixin();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInClassTypeAlias_superclassAndMixin_same() async {
+    // We need to know names of private fields.
+    return super
+        .test_privateCollisionInClassTypeAlias_superclassAndMixin_same();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInMixinApplication_mixinAndMixin() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInMixinApplication_mixinAndMixin();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() async {
+    // We need to know names of private fields.
+    return super
+        .test_privateCollisionInMixinApplication_mixinAndMixin_indirect();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInMixinApplication_superclassAndMixin() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInMixinApplication_superclassAndMixin();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInMixinApplication_superclassAndMixin_same() async {
+    // We need to know names of private fields.
+    return super
+        .test_privateCollisionInMixinApplication_superclassAndMixin_same();
   }
 
   @override
@@ -308,13 +369,6 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31007')
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
     return super.test_typeAliasCannotReferenceItself_typeVariableBounds();
-  }
-
-  @override
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31004')
-  test_uriDoesNotExist_part() async {
-    return super.test_uriDoesNotExist_part();
   }
 
   @override

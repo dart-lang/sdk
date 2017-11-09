@@ -23,7 +23,7 @@ import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
-import 'deferred_load.dart' show DeferredLoadTask;
+import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'diagnostics/invariant.dart' show REPORT_EXCESS_RESOLUTION;
@@ -89,6 +89,8 @@ abstract class Compiler {
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
+  Map<Entity, WorldImpact> _impactCache;
+  ImpactCacheDeleter _impactCacheDeleter;
   ParsingContext _parsingContext;
 
   ImpactStrategy impactStrategy = const ImpactStrategy();
@@ -122,6 +124,8 @@ abstract class Compiler {
 
   DiagnosticReporter get reporter => _reporter;
   Resolution get resolution => _resolution;
+  Map<Entity, WorldImpact> get impactCache => _impactCache;
+  ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
   ParsingContext get parsingContext => _parsingContext;
 
   // TODO(zarah): Remove this map and incorporate compile-time errors
@@ -192,7 +196,14 @@ abstract class Compiler {
     backendStrategy = options.useKernel
         ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
-    _resolution = createResolution();
+    if (options.useKernel) {
+      _impactCache = <Entity, WorldImpact>{};
+      _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
+    } else {
+      _resolution = createResolution();
+      _impactCache = _resolution._worldImpactCache;
+      _impactCacheDeleter = _resolution;
+    }
 
     if (options.verbose) {
       progress = new ProgressImpl(_reporter);
@@ -224,7 +235,7 @@ abstract class Compiler {
       checker = new TypeCheckerTask(this),
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
-      deferredLoadTask = new DeferredLoadTask(this),
+      deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       // [enqueuer] is created earlier because it contains the resolution world
       // objects needed by other tasks.
@@ -608,8 +619,6 @@ abstract class Compiler {
 
         if (stopAfterTypeInference) return;
 
-        backend.onTypeInferenceComplete(globalInference.results);
-
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
 
@@ -655,7 +664,8 @@ abstract class Compiler {
     // require the information computed in [world.closeWorld].)
     backend.onResolutionClosedWorld(closedWorld, closedWorldRefiner);
 
-    deferredLoadTask.onResolutionComplete(mainFunction, closedWorld);
+    OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
+    backend.onDeferredLoadComplete(result);
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
@@ -1301,11 +1311,11 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 }
 
 // TODO(johnniwinther): Move [ResolverTask] here.
-class CompilerResolution implements Resolution {
+class CompilerResolution implements Resolution, ImpactCacheDeleter {
   final Compiler _compiler;
   final Map<Element, ResolutionImpact> _resolutionImpactCache =
       <Element, ResolutionImpact>{};
-  final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
+  final Map<Entity, WorldImpact> _worldImpactCache = <Entity, WorldImpact>{};
   bool retainCachesForTesting = false;
   Types _types;
 
@@ -1523,7 +1533,7 @@ class CompilerResolution implements Resolution {
   }
 
   @override
-  void uncacheWorldImpact(Element element) {
+  void uncacheWorldImpact(covariant Element element) {
     assert(element.isDeclaration,
         failedAt(element, "Element $element must be the declaration."));
     if (retainCachesForTesting) return;
@@ -1574,6 +1584,23 @@ class CompilerResolution implements Resolution {
   @override
   void registerClass(ClassEntity cls) {
     enqueuer.worldBuilder.registerClass(cls);
+  }
+}
+
+class _MapImpactCacheDeleter implements ImpactCacheDeleter {
+  final Map<Entity, WorldImpact> _impactCache;
+  _MapImpactCacheDeleter(this._impactCache);
+
+  bool retainCachesForTesting = false;
+
+  void uncacheWorldImpact(Entity element) {
+    if (retainCachesForTesting) return;
+    _impactCache.remove(element);
+  }
+
+  void emptyCache() {
+    if (retainCachesForTesting) return;
+    _impactCache.clear();
   }
 }
 

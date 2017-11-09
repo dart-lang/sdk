@@ -11,9 +11,8 @@ class Test1 extends core::Object {
     dynamic v1 = t.prop = self::getInt();
     dynamic v4 = let final dynamic #t1 = t in let final dynamic #t2 = #t1.prop in #t2.==(null) ? #t1.prop = self::getInt() : #t2;
     dynamic v7 = let final dynamic #t3 = t in #t3.prop = #t3.prop.+(self::getInt());
-    dynamic v8 = let final dynamic #t4 = t in #t4.prop = #t4.prop.+(self::getNum());
-    dynamic v10 = let final dynamic #t5 = t in #t5.prop = #t5.prop.+(1);
-    dynamic v11 = let final dynamic #t6 = t in let final dynamic #t7 = #t6.prop in let final dynamic #t8 = #t6.prop = #t7.+(1) in #t7;
+    dynamic v10 = let final dynamic #t4 = t in #t4.prop = #t4.prop.+(1);
+    dynamic v11 = let final dynamic #t5 = t in let final dynamic #t6 = #t5.prop in let final dynamic #t7 = #t5.prop = #t6.+(1) in #t6;
   }
 }
 class Test2 extends core::Object {
@@ -25,14 +24,14 @@ class Test2 extends core::Object {
     dynamic v1 = t.prop = self::getInt();
     dynamic v2 = t.prop = self::getNum();
     dynamic v3 = t.prop = self::getDouble();
-    dynamic v4 = let final dynamic #t9 = t in let final dynamic #t10 = #t9.prop in #t10.==(null) ? #t9.prop = self::getInt() : #t10;
-    dynamic v5 = let final dynamic #t11 = t in let final dynamic #t12 = #t11.prop in #t12.==(null) ? #t11.prop = self::getNum() : #t12;
-    dynamic v6 = let final dynamic #t13 = t in let final dynamic #t14 = #t13.prop in #t14.==(null) ? #t13.prop = self::getDouble() : #t14;
-    dynamic v7 = let final dynamic #t15 = t in #t15.prop = #t15.prop.+(self::getInt());
-    dynamic v8 = let final dynamic #t16 = t in #t16.prop = #t16.prop.+(self::getNum());
-    dynamic v9 = let final dynamic #t17 = t in #t17.prop = #t17.prop.+(self::getDouble());
-    dynamic v10 = let final dynamic #t18 = t in #t18.prop = #t18.prop.+(1);
-    dynamic v11 = let final dynamic #t19 = t in let final dynamic #t20 = #t19.prop in let final dynamic #t21 = #t19.prop = #t20.+(1) in #t20;
+    dynamic v4 = let final dynamic #t8 = t in let final dynamic #t9 = #t8.prop in #t9.==(null) ? #t8.prop = self::getInt() : #t9;
+    dynamic v5 = let final dynamic #t10 = t in let final dynamic #t11 = #t10.prop in #t11.==(null) ? #t10.prop = self::getNum() : #t11;
+    dynamic v6 = let final dynamic #t12 = t in let final dynamic #t13 = #t12.prop in #t13.==(null) ? #t12.prop = self::getDouble() : #t13;
+    dynamic v7 = let final dynamic #t14 = t in #t14.prop = #t14.prop.+(self::getInt());
+    dynamic v8 = let final dynamic #t15 = t in #t15.prop = #t15.prop.+(self::getNum());
+    dynamic v9 = let final dynamic #t16 = t in #t16.prop = #t16.prop.+(self::getDouble());
+    dynamic v10 = let final dynamic #t17 = t in #t17.prop = #t17.prop.+(1);
+    dynamic v11 = let final dynamic #t18 = t in let final dynamic #t19 = #t18.prop in let final dynamic #t20 = #t18.prop = #t19.+(1) in #t19;
   }
 }
 class Test3 extends core::Object {
@@ -42,12 +41,12 @@ class Test3 extends core::Object {
     ;
   static method test3(self::Test3 t) → void {
     dynamic v3 = t.prop = self::getDouble();
-    dynamic v6 = let final dynamic #t22 = t in let final dynamic #t23 = #t22.prop in #t23.==(null) ? #t22.prop = self::getDouble() : #t23;
-    dynamic v7 = let final dynamic #t24 = t in #t24.prop = #t24.prop.+(self::getInt());
-    dynamic v8 = let final dynamic #t25 = t in #t25.prop = #t25.prop.+(self::getNum());
-    dynamic v9 = let final dynamic #t26 = t in #t26.prop = #t26.prop.+(self::getDouble());
-    dynamic v10 = let final dynamic #t27 = t in #t27.prop = #t27.prop.+(1);
-    dynamic v11 = let final dynamic #t28 = t in let final dynamic #t29 = #t28.prop in let final dynamic #t30 = #t28.prop = #t29.+(1) in #t29;
+    dynamic v6 = let final dynamic #t21 = t in let final dynamic #t22 = #t21.prop in #t22.==(null) ? #t21.prop = self::getDouble() : #t22;
+    dynamic v7 = let final dynamic #t23 = t in #t23.prop = #t23.prop.+(self::getInt());
+    dynamic v8 = let final dynamic #t24 = t in #t24.prop = #t24.prop.+(self::getNum());
+    dynamic v9 = let final dynamic #t25 = t in #t25.prop = #t25.prop.+(self::getDouble());
+    dynamic v10 = let final dynamic #t26 = t in #t26.prop = #t26.prop.+(1);
+    dynamic v11 = let final dynamic #t27 = t in let final dynamic #t28 = #t27.prop in let final dynamic #t29 = #t27.prop = #t28.+(1) in #t28;
   }
 }
 static method getInt() → core::int

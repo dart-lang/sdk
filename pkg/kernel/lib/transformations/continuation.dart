@@ -616,7 +616,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //         ...
       //       }
       //     } finally {
-      //       await :for-iterator.cancel();
+      //       if (:for-iterator._subscription != null) await :for-iterator.cancel();
       //     }
       //   }
       var valueVariable = stmt.variable;
@@ -647,13 +647,20 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       var whileBody = new Block(<Statement>[valueVariable, stmt.body]);
       var tryBody = new WhileStatement(condition, whileBody);
 
-      // iterator.cancel();
-      var tryFinalizer = new ExpressionStatement(new AwaitExpression(
-          new MethodInvocation(
+      // if (:for-iterator._subscription != null) await :for-iterator.cancel();
+      var tryFinalizer = new IfStatement(
+          new Not(new MethodInvocation(
+              new PropertyGet(new VariableGet(iteratorVariable),
+                  new Name("_subscription", helper.asyncLibrary)),
+              new Name("=="),
+              new Arguments([new NullLiteral()]),
+              helper.coreTypes.objectEquals)),
+          new ExpressionStatement(new AwaitExpression(new MethodInvocation(
               new VariableGet(iteratorVariable),
               new Name('cancel'),
               new Arguments(<Expression>[]),
-              helper.streamIteratorCancel)));
+              helper.streamIteratorCancel))),
+          null);
 
       var tryFinally = new TryFinally(tryBody, tryFinalizer);
 

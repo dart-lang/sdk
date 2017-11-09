@@ -273,14 +273,15 @@ class HGraph {
 
   HConstant addDeferredConstant(
       ConstantValue constant,
-      Entity prefix,
+      ImportEntity import,
       SourceInformation sourceInformation,
       Compiler compiler,
       ClosedWorld closedWorld) {
     // TODO(sigurdm,johnniwinther): These deferred constants should be created
     // by the constant evaluator.
-    ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
-    compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
+    ConstantValue wrapper = new DeferredConstantValue(constant, import);
+    compiler.backend.outputUnitData
+        .registerConstantDeferredUse(wrapper, import);
     return addConstant(wrapper, closedWorld,
         sourceInformation: sourceInformation);
   }
