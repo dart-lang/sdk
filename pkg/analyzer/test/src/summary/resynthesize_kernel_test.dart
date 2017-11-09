@@ -182,6 +182,7 @@ class C {
 
   @failingTest
   @potentialAnalyzerProblem
+  @override
   test_class_type_parameters_bound() async {
     // https://github.com/dart-lang/sdk/issues/29561
     // Fasta does not provide a flag for explicit vs. implicit Object bound.
@@ -195,9 +196,23 @@ class C {
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_named() async {
+    await super.test_constructor_redirected_factory_named();
+  }
+
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
+  }
+
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_named_imported() async {
+    await super.test_constructor_redirected_factory_named_imported();
   }
 
   @failingTest
@@ -207,9 +222,23 @@ class C {
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_named_prefixed() async {
+    await super.test_constructor_redirected_factory_named_prefixed();
+  }
+
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_prefixed_generic() async {
     await super.test_constructor_redirected_factory_named_prefixed_generic();
+  }
+
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_unnamed() async {
+    await super.test_constructor_redirected_factory_unnamed();
   }
 
   @failingTest
@@ -219,9 +248,23 @@ class C {
   }
 
   @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_unnamed_imported() async {
+    await super.test_constructor_redirected_factory_unnamed_imported();
+  }
+
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_unnamed_imported_generic() async {
     await super.test_constructor_redirected_factory_unnamed_imported_generic();
+  }
+
+  @failingTest
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
+  @override
+  test_constructor_redirected_factory_unnamed_prefixed() async {
+    await super.test_constructor_redirected_factory_unnamed_prefixed();
   }
 
   @failingTest
@@ -330,6 +373,13 @@ class C {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_invalidUri_part_emptyUri() async {
     await super.test_invalidUri_part_emptyUri();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  @override
+  test_invalidUris() async {
+    await super.test_invalidUris();
   }
 
   @failingTest

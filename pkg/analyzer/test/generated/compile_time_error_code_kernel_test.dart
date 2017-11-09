@@ -30,6 +30,14 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
+  test_deferredImportWithInvalidUri() async {
+    // We need to handle invalid URIs in FileState.
+    return super.test_deferredImportWithInvalidUri();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateConstructorName_named() async {
     return super.test_duplicateConstructorName_named();
@@ -185,6 +193,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  @potentialAnalyzerProblem
+  test_prefix_conditionalPropertyAccess_get_loadLibrary() async {
+    return super.test_prefix_conditionalPropertyAccess_get_loadLibrary();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_prefixCollidesWithTopLevelMembers_functionTypeAlias() async {
     return super.test_prefixCollidesWithTopLevelMembers_functionTypeAlias();
@@ -214,8 +229,68 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_prefix_conditionalPropertyAccess_get_loadLibrary() async {
-    return super.test_prefix_conditionalPropertyAccess_get_loadLibrary();
+  test_privateCollisionInClassTypeAlias_mixinAndMixin() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInClassTypeAlias_mixinAndMixin();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInClassTypeAlias_mixinAndMixin_indirect() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInClassTypeAlias_mixinAndMixin_indirect();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInClassTypeAlias_superclassAndMixin() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInClassTypeAlias_superclassAndMixin();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInClassTypeAlias_superclassAndMixin_same() async {
+    // We need to know names of private fields.
+    return super
+        .test_privateCollisionInClassTypeAlias_superclassAndMixin_same();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInMixinApplication_mixinAndMixin() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInMixinApplication_mixinAndMixin();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInMixinApplication_mixinAndMixin_indirect() async {
+    // We need to know names of private fields.
+    return super
+        .test_privateCollisionInMixinApplication_mixinAndMixin_indirect();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInMixinApplication_superclassAndMixin() async {
+    // We need to know names of private fields.
+    return super.test_privateCollisionInMixinApplication_superclassAndMixin();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_privateCollisionInMixinApplication_superclassAndMixin_same() async {
+    // We need to know names of private fields.
+    return super
+        .test_privateCollisionInMixinApplication_superclassAndMixin_same();
   }
 
   @override

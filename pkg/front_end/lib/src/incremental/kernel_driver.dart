@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:convert/convert.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
@@ -11,11 +12,13 @@ import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
+import 'package:front_end/src/fasta/kernel/kernel_outline_shaker.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
 import 'package:front_end/src/fasta/kernel/metadata_collector.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
+import 'package:front_end/src/incremental/combine.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/core_types.dart';
@@ -140,27 +143,65 @@ class KernelDriver {
   ///
   /// Otherwise the driver will compute new results and return them.
   Future<KernelResult> getKernel(Uri uri) async {
-    // TODO(scheglov): Rewrite to actually return just outlines of dependencies.
-    KernelSequenceResult sequence = await getKernelSequence(uri);
+    return await runWithFrontEndContext('Compute kernel', () async {
+      await _refreshInvalidatedFiles();
 
-    var dependencies = <Library>[];
-    Library requestedLibrary;
-    for (var i = 0; i < sequence.results.length; i++) {
-      List<Library> libraries = sequence.results[i].kernelLibraries;
-      if (i == sequence.results.length - 1) {
-        for (var library in libraries) {
-          if (library.importUri == uri) {
-            requestedLibrary = library;
-          } else {
+      CanonicalName nameRoot = new CanonicalName.root();
+
+      // Load the SDK outline before building the graph, so that the file
+      // system state is configured to skip SDK libraries.
+      await _loadSdkOutline(nameRoot);
+
+      // Ensure that the graph starting at the entry point is ready.
+      FileState entryLibrary =
+          await _logger.runAsync('Build graph of files', () async {
+        return await _fsState.getFile(uri);
+      });
+
+      List<LibraryCycle> cycles = _logger.run('Compute library cycles', () {
+        List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
+        _logger.writeln('Computed ${cycles.length} cycles.');
+        return cycles;
+      });
+
+      LibraryCycle cycle = cycles.last;
+      await _compileCycle2(cycle, needsKernelBytesForDependencies: false);
+
+      // Read kernel bytes into the program with combined dependencies.
+      Program program;
+      {
+        CombineResult combined = _combineDirectDependencyOutlines(cycle);
+        program = combined.program;
+        try {
+          _readProgram(program, cycle.kernelBytes);
+        } finally {
+          combined.undo();
+        }
+      }
+
+      List<Library> dependencies = <Library>[];
+      Library requestedLibrary;
+      for (var library in program.libraries) {
+        if (library.importUri == uri) {
+          requestedLibrary = library;
+        } else {
+          dependencies.add(library);
+        }
+      }
+
+      // Even if we don't compile SDK libraries, add them to results.
+      // We need to be able to access dart:core and dart:async classes.
+      if (_sdkOutline != null) {
+        for (var library in _sdkOutline.libraries) {
+          var uriStr = library.importUri.toString();
+          if (uriStr == 'dart:core' || uriStr == 'dart:async') {
             dependencies.add(library);
           }
         }
-      } else {
-        dependencies.addAll(libraries);
       }
-    }
 
-    return new KernelResult(dependencies, sequence.types, requestedLibrary);
+      return new KernelResult(dependencies, null, requestedLibrary);
+    });
   }
 
   /// Return the [KernelSequenceResult] for the Dart file with the given [uri].
@@ -263,6 +304,11 @@ class KernelDriver {
         new CoreTypes(program), new IncrementalClassHierarchy());
   }
 
+  CombineResult _combineDirectDependencyOutlines(LibraryCycle cycle) {
+    var outlines = cycle.directDependencies.map((c) => c.outline).toList();
+    return combine(outlines);
+  }
+
   /// Ensure that [dillTarget] includes the [cycle] libraries.  It already
   /// contains all the libraries that sorted before the given [cycle] in
   /// topological order.  Return the result with the cycle libraries.
@@ -302,15 +348,7 @@ class KernelDriver {
       if (bytes != null) {
         return _logger.runAsync('Read serialized libraries', () async {
           var program = new Program(nameRoot: nameRoot);
-
-          if (_metadataFactory != null) {
-            var repository = _metadataFactory.newRepositoryForReading();
-            program.addMetadataRepository(repository);
-            new BinaryBuilderWithMetadata(bytes).readSingleFileProgram(program);
-          } else {
-            new BinaryBuilder(bytes).readProgram(program);
-          }
-
+          _readProgram(program, bytes);
           await appendNewDillLibraries(program);
 
           return new LibraryCycleResult(
@@ -361,6 +399,178 @@ class KernelDriver {
 
       return new LibraryCycleResult(
           cycle, signature, program.uriToSource, kernelLibraries);
+    });
+  }
+
+  /// Ensure that the given [cycle] has its outline, and, if [needsKernelBytes]
+  /// the kernel bytes ready.  Direct dependencies of the [cycle] are processed
+  /// first, recursively.
+  ///
+  /// TODO(scheglov) Rewrite [getKernelSequence] using this method too.
+  Future<Null> _compileCycle2(LibraryCycle cycle,
+      {bool needsKernelBytes: true,
+      bool needsKernelBytesForDependencies: true}) async {
+    // Nothing to do if the results have already been computed.
+    if (cycle.outline != null) {
+      if (!needsKernelBytes || cycle.kernelBytes != null) {
+        return;
+      }
+    }
+
+    // Compile direct dependencies.
+    for (var dependency in cycle.directDependencies) {
+      await _compileCycle2(dependency,
+          needsKernelBytes: needsKernelBytesForDependencies,
+          needsKernelBytesForDependencies: needsKernelBytesForDependencies);
+    }
+
+    await _logger.runAsync('Compile cycle $cycle', () async {
+      // Compute the signature of the cycle.
+      {
+        var signatureBuilder = new ApiSignature();
+        signatureBuilder.addBytes(_salt);
+
+        // Append the direct dependencies.
+        signatureBuilder.addInt(cycle.directDependencies.length);
+        for (var dependency in cycle.directDependencies) {
+          signatureBuilder.addBytes(dependency.outlineSignature);
+        }
+
+        // Append libraries in the cycle.
+        signatureBuilder.addInt(cycle.libraries.length);
+        for (var library in cycle.libraries) {
+          signatureBuilder.addString(library.uriStr);
+          signatureBuilder.addBytes(library.contentHash);
+          signatureBuilder.addInt(1 + library.partFiles.length);
+          for (var part in library.partFiles) {
+            signatureBuilder.addBytes(part.contentHash);
+          }
+        }
+
+        cycle.signature = signatureBuilder.toByteList();
+      }
+
+      String signatureHex = hex.encode(cycle.signature);
+      _logger.writeln('Signature: $signatureHex.');
+
+      var kernelKey = '$signatureHex.kernel';
+      var outlineSignatureKey = '$signatureHex.outline_signature';
+
+      // Get already existing outline signature, key, and outline.
+      // There is many-to-one mapping from signatures to outline signatures.
+      String outlineKey;
+      {
+        cycle.outlineSignature = _byteStore.get(outlineSignatureKey);
+        if (cycle.outlineSignature != null) {
+          outlineKey = hex.encode(cycle.outlineSignature) + '.outline';
+          // TODO(scheglov): Load using the object cache.
+          List<int> outlineBytes = _byteStore.get(outlineKey);
+          if (outlineBytes != null) {
+            _logger.writeln('Read ${outlineBytes.length} outline bytes.');
+            cycle.outline = loadProgramFromBytes(outlineBytes);
+          }
+        }
+      }
+
+      // Get already existing kernel.
+      if (needsKernelBytes) {
+        List<int> kernelBytes = _byteStore.get(kernelKey);
+        if (kernelBytes != null) {
+          _logger.writeln('Read ${kernelBytes.length} kernel bytes.');
+          cycle.kernelBytes = kernelBytes;
+        }
+      }
+
+      // We're done if we found all required results in the cache.
+      if (cycle.outline != null &&
+          (!needsKernelBytes || cycle.kernelBytes != null)) {
+        return;
+      }
+
+      CanonicalName nameRoot = new CanonicalName.root();
+      DillTarget dillTarget = new DillTarget(
+          new Ticker(isVerbose: false), uriTranslator, _options.target);
+
+      // If there is the SDK outline, load it.
+      // Load the SDK outline before building the graph, so that the file
+      // system state is configured to skip SDK libraries.
+      await _loadSdkOutline(nameRoot);
+      if (_sdkOutline != null) {
+        dillTarget.loader.appendLibraries(_sdkOutline);
+        await dillTarget.buildOutlines();
+      }
+
+      // We need kernel libraries for these URIs.
+      var libraryUris = new Set<Uri>();
+      for (FileState library in cycle.libraries) {
+        Uri uri = library.uri;
+        libraryUris.add(uri);
+      }
+
+      // Compile against combined outlines of direct dependencies.
+      CombineResult combinedOutlines = _combineDirectDependencyOutlines(cycle);
+      try {
+        nameRoot = combinedOutlines.program.root;
+
+        // Append outlines of direct dependencies.
+        dillTarget.loader.appendLibraries(combinedOutlines.program);
+        await dillTarget.buildOutlines();
+
+        // Create KernelTarget and configure it for compiling the cycle URIs.
+        KernelTarget kernelTarget = new KernelTarget(
+            _fsState.fileSystemView, true, dillTarget, uriTranslator,
+            metadataCollector: _metadataFactory?.newCollector());
+        for (FileState library in cycle.libraries) {
+          kernelTarget.read(library.uri);
+        }
+
+        // Compile the cycle libraries into a new full program.
+        Program program = await _logger
+            .runAsync('Compile ${cycle.libraries.length} libraries', () async {
+          await kernelTarget.buildOutlines(nameRoot: nameRoot);
+          return await kernelTarget.buildProgram();
+        });
+        _testView.compiledCycles.add(cycle);
+
+        // Store the full kernel with libraries of this cycle.
+        int numFullLibraries = libraryUris.length;
+        _logger.run('Serialize kernel with $numFullLibraries libraries', () {
+          List<int> kernelBytes = serializeProgram(program,
+              filter: (library) => libraryUris.contains(library.importUri));
+          cycle.kernelBytes = kernelBytes;
+          _byteStore.put(kernelKey, kernelBytes);
+          _logger.writeln('Stored ${kernelBytes.length} bytes.');
+        });
+
+        _logger.run('Serialize outline', () {
+          var byteSink = new ByteSink();
+          serializeTrimmedOutline(
+              byteSink, program, (uri) => libraryUris.contains(uri));
+          List<int> bytes = byteSink.builder.takeBytes();
+
+          var signatureBuilder = new ApiSignature();
+          signatureBuilder.addBytes(_salt);
+          signatureBuilder.addBytes(bytes);
+          cycle.outlineSignature = signatureBuilder.toByteList();
+          outlineKey = hex.encode(cycle.outlineSignature) + '.outline';
+
+          // Store the results.
+          _byteStore.put(outlineSignatureKey, cycle.outlineSignature);
+          _byteStore.put(outlineKey, bytes);
+          _logger.writeln('Stored ${bytes.length} bytes.');
+
+          // Read the outline from the bytes.
+          // TODO(scheglov): Put into the object cache.
+          cycle.outline = loadProgramFromBytes(bytes);
+          _logger.writeln('Read ${cycle.outline.libraries.length} libraries.');
+        });
+      } finally {
+        combinedOutlines.undo();
+      }
+
+      // Log the outline signature to help to understand (re)compilation.
+      String outlineSignatureHex = hex.encode(cycle.outlineSignature);
+      _logger.writeln('Outline signature: ${outlineSignatureHex}.');
     });
   }
 
@@ -417,7 +627,7 @@ class KernelDriver {
   /// system state to skip SDK library files.
   Future<Null> _loadSdkOutline(CanonicalName nameRoot) async {
     if (_sdkOutlineBytes != null) {
-      await _logger.runAsync('Load SDK outline from bytes.', () async {
+      await _logger.runAsync('Load SDK outline from bytes', () async {
         _sdkOutline = new Program(nameRoot: nameRoot);
         new BinaryBuilder(_sdkOutlineBytes).readProgram(_sdkOutline);
         // Configure the file system state to skip the outline libraries.
@@ -425,6 +635,20 @@ class KernelDriver {
           _fsState.skipSdkLibraries.add(outlineLibrary.importUri);
         }
       });
+    }
+  }
+
+  /// Read libraries from the given [bytes] into the [program], using the
+  /// configured metadata factory.  The [program] must be ready to read these
+  /// libraries, i.e. either the [bytes] represent a full program with all
+  /// dependencies, or the [program] already has all required dependencies.
+  void _readProgram(Program program, List<int> bytes) {
+    if (_metadataFactory != null) {
+      var repository = _metadataFactory.newRepositoryForReading();
+      program.addMetadataRepository(repository);
+      new BinaryBuilderWithMetadata(bytes).readSingleFileProgram(program);
+    } else {
+      new BinaryBuilder(bytes).readProgram(program);
     }
   }
 

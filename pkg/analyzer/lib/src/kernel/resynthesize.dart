@@ -509,26 +509,15 @@ class _ExprBuilder {
     // Invalid annotations are represented as Let.
     if (expr is kernel.Let) {
       kernel.Let let = expr;
-      if (let.variable.initializer is kernel.ShadowSyntheticExpression) {
-        expr = let.variable.initializer;
-      } else if (let.body is kernel.ShadowSyntheticExpression) {
-        expr = let.body;
+      if (_isConstantExpressionErrorThrow(let.variable.initializer) ||
+          _isConstantExpressionErrorThrow(let.body)) {
+        throw const _CompilationErrorFound();
       }
     }
 
-    // Synthetic expression representing a constant error.
-    if (expr is kernel.ShadowSyntheticExpression) {
-      var desugared = expr.desugared;
-      if (desugared is kernel.MethodInvocation) {
-        if (desugared.name.name == '_throw') {
-          var receiver = desugared.receiver;
-          if (receiver is kernel.ConstructorInvocation &&
-              receiver.target.enclosingClass.name ==
-                  '_ConstantExpressionError') {
-            throw const _CompilationErrorFound();
-          }
-        }
-      }
+    // Stop if there is an error.
+    if (_isConstantExpressionErrorThrow(expr)) {
+      throw const _CompilationErrorFound();
     }
 
     // TODO(scheglov): complete getExpression
@@ -652,6 +641,24 @@ class _ExprBuilder {
     if (name == '<=') return TokenType.LT_EQ;
     if (name == 'unary-') return TokenType.MINUS;
     throw new ArgumentError(name);
+  }
+
+  /**
+   * Return `true` if the given [expr] throws an instance of
+   * `_ConstantExpressionError` defined in `dart:core`.
+   */
+  static bool _isConstantExpressionErrorThrow(kernel.Expression expr) {
+    if (expr is kernel.MethodInvocation) {
+      if (expr.name.name == '_throw') {
+        var receiver = expr.receiver;
+        if (receiver is kernel.ConstructorInvocation) {
+          kernel.Class targetClass = receiver.target.enclosingClass;
+          return targetClass.name == '_ConstantExpressionError' &&
+              targetClass.enclosingLibrary.importUri.toString() == 'dart:core';
+        }
+      }
+    }
+    return false;
   }
 }
 
