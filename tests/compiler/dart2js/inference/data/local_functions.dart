@@ -11,6 +11,8 @@ main() {
   namedLocalFunctionInvokeMissingArgument();
   namedLocalFunctionInvokeExtraArgument();
   namedLocalFunctionInvokeExtraNamedArgument();
+  closureToString();
+  closureCallToString();
 }
 
 /*element: namedLocalFunctionInvoke:[exact=JSUInt31]*/
@@ -56,4 +58,24 @@ namedLocalFunctionInvokeExtraNamedArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
   // ignore: UNDEFINED_NAMED_PARAMETER
   return local(a: 0);
+}
+
+/*element: closureToString:[exact=JSString]*/
+closureToString() {
+  var local = /*[null]*/ () {};
+  local();
+  return local. /*invoke: [subclass=Closure]*/ toString();
+}
+
+// TODO(johnniwinther): Handle .call on closures correctly the old inference.
+/*ast.element: closureCallToString:[empty]*/
+/*kernel.element: closureCallToString:[exact=JSString]*/
+closureCallToString() {
+  var local = /*[null]*/ () {};
+  local.call();
+  return local
+      .
+      /*ast.invoke: [empty]*/
+      /*kernel.invoke: [subclass=Closure]*/
+      toString();
 }

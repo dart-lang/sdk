@@ -720,7 +720,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         return _types.dynamicType;
       }
 
-      // TODO(redemption): Handle incompatible arguments.
       return handleStaticInvoke(
           node, selector, mask, info.callMethod, arguments);
     }

@@ -246,11 +246,12 @@ class JsClosedWorldBuilder {
 
     var classesNeedingRti =
         map.toBackendClassSet(kernelRtiNeed.classesNeedingRti);
-    _closureConversionTask.createClosureEntities(
-        this,
-        map.toBackendMemberMap(closureModels, identity),
-        localFunctionsNodes,
-        classesNeedingRti);
+    Iterable<FunctionEntity> callMethods =
+        _closureConversionTask.createClosureEntities(
+            this,
+            map.toBackendMemberMap(closureModels, identity),
+            localFunctionsNodes,
+            classesNeedingRti);
 
     List<FunctionEntity> callMethodsNeedingRti = <FunctionEntity>[];
     for (ir.Node node in localFunctionsNodes) {
@@ -281,7 +282,7 @@ class JsClosedWorldBuilder {
         classSets: _classSets,
         implementedClasses: implementedClasses,
         liveNativeClasses: liveNativeClasses,
-        liveInstanceMembers: liveInstanceMembers,
+        liveInstanceMembers: liveInstanceMembers..addAll(callMethods),
         assignedInstanceMembers: assignedInstanceMembers,
         processedMembers: processedMembers,
         mixinUses: mixinUses,
