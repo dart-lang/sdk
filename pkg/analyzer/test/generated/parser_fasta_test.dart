@@ -15,7 +15,6 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show LocatedMessage, Message;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
-import 'package:front_end/src/fasta/parser.dart' show IdentifierContext;
 import 'package:front_end/src/fasta/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
@@ -2236,6 +2235,18 @@ class FastaParserTestCase extends Object
   @override
   bool get usingFastaParser => true;
 
+  void assertErrors({List<ErrorCode> codes, List<ExpectedError> errors}) {
+    if (codes != null) {
+      if (!identical(codes, NO_ERROR_COMPARISON)) {
+        assertErrorsWithCodes(codes);
+      }
+    } else if (errors != null) {
+      listener.assertErrors(errors);
+    } else {
+      assertNoErrors();
+    }
+  }
+
   @override
   void assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
     _parserProxy._errorListener.assertErrorsWithCodes(
@@ -2359,8 +2370,9 @@ class FastaParserTestCase extends Object
 
   @override
   ConstructorInitializer parseConstructorInitializer(String code) {
-    String source = 'class __Test { __Test() : $code; }';
-    var unit = _runParser(source, null) as CompilationUnit;
+    createParser('class __Test { __Test() : $code; }');
+    CompilationUnit unit = _parserProxy.parseCompilationUnit2();
+    assertNoErrors();
     var clazz = unit.declarations[0] as ClassDeclaration;
     var constructor = clazz.members[0] as ConstructorDeclaration;
     return constructor.initializers.single;
@@ -2385,8 +2397,10 @@ class FastaParserTestCase extends Object
   @override
   Expression parseExpression(String source,
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
-    return _runParser(source, (parser) => parser.parseExpression,
-        codes: codes, errors: errors) as Expression;
+    createParser(source);
+    Expression result = _parserProxy.parseExpression2();
+    assertErrors(codes: codes, errors: errors);
+    return result;
   }
 
   @override
@@ -2421,18 +2435,11 @@ class FastaParserTestCase extends Object
   FormalParameterList parseFormalParameterList(String code,
       {bool inFunctionType: false,
       List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
-    return _runParser(
-        code,
-        (parser) => (analyzer.Token token) {
-              return parser
-                  .parseFormalParametersRequiredOpt(
-                      parser.syntheticPreviousToken(token),
-                      inFunctionType
-                          ? fasta.MemberKind.GeneralizedFunctionType
-                          : fasta.MemberKind.NonStaticMethod)
-                  .next;
-            },
-        codes: errorCodes) as FormalParameterList;
+    createParser(code);
+    FormalParameterList result =
+        _parserProxy.parseFormalParameterList(inFunctionType: inFunctionType);
+    assertErrors(codes: errorCodes);
+    return result;
   }
 
   @override
@@ -2537,11 +2544,10 @@ class FastaParserTestCase extends Object
 
   @override
   Expression parsePrimaryExpression(String code) {
-    return _runParser(
-        code,
-        (parser) => (token) => parser.parsePrimary(
-            parser.syntheticPreviousToken(token),
-            IdentifierContext.expression)) as Expression;
+    createParser(code);
+    Expression result = _parserProxy.parsePrimaryExpression();
+    assertNoErrors();
+    return result;
   }
 
   @override
@@ -2615,15 +2621,7 @@ class FastaParserTestCase extends Object
       {List<ErrorCode> codes, List<ExpectedError> errors}) {
     createParser(source);
     Object result = _parserProxy._run(getParseFunction);
-    if (codes != null) {
-      if (!identical(codes, NO_ERROR_COMPARISON)) {
-        assertErrorsWithCodes(codes);
-      }
-    } else if (errors != null) {
-      listener.assertErrors(errors);
-    } else {
-      assertNoErrors();
-    }
+    assertErrors(codes: codes, errors: errors);
     return result;
   }
 
@@ -2835,6 +2833,11 @@ class ParserProxy extends analyzer.ParserAdapter {
   }
 
   @override
+  Expression parseExpression2() {
+    return _run2('unspecified', () => super.parseExpression2());
+  }
+
+  @override
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
     return _run2('unspecified',
         () => super.parseFormalParameterList(inFunctionType: inFunctionType));
@@ -2857,6 +2860,11 @@ class ParserProxy extends analyzer.ParserAdapter {
       }
     }
     return body;
+  }
+
+  @override
+  Expression parsePrimaryExpression() {
+    return _run2('unspecified', () => super.parsePrimaryExpression());
   }
 
   @override
@@ -2892,16 +2900,12 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   TypeParameter parseTypeParameter() {
-    return _run((parser) => (token) =>
-            parser.parseTypeVariable(parser.syntheticPreviousToken(token)))
-        as TypeParameter;
+    return _run2('unspecified', () => super.parseTypeParameter());
   }
 
   @override
   TypeParameterList parseTypeParameterList() {
-    return _run((parser) => (token) => parser
-        .parseTypeVariablesOpt(parser.syntheticPreviousToken(token))
-        .next) as TypeParameterList;
+    return _run2('unspecified', () => super.parseTypeParameterList());
   }
 
   /**

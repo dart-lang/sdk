@@ -128,13 +128,19 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  Expression parseExpression2() {
+    currentToken = fastaParser.parseExpression(currentToken);
+    return astBuilder.pop();
+  }
+
+  @override
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
     currentToken = fastaParser
         .parseFormalParametersRequiredOpt(
             fastaParser.syntheticPreviousToken(currentToken),
             inFunctionType
                 ? fasta.MemberKind.GeneralizedFunctionType
-                : fasta.MemberKind.StaticMethod)
+                : fasta.MemberKind.NonStaticMethod)
         .next;
     return astBuilder.pop();
   }
@@ -145,6 +151,14 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser.parseAsyncModifier(currentToken);
     currentToken =
         fastaParser.parseFunctionBody(currentToken, inExpression, mayBeEmpty);
+    return astBuilder.pop();
+  }
+
+  @override
+  Expression parsePrimaryExpression() {
+    currentToken = fastaParser.parsePrimary(
+        fastaParser.syntheticPreviousToken(currentToken),
+        fasta.IdentifierContext.expression);
     return astBuilder.pop();
   }
 
@@ -179,6 +193,21 @@ abstract class ParserAdapter implements Parser {
   @override
   TypeName parseTypeName(bool inExpression) {
     currentToken = fastaParser.parseType(currentToken);
+    return astBuilder.pop();
+  }
+
+  @override
+  TypeParameter parseTypeParameter() {
+    currentToken = fastaParser
+        .parseTypeVariable(fastaParser.syntheticPreviousToken(currentToken));
+    return astBuilder.pop();
+  }
+
+  @override
+  TypeParameterList parseTypeParameterList() {
+    currentToken = fastaParser
+        .parseTypeVariablesOpt(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     return astBuilder.pop();
   }
 }
