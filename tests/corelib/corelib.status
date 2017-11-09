@@ -373,3 +373,44 @@ symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 
+[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+big_integer_arith_vm_test/add: RuntimeError
+big_integer_arith_vm_test/div: RuntimeError
+big_integer_arith_vm_test/gcd: RuntimeError
+big_integer_arith_vm_test/mod: RuntimeError
+big_integer_arith_vm_test/modInv: RuntimeError
+big_integer_arith_vm_test/modPow: RuntimeError
+big_integer_arith_vm_test/mul: RuntimeError
+big_integer_arith_vm_test/negate: RuntimeError
+big_integer_arith_vm_test/none: RuntimeError
+big_integer_arith_vm_test/overflow: RuntimeError
+big_integer_arith_vm_test/shift: RuntimeError
+big_integer_arith_vm_test/sub: RuntimeError
+big_integer_arith_vm_test/trunDiv: RuntimeError
+big_integer_parsed_arith_vm_test: RuntimeError
+big_integer_parsed_div_rem_vm_test: RuntimeError
+big_integer_parsed_mul_div_vm_test: RuntimeError
+bit_twiddling_bigint_test: RuntimeError
+compare_to2_test: RuntimeError
+double_parse_test/01: RuntimeError
+hash_set_test/01: RuntimeError
+int_modulo_arith_test/bignum: RuntimeError
+int_modulo_arith_test/modPow: RuntimeError
+int_parse_radix_test/01: RuntimeError
+int_parse_radix_test/02: RuntimeError
+integer_to_radix_string_test: RuntimeError
+integer_to_string_test/01: RuntimeError
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_to_list_test/01: RuntimeError
+map_test: Crash # tests/corelib/map_test.dart:866:7: Internal problem: Unhandled Null in installDefaultConstructor.
+nan_infinity_test/01: RuntimeError
+regress_r21715_test: RuntimeError
+string_base_vm_test: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+

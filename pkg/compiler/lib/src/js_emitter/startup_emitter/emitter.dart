@@ -11,7 +11,6 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
@@ -101,13 +100,13 @@ class Emitter extends emitterTask.EmitterBase {
   }
 
   @override
-  js.Expression isolateStaticClosureAccess(MethodElement element) {
+  js.Expression isolateStaticClosureAccess(FunctionEntity element) {
     return _emitter.generateStaticClosureAccess(element);
   }
 
   @override
   js.PropertyAccess prototypeAccess(
-      ClassElement element, bool hasBeenInstantiated) {
+      ClassEntity element, bool hasBeenInstantiated) {
     js.Expression constructor =
         hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
     return js.js('#.prototype', constructor);
@@ -117,7 +116,7 @@ class Emitter extends emitterTask.EmitterBase {
   js.Template templateForBuiltin(JsBuiltin builtin) {
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
-        ClassElement objectClass = _closedWorld.commonElements.objectClass;
+        ClassEntity objectClass = _closedWorld.commonElements.objectClass;
         return js.js.expressionTemplateYielding(typeAccess(objectClass));
 
       case JsBuiltin.isCheckPropertyToJsConstructorName:

@@ -255,3 +255,33 @@ string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError # Issue 30902
 
+[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+23056_test: Pass
+mirror_enqueuer_regression_test: Pass
+closure_capture2_test: RuntimeError
+constant_javascript_semantics_test/01: MissingCompileTimeError
+deferred/deferred_constant3_test: RuntimeError
+deferred/deferred_constant4_test: RuntimeError
+deferred/deferred_mirrors1_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/uninstantiated_type_variable_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+deferred_custom_loader_test: RuntimeError
+deferred_fail_and_retry_test: RuntimeError
+deferred_fail_and_retry_worker_test: Fail
+dummy_compiler_test: CompileTimeError
+label_test/06: MissingCompileTimeError
+private_symbol_literal_test/01: MissingCompileTimeError
+private_symbol_literal_test/02: MissingCompileTimeError
+private_symbol_literal_test/03: MissingCompileTimeError
+private_symbol_literal_test/04: MissingCompileTimeError
+private_symbol_literal_test/05: MissingCompileTimeError
+private_symbol_literal_test/06: MissingCompileTimeError
+recursive_import_test: CompileTimeError
+regress/4562_test/none: CompileTimeError
+string_interpolation_dynamic_test: RuntimeError
+string_interpolation_test: RuntimeError
+type_constant_switch_test/01: MissingCompileTimeError
+unconditional_dartio_import_test: RuntimeError
+

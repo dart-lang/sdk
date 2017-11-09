@@ -13,6 +13,9 @@ for arg in "$@"; do
     dart2js_native|dart2js_extra|language|language_2|corelib|corelib_2|html)
       suites="$suites $arg"
       ;;
+    --with-fast-startup|--fast-startup)
+      fast_startup=true
+      ;;
     -*)
       echo "Unknown option '$arg'"
       exit 1
@@ -55,6 +58,16 @@ function update_suite {
     --dart2js-with-kernel \
     $suite > $tmp/$suite-checked.txt
   $dart $update_script checked $tmp/$suite-checked.txt
+
+  if [ "$fast_startup" = true ]; then
+    echo "  - fast-startup tests"
+    ./tools/test.py -m release -c dart2js -r $runtime --dart2js-batch \
+      --fast-startup \
+      --dart2js-options="--platform-binaries=$binaries_dir" \
+      --dart2js-with-kernel \
+      $suite > $tmp/$suite-fast-startup.txt
+    $dart $update_script fast-startup $tmp/$suite-fast-startup.txt
+  fi
 }
 
 
