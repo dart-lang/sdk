@@ -143,7 +143,6 @@ Language/Overview/Scoping/hiding_declaration_t12: Crash
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
 Language/Expressions/Constants/bitwise_operators_t05: Crash
 Language/Expressions/Constants/logical_expression_t04: Crash
-Language/Expressions/Instance_Creation/Const/exception_t01: Crash
 Language/Overview/Scoping/hiding_declaration_t11: Pass
 Language/Overview/Scoping/hiding_declaration_t12: Pass
 

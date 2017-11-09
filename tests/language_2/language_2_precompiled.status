@@ -948,7 +948,6 @@ void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 
 [ $runtime == dart_precompiled && $compiler == dartkp ]
-regress_31057_test: Crash # Issue 31317
 
 [ $runtime == dart_precompiled && $compiler != dartkp ]
 deferred_load_constants_test/02: Fail
