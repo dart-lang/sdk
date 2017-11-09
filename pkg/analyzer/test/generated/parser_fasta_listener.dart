@@ -362,6 +362,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginMetadata(Token token) {
+    expectIn('MetadataStar');
     super.beginMetadata(token);
     begin('Metadata');
   }

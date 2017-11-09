@@ -65,6 +65,51 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  Annotation parseAnnotation() {
+    currentToken = fastaParser
+        .parseMetadata(fastaParser.syntheticPreviousToken(currentToken));
+    return astBuilder.pop();
+  }
+
+  @override
+  ArgumentList parseArgumentList() {
+    currentToken = fastaParser.parseArguments(currentToken).next;
+    var result = astBuilder.pop();
+    return result is MethodInvocation ? result.argumentList : result;
+  }
+
+  @override
+  ClassMember parseClassMember(String className) {
+    astBuilder.classDeclaration = astFactory.classDeclaration(
+      null,
+      null,
+      null,
+      new Token(Keyword.CLASS, 0),
+      astFactory.simpleIdentifier(
+          new fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
+      null,
+      null,
+      null,
+      null,
+      null /* leftBracket */,
+      <ClassMember>[],
+      null /* rightBracket */,
+    );
+    currentToken = fastaParser
+        .parseClassMember(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    ClassDeclaration declaration = astBuilder.classDeclaration;
+    astBuilder.classDeclaration = null;
+    return declaration.members[0];
+  }
+
+  @override
+  List<Combinator> parseCombinators() {
+    currentToken = fastaParser.parseCombinators(currentToken);
+    return astBuilder.pop();
+  }
+
+  @override
   CompilationUnit parseCompilationUnit(Token token) {
     currentToken = token;
     return parseCompilationUnit2();

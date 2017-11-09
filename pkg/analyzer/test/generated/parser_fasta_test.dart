@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
@@ -2803,49 +2802,21 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   Annotation parseAnnotation() {
-    return _run((parser) => (token) =>
-            parser.parseMetadata(parser.syntheticPreviousToken(token)))
-        as Annotation;
+    return _run2('MetadataStar', () => super.parseAnnotation());
   }
 
   @override
   ArgumentList parseArgumentList() {
-    Object result =
-        _run((parser) => (token) => parser.parseArguments(token).next);
-    if (result is MethodInvocation) {
-      return result.argumentList;
-    }
-    return result as ArgumentList;
+    return _run2('unspecified', () => super.parseArgumentList());
   }
 
   @override
   ClassMember parseClassMember(String className) {
-    astBuilder.classDeclaration = astFactory.classDeclaration(
-      null,
-      null,
-      null,
-      new analyzer.Token(analyzer.Keyword.CLASS, 0),
-      astFactory.simpleIdentifier(
-          new fasta.StringToken.fromString(TokenType.IDENTIFIER, className, 6)),
-      null,
-      null,
-      null,
-      null,
-      null /* leftBracket */,
-      <ClassMember>[],
-      null /* rightBracket */,
-    );
-    _eventListener.begin('CompilationUnit');
-    _run((parser) => (token) => parser.parseMember(token).next, nodeCount: 0);
-    _eventListener.end('CompilationUnit');
-    ClassDeclaration declaration = astBuilder.classDeclaration;
-    astBuilder.classDeclaration = null;
-    expect(declaration.members, hasLength(1));
-    return declaration.members.first;
+    return _run2('CompilationUnit', () => super.parseClassMember(className));
   }
 
   List<Combinator> parseCombinators() {
-    return _run((parser) => parser.parseCombinators);
+    return _run2('Import', () => super.parseCombinators());
   }
 
   @override
@@ -2964,6 +2935,21 @@ class ParserProxy extends analyzer.ParserAdapter {
       return astBuilder.stack.values;
     }
     return astBuilder.pop();
+  }
+
+  /**
+   * Runs the specified function and returns the result.
+   * It checks the enclosing listener events,
+   * that the parse consumed all of the tokens,
+   * and that the result stack is empty.
+   */
+  _run2(String enclosingEvent, f()) {
+    _eventListener.begin(enclosingEvent);
+    var result = f();
+    _eventListener.end(enclosingEvent);
+    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
+    expect(astBuilder.stack, hasLength(0));
+    return result;
   }
 }
 
