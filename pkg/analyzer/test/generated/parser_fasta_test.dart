@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:analyzer/src/generated/parser.dart' as analyzer;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -2758,35 +2757,19 @@ class KernelLibraryBuilderProxy implements KernelLibraryBuilder {
  * This allows many of the analyzer parser tests to be run on Fasta, even if
  * they call into the analyzer parser class directly.
  */
-class ParserProxy implements analyzer.Parser {
-  /**
-   * The token to parse next.
-   */
-  analyzer.Token _currentFastaToken;
-
-  /**
-   * The fasta parser being wrapped.
-   */
-  final fasta.Parser _fastaParser;
-
-  /**
-   * The builder which creates the analyzer AST data structures expected by the
-   * analyzer parser tests.
-   */
-  final AstBuilder _astBuilder;
-
+class ParserProxy extends analyzer.ParserAdapter {
   /**
    * The error listener to which scanner and parser errors will be reported.
    */
   final GatheringErrorListener _errorListener;
 
-  final ForwardingTestListener _eventListener;
+  ForwardingTestListener _eventListener;
 
   /**
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
-  factory ParserProxy(analyzer.Token startingToken,
+  factory ParserProxy(analyzer.Token firstToken,
       {bool allowNativeClause: false,
       bool enableGenericMethodComments: false}) {
     var library = new KernelLibraryBuilderProxy();
@@ -2795,19 +2778,26 @@ class ParserProxy implements analyzer.Parser {
     TestSource source = new TestSource();
     var errorListener = new GatheringErrorListener(checkRanges: true);
     var errorReporter = new ErrorReporter(errorListener, source);
-    var astBuilder =
-        new AstBuilder(errorReporter, library, member, scope, true);
-    astBuilder.allowNativeClause = allowNativeClause;
-    astBuilder.parseGenericMethodComments = enableGenericMethodComments;
-    var eventListener = new ForwardingTestListener(astBuilder);
-    var fastaParser = new fasta.Parser(eventListener);
-    astBuilder.parser = fastaParser;
     return new ParserProxy._(
-        startingToken, fastaParser, astBuilder, errorListener, eventListener);
+        firstToken, errorReporter, library, member, scope, errorListener,
+        allowNativeClause: allowNativeClause,
+        enableGenericMethodComments: enableGenericMethodComments);
   }
 
-  ParserProxy._(this._currentFastaToken, this._fastaParser, this._astBuilder,
-      this._errorListener, this._eventListener);
+  ParserProxy._(
+      analyzer.Token firstToken,
+      ErrorReporter errorReporter,
+      KernelLibraryBuilder library,
+      Builder member,
+      Scope scope,
+      this._errorListener,
+      {bool allowNativeClause: false,
+      bool enableGenericMethodComments: false})
+      : super(firstToken, errorReporter, library, member, scope,
+            allowNativeClause: allowNativeClause,
+            enableGenericMethodComments: enableGenericMethodComments) {
+    _eventListener = new ForwardingTestListener(astBuilder);
+  }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
@@ -2830,7 +2820,7 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   ClassMember parseClassMember(String className) {
-    _astBuilder.classDeclaration = astFactory.classDeclaration(
+    astBuilder.classDeclaration = astFactory.classDeclaration(
       null,
       null,
       null,
@@ -2848,8 +2838,8 @@ class ParserProxy implements analyzer.Parser {
     _eventListener.begin('CompilationUnit');
     _run((parser) => (token) => parser.parseMember(token).next, nodeCount: 0);
     _eventListener.end('CompilationUnit');
-    ClassDeclaration declaration = _astBuilder.classDeclaration;
-    _astBuilder.classDeclaration = null;
+    ClassDeclaration declaration = astBuilder.classDeclaration;
+    astBuilder.classDeclaration = null;
     expect(declaration.members, hasLength(1));
     return declaration.members.first;
   }
@@ -2860,7 +2850,9 @@ class ParserProxy implements analyzer.Parser {
 
   @override
   CompilationUnit parseCompilationUnit2() {
-    var result = _run(null) as CompilationUnit;
+    CompilationUnit result = super.parseCompilationUnit2();
+    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
+    expect(astBuilder.stack, hasLength(0));
     _eventListener.expectEmpty();
     return result;
   }
@@ -2906,15 +2898,14 @@ class ParserProxy implements analyzer.Parser {
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
     _eventListener.begin('CompilationUnit');
-    _currentFastaToken =
-        _fastaParser.parseTopLevelDeclaration(_currentFastaToken);
-    expect(_currentFastaToken.isEof, isTrue);
-    expect(_astBuilder.stack, hasLength(0));
-    expect(_astBuilder.scriptTag, isNull);
-    expect(_astBuilder.directives, hasLength(isDirective ? 1 : 0));
-    expect(_astBuilder.declarations, hasLength(isDirective ? 0 : 1));
+    currentToken = fastaParser.parseTopLevelDeclaration(currentToken);
+    expect(currentToken.isEof, isTrue);
+    expect(astBuilder.stack, hasLength(0));
+    expect(astBuilder.scriptTag, isNull);
+    expect(astBuilder.directives, hasLength(isDirective ? 1 : 0));
+    expect(astBuilder.declarations, hasLength(isDirective ? 0 : 1));
     _eventListener.end('CompilationUnit');
-    return (isDirective ? _astBuilder.directives : _astBuilder.declarations)
+    return (isDirective ? astBuilder.directives : astBuilder.declarations)
         .first;
   }
 
@@ -2959,20 +2950,20 @@ class ParserProxy implements analyzer.Parser {
       {int nodeCount: 1}) {
     ParseFunction parseFunction;
     if (getParseFunction != null) {
-      parseFunction = getParseFunction(_fastaParser);
+      parseFunction = getParseFunction(fastaParser);
     } else {
-      parseFunction = _fastaParser.parseUnit;
+      parseFunction = fastaParser.parseUnit;
       // firstToken should be set by beginCompilationUnit event.
     }
-    _currentFastaToken = parseFunction(_currentFastaToken);
-    expect(_currentFastaToken.isEof, isTrue, reason: _currentFastaToken.lexeme);
+    currentToken = parseFunction(currentToken);
+    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
     if (nodeCount >= 0) {
-      expect(_astBuilder.stack, hasLength(nodeCount));
+      expect(astBuilder.stack, hasLength(nodeCount));
     }
     if (nodeCount != 1) {
-      return _astBuilder.stack.values;
+      return astBuilder.stack.values;
     }
-    return _astBuilder.pop();
+    return astBuilder.pop();
   }
 }
 

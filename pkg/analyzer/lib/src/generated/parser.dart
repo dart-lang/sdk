@@ -268,13 +268,15 @@ class Parser {
    */
   bool parseGenericMethodComments = false;
 
+  bool allowNativeClause;
+
   /**
    * Initialize a newly created parser to parse tokens in the given [_source]
    * and to report any errors that are found to the given [_errorListener].
    */
   factory Parser(Source source, AnalysisErrorListener errorListener,
       {bool useFasta}) {
-    if (useFasta ?? Parser.useFasta) {
+    if ((useFasta ?? false) || Parser.useFasta) {
       return new _Parser2(source, errorListener);
     } else {
       return new Parser.withoutFasta(source, errorListener);

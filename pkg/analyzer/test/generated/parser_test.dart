@@ -8827,6 +8827,7 @@ class ParserTestCase extends EngineTestCase
     // Create and initialize the parser.
     //
     parser = new Parser(source, listener);
+    parser.allowNativeClause = allowNativeClause;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.enableNnbd = enableNnbd;
