@@ -49,6 +49,7 @@ class ImageReader;
 
 class SerializationCluster : public ZoneAllocated {
  public:
+  explicit SerializationCluster(const char* name) : name_(name), size_(0) {}
   virtual ~SerializationCluster() {}
 
   // Add [object] to the cluster and push its outgoing references.
@@ -61,6 +62,16 @@ class SerializationCluster : public ZoneAllocated {
 
   // Write the byte and reference data of the cluster's objects.
   virtual void WriteFill(Serializer* serializer) = 0;
+
+  void WriteAndMeasureAlloc(Serializer* serializer);
+  void WriteAndMeasureFill(Serializer* serializer);
+
+  const char* name() const { return name_; }
+  intptr_t size() const { return size_; }
+
+ private:
+  const char* name_;
+  intptr_t size_;
 };
 
 class DeserializationCluster : public ZoneAllocated {
