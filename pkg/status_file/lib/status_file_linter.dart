@@ -28,7 +28,8 @@ List<LintingError> lint(StatusFile file, {checkForDisjunctions = false}) {
       errors.addAll(lintDisjunctionsInHeader(section));
     }
   }
-  errors.addAll(checkSectionHeaderOrdering(file.sections));
+  errors.addAll(lintSectionHeaderOrdering(file.sections));
+  errors.addAll(lintSectionHeaderDuplicates(file.sections));
   return errors;
 }
 
@@ -145,8 +146,7 @@ Iterable<LintingError> lintNormalizedSection(StatusSection section) {
 /// [ strong ]
 /// [ !strong ]
 ///
-Iterable<LintingError> checkSectionHeaderOrdering(
-    List<StatusSection> sections) {
+Iterable<LintingError> lintSectionHeaderOrdering(List<StatusSection> sections) {
   var unsorted = sections.where((section) => section.lineNumber != -1).toList();
   var sorted = unsorted.toList()
     ..sort((a, b) => a.condition.compareTo(b.condition));
@@ -162,6 +162,30 @@ Iterable<LintingError> checkSectionHeaderOrdering(
     ];
   }
   return [];
+}
+
+/// Checks for duplicate section headers.
+Iterable<LintingError> lintSectionHeaderDuplicates(
+    List<StatusSection> sections) {
+  var errors = <LintingError>[];
+  var sorted = sections
+      .where((section) => section.condition != null)
+      .toList<StatusSection>()
+        ..sort((a, b) => a.condition.compareTo(b.condition));
+  for (var i = 1; i < sorted.length; i++) {
+    var section = sorted[i];
+    var previousSection = sorted[i - 1];
+    if (section.condition != null &&
+        previousSection.condition != null &&
+        section.condition.compareTo(previousSection.condition) == 0) {
+      errors.add(new LintingError(
+          section.lineNumber,
+          "The condition "
+          "${section.condition} is duplicated on lines "
+          "${previousSection.lineNumber} and ${section.lineNumber}."));
+    }
+  }
+  return errors;
 }
 
 ListNotEqualWitness<T> _findNotEqualWitness<T>(List<T> first, List<T> second) {
