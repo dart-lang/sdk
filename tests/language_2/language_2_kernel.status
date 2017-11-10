@@ -1450,12 +1450,19 @@ override_inheritance_mixed_test/08: Pass
 implicit_downcast_during_compound_assignment_test: Pass
 type_variable_scope_test/03: Pass
 
-
-
-[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug]
-flatten_test/04: Crash
-#generic_function_typedef_test/01: Crash
-#generic_function_typedef_test/none: Crash
-#generic_local_functions_test: Crash
-#generic_methods_closure_test: Crash
-#generic_typedef_test: Crash
+[ $compiler == dartkp && $strong && $mode == debug ]
+vm/async_await_catch_stacktrace_test: Crash
+vm/load_to_load_unaligned_forwarding_vm_test: Crash
+vm/load_to_load_forwarding_vm_test: Crash
+vm/issue21220_vm_test: Crash
+vm/regress_licm_test: Crash
+bad_named_parameters_test/01: Crash
+bad_named_parameters_test/02: Crash
+bad_named_parameters_test/05: Crash
+optional_named_parameters_test/06: Crash
+optional_named_parameters_test/08: Crash
+type_promotion_functions_test/05: Pass
+type_promotion_functions_test/07: Pass
+type_promotion_functions_test/06: Pass
+type_promotion_functions_test/08: Pass
+type_promotion_functions_test/10: Pass
