@@ -6692,7 +6692,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
-  NOT_IN_PRECOMPILED(result.SetWasCompiled(false));
+  NOT_IN_PRECOMPILED(result.set_state_bits(0));
   result.set_owner(owner);
   NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
   NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));

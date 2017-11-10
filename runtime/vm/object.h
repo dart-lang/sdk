@@ -2728,14 +2728,35 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+  enum StateBits {
+    kWasCompiledPos = 0,
+    kWasExecutedPos = 1,
+  };
+  class WasCompiledBit : public BitField<uint8_t, bool, kWasCompiledPos, 1> {};
+  class WasExecutedBit : public BitField<uint8_t, bool, kWasExecutedPos, 1> {};
+
   // 'WasCompiled' is true if the function was compiled once in this
   // VM instantiation. It is independent from presence of type feedback
   // (ic_data_array) and code, which may be loaded from a snapshot.
   void SetWasCompiled(bool value) const {
-    set_was_compiled_numeric(value ? 1 : 0);
+    set_state_bits(WasCompiledBit::update(value, state_bits()));
+  }
+  bool WasCompiled() const { return WasCompiledBit::decode(state_bits()); }
+
+  // 'WasExecuted' is true if the usage counter has ever been positive.
+  void SetWasExecuted(bool value) const {
+    set_state_bits(WasExecutedBit::update(value, state_bits()));
+  }
+  bool WasExecuted() const {
+    return (usage_counter() > 0) || WasExecutedBit::decode(state_bits());
   }
 
-  bool WasCompiled() const { return was_compiled_numeric() != 0; }
+  void SetUsageCounter(intptr_t value) const {
+    if (usage_counter() > 0) {
+      SetWasExecuted(true);
+    }
+    set_usage_counter(value);
+  }
 
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.

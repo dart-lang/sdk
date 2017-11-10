@@ -183,7 +183,7 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   }
   // Clear invocation counter so that hopefully the function gets reoptimized
   // only after more feedback has been collected.
-  function.set_usage_counter(0);
+  function.SetUsageCounter(0);
   if (function.HasOptimizedCode()) {
     function.SwitchToUnoptimizedCode();
   }

@@ -211,7 +211,7 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
     coverage[i] = kCoverageNone;
   }
 
-  if (function.usage_counter() > 0) {
+  if (function.WasExecuted()) {
     coverage[0] = kCoverageHit;
   } else {
     coverage[0] = kCoverageMiss;

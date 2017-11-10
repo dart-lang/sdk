@@ -440,7 +440,7 @@ bool RawFunction::CheckUsageCounter(RawFunction* raw_fun) {
   if (fn.is_intrinsic()) return false;
 
   if (fn.usage_counter() >= 0) {
-    fn.set_usage_counter(fn.usage_counter() / 2);
+    fn.SetUsageCounter(fn.usage_counter() / 2);
   }
   return FLAG_always_drop_code || (fn.usage_counter() == 0);
 }

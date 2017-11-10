@@ -941,7 +941,7 @@ class RawFunction : public RawObject {
   F(intptr_t, uint16_t, optimized_instruction_count)                           \
   F(intptr_t, uint16_t, optimized_call_site_count)                             \
   F(int8_t, int8_t, deoptimization_counter)                                    \
-  F(intptr_t, int8_t, was_compiled_numeric)                                    \
+  F(intptr_t, int8_t, state_bits)                                              \
   F(int, int8_t, inlining_depth)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
