@@ -142,6 +142,7 @@ mirror_printer_test: Pass, Slow # Issue 25940, 16473
 [ $compiler == dart2js && !$dart2js_with_kernel ]
 expose_this1_test: RuntimeError # Issue 31254
 expose_this2_test: RuntimeError # Issue 31254
+local_function_call2_test: RuntimeError # Issue 31333
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 21666_test: RuntimeError
