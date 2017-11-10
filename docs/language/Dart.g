@@ -1213,12 +1213,7 @@ optionalPositionalParameterTypes
     ;
 
 namedParameterTypes
-    :    LBRACE namedParameterType (',' namedParameterType)* ','? RBRACE
-    ;
-
-namedParameterType
-    :    typedIdentifier
-    |    identifier
+    :    LBRACE typedIdentifier (',' typedIdentifier)* ','? RBRACE
     ;
 
 typedIdentifier
