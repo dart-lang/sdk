@@ -137,6 +137,7 @@ typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
   V(NONPRODUCT, reify_generic_functions, ReifyGenericFunctions,                \
     reify_generic_functions, FLAG_reify_generic_functions)                     \
+  V(NONPRODUCT, strong, Strong, strong, FLAG_strong)                           \
   V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
     FLAG_error_on_bad_type)                                                    \
   V(NONPRODUCT, error_on_bad_override, ErrorOnBadOverride,                     \
@@ -845,6 +846,7 @@ class Isolate : public BaseIsolate {
   V(ErrorOnBadType)                                                            \
   V(ErrorOnBadOverride)                                                        \
   V(ReifyGenericFunctions)                                                     \
+  V(Strong)                                                                    \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
   V(Obfuscate)                                                                 \

@@ -3802,7 +3802,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     // strong mode.
     // However, DynamicType is not more specific than any type.
     if (thsi.IsDynamicClass()) {
-      return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
+      return !Isolate::Current()->strong() &&
+             (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
     // (already checked above), is more specific than ObjectType/VoidType.
@@ -3834,7 +3835,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
+        return !Isolate::Current()->strong() &&
+               (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
@@ -6336,7 +6338,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
     // HasCompatibleParametersWith is called at compile time to check for bad
     // overrides and can only detect some obviously wrong overrides, but it
     // should never give false negatives.
-    if (FLAG_strong) {
+    if (Isolate::Current()->strong()) {
       // Instantiating all type parameters to dynamic is not the right thing
       // to do in strong mode, because of contravariance of parameter types.
       // It is better to skip the test than to give a false negative.
@@ -6349,7 +6351,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   }
   Function& other_fun = Function::Handle(other.raw());
   if (!other_fun.HasInstantiatedSignature(kCurrentClass)) {
-    if (FLAG_strong) {
+    if (Isolate::Current()->strong()) {
       // See comment above.
       return true;
     }
@@ -6467,9 +6469,10 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) const {
+  Isolate* isolate = Isolate::Current();
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (!FLAG_strong && other_param_type.IsDynamicType()) {
+  if (!isolate->strong() && other_param_type.IsDynamicType()) {
     return true;
   }
   const AbstractType& param_type =
@@ -6478,8 +6481,9 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!((!FLAG_strong && param_type.IsSubtypeOf(other_param_type, bound_error,
-                                                  bound_trail, space)) ||
+    if (!((!isolate->strong() &&
+           param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
+                                  space)) ||
           other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
                                        space))) {
       return false;
@@ -6553,7 +6557,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  if (Isolate::Current()->reify_generic_functions()) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->reify_generic_functions()) {
     // Check the type parameters and bounds of generic functions.
     if (!HasSameTypeParametersAndBounds(other)) {
       return false;
@@ -6572,8 +6577,9 @@ bool Function::TypeTest(TypeTestKind test_kind,
     if (test_kind == kIsSubtypeOf) {
       if (!(res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
                                  space) ||
-            (!FLAG_strong && other_res_type.IsSubtypeOf(res_type, bound_error,
-                                                        bound_trail, space)))) {
+            (!isolate->strong() &&
+             other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
+                                        space)))) {
         return false;
       }
     } else {

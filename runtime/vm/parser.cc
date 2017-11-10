@@ -7644,6 +7644,7 @@ void Parser::FinalizeFormalParameterTypes(const ParamList* params) {
 // with the formal parameter types and names.
 void Parser::AddFormalParamsToFunction(const ParamList* params,
                                        const Function& func) {
+  Isolate* isolate = Isolate::Current();
   ASSERT((params != NULL) && (params->parameters != NULL));
   ASSERT((params->num_optional_parameters > 0) ==
          (params->has_optional_positional_parameters ||
@@ -7677,7 +7678,7 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
       }
       // In non-strong mode, the covariant keyword is ignored. In strong mode,
       // the parameter type is changed to Object.
-      if (FLAG_strong) {
+      if (isolate->strong()) {
         param_type = Type::ObjectType();
       }
     }
