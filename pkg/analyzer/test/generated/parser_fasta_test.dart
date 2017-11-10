@@ -15,9 +15,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show LocatedMessage, Message;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
-import 'package:front_end/src/fasta/parser.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2573,11 +2571,10 @@ class FastaParserTestCase extends Object
   @override
   Statement parseStatement(String source,
       [bool enableLazyAssignmentOperators]) {
-    return _runParser(
-        source,
-        (parser) => (token) =>
-            parser.parseStatementOpt(parser.syntheticPreviousToken(token)).next,
-        codes: NO_ERROR_COMPARISON) as Statement;
+    createParser(source);
+    Statement statement = _parserProxy.parseStatement2();
+    assertErrors(codes: NO_ERROR_COMPARISON);
+    return statement;
   }
 
   @override
@@ -2614,15 +2611,6 @@ class FastaParserTestCase extends Object
   Expression _parseExpression(String code) {
     var statement = parseStatement('$code;') as ExpressionStatement;
     return statement.expression;
-  }
-
-  Object _runParser(
-      String source, ParseFunction getParseFunction(fasta.Parser parser),
-      {List<ErrorCode> codes, List<ExpectedError> errors}) {
-    createParser(source);
-    Object result = _parserProxy._run(getParseFunction);
-    assertErrors(codes: codes, errors: errors);
-    return result;
   }
 
   ErrorCode _toFastaGeneratedAnalyzerErrorCode(ErrorCode code) {
@@ -2801,21 +2789,21 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   Annotation parseAnnotation() {
-    return _run2('MetadataStar', () => super.parseAnnotation());
+    return _run('MetadataStar', () => super.parseAnnotation());
   }
 
   @override
   ArgumentList parseArgumentList() {
-    return _run2('unspecified', () => super.parseArgumentList());
+    return _run('unspecified', () => super.parseArgumentList());
   }
 
   @override
   ClassMember parseClassMember(String className) {
-    return _run2('ClassBody', () => super.parseClassMember(className));
+    return _run('ClassBody', () => super.parseClassMember(className));
   }
 
   List<Combinator> parseCombinators() {
-    return _run2('Import', () => super.parseCombinators());
+    return _run('Import', () => super.parseCombinators());
   }
 
   @override
@@ -2829,17 +2817,17 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   Configuration parseConfiguration() {
-    return _run2('ConditionalUris', () => super.parseConfiguration());
+    return _run('ConditionalUris', () => super.parseConfiguration());
   }
 
   @override
   Expression parseExpression2() {
-    return _run2('unspecified', () => super.parseExpression2());
+    return _run('unspecified', () => super.parseExpression2());
   }
 
   @override
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
-    return _run2('unspecified',
+    return _run('unspecified',
         () => super.parseFormalParameterList(inFunctionType: inFunctionType));
   }
 
@@ -2847,7 +2835,7 @@ class ParserProxy extends analyzer.ParserAdapter {
   FunctionBody parseFunctionBody(
       bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
     Token lastToken;
-    FunctionBody body = _run2('unspecified', () {
+    FunctionBody body = _run('unspecified', () {
       FunctionBody body =
           super.parseFunctionBody(mayBeEmpty, emptyErrorCode, inExpression);
       lastToken = currentToken;
@@ -2864,74 +2852,48 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   @override
   Expression parsePrimaryExpression() {
-    return _run2('unspecified', () => super.parsePrimaryExpression());
+    return _run('unspecified', () => super.parsePrimaryExpression());
   }
 
   @override
   Statement parseStatement(Token token) {
-    return _run2('unspecified', () => super.parseStatement(token));
+    return _run('unspecified', () => super.parseStatement(token));
   }
 
   @override
   Statement parseStatement2() {
-    return parseStatement(currentToken);
+    return _run('unspecified', () => super.parseStatement2());
   }
 
   @override
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
-    return _run2(
+    return _run(
         'CompilationUnit', () => super.parseTopLevelDeclaration(isDirective));
   }
 
   @override
   TypeAnnotation parseTypeAnnotation(bool inExpression) {
-    return _run2('unspecified', () => super.parseTypeAnnotation(inExpression));
+    return _run('unspecified', () => super.parseTypeAnnotation(inExpression));
   }
 
   @override
   TypeArgumentList parseTypeArgumentList() {
-    return _run2('unspecified', () => super.parseTypeArgumentList());
+    return _run('unspecified', () => super.parseTypeArgumentList());
   }
 
   @override
   TypeName parseTypeName(bool inExpression) {
-    return _run2('unspecified', () => super.parseTypeName(inExpression));
+    return _run('unspecified', () => super.parseTypeName(inExpression));
   }
 
   @override
   TypeParameter parseTypeParameter() {
-    return _run2('unspecified', () => super.parseTypeParameter());
+    return _run('unspecified', () => super.parseTypeParameter());
   }
 
   @override
   TypeParameterList parseTypeParameterList() {
-    return _run2('unspecified', () => super.parseTypeParameterList());
-  }
-
-  /**
-   * Runs a single parser function (returned by [getParseFunction]), and returns
-   * the result as an analyzer AST. It checks that the parse consumed all of the
-   * tokens and that there were [nodeCount] AST nodes created (unless the node
-   * count is negative).
-   */
-  Object _run(ParseFunction getParseFunction(fasta.Parser parser),
-      {int nodeCount: 1}) {
-    ParseFunction parseFunction;
-    if (getParseFunction != null) {
-      parseFunction = getParseFunction(fastaParser);
-    } else {
-      parseFunction = fastaParser.parseUnit;
-      // firstToken should be set by beginCompilationUnit event.
-    }
-    currentToken = parseFunction(currentToken);
-    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
-    if (nodeCount >= 0) {
-      expect(astBuilder.stack, hasLength(nodeCount));
-    }
-    if (nodeCount != 1) {
-      return astBuilder.stack.values;
-    }
-    return astBuilder.pop();
+    return _run('unspecified', () => super.parseTypeParameterList());
   }
 
   /**
@@ -2940,7 +2902,7 @@ class ParserProxy extends analyzer.ParserAdapter {
    * that the parse consumed all of the tokens,
    * and that the result stack is empty.
    */
-  _run2(String enclosingEvent, f()) {
+  _run(String enclosingEvent, f()) {
     _eventListener.begin(enclosingEvent);
     var result = f();
     _eventListener.end(enclosingEvent);

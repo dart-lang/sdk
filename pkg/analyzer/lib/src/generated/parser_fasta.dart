@@ -65,6 +65,11 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  void set parseFunctionBodies(bool parseFunctionBodies) {
+    // ignored
+  }
+
+  @override
   Annotation parseAnnotation() {
     currentToken = fastaParser
         .parseMetadata(fastaParser.syntheticPreviousToken(currentToken));
@@ -164,8 +169,14 @@ abstract class ParserAdapter implements Parser {
 
   @override
   Statement parseStatement(Token token) {
+    currentToken = token;
+    return parseStatement2();
+  }
+
+  @override
+  Statement parseStatement2() {
     currentToken = fastaParser
-        .parseStatementOpt(fastaParser.syntheticPreviousToken(token))
+        .parseStatementOpt(fastaParser.syntheticPreviousToken(currentToken))
         .next;
     return astBuilder.pop();
   }
