@@ -524,7 +524,7 @@ class Parser {
     assert(optional('import', importKeyword));
     listener.beginImport(importKeyword);
     token = parseLiteralStringOrRecoverExpression(importKeyword);
-    Token afterUri = token.next;
+    Token uri = token;
     token = parseConditionalUris(token.next);
     token = parseImportPrefixOpt(token);
     token = parseCombinators(token);
@@ -534,7 +534,7 @@ class Parser {
     } else {
       // Recovery
       listener.endImport(importKeyword, null);
-      return parseImportRecovery(afterUri, token);
+      return parseImportRecovery(uri, token);
     }
   }
 
@@ -542,14 +542,13 @@ class Parser {
   /// the import keyword and [recoveryStart] is the token on which main parsing
   /// stopped.
   Token parseImportRecovery(Token token, Token recoveryStart) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     final primaryListener = listener;
     final recoveryListener = new ImportRecoveryListener(primaryListener);
 
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener
     listener = recoveryListener;
-    token = parseConditionalUris(token);
+    token = parseConditionalUris(token.next);
     token = parseImportPrefixOpt(token);
     token = parseCombinators(token);
 
@@ -1304,12 +1303,13 @@ class Parser {
         }
         break;
       }
-      token = parseMetadataStar(token).next;
-      if (!identical(token, next)) {
+      token = parseMetadataStar(token);
+      if (!identical(token.next, next)) {
         reportRecoverableError(next, fasta.messageAnnotationOnEnumConstant);
       }
       token =
-          ensureIdentifier(token, IdentifierContext.enumValueDeclaration).next;
+          ensureIdentifier(token.next, IdentifierContext.enumValueDeclaration)
+              .next;
       count++;
     } while (optional(',', token));
     expect('}', token);
@@ -2642,7 +2642,7 @@ class Parser {
     token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
-    token = parseAsyncModifier(token.next);
+    token = parseAsyncModifier(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
@@ -3357,7 +3357,7 @@ class Parser {
     bool allowAbstract = staticModifier == null;
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
-    token = parseAsyncModifier(token.next);
+    token = parseAsyncModifier(token);
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
@@ -3422,7 +3422,7 @@ class Parser {
     token = parseConstructorReference(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
-    token = parseAsyncModifier(token.next);
+    token = parseAsyncModifier(token);
     if (!inPlainSync) {
       reportRecoverableError(asyncToken, fasta.messageFactoryNotSync);
     }
@@ -3466,7 +3466,7 @@ class Parser {
     Token beginToken = token.next;
     listener.beginFunctionExpression(beginToken);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Local);
-    token = parseAsyncOptBody(token.next, true, false);
+    token = parseAsyncOptBody(token, true, false);
     listener.endFunctionExpression(beginToken, token);
     return token;
   }
@@ -3502,7 +3502,7 @@ class Parser {
     listener.endFunctionName(begin, token);
     token = parseFormalParametersOpt(formals, MemberKind.Local);
     token = parseInitializersOpt(token);
-    token = parseAsyncOptBody(token.next, isFunctionExpression, false);
+    token = parseAsyncOptBody(token, isFunctionExpression, false);
     if (isFunctionExpression) {
       listener.endNamedFunctionExpression(token);
       return token;
@@ -3521,7 +3521,6 @@ class Parser {
   /// It's an error if there's no function body unless [allowAbstract] is true.
   Token parseAsyncOptBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
     AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
@@ -3714,38 +3713,38 @@ class Parser {
   }
 
   Token parseAsyncModifier(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
     // TODO(brianwilkerson): Rename to `parseAsyncModifierOpt`?
     Token async;
     Token star;
     asyncState = AsyncModifier.Sync;
-    if (optional('async', token)) {
-      async = token;
-      token = token.next;
-      if (optional('*', token)) {
+    Token next = token.next;
+    if (optional('async', next)) {
+      async = token = next;
+      next = token.next;
+      if (optional('*', next)) {
         asyncState = AsyncModifier.AsyncStar;
-        star = token;
-        token = token.next;
+        star = next;
+        token = next;
       } else {
         asyncState = AsyncModifier.Async;
       }
-    } else if (optional('sync', token)) {
-      async = token;
-      token = token.next;
-      if (optional('*', token)) {
+    } else if (optional('sync', next)) {
+      async = token = next;
+      next = token.next;
+      if (optional('*', next)) {
         asyncState = AsyncModifier.SyncStar;
-        star = token;
-        token = token.next;
+        star = next;
+        token = next;
       } else {
         reportRecoverableError(async, fasta.messageInvalidSyncModifier);
       }
     }
     listener.handleAsyncModifier(async, star);
-    if (!inPlainSync && optional(';', token)) {
-      reportRecoverableError(token, fasta.messageAbstractNotSync);
+    if (!inPlainSync && optional(';', token.next)) {
+      reportRecoverableError(token.next, fasta.messageAbstractNotSync);
     }
-    return token;
+    return token.next;
   }
 
   int statementDepth = 0;
@@ -5078,7 +5077,8 @@ class Parser {
     }
     // TODO(brianwilkerson): Remove the invocation of `previous` when
     // `parseType` returns the last consumed token.
-    return parseType(next, TypeContinuation.VariablesDeclarationOrExpression)
+    return parseType(
+            token.next, TypeContinuation.VariablesDeclarationOrExpression)
         .previous;
   }
 

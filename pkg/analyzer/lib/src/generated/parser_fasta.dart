@@ -154,7 +154,8 @@ abstract class ParserAdapter implements Parser {
   @override
   FunctionBody parseFunctionBody(
       bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
-    currentToken = fastaParser.parseAsyncModifier(currentToken);
+    currentToken = fastaParser
+        .parseAsyncModifier(fastaParser.syntheticPreviousToken(currentToken));
     currentToken =
         fastaParser.parseFunctionBody(currentToken, inExpression, mayBeEmpty);
     return astBuilder.pop();
