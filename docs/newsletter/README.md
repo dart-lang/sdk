@@ -1,5 +1,8 @@
 This directory holds Dart Language and Library Newsletters. Here's what each newsletter contains:
 
+* [November 10, 2017](20171110.md)
+  * Did you know: Constructors (generative, factory, redirecting, ...)
+  * Shorter final variables (`:=`)
 * [November 3, 2017](20171103.md)
   * Did you know: Chunked conversions
   * Optional positional and named parameters
