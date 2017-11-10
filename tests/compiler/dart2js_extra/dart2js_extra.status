@@ -109,6 +109,7 @@ isolate2_test/01: Fail # Issue 14458.
 
 [ $runtime == jsshell ]
 timer_test: Fail # Issue 7728.
+deferred/load_in_correct_order_test: SkipByDesign # jsshell preamble does not support this test.
 
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.

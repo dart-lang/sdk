@@ -2,6 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This test creates a scenario to simulate what happens if hunks are loaded
+/// out of order. The compiler should initialize hunks in order regardless, but
+/// may do so in parallel while some hunks are not loaded yet.
+///
+/// To create a good number of hunks we created an import graph with 3 deferred
+/// imports and 7 libraries, we made pair-wise dependencies to be able to create
+/// 2^3 (8) partitions of the program (including the main hunk) that end up
+/// corresponding to the libraries themselves. In particular, the import graph
+/// looks like this:
+///
+///   main ---> 1, 2, 3  (deferred)
+///      1 --->         4, 5,    7
+///      2 --->            5, 6, 7
+///      3 --->         4,    6, 7
+///
+/// So each library maps to a deferred hunk:
+///   library 1 = hunk of code only used by 1
+///   library 2 = hunk of code only used by 2
+///   library 3 = hunk of code only used by 3
+///   library 4 = hunk of code shared by 1 & 3
+///   library 5 = hunk of code shared by 1 & 2
+///   library 6 = hunk of code shared by 2 & 3
+///   library 7 = hunk of shared by 1, 2 & 3
+///
+/// In the future we may optimize and combine hunks, at that point this test
+/// needs to be rewritten.
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'dart:async';
