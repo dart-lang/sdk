@@ -683,7 +683,7 @@ class DietListener extends StackListener {
       var formals = listener.pop();
       listener.checkEmpty(token.next.charOffset);
       token = parser.parseInitializersOpt(token);
-      token = parser.parseAsyncModifier(token);
+      token = parser.parseAsyncModifier(token.next);
       AsyncMarker asyncModifier = getAsyncMarker(listener) ?? AsyncMarker.Sync;
       bool isExpression = false;
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;

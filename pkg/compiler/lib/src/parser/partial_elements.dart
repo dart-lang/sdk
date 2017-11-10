@@ -331,7 +331,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
   Node parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     var metadata = parse(parsing, annotatedElement, declarationSite,
-        (p) => p.parseMetadata(p.syntheticPreviousToken(beginToken)));
+        (p) => p.parseMetadata(p.syntheticPreviousToken(beginToken)).next);
     if (metadata is Metadata) {
       cachedNode = metadata.expression;
       return cachedNode;

@@ -72,7 +72,8 @@ abstract class ParserAdapter implements Parser {
   @override
   Annotation parseAnnotation() {
     currentToken = fastaParser
-        .parseMetadata(fastaParser.syntheticPreviousToken(currentToken));
+        .parseMetadata(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     return astBuilder.pop();
   }
 
