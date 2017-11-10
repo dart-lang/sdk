@@ -1068,13 +1068,16 @@ class OutputUnitData {
   OutputUnitData(this.isProgramSplit, this.mainOutputUnit, this._entityToUnit,
       this._constantToUnit, this._importSets);
 
-  OutputUnitData.from(OutputUnitData other,
-      Map<Entity, OutputUnit> Function(Map<Entity, OutputUnit>) convertMap)
+  OutputUnitData.from(
+      OutputUnitData other,
+      Map<Entity, OutputUnit> Function(Map<Entity, OutputUnit>)
+          convertEntityMap,
+      Map<ConstantValue, OutputUnit> Function(Map<ConstantValue, OutputUnit>)
+          convertConstantMap)
       : isProgramSplit = other.isProgramSplit,
         mainOutputUnit = other.mainOutputUnit,
-        _entityToUnit = convertMap(other._entityToUnit),
-        // TODO(redemption): convert constants that point to elements.
-        _constantToUnit = other._constantToUnit,
+        _entityToUnit = convertEntityMap(other._entityToUnit),
+        _constantToUnit = convertConstantMap(other._constantToUnit),
         _importSets = other._importSets;
 
   /// Returns the [OutputUnit] where [element] belongs.

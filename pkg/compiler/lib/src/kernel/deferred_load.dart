@@ -7,6 +7,7 @@ library kernel.deferred_load_data;
 import 'package:kernel/ast.dart' as ir;
 
 import '../compiler.dart' show Compiler;
+import '../common_elements.dart';
 import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart';
 import '../elements/entities.dart';
@@ -43,7 +44,8 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   @override
   void collectConstantsInBody(
       covariant MemberEntity element, Set<ConstantValue> constants) {
-    // TODO(redemption): write visitor to extract constants.
+    ir.Member node = _elementMap.getMemberDefinition(element).node;
+    node.accept(new ConstantCollector(_elementMap, constants));
   }
 
   /// Adds extra dependencies coming from mirror usage.
@@ -71,4 +73,76 @@ bool _isVisible(List<ir.Combinator> combinators, String name) {
     if (c.isHide && c.names.contains(name)) return false;
   }
   return true;
+}
+
+class ConstantCollector extends ir.RecursiveVisitor {
+  final KernelToElementMapForImpact elementMap;
+  final Set<ConstantValue> constants;
+
+  ConstantCollector(this.elementMap, this.constants);
+
+  CommonElements get commonElements => elementMap.commonElements;
+
+  void add(ir.Expression node) =>
+      constants.add(elementMap.getConstantValue(node));
+
+  @override
+  void visitIntLiteral(ir.IntLiteral literal) {}
+
+  @override
+  void visitDoubleLiteral(ir.DoubleLiteral literal) {}
+
+  @override
+  void visitBoolLiteral(ir.BoolLiteral literal) {}
+
+  @override
+  void visitStringLiteral(ir.StringLiteral literal) {}
+
+  @override
+  void visitSymbolLiteral(ir.SymbolLiteral literal) => add(literal);
+
+  @override
+  void visitNullLiteral(ir.NullLiteral literal) {}
+
+  @override
+  void visitListLiteral(ir.ListLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitListLiteral(literal);
+    }
+  }
+
+  @override
+  void visitMapLiteral(ir.MapLiteral literal) {
+    if (literal.isConst) {
+      add(literal);
+    } else {
+      super.visitMapLiteral(literal);
+    }
+  }
+
+  @override
+  void visitConstructorInvocation(ir.ConstructorInvocation node) {
+    if (node.isConst) {
+      add(node);
+    } else {
+      super.visitConstructorInvocation(node);
+    }
+  }
+
+  @override
+  void visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    // Do not recurse - closures are visited separately.
+  }
+
+  @override
+  void visitFunctionExpression(ir.FunctionExpression node) {
+    // Do not recurse - closures are visited separately.
+  }
+
+  @override
+  void visitTypeLiteral(ir.TypeLiteral node) {
+    if (node.type is! ir.TypeParameterType) add(node);
+  }
 }

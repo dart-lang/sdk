@@ -12,6 +12,7 @@ import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/constant_system.dart';
+import '../constants/values.dart';
 import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -98,8 +99,15 @@ class JsBackendStrategy implements KernelBackendStrategy {
       return map.toBackendLibrary(entity);
     }
 
-    return new OutputUnitData.from(data,
-        (m) => convertMap<Entity, OutputUnit>(m, toBackendEntity, (v) => v));
+    ConstantValue toBackendConstant(ConstantValue constant) {
+      return constant.accept(new ConstantConverter(toBackendEntity), null);
+    }
+
+    return new OutputUnitData.from(
+        data,
+        (m) => convertMap<Entity, OutputUnit>(m, toBackendEntity, (v) => v),
+        (m) => convertMap<ConstantValue, OutputUnit>(
+            m, toBackendConstant, (v) => v));
   }
 
   @override
@@ -528,5 +536,101 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   @override
   void registerClosureClass(ClassEntity cls) {
     throw new UnsupportedError('JsClosedWorld.registerClosureClass');
+  }
+}
+
+class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
+  final Entity Function(Entity) toBackendEntity;
+
+  ConstantConverter(this.toBackendEntity);
+
+  ConstantValue visitNull(NullConstantValue constant, _) => constant;
+  ConstantValue visitInt(IntConstantValue constant, _) => constant;
+  ConstantValue visitDouble(DoubleConstantValue constant, _) => constant;
+  ConstantValue visitBool(BoolConstantValue constant, _) => constant;
+  ConstantValue visitString(StringConstantValue constant, _) => constant;
+  ConstantValue visitSynthetic(SyntheticConstantValue constant, _) => constant;
+  ConstantValue visitNonConstant(NonConstantValue constant, _) => constant;
+
+  ConstantValue visitFunction(FunctionConstantValue constant, _) {
+    return new FunctionConstantValue(
+        toBackendEntity(constant.element), _handleType(constant.type));
+  }
+
+  ConstantValue visitList(ListConstantValue constant, _) {
+    var type = _handleType(constant.type);
+    List<ConstantValue> entries = _handleValues(constant.entries);
+    if (identical(entries, constant.entries) && type == constant.type) {
+      return constant;
+    }
+    return new ListConstantValue(type, entries);
+  }
+
+  ConstantValue visitMap(MapConstantValue constant, _) {
+    var type = _handleType(constant.type);
+    List<ConstantValue> keys = _handleValues(constant.keys);
+    List<ConstantValue> values = _handleValues(constant.values);
+    if (identical(keys, constant.keys) &&
+        identical(values, constant.values) &&
+        type == constant.type) {
+      return constant;
+    }
+    return new MapConstantValue(type, keys, values);
+  }
+
+  ConstantValue visitConstructed(ConstructedConstantValue constant, _) {
+    var type = _handleType(constant.type);
+    if (type == constant.type && constant.fields.isEmpty) {
+      return constant;
+    }
+    var fields = <FieldEntity, ConstantValue>{};
+    constant.fields.forEach((f, v) {
+      fields[toBackendEntity(f)] = v.accept(this, null);
+    });
+    return new ConstructedConstantValue(type, fields);
+  }
+
+  ConstantValue visitType(TypeConstantValue constant, _) {
+    var type = _handleType(constant.type);
+    var representedType = _handleType(constant.representedType);
+    if (type == constant.type && representedType == constant.representedType) {
+      return constant;
+    }
+    return new TypeConstantValue(representedType, type);
+  }
+
+  ConstantValue visitInterceptor(InterceptorConstantValue constant, _) {
+    return new InterceptorConstantValue(toBackendEntity(constant.cls));
+  }
+
+  ConstantValue visitDeferred(DeferredConstantValue constant, _) {
+    var referenced = constant.referenced.accept(this, null);
+    if (referenced == constant.referenced) return constant;
+    // TODO(sigmund): do we need a JImport entity?
+    return new DeferredConstantValue(referenced, constant.import);
+  }
+
+  DartType _handleType(DartType type) {
+    if (type is InterfaceType) {
+      var element = toBackendEntity(type.element);
+      var args = type.typeArguments.map(_handleType).toList();
+      return new InterfaceType(element, args);
+    }
+
+    // TODO(redemption): handle other types.
+    return type;
+  }
+
+  List<ConstantValue> _handleValues(List<ConstantValue> values) {
+    List<ConstantValue> result;
+    for (int i = 0; i < values.length; i++) {
+      var value = values[i];
+      var newValue = value.accept(this, null);
+      if (newValue != value && result == null) {
+        result = values.sublist(0, i).toList();
+      }
+      result?.add(newValue);
+    }
+    return result ?? values;
   }
 }

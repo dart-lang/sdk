@@ -150,19 +150,11 @@ closure_capture2_test: RuntimeError
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/deferred_constant3_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/deferred_constant4_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/deferred_mirrors1_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/deferred_mirrors2_test: RuntimeError
+deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/reflect_multiple_annotations_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/reflect_multiple_default_arg_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
 deferred/uninstantiated_type_variable_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_custom_loader_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_fail_and_retry_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred_fail_and_retry_worker_test: Crash # Assertion failure: Missing scope info for j:method(_loadLibraryWrapper).
-deferred/deferred_constant3_test: RuntimeError
-deferred/deferred_constant4_test: RuntimeError
-deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_custom_loader_test: RuntimeError
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
@@ -205,19 +197,11 @@ unconditional_dartio_import_test: RuntimeError # Issue 30902
 closure_type_reflection2_test: RuntimeError
 closure_type_reflection_test: RuntimeError
 constant_javascript_semantics_test/01: MissingCompileTimeError
-deferred/deferred_constant3_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/deferred_constant4_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/deferred_mirrors1_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/deferred_mirrors2_test: RuntimeError
+deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred/reflect_multiple_annotations_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/reflect_multiple_default_arg_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred/uninstantiated_type_variable_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_custom_loader_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_fail_and_retry_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred_fail_and_retry_worker_test: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
-deferred/deferred_constant3_test: RuntimeError
-deferred/deferred_constant4_test: RuntimeError
-deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_custom_loader_test: RuntimeError
 deferred_fail_and_retry_test: RuntimeError
 deferred_fail_and_retry_worker_test: Fail
