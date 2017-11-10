@@ -1097,3 +1097,8 @@ deferred_not_loaded_check_test: RuntimeError
 [ $runtime == vm && $compiler != dartk ]
 generic_no_such_method_dispatcher_simple_test: Skip # This test is only for kernel.
 type_promotion_functions_test/01: MissingCompileTimeError
+type_promotion_functions_test/05: MissingCompileTimeError
+type_promotion_functions_test/06: MissingCompileTimeError
+type_promotion_functions_test/07: MissingCompileTimeError
+type_promotion_functions_test/08: MissingCompileTimeError
+type_promotion_functions_test/10: MissingCompileTimeError

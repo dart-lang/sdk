@@ -71,7 +71,7 @@ testFuncDynToDyn() {
     // Promotion: FuncDynToA << FuncDynToDyn.
     a = funcDynToDyn(new A());
     b = funcDynToDyn(new B());
-    c = funcDynToDyn(new C()); //# 10: static type warning
+    c = funcDynToDyn(new C()); //# 10: compile-time error
   }
 }
 
@@ -92,7 +92,7 @@ testFuncDynToVoid() {
     // Promotion: FuncDynToA << FuncDynToVoid.
     a = funcDynToVoid(new A());
     b = funcDynToVoid(new B());
-    c = funcDynToVoid(new C()); //# 05: static type warning
+    c = funcDynToVoid(new C()); //# 05: compile-time error
   }
 }
 
@@ -100,19 +100,19 @@ testFuncDynToA() {
   FuncDynToA funcDynToA = func;
   a = funcDynToA(new A());
   b = funcDynToA(new B());
-  c = funcDynToA(new C()); //# 06: static type warning
+  c = funcDynToA(new C()); //# 06: compile-time error
 
   if (funcDynToA is FuncDynToDyn) {
     // No promotion: FuncDynToDyn !<< FuncDynToA.
     a = funcDynToA(new A());
     b = funcDynToA(new B());
-    c = funcDynToA(new C()); //# 08: static type warning
+    c = funcDynToA(new C()); //# 08: compile-time error
   }
 
   if (funcDynToA is FuncDynToVoid) {
     // No promotion: FuncDynToVoid !<< FuncDynToA.
     a = funcDynToA(new A());
     b = funcDynToA(new B());
-    c = funcDynToA(new C()); //# 07: static type warning
+    c = funcDynToA(new C()); //# 07: compile-time error
   }
 }
