@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// OtherResources=fixed_length_file
+// OtherResources=fixed_length_file_invalid_arguments
 
 import "dart:async";
 import "dart:io";
@@ -11,7 +11,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 void testReadInvalidArgs(arg) {
-  String filename = getFilename("fixed_length_file");
+  String filename = getFilename("fixed_length_file_invalid_arguments");
   var file = (new File(filename)).openSync();
   Expect.throws(() => file.readSync(arg), (e) => e is ArgumentError);
 
@@ -20,7 +20,7 @@ void testReadInvalidArgs(arg) {
 }
 
 void testReadIntoInvalidArgs(buffer, start, end) {
-  String filename = getFilename("fixed_length_file");
+  String filename = getFilename("fixed_length_file_invalid_arguments");
   var file = (new File(filename)).openSync();
   Expect.throws(
       () => file.readIntoSync(buffer, start, end), (e) => e is ArgumentError);
@@ -31,7 +31,7 @@ void testReadIntoInvalidArgs(buffer, start, end) {
 }
 
 void testWriteByteInvalidArgs(value) {
-  String filename = getFilename("fixed_length_file");
+  String filename = getFilename("fixed_length_file_invalid_arguments");
   var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
   Expect.throws(() => file.writeByteSync(value), (e) => e is ArgumentError);
 
@@ -40,7 +40,7 @@ void testWriteByteInvalidArgs(value) {
 }
 
 void testWriteFromInvalidArgs(buffer, start, end) {
-  String filename = getFilename("fixed_length_file");
+  String filename = getFilename("fixed_length_file_invalid_arguments");
   var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
   Expect.throws(
       () => file.writeFromSync(buffer, start, end), (e) => e is ArgumentError);
@@ -51,7 +51,7 @@ void testWriteFromInvalidArgs(buffer, start, end) {
 }
 
 void testWriteStringInvalidArgs(string, encoding) {
-  String filename = getFilename("fixed_length_file");
+  String filename = getFilename("fixed_length_file_invalid_arguments");
   var file = new File("${filename}_out").openSync(mode: FileMode.WRITE);
   Expect.throws(() => file.writeStringSync(string, encoding: encoding),
       (e) => e is ArgumentError);
