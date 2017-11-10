@@ -9,7 +9,7 @@ library dart2js.source_information.position;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show AstElement, MemberElement, ResolvedAst, ResolvedAstKind;
+    show MemberElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
@@ -96,14 +96,9 @@ class PositionSourceInformation extends SourceInformation {
   }
 }
 
-class PositionSourceInformationStrategy
-    implements JavaScriptSourceInformationStrategy {
-  const PositionSourceInformationStrategy();
-
-  @override
-  SourceInformationBuilder createBuilderForContext(MemberElement member) {
-    return new PositionSourceInformationBuilder(member);
-  }
+abstract class AbstractPositionSourceInformationStrategy<T>
+    implements JavaScriptSourceInformationStrategy<T> {
+  const AbstractPositionSourceInformationStrategy();
 
   @override
   SourceInformationProcessor createProcessor(
@@ -117,6 +112,16 @@ class PositionSourceInformationStrategy
   @override
   SourceInformation buildSourceMappedMarker() {
     return const SourceMappedMarker();
+  }
+}
+
+class PositionSourceInformationStrategy
+    extends AbstractPositionSourceInformationStrategy<Node> {
+  const PositionSourceInformationStrategy();
+
+  @override
+  SourceInformationBuilder<Node> createBuilderForContext(MemberElement member) {
+    return new PositionSourceInformationBuilder(member);
   }
 }
 
@@ -138,8 +143,10 @@ class SourceMappedMarker extends SourceInformation {
   SourceSpan get sourceSpan => new SourceSpan(null, null, null);
 }
 
-/// [SourceInformationBuilder] that generates [PositionSourceInformation].
-class PositionSourceInformationBuilder implements SourceInformationBuilder {
+/// [SourceInformationBuilder] that generates [PositionSourceInformation] from
+/// AST nodes.
+class PositionSourceInformationBuilder
+    implements SourceInformationBuilder<Node> {
   final SourceFile sourceFile;
   final String name;
   final ResolvedAst resolvedAst;
@@ -180,7 +187,7 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation buildReturn(Node node) => buildBegin(node);
 
   @override
-  SourceInformation buildImplicitReturn(AstElement element) {
+  SourceInformation buildImplicitReturn(MemberElement element) {
     if (element.isSynthesized) {
       return new PositionSourceInformation(new OffsetSourceLocation(
           sourceFile, element.position.charOffset, name));
@@ -638,14 +645,16 @@ class CallPosition {
         return new CallPosition(
             access.selector, CodePositionKind.START, SourcePositionKind.INNER);
       }
-    } else if (node.target is js.VariableUse) {
-      // m()
-      // ^
+    } else if (node.target is js.VariableUse || node.target is js.This) {
+      // m()   this()
+      // ^     ^
       return new CallPosition(
           node, CodePositionKind.START, SourcePositionKind.START);
-    } else if (node.target is js.Fun || node.target is js.New) {
-      // function(){}()  new Function("...")()
-      //             ^                      ^
+    } else if (node.target is js.Fun ||
+        node.target is js.New ||
+        node.target is js.NamedFunction) {
+      // function(){}()  new Function("...")()   function foo(){}()
+      //             ^                      ^                    ^
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else if (node.target is js.Binary || node.target is js.Call) {
@@ -1206,7 +1215,9 @@ class JavaScriptTracer extends js.BaseVisitor {
         codeOffset = codePosition.startPosition;
       }
     }
-    if (leftToRightOffset != null && leftToRightOffset < codeOffset) {
+    if (leftToRightOffset != null &&
+        codeOffset != null &&
+        leftToRightOffset < codeOffset) {
       leftToRightOffset = codeOffset;
     }
     if (leftToRightOffset == null) {

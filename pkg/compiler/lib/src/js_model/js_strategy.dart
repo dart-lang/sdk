@@ -17,6 +17,8 @@ import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
+import '../io/kernel_source_information.dart'
+    show KernelSourceInformationStrategy;
 import '../io/source_information.dart';
 import '../inferrer/kernel_inferrer_engine.dart';
 import '../js_emitter/sorter.dart';
@@ -119,8 +121,12 @@ class JsBackendStrategy implements KernelBackendStrategy {
   ClosureConversionTask get closureDataLookup => _closureDataLookup;
 
   @override
-  SourceInformationStrategy get sourceInformationStrategy =>
-      const JavaScriptSourceInformationStrategy();
+  SourceInformationStrategy get sourceInformationStrategy {
+    if (!_compiler.options.generateSourceMap) {
+      return const JavaScriptSourceInformationStrategy();
+    }
+    return const KernelSourceInformationStrategy();
+  }
 
   @override
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,

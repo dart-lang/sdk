@@ -16,7 +16,6 @@ import '../elements/elements.dart'
 import '../elements/entities.dart';
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
 import '../script.dart';
-import '../tree/tree.dart' show Node;
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source
@@ -43,11 +42,11 @@ abstract class SourceInformation extends JavaScriptNodeSourceInformation {
 }
 
 /// Strategy for creating, processing and applying [SourceInformation].
-class SourceInformationStrategy {
+class SourceInformationStrategy<T> {
   const SourceInformationStrategy();
 
   /// Create a [SourceInformationBuilder] for [member].
-  SourceInformationBuilder createBuilderForContext(
+  SourceInformationBuilder<T> createBuilderForContext(
       covariant MemberEntity member) {
     return const SourceInformationBuilder();
   }
@@ -60,7 +59,7 @@ class SourceInformationStrategy {
 }
 
 /// Interface for generating [SourceInformation].
-class SourceInformationBuilder {
+class SourceInformationBuilder<T> {
   const SourceInformationBuilder();
 
   /// Create a [SourceInformationBuilder] for [member].
@@ -71,87 +70,87 @@ class SourceInformationBuilder {
 
   /// Generate [SourceInformation] for the generic [node].
   @deprecated
-  SourceInformation buildGeneric(Node node) => null;
+  SourceInformation buildGeneric(T node) => null;
 
   /// Generate [SourceInformation] for an instantiation of a class using [node]
   /// for the source position.
-  SourceInformation buildCreate(Node node) => null;
+  SourceInformation buildCreate(T node) => null;
 
   /// Generate [SourceInformation] for the return [node].
-  SourceInformation buildReturn(Node node) => null;
+  SourceInformation buildReturn(T node) => null;
 
   /// Generate [SourceInformation] for an implicit return in [element].
-  SourceInformation buildImplicitReturn(AstElement element) => null;
+  SourceInformation buildImplicitReturn(covariant MemberEntity element) => null;
 
   /// Generate [SourceInformation] for the loop [node].
-  SourceInformation buildLoop(Node node) => null;
+  SourceInformation buildLoop(T node) => null;
 
   /// Generate [SourceInformation] for a read access like `a.b` where in
   /// [receiver] points to the left-most part of the access, `a` in the example,
   /// and [property] points to the 'name' of accessed property, `b` in the
   /// example.
-  SourceInformation buildGet(Node node) => null;
+  SourceInformation buildGet(T node) => null;
 
   /// Generate [SourceInformation] for the read access in [node].
-  SourceInformation buildCall(Node receiver, Node call) => null;
+  SourceInformation buildCall(T receiver, T call) => null;
 
   /// Generate [SourceInformation] for the if statement in [node].
-  SourceInformation buildIf(Node node) => null;
+  SourceInformation buildIf(T node) => null;
 
   /// Generate [SourceInformation] for the constructor invocation in [node].
-  SourceInformation buildNew(Node node) => null;
+  SourceInformation buildNew(T node) => null;
 
   /// Generate [SourceInformation] for the throw in [node].
-  SourceInformation buildThrow(Node node) => null;
+  SourceInformation buildThrow(T node) => null;
 
   /// Generate [SourceInformation] for the assignment in [node].
-  SourceInformation buildAssignment(Node node) => null;
+  SourceInformation buildAssignment(T node) => null;
 
   /// Generate [SourceInformation] for the variable declaration inserted as
   /// first statement of a function.
   SourceInformation buildVariableDeclaration() => null;
 
   /// Generate [SourceInformation] for an invocation of a foreign method.
-  SourceInformation buildForeignCode(Node node) => null;
+  SourceInformation buildForeignCode(T node) => null;
 
   /// Generate [SourceInformation] for a string interpolation of [node].
-  SourceInformation buildStringInterpolation(Node node) => null;
+  SourceInformation buildStringInterpolation(T node) => null;
 
   /// Generate [SourceInformation] for the for-in `iterator` access in [node].
-  SourceInformation buildForInIterator(Node node) => null;
+  SourceInformation buildForInIterator(T node) => null;
 
   /// Generate [SourceInformation] for the for-in `moveNext` call in [node].
-  SourceInformation buildForInMoveNext(Node node) => null;
+  SourceInformation buildForInMoveNext(T node) => null;
 
   /// Generate [SourceInformation] for the for-in `current` access in [node].
-  SourceInformation buildForInCurrent(Node node) => null;
+  SourceInformation buildForInCurrent(T node) => null;
 
   /// Generate [SourceInformation] for the for-in variable assignment in [node].
-  SourceInformation buildForInSet(Node node) => null;
+  SourceInformation buildForInSet(T node) => null;
 
   /// Generate [SourceInformation] for the operator `[]` access in [node].
-  SourceInformation buildIndex(Node node) => null;
+  SourceInformation buildIndex(T node) => null;
 
   /// Generate [SourceInformation] for the operator `[]=` assignment in [node].
-  SourceInformation buildIndexSet(Node node) => null;
+  SourceInformation buildIndexSet(T node) => null;
 
   /// Generate [SourceInformation] for the binary operation in [node].
-  SourceInformation buildBinary(Node node) => null;
+  SourceInformation buildBinary(T node) => null;
 
   /// Generate [SourceInformation] for the unary operator in [node].
-  SourceInformation buildCatch(Node node) => null;
+  SourceInformation buildCatch(T node) => null;
 
   /// Generate [SourceInformation] for the is-test in [node].
-  SourceInformation buildIs(Node node) => null;
+  SourceInformation buildIs(T node) => null;
 
   /// Generate [SourceInformation] for the as-cast in [node].
-  SourceInformation buildAs(Node node) => null;
+  SourceInformation buildAs(T node) => null;
 
   /// Generate [SourceInformation] for the switch statement [node].
-  SourceInformation buildSwitch(Node node) => null;
+  SourceInformation buildSwitch(T node) => null;
 
   /// Generate [SourceInformation] for the switch case in [node].
-  SourceInformation buildSwitchCase(Node node) => null;
+  SourceInformation buildSwitchCase(T node) => null;
 }
 
 /// A location in a source file.

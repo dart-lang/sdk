@@ -109,11 +109,11 @@ class StartEndSourceInformation extends SourceInformation {
 }
 
 class StartEndSourceInformationStrategy
-    extends JavaScriptSourceInformationStrategy {
+    extends JavaScriptSourceInformationStrategy<Node> {
   const StartEndSourceInformationStrategy();
 
   @override
-  SourceInformationBuilder createBuilderForContext(MemberElement member) {
+  SourceInformationBuilder<Node> createBuilderForContext(MemberElement member) {
     return new StartEndSourceInformationBuilder(member);
   }
 
@@ -189,7 +189,7 @@ class StartEndSourceInformationProcessor extends SourceInformationProcessor {
 }
 
 /// [SourceInformationBuilder] that generates [PositionSourceInformation].
-class StartEndSourceInformationBuilder extends SourceInformationBuilder {
+class StartEndSourceInformationBuilder extends SourceInformationBuilder<Node> {
   final SourceFile sourceFile;
   final String name;
 

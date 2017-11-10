@@ -87,7 +87,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   TreeElements get elements =>
       throw new UnsupportedError('KernelSsaGraphBuilder.elements');
 
-  SourceInformationBuilder sourceInformationBuilder;
+  SourceInformationBuilder<ir.Node> sourceInformationBuilder;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToTypeInferenceMap _typeInferenceMap;
   final GlobalLocalsMap _globalLocalsMap;
