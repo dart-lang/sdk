@@ -50,7 +50,7 @@
         "vm-win-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm debug, vm product and vm release builders. When used on the CQ the argument '--fast-tests' is appended automatically."
+        "description": "This configuration is used by the vm debug, vm product and vm release builders."
       },
       "steps": [
         {
