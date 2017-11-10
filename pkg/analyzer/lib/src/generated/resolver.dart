@@ -5756,9 +5756,10 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitGenericFunctionType(GenericFunctionType node) => null;
 
   @override
-  void visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {
+  Object visitGenericTypeAliasInFunctionScope(GenericTypeAlias node) {
     super.visitGenericTypeAliasInFunctionScope(node);
     safelyVisitComment(node.documentationComment);
+    return null;
   }
 
   @override
