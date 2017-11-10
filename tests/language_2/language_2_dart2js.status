@@ -1307,7 +1307,7 @@ covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError
-covariant_subtyping_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
+covariant_subtyping_test: CompileTimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
@@ -1726,7 +1726,7 @@ covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError
-covariant_subtyping_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
+covariant_subtyping_test: CompileTimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
