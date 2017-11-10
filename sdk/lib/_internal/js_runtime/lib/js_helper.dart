@@ -2097,9 +2097,7 @@ class TypeErrorDecoder {
     //
     // "(.*)\\.(.*) is not a function"
 
-    var function = JS(
-        '',
-        r"""function($expr$) {
+    var function = JS('', r"""function($expr$) {
   var $argumentsExpr$ = '$arguments$';
   try {
     $expr$.$method$($argumentsExpr$);
@@ -2114,9 +2112,7 @@ class TypeErrorDecoder {
   /// literal "null" expression.
   static String provokeCallErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function() {
+    var function = JS('', r"""function() {
   var $argumentsExpr$ = '$arguments$';
   try {
     null.$method$($argumentsExpr$);
@@ -2131,9 +2127,7 @@ class TypeErrorDecoder {
   /// (void 0), that is, "undefined".
   static String provokeCallErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function() {
+    var function = JS('', r"""function() {
   var $argumentsExpr$ = '$arguments$';
   try {
     (void 0).$method$($argumentsExpr$);
@@ -2148,9 +2142,7 @@ class TypeErrorDecoder {
   /// error.
   static String provokePropertyErrorOn(expression) {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function($expr$) {
+    var function = JS('', r"""function($expr$) {
   try {
     $expr$.$method$;
   } catch (e) {
@@ -2164,9 +2156,7 @@ class TypeErrorDecoder {
   /// error directly on literal "null" expression.
   static String provokePropertyErrorOnNull() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function() {
+    var function = JS('', r"""function() {
   try {
     null.$method$;
   } catch (e) {
@@ -2180,9 +2170,7 @@ class TypeErrorDecoder {
   /// error directly on (void 0), that is, "undefined".
   static String provokePropertyErrorOnUndefined() {
     // See [provokeCallErrorOn] for a detailed explanation.
-    var function = JS(
-        '',
-        r"""function() {
+    var function = JS('', r"""function() {
   try {
     (void 0).$method$;
   } catch (e) {
@@ -3671,19 +3659,21 @@ Future<Null> loadDeferredLibrary(String loadId) {
   var hashesMap = JS_EMBEDDED_GLOBAL('', DEFERRED_LIBRARY_HASHES);
   List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
 
-  List<String> urisToLoad = <String>[];
-
+  int total = hashes.length;
+  assert(total == uris.length);
+  List<bool> waitingForLoad = new List.filled(total, true);
+  int nextHunkToInitialize = 0;
   var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
-  for (int i = 0; i < uris.length; ++i) {
-    if (JS('bool', '#(#)', isHunkLoaded, hashes[i])) continue;
-    urisToLoad.add(uris[i]);
-  }
+  var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
+  var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
 
-  return Future.wait(urisToLoad.map(_loadHunk)).then((_) {
-    // Now all hunks have been loaded, we run the needed initializers.
-    var isHunkInitialized = JS_EMBEDDED_GLOBAL('', IS_HUNK_INITIALIZED);
-    var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK);
-    for (int i = 0; i < hashes.length; ++i) {
+  void initializeSomeLoadedHunks() {
+    for (int i = nextHunkToInitialize; i < total; ++i) {
+      // A hunk is initialized only if all the preceeding hunks have been
+      // initialized.
+      if (waitingForLoad[i]) return;
+      nextHunkToInitialize++;
+
       // It is possible for a hash to be repeated. This happens when two
       // different parts both end up empty. Checking in the loop rather than
       // pre-filtering prevents duplicate hashes leading to duplicated
@@ -3708,6 +3698,24 @@ Future<Null> loadDeferredLibrary(String loadId) {
             "event log:\n${_eventLog.join("\n")}\n");
       }
     }
+  }
+
+  Future loadAndInitialize(int i) {
+    if (JS('bool', '#(#)', isHunkLoaded, hashes[i])) {
+      waitingForLoad[i] = false;
+      return new Future.value();
+    }
+    return _loadHunk(uris[i]).then((_) {
+      waitingForLoad[i] = false;
+      initializeSomeLoadedHunks();
+    });
+  }
+
+  return Future.wait(new List.generate(total, loadAndInitialize)).then((_) {
+    initializeSomeLoadedHunks();
+    // At this point all hunks have been loaded, so there should be no pending
+    // initializations to do.
+    assert(nextHunkToInitialize == total);
     bool updated = _loadedLibraries.add(loadId);
     if (updated && deferredLoadHook != null) {
       deferredLoadHook();
@@ -3741,9 +3749,10 @@ Future<Null> _loadHunk(String hunkName) {
     _eventLog.add(' - download failed: $hunkName (context: $context)');
     _loadingLibraries[hunkName] = null;
     stackTrace ??= StackTrace.current;
-    completer.completeError(new DeferredLoadException(
-          'Loading $uri failed: $error\n'
-          'event log:\n${_eventLog.join("\n")}\n'), stackTrace);
+    completer.completeError(
+        new DeferredLoadException('Loading $uri failed: $error\n'
+            'event log:\n${_eventLog.join("\n")}\n'),
+        stackTrace);
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
