@@ -384,7 +384,7 @@ const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluati
 const_syntax_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 constructor_redirect2_test/01: MissingCompileTimeError # Fasta bug: Body on redirecting constructor.
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
-covariant_subtyping_test: DartkCrash
+covariant_subtyping_test: CompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError # Fasta bug: Cyclic constructor redirection.
 deferred_call_empty_before_load_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_closurize_load_library_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.

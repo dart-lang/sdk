@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 language/bad_constructor_test/06_generated: Crash
-language_2/covariant_subtyping_test: Crash
 
 language/async_test/constructor4_generated: VerificationError
 language/const_factory_with_body_test/01_generated: VerificationError
@@ -20,7 +19,6 @@ language/malformed_inheritance_test/10_generated: VerificationError
 language/mixin_invalid_inheritance1_test/01_generated: VerificationError
 language/mixin_invalid_inheritance1_test/02_generated: VerificationError
 language/mixin_invalid_inheritance1_test/03_generated: VerificationError
-language/named_parameters_aggregated_test/06_generated: VerificationError
 language/null_test/01_generated: VerificationError
 language/parameter_default_test/01_generated: VerificationError
 language/parameter_default_test/02_generated: VerificationError
@@ -48,6 +46,7 @@ language_2/const_instance_field_test/01_generated: VerificationError
 language_2/constructor10_test/00_generated: VerificationError
 language_2/constructor10_test/01_generated: VerificationError
 language_2/constructor10_test/02_generated: VerificationError
+language_2/covariant_subtyping_test: VerificationError
 language_2/deferred_closurize_load_library_test: VerificationError
 language_2/enum_syntax_test/20_generated: VerificationError
 language_2/enum_syntax_test/22_generated: VerificationError
@@ -57,7 +56,6 @@ language_2/malformed_inheritance_test/09_generated: VerificationError
 language_2/mixin_invalid_inheritance1_test/01_generated: VerificationError
 language_2/mixin_invalid_inheritance1_test/02_generated: VerificationError
 language_2/mixin_invalid_inheritance1_test/03_generated: VerificationError
-language_2/named_parameters_aggregated_test/06_generated: VerificationError
 language_2/null_test/01_generated: VerificationError
 language_2/parameter_default_test/01_generated: VerificationError
 language_2/parameter_default_test/02_generated: VerificationError
