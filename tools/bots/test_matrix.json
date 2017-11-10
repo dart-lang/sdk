@@ -606,6 +606,45 @@
           "arguments": ["--no-hints","pkg/analyzer_plugin"]
         }
       ]
+    },
+    {
+      "builders": ["benchmark-linux"],
+      "meta": {
+        "description": "Verify benchmarks build and run correctly.",
+        "owner": "sortie@google.com"
+      },
+      "steps": [
+        {
+          "name": "see this step for details on what this bot does",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["noop"]
+        },
+        {
+          "name": "remove out directory to do a clean build",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["clean"]
+        },
+        {
+          "name": "build linux-ia32 for benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-ia32-build"]
+        },
+        {
+          "name": "try linux-ia32 benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-ia32-benchmark"]
+        },
+        {
+          "name": "build linux-x64 for benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-x64-build"]
+        },
+        {
+          "name": "try linux-x64 benchmarking",
+          "script": "tools/bots/try_benchmarks.sh",
+          "arguments": ["linux-x64-benchmark"]
+        }
+      ]
     }
   ]
 }
