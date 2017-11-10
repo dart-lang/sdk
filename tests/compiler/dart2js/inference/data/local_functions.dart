@@ -67,15 +67,9 @@ closureToString() {
   return local. /*invoke: [subclass=Closure]*/ toString();
 }
 
-// TODO(johnniwinther): Handle .call on closures correctly the old inference.
-/*ast.element: closureCallToString:[empty]*/
-/*kernel.element: closureCallToString:[exact=JSString]*/
+/*element: closureCallToString:[exact=JSString]*/
 closureCallToString() {
   var local = /*[null]*/ () {};
   local.call();
-  return local
-      .
-      /*ast.invoke: [empty]*/
-      /*kernel.invoke: [subclass=Closure]*/
-      toString();
+  return local. /*invoke: [subclass=Closure]*/ toString();
 }

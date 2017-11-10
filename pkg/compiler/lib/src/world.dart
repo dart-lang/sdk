@@ -4,6 +4,7 @@
 
 library dart2js.world;
 
+import 'closure.dart';
 import 'common.dart';
 import 'constants/constant_system.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
@@ -1206,6 +1207,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 }
 
 class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
+  final List<MemberEntity> liveInstanceMembers;
+
   ClosedWorldImpl(
       {CompilerOptions options,
       ElementEnvironment elementEnvironment,
@@ -1228,7 +1231,9 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
-      : super(
+      : this.liveInstanceMembers =
+            new List<MemberEntity>.from(liveInstanceMembers),
+        super(
             elementEnvironment,
             dartTypes,
             commonElements,
@@ -1326,7 +1331,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
     return selector.appliesUntyped(element);
   }
 
-  void registerClosureClass(covariant ClassElement cls) {
+  void registerClosureClass(covariant ClosureClassElement cls) {
     ClassHierarchyNode parentNode = getClassHierarchyNode(cls.superclass);
     ClassHierarchyNode node = _classHierarchyNodes[cls] =
         new ClassHierarchyNode(parentNode, cls, cls.hierarchyDepth);
@@ -1337,6 +1342,11 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
     _classSets[cls] = new ClassSet(node);
     _updateSuperClassHierarchyNodeForClass(node);
     node.isDirectlyInstantiated = true;
+    MethodElement callMethod = cls.callMethod;
+    assert(callMethod != null, failedAt(cls, "No call method in $cls"));
+    assert(_allFunctions == null,
+        failedAt(cls, "Function set has already be created."));
+    liveInstanceMembers.add(callMethod);
   }
 
   void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {
