@@ -20,6 +20,7 @@ const noCompiler = "--compiler=none";
 const precompiler = "--compiler=precompiler";
 const analyzer = "--compiler=dart2analyzer";
 const dartk = "--compiler=dartk";
+const dartkp = "--compiler=dartkp";
 
 const chrome = "--runtime=chrome";
 const precompiled = "--runtime=dart_precompiled";
@@ -49,6 +50,9 @@ final allConfigs = {
   "vm-app": [appJit, vm],
   "vm-app-product": [productMode, appJit, vm],
   "vm-kernel": [dartk, releaseMode, vm],
+  "vm-kernel-strong": [dartk, releaseMode, vm, strong],
+  "vm-kernel-precomp": [dartkp, releaseMode, precompiled],
+  "vm-kernel-precomp-strong": [dartkp, releaseMode, precompiled, strong],
   "vm-precomp": [precompiler, precompiled],
   "vm-precomp-checked": [precompiler, precompiled, checked],
   "vm-product": [productMode, noCompiler, vm],
