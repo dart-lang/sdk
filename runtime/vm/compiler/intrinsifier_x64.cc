@@ -1528,6 +1528,8 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ movl(addr_0, RDX);
   __ shrq(RDX, Immediate(32));
   __ movl(addr_1, RDX);
+  ASSERT(Smi::RawValue(0) == 0);
+  __ xorq(RAX, RAX);
   __ ret();
 }
 

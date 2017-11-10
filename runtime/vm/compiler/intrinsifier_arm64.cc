@@ -1613,6 +1613,8 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ mul(R2, R0, R2);
   __ add(R2, R2, Operand(R3));
   __ StoreToOffset(R2, R1, disp);
+  ASSERT(Smi::RawValue(0) == 0);
+  __ eor(R0, R0, Operand(R0));
   __ ret();
 }
 
