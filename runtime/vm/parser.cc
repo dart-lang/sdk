@@ -922,7 +922,7 @@ bool Parser::FieldHasFunctionLiteralInitializer(const Field& field,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, field.Owner());
-  const Script& script = Script::Handle(zone, cls.script());
+  const Script& script = Script::Handle(zone, field.Script());
   const Library& lib = Library::Handle(zone, cls.library());
   Parser parser(script, lib, field.token_pos());
   return parser.GetFunctionLiteralInitializerRange(field, start, end);
