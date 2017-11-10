@@ -111,7 +111,9 @@ abstract class ParserAdapter implements Parser {
 
   @override
   List<Combinator> parseCombinators() {
-    currentToken = fastaParser.parseCombinators(currentToken);
+    currentToken = fastaParser
+        .parseCombinators(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     return astBuilder.pop();
   }
 
@@ -129,7 +131,9 @@ abstract class ParserAdapter implements Parser {
 
   @override
   Configuration parseConfiguration() {
-    currentToken = fastaParser.parseConditionalUri(currentToken).next;
+    currentToken = fastaParser
+        .parseConditionalUri(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     return astBuilder.pop();
   }
 
