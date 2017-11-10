@@ -20,7 +20,11 @@ class ClassMemberParser extends Parser {
   ClassMemberParser(Listener listener) : super(listener);
 
   @override
-  Token parseExpression(Token token) => skipExpression(token);
+  Token parseExpression(Token token) {
+    // TODO(brianwilkerson) Remove the invocation of `previous` when
+    // `skipExpression` returns the last consumed token.
+    return skipExpression(token).previous;
+  }
 
   @override
   Token parseAssert(Token token, Assert kind) {
@@ -36,7 +40,9 @@ class ClassMemberParser extends Parser {
   @override
   Token parseRecoverExpression(Token token, Message message) {
     Token begin = token;
-    token = skipExpression(token);
+    // TODO(brianwilkerson) Remove the invocation of `previous` when
+    // `skipExpression` returns the last consumed token.
+    token = skipExpression(token).previous;
     listener.handleRecoverExpression(begin, message);
     return token;
   }
