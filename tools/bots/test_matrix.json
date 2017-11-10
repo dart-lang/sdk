@@ -1,5 +1,29 @@
 {
   "filesets": {
+    "vm_debug": [
+      "out/DebugIA32/",
+      "out/DebugX64/",
+      "xcodebuild/DebugIA32/",
+      "xcodebuild/DebugX64/",
+      "samples/",
+      "samples-dev/",
+      "tools/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/d8/",
+      "third_party/firefox_jsshell/",
+      "third_party/observatory_pub_packages/packages/web_components/",
+      "tests/",
+      "pkg/async_helper/",
+      "pkg/expect/",
+      "pkg/js/",
+      "pkg/meta/",
+      "pkg/pkg.status",
+      "pkg/status_file/",
+      "runtime/",
+      "sdk/",
+      ".packages"
+    ]
   },
   "configurations": [
     {
@@ -26,25 +50,25 @@
         "vm-win-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the vm debug, vm product and vm release builders."
+        "description": "This configuration is used by the vm debug, vm product and vm release builders. When used on the CQ the argument '--fast-tests' is appended automatically."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
+          "arguments": ["runtime"]
         },
         {
           "name": "vm tests",
-          "arguments": []
+          "arguments": [],
+          "fileset": "vm_debug",
+          "shards": 3
         },
         {
           "name": "checked vm tests",
-          "arguments": [
-            "--checked"
-          ]
+          "arguments": ["--checked"],
+          "fileset": "vm_debug",
+          "shards": 3
         }
       ]
     },
