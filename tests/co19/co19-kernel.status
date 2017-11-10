@@ -139,7 +139,8 @@ LibTest/isolate/Isolate/spawnUri_A01_t04: Pass, Slow, Timeout
 [ $compiler == dartkp ]
 Language/Overview/Scoping/hiding_declaration_t11: Crash
 Language/Overview/Scoping/hiding_declaration_t12: Crash
-
+Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
+Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: Pass
 Language/Expressions/Constants/bitwise_operators_t05: Crash
 Language/Expressions/Constants/logical_expression_t04: Crash
