@@ -817,14 +817,6 @@ class Assembler : public ValueObject {
     EmitCompareAndBranch(CBNZ, rt, label, sz);
   }
 
-  // Test bit and branch if zero.
-  void tbz(Label* label, Register rt, intptr_t bit_number) {
-    EmitTestAndBranch(TBZ, rt, bit_number, label);
-  }
-  void tbnz(Label* label, Register rt, intptr_t bit_number) {
-    EmitTestAndBranch(TBNZ, rt, bit_number, label);
-  }
-
   // Branch, link, return.
   void br(Register rn) { EmitUnconditionalBranchRegOp(BR, rn); }
   void blr(Register rn) { EmitUnconditionalBranchRegOp(BLR, rn); }
@@ -1161,9 +1153,15 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
-  void BranchIfNotSmi(Register reg, Label* label) { tbnz(label, reg, kSmiTag); }
+  void BranchIfNotSmi(Register reg, Label* label) {
+    tsti(reg, Immediate(kSmiTagMask));
+    b(label, NE);
+  }
 
-  void BranchIfSmi(Register reg, Label* label) { tbz(label, reg, kSmiTag); }
+  void BranchIfSmi(Register reg, Label* label) {
+    tsti(reg, Immediate(kSmiTagMask));
+    b(label, EQ);
+  }
 
   void Branch(const StubEntry& stub_entry,
               Register pp,
@@ -1517,9 +1515,6 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  int32_t BindImm19Branch(int64_t position, int64_t dest);
-  int32_t BindImm14Branch(int64_t position, int64_t dest);
-
   int32_t EncodeImm19BranchOffset(int64_t imm, int32_t instr) {
     if (!CanEncodeImm19BranchOffset(imm)) {
       ASSERT(!use_far_branches());
@@ -1536,22 +1531,6 @@ class Assembler : public ValueObject {
     return static_cast<int64_t>(off);
   }
 
-  int32_t EncodeImm14BranchOffset(int64_t imm, int32_t instr) {
-    if (!CanEncodeImm14BranchOffset(imm)) {
-      ASSERT(!use_far_branches());
-      Thread::Current()->long_jump_base()->Jump(1,
-                                                Object::branch_offset_error());
-    }
-    const int32_t imm32 = static_cast<int32_t>(imm);
-    const int32_t off = (((imm32 >> 2) << kImm14Shift) & kImm14Mask);
-    return (instr & ~kImm14Mask) | off;
-  }
-
-  int64_t DecodeImm14BranchOffset(int32_t instr) {
-    const int32_t off = (((instr & kImm14Mask) >> kImm14Shift) << 18) >> 16;
-    return static_cast<int64_t>(off);
-  }
-
   bool IsConditionalBranch(int32_t instr) {
     return (instr & ConditionalBranchMask) ==
            (ConditionalBranchFixed & ConditionalBranchMask);
@@ -1560,11 +1539,6 @@ class Assembler : public ValueObject {
   bool IsCompareAndBranch(int32_t instr) {
     return (instr & CompareAndBranchMask) ==
            (CompareAndBranchFixed & CompareAndBranchMask);
-  }
-
-  bool IsTestAndBranch(int32_t instr) {
-    return (instr & TestAndBranchMask) ==
-           (TestAndBranchFixed & TestAndBranchMask);
   }
 
   Condition DecodeImm19BranchCondition(int32_t instr) {
@@ -1582,16 +1556,6 @@ class Assembler : public ValueObject {
     }
     ASSERT(IsCompareAndBranch(instr));
     return (instr & ~B24) | (cond == EQ ? B24 : 0);  // cbz : cbnz
-  }
-
-  Condition DecodeImm14BranchCondition(int32_t instr) {
-    ASSERT(IsTestAndBranch(instr));
-    return (instr & B24) ? EQ : NE;  // tbz : tbnz
-  }
-
-  int32_t EncodeImm14BranchCondition(Condition cond, int32_t instr) {
-    ASSERT(IsTestAndBranch(instr));
-    return (instr & ~B24) | (cond == EQ ? B24 : 0);  // tbz : tbnz
   }
 
   int32_t EncodeImm26BranchOffset(int64_t imm, int32_t instr) {
@@ -1620,21 +1584,6 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
-  void EmitTestAndBranchOp(TestAndBranchOp op,
-                           Register rt,
-                           intptr_t bit_number,
-                           int64_t imm) {
-    ASSERT((bit_number >= 0) && (bit_number <= 63));
-    ASSERT(Utils::IsInt(16, imm) && ((imm & 0x3) == 0));
-    ASSERT((rt != CSP) && (rt != R31));
-    const Register crt = ConcreteRegister(rt);
-    const int32_t encoded_offset = EncodeImm14BranchOffset(imm, 0);
-    const int32_t encoding = op | (static_cast<int32_t>(bit_number) << 19) |
-                             (static_cast<int32_t>(crt) << kRtShift) |
-                             encoded_offset;
-    Emit(encoding);
-  }
-
   void EmitConditionalBranchOp(ConditionalBranchOp op,
                                Condition cond,
                                int64_t imm) {
@@ -1647,11 +1596,6 @@ class Assembler : public ValueObject {
   bool CanEncodeImm19BranchOffset(int64_t offset) {
     ASSERT(Utils::IsAligned(offset, 4));
     return Utils::IsInt(21, offset);
-  }
-
-  bool CanEncodeImm14BranchOffset(int64_t offset) {
-    ASSERT(Utils::IsAligned(offset, 4));
-    return Utils::IsInt(16, offset);
   }
 
   void EmitConditionalBranch(ConditionalBranchOp op,
@@ -1709,32 +1653,6 @@ class Assembler : public ValueObject {
         b(label->position_);
       } else {
         EmitCompareAndBranchOp(op, rt, label->position_, sz);
-      }
-      label->LinkTo(position);
-    }
-  }
-
-  void EmitTestAndBranch(TestAndBranchOp op,
-                         Register rt,
-                         intptr_t bit_number,
-                         Label* label) {
-    if (label->IsBound()) {
-      const int64_t dest = label->Position() - buffer_.Size();
-      if (use_far_branches() && !CanEncodeImm14BranchOffset(dest)) {
-        EmitTestAndBranchOp(op == TBZ ? TBNZ : TBZ, rt, bit_number,
-                            2 * Instr::kInstrSize);
-        b(dest);
-      } else {
-        EmitTestAndBranchOp(op, rt, bit_number, dest);
-      }
-    } else {
-      const int64_t position = buffer_.Size();
-      if (use_far_branches()) {
-        EmitTestAndBranchOp(op == TBZ ? TBNZ : TBZ, rt, bit_number,
-                            2 * Instr::kInstrSize);
-        b(label->position_);
-      } else {
-        EmitTestAndBranchOp(op, rt, bit_number, label->position_);
       }
       label->LinkTo(position);
     }
