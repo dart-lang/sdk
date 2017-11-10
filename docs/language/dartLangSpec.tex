@@ -1068,10 +1068,11 @@ It is a static warning if an instance method $m_1$ overrides  (\ref{inheritanceA
 % not quite right. It should be ok to override a method that requires N parameters with one that requires M < N but accepts the others as optional.
 
 \LMHash{}
-It is a static warning if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$. It is a static warning if an instance method $m_1$ overrides an instance member $m_2$,  the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$ and the signature of $m_1$ implies a different default value for $p$. It is a static warning if a class $C$ declares an instance method named $n$ and has a setter named $n=$. It is a static warning if a class $C$ declares an instance method named $n$ and an accessible static member named $n$ is declared in a superclass of $C$.
+It is a static warning if an instance method $m_1$ overrides an instance member $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
+It is a static warning if an instance method $m_1$ overrides an instance member $m_2$, the signature of $m_2$ explicitly specifies a default value for a formal parameter $p$, and the signature of $m_1$ implies a different default value for $p$.
+It is a static warning if a class $C$ declares an instance method named $n$ and has a setter named $n=$.
 
 % Works. If the name is public, no issue. If it's private, if a subclass has a conflicting inst var, it either is in the same lib and will be flagged, or is in another and is not an issue.
-
 
 \subsubsection{Operators}
 \LMLabel{operators}
@@ -1170,7 +1171,20 @@ It is a static warning if a getter $m_1$ overrides  (\ref{inheritanceAndOverridi
 $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$.
 
 \LMHash{}
-It is a static warning if a class  declares a static getter named $v$ and also has a non-static setter named $v=$. It is a static warning if a class $C$ declares an instance getter named $v$ and an accessible static member named $v$ or $v=$ is declared in a superclass of $C$. These warnings must be issued regardless of whether the getters or setters are declared explicitly or implicitly.
+It is a static warning if a class declares a static getter named $v$ and also has a non-static setter named $v=$.
+
+% We need not consider implicit declarations: If $v$ is declared
+% implicitly then there is a static variable $v$ and an induced setter
+% $v=$, and then it is already a compile-time error to have an
+% instance setter named $v=$ due to the name clash. Otherwise, $v$ is
+% an explicitly declared static getter (and there may or may not be an
+% explicitly declared static setter $v=$). If the non-static setter
+% $v=$ is declared implicitly then there is an instance variable $v$
+% inducing it, and it will also induce an instance getter $v$, which
+% is again already a compile-time error.  Hence, if any of said
+% declarations are implicit then it is already a compile-time error,
+% so we need not specify how to handle those cases with respect to
+% this static warning.
 
 \subsection{Setters}
 \LMLabel{setters}
@@ -1207,10 +1221,20 @@ It is a static warning if a setter declares a return type other than \VOID{}.
 It is a static warning if a setter $m_1$ overrides  (\ref{inheritanceAndOverriding}) a setter $m_2$ and the type of $m_1$ is not a subtype of the type of $m_2$. It is a static warning if a class has a setter named $v=$ with argument type $T$ and a getter named $v$ with return type $S$, and $T$ may not be assigned to $S$.
 
 \LMHash{}
-It is a static warning if a class  declares a static setter named $v=$ and also has a non-static member named $v$. It is a static warning if a class $C$ declares an instance setter named $v=$ and an accessible static member named $v=$ or $v$ is declared in a superclass of $C$.
+It is a static warning if a class declares a static setter named $v=$ and also has a non-static member named $v$.
 
-\LMHash{}
-These warnings must be issued regardless of whether the getters or setters are declared explicitly or implicitly.
+% We need not consider implicit declarations: If $v=$ is declared
+% implicitly then there is a static variable $v$, and then it is
+% already a compile-time error to have an instance member named $v$,
+% both when it is a method and when it is induced by an instance
+% variable. Otherwise, $v=$ is an explicitly declared setter (and
+% there may or may not be an explicitly declared static getter
+% $v$). If the non-static member $v$ is declared implicitly then there
+% is an instance variable $v$ inducing it, and it will also induce an
+% instance setter $v=$, which is again already a compile-time error.
+% Hence, if any of said declarations are implicit then it is already a
+% compile-time error, so we need not specify how to handle those cases
+% with respect to this static warning.
 
 \subsection{Abstract Instance Members}
 \LMLabel{abstractInstanceMembers}
@@ -1818,14 +1842,6 @@ Of course, the entire notion of static methods is debatable, but it is retained 
 
 \LMHash{}
 It is a static warning if a class $C$ declares a static method named $n$ and has a setter named $n=$.
-%It is a static warning if a class has a static method with the same name as a static member of one of its superclasses.
-
-%\rationale{
-%This last restriction makes classes more brittle with respect to changes in the class hierarchy. It stems from a general observation that shadowing of names in the same scope is questionable and should elicit a warning.
-%}
-%\commentary{
-%There is no hiding of static methods, or of static variables.
-%}
 
 
 \subsection{Static Variables}
