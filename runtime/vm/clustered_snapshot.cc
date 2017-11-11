@@ -47,10 +47,13 @@ void Deserializer::InitializeHeader(RawObject* raw,
 }
 
 void SerializationCluster::WriteAndMeasureAlloc(Serializer* serializer) {
-  intptr_t start = serializer->bytes_written();
+  intptr_t start_size = serializer->bytes_written() + serializer->GetDataSize();
+  intptr_t start_objects = serializer->next_ref_index();
   WriteAlloc(serializer);
-  intptr_t stop = serializer->bytes_written();
-  size_ += (stop - start);
+  intptr_t stop_size = serializer->bytes_written() + serializer->GetDataSize();
+  intptr_t stop_objects = serializer->next_ref_index();
+  size_ += (stop_size - start_size);
+  num_objects_ += (stop_objects - start_objects);
 }
 
 void SerializationCluster::WriteAndMeasureFill(Serializer* serializer) {
@@ -2028,8 +2031,8 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
 // PcDescriptor, StackMap, OneByteString, TwoByteString
 class RODataSerializationCluster : public SerializationCluster {
  public:
-  explicit RODataSerializationCluster(intptr_t cid)
-      : SerializationCluster("ROData"), cid_(cid) {}
+  RODataSerializationCluster(const char* name, intptr_t cid)
+      : SerializationCluster(name), cid_(cid) {}
   virtual ~RODataSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
@@ -4564,6 +4567,21 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
   }
 };
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class FakeSerializationCluster : public SerializationCluster {
+ public:
+  explicit FakeSerializationCluster(const char* name, intptr_t size)
+      : SerializationCluster(name) {
+    size_ = size;
+  }
+  virtual ~FakeSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) { UNREACHABLE(); }
+  void WriteAlloc(Serializer* s) { UNREACHABLE(); }
+  void WriteFill(Serializer* s) { UNREACHABLE(); }
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
 Serializer::Serializer(Thread* thread,
                        Snapshot::Kind kind,
                        uint8_t** buffer,
@@ -4653,11 +4671,13 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
     case kObjectPoolCid:
       return new (Z) ObjectPoolSerializationCluster();
     case kPcDescriptorsCid:
-      return new (Z) RODataSerializationCluster(kPcDescriptorsCid);
+      return new (Z)
+          RODataSerializationCluster("(RO)PcDescriptors", kPcDescriptorsCid);
     case kCodeSourceMapCid:
-      return new (Z) RODataSerializationCluster(kCodeSourceMapCid);
+      return new (Z)
+          RODataSerializationCluster("(RO)CodeSourceMap", kCodeSourceMapCid);
     case kStackMapCid:
-      return new (Z) RODataSerializationCluster(kStackMapCid);
+      return new (Z) RODataSerializationCluster("(RO)StackMap", kStackMapCid);
     case kExceptionHandlersCid:
       return new (Z) ExceptionHandlersSerializationCluster();
     case kContextCid:
@@ -4710,14 +4730,16 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) ArraySerializationCluster(kImmutableArrayCid);
     case kOneByteStringCid: {
       if (Snapshot::IncludesCode(kind_)) {
-        return new (Z) RODataSerializationCluster(kOneByteStringCid);
+        return new (Z)
+            RODataSerializationCluster("(RO)OneByteString", kOneByteStringCid);
       } else {
         return new (Z) OneByteStringSerializationCluster();
       }
     }
     case kTwoByteStringCid: {
       if (Snapshot::IncludesCode(kind_)) {
-        return new (Z) RODataSerializationCluster(kTwoByteStringCid);
+        return new (Z)
+            RODataSerializationCluster("(RO)TwoByteString", kTwoByteStringCid);
       } else {
         return new (Z) TwoByteStringSerializationCluster();
       }
@@ -4744,6 +4766,20 @@ int32_t Serializer::GetTextOffset(RawInstructions* instr, RawCode* code) const {
 
 int32_t Serializer::GetDataOffset(RawObject* object) const {
   return image_writer_->GetDataOffsetFor(object);
+}
+
+intptr_t Serializer::GetDataSize() const {
+  if (image_writer_ == NULL) {
+    return 0;
+  }
+  return image_writer_->data_size();
+}
+
+intptr_t Serializer::GetTextSize() const {
+  if (image_writer_ == NULL) {
+    return 0;
+  }
+  return image_writer_->text_size();
 }
 
 void Serializer::Push(RawObject* object) {
@@ -4860,6 +4896,7 @@ void Serializer::WriteVersionAndFeatures() {
 static const int32_t kSectionMarker = 0xABAB;
 #endif
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static int CompareClusters(SerializationCluster* const* a,
                            SerializationCluster* const* b) {
   if ((*a)->size() > (*b)->size()) {
@@ -4870,6 +4907,7 @@ static int CompareClusters(SerializationCluster* const* a,
     return 0;
   }
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void Serializer::Serialize() {
   while (stack_.length() > 0) {
@@ -4918,8 +4956,9 @@ void Serializer::Serialize() {
     }
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_print_snapshot_sizes_verbose) {
-    OS::Print("             Cluster     Size Fraction Cumulative\n");
+    OS::Print("             Cluster   Objs     Size Fraction Cumulative\n");
     GrowableArray<SerializationCluster*> clusters_by_size;
     for (intptr_t cid = 1; cid < num_cids_; cid++) {
       SerializationCluster* cluster = clusters_by_cid_[cid];
@@ -4927,17 +4966,24 @@ void Serializer::Serialize() {
         clusters_by_size.Add(cluster);
       }
     }
+    if (GetTextSize() != 0) {
+      clusters_by_size.Add(new (zone_) FakeSerializationCluster(
+          "(RO)Instructions", GetTextSize()));
+    }
     clusters_by_size.Sort(CompareClusters);
-    double total_size = static_cast<double>(bytes_written());
+    double total_size =
+        static_cast<double>(bytes_written() + GetDataSize() + GetTextSize());
     double cumulative_fraction = 0.0;
     for (intptr_t i = 0; i < clusters_by_size.length(); i++) {
       SerializationCluster* cluster = clusters_by_size[i];
       double fraction = static_cast<double>(cluster->size()) / total_size;
       cumulative_fraction += fraction;
-      OS::Print("%20s %8" Pd " %lf %lf\n", cluster->name(), cluster->size(),
-                fraction, cumulative_fraction);
+      OS::Print("%20s %6" Pd " %8" Pd " %lf %lf\n", cluster->name(),
+                cluster->num_objects(), cluster->size(), fraction,
+                cumulative_fraction);
     }
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Serializer::AddVMIsolateBaseObjects() {
@@ -5579,7 +5625,7 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
       clustered_vm_size_(0),
       clustered_isolate_size_(0),
       mapped_data_size_(0),
-      mapped_instructions_size_(0) {
+      mapped_text_size_(0) {
   ASSERT(alloc_ != NULL);
   ASSERT(isolate() != NULL);
   ASSERT(heap() != NULL);
@@ -5658,7 +5704,7 @@ intptr_t FullSnapshotWriter::WriteVMSnapshot() {
   if (Snapshot::IncludesCode(kind_)) {
     vm_image_writer_->Write(serializer.stream(), true);
     mapped_data_size_ += vm_image_writer_->data_size();
-    mapped_instructions_size_ += vm_image_writer_->text_size();
+    mapped_text_size_ += vm_image_writer_->text_size();
     vm_image_writer_->ResetOffsets();
   }
 
@@ -5687,7 +5733,7 @@ void FullSnapshotWriter::WriteIsolateSnapshot(intptr_t num_base_objects) {
   if (Snapshot::IncludesCode(kind_)) {
     isolate_image_writer_->Write(serializer.stream(), false);
     mapped_data_size_ += isolate_image_writer_->data_size();
-    mapped_instructions_size_ += isolate_image_writer_->text_size();
+    mapped_text_size_ += isolate_image_writer_->text_size();
     isolate_image_writer_->ResetOffsets();
   }
 
@@ -5712,10 +5758,10 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     OS::Print("VMIsolate(CodeSize): %" Pd "\n", clustered_vm_size_);
     OS::Print("Isolate(CodeSize): %" Pd "\n", clustered_isolate_size_);
     OS::Print("ReadOnlyData(CodeSize): %" Pd "\n", mapped_data_size_);
-    OS::Print("Instructions(CodeSize): %" Pd "\n", mapped_instructions_size_);
+    OS::Print("Instructions(CodeSize): %" Pd "\n", mapped_text_size_);
     OS::Print("Total(CodeSize): %" Pd "\n",
               clustered_vm_size_ + clustered_isolate_size_ + mapped_data_size_ +
-                  mapped_instructions_size_);
+                  mapped_text_size_);
   }
 }
 
