@@ -87,7 +87,7 @@ class DevFS {
     if (deleteDir == null) {
       return;
     }
-    var deletions = [];
+    var deletions = <Future>[];
     for (var fs in _fsMap.values) {
       deletions.add(deleteDir(fs.uri));
     }
@@ -363,7 +363,7 @@ class DevFS {
       }
       uris.add(uri);
     }
-    var pendingWrites = [];
+    var pendingWrites = <Future>[];
     for (int i = 0; i < uris.length; i++) {
       List<int> decodedFileContents = BASE64.decode(files[i][1]);
       pendingWrites.add(writeFile(uris[i], decodedFileContents));
