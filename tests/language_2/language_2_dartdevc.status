@@ -40,6 +40,7 @@ final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
+fuzzy_arrows_test/03: RuntimeError # Issue 29630
 generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
 generic_list_checked_test: CompileTimeError

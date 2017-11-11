@@ -13,6 +13,7 @@ const_string_test: RuntimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
+fuzzy_arrows_test/01: MissingCompileTimeError
 generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, issue 30931
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError
@@ -257,6 +258,7 @@ inferrer_synthesized_constructor_test: RuntimeError
 tearoff_dynamic_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && !$checked && !$strong ]
+fuzzy_arrows_test/03: RuntimeError
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
@@ -297,6 +299,7 @@ deferred_constraints_type_annotation_test/type_annotation_null: Pass
 deferred_constraints_type_annotation_test/type_annotation_top_level: Pass
 deferred_constraints_type_annotation_test/none: CompileTimeError
 function_subtype_inline2_test: RuntimeError
+fuzzy_arrows_test/01: MissingCompileTimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
@@ -306,6 +309,9 @@ generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
 generic_tearoff_test: CompileTimeError
 typevariable_substitution2_test/02: RuntimeError
+
+[ $compiler == dartkp && $runtime == dart_precompiled && !$strong ]
+fuzzy_arrows_test/03: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
 assertion_initializer_const_error2_test/cc02: Crash

@@ -1102,3 +1102,7 @@ type_promotion_functions_test/06: MissingCompileTimeError
 type_promotion_functions_test/07: MissingCompileTimeError
 type_promotion_functions_test/08: MissingCompileTimeError
 type_promotion_functions_test/10: MissingCompileTimeError
+
+[ $runtime == vm && $compiler != dartk && $compiler != dartkp ]
+fuzzy_arrows_test/01: MissingCompileTimeError
+fuzzy_arrows_test/03: RuntimeError

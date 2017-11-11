@@ -466,6 +466,7 @@ mixin_invalid_bound_test/10: MissingCompileTimeError
 
 [ $compiler == dart2analyzer ]
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
+fuzzy_arrows_test/01: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $checked ]
 assertion_initializer_const_error2_test/none: Pass

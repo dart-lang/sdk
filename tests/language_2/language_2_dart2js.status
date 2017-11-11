@@ -206,6 +206,8 @@ function_type_call_getter2_test/02: MissingCompileTimeError
 function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_call_getter2_test/04: MissingCompileTimeError
 function_type_call_getter2_test/05: MissingCompileTimeError
+fuzzy_arrows_test/01: MissingCompileTimeError
+fuzzy_arrows_test/03: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
