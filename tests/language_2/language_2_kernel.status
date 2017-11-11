@@ -304,7 +304,6 @@ generic_methods_generic_function_result_test/none: CompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
-generic_no_such_method_dispatcher_test : Crash # Issue 31335
 generic_tearoff_test: CompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
@@ -1162,6 +1161,11 @@ field_method4_test: Crash
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
 first_class_types_test: RuntimeError
+function_subtype_named1_test: Pass
+function_subtype_not0_test: RuntimeError
+function_subtype_not2_test: RuntimeError
+function_subtype_optional1_test: Pass
+function_subtype_simple1_test: RuntimeError
 function_syntax_test/00: MissingCompileTimeError
 function_syntax_test/01: MissingCompileTimeError
 function_syntax_test/22: MissingCompileTimeError
@@ -1172,12 +1176,16 @@ function_syntax_test/69: MissingCompileTimeError
 function_syntax_test/71: MissingCompileTimeError
 function_syntax_test/73: MissingCompileTimeError
 function_syntax_test/74: MissingCompileTimeError
+function_type_alias4_test: RuntimeError
 generic_function_type_as_type_argument_test/02: Pass
+generic_function_typedef_test/01: Pass
 generic_methods_bounds_test/01: Crash
 generic_methods_dynamic_test/01: Crash
 generic_methods_dynamic_test/03: Crash
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/none: Pass
+generic_methods_named_parameters_test: Pass
+generic_methods_optional_parameters_test: Pass
 generic_methods_recursive_bound_test/03: MissingRuntimeError
 generic_methods_type_expression_test: Crash
 get_set_syntax_test/00: MissingCompileTimeError
@@ -1189,7 +1197,6 @@ getter_parameters_test/03: MissingCompileTimeError
 getter_parameters_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-instance_call_wrong_argument_count_negative_test: Crash
 instanceof4_test/01: Pass
 instanceof4_test/none: Pass
 is_malformed_type_test/94: MissingCompileTimeError
@@ -1231,14 +1238,12 @@ map_literal4_test/03: MissingCompileTimeError
 map_literal4_test/04: MissingCompileTimeError
 map_literal4_test/05: MissingCompileTimeError
 map_literal4_test/06: MissingCompileTimeError
-map_literal7_test: RuntimeError
 map_literal8_test: Pass
 mixin_black_listed_test/02: MissingCompileTimeError
 mixin_illegal_syntax_test/12: MissingCompileTimeError
-mock_writable_final_field_test: RuntimeError
 multiline_strings_test: Pass
 nested_generic_closure_test: Crash
-no_such_method_subtype_test: RuntimeError
+no_such_method_mock_test: Pass
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
 number_identifier_test/05: MissingCompileTimeError
@@ -1452,13 +1457,10 @@ type_variable_scope_test/03: Pass
 
 [ $compiler == dartkp && $strong && $mode == debug ]
 vm/async_await_catch_stacktrace_test: Crash
-vm/load_to_load_unaligned_forwarding_vm_test: Crash
-vm/load_to_load_forwarding_vm_test: Crash
-vm/issue21220_vm_test: Crash
-vm/regress_licm_test: Crash
 bad_named_parameters_test/01: Crash
 bad_named_parameters_test/02: Crash
 bad_named_parameters_test/05: Crash
+flatten_test/04: Crash
 optional_named_parameters_test/06: Crash
 optional_named_parameters_test/08: Crash
 type_promotion_functions_test/05: Pass

@@ -621,13 +621,10 @@ map_keys2_test: Pass
 
 [ $compiler == dartkp && $strong ]
 collection_removes_test: RuntimeError
-int_parse_with_limited_ints_test: Crash
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
-list_insert_test: RuntimeError
-typed_data_with_limited_ints_test: Crash
 
 [ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug ]
 list_test/none: Crash
@@ -680,17 +677,3 @@ symbol_test/01: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 map_test: Crash # crash in front_end.
-
-[ $compiler == dartkp && $strong && $mode == debug ]
-list_unmodifiable_test: Crash
-iterable_reduce_test/01: Crash
-iterable_reduce_test/none: Crash
-iterable_return_type_test/01: Crash
-iterable_return_type_test/02: Crash
-shuffle_test: Crash
-string_test: Crash
-data_uri_test: Crash
-iterable_fold_test/01: Crash
-iterable_fold_test/02: Crash
-iterable_fold_test/none: Crash
-string_fromcharcodes_test: Crash
