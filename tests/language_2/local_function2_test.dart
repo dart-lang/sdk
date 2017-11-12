@@ -9,7 +9,7 @@ typedef T F<T>(T t);
 
 class Parameterized<T> {
   Parameterized() {}
-  T mul3(F f, T t) {
+  T mul3(F<T> f, T t) {
     return 3 * f(t); //# 01: compile-time error
   }
 
