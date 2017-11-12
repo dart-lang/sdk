@@ -780,6 +780,13 @@ class Assembler : public ValueObject {
   void csetm(Register rd, Condition cond) {
     csinv(rd, ZR, ZR, InvertCondition(cond));
   }
+  void csneg(Register rd, Register rn, Register rm, Condition cond) {
+    EmitConditionalSelect(CSNEG, rd, rn, rm, cond, kDoubleWord);
+  }
+  void cneg(Register rd, Register rn, Condition cond) {
+    EmitConditionalSelect(CSNEG, rd, rn, rn, InvertCondition(cond),
+                          kDoubleWord);
+  }
 
   // Comparison.
   // rn cmp o.

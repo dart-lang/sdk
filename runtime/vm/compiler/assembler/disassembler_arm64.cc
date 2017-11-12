@@ -39,6 +39,7 @@ class ARM64Decoder : public ValueObject {
   void PrintPairMemOperand(Instr* instr);
   void PrintS(Instr* instr);
   void PrintCondition(Instr* instr);
+  void PrintInvertedCondition(Instr* instr);
 
   // Handle formatting of instructions and their options.
   int FormatRegister(Instr* instr, const char* option);
@@ -128,6 +129,15 @@ void ARM64Decoder::PrintCondition(Instr* instr) {
     Print(cond_names[instr->SelectConditionField()]);
   } else {
     Print(cond_names[instr->ConditionField()]);
+  }
+}
+
+// Print the inverse of the condition guarding the instruction.
+void ARM64Decoder::PrintInvertedCondition(Instr* instr) {
+  if (instr->IsConditionalSelectOp()) {
+    Print(cond_names[InvertCondition(instr->SelectConditionField())]);
+  } else {
+    Print(cond_names[InvertCondition(instr->ConditionField())]);
   }
 }
 
@@ -368,8 +378,14 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         return 3;
       } else {
         ASSERT(STRING_STARTS_WITH(format, "cond"));
-        PrintCondition(instr);
-        return 4;
+        if (format[4] == 'i') {
+          ASSERT(STRING_STARTS_WITH(format, "condinverted"));
+          PrintInvertedCondition(instr);
+          return 12;
+        } else {
+          PrintCondition(instr);
+          return 4;
+        }
       }
     }
     case 'd': {
@@ -1077,12 +1093,29 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
+  int cond = instr->SelectConditionField();
+  bool non_select =
+      (instr->RnField() == instr->RmField()) && ((cond & 0xe) != 0xe);
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
     Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
-    Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
+    if (non_select) {
+      Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
+    } else {
+      Format(instr, "cinc'sf'condinverted 'rd, 'rn");
+    }
   } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 0)) {
-    Format(instr, "csinv'sf'cond 'rd, 'rn, 'rm");
+    if (non_select) {
+      Format(instr, "cinv'sf'condinverted 'rd, 'rn");
+    } else {
+      Format(instr, "csinv'sf'cond 'rd, 'rn, 'rm");
+    }
+  } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 1)) {
+    if (non_select) {
+      Format(instr, "cneg'sf'condinverted 'rd, 'rn");
+    } else {
+      Format(instr, "csneg'sf'cond 'rd, 'rn, 'rm");
+    }
   } else {
     Unknown(instr);
   }

@@ -486,6 +486,7 @@ enum ConditionalSelectOp {
   CSEL = ConditionalSelectFixed,
   CSINC = ConditionalSelectFixed | B10,
   CSINV = ConditionalSelectFixed | B30,
+  CSNEG = ConditionalSelectFixed | B10 | B30,
 };
 
 // C3.5.7

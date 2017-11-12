@@ -2573,6 +2573,14 @@ void Simulator::DecodeConditionalSelect(Instr* instr) {
       result64 = rn_val64;
       result32 = rn_val32;
     }
+  } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 1)) {
+    // Format(instr, "csneg'sf'cond 'rd, 'rn, 'rm");
+    result64 = -rm_val64;
+    result32 = -rm_val32;
+    if (ConditionallyExecute(instr)) {
+      result64 = rn_val64;
+      result32 = rn_val32;
+    }
   } else {
     UnimplementedInstruction(instr);
     return;
