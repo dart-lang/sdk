@@ -268,3 +268,5 @@ string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
 
+[ $compiler == dart2js && $runtime == drt && $csp ]
+deferred/load_in_correct_order_test: RuntimeError, Pass # Issue 31361
