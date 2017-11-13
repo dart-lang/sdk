@@ -555,6 +555,10 @@ InvalidVoid:
     - "void x; main() {}"
     - "foo(void x) {} main() { foo(null); }"
 
+InvalidInitializer:
+  template: "Not a valid initializer."
+  tip: "To initialize a field, use the syntax 'name = value'."
+
 MissingExponent:
   template: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
   tip: "Make sure there is an exponent, and remove any whitespace before it."

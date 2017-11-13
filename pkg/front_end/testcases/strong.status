@@ -233,6 +233,7 @@ regress/issue_31157: TypeCheckError
 regress/issue_31180: TypeCheckError
 regress/issue_31186: TypeCheckError
 regress/issue_31187: TypeCheckError
+regress/issue_31192: TypeCheckError
 
 runtime_checks/covariant_generic_method_type_parameter: TypeCheckError
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027

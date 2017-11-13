@@ -2309,6 +2309,15 @@ const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
     tip: r"""Try removing the keyword, or use a for-each statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidInitializer = const MessageCode(
+    "InvalidInitializer",
+    message: r"""Not a valid initializer.""",
+    tip: r"""To initialize a field, use the syntax 'name = value'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidInlineFunctionType =
     messageInvalidInlineFunctionType;
 

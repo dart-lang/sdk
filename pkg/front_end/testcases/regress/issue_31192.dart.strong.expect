@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Increment extends core::Object {
+  field core::int x = null;
+  constructor •() → void
+    : final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_31192.dart:7:18: Error: Not a valid initializer.\nTo initialize a field, use the syntax 'name = value'.\n  Increment() : x++ {}\n                 ^")) {}
+}
+static method main() → dynamic {}
