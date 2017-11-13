@@ -7,8 +7,8 @@ This directory holds Dart Language and Library Newsletters. Here's what each new
   * Did you know: Chunked conversions
   * Optional positional and named parameters
 * [October 27, 2017](20171027.md)
-  * Planned library changes for Dart 2.0
-  * [docs/newsletter/lib/lib.md](lib/lib.md)
+  * Planned library changes for Dart 2.0:
+    [docs/newsletter/lib/lib.md](lib/lib.md)
 * [October 20, 2017](20171020.md)
   * DateTime refactoring
   * [Date-Time Medium article](https://medium.com/@florian_32814/date-time-526a4f86badb)
