@@ -327,6 +327,7 @@ assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_await_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/locals_handler.dart': Failed assertion: line 296 pos 12: 'local != null': is not true.
@@ -345,8 +346,6 @@ call_function_apply_test: RuntimeError
 call_nonexistent_constructor_test/01: RuntimeError
 canonical_const2_test: RuntimeError
 canonical_const3_test: CompileTimeError
-cast_test/02: MissingRuntimeError
-cast_test/03: MissingRuntimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
@@ -450,7 +449,6 @@ list_literal4_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
-method_override4_test: RuntimeError
 method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
@@ -642,6 +640,7 @@ try_catch_test/01: MissingCompileTimeError
 type_checks_in_factory_method_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -661,8 +660,6 @@ call_function_apply_test: RuntimeError
 call_nonexistent_constructor_test/01: RuntimeError
 canonical_const2_test: RuntimeError
 canonical_const3_test: CompileTimeError
-cast_test/02: MissingRuntimeError
-cast_test/03: MissingRuntimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
@@ -786,7 +783,6 @@ list_literal4_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 map_literal4_test: RuntimeError
 method_name_test: CompileTimeError
-method_override4_test: RuntimeError
 method_override5_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError

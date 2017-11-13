@@ -30,9 +30,7 @@ compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': 
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError
-native_method_inlining_test: RuntimeError
 native_mirror_test: RuntimeError
-native_mixin_field_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
 optimization_hints_test: RuntimeError
@@ -46,9 +44,7 @@ bound_closure_super_test: RuntimeError
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError
-native_method_inlining_test: RuntimeError
 native_mirror_test: RuntimeError
-native_mixin_field_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
 optimization_hints_test: RuntimeError

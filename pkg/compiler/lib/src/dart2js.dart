@@ -288,10 +288,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   void setUseKernel(String argument) {
     useKernel = true;
-    // TODO(sigmund): remove once we support inlining and type-inference
-    // with `useKernel`.
+    // TODO(sigmund): remove once we support inlining with `useKernel`.
     options.add(Flags.disableInlining);
-    options.add(Flags.disableTypeInference);
     passThrough(argument);
   }
 

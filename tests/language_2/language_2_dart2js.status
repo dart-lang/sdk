@@ -1190,6 +1190,7 @@ function_type_alias2_test: RuntimeError
 vm/async_await_catch_stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -1205,8 +1206,6 @@ branch_canonicalization_test: RuntimeError
 call_function_apply_test: RuntimeError
 callable_test/none: RuntimeError
 canonical_const2_test: RuntimeError
-cast_test/02: MissingRuntimeError
-cast_test/03: MissingRuntimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
@@ -1610,6 +1609,7 @@ type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_mixin
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
+arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -1625,8 +1625,6 @@ branch_canonicalization_test: RuntimeError
 call_function_apply_test: RuntimeError
 callable_test/none: RuntimeError
 canonical_const2_test: RuntimeError
-cast_test/02: MissingRuntimeError
-cast_test/03: MissingRuntimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
