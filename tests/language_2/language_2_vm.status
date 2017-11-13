@@ -1016,7 +1016,7 @@ vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ $runtime == vm && $compiler == none && $mode != product ]
-vm/type_vm_test: RuntimeError
+vm/type_vm_test/none: RuntimeError
 
 [ $runtime == vm && $compiler == none && $system == fuchsia ]
 async_await_test: RuntimeError
@@ -1079,7 +1079,7 @@ generic_methods_dynamic_test/04: MissingRuntimeError
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
 [ $runtime == vm && $compiler == app_jit && $mode != product ]
-vm/type_vm_test: RuntimeError
+vm/type_vm_test/none: RuntimeError
 
 [ $runtime == vm  && $arch == arm64 ]
 closure_cycles_test: Pass, Slow
@@ -1089,6 +1089,15 @@ large_class_declaration_test: SkipSlow # Uses too much memory.
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/regress_27201_test: Fail
+vm/type_vm_test/28: MissingRuntimeError
+vm/type_vm_test/29: MissingRuntimeError
+vm/type_vm_test/30: MissingRuntimeError
+vm/type_vm_test/31: MissingRuntimeError
+vm/type_vm_test/32: MissingRuntimeError
+vm/type_vm_test/33: MissingRuntimeError
+vm/type_vm_test/34: MissingRuntimeError
+vm/type_vm_test/35: MissingRuntimeError
+vm/type_vm_test/36: MissingRuntimeError
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail

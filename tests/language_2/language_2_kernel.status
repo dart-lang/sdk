@@ -38,6 +38,7 @@ type_promotion_functions_test/06: MissingCompileTimeError
 type_promotion_functions_test/07: MissingCompileTimeError
 type_promotion_functions_test/08: MissingCompileTimeError
 type_promotion_functions_test/10: MissingCompileTimeError
+vm/type_vm_test/none: RuntimeError
 
 [ $compiler == dartk && $runtime == vm ]
 assertion_initializer_const_function_test/01: MissingCompileTimeError
@@ -544,7 +545,6 @@ vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test usi
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
-vm/type_vm_test: RuntimeError # Fasta bug: Bad position information in stack trace.
 library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
@@ -1452,6 +1452,10 @@ void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
 type_literal_test: RuntimeError
+vm/type_vm_test/29: MissingRuntimeError
+vm/type_vm_test/30: MissingRuntimeError
+vm/type_vm_test/31: MissingRuntimeError
+vm/type_vm_test/32: MissingRuntimeError
 
 # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass
