@@ -11,6 +11,8 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -22,11 +24,19 @@ import '../equivalence/id_equivalence.dart';
 /// `true` if ANSI colors are supported by stdout.
 bool useColors = stdout.supportsAnsiEscapes;
 
-/// Colorize diffs [left] and [right] and [delimiter], if ANSI colors are
-/// supported.
+/// Colorize a matching annotation [text], if ANSI colors are supported.
 String colorizeMatch(String text) {
   if (useColors) {
     return '${colors.blue(text)}';
+  } else {
+    return text;
+  }
+}
+
+/// Colorize a single annotation [text], if ANSI colors are supported.
+String colorizeSingle(String text) {
+  if (useColors) {
+    return '${colors.green(text)}';
   } else {
     return text;
   }
@@ -93,12 +103,22 @@ Future<CompiledData> computeData(
   Map<Id, ActualData> actualMapFor(Entity entity) {
     SourceSpan span =
         compiler.backendStrategy.spanFromSpannable(entity, entity);
-    return actualMaps.putIfAbsent(
-        Uri.base.resolveUri(span.uri), () => <Id, ActualData>{});
+    Uri uri = span.uri;
+    // TODO(johnniwinther): Remove this when fasta uses patching.
+    if (!uri.isAbsolute && uri.path.startsWith('patched_dart2js_sdk/')) {
+      uri = Uri.base.resolve('out/ReleaseX64/${uri.path}');
+    } else {
+      uri = Uri.base.resolveUri(uri);
+    }
+
+    return actualMaps.putIfAbsent(uri, () => <Id, ActualData>{});
   }
 
   void processMember(MemberEntity member) {
     if (member.isAbstract) {
+      return;
+    }
+    if (member is ConstructorElement && member.isRedirectingFactory) {
       return;
     }
     if (skipUnprocessedMembers &&
@@ -147,11 +167,21 @@ class CompiledData {
   CompiledData(
       this.compiler, this.elementEnvironment, this.mainUri, this.actualMaps);
 
-  Map<int, List<String>> computeDiffAnnotationsAgainst(
-      Uri uri, CompiledData other,
-      {bool includeMatches: false}) {
+  Map<int, List<String>> computeAnnotations(Uri uri) {
     Map<Id, ActualData> thisMap = actualMaps[uri];
-    Map<Id, ActualData> otherMap = other.actualMaps[uri];
+    Map<int, List<String>> annotations = <int, List<String>>{};
+    thisMap.forEach((Id id, ActualData data1) {
+      String value1 = '${data1.value}';
+      annotations
+          .putIfAbsent(data1.sourceSpan.begin, () => [])
+          .add(colorizeSingle(value1));
+    });
+    return annotations;
+  }
+
+  Map<int, List<String>> computeDiffAnnotationsAgainst(
+      Map<Id, ActualData> thisMap, Map<Id, ActualData> otherMap,
+      {bool includeMatches: false}) {
     Map<int, List<String>> annotations = <int, List<String>>{};
     thisMap.forEach((Id id, ActualData data1) {
       ActualData data2 = otherMap[id];
@@ -188,6 +218,10 @@ String withAnnotations(String sourceCode, Map<int, List<String>> annotations) {
   StringBuffer sb = new StringBuffer();
   int end = 0;
   for (int offset in annotations.keys.toList()..sort()) {
+    if (offset >= sourceCode.length) {
+      sb.write('...');
+      return sb.toString();
+    }
     if (offset > end) {
       sb.write(sourceCode.substring(end, offset));
     }
@@ -482,15 +516,44 @@ Future<bool> compareData(
 Future compareCompiledData(CompiledData data1, CompiledData data2,
     {bool skipMissingUris: false, bool verbose: false}) async {
   bool hasErrors = false;
-  for (Uri uri in data1.actualMaps.keys) {
+  String libraryRoot1;
+
+  SourceFileProvider provider1 = data1.compiler.provider;
+  SourceFileProvider provider2 = data2.compiler.provider;
+  for (Uri uri1 in data1.actualMaps.keys) {
+    Uri uri2 = uri1;
     bool hasErrorsInUri = false;
-    Map<Id, ActualData> actualMap1 = data1.actualMaps[uri];
-    Map<Id, ActualData> actualMap2 = data2.actualMaps[uri];
-    if (actualMap2 == null && skipMissingUris) continue;
+    Map<Id, ActualData> actualMap1 = data1.actualMaps[uri1];
+    Map<Id, ActualData> actualMap2 = data2.actualMaps[uri2];
+    if (actualMap2 == null && skipMissingUris) {
+      libraryRoot1 ??= '${data1.compiler.options.libraryRoot}';
+      String uriText = '$uri1';
+      if (uriText.startsWith(libraryRoot1)) {
+        String relativePath = uriText.substring(libraryRoot1.length);
+        uri2 = Uri.base
+            .resolve('out/ReleaseX64/patched_dart2js_sdk/${relativePath}');
+        actualMap2 = data2.actualMaps[uri2];
+      }
+      if (actualMap2 == null) {
+        continue;
+      }
+    }
     Expect.isNotNull(actualMap2,
-        "No data for $uri in:\n ${data2.actualMaps.keys.join('\n ')}");
-    SourceFileProvider provider = data1.compiler.provider;
-    String sourceCode = (await provider.getUtf8SourceFile(uri)).slowText();
+        "No data for $uri1 in:\n ${data2.actualMaps.keys.join('\n ')}");
+    SourceFile sourceFile1 = await provider1.getUtf8SourceFile(uri1) ??
+        await provider1.autoReadFromFile(uri1);
+    Expect.isNotNull(sourceFile1, 'No source file for $uri1');
+    String sourceCode1 = sourceFile1.slowText();
+    if (uri1 != uri2) {
+      SourceFile sourceFile2 = await provider2.getUtf8SourceFile(uri2) ??
+          await provider2.autoReadFromFile(uri2);
+      Expect.isNotNull(sourceFile2, 'No source file for $uri2');
+      String sourceCode2 = sourceFile2.slowText();
+      if (sourceCode1.length != sourceCode2.length) {
+        continue;
+      }
+    }
+
     actualMap1.forEach((Id id, ActualData actualData1) {
       IdValue value1 = actualData1.value;
       IdValue value2 = actualMap2[id]?.value;
@@ -510,10 +573,10 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
       }
     });
     if (hasErrorsInUri) {
-      print('--annotations diff $uri---------------------------------------');
+      print('--annotations diff $uri1---------------------------------------');
       print(withAnnotations(
-          sourceCode,
-          data1.computeDiffAnnotationsAgainst(uri, data2,
+          sourceCode1,
+          data1.computeDiffAnnotationsAgainst(actualMap1, actualMap2,
               includeMatches: verbose)));
       print('----------------------------------------------------------');
     }
