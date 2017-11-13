@@ -350,7 +350,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       ClassEnv env = _classes.getEnv(superclass);
       MemberEntity superMember =
           env.lookupMember(this, name.name, setter: setter);
-      if (superMember != null) {
+      if (superMember != null && !superMember.isAbstract) {
         return superMember;
       }
       superclass = _getSuperType(superclass)?.element;

@@ -11,6 +11,9 @@ main() {
   superMethodInvokeMissingArgument();
   superMethodInvokeExtraArgument();
   superMethodInvokeExtraNamedArgument();
+  missingSuperMethodInvokeNoSuchMethod();
+  abstractSuperMethodInvokeNoSuchMethod();
+  overridingAbstractSuperMethodInvoke();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -163,7 +166,7 @@ superMethodInvokeExtraArgument() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Invocation of super method.
+// Invocation of super method with extra named argument.
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: Super7.:[exact=Super7]*/
@@ -185,4 +188,78 @@ class Sub7 extends Super7 {
 /*element: superMethodInvokeExtraNamedArgument:[null]*/
 superMethodInvokeExtraNamedArgument() {
   new Sub7(). /*invoke: [exact=Sub7]*/ method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of super method caught by noSuchMethod.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super8.:[exact=Super8]*/
+class Super8 {
+  /*element: Super8.noSuchMethod:[exact=JSUInt31]*/
+  noSuchMethod(/*[null|subclass=Object]*/ _) => 42;
+}
+
+/*element: Sub8.:[exact=Sub8]*/
+class Sub8 extends Super8 {
+  /*element: Sub8.method:[subclass=JSPositiveInt]*/
+  method() {
+    // ignore: UNDEFINED_SUPER_METHOD
+    var a = super.method();
+    return a. /*invoke: [exact=JSUInt31]*/ abs();
+  }
+}
+
+/*element: missingSuperMethodInvokeNoSuchMethod:[null]*/
+missingSuperMethodInvokeNoSuchMethod() {
+  new Sub8(). /*invoke: [exact=Sub8]*/ method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of abstract super method caught by noSuchMethod.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Super9.:[exact=Super9]*/
+class Super9 {
+  method();
+
+  /*element: Super9.noSuchMethod:[exact=JSUInt31]*/
+  noSuchMethod(/*[null|subclass=Object]*/ im) => 42;
+}
+
+/*element: Sub9.:[exact=Sub9]*/
+class Sub9 extends Super9 {
+  /*element: Sub9.method:[exact=JSUInt31]*/
+  method() => super.method();
+}
+
+/*element: abstractSuperMethodInvokeNoSuchMethod:[null]*/
+abstractSuperMethodInvokeNoSuchMethod() {
+  new Sub9(). /*invoke: [exact=Sub9]*/ method();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of abstract super method that overrides a concrete method.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: SuperSuper10.:[exact=SuperSuper10]*/
+class SuperSuper10 {
+  /*element: SuperSuper10.method:[exact=JSUInt31]*/
+  method() => 42;
+}
+
+/*element: Super10.:[exact=Super10]*/
+class Super10 extends SuperSuper10 {
+  method();
+}
+
+/*element: Sub10.:[exact=Sub10]*/
+class Sub10 extends Super10 {
+  /*element: Sub10.method:[exact=JSUInt31]*/
+  method() => super.method();
+}
+
+/*element: overridingAbstractSuperMethodInvoke:[null]*/
+overridingAbstractSuperMethodInvoke() {
+  new Sub10(). /*invoke: [exact=Sub10]*/ method();
 }
