@@ -116,18 +116,16 @@ closureCallToString() {
 // Operator == on the result of a parameter invocation.
 ////////////////////////////////////////////////////////////////////////////////
 
-// TODO(johnniwinther): Avoid refinement of [compare] in the old inference.
-/*ast.element: _callCompare:[null|subclass=Object]*/
-/*kernel.element: _callCompare:[exact=callCompare_closure]*/
-_callCompare(int /*[subclass=Closure]*/ compare(a, b)) {
-  compare(0, 1) == 0;
+/*element: _callCompare:[exact=callCompare_closure]*/
+_callCompare(int /*[subclass=Closure]*/ compare({a, b})) {
+  compare(a: 0, b: 1) == 0;
   return compare;
 }
 
 /*element: callCompare:[null]*/
 callCompare() {
   _callCompare(/*[subclass=JSInt]*/
-      (/*[exact=JSUInt31]*/ a, /*[exact=JSUInt31]*/ b) =>
+      ({/*[exact=JSUInt31]*/ a, /*[exact=JSUInt31]*/ b}) =>
           a /*invoke: [exact=JSUInt31]*/ - b);
 }
 
@@ -141,15 +139,13 @@ class Class1 {
   method1() {}
 }
 
-// TODO(johnniwinther): Avoid refinement of [f] in the old inference.
-/*ast.element: _callClosure:[exact=Class1]*/
-/*kernel.element: _callClosure:[exact=callClosure_closure]*/
-_callClosure(/*[subclass=Closure]*/ f({a})) {
-  f(a: new Class1()).method1();
+/*element: _callClosure:[exact=callClosure_closure]*/
+_callClosure(/*[subclass=Closure]*/ f({c})) {
+  f(c: new Class1()).method1();
   return f;
 }
 
 /*element: callClosure:[null]*/
 callClosure() {
-  _callClosure(/*[exact=Class1]*/ ({/*[exact=Class1]*/ a}) => a);
+  _callClosure(/*[exact=Class1]*/ ({/*[exact=Class1]*/ c}) => c);
 }

@@ -5,6 +5,7 @@
 /*element: main:[null]*/
 main() {
   refineToClass();
+  refineToClosure();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,6 +118,15 @@ _refineToClass1InvokeIfNotNull(
   return o;
 }
 
+/*element: _noRefinementToClass1InvokeSet:Union of [[exact=Class2], [null|exact=Class1]]*/
+_noRefinementToClass1InvokeSet(
+    /*Union of [[exact=Class2], [null|exact=Class1]]*/ o) {
+  (o = o). /*invoke: Union of [[exact=Class2], [null|exact=Class1]]*/ method1();
+  (o = o). /*invoke: Union of [[exact=Class2], [null|exact=Class1]]*/ method0();
+  (o = o). /*invoke: Union of [[exact=Class2], [null|exact=Class1]]*/ method2();
+  return o;
+}
+
 /*element: refineToClass:[null]*/
 refineToClass() {
   _refineToClass1Invoke(new Class1());
@@ -143,4 +153,32 @@ refineToClass() {
   _refineToClass1InvokeIfNotNull(null);
   _refineToClass1InvokeIfNotNull(new Class1());
   _refineToClass1InvokeIfNotNull(new Class2());
+
+  _noRefinementToClass1InvokeSet(null);
+  _noRefinementToClass1InvokeSet(new Class1());
+  _noRefinementToClass1InvokeSet(new Class2());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Refine the type of a local variable through a sequence of invocations.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _refineToClosureLocal:[exact=_refineToClosureLocal_closure]*/
+_refineToClosureLocal() {
+  var f = /*[null]*/ ({/*[exact=JSUInt31]*/ a}) {};
+  f(a: 0);
+  return f;
+}
+
+/*element: _refineToClosureLocalCall:[exact=_refineToClosureLocalCall_closure]*/
+_refineToClosureLocalCall() {
+  var f = /*[null]*/ ({/*[exact=JSUInt31]*/ b}) {};
+  f.call(b: 0);
+  return f;
+}
+
+/*element: refineToClosure:[null]*/
+refineToClosure() {
+  _refineToClosureLocal();
+  _refineToClosureLocalCall();
 }
