@@ -1135,6 +1135,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   }
 
   @override
+  TypeInformation visitLoadLibrary(ir.LoadLibrary node) {
+    // TODO(johnniwinther): Improve this by returning a Future type instead.
+    return _types.dynamicType;
+  }
+
+  @override
   TypeInformation visitStaticGet(ir.StaticGet node) {
     MemberEntity member = _elementMap.getMember(node.target);
     TypeMask mask = _memberData.typeOfSend(node);

@@ -399,11 +399,17 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
             case AccessKind.TOPLEVEL_FIELD:
             case AccessKind.FINAL_TOPLEVEL_FIELD:
             case AccessKind.STATIC_GETTER:
-            case AccessKind.TOPLEVEL_GETTER:
             case AccessKind.SUPER_FIELD:
             case AccessKind.SUPER_FINAL_FIELD:
             case AccessKind.SUPER_GETTER:
               computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
+            case AccessKind.TOPLEVEL_GETTER:
+              if (elements[node].isDeferredLoaderGetter) {
+                computeForNode(node, createInvokeId(node.selector));
+              } else {
+                computeForNode(node, createInvokeId(node.argumentsNode));
+              }
               break;
             default:
               ast.Node position =
@@ -640,6 +646,10 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
       computeForNode(node, createInvokeId(node));
       super.visitMethodInvocation(node);
     }
+  }
+
+  visitLoadLibrary(ir.LoadLibrary node) {
+    computeForNode(node, createInvokeId(node));
   }
 
   visitPropertyGet(ir.PropertyGet node) {
