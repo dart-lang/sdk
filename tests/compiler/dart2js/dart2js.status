@@ -11,7 +11,6 @@ analyze_dart_test: Slow, Pass
 compile_with_empty_libraries_test: Fail # Issue 24223
 
 inference/inference_test: Slow, Pass
-inference/swarm_test: Slow, Pass
 
 kernel/*: Slow, Pass
 
