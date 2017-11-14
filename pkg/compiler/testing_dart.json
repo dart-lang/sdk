@@ -92,7 +92,6 @@
       "^tests/compiler/dart2js/simple_inferrer_test\\.dart",
       "^tests/compiler/dart2js/size_test\\.dart",
       "^tests/compiler/dart2js/source_map_validator_helper\\.dart",
-      "^tests/compiler/dart2js/sourcemaps/data/invokes_test_file\\.dart",
       "^tests/compiler/dart2js/sourcemaps/diff_view\\.dart",
       "^tests/compiler/dart2js/sourcemaps/html_parts\\.dart",
       "^tests/compiler/dart2js/sourcemaps/lax_json\\.dart",

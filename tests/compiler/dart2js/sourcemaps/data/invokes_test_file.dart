@@ -39,6 +39,9 @@ invokes(parameter) {
 
   parameter.dynamicInvoke();
   new C(parameter).instanceInvokes();
+  new C(parameter).superInvokes();
+  new C(parameter).invalidInvokes();
+  new C(parameter).thisInstanceInvokes();
 }
 
 toplevelFunction() {
@@ -108,19 +111,30 @@ class C<T> extends B {
 
   instanceInvokes() {
     instanceMethod();
-    this.instanceMethod();
     instanceField();
-    this.instanceField();
     instanceGetter();
-    this.instanceGetter();
+  }
 
+  superInvokes() {
     super.superMethod();
     super.superField();
     super.superGetter();
+  }
 
+  invalidInvokes() {
+    // ignore: invocation_of_non_function
     C();
+    // ignore: undefined_method
     dynamic();
+    // ignore: invocation_of_non_function
     F();
+    // ignore: invocation_of_non_function
     T();
+  }
+
+  thisInstanceInvokes() {
+    this.instanceMethod();
+    this.instanceField();
+    this.instanceGetter();
   }
 }

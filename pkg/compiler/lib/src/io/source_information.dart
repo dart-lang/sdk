@@ -189,7 +189,7 @@ abstract class SourceLocation {
         sourceName == other.sourceName;
   }
 
-  String get shortText => '${sourceUri.pathSegments.last}:[$line,$column]';
+  String get shortText => '${sourceUri?.pathSegments?.last}:[$line,$column]';
 
   String toString() => '${sourceUri}:[${line},${column}]';
 }

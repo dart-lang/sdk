@@ -15,8 +15,7 @@
 
     "exclude": [
       "^tests/compiler/dart2js/data/.*",
-      "^tests/compiler/dart2js/path with spaces/.*",
-      "^tests/compiler/dart2js/sourcemaps/data/.*"
+      "^tests/compiler/dart2js/path with spaces/.*"
     ]
   }
 }

@@ -331,6 +331,9 @@ class SourceMapProcessor {
             backend.sourceInformationStrategy);
     backend.sourceInformationStrategy = strategy;
     await compiler.run(inputUri);
+    if (compiler.compilationFailed) {
+      throw "Compilation failed.";
+    }
 
     SourceMapInfo mainSourceMapInfo;
     Map<Element, SourceMapInfo> elementSourceMapInfos =

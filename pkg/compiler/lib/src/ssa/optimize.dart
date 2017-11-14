@@ -1423,7 +1423,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     TypeMask type = indexArgument.isPositiveInteger(closedWorld)
         ? indexArgument.instructionType
         : closedWorld.commonMasks.positiveIntType;
-    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array, type);
+    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array, type)
+      ..sourceInformation = indexNode.sourceInformation;
     indexNode.block.addBefore(indexNode, check);
     // If the index input to the bounds check was not known to be an integer
     // then we replace its uses with the bounds check, which is known to be an
