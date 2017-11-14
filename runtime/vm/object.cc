@@ -12477,9 +12477,16 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
   // Guard against integer overflow of the instance size computation.
   intptr_t length = bmap->Length();
   intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if ((payload_size < 0) || (payload_size > kMaxLengthInBytes)) {
+  if ((length < 0) || (length > kMaxUint16) ||
+      (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
+  }
+  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
+           "\n",
+           slow_path_bit_count);
   }
   {
     // StackMap data objects are associated with a code object, allocate them
@@ -12490,9 +12497,6 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
     result ^= raw;
     result.SetLength(length);
   }
-  // When constructing a stackmap we store the pc offset in the stackmap's
-  // PC. StackMapTableBuilder::FinalizeStackMaps will replace it with the pc
-  // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
   for (intptr_t i = 0; i < length; ++i) {
@@ -12509,10 +12513,18 @@ RawStackMap* StackMap::New(intptr_t length,
   StackMap& result = StackMap::Handle();
   // Guard against integer overflow of the instance size computation.
   intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if ((payload_size < 0) || (payload_size > kMaxLengthInBytes)) {
+  if ((length < 0) || (length > kMaxUint16) ||
+      (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
   }
+  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
+           "\n",
+           slow_path_bit_count);
+  }
+
   {
     // StackMap data objects are associated with a code object, allocate them
     // in old generation.
@@ -12522,9 +12534,6 @@ RawStackMap* StackMap::New(intptr_t length,
     result ^= raw;
     result.SetLength(length);
   }
-  // When constructing a stackmap we store the pc offset in the stackmap's
-  // PC. StackMapTableBuilder::FinalizeStackMaps will replace it with the pc
-  // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
   result.SetSlowPathBitCount(slow_path_bit_count);

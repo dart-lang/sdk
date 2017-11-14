@@ -4422,9 +4422,6 @@ class CodeSourceMap : public Object {
 
 class StackMap : public Object {
  public:
-  static const intptr_t kNoMaximum = -1;
-  static const intptr_t kNoMinimum = -1;
-
   bool IsObject(intptr_t index) const {
     ASSERT(InRange(index));
     return GetBit(index);
@@ -4440,7 +4437,7 @@ class StackMap : public Object {
 
   intptr_t SlowPathBitCount() const { return raw_ptr()->slow_path_bit_count_; }
   void SetSlowPathBitCount(intptr_t bit_count) const {
-    ASSERT(bit_count < kMaxInt32);
+    ASSERT(bit_count <= kMaxUint16);
     StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
   }
 
@@ -4474,6 +4471,7 @@ class StackMap : public Object {
 
  private:
   void SetLength(intptr_t length) const {
+    ASSERT(length <= kMaxUint16);
     StoreNonPointer(&raw_ptr()->length_, length);
   }
 
