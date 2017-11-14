@@ -442,7 +442,7 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
                              reinterpret_cast<uword>(wait_data));
   } else {
     wait_data = reinterpret_cast<MonitorWaitData*>(raw_wait_data);
-    wait_data->next_ = NULL;
+    ASSERT(wait_data->next_ == NULL);
   }
   return wait_data;
 }
@@ -485,6 +485,24 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
     if (result == WAIT_TIMEOUT) {
       // No longer waiting. Remove from the list of waiters.
       data_.RemoveWaiter(wait_data);
+      // Caveat: wait_data->event_ might have been signaled between
+      // WaitForSingleObject and RemoveWaiter because we are not in any critical
+      // section here. Leaving it in a signaled state would break invariants
+      // that Monitor::Wait code relies on. We assume that when
+      // WaitForSingleObject(wait_data->event_, ...) returns successfully then
+      // corresponding wait_data is not on the waiters list anymore.
+      // This is guaranteed because we only signal these events from
+      // SignalAndRemoveAllWaiters/SignalAndRemoveFirstWaiter which
+      // simultaneously remove MonitorWaitData from the list.
+      // Now imagine that wait_data->event_ is left signaled here. In this case
+      // the next WaitForSingleObject(wait_data->event_, ...) will immediately
+      // return while wait_data is still on the waiters list. This would
+      // leave waiters list in the inconsistent state.
+      // To prevent this from happening simply reset the event.
+      // Note: wait_data is no longer on the waiters list so it can't be
+      // signaled anymore at this point so there is no race possible from
+      // this point onward.
+      ResetEvent(wait_data->event_);
       retval = kTimedOut;
     }
   }
