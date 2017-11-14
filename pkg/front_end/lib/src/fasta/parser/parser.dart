@@ -2937,6 +2937,15 @@ class Parser {
     return token;
   }
 
+  /// If the next token is a colon, return it. Otherwise, report an
+  /// error, insert a synthetic colon, and return the inserted colon.
+  Token ensureColon(Token token) {
+    if (optional(':', token.next)) return token.next;
+    Message message = fasta.templateExpectedButGot.withArguments(':');
+    Token newToken = new SyntheticToken(TokenType.COLON, token.charOffset);
+    return rewriteAndRecover(token.next, message, newToken);
+  }
+
   Token ensureParseLiteralString(Token token) {
     // TODO(brianwilkerson): Rename to `ensureLiteralString`?
     Token next = token.next;
@@ -4072,10 +4081,9 @@ class Parser {
     Token question = token;
     listener.beginConditionalExpression();
     token = parseExpressionWithoutCascade(token);
-    Token colon = token.next;
-    expect(':', colon);
+    Token colon = ensureColon(token);
     listener.handleConditionalExpressionColon();
-    token = parseExpressionWithoutCascade(token.next);
+    token = parseExpressionWithoutCascade(colon);
     listener.endConditionalExpression(question, colon);
     return token;
   }

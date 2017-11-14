@@ -396,6 +396,7 @@ rasta/issue_000081: Crash
 rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: VerificationError
 rasta/mixin_library: Crash
+rasta/parser_error: Crash
 rasta/previsit_deferred: Crash
 rasta/static: Crash
 rasta/super: Crash
