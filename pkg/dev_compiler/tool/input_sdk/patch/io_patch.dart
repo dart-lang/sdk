@@ -484,7 +484,7 @@ class RawSynchronousSocket {
 @patch
 class SecurityContext {
   @patch
-  factory SecurityContext() {
+  factory SecurityContext({bool withTrustedRoots: false}) {
     throw new UnsupportedError("SecurityContext constructor");
   }
 

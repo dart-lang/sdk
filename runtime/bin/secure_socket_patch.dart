@@ -118,8 +118,8 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 @patch
 class SecurityContext {
   @patch
-  factory SecurityContext() {
-    return new _SecurityContext();
+  factory SecurityContext({bool withTrustedRoots: false}) {
+    return new _SecurityContext(withTrustedRoots);
   }
 
   @patch
@@ -133,14 +133,16 @@ class SecurityContext {
 
 class _SecurityContext extends NativeFieldWrapperClass1
     implements SecurityContext {
-  _SecurityContext() {
+  _SecurityContext(bool withTrustedRoots) {
     _createNativeContext();
+    if (withTrustedRoots) {
+      _trustBuiltinRoots();
+    }
   }
 
   void _createNativeContext() native "SecurityContext_Allocate";
 
-  static final SecurityContext defaultContext = new _SecurityContext()
-    .._trustBuiltinRoots();
+  static final SecurityContext defaultContext = new _SecurityContext(true);
 
   void usePrivateKey(String file, {String password}) {
     List<int> bytes = (new File(file)).readAsBytesSync();

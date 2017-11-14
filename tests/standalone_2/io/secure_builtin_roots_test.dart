@@ -35,6 +35,8 @@ main() async {
   asyncStart();
   await testGoogleUrl(null, "pass");
   await testGoogleUrl(SecurityContext.defaultContext, "pass");
+  await testGoogleUrl(new SecurityContext(withTrustedRoots: true), "pass");
+  await testGoogleUrl(new SecurityContext(withTrustedRoots: false), "fail");
   await testGoogleUrl(new SecurityContext(), "fail");
   asyncEnd();
 }
