@@ -85,6 +85,22 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  Expression parseAssignableExpression(bool primaryAllowed) =>
+      parseExpression2();
+
+  @override
+  Expression parseAdditiveExpression() => parseExpression2();
+
+  @override
+  Expression parseBitwiseAndExpression() => parseExpression2();
+
+  @override
+  Expression parseBitwiseOrExpression() => parseExpression2();
+
+  @override
+  Expression parseBitwiseXorExpression() => parseExpression2();
+
+  @override
   ClassMember parseClassMember(String className) {
     astBuilder.classDeclaration = astFactory.classDeclaration(
       null,
@@ -130,6 +146,9 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  Expression parseConditionalExpression() => parseExpression2();
+
+  @override
   Configuration parseConfiguration() {
     currentToken = fastaParser
         .parseConditionalUri(fastaParser.syntheticPreviousToken(currentToken))
@@ -138,10 +157,27 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  Expression parseConstExpression() => parseExpression2();
+
+  @override
+  DottedName parseDottedName() {
+    currentToken = fastaParser
+        .parseDottedName(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  Expression parseEqualityExpression() => parseExpression2();
+
+  @override
   Expression parseExpression2() {
     currentToken = fastaParser.parseExpression(currentToken).next;
     return astBuilder.pop();
   }
+
+  @override
+  Expression parseExpressionWithoutCascade() => parseExpression2();
 
   @override
   FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
@@ -166,12 +202,47 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  FunctionExpression parseFunctionExpression() => parseExpression2();
+
+  @override
+  Expression parseLogicalAndExpression() => parseExpression2();
+
+  @override
+  Expression parseLogicalOrExpression() => parseExpression2();
+
+  @override
+  Expression parseMultiplicativeExpression() => parseExpression2();
+
+  @override
+  InstanceCreationExpression parseNewExpression() => parseExpression2();
+
+  @override
+  Expression parsePostfixExpression() => parseExpression2();
+
+  @override
+  Identifier parsePrefixedIdentifier() => parseExpression2();
+
+  @override
   Expression parsePrimaryExpression() {
     currentToken = fastaParser.parsePrimary(
         fastaParser.syntheticPreviousToken(currentToken),
         fasta.IdentifierContext.expression);
     return astBuilder.pop();
   }
+
+  @override
+  Expression parseRelationalExpression() => parseExpression2();
+
+  @override
+  Expression parseRethrowExpression() => parseExpression2();
+
+  @override
+  Expression parseShiftExpression() => parseExpression2();
+
+  @override
+  SimpleIdentifier parseSimpleIdentifier(
+          {bool allowKeyword: false, bool isDeclaration: false}) =>
+      parseExpression2();
 
   @override
   Statement parseStatement(Token token) {
@@ -186,6 +257,18 @@ abstract class ParserAdapter implements Parser {
         .next;
     return astBuilder.pop();
   }
+
+  @override
+  StringLiteral parseStringLiteral() => parseExpression2();
+
+  @override
+  SymbolLiteral parseSymbolLiteral() => parseExpression2();
+
+  @override
+  Expression parseThrowExpression() => parseExpression2();
+
+  @override
+  Expression parseThrowExpressionWithoutCascade() => parseExpression2();
 
   AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
     currentToken = fastaParser.parseTopLevelDeclaration(currentToken);
@@ -227,6 +310,9 @@ abstract class ParserAdapter implements Parser {
         .next;
     return astBuilder.pop();
   }
+
+  @override
+  Expression parseUnaryExpression() => parseExpression2();
 }
 
 /**

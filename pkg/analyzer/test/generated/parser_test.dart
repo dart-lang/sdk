@@ -4358,8 +4358,7 @@ class Wrong<T> {
   }
 
   void test_parseCascadeSection_missingIdentifier() {
-    createParser('..()');
-    MethodInvocation methodInvocation = parser.parseCascadeSection();
+    MethodInvocation methodInvocation = parseCascadeSection('..()');
     expectNotNullIfNoErrors(methodInvocation);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)]);
@@ -4370,8 +4369,7 @@ class Wrong<T> {
   }
 
   void test_parseCascadeSection_missingIdentifier_typeArguments() {
-    createParser('..<E>()');
-    MethodInvocation methodInvocation = parser.parseCascadeSection();
+    MethodInvocation methodInvocation = parseCascadeSection('..<E>()');
     expectNotNullIfNoErrors(methodInvocation);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 2, 1)]);
@@ -8958,17 +8956,36 @@ class ParserTestCase extends EngineTestCase
   @override
   Expression parseAssignableSelector(String code, bool optional,
       {bool allowConditional: true}) {
-    Expression prefix = astFactory
-        .simpleIdentifier(new StringToken(TokenType.STRING, 'foo', 0));
-    createParser(code);
-    return parser.parseAssignableSelector(prefix, optional,
-        allowConditional: allowConditional);
+    if (usingFastaParser) {
+      if (optional) {
+        if (code.isEmpty) {
+          createParser('foo');
+        } else {
+          createParser('(foo)$code');
+        }
+      } else {
+        createParser('foo$code');
+      }
+      return parser.parseExpression2();
+    } else {
+      Expression prefix = astFactory
+          .simpleIdentifier(new StringToken(TokenType.STRING, 'foo', 0));
+      createParser(code);
+      return parser.parseAssignableSelector(prefix, optional,
+          allowConditional: allowConditional);
+    }
   }
 
   @override
   AwaitExpression parseAwaitExpression(String code) {
-    createParser(code);
-    return parser.parseAwaitExpression();
+    if (usingFastaParser) {
+      createParser('() async => $code');
+      var function = parser.parseExpression2() as FunctionExpression;
+      return (function.body as ExpressionFunctionBody).expression;
+    } else {
+      createParser(code);
+      return parser.parseAwaitExpression();
+    }
   }
 
   @override
@@ -8991,8 +9008,14 @@ class ParserTestCase extends EngineTestCase
 
   @override
   Expression parseCascadeSection(String code) {
-    createParser(code);
-    return parser.parseCascadeSection();
+    if (usingFastaParser) {
+      var statement = parseStatement('null$code;') as ExpressionStatement;
+      var cascadeExpression = statement.expression as CascadeExpression;
+      return cascadeExpression.cascadeSections.first;
+    } else {
+      createParser(code);
+      return parser.parseCascadeSection();
+    }
   }
 
   /**
@@ -9009,9 +9032,10 @@ class ParserTestCase extends EngineTestCase
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    TestSource testSource = new TestSource();
+    listener.setLineInfo(testSource, scanner.lineStarts);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = new Parser(testSource, listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     if (codes != null) {
@@ -9099,8 +9123,13 @@ class ParserTestCase extends EngineTestCase
 
   @override
   List<Expression> parseExpressionList(String code) {
-    createParser(code);
-    return parser.parseExpressionList();
+    if (usingFastaParser) {
+      createParser('[$code]');
+      return (parser.parseExpression2() as ListLiteral).elements.toList();
+    } else {
+      createParser(code);
+      return parser.parseExpressionList();
+    }
   }
 
   @override
@@ -9112,10 +9141,26 @@ class ParserTestCase extends EngineTestCase
   @override
   FormalParameter parseFormalParameter(String code, ParameterKind kind,
       {List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
-    createParser(code);
-    FormalParameter parameter = parser.parseFormalParameter(kind);
-    assertErrorsWithCodes(errorCodes);
-    return parameter;
+    if (usingFastaParser) {
+      String parametersCode;
+      if (kind == ParameterKind.REQUIRED) {
+        parametersCode = '($code)';
+      } else if (kind == ParameterKind.POSITIONAL) {
+        parametersCode = '([$code])';
+      } else if (kind == ParameterKind.NAMED) {
+        parametersCode = '({$code})';
+      } else {
+        fail('$kind');
+      }
+      FormalParameterList list = parseFormalParameterList(parametersCode,
+          inFunctionType: false, errorCodes: errorCodes);
+      return list.parameters.single;
+    } else {
+      createParser(code);
+      FormalParameter parameter = parser.parseFormalParameter(kind);
+      assertErrorsWithCodes(errorCodes);
+      return parameter;
+    }
   }
 
   @override
@@ -9133,12 +9178,16 @@ class ParserTestCase extends EngineTestCase
    * Parses a single top level member of a compilation unit (other than a
    * directive), including any comment and/or metadata that precedes it.
    */
-  CompilationUnitMember parseFullCompilationUnitMember() =>
-      parser.parseCompilationUnitMember(parser.parseCommentAndMetadata());
+  CompilationUnitMember parseFullCompilationUnitMember() => usingFastaParser
+      ? parser.parseCompilationUnit2().declarations.first
+      : parser.parseCompilationUnitMember(parser.parseCommentAndMetadata());
 
   @override
-  Directive parseFullDirective() =>
-      parser.parseDirective(parser.parseCommentAndMetadata());
+  Directive parseFullDirective() {
+    return usingFastaParser
+        ? (parser as ParserAdapter).parseTopLevelDeclaration(true)
+        : parser.parseDirective(parser.parseCommentAndMetadata());
+  }
 
   @override
   FunctionExpression parseFunctionExpression(String code) {
@@ -9149,26 +9198,50 @@ class ParserTestCase extends EngineTestCase
   @override
   InstanceCreationExpression parseInstanceCreationExpression(
       String code, Token newToken) {
-    createParser(code);
-    return parser.parseInstanceCreationExpression(newToken);
+    if (usingFastaParser) {
+      createParser('$newToken $code');
+      return parser.parseExpression2();
+    } else {
+      createParser(code);
+      return parser.parseInstanceCreationExpression(newToken);
+    }
   }
 
   @override
   ListLiteral parseListLiteral(
       Token token, String typeArgumentsCode, String code) {
-    TypeArgumentList typeArguments;
-    if (typeArgumentsCode != null) {
-      createParser(typeArgumentsCode);
-      typeArguments = parser.parseTypeArgumentList();
+    if (usingFastaParser) {
+      String sc = '';
+      if (token != null) {
+        sc += token.lexeme + ' ';
+      }
+      if (typeArgumentsCode != null) {
+        sc += typeArgumentsCode;
+      }
+      sc += code;
+      createParser(sc);
+      return parser.parseExpression2();
+    } else {
+      TypeArgumentList typeArguments;
+      if (typeArgumentsCode != null) {
+        createParser(typeArgumentsCode);
+        typeArguments = parser.parseTypeArgumentList();
+      }
+      createParser(code);
+      return parser.parseListLiteral(token, typeArguments);
     }
-    createParser(code);
-    return parser.parseListLiteral(token, typeArguments);
   }
 
   @override
   TypedLiteral parseListOrMapLiteral(Token modifier, String code) {
-    createParser(code);
-    return parser.parseListOrMapLiteral(modifier);
+    if (usingFastaParser) {
+      String literalCode = modifier != null ? '$modifier $code' : code;
+      createParser(literalCode);
+      return parser.parseExpression2() as TypedLiteral;
+    } else {
+      createParser(code);
+      return parser.parseListOrMapLiteral(modifier);
+    }
   }
 
   @override
@@ -9186,19 +9259,37 @@ class ParserTestCase extends EngineTestCase
   @override
   MapLiteral parseMapLiteral(
       Token token, String typeArgumentsCode, String code) {
-    TypeArgumentList typeArguments;
-    if (typeArgumentsCode != null) {
-      createParser(typeArgumentsCode);
-      typeArguments = parser.parseTypeArgumentList();
+    if (usingFastaParser) {
+      String sc = '';
+      if (token != null) {
+        sc += token.lexeme + ' ';
+      }
+      if (typeArgumentsCode != null) {
+        sc += typeArgumentsCode;
+      }
+      sc += code;
+      createParser(sc);
+      return parser.parseExpression2() as MapLiteral;
+    } else {
+      TypeArgumentList typeArguments;
+      if (typeArgumentsCode != null) {
+        createParser(typeArgumentsCode);
+        typeArguments = parser.parseTypeArgumentList();
+      }
+      createParser(code);
+      return parser.parseMapLiteral(token, typeArguments);
     }
-    createParser(code);
-    return parser.parseMapLiteral(token, typeArguments);
   }
 
   @override
   MapLiteralEntry parseMapLiteralEntry(String code) {
-    createParser(code);
-    return parser.parseMapLiteralEntry();
+    if (usingFastaParser) {
+      var mapLiteral = parseMapLiteral(null, null, '{ $code }');
+      return mapLiteral.entries.single;
+    } else {
+      createParser(code);
+      return parser.parseMapLiteralEntry();
+    }
   }
 
   @override
@@ -9217,11 +9308,17 @@ class ParserTestCase extends EngineTestCase
   NormalFormalParameter parseNormalFormalParameter(String code,
       {bool inFunctionType: false,
       List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
-    createParser(code);
-    FormalParameter parameter =
-        parser.parseNormalFormalParameter(inFunctionType: inFunctionType);
-    assertErrorsWithCodes(errorCodes);
-    return parameter;
+    if (usingFastaParser) {
+      FormalParameterList list = parseFormalParameterList('($code)',
+          inFunctionType: inFunctionType, errorCodes: errorCodes);
+      return list.parameters.single;
+    } else {
+      createParser(code);
+      FormalParameter parameter =
+          parser.parseNormalFormalParameter(inFunctionType: inFunctionType);
+      assertErrorsWithCodes(errorCodes);
+      return parameter;
+    }
   }
 
   @override
@@ -9279,9 +9376,10 @@ class ParserTestCase extends EngineTestCase
     if (enableLazyAssignmentOperators != null) {
       scanner.scanLazyAssignmentOperators = enableLazyAssignmentOperators;
     }
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    var testSource = new TestSource();
+    listener.setLineInfo(testSource, scanner.lineStarts);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = new Parser(testSource, listener);
     parser.parseGenericMethodComments = enableGenericMethodComments;
     Statement statement = parser.parseStatement(token);
     expect(statement, isNotNull);
@@ -9304,9 +9402,10 @@ class ParserTestCase extends EngineTestCase
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
-    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    var testSource = new TestSource();
+    listener.setLineInfo(testSource, scanner.lineStarts);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = new Parser(testSource, listener);
     List<Statement> statements = parser.parseStatements(token);
     expect(statements, hasLength(expectedCount));
     listener.assertErrorsWithCodes(errorCodes);
@@ -9345,9 +9444,15 @@ class ParserTestCase extends EngineTestCase
 
   @override
   VariableDeclarationList parseVariableDeclarationList(String code) {
-    createParser(code);
-    CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
-    return parser.parseVariableDeclarationListAfterMetadata(commentAndMetadata);
+    if (usingFastaParser) {
+      var statement = parseStatement('$code;') as VariableDeclarationStatement;
+      return statement.variables;
+    } else {
+      createParser(code);
+      CommentAndMetadata commentAndMetadata = parser.parseCommentAndMetadata();
+      return parser
+          .parseVariableDeclarationListAfterMetadata(commentAndMetadata);
+    }
   }
 
   @override

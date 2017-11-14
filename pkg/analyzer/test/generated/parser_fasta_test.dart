@@ -1319,22 +1319,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingIdentifier_afterOperator() {
-    // TODO(brianwilkerson) Does not recover.
-    //   'package:front_end/src/fasta/source/stack_listener.dart': Failed assertion: line 311 pos 12: 'arrayLength > 0': is not true.
-    //   dart:core                                                          _AssertionError._throwNew
-    //   package:front_end/src/fasta/source/stack_listener.dart 311:12      Stack.pop
-    //   package:front_end/src/fasta/source/stack_listener.dart 95:25       StackListener.pop
-    //   package:analyzer/src/fasta/ast_builder.dart 345:25                 AstBuilder.handleBinaryExpression
-    //   test/generated/parser_fasta_listener.dart 1127:14                  ForwardingTestListener.handleBinaryExpression
-    //   package:front_end/src/fasta/parser/parser.dart 3016:20             Parser.parsePrecedenceExpression
-    //   package:front_end/src/fasta/parser/parser.dart 2942:11             Parser.parseExpression
-    //   test/generated/parser_fasta_test.dart 3544:39                      ParserProxy._run
-    super.test_missingIdentifier_afterOperator();
-  }
-
-  @override
-  @failingTest
   void test_missingIdentifier_beforeClosingCurly() {
     // TODO(brianwilkerson) Does not recover.
     //   Expected: an object with length of <1>
@@ -2818,6 +2802,11 @@ class ParserProxy extends analyzer.ParserAdapter {
   @override
   Configuration parseConfiguration() {
     return _run('ConditionalUris', () => super.parseConfiguration());
+  }
+
+  @override
+  DottedName parseDottedName() {
+    return _run('unspecified', () => super.parseDottedName());
   }
 
   @override
