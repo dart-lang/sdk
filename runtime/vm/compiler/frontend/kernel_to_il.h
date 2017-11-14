@@ -657,7 +657,8 @@ class FlowGraphBuilder {
                                         const String& dst_name);
 
   Fragment AssertBool();
-  Fragment AssertAssignable(const AbstractType& dst_type,
+  Fragment AssertAssignable(TokenPosition position,
+                            const AbstractType& dst_type,
                             const String& dst_name);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);

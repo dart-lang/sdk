@@ -7037,7 +7037,8 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   uint8_t flags = ReadFlags();  // read flags.
   const bool is_type_error = (flags & (1 << 0)) != 0;
 
-  Fragment instructions = BuildExpression();  // read operand.
+  TokenPosition value_position = TokenPosition::kNoSource;
+  Fragment instructions = BuildExpression(&value_position);  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
 
@@ -7057,8 +7058,8 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
     // the result of the `obj as dynamic` expression.
   } else if (is_type_error) {
     instructions += LoadLocal(MakeTemporary());
-    instructions +=
-        flow_graph_builder_->AssertAssignable(type, Symbols::Empty());
+    instructions += flow_graph_builder_->AssertAssignable(value_position, type,
+                                                          Symbols::Empty());
     instructions += Drop();
   } else {
     instructions += PushArgument();
