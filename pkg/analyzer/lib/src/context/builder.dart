@@ -130,6 +130,11 @@ class ContextBuilder {
   FileContentOverlay fileContentOverlay;
 
   /**
+   * Whether to enable the Dart 2.0 Front End.
+   */
+  bool previewDart2 = false;
+
+  /**
    * Initialize a newly created builder to be ready to build a context rooted in
    * the directory with the given [rootDirectoryPath].
    */
@@ -174,7 +179,8 @@ class ContextBuilder {
         fileContentOverlay,
         contextRoot,
         sf,
-        options);
+        options,
+        enableKernelDriver: previewDart2);
     // temporary plugin support:
     if (onCreateAnalysisDriver != null) {
       onCreateAnalysisDriver(driver, analysisDriverScheduler, performanceLog,

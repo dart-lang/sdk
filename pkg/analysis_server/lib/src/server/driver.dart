@@ -262,6 +262,11 @@ class Driver implements ServerStarter {
   static const String CACHE_FOLDER = "cache";
 
   /**
+   * Whether to enable the Dart 2.0 Front End.
+   */
+  static const String PREVIEW_DART2 = "preview-dart-2";
+
+  /**
    * The instrumentation server that is to be used by the analysis server.
    */
   InstrumentationServer instrumentationServer;
@@ -306,6 +311,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientId = results[CLIENT_ID];
     analysisServerOptions.clientVersion = results[CLIENT_VERSION];
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
+    analysisServerOptions.previewDart2 = results[PREVIEW_DART2];
 
     ContextBuilderOptions.flutterRepo = results[FLUTTER_REPO];
 
@@ -531,6 +537,8 @@ class Driver implements ServerStarter {
         defaultsTo: "as-is");
     parser.addOption(CACHE_FOLDER,
         help: "[path] path to the location where to cache data");
+    parser.addFlag(PREVIEW_DART2,
+        help: "Enable the Dart 2.0 Front End implementation.");
 
     return parser;
   }
