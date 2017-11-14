@@ -229,7 +229,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       // If we see a class, add everything its live instance members refer
       // to.  Static members are not relevant, unless we are processing
       // extra dependencies due to mirrors.
-      void addLiveInstanceMember(_, _element) {
+      void addLiveInstanceMember(_element) {
         MemberEntity element = _element;
         if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) return;
         if (!isMirrorUsage && !element.isInstanceMember) return;
@@ -239,7 +239,7 @@ abstract class DeferredLoadTask extends CompilerTask {
 
       ClassEntity cls = element is ClassElement ? element.declaration : element;
       ClassEntity impl = cls is ClassElement ? cls.implementation : cls;
-      elementEnvironment.forEachClassMember(cls, addLiveInstanceMember);
+      elementEnvironment.forEachLocalClassMember(cls, addLiveInstanceMember);
       elementEnvironment.forEachSupertype(impl, (InterfaceType type) {
         _collectTypeDependencies(type, elements);
       });
@@ -425,7 +425,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       } else if (element is LocalFunctionElement) {
         library = element.library;
       } else {
-        assert(false, "Unxpected entity: ${element.runtimeType}");
+        assert(false, "Unexpected entity: ${element.runtimeType}");
       }
 
       for (Entity dependency in dependentElements) {
