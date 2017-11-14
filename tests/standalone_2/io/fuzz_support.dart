@@ -52,7 +52,7 @@ doItSync(Function f) {
 // completion.
 Future doItAsync(FutureOr f()) {
   // Ignore value and errors.
-  return new Future.delayed(Duration.ZERO, f)
+  return new Future.delayed(Duration.zero, f)
       .catchError((_) {})
       .then((_) => true);
 }

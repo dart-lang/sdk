@@ -12,13 +12,15 @@ part of dart.convert;
  *
  * Examples:
  *
- *     var encoded = ASCII.encode("This is ASCII!");
- *     var decoded = ASCII.decode([0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73,
+ *     var encoded = ascii.encode("This is ASCII!");
+ *     var decoded = ascii.decode([0x54, 0x68, 0x69, 0x73, 0x20, 0x69, 0x73,
  *                                 0x20, 0x41, 0x53, 0x43, 0x49, 0x49, 0x21]);
  */
-const AsciiCodec ASCII = const AsciiCodec();
+const AsciiCodec ascii = const AsciiCodec();
+@Deprecated("Use ascii instead")
+const AsciiCodec ASCII = ascii;
 
-const int _ASCII_MASK = 0x7F;
+const int _asciiMask = 0x7F;
 
 /**
  * An [AsciiCodec] allows encoding strings as ASCII bytes
@@ -117,7 +119,7 @@ class _UnicodeSubsetEncoder extends Converter<String, List<int>> {
  * This class converts strings of only ASCII characters to bytes.
  */
 class AsciiEncoder extends _UnicodeSubsetEncoder {
-  const AsciiEncoder() : super(_ASCII_MASK);
+  const AsciiEncoder() : super(_asciiMask);
 }
 
 /**
@@ -166,7 +168,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
    *
    * The [_subsetMask] argument is a bit mask used to define the subset
    * of Unicode being decoded. Use [_LATIN1_MASK] for Latin-1 (8-bit) or
-   * [_ASCII_MASK] for ASCII (7-bit).
+   * [_asciiMask] for ASCII (7-bit).
    *
    * If [_allowInvalid] is `true`, [convert] replaces invalid bytes with the
    * Unicode Replacement character `U+FFFD` (�).
@@ -222,7 +224,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
 
 class AsciiDecoder extends _UnicodeSubsetDecoder {
   const AsciiDecoder({bool allowInvalid: false})
-      : super(allowInvalid, _ASCII_MASK);
+      : super(allowInvalid, _asciiMask);
 
   /**
    * Starts a chunked conversion.
@@ -264,7 +266,7 @@ class _ErrorHandlingAsciiDecoderSink extends ByteConversionSinkBase {
   void addSlice(List<int> source, int start, int end, bool isLast) {
     RangeError.checkValidRange(start, end, source.length);
     for (int i = start; i < end; i++) {
-      if ((source[i] & ~_ASCII_MASK) != 0) {
+      if ((source[i] & ~_asciiMask) != 0) {
         if (i > start) _utf8Sink.addSlice(source, start, i, false);
         // Add UTF-8 encoding of U+FFFD.
         _utf8Sink.add(const <int>[0xEF, 0xBF, 0xBD]);
@@ -289,7 +291,7 @@ class _SimpleAsciiDecoderSink extends ByteConversionSinkBase {
 
   void add(List<int> source) {
     for (int i = 0; i < source.length; i++) {
-      if ((source[i] & ~_ASCII_MASK) != 0) {
+      if ((source[i] & ~_asciiMask) != 0) {
         throw new FormatException("Source contains non-ASCII bytes.");
       }
     }

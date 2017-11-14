@@ -183,7 +183,7 @@ abstract class CommonWebSocketVM extends VM {
   Map _parseJSON(String message) {
     var map;
     try {
-      map = JSON.decode(message);
+      map = json.decode(message);
     } catch (e, st) {
       Logger.root.severe('Disconnecting: Error decoding message: $e\n$st');
       disconnect(reason: 'Connection saw corrupt JSON message: $e');
@@ -202,8 +202,8 @@ abstract class CommonWebSocketVM extends VM {
       // See format spec. in VMs Service::SendEvent.
       int offset = 0;
       // Dart2JS workaround (no getUint64). Limit to 4 GB metadata.
-      assert(bytes.getUint32(offset, Endianness.BIG_ENDIAN) == 0);
-      int metaSize = bytes.getUint32(offset + 4, Endianness.BIG_ENDIAN);
+      assert(bytes.getUint32(offset, Endian.big) == 0);
+      int metaSize = bytes.getUint32(offset + 4, Endian.big);
       offset += 8;
       var meta = _utf8Decoder.convert(new Uint8List.view(
           bytes.buffer, bytes.offsetInBytes + offset, metaSize));
@@ -315,13 +315,13 @@ abstract class CommonWebSocketVM extends VM {
     var message;
     // Encode message.
     if (target.chrome) {
-      message = JSON.encode({
+      message = json.encode({
         'id': int.parse(serial),
         'method': 'Dart.observatoryQuery',
         'params': {'id': serial, 'query': request.method}
       });
     } else {
-      message = JSON.encode(
+      message = json.encode(
           {'id': serial, 'method': request.method, 'params': request.params});
     }
     if (request.method != 'getTagProfile' &&

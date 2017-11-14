@@ -95,9 +95,9 @@ double _doublePow(double base, double exponent) {
   if (base == 1.0) return 1.0;
 
   if (base.isNaN || exponent.isNaN) {
-    return double.NAN;
+    return double.nan;
   }
-  if ((base != -double.INFINITY) && (exponent == 0.5)) {
+  if ((base != -double.infinity) && (exponent == 0.5)) {
     if (base == 0.0) {
       return 0.0;
     }

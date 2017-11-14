@@ -397,7 +397,7 @@ class Utf8Decoder {
     return super.fuse(next);
   }
 
-  // Currently not intercepting UTF8 decoding.
+  // Currently not intercepting UTF-8 decoding.
   @patch
   static String _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int end) {

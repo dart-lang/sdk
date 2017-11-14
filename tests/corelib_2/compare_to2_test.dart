@@ -25,8 +25,8 @@ main() {
   var maxFiniteAsInt = maxFiniteAsDouble.truncate();
   int huge = 1 << 2000;
   int hugeP1 = huge + 1;
-  var inf = double.INFINITY;
-  var nan = double.NAN;
+  var inf = double.infinity;
+  var nan = double.nan;
   var mnan = negate(nan);
   var matrix = [
     -inf,

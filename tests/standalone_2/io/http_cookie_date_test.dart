@@ -31,11 +31,11 @@ void testParseHttpCookieDate() {
     Expect.equals(date, HttpDate._parseCookieDate(formatted));
   }
 
-  test(2012, DateTime.JUNE, 19, 14, 15, 01, "tue, 19-jun-12 14:15:01 gmt");
-  test(2021, DateTime.JUNE, 09, 10, 18, 14, "Wed, 09-Jun-2021 10:18:14 GMT");
-  test(2021, DateTime.JANUARY, 13, 22, 23, 01, "Wed, 13-Jan-2021 22:23:01 GMT");
-  test(2013, DateTime.JANUARY, 15, 21, 47, 38, "Tue, 15-Jan-2013 21:47:38 GMT");
-  test(1970, DateTime.JANUARY, 01, 00, 00, 01, "Thu, 01-Jan-1970 00:00:01 GMT");
+  test(2012, DateTime.june, 19, 14, 15, 01, "tue, 19-jun-12 14:15:01 gmt");
+  test(2021, DateTime.june, 09, 10, 18, 14, "Wed, 09-Jun-2021 10:18:14 GMT");
+  test(2021, DateTime.january, 13, 22, 23, 01, "Wed, 13-Jan-2021 22:23:01 GMT");
+  test(2013, DateTime.january, 15, 21, 47, 38, "Tue, 15-Jan-2013 21:47:38 GMT");
+  test(1970, DateTime.january, 01, 00, 00, 01, "Thu, 01-Jan-1970 00:00:01 GMT");
 }
 
 void main() {

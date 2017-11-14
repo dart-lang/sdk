@@ -63,8 +63,8 @@ Future runTests(Process process) {
 
   process.stdin.writeln('--out="$outFile" "$inFile"');
   process.stdin.close();
-  Future<String> output = process.stdout.transform(UTF8.decoder).join();
-  Future<String> errorOut = process.stderr.transform(UTF8.decoder).join();
+  Future<String> output = process.stdout.transform(utf8.decoder).join();
+  Future<String> errorOut = process.stderr.transform(utf8.decoder).join();
   return Future.wait([output, errorOut]).then((result) {
     String stdoutOutput = result[0];
     Expect.isFalse(stdoutOutput.contains("crashed"));

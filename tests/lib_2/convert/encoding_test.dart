@@ -11,7 +11,7 @@ import "package:async_helper/async_helper.dart";
 void runTest(List<int> bytes, expected) {
   var controller = new StreamController<List<int>>();
   asyncStart();
-  UTF8.decodeStream(controller.stream).then((decoded) {
+  utf8.decodeStream(controller.stream).then((decoded) {
     Expect.equals(expected, decoded);
     asyncEnd();
   });

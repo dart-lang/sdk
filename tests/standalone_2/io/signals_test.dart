@@ -53,7 +53,7 @@ void testSignal(ProcessSignal signal) {
     process.stderr.drain();
 
     var output = "";
-    process.stdout.transform(UTF8.decoder).listen((str) {
+    process.stdout.transform(utf8.decoder).listen((str) {
       output += str;
       if (output == 'ready\n') {
         process.kill(signal);
@@ -81,7 +81,7 @@ void testMultipleSignals(List<ProcessSignal> signals) {
       process.stderr.drain();
 
       var output = "";
-      process.stdout.transform(UTF8.decoder).listen((str) {
+      process.stdout.transform(utf8.decoder).listen((str) {
         output += str;
         if (output == 'ready\n') {
           process.kill(signal);

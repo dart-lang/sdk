@@ -5,10 +5,14 @@
 part of dart.convert;
 
 /** The Unicode Replacement character `U+FFFD` (�). */
-const int UNICODE_REPLACEMENT_CHARACTER_RUNE = 0xFFFD;
+const int unicodeReplacementCharacterRune = 0xFFFD;
+@Deprecated("Use unicodeReplacementCharacterRune instead")
+const int UNICODE_REPLACEMENT_CHARACTER_RUNE = unicodeReplacementCharacterRune;
 
 /** The Unicode Byte Order Marker (BOM) character `U+FEFF`. */
-const int UNICODE_BOM_CHARACTER_RUNE = 0xFEFF;
+const int unicodeBomCharacterRune = 0xFEFF;
+@Deprecated("Use unicodeBomCharacterRune instead")
+const int UNICODE_BOM_CHARACTER_RUNE = unicodeBomCharacterRune;
 
 /**
  * An instance of the default implementation of the [Utf8Codec].
@@ -18,11 +22,13 @@ const int UNICODE_BOM_CHARACTER_RUNE = 0xFEFF;
  *
  * Examples:
  *
- *     var encoded = UTF8.encode("Îñţérñåţîöñåļîžåţîờñ");
- *     var decoded = UTF8.decode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+ *     var encoded = utf8.encode("Îñţérñåţîöñåļîžåţîờñ");
+ *     var decoded = utf8.decode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
  *                                0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
  */
-const Utf8Codec UTF8 = const Utf8Codec();
+const Utf8Codec utf8 = const Utf8Codec();
+@Deprecated("Use tf8Codec instead")
+const Utf8Codec UTF8 = utf8;
 
 /**
  * A [Utf8Codec] encodes strings to utf-8 code units (bytes) and decodes
@@ -52,7 +58,7 @@ class Utf8Codec extends Encoding {
    * corresponding string.
    *
    * If the [codeUnits] start with the encoding of a
-   * [UNICODE_BOM_CHARACTER_RUNE], that character is discarded.
+   * [unicodeBomCharacterRune], that character is discarded.
    *
    * If [allowMalformed] is `true` the decoder replaces invalid (or
    * unterminated) character sequences with the Unicode Replacement character
@@ -326,7 +332,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
    * If [end] is omitted, it defaults to `codeUnits.length`.
    *
    * If the [codeUnits] start with the encoding of a
-   * [UNICODE_BOM_CHARACTER_RUNE], that character is discarded.
+   * [unicodeBomCharacterRune], that character is discarded.
    */
   String convert(List<int> codeUnits, [int start = 0, int end]) {
     // Allow the implementation to intercept and specialize based on the type
@@ -437,7 +443,7 @@ class _Utf8Decoder {
         throw new FormatException(
             "Unfinished UTF-8 octet sequence", source, offset);
       }
-      _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
+      _stringSink.writeCharCode(unicodeReplacementCharacterRune);
       _value = 0;
       _expectedUnits = 0;
       _extraUnits = 0;
@@ -487,7 +493,7 @@ class _Utf8Decoder {
                   i);
             }
             _isFirstCharacter = false;
-            _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
+            _stringSink.writeCharCode(unicodeReplacementCharacterRune);
             break multibyte;
           } else {
             value = (value << 6) | (unit & 0x3f);
@@ -505,7 +511,7 @@ class _Utf8Decoder {
                 i - extraUnits - 1);
           }
           expectedUnits = extraUnits = 0;
-          value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
+          value = unicodeReplacementCharacterRune;
         }
         if (value > _FOUR_BYTE_LIMIT) {
           if (!_allowMalformed) {
@@ -515,9 +521,9 @@ class _Utf8Decoder {
                 codeUnits,
                 i - extraUnits - 1);
           }
-          value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
+          value = unicodeReplacementCharacterRune;
         }
-        if (!_isFirstCharacter || value != UNICODE_BOM_CHARACTER_RUNE) {
+        if (!_isFirstCharacter || value != unicodeBomCharacterRune) {
           _stringSink.writeCharCode(value);
         }
         _isFirstCharacter = false;
@@ -545,7 +551,7 @@ class _Utf8Decoder {
                 codeUnits,
                 i - 1);
           }
-          _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
+          _stringSink.writeCharCode(unicodeReplacementCharacterRune);
         } else {
           assert(unit > _ONE_BYTE_LIMIT);
           if ((unit & 0xE0) == 0xC0) {
@@ -570,7 +576,7 @@ class _Utf8Decoder {
                 codeUnits,
                 i - 1);
           }
-          value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
+          value = unicodeReplacementCharacterRune;
           expectedUnits = extraUnits = 0;
           _isFirstCharacter = false;
           _stringSink.writeCharCode(value);

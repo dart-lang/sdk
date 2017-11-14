@@ -23,7 +23,7 @@ main() {
   test("stream iterator prefilled", () async {
     Stream stream = createStream();
     StreamIterator iterator = new StreamIterator(stream);
-    await new Future.delayed(Duration.ZERO);
+    await new Future.delayed(Duration.zero);
     expect(iterator.current, isNull);
     expect(await iterator.moveNext(), isTrue);
     expect(iterator.current, 42);

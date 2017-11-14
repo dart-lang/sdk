@@ -33,8 +33,8 @@ main() {
   // Check when using a type annotation.
   A a = new A();
   // Check when using a prefix.
-  print(prefix.double.NAN);
-  print(prefix.double.NAN());
+  print(prefix.double.nan);
+  print(prefix.double.nan());
   print(prefix.double.parse(''));
   print(prefix.double.parse);
   print(new prefix.DateTime(0));

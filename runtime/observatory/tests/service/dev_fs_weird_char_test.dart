@@ -13,7 +13,7 @@ var tests = [
   (VM vm) async {
     var fsId = 'test';
     var filePath = '/foo/bar?dat';
-    var fileContents = BASE64.encode(UTF8.encode('fileContents'));
+    var fileContents = base64.encode(utf8.encode('fileContents'));
 
     var result;
     // Create DevFS.

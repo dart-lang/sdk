@@ -221,7 +221,7 @@ void testNoBuffer() {
         .then((request) => request.close())
         .then((clientResponse) {
       var iterator = new StreamIterator(
-          clientResponse.transform(UTF8.decoder).transform(new LineSplitter()));
+          clientResponse.transform(utf8.decoder).transform(new LineSplitter()));
       iterator.moveNext().then((hasValue) {
         Expect.isTrue(hasValue);
         Expect.equals('init', iterator.current);

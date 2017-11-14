@@ -39,7 +39,7 @@ void main() {
 }
 
 void testDirectConversions() {
-  for (var codec in [ASCII, new AsciiCodec()]) {
+  for (var codec in [ascii, new AsciiCodec()]) {
     for (var asciiString in asciiStrings) {
       List bytes = codec.encoder.convert(asciiString);
       Expect.listEquals(asciiString.codeUnits.toList(), bytes, asciiString);
@@ -108,7 +108,7 @@ void testDirectConversions() {
   Expect.equals("\x00\x01\uFFFD\uFFFD\x00", decoded);
   decoded = allowInvalidCodec.decoder.convert(invalidBytes);
   Expect.equals("\x00\x01\uFFFD\uFFFD\x00", decoded);
-  decoded = ASCII.decode(invalidBytes, allowInvalid: true);
+  decoded = ascii.decode(invalidBytes, allowInvalid: true);
   Expect.equals("\x00\x01\uFFFD\uFFFD\x00", decoded);
 }
 
@@ -147,7 +147,7 @@ String decode(
 void testChunkedConversions() {
   // Check encoding.
   for (var converter in [
-    ASCII.encoder,
+    ascii.encoder,
     new AsciiCodec().encoder,
     new AsciiEncoder()
   ]) {
@@ -166,7 +166,7 @@ void testChunkedConversions() {
   }
   // Check decoding.
   for (var converter in [
-    ASCII.decoder,
+    ascii.decoder,
     new AsciiCodec().decoder,
     new AsciiDecoder()
   ]) {

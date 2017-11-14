@@ -12,13 +12,13 @@ main() {
   var valueToCapture;
   var restoredValue;
 
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Zone forked = Zone.current.fork(specification: new ZoneSpecification(
       registerUnaryCallback:
           <R, T>(Zone self, ZoneDelegate parent, Zone origin, R f(T arg)) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
-    Expect.identical(Zone.current, Zone.ROOT);
+    Expect.identical(Zone.current, Zone.root);
     // Note that not forwarding is completely legal, though not encouraged.
     var capturedValue = valueToCapture;
     return parent.registerUnaryCallback(origin, (arg) {

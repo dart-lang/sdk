@@ -275,7 +275,7 @@ SingleMapping getSourceMap(Uri mapUri) {
   print('Accessing $mapUri');
   File mapFile = new File.fromUri(mapUri);
   Expect.isTrue(mapFile.existsSync());
-  return new SingleMapping.fromJson(JSON.decode(mapFile.readAsStringSync()));
+  return new SingleMapping.fromJson(json.decode(mapFile.readAsStringSync()));
 }
 
 copyDirectory(Directory sourceDir, Directory destinationDir) {

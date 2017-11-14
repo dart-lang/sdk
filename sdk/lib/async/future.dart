@@ -273,7 +273,7 @@ abstract class Future<T> {
    */
   factory Future.error(Object error, [StackTrace stackTrace]) {
     error = _nonNullError(error);
-    if (!identical(Zone.current, _ROOT_ZONE)) {
+    if (!identical(Zone.current, _rootZone)) {
       AsyncError replacement = Zone.current.errorCallback(error, stackTrace);
       if (replacement != null) {
         error = _nonNullError(replacement.error);
