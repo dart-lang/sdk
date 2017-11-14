@@ -1,0 +1,1 @@
+This package hosts VM specific Dart code and helper scripts.

@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Script for generating AOT snapshot using Dart 2 pipeline: Fasta with
+# strong mode enabled, AOT specific Kernel-to-Kernel transformations and
+# Dart VM precompiler with strong mode semantics and reified generics.
+
+# Parse incomming arguments and extract the value of --packages option if any
+# was passed. Split options (--xyz) and non-options into two separate arrays.
+# All options will be passed to dart_bootstrap, while --packages will be
+# passed to Fasta.
+
+OPTIONS=()
+PACKAGES=
+
+ARGV=()
+for arg in "$@"; do
+  case $arg in
+    --packages=*)
+    PACKAGES="$arg"
+    ;;
+    --*)
+    OPTIONS+=("$arg")
+    ;;
+    *)
+    ARGV+=("$arg")
+    ;;
+  esac
+done
+
+if [ "${#ARGV[@]}" -ne 2 ]; then
+    echo "Usage: $0 [options] <source> <snapshot>"
+    exit -1
+fi
+
+SOURCE_FILE="${ARGV[0]}"
+SNAPSHOT_FILE="${ARGV[1]}"
+
+set -e
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+if [[ `uname` == 'Darwin' ]];
+then
+  OUT_DIR="$CUR_DIR"/../../../xcodebuild/
+else
+  OUT_DIR="$CUR_DIR"/../../../out/
+fi
+
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DIRS=$( ls "$OUT_DIR" )
+  # list of possible configurations in decreasing desirability
+  CONFIGS=("ReleaseX64" "ReleaseIA32" "DebugX64" "DebugIA32"
+    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"
+    "DebugARM"      "DebugARM64"      "DebugARMV5TE")
+  DART_CONFIGURATION="None"
+  for CONFIG in ${CONFIGS[*]}
+  do
+    for DIR in $DIRS;
+    do
+      if [ "$CONFIG" = "$DIR" ];
+      then
+        # choose most desirable configuration that is available and break
+        DART_CONFIGURATION="$DIR"
+        break 2
+      fi
+    done
+  done
+  if [ "$DART_CONFIGURATION" = "None" ]
+  then
+    echo "No valid dart configuration found in $OUT_DIR"
+    exit 1
+  fi
+fi
+
+BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
+
+# Step 1: Generate Kernel binary from the input Dart source.
+"$BIN_DIR"/dart pkg/front_end/tool/_fasta/compile.dart                         \
+     --strong-mode                                                             \
+     --platform ${BIN_DIR}/vm_platform_strong.dill                             \
+     --target vm                                                               \
+     --target-options=strong-aot                                               \
+     "$PACKAGES"                                                               \
+     -o "$SNAPSHOT_FILE.dill"                                                  \
+     "$SOURCE_FILE"
+
+# Step 2: Generate snapshot from the Kernel binary.
+exec "$BIN_DIR"/dart_bootstrap                                                 \
+     --strong                                                                  \
+     --reify-generic-functions                                                 \
+     --kernel-binaries=${BIN_DIR}                                              \
+     --snapshot-kind=app-aot                                                   \
+     --use-blobs                                                               \
+     --snapshot="$SNAPSHOT_FILE"                                               \
+     "${OPTIONS[@]}"                                                           \
+     "$SNAPSHOT_FILE.dill"
