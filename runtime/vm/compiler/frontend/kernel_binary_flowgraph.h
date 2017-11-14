@@ -898,7 +898,7 @@ class StreamingFlowGraphBuilder {
   intptr_t SourceTableSize();
   String& SourceTableUriFor(intptr_t index);
   String& GetSourceFor(intptr_t index);
-  Array& GetLineStartsFor(intptr_t index);
+  RawTypedData* GetLineStartsFor(intptr_t index);
   void SetOffset(intptr_t offset);
 
  private:

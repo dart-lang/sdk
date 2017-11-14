@@ -1090,7 +1090,7 @@ class RawScript : public RawObject {
   RawString* url_;
   RawString* resolved_url_;
   RawArray* compile_time_constants_;
-  RawArray* line_starts_;
+  RawTypedData* line_starts_;
   RawArray* debug_positions_;
   RawArray* yield_positions_;
   RawKernelProgramInfo* kernel_program_info_;

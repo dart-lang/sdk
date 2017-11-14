@@ -3487,7 +3487,7 @@ class Script : public Object {
     return raw_ptr()->tokens_;
   }
 
-  void set_line_starts(const Array& value) const;
+  void set_line_starts(const TypedData& value) const;
 
   void set_debug_positions(const Array& value) const;
 
@@ -3544,7 +3544,7 @@ class Script : public Object {
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
-  RawArray* line_starts() const;
+  RawTypedData* line_starts() const;
   RawArray* debug_positions() const;
 
   static RawScript* New();

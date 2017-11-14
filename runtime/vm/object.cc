@@ -9194,27 +9194,25 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Smi& value = Smi::Handle(zone);
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       // A well-formed line number array has a leading null.
       info.Add(line_separator);  // New line.
       return info.raw();
     }
-    intptr_t line_count = line_starts_array.Length();
+    intptr_t line_count = line_starts_data.Length();
     ASSERT(line_count > 0);
     const Array& debug_positions_array = Array::Handle(debug_positions());
     intptr_t token_count = debug_positions_array.Length();
     int token_index = 0;
 
     for (int line_index = 0; line_index < line_count; ++line_index) {
-      value ^= line_starts_array.At(line_index);
-      intptr_t start = value.Value();
+      intptr_t start = line_starts_data.GetInt32(line_index * 4);
       // Output the rest of the tokens if we have no next line.
       intptr_t end = TokenPosition::kMaxSourcePos;
       if (line_index + 1 < line_count) {
-        value ^= line_starts_array.At(line_index + 1);
-        end = value.Value();
+        end = line_starts_data.GetInt32((line_index + 1) * 4);
       }
       bool first = true;
       while (token_index < token_count) {
@@ -9346,7 +9344,7 @@ void Script::set_source(const String& value) const {
   StorePointer(&raw_ptr()->source_, value.raw());
 }
 
-void Script::set_line_starts(const Array& value) const {
+void Script::set_line_starts(const TypedData& value) const {
   StorePointer(&raw_ptr()->line_starts_, value.raw());
 }
 
@@ -9369,7 +9367,7 @@ RawArray* Script::yield_positions() const {
   return raw_ptr()->yield_positions_;
 }
 
-RawArray* Script::line_starts() const {
+RawTypedData* Script::line_starts() const {
   return raw_ptr()->line_starts_;
 }
 
@@ -9435,40 +9433,50 @@ intptr_t Script::GetTokenLineUsingLineStarts(
     return 0;
   }
   Zone* zone = Thread::Current()->zone();
-  Array& line_starts_array = Array::Handle(zone, line_starts());
-  Smi& token_pos = Smi::Handle(zone);
-  if (line_starts_array.IsNull()) {
+  TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  if (line_starts_data.IsNull()) {
     ASSERT(kind() != RawScript::kKernelTag);
-    GrowableObjectArray& line_starts_list =
-        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
     const TokenStream& tkns = TokenStream::Handle(zone, tokens());
+
+    intptr_t line_count = 0;
+    {
+      // Evaluate the number of lines in the script.
+      TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
+                                 TokenStream::Iterator::kAllTokens);
+      while (tkit.CurrentTokenKind() != Token::kEOS) {
+        if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+          line_count++;
+        }
+        tkit.Advance();
+      }
+    }
+    line_starts_data = TypedData::New(kTypedDataInt32ArrayCid, line_count + 1);
+
+    intptr_t cur_line = 0;
     TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
                                TokenStream::Iterator::kAllTokens);
-    intptr_t cur_line = line_offset() + 1;
-    token_pos = Smi::New(0);
-    line_starts_list.Add(token_pos);
+    line_starts_data.SetInt32(cur_line, 0);
     while (tkit.CurrentTokenKind() != Token::kEOS) {
       if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
         cur_line++;
-        token_pos = Smi::New(tkit.CurrentPosition().value() + 1);
-        line_starts_list.Add(token_pos);
+        line_starts_data.SetInt32(cur_line << 2,
+                                  tkit.CurrentPosition().value() + 1);
       }
       tkit.Advance();
     }
-    line_starts_array = Array::MakeFixedLength(line_starts_list);
-    set_line_starts(line_starts_array);
+    set_line_starts(line_starts_data);
   }
 
-  ASSERT(line_starts_array.Length() > 0);
+  ASSERT(line_starts_data.Length() > 0);
   intptr_t offset = target_token_pos.Pos();
   intptr_t min = 0;
-  intptr_t max = line_starts_array.Length() - 1;
+  intptr_t max = line_starts_data.Length() - 1;
 
   // Binary search to find the line containing this offset.
   while (min < max) {
     int midpoint = (max - min + 1) / 2 + min;
-    token_pos ^= line_starts_array.At(midpoint);
-    if (token_pos.Value() > offset) {
+    int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
+    if (token_pos > offset) {
       max = midpoint - 1;
     } else {
       min = midpoint;
@@ -9485,8 +9493,8 @@ void Script::GetTokenLocation(TokenPosition token_pos,
   Zone* zone = Thread::Current()->zone();
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(zone, line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       *line = -1;
       if (column != NULL) {
@@ -9497,27 +9505,26 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       }
       return;
     }
-    ASSERT(line_starts_array.Length() > 0);
+    ASSERT(line_starts_data.Length() > 0);
     intptr_t offset = token_pos.value();
     intptr_t min = 0;
-    intptr_t max = line_starts_array.Length() - 1;
+    intptr_t max = line_starts_data.Length() - 1;
 
     // Binary search to find the line containing this offset.
-    Smi& smi = Smi::Handle(zone);
     while (min < max) {
       intptr_t midpoint = (max - min + 1) / 2 + min;
 
-      smi ^= line_starts_array.At(midpoint);
-      if (smi.Value() > offset) {
+      int32_t value = line_starts_data.GetInt32(midpoint * 4);
+      if (value > offset) {
         max = midpoint - 1;
       } else {
         min = midpoint;
       }
     }
     *line = min + 1;  // Line numbers start at 1.
-    smi ^= line_starts_array.At(min);
+    int32_t min_value = line_starts_data.GetInt32(min * 4);
     if (column != NULL) {
-      *column = offset - smi.Value() + 1;
+      *column = offset - min_value + 1;
     }
     if (token_len != NULL) {
       // We don't explicitly save this data: Load the source
@@ -9589,20 +9596,19 @@ void Script::TokenRangeAtLine(intptr_t line_number,
   ASSERT(line_number > 0);
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       *first_token_index = TokenPosition::kNoSource;
       *last_token_index = TokenPosition::kNoSource;
       return;
     }
-    ASSERT(line_starts_array.Length() >= line_number);
-    Smi& value = Smi::Handle();
-    value ^= line_starts_array.At(line_number - 1);
-    *first_token_index = TokenPosition(value.Value());
-    if (line_starts_array.Length() > line_number) {
-      value ^= line_starts_array.At(line_number);
-      *last_token_index = TokenPosition(value.Value() - 1);
+    ASSERT(line_starts_data.Length() >= line_number);
+    int32_t value = line_starts_data.GetInt32((line_number - 1) * 4);
+    *first_token_index = TokenPosition(value);
+    if (line_starts_data.Length() > line_number) {
+      value = line_starts_data.GetInt32(line_number * 4);
+      *last_token_index = TokenPosition(value - 1);
     } else {
       // Length of source is last possible token in this script.
       *last_token_index = TokenPosition(String::Handle(Source()).Length());

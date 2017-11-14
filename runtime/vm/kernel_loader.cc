@@ -1116,7 +1116,9 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
                                     RawScript::kKernelTag));
   script.set_kernel_script_index(index);
   script.set_kernel_program_info(kernel_program_info_);
-  script.set_line_starts(builder_.GetLineStartsFor(index));
+  const TypedData& line_starts =
+      TypedData::Handle(Z, builder_.GetLineStartsFor(index));
+  script.set_line_starts(line_starts);
   script.set_debug_positions(Array::Handle(Array::null()));
   script.set_yield_positions(Array::Handle(Array::null()));
   return script.raw();

@@ -8904,23 +8904,22 @@ String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
                       Heap::kOld);
 }
 
-Array& StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
+RawTypedData* StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
   AlternativeReadingScope alt(reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());       // skip uri.
   SkipBytes(ReadUInt());       // skip source.
   intptr_t size = ReadUInt();  // read line starts length.
 
-  Array& array_object = Array::Handle(Z, Array::New(size, Heap::kOld));
-  Smi& value = Smi::Handle(Z);
+  TypedData& line_starts_data = TypedData::Handle(
+      Z, TypedData::New(kTypedDataInt32ArrayCid, size, Heap::kOld));
   intptr_t previous_line_start = 0;
   for (intptr_t j = 0; j < size; ++j) {
     intptr_t line_start = ReadUInt() + previous_line_start;
-    value = Smi::New(line_start);
-    array_object.SetAt(j, value);
+    line_starts_data.SetInt32(j * 4, line_start);
     previous_line_start = line_start;
   }
-  return array_object;
+  return line_starts_data.raw();
 }
 
 void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
