@@ -176,39 +176,36 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
   ASSERT(file != NULL);
   Dart_Handle length_object = Dart_GetNativeArgument(args, 1);
   int64_t length = 0;
-  if (!DartUtils::GetInt64Value(length_object, &length) || (length < 0)) {
+  if (DartUtils::GetInt64Value(length_object, &length)) {
+    uint8_t* buffer = NULL;
+    Dart_Handle external_array = IOBuffer::Allocate(length, &buffer);
+    int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
+    if (bytes_read < 0) {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    } else {
+      if (bytes_read < length) {
+        const int kNumArgs = 3;
+        Dart_Handle dart_args[kNumArgs];
+        dart_args[0] = external_array;
+        dart_args[1] = Dart_NewInteger(0);
+        dart_args[2] = Dart_NewInteger(bytes_read);
+        // TODO(sgjesse): Cache the _makeUint8ListView function somewhere.
+        Dart_Handle io_lib =
+            Dart_LookupLibrary(DartUtils::NewString("dart:io"));
+        if (Dart_IsError(io_lib)) {
+          Dart_PropagateError(io_lib);
+        }
+        Dart_Handle array_view =
+            Dart_Invoke(io_lib, DartUtils::NewString("_makeUint8ListView"),
+                        kNumArgs, dart_args);
+        Dart_SetReturnValue(args, array_view);
+      } else {
+        Dart_SetReturnValue(args, external_array);
+      }
+    }
+  } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
-    return;
-  }
-  uint8_t* buffer = NULL;
-  Dart_Handle external_array = IOBuffer::Allocate(length, &buffer);
-  if (Dart_IsNull(external_array)) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    return;
-  }
-  int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
-  if (bytes_read < 0) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    return;
-  }
-  if (bytes_read < length) {
-    const int kNumArgs = 3;
-    Dart_Handle dart_args[kNumArgs];
-    dart_args[0] = external_array;
-    dart_args[1] = Dart_NewInteger(0);
-    dart_args[2] = Dart_NewInteger(bytes_read);
-    // TODO(sgjesse): Cache the _makeUint8ListView function somewhere.
-    Dart_Handle io_lib = Dart_LookupLibrary(DartUtils::NewString("dart:io"));
-    if (Dart_IsError(io_lib)) {
-      Dart_PropagateError(io_lib);
-    }
-    Dart_Handle array_view =
-        Dart_Invoke(io_lib, DartUtils::NewString("_makeUint8ListView"),
-                    kNumArgs, dart_args);
-    Dart_SetReturnValue(args, array_view);
-  } else {
-    Dart_SetReturnValue(args, external_array);
   }
 }
 
@@ -1108,9 +1105,7 @@ CObject* File::ReadRequest(const CObjectArray& request) {
   }
   const int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
   Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
-  if (io_buffer == NULL) {
-    return CObject::NewOSError();
-  }
+  ASSERT(io_buffer != NULL);
   uint8_t* data = io_buffer->value.as_external_typed_data.data;
   const int64_t bytes_read = file->Read(data, length);
   if (bytes_read < 0) {
@@ -1140,9 +1135,7 @@ CObject* File::ReadIntoRequest(const CObjectArray& request) {
   }
   const int64_t length = CObjectInt32OrInt64ToInt64(request[1]);
   Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
-  if (io_buffer == NULL) {
-    return CObject::NewOSError();
-  }
+  ASSERT(io_buffer != NULL);
   uint8_t* data = io_buffer->value.as_external_typed_data.data;
   const int64_t bytes_read = file->Read(data, length);
   if (bytes_read < 0) {

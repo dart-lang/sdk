@@ -9,9 +9,6 @@ namespace bin {
 
 Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t** buffer) {
   uint8_t* data = Allocate(size);
-  if (data == NULL) {
-    return Dart_Null();
-  }
   Dart_Handle result =
       Dart_NewExternalTypedData(Dart_TypedData_kUint8, data, size);
   Dart_NewWeakPersistentHandle(result, data, size, IOBuffer::Finalizer);
@@ -27,7 +24,7 @@ Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t** buffer) {
 }
 
 uint8_t* IOBuffer::Allocate(intptr_t size) {
-  return reinterpret_cast<uint8_t*>(malloc(size));
+  return new uint8_t[size];
 }
 
 }  // namespace bin

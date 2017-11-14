@@ -247,9 +247,6 @@ class BufferListBase {
     uint8_t* buffer;
     intptr_t buffer_position = 0;
     Dart_Handle result = IOBuffer::Allocate(data_size_, &buffer);
-    if (Dart_IsNull(result)) {
-      return DartUtils::NewDartOSError();
-    }
     if (Dart_IsError(result)) {
       Free();
       return result;

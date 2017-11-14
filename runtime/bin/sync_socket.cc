@@ -213,18 +213,13 @@ void FUNCTION_NAME(SynchronousSocket_Read)(Dart_NativeArguments args) {
   DART_CHECK_ERROR(result);
 
   int64_t length = 0;
-  if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length) ||
-      (length < 0)) {
+  if (!DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
     Dart_SetReturnValue(args, DartUtils::NewDartArgumentError(
                                   "First parameter must be an integer."));
     return;
   }
   uint8_t* buffer = NULL;
   result = IOBuffer::Allocate(length, &buffer);
-  if (Dart_IsNull(result)) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    return;
-  }
   ASSERT(buffer != NULL);
   intptr_t bytes_read = SynchronousSocket::Read(socket->fd(), buffer, length);
   if (bytes_read == length) {
@@ -232,10 +227,6 @@ void FUNCTION_NAME(SynchronousSocket_Read)(Dart_NativeArguments args) {
   } else if (bytes_read > 0) {
     uint8_t* new_buffer = NULL;
     Dart_Handle new_result = IOBuffer::Allocate(bytes_read, &new_buffer);
-    if (Dart_IsNull(new_result)) {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-      return;
-    }
     ASSERT(new_buffer != NULL);
     memmove(new_buffer, buffer, bytes_read);
     Dart_SetReturnValue(args, new_result);

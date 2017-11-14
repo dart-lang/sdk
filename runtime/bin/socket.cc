@@ -323,17 +323,12 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   int64_t length = 0;
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length) &&
-      (length >= 0)) {
+  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
     if (Socket::short_socket_read()) {
       length = (length + 1) / 2;
     }
     uint8_t* buffer = NULL;
     Dart_Handle result = IOBuffer::Allocate(length, &buffer);
-    if (Dart_IsNull(result)) {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-      return;
-    }
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
@@ -345,10 +340,6 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
     } else if (bytes_read > 0) {
       uint8_t* new_buffer = NULL;
       Dart_Handle new_result = IOBuffer::Allocate(bytes_read, &new_buffer);
-      if (Dart_IsNull(new_result)) {
-        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-        return;
-      }
       if (Dart_IsError(new_result)) {
         Dart_PropagateError(new_result);
       }
@@ -402,10 +393,6 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
   ASSERT(bytes_read > 0);
   uint8_t* data_buffer = NULL;
   Dart_Handle data = IOBuffer::Allocate(bytes_read, &data_buffer);
-  if (Dart_IsNull(data)) {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    return;
-  }
   if (Dart_IsError(data)) {
     Dart_PropagateError(data);
   }
