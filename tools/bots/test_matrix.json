@@ -74,6 +74,102 @@
     },
     {
       "builders": [
+        "vm-kernel-precomp-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel release builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "runtime_kernel",
+            "dart_bootstrap",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": ["--compiler=dartkp", "--runtime=dart_precompiled"],
+          "exclude_tests": [
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
+          ],
+          "fileset": "vm_debug",
+          "shards": 6
+        },
+        {
+          "name": "strong vm tests",
+          "arguments": ["--compiler=dartkp", "--runtime=dart_precompiled"],
+          "tests": [
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
+          ],
+          "fileset": "vm_debug",
+          "shards": 6
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-linux-debug-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the vm kernel debug builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "runtime_kernel",
+            "dart_bootstrap",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "--compiler=dartkp",
+            "--runtime=dart_precompiled",
+            "--vm-options=--no-enable-malloc-hooks"
+          ],
+          "exclude_tests": [
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
+          ],
+          "fileset": "vm_debug",
+          "shards": 6
+        },
+        {
+          "name": "strong vm tests",
+          "arguments": [
+            "--compiler=dartkp",
+            "--runtime=dart_precompiled",
+            "--vm-options=--no-enable-malloc-hooks"
+          ],
+          "tests": [
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "standalone_2"
+          ],
+          "fileset": "vm_debug",
+          "shards": 6
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-asan-linux-release-ia32",
         "vm-asan-linux-release-x64"
       ],
