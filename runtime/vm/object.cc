@@ -21910,7 +21910,9 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
 
 uword TypedData::ComputeCanonicalTableHash() const {
   const intptr_t len = this->LengthInBytes();
-  ASSERT(len != 0);
+  if (len == 0) {
+    return 1;
+  }
   uword hash = len;
   for (intptr_t i = 0; i < len; i++) {
     hash = CombineHashes(len, GetUint8(i));
