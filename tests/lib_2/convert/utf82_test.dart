@@ -12,9 +12,9 @@ String decodeAllowMalformed(List<int> bytes) {
   return new Utf8Decoder(allowMalformed: true).convert(bytes);
 }
 
-String decode2(List<int> bytes) => utf8.decode(bytes);
+String decode2(List<int> bytes) => UTF8.decode(bytes);
 String decodeAllowMalformed2(List<int> bytes) {
-  return utf8.decode(bytes, allowMalformed: true);
+  return UTF8.decode(bytes, allowMalformed: true);
 }
 
 String decode3(List<int> bytes) => new Utf8Codec().decode(bytes);

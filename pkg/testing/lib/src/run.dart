@@ -6,7 +6,7 @@ library testing.run;
 
 import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show json;
+import 'dart:convert' show JSON;
 
 import 'dart:io' show Platform;
 
@@ -195,7 +195,7 @@ library testing.generated;
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show json;
+import 'dart:convert' show JSON;
 
 import 'package:testing/src/run_tests.dart' show runTests;
 
@@ -207,8 +207,8 @@ ${imports.toString().trim()}
 
 Future<Null> main() async {
   if ($isVerbose) enableVerboseOutput();
-  Map<String, String> environment = json.decode('${json.encode(environment)}');
-  Set<String> selectors = json.decode('${json.encode(selectors)}').toSet();
+  Map<String, String> environment = JSON.decode('${JSON.encode(environment)}');
+  Set<String> selectors = JSON.decode('${JSON.encode(selectors)}').toSet();
   await runTests(<String, Function> {
       ${splitLines(dart.toString().trim()).join('      ')}
   });

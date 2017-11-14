@@ -9,7 +9,7 @@ library json_test;
 import "package:expect/expect.dart";
 import "dart:convert";
 
-void testJson(jsonText, expected) {
+void testJson(json, expected) {
   compare(expected, actual, path) {
     if (expected is List) {
       Expect.isTrue(actual is List);
@@ -41,35 +41,35 @@ void testJson(jsonText, expected) {
         var value = values[0];
         compare(expected, value, "$name$value");
       });
-      var decoderSink = json.decoder.startChunkedConversion(sink);
+      var decoderSink = JSON.decoder.startChunkedConversion(sink);
       switch (split) {
         case 0:
           // Split after first char.
-          decoderSink.add(jsonText.substring(0, 1));
-          decoderSink.add(jsonText.substring(1));
+          decoderSink.add(json.substring(0, 1));
+          decoderSink.add(json.substring(1));
           decoderSink.close();
           break;
         case 1:
           // Split before last char.
-          int length = jsonText.length;
-          decoderSink.add(jsonText.substring(0, length - 1));
-          decoderSink.add(jsonText.substring(length - 1));
+          int length = json.length;
+          decoderSink.add(json.substring(0, length - 1));
+          decoderSink.add(json.substring(length - 1));
           decoderSink.close();
           break;
         case 2:
           // Split in middle.
-          int half = jsonText.length ~/ 2;
-          decoderSink.add(jsonText.substring(0, half));
-          decoderSink.add(jsonText.substring(half));
+          int half = json.length ~/ 2;
+          decoderSink.add(json.substring(0, half));
+          decoderSink.add(json.substring(half));
           decoderSink.close();
           break;
         case 3:
           // Split in three chunks.
-          int length = jsonText.length;
+          int length = json.length;
           int third = length ~/ 3;
-          decoderSink.add(jsonText.substring(0, third));
-          decoderSink.add(jsonText.substring(third, 2 * third));
-          decoderSink.add(jsonText.substring(2 * third));
+          decoderSink.add(json.substring(0, third));
+          decoderSink.add(json.substring(third, 2 * third));
+          decoderSink.add(json.substring(2 * third));
           decoderSink.close();
           break;
       }
@@ -95,9 +95,9 @@ String escape(String s) {
   return '$sb';
 }
 
-void testThrows(jsonText) {
-  Expect.throwsFormatException(() => json.decode(jsonText),
-      "json = '${escape(jsonText)}'");
+void testThrows(json) {
+  Expect.throwsFormatException(() => JSON.decode(json),
+      "json = '${escape(json)}'");
 }
 
 testNumbers() {
@@ -153,7 +153,7 @@ testNumbers() {
   }
 
   // Doubles overflow to Infinity.
-  testJson("1e+400", double.infinity);
+  testJson("1e+400", double.INFINITY);
   // (Integers do not, but we don't have those on dart2js).
 
   // Integer part cannot be omitted:
@@ -184,9 +184,9 @@ testNumbers() {
   testThrows("NaN");
   testThrows("Infinity");
   testThrows("-Infinity");
-  Expect.throws(() => json.encode(double.nan));
-  Expect.throws(() => json.encode(double.infinity));
-  Expect.throws(() => json.encode(double.negativeInfinity));
+  Expect.throws(() => JSON.encode(double.NAN));
+  Expect.throws(() => JSON.encode(double.INFINITY));
+  Expect.throws(() => JSON.encode(double.NEGATIVE_INFINITY));
 }
 
 testStrings() {

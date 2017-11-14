@@ -34,11 +34,11 @@ main(List<String> arguments) {
   if (arguments.length > 1) {
     var stream = arguments[1];
     if (arguments[0] == "ascii") {
-      writeData(asciiString, ascii, stream);
+      writeData(asciiString, ASCII, stream);
     } else if (arguments[0] == "latin1") {
-      writeData(latin1String, latin1, stream);
+      writeData(latin1String, LATIN1, stream);
     } else if (arguments[0] == "utf8") {
-      writeData(utf8String, utf8, stream);
+      writeData(utf8String, UTF8, stream);
     } else if (arguments[0] == "binary") {
       writeData(binary, null, stream);
     }

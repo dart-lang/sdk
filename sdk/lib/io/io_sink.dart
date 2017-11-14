@@ -24,7 +24,7 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
    * Text written to [StreamSink] methods is encoded to bytes using [encoding]
    * before being output on [target].
    */
-  factory IOSink(StreamConsumer<List<int>> target, {Encoding encoding: utf8}) =>
+  factory IOSink(StreamConsumer<List<int>> target, {Encoding encoding: UTF8}) =>
       new _IOSinkImpl(target, encoding);
 
   /**

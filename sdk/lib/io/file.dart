@@ -136,7 +136,7 @@ enum FileLock {
  *       Stream<List<int>> inputStream = file.openRead();
  *
  *       inputStream
- *         .transform(utf8.decoder)       // Decode bytes to UTF-8.
+ *         .transform(UTF8.decoder)       // Decode bytes to UTF8.
  *         .transform(new LineSplitter()) // Convert stream to individual lines.
  *         .listen((String line) {        // Process results.
  *             print('$line: ${line.length} bytes');
@@ -457,7 +457,7 @@ abstract class File implements FileSystemEntity {
    *  has an `encoding` property which can be changed after the
    *  [IOSink] has been created.
    */
-  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: utf8});
+  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: UTF8});
 
   /**
    * Read the entire file contents as a list of bytes. Returns a
@@ -480,7 +480,7 @@ abstract class File implements FileSystemEntity {
    * Returns a `Future<String>` that completes with the string once
    * the file contents has been read.
    */
-  Future<String> readAsString({Encoding encoding: utf8});
+  Future<String> readAsString({Encoding encoding: UTF8});
 
   /**
    * Synchronously read the entire file contents as a string using the
@@ -488,7 +488,7 @@ abstract class File implements FileSystemEntity {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  String readAsStringSync({Encoding encoding: utf8});
+  String readAsStringSync({Encoding encoding: UTF8});
 
   /**
    * Read the entire file contents as lines of text using the given
@@ -497,7 +497,7 @@ abstract class File implements FileSystemEntity {
    * Returns a `Future<List<String>>` that completes with the lines
    * once the file contents has been read.
    */
-  Future<List<String>> readAsLines({Encoding encoding: utf8});
+  Future<List<String>> readAsLines({Encoding encoding: UTF8});
 
   /**
    * Synchronously read the entire file contents as lines of text
@@ -505,7 +505,7 @@ abstract class File implements FileSystemEntity {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  List<String> readAsLinesSync({Encoding encoding: utf8});
+  List<String> readAsLinesSync({Encoding encoding: UTF8});
 
   /**
    * Write a list of bytes to a file.
@@ -558,7 +558,7 @@ abstract class File implements FileSystemEntity {
    */
   Future<File> writeAsString(String contents,
       {FileMode mode: FileMode.WRITE,
-      Encoding encoding: utf8,
+      Encoding encoding: UTF8,
       bool flush: false});
 
   /**
@@ -579,7 +579,7 @@ abstract class File implements FileSystemEntity {
    */
   void writeAsStringSync(String contents,
       {FileMode mode: FileMode.WRITE,
-      Encoding encoding: utf8,
+      Encoding encoding: UTF8,
       bool flush: false});
 
   /**
@@ -712,7 +712,7 @@ abstract class RandomAccessFile {
    * RandomAccessFile when the write completes.
    */
   Future<RandomAccessFile> writeString(String string,
-      {Encoding encoding: utf8});
+      {Encoding encoding: UTF8});
 
   /**
    * Synchronously writes a single string to the file using the given
@@ -720,7 +720,7 @@ abstract class RandomAccessFile {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  void writeStringSync(String string, {Encoding encoding: utf8});
+  void writeStringSync(String string, {Encoding encoding: UTF8});
 
   /**
    * Gets the current byte position in the file. Returns a

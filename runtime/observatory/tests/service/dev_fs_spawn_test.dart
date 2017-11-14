@@ -102,7 +102,7 @@ main(args, msg) {
 
     // Write three scripts to the fs.
     for (int i = 0; i < 3; i++) {
-      var fileContents = base64.encode(utf8.encode(scripts[i]));
+      var fileContents = BASE64.encode(UTF8.encode(scripts[i]));
       result = await vm.invokeRpcNoUpgrade('_writeDevFSFile', {
         'fsName': fsName,
         'path': filePaths[i],

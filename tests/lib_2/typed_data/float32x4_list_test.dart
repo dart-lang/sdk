@@ -156,12 +156,12 @@ void testSpecialValues(array) {
     [4294967296.0, 4294967296.0],
     [4503599627370495.5, 4503599627370496.0],
     [9007199254740992.0, 9007199254740992.0],
-    [1.7976931348623157e+308, double.infinity],
+    [1.7976931348623157e+308, double.INFINITY],
     [0.49999999999999994, 0.5],
     [4503599627370497.0, 4503599627370496.0],
     [9007199254740991.0, 9007199254740992.0],
-    [double.infinity, double.infinity],
-    [double.nan, double.nan],
+    [double.INFINITY, double.INFINITY],
+    [double.NAN, double.NAN],
   ];
 
   var conserved = [

@@ -992,7 +992,7 @@ void testTypes() {
   for (var value in [42, null]) {
     testType("Future($value)", new Future<int>(() => value));
     testType("Future.delayed($value)",
-        new Future<int>.delayed(Duration.zero, () => value));
+        new Future<int>.delayed(Duration.ZERO, () => value));
     testType(
         "Future.microtask($value)", new Future<int>.microtask(() => value));
     testType( //# 01: ok

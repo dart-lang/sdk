@@ -342,7 +342,7 @@ Future testProcess() async {
   String exe = Platform.resolvedExecutable;
   print("Running $exe --version");
   Process p = await Process.start(exe, ["--version"]);
-  p.stderr.transform(utf8.decoder).listen(print);
+  p.stderr.transform(UTF8.decoder).listen(print);
   int code = await p.exitCode;
   print("$exe --version exited with code $code");
 }

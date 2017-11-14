@@ -256,7 +256,7 @@ class DevFS {
     }
     try {
       List<int> bytes = await readFile(uri);
-      var result = {'type': 'FSFile', 'fileContents': base64.encode(bytes)};
+      var result = {'type': 'FSFile', 'fileContents': BASE64.encode(bytes)};
       return encodeResult(message, result);
     } catch (e) {
       return encodeRpcError(message, kFileDoesNotExist,
@@ -315,7 +315,7 @@ class DevFS {
     if (fileContents is! String) {
       return encodeInvalidParamError(message, 'fileContents');
     }
-    List<int> decodedFileContents = base64.decode(fileContents);
+    List<int> decodedFileContents = BASE64.decode(fileContents);
 
     await writeFile(uri, decodedFileContents);
     return encodeSuccess(message);
@@ -365,7 +365,7 @@ class DevFS {
     }
     var pendingWrites = <Future>[];
     for (int i = 0; i < uris.length; i++) {
-      List<int> decodedFileContents = base64.decode(files[i][1]);
+      List<int> decodedFileContents = BASE64.decode(files[i][1]);
       pendingWrites.add(writeFile(uris[i], decodedFileContents));
     }
     await Future.wait(pendingWrites);

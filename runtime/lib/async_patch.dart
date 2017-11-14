@@ -36,7 +36,7 @@ Function _asyncThenWrapperHelper(continuation) {
   // zone is the root zone, we don't wrap the continuation, and a bad
   // `Future` implementation could potentially invoke the callback with the
   // wrong number of arguments.
-  if (Zone.current == Zone.root) return continuation;
+  if (Zone.current == Zone.ROOT) return continuation;
   return Zone.current.registerUnaryCallback((x) => continuation(x, null, null));
 }
 
@@ -45,7 +45,7 @@ Function _asyncThenWrapperHelper(continuation) {
 Function _asyncErrorWrapperHelper(continuation) {
   // See comments of `_asyncThenWrapperHelper`.
   var errorCallback = (e, s) => continuation(null, e, s);
-  if (Zone.current == Zone.root) return errorCallback;
+  if (Zone.current == Zone.ROOT) return errorCallback;
   return Zone.current.registerBinaryCallback(errorCallback);
 }
 

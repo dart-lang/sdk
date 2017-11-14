@@ -6,8 +6,8 @@ import 'package:expect/expect.dart';
 
 main() {
   Expect.equals(0, 0.0.floor());
-  Expect.equals(0, double.minPositive.floor());
-  Expect.equals(0, (2.0 * double.minPositive).floor());
+  Expect.equals(0, double.MIN_POSITIVE.floor());
+  Expect.equals(0, (2.0 * double.MIN_POSITIVE).floor());
   Expect.equals(0, (1.18e-38).floor());
   Expect.equals(0, (1.18e-38 * 2).floor());
   Expect.equals(0, 0.49999999999999994.floor());
@@ -26,10 +26,10 @@ main() {
   Expect.equals(9007199254740992, 9007199254740992.0.floor());
   Expect.equals(
       179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368,
-      double.maxFinite.floor());
+      double.MAX_FINITE.floor());
 
-  Expect.equals(-1, (-double.minPositive).floor());
-  Expect.equals(-1, (2.0 * -double.minPositive).floor());
+  Expect.equals(-1, (-double.MIN_POSITIVE).floor());
+  Expect.equals(-1, (2.0 * -double.MIN_POSITIVE).floor());
   Expect.equals(-1, (-1.18e-38).floor());
   Expect.equals(-1, (-1.18e-38 * 2).floor());
   Expect.equals(-1, (-0.49999999999999994).floor());
@@ -45,11 +45,11 @@ main() {
   Expect.equals(-9007199254740992, (-9007199254740992.0).floor());
   Expect.equals(
       -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368,
-      (-double.maxFinite).floor());
+      (-double.MAX_FINITE).floor());
 
   Expect.isTrue(0.0.floor() is int);
-  Expect.isTrue(double.minPositive.floor() is int);
-  Expect.isTrue((2.0 * double.minPositive).floor() is int);
+  Expect.isTrue(double.MIN_POSITIVE.floor() is int);
+  Expect.isTrue((2.0 * double.MIN_POSITIVE).floor() is int);
   Expect.isTrue((1.18e-38).floor() is int);
   Expect.isTrue((1.18e-38 * 2).floor() is int);
   Expect.isTrue(0.49999999999999994.floor() is int);
@@ -63,10 +63,10 @@ main() {
   Expect.isTrue(4503599627370499.0.floor() is int);
   Expect.isTrue(9007199254740991.0.floor() is int);
   Expect.isTrue(9007199254740992.0.floor() is int);
-  Expect.isTrue(double.maxFinite.floor() is int);
+  Expect.isTrue(double.MAX_FINITE.floor() is int);
 
-  Expect.isTrue((-double.minPositive).floor() is int);
-  Expect.isTrue((2.0 * -double.minPositive).floor() is int);
+  Expect.isTrue((-double.MIN_POSITIVE).floor() is int);
+  Expect.isTrue((2.0 * -double.MIN_POSITIVE).floor() is int);
   Expect.isTrue((-1.18e-38).floor() is int);
   Expect.isTrue((-1.18e-38 * 2).floor() is int);
   Expect.isTrue((-0.49999999999999994).floor() is int);
@@ -80,5 +80,5 @@ main() {
   Expect.isTrue((-4503599627370499.0).floor() is int);
   Expect.isTrue((-9007199254740991.0).floor() is int);
   Expect.isTrue((-9007199254740992.0).floor() is int);
-  Expect.isTrue((-double.maxFinite).floor() is int);
+  Expect.isTrue((-double.MAX_FINITE).floor() is int);
 }

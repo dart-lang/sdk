@@ -36,7 +36,7 @@ class double {
     }
     if (firstChar == _I) {
       if (end == start + 8 && str.startsWith("nfinity", start + 1)) {
-        return sign * double.infinity;
+        return sign * double.INFINITY;
       }
       return null;
     }
@@ -44,7 +44,7 @@ class double {
       if (end == start + 3 &&
           str.codeUnitAt(start + 1) == _a &&
           str.codeUnitAt(start + 2) == _N) {
-        return double.nan;
+        return double.NAN;
       }
       return null;
     }

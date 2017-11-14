@@ -298,7 +298,7 @@ main() {
       // Calling a JavaScript method with too few arguments is also fine and
       // defaults to JavaScript behavior of setting all unspecified arguments
       // to undefined resulting in multiplying undefined by 2 == NAN.
-      expect(untypedFunction().toString(), equals(double.nan.toString()));
+      expect(untypedFunction().toString(), equals(double.NAN.toString()));
     });
   });
 

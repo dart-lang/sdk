@@ -10,7 +10,7 @@ class _Settings {
 
   /// Associated [value] with [key]. [value] must be JSON encodable.
   static void set(String key, dynamic value) {
-    _storage[key] = json.encode(value);
+    _storage[key] = JSON.encode(value);
   }
 
   /// Get value associated with [key]. Return value will be a JSON encodable
@@ -20,7 +20,7 @@ class _Settings {
     if (value == null) {
       return null;
     }
-    return json.decode(value);
+    return JSON.decode(value);
   }
 }
 

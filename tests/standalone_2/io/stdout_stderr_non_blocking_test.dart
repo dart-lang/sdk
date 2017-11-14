@@ -9,8 +9,8 @@ import "dart:io";
 
 callIOSink(IOSink sink) {
   // Call all methods on IOSink.
-  sink.encoding = ascii;
-  Expect.equals(ascii, sink.encoding);
+  sink.encoding = ASCII;
+  Expect.equals(ASCII, sink.encoding);
   sink.write("Hello\n");
   sink.writeln("Hello");
   sink.writeAll(["H", "e", "l", "lo\n"]);

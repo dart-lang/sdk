@@ -36,7 +36,7 @@ class WebSocketClient extends Client {
     if (message is String) {
       var map;
       try {
-        map = json.decode(message);
+        map = JSON.decode(message);
       } catch (e) {
         socket.close(PARSE_ERROR_CODE, 'Message parse error: $e');
         return;
@@ -256,7 +256,7 @@ class Server {
         // Prefer Uri encoding first.
         fsUriBase64List = request.headers['dev_fs_uri_b64'];
         if ((fsUriBase64List != null) && (fsUriBase64List.length > 0)) {
-          String decodedFsUri = utf8.decode(base64.decode(fsUriBase64List[0]));
+          String decodedFsUri = UTF8.decode(BASE64.decode(fsUriBase64List[0]));
           fsUri = Uri.parse(decodedFsUri);
         }
 
@@ -266,7 +266,7 @@ class Server {
           fsPathBase64List = request.headers['dev_fs_path_b64'];
           // If the 'dev_fs_path_b64' header field was sent, use that instead.
           if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
-            fsPath = utf8.decode(base64.decode(fsPathBase64List[0]));
+            fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
           } else {
             fsPath = fsPathList[0];
           }

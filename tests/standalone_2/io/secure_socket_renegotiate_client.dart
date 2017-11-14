@@ -44,7 +44,7 @@ void runClient(int port) {
     expectEquals('CN=localhost', certificate.subject);
     expectEquals('CN=myauthority', certificate.issuer);
     StreamIterator<String> input = new StreamIterator(
-        socket.transform(utf8.decoder).transform(new LineSplitter()));
+        socket.transform(UTF8.decoder).transform(new LineSplitter()));
     socket.writeln('first');
     input.moveNext().then((success) {
       expect(success);

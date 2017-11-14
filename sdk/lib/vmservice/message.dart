@@ -200,7 +200,7 @@ class Message {
       ..[5] = values;
     if (!sendIsolateServiceMessage(sendPort, request)) {
       receivePort.close();
-      _completer.complete(json.encode({
+      _completer.complete(JSON.encode({
         'type': 'ServiceError',
         'id': '',
         'kind': 'InternalError',

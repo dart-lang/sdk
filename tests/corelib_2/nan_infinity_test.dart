@@ -24,67 +24,67 @@ void main() {
   Expect.isTrue((-1).isNegative);
 
   // Test that predicates give the correct result.
-  Expect.isTrue(double.nan.isNaN);
-  Expect.isFalse(double.nan.isInfinite);
-  Expect.isFalse(double.nan.isFinite);
-  Expect.isFalse(double.nan.isNegative);
-  Expect.isFalse((-double.nan).isNegative);
+  Expect.isTrue(double.NAN.isNaN);
+  Expect.isFalse(double.NAN.isInfinite);
+  Expect.isFalse(double.NAN.isFinite);
+  Expect.isFalse(double.NAN.isNegative);
+  Expect.isFalse((-double.NAN).isNegative);
 
-  Expect.isFalse(double.infinity.isNaN);
-  Expect.isTrue(double.infinity.isInfinite);
-  Expect.isFalse(double.infinity.isFinite);
-  Expect.isFalse(double.infinity.isNegative);
-  Expect.isTrue((-double.infinity).isNegative);
+  Expect.isFalse(double.INFINITY.isNaN);
+  Expect.isTrue(double.INFINITY.isInfinite);
+  Expect.isFalse(double.INFINITY.isFinite);
+  Expect.isFalse(double.INFINITY.isNegative);
+  Expect.isTrue((-double.INFINITY).isNegative);
 
-  Expect.isFalse(double.negativeInfinity.isNaN);
-  Expect.isTrue(double.negativeInfinity.isInfinite);
-  Expect.isFalse(double.negativeInfinity.isFinite);
-  Expect.isTrue(double.negativeInfinity.isNegative);
-  Expect.isFalse((-double.negativeInfinity).isNegative);
+  Expect.isFalse(double.NEGATIVE_INFINITY.isNaN);
+  Expect.isTrue(double.NEGATIVE_INFINITY.isInfinite);
+  Expect.isFalse(double.NEGATIVE_INFINITY.isFinite);
+  Expect.isTrue(double.NEGATIVE_INFINITY.isNegative);
+  Expect.isFalse((-double.NEGATIVE_INFINITY).isNegative);
 
   // Test toString.
-  Expect.equals("NaN", double.nan.toString());
-  Expect.equals("Infinity", double.infinity.toString());
-  Expect.equals("-Infinity", double.negativeInfinity.toString());
+  Expect.equals("NaN", double.NAN.toString());
+  Expect.equals("Infinity", double.INFINITY.toString());
+  Expect.equals("-Infinity", double.NEGATIVE_INFINITY.toString());
 
   // Test identities.
-  Expect.isTrue(identical(double.nan, double.nan)); // //# 01: ok
-  Expect.isTrue(identical(double.infinity, double.infinity));
-  Expect.isTrue(identical(double.negativeInfinity, double.negativeInfinity));
-  Expect.isFalse(identical(double.nan, double.infinity));
-  Expect.isFalse(identical(double.nan, double.negativeInfinity));
-  Expect.isFalse(identical(double.infinity, double.negativeInfinity));
-  Expect.isFalse(identical(double.nan, -double.nan));
-  Expect.isTrue(identical(double.infinity, -double.negativeInfinity));
-  Expect.isTrue(identical(double.negativeInfinity, -double.infinity));
+  Expect.isTrue(identical(double.NAN, double.NAN)); // //# 01: ok
+  Expect.isTrue(identical(double.INFINITY, double.INFINITY));
+  Expect.isTrue(identical(double.NEGATIVE_INFINITY, double.NEGATIVE_INFINITY));
+  Expect.isFalse(identical(double.NAN, double.INFINITY));
+  Expect.isFalse(identical(double.NAN, double.NEGATIVE_INFINITY));
+  Expect.isFalse(identical(double.INFINITY, double.NEGATIVE_INFINITY));
+  Expect.isFalse(identical(double.NAN, -double.NAN));
+  Expect.isTrue(identical(double.INFINITY, -double.NEGATIVE_INFINITY));
+  Expect.isTrue(identical(double.NEGATIVE_INFINITY, -double.INFINITY));
 
   // Test equalities
-  Expect.isTrue(double.infinity == double.infinity);
-  Expect.isTrue(double.negativeInfinity == double.negativeInfinity);
-  Expect.isFalse(double.infinity == double.negativeInfinity);
-  Expect.isFalse(double.negativeInfinity == double.infinity);
-  Expect.isFalse(double.nan == double.nan);
-  Expect.isFalse(double.nan == double.infinity);
-  Expect.isFalse(double.nan == double.negativeInfinity);
-  Expect.isFalse(double.infinity == double.nan);
-  Expect.isFalse(double.negativeInfinity == double.nan);
+  Expect.isTrue(double.INFINITY == double.INFINITY);
+  Expect.isTrue(double.NEGATIVE_INFINITY == double.NEGATIVE_INFINITY);
+  Expect.isFalse(double.INFINITY == double.NEGATIVE_INFINITY);
+  Expect.isFalse(double.NEGATIVE_INFINITY == double.INFINITY);
+  Expect.isFalse(double.NAN == double.NAN);
+  Expect.isFalse(double.NAN == double.INFINITY);
+  Expect.isFalse(double.NAN == double.NEGATIVE_INFINITY);
+  Expect.isFalse(double.INFINITY == double.NAN);
+  Expect.isFalse(double.NEGATIVE_INFINITY == double.NAN);
 
   // Test relational order.
-  Expect.isFalse(double.nan < double.nan);
-  Expect.isFalse(double.nan < double.infinity);
-  Expect.isFalse(double.nan < double.negativeInfinity);
-  Expect.isFalse(double.nan > double.nan);
-  Expect.isFalse(double.nan > double.infinity);
-  Expect.isFalse(double.nan > double.negativeInfinity);
-  Expect.isFalse(double.infinity < double.nan);
-  Expect.isFalse(double.negativeInfinity < double.nan);
-  Expect.isFalse(double.infinity > double.nan);
-  Expect.isFalse(double.negativeInfinity > double.nan);
-  Expect.isTrue(double.infinity > double.negativeInfinity);
-  Expect.isFalse(double.infinity < double.negativeInfinity);
+  Expect.isFalse(double.NAN < double.NAN);
+  Expect.isFalse(double.NAN < double.INFINITY);
+  Expect.isFalse(double.NAN < double.NEGATIVE_INFINITY);
+  Expect.isFalse(double.NAN > double.NAN);
+  Expect.isFalse(double.NAN > double.INFINITY);
+  Expect.isFalse(double.NAN > double.NEGATIVE_INFINITY);
+  Expect.isFalse(double.INFINITY < double.NAN);
+  Expect.isFalse(double.NEGATIVE_INFINITY < double.NAN);
+  Expect.isFalse(double.INFINITY > double.NAN);
+  Expect.isFalse(double.NEGATIVE_INFINITY > double.NAN);
+  Expect.isTrue(double.INFINITY > double.NEGATIVE_INFINITY);
+  Expect.isFalse(double.INFINITY < double.NEGATIVE_INFINITY);
 
   // NaN is contagious.
-  Expect.isTrue((3.0 * double.nan).isNaN);
-  Expect.isTrue((3.0 + double.nan).isNaN);
-  Expect.isTrue((-double.nan).isNaN);
+  Expect.isTrue((3.0 * double.NAN).isNaN);
+  Expect.isTrue((3.0 + double.NAN).isNaN);
+  Expect.isTrue((-double.NAN).isNaN);
 }

@@ -14,19 +14,19 @@ void testReadByte() {
   void test(String line, List<String> expected) {
     var script = Platform.script.resolve("stdin_sync_script.dart").toFilePath();
     Process
-        .start(Platform.executable, [script]..addAll(expected.map(json.encode)))
+        .start(Platform.executable, [script]..addAll(expected.map(JSON.encode)))
         .then((process) {
       process.stdin.write(line);
       process.stdin.flush().then((_) => process.stdin.close());
       process.stderr
-          .transform(utf8.decoder)
+          .transform(UTF8.decoder)
           .transform(new LineSplitter())
           .fold(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {
         if (data.toString() != '') throw "Bad output: '$data'";
       });
       process.stdout
-          .transform(utf8.decoder)
+          .transform(UTF8.decoder)
           .transform(new LineSplitter())
           .fold(new StringBuffer(), (b, d) => b..write(d))
           .then((data) {

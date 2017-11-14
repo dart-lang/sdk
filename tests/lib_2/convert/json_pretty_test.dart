@@ -120,12 +120,12 @@ void _expect(Object object, String expected) {
 
   Expect.equals(flatExpected, flatOutput);
 
-  var compactOutput = json.encode(object);
+  var compactOutput = JSON.encode(object);
 
   encoder = const JsonEncoder.withIndent(null);
   Expect.equals(compactOutput, encoder.convert(object));
 
-  var prettyDecoded = json.decode(prettyOutput);
+  var prettyDecoded = JSON.decode(prettyOutput);
 
-  Expect.equals(compactOutput, json.encode(prettyDecoded));
+  Expect.equals(compactOutput, JSON.encode(prettyDecoded));
 }

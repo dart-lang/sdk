@@ -31,7 +31,7 @@ void jsonParse(testName, check, action, [bool allowMalformed = false]) {
     check(value);
   });
   var decoderSink =
-      json.decoder.startChunkedConversion(sink).asUtf8Sink(allowMalformed);
+      JSON.decoder.startChunkedConversion(sink).asUtf8Sink(allowMalformed);
   try {
     action(decoderSink);
   } on FormatException catch (e, s) {
@@ -201,7 +201,7 @@ void jsonMalformedTest(name, expect, codes) {
         Expect.equals(expect, value, tag);
       });
       var decoderSink =
-          json.decoder.startChunkedConversion(sink).asUtf8Sink(true);
+          JSON.decoder.startChunkedConversion(sink).asUtf8Sink(true);
       try {
         action(decoderSink);
       } catch (e, s) {
@@ -214,7 +214,7 @@ void jsonMalformedTest(name, expect, codes) {
         Expect.fail(tag);
       });
       var decoderSink =
-          json.decoder.startChunkedConversion(sink).asUtf8Sink(false);
+          JSON.decoder.startChunkedConversion(sink).asUtf8Sink(false);
       Expect.throws(() {
         action(decoderSink);
       }, null, tag);
@@ -252,7 +252,7 @@ void jsonThrows(String name, String codeString) {
       Expect.fail(tag);
     });
     var decoderSink =
-        json.decoder.startChunkedConversion(sink).asUtf8Sink(true);
+        JSON.decoder.startChunkedConversion(sink).asUtf8Sink(true);
     Expect.throws(() {
       action(decoderSink);
     }, null, tag);

@@ -9,16 +9,16 @@ import 'package:expect/expect.dart';
 unalignedFloat32() {
   var bytes = new ByteData(64);
   for (var i = 0; i < 4; i++) {
-    bytes.setFloat32(i, 16.25, Endian.host);
-    Expect.equals(16.25, bytes.getFloat32(i, Endian.host));
+    bytes.setFloat32(i, 16.25, Endianness.HOST_ENDIAN);
+    Expect.equals(16.25, bytes.getFloat32(i, Endianness.HOST_ENDIAN));
   }
 }
 
 unalignedFloat64() {
   var bytes = new ByteData(64);
   for (var i = 0; i < 8; i++) {
-    bytes.setFloat64(i, 16.25, Endian.host);
-    Expect.equals(16.25, bytes.getFloat64(i, Endian.host));
+    bytes.setFloat64(i, 16.25, Endianness.HOST_ENDIAN);
+    Expect.equals(16.25, bytes.getFloat64(i, Endianness.HOST_ENDIAN));
   }
 }
 

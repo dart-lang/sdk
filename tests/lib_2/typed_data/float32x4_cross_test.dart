@@ -10,11 +10,11 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 Float32x4 cross(Float32x4 a, Float32x4 b) {
-  var t0 = a.shuffle(Float32x4.yzxw);
-  var t1 = b.shuffle(Float32x4.zxyw);
+  var t0 = a.shuffle(Float32x4.YZXW);
+  var t1 = b.shuffle(Float32x4.ZXYW);
   var l = t0 * t1;
-  t0 = a.shuffle(Float32x4.zxyw);
-  t1 = b.shuffle(Float32x4.yzxw);
+  t0 = a.shuffle(Float32x4.ZXYW);
+  t1 = b.shuffle(Float32x4.YZXW);
   var r = t0 * t1;
   return l - r;
 }

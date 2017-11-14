@@ -79,7 +79,7 @@ void testSimpleConvert() {
 void testReadLine1() {
   var controller = new StreamController<List<int>>(sync: true);
   var stream =
-      controller.stream.transform(utf8.decoder).transform(const LineSplitter());
+      controller.stream.transform(UTF8.decoder).transform(const LineSplitter());
 
   var stage = 0;
   var done = false;
@@ -107,7 +107,7 @@ void testReadLine2() {
   var controller = new StreamController<List<int>>(sync: true);
 
   var stream =
-      controller.stream.transform(utf8.decoder).transform(const LineSplitter());
+      controller.stream.transform(UTF8.decoder).transform(const LineSplitter());
 
   var expectedLines = [
     'Line1',

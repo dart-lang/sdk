@@ -6,7 +6,7 @@ library testing.test_root;
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show json;
+import 'dart:convert' show JSON;
 
 import 'dart:io' show File;
 
@@ -68,8 +68,8 @@ class TestRoot {
   }
 
   static Future<TestRoot> fromUri(Uri uri) async {
-    String jsonText = await new File.fromUri(uri).readAsString();
-    Map data = json.decode(jsonText);
+    String json = await new File.fromUri(uri).readAsString();
+    Map data = JSON.decode(json);
 
     addDefaults(data);
 

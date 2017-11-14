@@ -47,7 +47,7 @@ class WebSocketMessageCollector {
 
   void onMessageData(buffer) {
     if (buffer is String) {
-      buffer = utf8.encode(buffer);
+      buffer = UTF8.encode(buffer);
     }
     Expect.listEquals(expectedMessage, buffer);
     messageCount++;

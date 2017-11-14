@@ -42,7 +42,7 @@ Future setup() async {
     }
   });
   var client = await io.RawDatagramSocket.bind('127.0.0.1', 0);
-  client.send(utf8.encoder.convert('foobar'),
+  client.send(UTF8.encoder.convert('foobar'),
       new io.InternetAddress('127.0.0.1'), server.port);
   client.close();
 

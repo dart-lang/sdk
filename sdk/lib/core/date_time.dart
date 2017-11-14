@@ -40,16 +40,16 @@ part of dart.core;
  *
  * For convenience and readability,
  * the DateTime class provides a constant for each day and month
- * name - for example, [august] and [friday].
+ * name - for example, [AUGUST] and [FRIDAY].
  * You can use these constants to improve code readability:
  *
  * ```
- * var berlinWallFell = new DateTime.utc(1989, DateTime.november, 9);
- * assert(berlinWallFell.weekday == DateTime.thursday);
+ * var berlinWallFell = new DateTime.utc(1989, DateTime.NOVEMBER, 9);
+ * assert(berlinWallFell.weekday == DateTime.THURSDAY);
  * ```
  *
  * Day and month values begin at 1, and the week starts on Monday.
- * That is, the constants [january] and [monday] are both 1.
+ * That is, the constants [JANUARY] and [MONDAY] are both 1.
  *
  * ## Working with UTC and local time
  *
@@ -122,73 +122,29 @@ part of dart.core;
  */
 class DateTime implements Comparable<DateTime> {
   // Weekday constants that are returned by [weekday] method:
-  static const int monday = 1;
-  static const int tuesday = 2;
-  static const int wednesday = 3;
-  static const int thursday = 4;
-  static const int friday = 5;
-  static const int saturday = 6;
-  static const int sunday = 7;
-  static const int daysPerWeek = 7;
-
-  @Deprecated("Use monday instead")
-  static const int MONDAY = monday;
-  @Deprecated("Use tuesday instead")
-  static const int TUESDAY = tuesday;
-  @Deprecated("Use wednesday instead")
-  static const int WEDNESDAY = wednesday;
-  @Deprecated("Use thursday instead")
-  static const int THURSDAY = thursday;
-  @Deprecated("Use friday instead")
-  static const int FRIDAY = friday;
-  @Deprecated("Use saturday instead")
-  static const int SATURDAY = saturday;
-  @Deprecated("Use sunday instead")
-  static const int SUNDAY = sunday;
-  @Deprecated("Use daysPerWeek instead")
-  static const int DAYS_PER_WEEK = daysPerWeek;
+  static const int MONDAY = 1;
+  static const int TUESDAY = 2;
+  static const int WEDNESDAY = 3;
+  static const int THURSDAY = 4;
+  static const int FRIDAY = 5;
+  static const int SATURDAY = 6;
+  static const int SUNDAY = 7;
+  static const int DAYS_PER_WEEK = 7;
 
   // Month constants that are returned by the [month] getter.
-  static const int january = 1;
-  static const int february = 2;
-  static const int march = 3;
-  static const int april = 4;
-  static const int may = 5;
-  static const int june = 6;
-  static const int july = 7;
-  static const int august = 8;
-  static const int september = 9;
-  static const int october = 10;
-  static const int november = 11;
-  static const int december = 12;
-  static const int monthsPerYear = 12;
-
-  @Deprecated("Use january instead")
-  static const int JANUARY = january;
-  @Deprecated("Use february instead")
-  static const int FEBRUARY = february;
-  @Deprecated("Use march instead")
-  static const int MARCH = march;
-  @Deprecated("Use april instead")
-  static const int APRIL = april;
-  @Deprecated("Use may instead")
-  static const int MAY = may;
-  @Deprecated("Use june instead")
-  static const int JUNE = june;
-  @Deprecated("Use july instead")
-  static const int JULY = july;
-  @Deprecated("Use august instead")
-  static const int AUGUST = august;
-  @Deprecated("Use september instead")
-  static const int SEPTEMBER = september;
-  @Deprecated("Use october instead")
-  static const int OCTOBER = october;
-  @Deprecated("Use november instead")
-  static const int NOVEMBER = november;
-  @Deprecated("Use december instead")
-  static const int DECEMBER = december;
-  @Deprecated("Use monthsPerYear instead")
-  static const int MONTHS_PER_YEAR = monthsPerYear;
+  static const int JANUARY = 1;
+  static const int FEBRUARY = 2;
+  static const int MARCH = 3;
+  static const int APRIL = 4;
+  static const int MAY = 5;
+  static const int JUNE = 6;
+  static const int JULY = 7;
+  static const int AUGUST = 8;
+  static const int SEPTEMBER = 9;
+  static const int OCTOBER = 10;
+  static const int NOVEMBER = 11;
+  static const int DECEMBER = 12;
+  static const int MONTHS_PER_YEAR = 12;
 
   /**
    * The value of this DateTime.
@@ -373,9 +329,9 @@ class DateTime implements Comparable<DateTime> {
       bool addOneMillisecond = false;
       int milliAndMicroseconds = parseMilliAndMicroseconds(match[7]);
       int millisecond =
-          milliAndMicroseconds ~/ Duration.microsecondsPerMillisecond;
+          milliAndMicroseconds ~/ Duration.MICROSECONDS_PER_MILLISECOND;
       int microsecond =
-          milliAndMicroseconds.remainder(Duration.microsecondsPerMillisecond);
+          milliAndMicroseconds.remainder(Duration.MICROSECONDS_PER_MILLISECOND);
       bool isUtc = false;
       if (match[8] != null) {
         // timezone part
@@ -400,7 +356,7 @@ class DateTime implements Comparable<DateTime> {
     }
   }
 
-  static const int _maxMillisecondsSinceEpoch = 8640000000000000;
+  static const int _MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
 
   /**
    * Constructs a new [DateTime] instance
@@ -434,8 +390,8 @@ class DateTime implements Comparable<DateTime> {
    * If [isUtc] is false then the date is in the local time zone.
    */
   DateTime._withValue(this._value, {this.isUtc}) {
-    if (millisecondsSinceEpoch.abs() > _maxMillisecondsSinceEpoch ||
-        (millisecondsSinceEpoch.abs() == _maxMillisecondsSinceEpoch &&
+    if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH ||
+        (millisecondsSinceEpoch.abs() == _MAX_MILLISECONDS_SINCE_EPOCH &&
             microsecond != 0)) {
       throw new ArgumentError(
           "DateTime is outside valid range: $millisecondsSinceEpoch");
@@ -714,8 +670,8 @@ class DateTime implements Comparable<DateTime> {
    * Returns a [Duration] with the difference between [this] and [other].
    *
    * ```
-   * var berlinWallFell = new DateTime.utc(1989, DateTime.november, 9);
-   * var dDay = new DateTime.utc(1944, DateTime.june, 6);
+   * var berlinWallFell = new DateTime.utc(1989, DateTime.NOVEMBER, 9);
+   * var dDay = new DateTime.utc(1944, DateTime.JUNE, 6);
    *
    * Duration difference = berlinWallFell.difference(dDay);
    * assert(difference.inDays == 16592);
@@ -731,8 +687,8 @@ class DateTime implements Comparable<DateTime> {
    * For example, in Australia, similar code using local time instead of UTC:
    *
    * ```
-   * var berlinWallFell = new DateTime(1989, DateTime.november, 9);
-   * var dDay = new DateTime(1944, DateTime.june, 6);
+   * var berlinWallFell = new DateTime(1989, DateTime.NOVEMBER, 9);
+   * var dDay = new DateTime(1944, DateTime.JUNE, 6);
    * Duration difference = berlinWallFell.difference(dDay);
    * assert(difference.inDays == 16592);
    * ```
@@ -826,7 +782,7 @@ class DateTime implements Comparable<DateTime> {
    * ```
    * var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
    * assert(moonLanding.month == 7);
-   * assert(moonLanding.month == DateTime.july);
+   * assert(moonLanding.month == DateTime.JULY);
    * ```
    */
   external int get month;
@@ -892,7 +848,7 @@ class DateTime implements Comparable<DateTime> {
   external int get microsecond;
 
   /**
-   * The day of the week [monday]..[sunday].
+   * The day of the week [MONDAY]..[SUNDAY].
    *
    * In accordance with ISO 8601
    * a week starts with Monday, which has the value 1.
@@ -900,7 +856,7 @@ class DateTime implements Comparable<DateTime> {
    * ```
    * var moonLanding = DateTime.parse("1969-07-20 20:18:04Z");
    * assert(moonLanding.weekday == 7);
-   * assert(moonLanding.weekday == DateTime.sunday);
+   * assert(moonLanding.weekday == DateTime.SUNDAY);
    * ```
    */
   external int get weekday;

@@ -157,19 +157,19 @@ class Utils {
     var value = duration.inMicroseconds.abs();
     switch (precision) {
       case DurationComponent.Days:
-        value = (value / Duration.microsecondsPerDay).round();
+        value = (value / Duration.MICROSECONDS_PER_DAY).round();
         break;
       case DurationComponent.Hours:
-        value = (value / Duration.microsecondsPerHour).round();
+        value = (value / Duration.MICROSECONDS_PER_HOUR).round();
         break;
       case DurationComponent.Minutes:
-        value = (value / Duration.microsecondsPerMinute).round();
+        value = (value / Duration.MICROSECONDS_PER_MINUTE).round();
         break;
       case DurationComponent.Seconds:
-        value = (value / Duration.microsecondsPerSecond).round();
+        value = (value / Duration.MICROSECONDS_PER_SECOND).round();
         break;
       case DurationComponent.Milliseconds:
-        value = (value / Duration.microsecondsPerMillisecond).round();
+        value = (value / Duration.MICROSECONDS_PER_MILLISECOND).round();
         break;
       case DurationComponent.Microseconds:
         break;
@@ -186,24 +186,24 @@ class Utils {
     }
     switch (precision) {
       case DurationComponent.Microseconds:
-        components.add('${value % Duration.microsecondsPerMillisecond}μs');
-        value = (value / Duration.microsecondsPerMillisecond).floor();
+        components.add('${value % Duration.MICROSECONDS_PER_MILLISECOND}μs');
+        value = (value / Duration.MICROSECONDS_PER_MILLISECOND).floor();
         if (value != 0) {
           continue Milliseconds;
         }
         break;
       Milliseconds:
       case DurationComponent.Milliseconds:
-        components.add('${value % Duration.millisecondsPerSecond}ms');
-        value = (value / Duration.millisecondsPerSecond).floor();
+        components.add('${value % Duration.MILLISECONDS_PER_SECOND}ms');
+        value = (value / Duration.MILLISECONDS_PER_SECOND).floor();
         if (value != 0) {
           continue Seconds;
         }
         break;
       Seconds:
       case DurationComponent.Seconds:
-        components.add('${value % Duration.secondsPerMinute}s');
-        value = (value / Duration.secondsPerMinute).floor();
+        components.add('${value % Duration.SECONDS_PER_MINUTE}s');
+        value = (value / Duration.SECONDS_PER_MINUTE).floor();
         ;
         if (value != 0) {
           continue Minutes;
@@ -211,16 +211,16 @@ class Utils {
         break;
       Minutes:
       case DurationComponent.Minutes:
-        components.add('${value % Duration.minutesPerHour}m');
-        value = (value / Duration.minutesPerHour).floor();
+        components.add('${value % Duration.MINUTES_PER_HOUR}m');
+        value = (value / Duration.MINUTES_PER_HOUR).floor();
         if (value != 0) {
           continue Hours;
         }
         break;
       Hours:
       case DurationComponent.Hours:
-        components.add('${value % Duration.hoursPerDay}h');
-        value = (value / Duration.hoursPerDay).floor();
+        components.add('${value % Duration.HOURS_PER_DAY}h');
+        value = (value / Duration.HOURS_PER_DAY).floor();
         if (value != 0) {
           continue Days;
         }
@@ -241,10 +241,10 @@ class Utils {
   }
 
   static String formatDurationInSeconds(Duration x) =>
-      formatSeconds(x.inMicroseconds / Duration.microsecondsPerSecond);
+      formatSeconds(x.inMicroseconds / Duration.MICROSECONDS_PER_SECOND);
 
   static String formatDurationInMilliseconds(Duration x) =>
-      formatMillis(x.inMicroseconds / Duration.microsecondsPerMillisecond);
+      formatMillis(x.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND);
 
   static bool runningInJavaScript() => identical(1.0, 1);
 
@@ -299,7 +299,7 @@ class Task {
       // Already scheduled.
       return;
     }
-    _timer = new Timer(Duration.zero, () {
+    _timer = new Timer(Duration.ZERO, () {
       _timer = null;
       callback();
     });

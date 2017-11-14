@@ -26,11 +26,11 @@ checkOutput(String encoding, output) {
 test(scriptFile, String encoding, stream) {
   var enc;
   if (encoding == 'ascii') {
-    enc = ascii;
+    enc = ASCII;
   } else if (encoding == 'latin1') {
-    enc = latin1;
+    enc = LATIN1;
   } else if (encoding == 'utf8') {
-    enc = utf8;
+    enc = UTF8;
   } else if (encoding == 'binary') {
     enc = null;
   }

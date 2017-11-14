@@ -224,7 +224,7 @@ abstract class ZoneDelegate {
  *
  * Code is always executed in the context of a zone, available as
  * [Zone.current]. The initial `main` function runs in the context of the
- * default zone ([Zone.root]). Code can be run in a different zone using either
+ * default zone ([Zone.ROOT]). Code can be run in a different zone using either
  * [runZoned], to create a new zone, or [Zone.run] to run code in the context of
  * an existing zone likely created using [Zone.fork].
  *
@@ -273,7 +273,7 @@ abstract class Zone {
    * The root zone.
    *
    * All isolate entry functions (`main` or spawned functions) start running in
-   * the root zone (that is, [Zone.current] is identical to [Zone.root] when the
+   * the root zone (that is, [Zone.current] is identical to [Zone.ROOT] when the
    * entry function is called). If no custom zone is created, the rest of the
    * program always runs in the root zone.
    *
@@ -283,12 +283,10 @@ abstract class Zone {
    * [scheduleMicrotask], interact with the underlying system to implement the
    * desired behavior.
    */
-  static const Zone root = _rootZone;
-  @Deprecated("Use root instead")
-  static const Zone ROOT = root;
+  static const Zone ROOT = _ROOT_ZONE;
 
   /** The currently running zone. */
-  static Zone _current = _rootZone;
+  static Zone _current = _ROOT_ZONE;
 
   /** The zone that is currently active. */
   static Zone get current => _current;
@@ -316,7 +314,7 @@ abstract class Zone {
   /**
    * The parent zone of the this zone.
    *
-   * Is `null` if `this` is the [root] zone.
+   * Is `null` if `this` is the [ROOT] zone.
    *
    * Zones are created by [fork] on an existing zone, or by [runZoned] which
    * forks the [current] zone. The new zone's parent zone is the zone it was
@@ -401,7 +399,7 @@ abstract class Zone {
   /**
    * Executes [action] in this zone.
    *
-   * By default (as implemented in the [root] zone), runs [action]
+   * By default (as implemented in the [ROOT] zone), runs [action]
    * with [current] set to this zone.
    *
    * If [action] throws, the synchronous exception is not caught by the zone's
@@ -480,7 +478,7 @@ abstract class Zone {
    * [callback]. Frequently zones simply return the original callback.
    *
    * Custom zones may intercept this operation. The default implementation in
-   * [Zone.root] returns the original callback unchanged.
+   * [Zone.ROOT] returns the original callback unchanged.
    */
   ZoneCallback<R> registerCallback<R>(R callback());
 
@@ -752,7 +750,7 @@ class _ZoneDelegate implements ZoneDelegate {
   AsyncError errorCallback(Zone zone, Object error, StackTrace stackTrace) {
     var implementation = _delegationTarget._errorCallback;
     _Zone implZone = implementation.zone;
-    if (identical(implZone, _rootZone)) return null;
+    if (identical(implZone, _ROOT_ZONE)) return null;
     ErrorCallbackHandler handler = implementation.function;
     return handler(
         implZone, _parentDelegate(implZone), zone, error, stackTrace);
@@ -991,7 +989,7 @@ class _CustomZone extends _Zone {
       }
       return value;
     }
-    assert(this == _rootZone);
+    assert(this == _ROOT_ZONE);
     return null;
   }
 
@@ -1068,7 +1066,7 @@ class _CustomZone extends _Zone {
     var implementation = this._errorCallback;
     assert(implementation != null);
     final Zone implementationZone = implementation.zone;
-    if (identical(implementationZone, _rootZone)) return null;
+    if (identical(implementationZone, _ROOT_ZONE)) return null;
     final ZoneDelegate parentDelegate = _parentDelegate(implementationZone);
     ErrorCallbackHandler handler = implementation.function;
     return handler(implementationZone, parentDelegate, this, error, stackTrace);
@@ -1174,22 +1172,22 @@ AsyncError _rootErrorCallback(Zone self, ZoneDelegate parent, Zone zone,
 
 void _rootScheduleMicrotask(
     Zone self, ZoneDelegate parent, Zone zone, void f()) {
-  if (!identical(_rootZone, zone)) {
-    bool hasErrorHandler = !_rootZone.inSameErrorZone(zone);
+  if (!identical(_ROOT_ZONE, zone)) {
+    bool hasErrorHandler = !_ROOT_ZONE.inSameErrorZone(zone);
     if (hasErrorHandler) {
       f = zone.bindCallbackGuarded(f);
     } else {
       f = zone.bindCallback(f);
     }
     // Use root zone as event zone if the function is already bound.
-    zone = _rootZone;
+    zone = _ROOT_ZONE;
   }
   _scheduleAsyncCallback(f);
 }
 
 Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,
     Duration duration, void callback()) {
-  if (!identical(_rootZone, zone)) {
+  if (!identical(_ROOT_ZONE, zone)) {
     callback = zone.bindCallback(callback);
   }
   return Timer._createTimer(duration, callback);
@@ -1197,7 +1195,7 @@ Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,
 
 Timer _rootCreatePeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
     Duration duration, void callback(Timer timer)) {
-  if (!identical(_rootZone, zone)) {
+  if (!identical(_ROOT_ZONE, zone)) {
     // TODO(floitsch): the return type should be 'void'.
     callback = zone.bindUnaryCallback<dynamic, Timer>(callback);
   }
@@ -1242,34 +1240,34 @@ class _RootZone extends _Zone {
   const _RootZone();
 
   _ZoneFunction<Function> get _run =>
-      const _ZoneFunction<Function>(_rootZone, _rootRun);
+      const _ZoneFunction<Function>(_ROOT_ZONE, _rootRun);
   _ZoneFunction<Function> get _runUnary =>
-      const _ZoneFunction<Function>(_rootZone, _rootRunUnary);
+      const _ZoneFunction<Function>(_ROOT_ZONE, _rootRunUnary);
   _ZoneFunction<Function> get _runBinary =>
-      const _ZoneFunction<Function>(_rootZone, _rootRunBinary);
+      const _ZoneFunction<Function>(_ROOT_ZONE, _rootRunBinary);
   _ZoneFunction<Function> get _registerCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterCallback);
+      const _ZoneFunction<Function>(_ROOT_ZONE, _rootRegisterCallback);
   _ZoneFunction<Function> get _registerUnaryCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterUnaryCallback);
+      const _ZoneFunction<Function>(_ROOT_ZONE, _rootRegisterUnaryCallback);
   _ZoneFunction<Function> get _registerBinaryCallback =>
-      const _ZoneFunction<Function>(_rootZone, _rootRegisterBinaryCallback);
+      const _ZoneFunction<Function>(_ROOT_ZONE, _rootRegisterBinaryCallback);
   _ZoneFunction<ErrorCallbackHandler> get _errorCallback =>
-      const _ZoneFunction<ErrorCallbackHandler>(_rootZone, _rootErrorCallback);
+      const _ZoneFunction<ErrorCallbackHandler>(_ROOT_ZONE, _rootErrorCallback);
   _ZoneFunction<ScheduleMicrotaskHandler> get _scheduleMicrotask =>
       const _ZoneFunction<ScheduleMicrotaskHandler>(
-          _rootZone, _rootScheduleMicrotask);
+          _ROOT_ZONE, _rootScheduleMicrotask);
   _ZoneFunction<CreateTimerHandler> get _createTimer =>
-      const _ZoneFunction<CreateTimerHandler>(_rootZone, _rootCreateTimer);
+      const _ZoneFunction<CreateTimerHandler>(_ROOT_ZONE, _rootCreateTimer);
   _ZoneFunction<CreatePeriodicTimerHandler> get _createPeriodicTimer =>
       const _ZoneFunction<CreatePeriodicTimerHandler>(
-          _rootZone, _rootCreatePeriodicTimer);
+          _ROOT_ZONE, _rootCreatePeriodicTimer);
   _ZoneFunction<PrintHandler> get _print =>
-      const _ZoneFunction<PrintHandler>(_rootZone, _rootPrint);
+      const _ZoneFunction<PrintHandler>(_ROOT_ZONE, _rootPrint);
   _ZoneFunction<ForkHandler> get _fork =>
-      const _ZoneFunction<ForkHandler>(_rootZone, _rootFork);
+      const _ZoneFunction<ForkHandler>(_ROOT_ZONE, _rootFork);
   _ZoneFunction<HandleUncaughtErrorHandler> get _handleUncaughtError =>
       const _ZoneFunction<HandleUncaughtErrorHandler>(
-          _rootZone, _rootHandleUncaughtError);
+          _ROOT_ZONE, _rootHandleUncaughtError);
 
   // The parent zone.
   _Zone get parent => null;
@@ -1300,7 +1298,7 @@ class _RootZone extends _Zone {
 
   void runGuarded(void f()) {
     try {
-      if (identical(_rootZone, Zone._current)) {
+      if (identical(_ROOT_ZONE, Zone._current)) {
         f();
         return;
       }
@@ -1312,7 +1310,7 @@ class _RootZone extends _Zone {
 
   void runUnaryGuarded<T>(void f(T arg), T arg) {
     try {
-      if (identical(_rootZone, Zone._current)) {
+      if (identical(_ROOT_ZONE, Zone._current)) {
         f(arg);
         return;
       }
@@ -1324,7 +1322,7 @@ class _RootZone extends _Zone {
 
   void runBinaryGuarded<T1, T2>(void f(T1 arg1, T2 arg2), T1 arg1, T2 arg2) {
     try {
-      if (identical(_rootZone, Zone._current)) {
+      if (identical(_ROOT_ZONE, Zone._current)) {
         f(arg1, arg2);
         return;
       }
@@ -1373,17 +1371,17 @@ class _RootZone extends _Zone {
   }
 
   R run<R>(R f()) {
-    if (identical(Zone._current, _rootZone)) return f();
+    if (identical(Zone._current, _ROOT_ZONE)) return f();
     return _rootRun(null, null, this, f);
   }
 
   R runUnary<R, T>(R f(T arg), T arg) {
-    if (identical(Zone._current, _rootZone)) return f(arg);
+    if (identical(Zone._current, _ROOT_ZONE)) return f(arg);
     return _rootRunUnary(null, null, this, f, arg);
   }
 
   R runBinary<R, T1, T2>(R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2) {
-    if (identical(Zone._current, _rootZone)) return f(arg1, arg2);
+    if (identical(Zone._current, _ROOT_ZONE)) return f(arg1, arg2);
     return _rootRunBinary(null, null, this, f, arg1, arg2);
   }
 
@@ -1414,7 +1412,7 @@ class _RootZone extends _Zone {
   }
 }
 
-const _rootZone = const _RootZone();
+const _ROOT_ZONE = const _RootZone();
 
 /**
  * Runs [body] in its own zone.

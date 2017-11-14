@@ -4,7 +4,7 @@
 
 library testing.test_dart;
 
-import 'dart:convert' show json;
+import 'dart:convert' show JSON;
 
 import 'dart:io' show Platform;
 
@@ -60,8 +60,8 @@ class TestDart extends Suite {
       arguments += " $commandLine";
       processedArguments.add(arguments);
     }
-    String executable = json.encode(dartVm.toFilePath());
-    String arguments = json.encode(processedArguments);
+    String executable = JSON.encode(dartVm.toFilePath());
+    String arguments = JSON.encode(processedArguments);
     sink.write("""
   {
     print('Running $arguments');
@@ -76,7 +76,7 @@ class TestDart extends Suite {
   }
 
   String toString() {
-    return "TestDart($name, ${json.encode(common)}, ${json.encode(processes)},"
-        " ${json.encode(commandLines)})";
+    return "TestDart($name, ${JSON.encode(common)}, ${JSON.encode(processes)},"
+        " ${JSON.encode(commandLines)})";
   }
 }

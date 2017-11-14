@@ -32,30 +32,30 @@ testGetters() {
 
   value = bd.getInt16(0); // Default is big endian access.
   Expect.equals(expected_value_be, value);
-  value = bd.getInt16(0, Endian.big);
+  value = bd.getInt16(0, Endianness.BIG_ENDIAN);
   Expect.equals(expected_value_be, value);
-  value = bd.getInt16(0, Endian.little);
+  value = bd.getInt16(0, Endianness.LITTLE_ENDIAN);
   Expect.equals(expected_value_le, value);
-  value = bd.getInt16(0, Endian.host);
+  value = bd.getInt16(0, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     Expect.equals(expected_value_le, value);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     Expect.equals(expected_value_be, value);
   }
 
   value = bd.getUint16(0); // Default is big endian access.
   Expect.equals(0xf1f2, value);
-  value = bd.getUint16(0, Endian.big);
+  value = bd.getUint16(0, Endianness.BIG_ENDIAN);
   Expect.equals(0xf1f2, value);
-  value = bd.getUint16(0, Endian.little);
+  value = bd.getUint16(0, Endianness.LITTLE_ENDIAN);
   Expect.equals(0xf2f1, value);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     Expect.equals(0xf2f1, value);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     Expect.equals(0xf1f2, value);
   }
 
@@ -64,29 +64,29 @@ testGetters() {
 
   value = bd.getInt32(0); // Default is big endian access.
   Expect.equals(expected_value_be, value);
-  value = bd.getInt32(0, Endian.big);
+  value = bd.getInt32(0, Endianness.BIG_ENDIAN);
   Expect.equals(expected_value_be, value);
-  value = bd.getInt32(0, Endian.little);
+  value = bd.getInt32(0, Endianness.LITTLE_ENDIAN);
   Expect.equals(expected_value_le, value);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     Expect.equals(expected_value_le, value);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     Expect.equals(expected_value_be, value);
   }
 
   value = bd.getUint32(0); // Default is big endian access.
   Expect.equals(0xf1f2f3f4, value);
-  value = bd.getUint32(0, Endian.big);
+  value = bd.getUint32(0, Endianness.BIG_ENDIAN);
   Expect.equals(0xf1f2f3f4, value);
-  value = bd.getUint32(0, Endian.little);
+  value = bd.getUint32(0, Endianness.LITTLE_ENDIAN);
   Expect.equals(0xf4f3f2f1, value);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     Expect.equals(0xf4f3f2f1, value);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     Expect.equals(0xf1f2f3f4, value);
   }
 
@@ -95,29 +95,29 @@ testGetters() {
 
   value = bd.getInt64(0); // Default is big endian access.
   Expect.equals(expected_value_be, value);
-  value = bd.getInt64(0, Endian.big);
+  value = bd.getInt64(0, Endianness.BIG_ENDIAN);
   Expect.equals(expected_value_be, value);
-  value = bd.getInt64(0, Endian.little);
+  value = bd.getInt64(0, Endianness.LITTLE_ENDIAN);
   Expect.equals(expected_value_le, value);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     Expect.equals(expected_value_le, value);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     Expect.equals(expected_value_be, value);
   }
 
   value = bd.getUint64(0); // Default is big endian access.
   Expect.equals(0xf1f2f3f4f5f6f7f8, value);
-  value = bd.getUint64(0, Endian.big);
+  value = bd.getUint64(0, Endianness.BIG_ENDIAN);
   Expect.equals(0xf1f2f3f4f5f6f7f8, value);
-  value = bd.getUint64(0, Endian.little);
+  value = bd.getUint64(0, Endianness.LITTLE_ENDIAN);
   Expect.equals(0xf8f7f6f5f4f3f2f1, value);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     Expect.equals(0xf8f7f6f5f4f3f2f1, value);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     Expect.equals(0xf1f2f3f4f5f6f7f8, value);
   }
 
@@ -125,15 +125,15 @@ testGetters() {
   double expected_le_value = -1.5462104171572421e+32;
   value = bd.getFloat32(0); // Default is big endian access.
   Expect.equals(expected_be_value, value);
-  value = bd.getFloat32(0, Endian.big);
+  value = bd.getFloat32(0, Endianness.BIG_ENDIAN);
   Expect.equals(expected_be_value, value);
-  value = bd.getFloat32(0, Endian.little);
+  value = bd.getFloat32(0, Endianness.LITTLE_ENDIAN);
   Expect.equals(expected_le_value, value);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     Expect.equals(expected_le_value, value);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     Expect.equals(expected_be_value, value);
   }
 
@@ -141,15 +141,15 @@ testGetters() {
   expected_le_value = -5.185705956736366e+274;
   value = bd.getFloat64(0); // Default is big endian access.
   Expect.equals(expected_be_value, value);
-  value = bd.getFloat64(0, Endian.big);
+  value = bd.getFloat64(0, Endianness.BIG_ENDIAN);
   Expect.equals(expected_be_value, value);
-  value = bd.getFloat64(0, Endian.little);
+  value = bd.getFloat64(0, Endianness.LITTLE_ENDIAN);
   Expect.equals(expected_le_value, value);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     Expect.equals(expected_le_value, value);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     Expect.equals(expected_be_value, value);
   }
 }
@@ -213,121 +213,121 @@ testSetters() {
 
   bd.setInt16(0, 0xf1f2); // Default is big endian access.
   validate16be(list);
-  bd.setInt16(0, 0xf1f2, Endian.big);
+  bd.setInt16(0, 0xf1f2, Endianness.BIG_ENDIAN);
   validate16be(list);
-  bd.setInt16(0, 0xf1f2, Endian.little);
+  bd.setInt16(0, 0xf1f2, Endianness.LITTLE_ENDIAN);
   validate16le(list);
-  bd.setInt16(0, 0xf1f2, Endian.host);
+  bd.setInt16(0, 0xf1f2, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     validate16le(list);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     validate16be(list);
   }
 
   bd.setUint16(0, 0xf1f2); // Default is big endian access.
   validate16be(list);
-  bd.setUint16(0, 0xf1f2, Endian.big);
+  bd.setUint16(0, 0xf1f2, Endianness.BIG_ENDIAN);
   validate16be(list);
-  bd.setUint16(0, 0xf1f2, Endian.little);
+  bd.setUint16(0, 0xf1f2, Endianness.LITTLE_ENDIAN);
   validate16le(list);
-  bd.setUint16(0, 0xf1f2, Endian.host);
+  bd.setUint16(0, 0xf1f2, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     validate16le(list);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     validate16be(list);
   }
 
   bd.setInt32(0, 0xf1f2f3f4); // Default is big endian access.
   validate32be(list);
-  bd.setInt32(0, 0xf1f2f3f4, Endian.big);
+  bd.setInt32(0, 0xf1f2f3f4, Endianness.BIG_ENDIAN);
   validate32be(list);
-  bd.setInt32(0, 0xf1f2f3f4, Endian.little);
+  bd.setInt32(0, 0xf1f2f3f4, Endianness.LITTLE_ENDIAN);
   validate32le(list);
-  bd.setInt32(0, 0xf1f2f3f4, Endian.host);
+  bd.setInt32(0, 0xf1f2f3f4, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     validate32le(list);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     validate32be(list);
   }
 
   bd.setUint32(0, 0xf1f2f3f4); // Default is big endian access.
   validate32be(list);
-  bd.setUint32(0, 0xf1f2f3f4, Endian.big);
+  bd.setUint32(0, 0xf1f2f3f4, Endianness.BIG_ENDIAN);
   validate32be(list);
-  bd.setUint32(0, 0xf1f2f3f4, Endian.little);
+  bd.setUint32(0, 0xf1f2f3f4, Endianness.LITTLE_ENDIAN);
   validate32le(list);
-  bd.setUint32(0, 0xf1f2f3f4, Endian.host);
+  bd.setUint32(0, 0xf1f2f3f4, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     validate32le(list);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     validate32be(list);
   }
 
   bd.setInt64(0, 0xf1f2f3f4f5f6f7f8); // Default is big endian access.
   validate64be(list);
-  bd.setInt64(0, 0xf1f2f3f4f5f6f7f8, Endian.big);
+  bd.setInt64(0, 0xf1f2f3f4f5f6f7f8, Endianness.BIG_ENDIAN);
   validate64be(list);
-  bd.setInt64(0, 0xf1f2f3f4f5f6f7f8, Endian.little);
+  bd.setInt64(0, 0xf1f2f3f4f5f6f7f8, Endianness.LITTLE_ENDIAN);
   validate64le(list);
-  bd.setInt64(0, 0xf1f2f3f4f5f6f7f8, Endian.host);
+  bd.setInt64(0, 0xf1f2f3f4f5f6f7f8, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     validate64le(list);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     validate64be(list);
   }
 
   bd.setUint64(0, 0xf1f2f3f4f5f6f7f8); // Default is big endian access.
   validate64be(list);
-  bd.setUint64(0, 0xf1f2f3f4f5f6f7f8, Endian.big);
+  bd.setUint64(0, 0xf1f2f3f4f5f6f7f8, Endianness.BIG_ENDIAN);
   validate64be(list);
-  bd.setUint64(0, 0xf1f2f3f4f5f6f7f8, Endian.little);
+  bd.setUint64(0, 0xf1f2f3f4f5f6f7f8, Endianness.LITTLE_ENDIAN);
   validate64le(list);
-  bd.setUint64(0, 0xf1f2f3f4f5f6f7f8, Endian.host);
+  bd.setUint64(0, 0xf1f2f3f4f5f6f7f8, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     validate64le(list);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     validate64be(list);
   }
 
   bd.setFloat32(0, -2.4060893954673178e+30); // Default is big endian access.
   validate32be(list);
-  bd.setFloat32(0, -2.4060893954673178e+30, Endian.big);
+  bd.setFloat32(0, -2.4060893954673178e+30, Endianness.BIG_ENDIAN);
   validate32be(list);
-  bd.setFloat32(0, -2.4060893954673178e+30, Endian.little);
+  bd.setFloat32(0, -2.4060893954673178e+30, Endianness.LITTLE_ENDIAN);
   validate32le(list);
-  bd.setFloat32(0, -2.4060893954673178e+30, Endian.host);
+  bd.setFloat32(0, -2.4060893954673178e+30, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     validate32le(list);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     validate32be(list);
   }
 
   bd.setFloat64(0, -7.898661740976602e+240); // Default is big endian access.
   validate64be(list);
-  bd.setFloat64(0, -7.898661740976602e+240, Endian.big);
+  bd.setFloat64(0, -7.898661740976602e+240, Endianness.BIG_ENDIAN);
   validate64be(list);
-  bd.setFloat64(0, -7.898661740976602e+240, Endian.little);
+  bd.setFloat64(0, -7.898661740976602e+240, Endianness.LITTLE_ENDIAN);
   validate64le(list);
-  bd.setFloat64(0, -7.898661740976602e+240, Endian.host);
+  bd.setFloat64(0, -7.898661740976602e+240, Endianness.HOST_ENDIAN);
   if (host_is_little_endian) {
-    Expect.isTrue(identical(Endian.host, Endian.little));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.LITTLE_ENDIAN));
     validate64le(list);
   } else {
-    Expect.isTrue(identical(Endian.host, Endian.big));
+    Expect.isTrue(identical(Endianness.HOST_ENDIAN, Endianness.BIG_ENDIAN));
     validate64be(list);
   }
 }

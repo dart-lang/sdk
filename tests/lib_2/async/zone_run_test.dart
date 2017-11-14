@@ -11,12 +11,12 @@ main() {
   List events = [];
 
   bool shouldForward = true;
-  Expect.identical(Zone.root, Zone.current);
+  Expect.identical(Zone.ROOT, Zone.current);
   Zone forked = Zone.current.fork(specification: new ZoneSpecification(
       run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
-    Expect.identical(Zone.root, Zone.current);
+    Expect.identical(Zone.ROOT, Zone.current);
     events.add("forked.run");
     if (shouldForward) return parent.run(origin, f);
     return 42 as R;
@@ -71,9 +71,9 @@ main() {
     asyncEnd();
   });
 
-  var zone1 = Zone.root.fork();
-  var zone2 = Zone.root.fork();
-  var zone3 = Zone.root.fork();
+  var zone1 = Zone.ROOT.fork();
+  var zone2 = Zone.ROOT.fork();
+  var zone3 = Zone.ROOT.fork();
   asyncStart();
   asyncStart();
   zone1.run(() {

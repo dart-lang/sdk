@@ -333,7 +333,7 @@ class _WebSocketProtocolTransformer
 
       switch (_currentMessageType) {
         case _WebSocketMessageType.TEXT:
-          _eventSink.add(utf8.decode(bytes));
+          _eventSink.add(UTF8.decode(bytes));
           break;
         case _WebSocketMessageType.BINARY:
           _eventSink.add(bytes);
@@ -358,7 +358,7 @@ class _WebSocketProtocolTransformer
             throw new WebSocketException("Protocol error");
           }
           if (payload.length > 2) {
-            closeReason = utf8.decode(payload.sublist(2));
+            closeReason = UTF8.decode(payload.sublist(2));
           }
         }
         _state = CLOSED;
@@ -690,7 +690,7 @@ class _WebSocketOutgoingTransformer
     if (message != null) {
       if (message is String) {
         opcode = _WebSocketOpcode.TEXT;
-        data = utf8.encode(message);
+        data = UTF8.encode(message);
       } else if (message is List<int>) {
         opcode = _WebSocketOpcode.BINARY;
         data = message;
@@ -723,7 +723,7 @@ class _WebSocketOutgoingTransformer
       data.add((code >> 8) & 0xFF);
       data.add(code & 0xFF);
       if (reason != null) {
-        data.addAll(utf8.encode(reason));
+        data.addAll(UTF8.encode(reason));
       }
     }
     addFrame(_WebSocketOpcode.CLOSE, data);
@@ -1007,7 +1007,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
-        String auth = _CryptoUtils.bytesToBase64(utf8.encode(uri.userInfo));
+        String auth = _CryptoUtils.bytesToBase64(UTF8.encode(uri.userInfo));
         request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
       }
       if (headers != null) {

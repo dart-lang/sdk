@@ -64,12 +64,12 @@ main() {
     expect(bd.lengthInBytes, equals(10 - 2));
 
     expect(bd.getInt16(0), equals(1023));
-    expect(bd.getInt16(0, Endian.big), equals(1023));
-    expect(bd.getInt16(0, Endian.little), equals(-253));
+    expect(bd.getInt16(0, Endianness.BIG_ENDIAN), equals(1023));
+    expect(bd.getInt16(0, Endianness.LITTLE_ENDIAN), equals(-253));
 
     expect(bd.getUint16(0), equals(1023));
-    expect(bd.getUint16(0, Endian.big), equals(1023));
-    expect(bd.getUint16(0, Endian.little), equals(0xFF03));
+    expect(bd.getUint16(0, Endianness.BIG_ENDIAN), equals(1023));
+    expect(bd.getUint16(0, Endianness.LITTLE_ENDIAN), equals(0xFF03));
 
     bd.setInt16(2, -1);
     expect(bd.getInt16(2), equals(-1));
@@ -82,11 +82,11 @@ main() {
     var bd = new ByteData.view(a1.buffer);
 
     expect(bd.getInt32(0), equals(1023));
-    expect(bd.getInt32(0, Endian.big), equals(1023));
-    expect(bd.getInt32(0, Endian.little), equals(-0xFD0000));
+    expect(bd.getInt32(0, Endianness.BIG_ENDIAN), equals(1023));
+    expect(bd.getInt32(0, Endianness.LITTLE_ENDIAN), equals(-0xFD0000));
 
     expect(bd.getUint32(0), equals(1023));
-    expect(bd.getUint32(0, Endian.big), equals(1023));
-    expect(bd.getUint32(0, Endian.little), equals(0xFF030000));
+    expect(bd.getUint32(0, Endianness.BIG_ENDIAN), equals(1023));
+    expect(bd.getUint32(0, Endianness.LITTLE_ENDIAN), equals(0xFF030000));
   });
 }

@@ -19,7 +19,7 @@ Future<ServiceExtensionResponse> Handler(String method,
     case 'ext..delay':
       Completer c = new Completer();
       new Timer(new Duration(seconds: 1), () {
-        c.complete(new ServiceExtensionResponse.result(json.encode({
+        c.complete(new ServiceExtensionResponse.result(JSON.encode({
             'type': '_delayedType',
             'method': method,
             'parameters': paremeters,
@@ -35,7 +35,7 @@ Future<ServiceExtensionResponse> Handler(String method,
       throw "I always throw!";
     case 'ext..success':
       return new Future.value(
-          new ServiceExtensionResponse.result(json.encode({
+          new ServiceExtensionResponse.result(JSON.encode({
               'type': '_extensionType',
               'method': method,
               'parameters': paremeters,

@@ -36,7 +36,7 @@ String _makeAuthToken() {
   for (int i = 0; i < kTokenByteSize; i++) {
     bytes[i] = random.nextInt(256);
   }
-  return base64Url.encode(bytes);
+  return BASE64URL.encode(bytes);
 }
 
 // The randomly generated auth token used to access the VM service.
@@ -104,7 +104,7 @@ String encodeRpcError(Message message, int code, {String details}) {
       'details': details,
     };
   }
-  return json.encode(response);
+  return JSON.encode(response);
 }
 
 String encodeMissingParamError(Message message, String param) {
@@ -124,7 +124,7 @@ String encodeResult(Message message, Map result) {
     'id': message.serial,
     'result': result,
   };
-  return json.encode(response);
+  return JSON.encode(response);
 }
 
 String encodeSuccess(Message message) {
@@ -219,7 +219,7 @@ class VMService extends MessageRouter {
     for (var service in client.services.keys) {
       _eventMessageHandler([
         '_Service',
-        json.encode({
+        JSON.encode({
           'jsonrpc': '2.0',
           'method': 'streamNotify',
           'params': {
@@ -454,7 +454,7 @@ class VMService extends MessageRouter {
       {Client target}) async {
     final namespace = clients.keyOf(client);
     final alias = client.services[service];
-    final event = json.encode({
+    final event = JSON.encode({
       'jsonrpc': '2.0',
       'method': 'streamNotify',
       'params': {
@@ -487,13 +487,13 @@ class VMService extends MessageRouter {
         final completer = new Completer<String>();
         client.serviceHandles[id] = (Message m) {
           if (m != null) {
-            completer.complete(json.encode(m.forwardToJson({'id': oldId})));
+            completer.complete(JSON.encode(m.forwardToJson({'id': oldId})));
           } else {
             completer.complete(encodeRpcError(message, kServiceDisappeared));
           }
         };
         client.post(
-            json.encode(message.forwardToJson({'id': id, 'method': method})));
+            JSON.encode(message.forwardToJson({'id': id, 'method': method})));
         return completer.future;
       }
     }
@@ -533,10 +533,10 @@ class VMService extends MessageRouter {
 
   static responseAsJson(portResponse) {
     if (portResponse is String) {
-      return json.decode(portResponse);
+      return JSON.decode(portResponse);
     } else {
       var cstring = portResponse[0];
-      return json.fuse(utf8).decode(cstring);
+      return JSON.fuse(UTF8).decode(cstring);
     }
   }
 

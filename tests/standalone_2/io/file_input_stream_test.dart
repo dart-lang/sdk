@@ -23,7 +23,7 @@ void testStringLineSplitter() {
   File file = new File(fileName);
   int linesRead = 0;
   var lineStream =
-      file.openRead().transform(utf8.decoder).transform(new LineSplitter());
+      file.openRead().transform(UTF8.decoder).transform(new LineSplitter());
   lineStream.listen((line) {
     linesRead++;
     if (linesRead == 1) {
@@ -214,7 +214,7 @@ void testStringLineSplitterEnding(String name, int length) {
   File file = new File(fileName);
   Expect.equals(length, file.lengthSync());
   var lineStream =
-      file.openRead().transform(utf8.decoder).transform(new LineSplitter());
+      file.openRead().transform(UTF8.decoder).transform(new LineSplitter());
   int lineCount = 0;
   lineStream.listen((line) {
     lineCount++;

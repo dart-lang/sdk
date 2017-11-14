@@ -7,5 +7,5 @@ library mixin_prefix_lib;
 import "dart:convert";
 
 class MixinClass {
-  String bar() => json.encode({'a': 1});
+  String bar() => JSON.encode({'a': 1});
 }

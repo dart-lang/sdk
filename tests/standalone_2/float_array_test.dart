@@ -46,7 +46,7 @@ void testSetRange32() {
   floatArray.setRange(1, 3, const [8.0, 4.0e40]);
   Expect.equals(20, floatArray[0]);
   Expect.equals(8, floatArray[1]);
-  Expect.equals(double.infinity, floatArray[2]);
+  Expect.equals(double.INFINITY, floatArray[2]);
 }
 
 void testIndexOutOfRange32() {

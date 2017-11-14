@@ -36,7 +36,7 @@ Usage: save <dir-containing 'out.js.map2'>
       convertFromHumanReadableSourceMap(humanReadableSourceMap);
 
   if (sourceMapFile != null) {
-    sourceMapFile.writeAsStringSync(json.encoder.convert(mapping.toJson()));
+    sourceMapFile.writeAsStringSync(JSON.encoder.convert(mapping.toJson()));
   } else {
     print(new JsonEncoder.withIndent('  ').convert(mapping.toJson()));
   }

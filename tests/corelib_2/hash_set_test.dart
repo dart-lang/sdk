@@ -300,8 +300,8 @@ void testIdentitySet(Set create()) {
 
   // All compile time constants are identical to themselves.
   var constants = [
-    double.infinity,
-    double.nan, -0.0, //# 01: ok
+    double.INFINITY,
+    double.NAN, -0.0, //# 01: ok
     0.0, 42, "", null, false, true, #bif, testIdentitySet
   ];
   set.addAll(constants);

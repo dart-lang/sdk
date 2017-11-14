@@ -16,5 +16,5 @@ main() {
   Expect.isFalse(myIdentical(42, 42.0));
 
   // NaN handling.
-  Expect.isTrue(myIdentical(double.nan, double.nan));
+  Expect.isTrue(myIdentical(double.NAN, double.NAN));
 }

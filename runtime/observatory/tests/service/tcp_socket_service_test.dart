@@ -14,7 +14,7 @@ Future setupTCP() async {
   // to allow us to query them from the other isolate.
   var serverSocket = await io.ServerSocket.bind('127.0.0.1', 0);
   serverSocket.listen((s) {
-    s.transform(utf8.decoder).listen(print);
+    s.transform(UTF8.decoder).listen(print);
     s.close();
   });
   var socket = await io.Socket.connect("127.0.0.1", serverSocket.port);

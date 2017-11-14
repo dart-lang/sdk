@@ -626,12 +626,12 @@ void main() {
   testEncodeToUtf8();
 }
 
-List<int> encodeUtf8(String str) => utf8.encode(str);
+List<int> encodeUtf8(String str) => UTF8.encode(str);
 List<int> utf8ToRunes(List<int> codeUnits) {
-  return utf8.decode(codeUnits, allowMalformed: true).runes.toList();
+  return UTF8.decode(codeUnits, allowMalformed: true).runes.toList();
 }
 
-String decodeUtf8(List<int> codeUnits) => utf8.decode(codeUnits);
+String decodeUtf8(List<int> codeUnits) => UTF8.decode(codeUnits);
 
 void testEncodeToUtf8() {
   Expect.listEquals(

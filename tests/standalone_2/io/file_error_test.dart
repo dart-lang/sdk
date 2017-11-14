@@ -176,7 +176,7 @@ void testReadAsTextNonExistent() {
   Expect.throws(() => file.readAsStringSync(),
       (e) => checkOpenNonExistentFileSystemException(e));
 
-  var readAsStringFuture = file.readAsString(encoding: ascii);
+  var readAsStringFuture = file.readAsString(encoding: ASCII);
   readAsStringFuture
       .then((data) => Expect.fail("Unreachable code"))
       .catchError((error) {
@@ -195,7 +195,7 @@ testReadAsLinesNonExistent() {
   Expect.throws(() => file.readAsLinesSync(),
       (e) => checkOpenNonExistentFileSystemException(e));
 
-  var readAsLinesFuture = file.readAsLines(encoding: ascii);
+  var readAsLinesFuture = file.readAsLines(encoding: ASCII);
   readAsLinesFuture
       .then((data) => Expect.fail("Unreachable code"))
       .catchError((error) {

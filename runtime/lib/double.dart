@@ -235,8 +235,8 @@ class _Double implements double {
     }
 
     if (isNaN) return "NaN";
-    if (this == double.infinity) return "Infinity";
-    if (this == -double.infinity) return "-Infinity";
+    if (this == double.INFINITY) return "Infinity";
+    if (this == -double.INFINITY) return "-Infinity";
 
     // The dart function prints the shortest representation when fractionDigits
     // equals null. The native function wants -1 instead.
@@ -264,8 +264,8 @@ class _Double implements double {
     }
 
     if (isNaN) return "NaN";
-    if (this == double.infinity) return "Infinity";
-    if (this == -double.infinity) return "-Infinity";
+    if (this == double.INFINITY) return "Infinity";
+    if (this == -double.INFINITY) return "-Infinity";
 
     return _toStringAsPrecision(precision);
   }

@@ -13,13 +13,11 @@ part of dart.convert;
  *
  * Examples:
  *
- *     var encoded = base64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+ *     var encoded = BASE64.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
  *                                  0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
- *     var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
+ *     var decoded = BASE64.decode("YmzDpWLDpnJncsO4ZAo=");
  */
-const Base64Codec base64 = const Base64Codec();
-@Deprecated("Use base64 instead")
-const Base64Codec BASE64 = base64;
+const Base64Codec BASE64 = const Base64Codec();
 
 /**
  * A [base64url](https://tools.ietf.org/html/rfc4648) encoder and decoder.
@@ -30,13 +28,11 @@ const Base64Codec BASE64 = base64;
  *
  * Examples:
  *
- *     var encoded = base64Url.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
+ *     var encoded = BASE64URL.encode([0x62, 0x6c, 0xc3, 0xa5, 0x62, 0xc3, 0xa6,
  *                                     0x72, 0x67, 0x72, 0xc3, 0xb8, 0x64]);
- *     var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
+ *     var decoded = BASE64URL.decode("YmzDpWLDpnJncsO4ZAo=");
  */
-const Base64Codec base64Url = const Base64Codec.urlSafe();
-@Deprecated("Use base64Url instead")
-const Base64Codec BASE64URL = base64Url;
+const Base64Codec BASE64URL = const Base64Codec.urlSafe();
 
 // Constants used in more than one class.
 const int _paddingChar = 0x3d; // '='.
@@ -239,7 +235,7 @@ class _Base64Encoder {
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
   /** The RFC 4648 base64url encoding alphabet. */
-  static const String _base64UrlAlphabet =
+  static const String _base64urlAlphabet =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
   /** Shift-count to extract the values stored in [_state]. */
@@ -263,7 +259,7 @@ class _Base64Encoder {
   final String _alphabet;
 
   _Base64Encoder(bool urlSafe)
-      : _alphabet = urlSafe ? _base64UrlAlphabet : _base64Alphabet;
+      : _alphabet = urlSafe ? _base64urlAlphabet : _base64Alphabet;
 
   /** Encode count and bits into a value to be stored in [_state]. */
   static int _encodeState(int count, int bits) {

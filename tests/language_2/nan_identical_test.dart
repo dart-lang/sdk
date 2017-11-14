@@ -22,16 +22,16 @@ double createOtherNAN() {
 main() {
   var otherNAN = createOtherNAN();
   for (int i = 0; i < 100; i++) {
-    Expect.isFalse(checkIdentical(double.nan, -double.nan));
-    Expect.isTrue(checkIdentical(double.nan, double.nan));
-    Expect.isTrue(checkIdentical(-double.nan, -double.nan));
+    Expect.isFalse(checkIdentical(double.NAN, -double.NAN));
+    Expect.isTrue(checkIdentical(double.NAN, double.NAN));
+    Expect.isTrue(checkIdentical(-double.NAN, -double.NAN));
 
     Expect.isFalse(checkIdentical(otherNAN, -otherNAN));
     Expect.isTrue(checkIdentical(otherNAN, otherNAN));
     Expect.isTrue(checkIdentical(-otherNAN, -otherNAN));
 
     var a = otherNAN;
-    var b = double.nan;
+    var b = double.NAN;
     Expect.isFalse(checkIdentical(a, b));
     Expect.isFalse(checkIdentical(-a, -b));
     Expect.isFalse(checkIdentical(-a, b));

@@ -87,7 +87,7 @@ void testWithPause(String expected, Object o) {
   var sub;
   sub = stream.listen((x) {
     buffer.write(x);
-    sub.pause(new Future.delayed(Duration.zero));
+    sub.pause(new Future.delayed(Duration.ZERO));
   }, onDone: () {
     Expect.stringEquals(expected, buffer.toString());
     asyncEnd();

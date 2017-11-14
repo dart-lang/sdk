@@ -588,7 +588,7 @@ class _HttpHeaders implements HttpHeaders {
     for (var i = 0; i < field.length; i++) {
       if (!_HttpParser._isTokenChar(field.codeUnitAt(i))) {
         throw new FormatException(
-            "Invalid HTTP header field name: ${json.encode(field)}");
+            "Invalid HTTP header field name: ${JSON.encode(field)}");
       }
     }
     return field.toLowerCase();
@@ -599,7 +599,7 @@ class _HttpHeaders implements HttpHeaders {
     for (var i = 0; i < value.length; i++) {
       if (!_HttpParser._isValueChar(value.codeUnitAt(i))) {
         throw new FormatException(
-            "Invalid HTTP header field value: ${json.encode(value)}");
+            "Invalid HTTP header field value: ${JSON.encode(value)}");
       }
     }
     return value;

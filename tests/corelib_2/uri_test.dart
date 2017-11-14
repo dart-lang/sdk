@@ -49,24 +49,24 @@ testEncodeDecodeQueryComponent(String orig, String encodedUTF8,
   d = Uri.decodeQueryComponent(encodedUTF8);
   Expect.stringEquals(orig, d);
 
-  e = Uri.encodeQueryComponent(orig, encoding: utf8);
+  e = Uri.encodeQueryComponent(orig, encoding: UTF8);
   Expect.stringEquals(encodedUTF8, e);
-  d = Uri.decodeQueryComponent(encodedUTF8, encoding: utf8);
+  d = Uri.decodeQueryComponent(encodedUTF8, encoding: UTF8);
   Expect.stringEquals(orig, d);
 
-  e = Uri.encodeQueryComponent(orig, encoding: latin1);
+  e = Uri.encodeQueryComponent(orig, encoding: LATIN1);
   Expect.stringEquals(encodedLatin1, e);
-  d = Uri.decodeQueryComponent(encodedLatin1, encoding: latin1);
+  d = Uri.decodeQueryComponent(encodedLatin1, encoding: LATIN1);
   Expect.stringEquals(orig, d);
 
   if (encodedAscii != null) {
-    e = Uri.encodeQueryComponent(orig, encoding: ascii);
+    e = Uri.encodeQueryComponent(orig, encoding: ASCII);
     Expect.stringEquals(encodedAscii, e);
-    d = Uri.decodeQueryComponent(encodedAscii, encoding: ascii);
+    d = Uri.decodeQueryComponent(encodedAscii, encoding: ASCII);
     Expect.stringEquals(orig, d);
   } else {
     Expect.throwsArgumentError(
-        () => Uri.encodeQueryComponent(orig, encoding: ascii));
+        () => Uri.encodeQueryComponent(orig, encoding: ASCII));
   }
 }
 
@@ -566,7 +566,7 @@ main() {
 
   // URI encode tests
   // Create a string with code point 0x10000 encoded as a surrogate pair.
-  var s = utf8.decode([0xf0, 0x90, 0x80, 0x80]);
+  var s = UTF8.decode([0xf0, 0x90, 0x80, 0x80]);
 
   Expect.stringEquals("\u{10000}", s);
 

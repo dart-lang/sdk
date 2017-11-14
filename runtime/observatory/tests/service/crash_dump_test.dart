@@ -25,11 +25,11 @@ var tests = [
     print('Received response');
     Completer completer = new Completer();
     StringBuffer sb = new StringBuffer();
-    response.transform(utf8.decoder).listen((chunk) {
+    response.transform(UTF8.decoder).listen((chunk) {
       sb.write(chunk);
     }, onDone: () => completer.complete(sb.toString()));
     var responseString = await completer.future;
-    json.decode(responseString);
+    JSON.decode(responseString);
   }
 ];
 

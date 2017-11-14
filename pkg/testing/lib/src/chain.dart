@@ -6,7 +6,7 @@ library testing.chain;
 
 import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show json, JsonEncoder;
+import 'dart:convert' show JSON, JsonEncoder;
 
 import 'dart:io' show Directory, File, FileSystemEntity, exitCode;
 
@@ -348,9 +348,9 @@ class Result<O> {
 
 /// This is called from generated code.
 Future<Null> runChain(CreateContext f, Map<String, String> environment,
-    Set<String> selectors, String jsonText) {
+    Set<String> selectors, String json) {
   return withErrorHandling(() async {
-    Chain suite = new Suite.fromJsonMap(Uri.base, json.decode(jsonText));
+    Chain suite = new Suite.fromJsonMap(Uri.base, JSON.decode(json));
     print("Running ${suite.name}");
     ChainContext context = await f(suite, environment);
     return context.run(suite, selectors);

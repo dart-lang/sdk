@@ -150,7 +150,7 @@ class NativeFloat32x4List extends Object
 
   int get offsetInBytes => _storage.offsetInBytes;
 
-  int get elementSizeInBytes => Float32x4List.bytesPerElement;
+  int get elementSizeInBytes => Float32x4List.BYTES_PER_ELEMENT;
 
   int get length => _storage.length ~/ 4;
 
@@ -228,7 +228,7 @@ class NativeInt32x4List extends Object
 
   int get offsetInBytes => _storage.offsetInBytes;
 
-  int get elementSizeInBytes => Int32x4List.bytesPerElement;
+  int get elementSizeInBytes => Int32x4List.BYTES_PER_ELEMENT;
 
   int get length => _storage.length ~/ 4;
 
@@ -305,7 +305,7 @@ class NativeFloat64x2List extends Object
 
   int get offsetInBytes => _storage.offsetInBytes;
 
-  int get elementSizeInBytes => Float64x2List.bytesPerElement;
+  int get elementSizeInBytes => Float64x2List.BYTES_PER_ELEMENT;
 
   int get length => _storage.length ~/ 2;
 
@@ -450,8 +450,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  num getFloat32(int byteOffset, [Endian endian = Endian.big]) =>
-      _getFloat32(byteOffset, Endian.little == endian);
+  num getFloat32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _getFloat32(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getFloat32')
   @Returns('num')
@@ -465,8 +465,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  num getFloat64(int byteOffset, [Endian endian = Endian.big]) =>
-      _getFloat64(byteOffset, Endian.little == endian);
+  num getFloat64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _getFloat64(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getFloat64')
   @Returns('num')
@@ -482,8 +482,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  int getInt16(int byteOffset, [Endian endian = Endian.big]) =>
-      _getInt16(byteOffset, Endian.little == endian);
+  int getInt16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _getInt16(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getInt16')
   @Returns('int')
@@ -499,8 +499,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  int getInt32(int byteOffset, [Endian endian = Endian.big]) =>
-      _getInt32(byteOffset, Endian.little == endian);
+  int getInt32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _getInt32(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getInt32')
   @Returns('int')
@@ -516,7 +516,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  int getInt64(int byteOffset, [Endian endian = Endian.big]) {
+  int getInt64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError('Int64 accessor not supported by dart2js.');
   }
 
@@ -539,8 +539,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  int getUint16(int byteOffset, [Endian endian = Endian.big]) =>
-      _getUint16(byteOffset, Endian.little == endian);
+  int getUint16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _getUint16(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getUint16')
   @Returns('JSUInt31')
@@ -555,8 +555,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  int getUint32(int byteOffset, [Endian endian = Endian.big]) =>
-      _getUint32(byteOffset, Endian.little == endian);
+  int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _getUint32(byteOffset, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('getUint32')
   @Returns('JSUInt32')
@@ -571,7 +571,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  int getUint64(int byteOffset, [Endian endian = Endian.big]) {
+  int getUint64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
 
@@ -602,8 +602,9 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setFloat32(int byteOffset, num value, [Endian endian = Endian.big]) =>
-      _setFloat32(byteOffset, value, Endian.little == endian);
+  void setFloat32(int byteOffset, num value,
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _setFloat32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setFloat32')
   void _setFloat32(int byteOffset, num value, [bool littleEndian]) native;
@@ -616,8 +617,9 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setFloat64(int byteOffset, num value, [Endian endian = Endian.big]) =>
-      _setFloat64(byteOffset, value, Endian.little == endian);
+  void setFloat64(int byteOffset, num value,
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _setFloat64(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setFloat64')
   void _setFloat64(int byteOffset, num value, [bool littleEndian]) native;
@@ -631,8 +633,9 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setInt16(byteOffset, value, Endian.little == endian);
+  void setInt16(int byteOffset, int value,
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _setInt16(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setInt16')
   void _setInt16(int byteOffset, int value, [bool littleEndian]) native;
@@ -646,8 +649,9 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setInt32(byteOffset, value, Endian.little == endian);
+  void setInt32(int byteOffset, int value,
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _setInt32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setInt32')
   void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
@@ -661,7 +665,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
+  void setInt64(int byteOffset, int value,
+      [Endianness endian = Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError('Int64 accessor not supported by dart2js.');
   }
 
@@ -685,8 +690,9 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  void setUint16(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setUint16(byteOffset, value, Endian.little == endian);
+  void setUint16(int byteOffset, int value,
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _setUint16(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setUint16')
   void _setUint16(int byteOffset, int value, [bool littleEndian]) native;
@@ -700,8 +706,9 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setUint32(int byteOffset, int value, [Endian endian = Endian.big]) =>
-      _setUint32(byteOffset, value, Endian.little == endian);
+  void setUint32(int byteOffset, int value,
+          [Endianness endian = Endianness.BIG_ENDIAN]) =>
+      _setUint32(byteOffset, value, Endianness.LITTLE_ENDIAN == endian);
 
   @JSName('setUint32')
   void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
@@ -715,7 +722,8 @@ class NativeByteData extends NativeTypedData implements ByteData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
+  void setUint64(int byteOffset, int value,
+      [Endianness endian = Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError('Uint64 accessor not supported by dart2js.');
   }
 

@@ -44,6 +44,6 @@ main() {
     // On all systems except for Windows UTF-8 is used as the system
     // encoding.
     Expect.listEquals(SYSTEM_ENCODING.encode('\u1234\u5678\u9abc'),
-        utf8.encode('\u1234\u5678\u9abc'));
+        UTF8.encode('\u1234\u5678\u9abc'));
   }
 }

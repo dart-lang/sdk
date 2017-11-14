@@ -5,8 +5,8 @@
 import 'package:expect/expect.dart';
 
 const double PD1 = 0.0;
-const double PD2 = double.minPositive;
-const double PD3 = 2.0 * double.minPositive;
+const double PD2 = double.MIN_POSITIVE;
+const double PD3 = 2.0 * double.MIN_POSITIVE;
 const double PD4 = 1.18e-38;
 const double PD5 = 1.18e-38 * 2;
 const double PD6 = 0.49999999999999994;
@@ -14,7 +14,7 @@ const double PD7 = 0.5;
 const double PD8 = 0.9999999999999999;
 const double PD9 = 1.0;
 const double PD10 = 1.000000000000001;
-const double PD11 = double.maxFinite;
+const double PD11 = double.MAX_FINITE;
 
 const double ND1 = -PD1;
 const double ND2 = -PD2;
@@ -28,9 +28,9 @@ const double ND9 = -PD9;
 const double ND10 = -PD10;
 const double ND11 = -PD11;
 
-const X1 = double.infinity;
-const X2 = double.negativeInfinity;
-const X3 = double.nan;
+const X1 = double.INFINITY;
+const X2 = double.NEGATIVE_INFINITY;
+const X3 = double.NAN;
 
 // The following numbers are on the border of 52 bits.
 // For example: 4503599627370499 + 0.5 => 4503599627370500.

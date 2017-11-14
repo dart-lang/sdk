@@ -18,9 +18,9 @@ var rng = new Random(1234);
 void test(int delay, int delta) {
   var t0 = new Timer(new Duration(milliseconds: delay + delta),
       () => Expect.fail("should have been cancelled by now"));
-  new Timer(Duration.zero, () => t0.cancel());
+  new Timer(Duration.ZERO, () => t0.cancel());
   new Timer(
-      Duration.zero,
+      Duration.ZERO,
       () => new Timer(new Duration(milliseconds: delay), () {
             if (--countdown == 0) {
               print("done");

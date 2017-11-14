@@ -132,7 +132,7 @@ Object decode5(String str) {
       new ChunkedConversionSink.withCallback((x) => result = x.single);
   var stringConversionSink = decoder.startChunkedConversion(objectSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  Object tmpBytes = utf8.encode(str);
+  Object tmpBytes = UTF8.encode(str);
   inputByteSink.add(tmpBytes);
   inputByteSink.close();
   return result;
@@ -145,7 +145,7 @@ Object decode6(String str) {
       new ChunkedConversionSink.withCallback((x) => result = x.single);
   var stringConversionSink = decoder.startChunkedConversion(objectSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  var tmpBytes = utf8.encode(str);
+  var tmpBytes = UTF8.encode(str);
   tmpBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
   return result;

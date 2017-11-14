@@ -15,8 +15,8 @@ main() {
   testRoundTrip("abc");
   testRoundTrip("abcd");
   testRoundTrip("Content with special%25 characters: # ? = % # ? = %");
-  testRoundTrip("blåbærgrød", utf8);
-  testRoundTrip("blåbærgrød", latin1);
+  testRoundTrip("blåbærgrød", UTF8);
+  testRoundTrip("blåbærgrød", LATIN1);
 
   testUriEquals("data:,abc?d");
   testUriEquals("DATA:,ABC?D");
@@ -66,10 +66,10 @@ void testRoundTrip(String content, [Encoding encoding]) {
     Expect.equals("$dataUri", "$dataUriParams");
   }
 
-  Expect.equals(encoding ?? ascii, Encoding.getByName(dataUri.charset));
+  Expect.equals(encoding ?? ASCII, Encoding.getByName(dataUri.charset));
   Expect.equals(content, dataUri.contentAsString(encoding: encoding));
   Expect.equals(content, dataUri.contentAsString());
-  Expect.equals(content, (encoding ?? ascii).decode(dataUri.contentAsBytes()));
+  Expect.equals(content, (encoding ?? ASCII).decode(dataUri.contentAsBytes()));
 
   uri = dataUri.uri;
   Expect.equals(uri.toString(), dataUri.toString());
@@ -77,7 +77,7 @@ void testRoundTrip(String content, [Encoding encoding]) {
 
   dataUri = new UriData.fromBytes(content.codeUnits);
   Expect.listEquals(content.codeUnits, dataUri.contentAsBytes());
-  Expect.equals(content, dataUri.contentAsString(encoding: latin1));
+  Expect.equals(content, dataUri.contentAsString(encoding: LATIN1));
 
   uri = dataUri.uri;
   Expect.equals(uri.toString(), dataUri.toString());
@@ -87,9 +87,9 @@ void testRoundTrip(String content, [Encoding encoding]) {
 }
 
 void testUtf8Encoding(String content) {
-  UriData uri = new UriData.fromString(content, encoding: utf8);
-  Expect.equals(content, uri.contentAsString(encoding: utf8));
-  Expect.listEquals(utf8.encode(content), uri.contentAsBytes());
+  UriData uri = new UriData.fromString(content, encoding: UTF8);
+  Expect.equals(content, uri.contentAsString(encoding: UTF8));
+  Expect.listEquals(UTF8.encode(content), uri.contentAsBytes());
 }
 
 void testInvalidCharacters() {
@@ -101,7 +101,7 @@ void testInvalidCharacters() {
       ' ()<>@,;:"/[]?=%#\x80\u{1000}\u{10000}';
   var invalidNoSlash = invalid.replaceAll('/', '');
   var dataUri = new UriData.fromString(invalid,
-      encoding: utf8,
+      encoding: UTF8,
       mimeType: "$invalidNoSlash/$invalidNoSlash",
       parameters: {invalid: invalid});
 
@@ -129,12 +129,12 @@ void testBytes() {
 
     var string = new String.fromCharCodes(list);
 
-    dataUri = new UriData.fromString(string, encoding: latin1);
+    dataUri = new UriData.fromString(string, encoding: LATIN1);
     Expect.equals("text/plain", dataUri.mimeType);
     Expect.isFalse(dataUri.isBase64);
     Expect.listEquals(list, dataUri.contentAsBytes());
 
-    dataUri = new UriData.fromString(string, encoding: latin1, base64: true);
+    dataUri = new UriData.fromString(string, encoding: LATIN1, base64: true);
     Expect.equals("text/plain", dataUri.mimeType);
     Expect.isTrue(dataUri.isBase64);
     Expect.listEquals(list, dataUri.contentAsBytes());
@@ -220,7 +220,7 @@ void testErrors() {
     uri.contentAsString();
   });
   // Doesn't throw if we specify the encoding.
-  Expect.equals("X", uri.contentAsString(encoding: ascii));
+  Expect.equals("X", uri.contentAsString(encoding: ASCII));
 
   // Parse format.
   Expect.throwsFormatException(() => UriData.parse("notdata:,"));

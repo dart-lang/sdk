@@ -18,15 +18,15 @@ test_branch(a, b) {
 }
 
 main() {
-  Expect.equals(true, test_expr(0.5, double.nan));
-  for (var i = 0; i < 20; i++) test_expr(0.5, double.nan);
-  Expect.equals(true, test_expr(0.5, double.nan));
+  Expect.equals(true, test_expr(0.5, double.NAN));
+  for (var i = 0; i < 20; i++) test_expr(0.5, double.NAN);
+  Expect.equals(true, test_expr(0.5, double.NAN));
 
-  Expect.equals(true, test_conditional(0.5, double.nan));
-  for (var i = 0; i < 20; i++) test_conditional(0.5, double.nan);
-  Expect.equals(true, test_conditional(0.5, double.nan));
+  Expect.equals(true, test_conditional(0.5, double.NAN));
+  for (var i = 0; i < 20; i++) test_conditional(0.5, double.NAN);
+  Expect.equals(true, test_conditional(0.5, double.NAN));
 
-  Expect.equals(true, test_branch(0.5, double.nan));
-  for (var i = 0; i < 20; i++) test_branch(0.5, double.nan);
-  Expect.equals(true, test_branch(0.5, double.nan));
+  Expect.equals(true, test_branch(0.5, double.NAN));
+  for (var i = 0; i < 20; i++) test_branch(0.5, double.NAN);
+  Expect.equals(true, test_branch(0.5, double.NAN));
 }

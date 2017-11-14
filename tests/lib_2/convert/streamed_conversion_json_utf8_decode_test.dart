@@ -11,7 +11,7 @@ import 'dart:convert';
 import 'json_unicode_tests.dart';
 import "package:async_helper/async_helper.dart";
 
-final jsonUtf8 = json.fuse<List<int>>(utf8);
+final JSON_UTF8 = JSON.fuse<List<int>>(UTF8);
 
 void expectJsonEquals(o1, o2, [path = "result"]) {
   if (o1 == o2) return;
@@ -40,7 +40,7 @@ Stream<Object> createStream(List<List<int>> chunks) {
     chunks.forEach(controller.add);
     controller.close();
   });
-  return controller.stream.transform(jsonUtf8.decoder);
+  return controller.stream.transform(JSON_UTF8.decoder);
 }
 
 Stream<Object> decode(List<int> bytes) {

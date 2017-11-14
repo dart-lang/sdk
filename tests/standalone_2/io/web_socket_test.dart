@@ -438,7 +438,7 @@ class SecurityConfiguration {
 
         var key = request.headers.value('Sec-WebSocket-Key');
         var digest = sha1.convert("$key$WEB_SOCKET_GUID".codeUnits);
-        var accept = base64.encode(digest.bytes);
+        var accept = BASE64.encode(digest.bytes);
         request.response
           ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
           ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
@@ -507,7 +507,7 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.listen((request) {
         Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
-        String auth = base64.encode(utf8.encode(userInfo));
+        String auth = BASE64.encode(UTF8.encode(userInfo));
         Expect.equals('Basic $auth', request.headers['Authorization'][0]);
         Expect.equals(1, request.headers['Authorization'].length);
         WebSocketTransformer.upgrade(request).then((webSocket) {

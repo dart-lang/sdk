@@ -240,7 +240,7 @@ abstract class SecurityContext {
   static Uint8List _protocolsToLengthEncodingNonAsciiBailout(
       List<String> protocols) {
     void addProtocol(List<int> outBytes, String protocol) {
-      var protocolBytes = utf8.encode(protocol);
+      var protocolBytes = UTF8.encode(protocol);
       var len = protocolBytes.length;
 
       if (len > 255) {

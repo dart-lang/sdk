@@ -13,7 +13,7 @@ const MEMORY_SOURCE_FILES = const {
         main() {
           print(12300000);
           print(1234567890123456789012345);
-          print(double.maxFinite);
+          print(double.MAX_FINITE);
           print(-22230000);
         }'''
 };
@@ -41,7 +41,7 @@ Future test({bool minify}) async {
   Expect.isTrue(jsOutput.contains('12345678901234568e8'));
   Expect.isTrue(jsOutput.contains('17976931348623157e292'));
   Expect.isFalse(jsOutput.contains('1234567890123456789012345'));
-  // The decimal expansion of double.maxFinite has 308 digits. We only check
+  // The decimal expansion of double.MAX_FINITE has 308 digits. We only check
   // for its prefix.
   Expect.isFalse(jsOutput.contains('179769313486231570814527423731'));
 }

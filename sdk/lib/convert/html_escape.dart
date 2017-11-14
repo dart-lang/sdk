@@ -24,9 +24,7 @@ part of dart.convert;
  * or as text content of a normal element. Using the escaped text inside a
  * tag, but not inside a quoted attribute value, is still dangerous.
  */
-const HtmlEscape htmlEscape = const HtmlEscape();
-@Deprecated("Use htmlEscape instead")
-const HtmlEscape HTML_ESCAPE = htmlEscape;
+const HtmlEscape HTML_ESCAPE = const HtmlEscape();
 
 /**
  * HTML escape modes.
@@ -70,10 +68,8 @@ class HtmlEscapeMode {
    * and not for, for example, script or style element content,
    * which require escapes matching their particular content syntax.
    */
-  static const HtmlEscapeMode unknown =
+  static const HtmlEscapeMode UNKNOWN =
       const HtmlEscapeMode._('unknown', true, true, true, true);
-  @Deprecated("Use unknown instead")
-  static const HtmlEscapeMode UNKNOWN = unknown;
 
   /**
    * Escaping mode for text going into double-quoted HTML attribute values.
@@ -85,10 +81,8 @@ class HtmlEscapeMode {
    * and escapes `<` and `>` characters because they are not allowed
    * in strict XHTML attributes
    */
-  static const HtmlEscapeMode attribute =
+  static const HtmlEscapeMode ATTRIBUTE =
       const HtmlEscapeMode._('attribute', true, true, false, false);
-  @Deprecated("Use attribute instead")
-  static const HtmlEscapeMode ATTRIBUTE = attribute;
 
   /**
    * Escaping mode for text going into single-quoted HTML attribute values.
@@ -100,10 +94,8 @@ class HtmlEscapeMode {
    * and escapes `<` and `>` characters because they are not allowed
    * in strict XHTML attributes
    */
-  static const HtmlEscapeMode sqAttribute =
+  static const HtmlEscapeMode SQ_ATTRIBUTE =
       const HtmlEscapeMode._('attribute', true, false, true, false);
-  @Deprecated("Use sqAttribute instead")
-  static const HtmlEscapeMode SQ_ATTRIBUTE = sqAttribute;
 
   /**
    * Escaping mode for text going into HTML element content.
@@ -114,10 +106,8 @@ class HtmlEscapeMode {
    *
    * Escapes `<` and `>` characters.
    */
-  static const HtmlEscapeMode element =
+  static const HtmlEscapeMode ELEMENT =
       const HtmlEscapeMode._('element', true, false, false, false);
-  @Deprecated("Use element instead")
-  static const HtmlEscapeMode ELEMENT = element;
 
   const HtmlEscapeMode._(this._name, this.escapeLtGt, this.escapeQuot,
       this.escapeApos, this.escapeSlash);
@@ -173,7 +163,7 @@ class HtmlEscape extends Converter<String, String> {
    * characters are escaped.
    * The default is to escape all HTML characters.
    */
-  const HtmlEscape([this.mode = HtmlEscapeMode.unknown]);
+  const HtmlEscape([this.mode = HtmlEscapeMode.UNKNOWN]);
 
   String convert(String text) {
     var val = _convert(text, 0, text.length);

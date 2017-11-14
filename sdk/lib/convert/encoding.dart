@@ -33,32 +33,32 @@ abstract class Encoding extends Codec<String, List<int>> {
   // http://www.iana.org/assignments/character-sets/character-sets.xml.
   static Map<String, Encoding> _nameToEncoding = <String, Encoding>{
     // ISO_8859-1:1987.
-    "iso_8859-1:1987": latin1,
-    "iso-ir-100": latin1,
-    "iso_8859-1": latin1,
-    "iso-8859-1": latin1,
-    "latin1": latin1,
-    "l1": latin1,
-    "ibm819": latin1,
-    "cp819": latin1,
-    "csisolatin1": latin1,
+    "iso_8859-1:1987": LATIN1,
+    "iso-ir-100": LATIN1,
+    "iso_8859-1": LATIN1,
+    "iso-8859-1": LATIN1,
+    "latin1": LATIN1,
+    "l1": LATIN1,
+    "ibm819": LATIN1,
+    "cp819": LATIN1,
+    "csisolatin1": LATIN1,
 
     // US-ASCII.
-    "iso-ir-6": ascii,
-    "ansi_x3.4-1968": ascii,
-    "ansi_x3.4-1986": ascii,
-    "iso_646.irv:1991": ascii,
-    "iso646-us": ascii,
-    "us-ascii": ascii,
-    "us": ascii,
-    "ibm367": ascii,
-    "cp367": ascii,
-    "csascii": ascii,
-    "ascii": ascii, // This is not in the IANA official names.
+    "iso-ir-6": ASCII,
+    "ansi_x3.4-1968": ASCII,
+    "ansi_x3.4-1986": ASCII,
+    "iso_646.irv:1991": ASCII,
+    "iso646-us": ASCII,
+    "us-ascii": ASCII,
+    "us": ASCII,
+    "ibm367": ASCII,
+    "cp367": ASCII,
+    "csascii": ASCII,
+    "ascii": ASCII, // This is not in the IANA official names.
 
     // UTF-8.
-    "csutf8": utf8,
-    "utf-8": utf8
+    "csutf8": UTF8,
+    "utf-8": UTF8
   };
 
   /**

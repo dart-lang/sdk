@@ -34,7 +34,7 @@ Usage: load <dir-containing 'out.js.map'>
 
 void mainInternal(File sourceMapFile, File humanReadableSourceMapFile) {
   SingleMapping sourceMap =
-      new SingleMapping.fromJson(json.decode(sourceMapFile.readAsStringSync()));
+      new SingleMapping.fromJson(JSON.decode(sourceMapFile.readAsStringSync()));
   String humanReadableSourceMap = convertToHumanReadableSourceMap(sourceMap);
   if (humanReadableSourceMapFile != null) {
     humanReadableSourceMapFile.writeAsStringSync(humanReadableSourceMap);

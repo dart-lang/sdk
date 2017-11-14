@@ -26,7 +26,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
   bool verbose = arguments != null && arguments.contains('-v');
   asyncTest(() => Future.forEach(tests.keys, (String test) async {
         Uri uri = script.resolve('../../$test');
-        String source = utf8.decode(readAll(uriPathToNative(uri.path)));
+        String source = UTF8.decode(readAll(uriPathToNative(uri.path)));
         SourceFile file = new StringSourceFile(
             uri, relativize(currentDirectory, uri, isWindows), source);
         Map<int, String> expectedWarnings = {};

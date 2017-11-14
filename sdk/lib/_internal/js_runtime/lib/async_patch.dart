@@ -99,7 +99,7 @@ class _AsyncRun {
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {
-    Timer._createTimer(Duration.zero, callback);
+    Timer._createTimer(Duration.ZERO, callback);
   }
 }
 

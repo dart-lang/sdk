@@ -6,11 +6,11 @@ library map_test;
 
 import "package:expect/expect.dart";
 import 'dart:collection';
-import 'dart:convert' show json;
+import 'dart:convert' show JSON;
 
-Map<String, dynamic> newJsonMap() => json.decode('{}');
+Map<String, dynamic> newJsonMap() => JSON.decode('{}');
 Map<String, dynamic> newJsonMapCustomReviver() =>
-    json.decode('{}', reviver: (key, value) => value);
+    JSON.decode('{}', reviver: (key, value) => value);
 
 void main() {
   test(new HashMap());
@@ -491,8 +491,8 @@ void testWeirdStringKeys(Map map) {
 
 void testNumericKeys(Map map) {
   var numericKeys = const [
-    double.infinity,
-    double.negativeInfinity,
+    double.INFINITY,
+    double.NEGATIVE_INFINITY,
     0,
     0.0,
     -0.0
@@ -514,7 +514,7 @@ void testNumericKeys(Map map) {
 }
 
 void testNaNKeys(Map map) {
-  Object nan = double.nan;
+  Object nan = double.NAN;
   // Skip this test on platforms that use native-JS NaN semantics for speed.
   if (!identical(nan, nan)) return;
 
@@ -572,7 +572,7 @@ testIdentityMap<K, V>(Map<K, V> typedMap) {
   Map map = typedMap;
   Expect.isTrue(map.isEmpty);
 
-  var nan = double.nan;
+  var nan = double.NAN;
   // TODO(11551): Remove guard when dart2js makes identical(NaN, NaN) true.
   if (identical(nan, nan)) {
     map[nan] = 42;

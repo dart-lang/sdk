@@ -494,15 +494,15 @@ testViewAliasing1() {
 
 testViewAliasing2() {
   final f64 = new Float64List(2);
-  final f64v = new Float64List.view(f64.buffer, Float64List.bytesPerElement);
+  final f64v = new Float64List.view(f64.buffer, Float64List.BYTES_PER_ELEMENT);
   f64[1] = 1.0; // Should not be forwarded.
   f64v[0] = 2.0;
   return f64[1];
 }
 
 testViewAliasing3() {
-  final u8 = new Uint8List(Float64List.bytesPerElement * 2);
-  final f64 = new Float64List.view(u8.buffer, Float64List.bytesPerElement);
+  final u8 = new Uint8List(Float64List.BYTES_PER_ELEMENT * 2);
+  final f64 = new Float64List.view(u8.buffer, Float64List.BYTES_PER_ELEMENT);
   f64[0] = 1.0; // Should not be forwarded.
   u8[15] = 0x40;
   u8[14] = 0x00;
@@ -510,8 +510,8 @@ testViewAliasing3() {
 }
 
 testViewAliasing4() {
-  final u8 = new Uint8List(Float64List.bytesPerElement * 2);
-  final f64 = new Float64List.view(u8.buffer, Float64List.bytesPerElement);
+  final u8 = new Uint8List(Float64List.BYTES_PER_ELEMENT * 2);
+  final f64 = new Float64List.view(u8.buffer, Float64List.BYTES_PER_ELEMENT);
   f64[0] = 2.0; // Not aliased: should be forwarded.
   u8[0] = 0x40;
   u8[1] = 0x00;

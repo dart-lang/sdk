@@ -131,15 +131,15 @@ void _schedulePriorityAsyncCallback(_AsyncCallback callback) {
  */
 void scheduleMicrotask(void callback()) {
   _Zone currentZone = Zone.current;
-  if (identical(_rootZone, currentZone)) {
+  if (identical(_ROOT_ZONE, currentZone)) {
     // No need to bind the callback. We know that the root's scheduleMicrotask
     // will be invoked in the root zone.
-    _rootScheduleMicrotask(null, null, _rootZone, callback);
+    _rootScheduleMicrotask(null, null, _ROOT_ZONE, callback);
     return;
   }
   _ZoneFunction implementation = currentZone._scheduleMicrotask;
-  if (identical(_rootZone, implementation.zone) &&
-      _rootZone.inSameErrorZone(currentZone)) {
+  if (identical(_ROOT_ZONE, implementation.zone) &&
+      _ROOT_ZONE.inSameErrorZone(currentZone)) {
     _rootScheduleMicrotask(
         null, null, currentZone, currentZone.registerCallback(callback));
     return;

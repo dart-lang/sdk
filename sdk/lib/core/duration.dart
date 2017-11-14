@@ -51,63 +51,32 @@ part of dart.core;
  *
  */
 class Duration implements Comparable<Duration> {
-  static const int microsecondsPerMillisecond = 1000;
-  static const int millisecondsPerSecond = 1000;
-  static const int secondsPerMinute = 60;
-  static const int minutesPerHour = 60;
-  static const int hoursPerDay = 24;
+  static const int MICROSECONDS_PER_MILLISECOND = 1000;
+  static const int MILLISECONDS_PER_SECOND = 1000;
+  static const int SECONDS_PER_MINUTE = 60;
+  static const int MINUTES_PER_HOUR = 60;
+  static const int HOURS_PER_DAY = 24;
 
-  static const int microsecondsPerSecond =
-      microsecondsPerMillisecond * millisecondsPerSecond;
-  static const int microsecondsPerMinute =
-      microsecondsPerSecond * secondsPerMinute;
-  static const int microsecondsPerHour = microsecondsPerMinute * minutesPerHour;
-  static const int microsecondsPerDay = microsecondsPerHour * hoursPerDay;
+  static const int MICROSECONDS_PER_SECOND =
+      MICROSECONDS_PER_MILLISECOND * MILLISECONDS_PER_SECOND;
+  static const int MICROSECONDS_PER_MINUTE =
+      MICROSECONDS_PER_SECOND * SECONDS_PER_MINUTE;
+  static const int MICROSECONDS_PER_HOUR =
+      MICROSECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  static const int MICROSECONDS_PER_DAY = MICROSECONDS_PER_HOUR * HOURS_PER_DAY;
 
-  static const int millisecondsPerMinute =
-      millisecondsPerSecond * secondsPerMinute;
-  static const int millisecondsPerHour = millisecondsPerMinute * minutesPerHour;
-  static const int millisecondsPerDay = millisecondsPerHour * hoursPerDay;
+  static const int MILLISECONDS_PER_MINUTE =
+      MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE;
+  static const int MILLISECONDS_PER_HOUR =
+      MILLISECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  static const int MILLISECONDS_PER_DAY = MILLISECONDS_PER_HOUR * HOURS_PER_DAY;
 
-  static const int secondsPerHour = secondsPerMinute * minutesPerHour;
-  static const int secondsPerDay = secondsPerHour * hoursPerDay;
+  static const int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  static const int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
 
-  static const int minutesPerDay = minutesPerHour * hoursPerDay;
+  static const int MINUTES_PER_DAY = MINUTES_PER_HOUR * HOURS_PER_DAY;
 
-  static const Duration zero = const Duration(seconds: 0);
-
-  @Deprecated("Use microsecondsPerMillisecond instead")
-  static const int MICROSECONDS_PER_MILLISECOND = microsecondsPerMillisecond;
-  @Deprecated("Use millisecondsPerSecond instead")
-  static const int MILLISECONDS_PER_SECOND = millisecondsPerSecond;
-  @Deprecated("Use secondsPerMinute instead")
-  static const int SECONDS_PER_MINUTE = secondsPerMinute;
-  @Deprecated("Use minutesPerHour instead")
-  static const int MINUTES_PER_HOUR = minutesPerHour;
-  @Deprecated("Use hoursPerDay instead")
-  static const int HOURS_PER_DAY = hoursPerDay;
-  @Deprecated("Use microsecondsPerSecond instead")
-  static const int MICROSECONDS_PER_SECOND = microsecondsPerSecond;
-  @Deprecated("Use microsecondsPerMinute instead")
-  static const int MICROSECONDS_PER_MINUTE = microsecondsPerMinute;
-  @Deprecated("Use microsecondsPerHour instead")
-  static const int MICROSECONDS_PER_HOUR = microsecondsPerHour;
-  @Deprecated("Use microsecondsPerDay instead")
-  static const int MICROSECONDS_PER_DAY = microsecondsPerDay;
-  @Deprecated("Use millisecondsPerMinute instead")
-  static const int MILLISECONDS_PER_MINUTE = millisecondsPerMinute;
-  @Deprecated("Use millisecondsPerHour instead")
-  static const int MILLISECONDS_PER_HOUR = millisecondsPerHour;
-  @Deprecated("Use millisecondsPerDay instead")
-  static const int MILLISECONDS_PER_DAY = millisecondsPerDay;
-  @Deprecated("Use secondsPerHour instead")
-  static const int SECONDS_PER_HOUR = secondsPerHour;
-  @Deprecated("Use secondsPerDay instead")
-  static const int SECONDS_PER_DAY = secondsPerDay;
-  @Deprecated("Use minutesPerDay instead")
-  static const int MINUTES_PER_DAY = minutesPerDay;
-  @Deprecated("Use zero instead")
-  static const Duration ZERO = zero;
+  static const Duration ZERO = const Duration(seconds: 0);
 
   /*
    * The value of this Duration object in microseconds.
@@ -131,11 +100,11 @@ class Duration implements Comparable<Duration> {
       int seconds: 0,
       int milliseconds: 0,
       int microseconds: 0})
-      : this._microseconds(microsecondsPerDay * days +
-            microsecondsPerHour * hours +
-            microsecondsPerMinute * minutes +
-            microsecondsPerSecond * seconds +
-            microsecondsPerMillisecond * milliseconds +
+      : this._microseconds(MICROSECONDS_PER_DAY * days +
+            MICROSECONDS_PER_HOUR * hours +
+            MICROSECONDS_PER_MINUTE * minutes +
+            MICROSECONDS_PER_SECOND * seconds +
+            MICROSECONDS_PER_MILLISECOND * milliseconds +
             microseconds);
 
   // Fast path internal direct constructor to avoids the optional arguments and
@@ -209,35 +178,35 @@ class Duration implements Comparable<Duration> {
   /**
    * Returns the number of whole days spanned by this Duration.
    */
-  int get inDays => _duration ~/ Duration.microsecondsPerDay;
+  int get inDays => _duration ~/ Duration.MICROSECONDS_PER_DAY;
 
   /**
    * Returns the number of whole hours spanned by this Duration.
    *
    * The returned value can be greater than 23.
    */
-  int get inHours => _duration ~/ Duration.microsecondsPerHour;
+  int get inHours => _duration ~/ Duration.MICROSECONDS_PER_HOUR;
 
   /**
    * Returns the number of whole minutes spanned by this Duration.
    *
    * The returned value can be greater than 59.
    */
-  int get inMinutes => _duration ~/ Duration.microsecondsPerMinute;
+  int get inMinutes => _duration ~/ Duration.MICROSECONDS_PER_MINUTE;
 
   /**
    * Returns the number of whole seconds spanned by this Duration.
    *
    * The returned value can be greater than 59.
    */
-  int get inSeconds => _duration ~/ Duration.microsecondsPerSecond;
+  int get inSeconds => _duration ~/ Duration.MICROSECONDS_PER_SECOND;
 
   /**
    * Returns number of whole milliseconds spanned by this Duration.
    *
    * The returned value can be greater than 999.
    */
-  int get inMilliseconds => _duration ~/ Duration.microsecondsPerMillisecond;
+  int get inMilliseconds => _duration ~/ Duration.MICROSECONDS_PER_MILLISECOND;
 
   /**
    * Returns number of whole microseconds spanned by this Duration.
@@ -294,10 +263,10 @@ class Duration implements Comparable<Duration> {
     if (inMicroseconds < 0) {
       return "-${-this}";
     }
-    String twoDigitMinutes = twoDigits(inMinutes.remainder(minutesPerHour));
-    String twoDigitSeconds = twoDigits(inSeconds.remainder(secondsPerMinute));
+    String twoDigitMinutes = twoDigits(inMinutes.remainder(MINUTES_PER_HOUR));
+    String twoDigitSeconds = twoDigits(inSeconds.remainder(SECONDS_PER_MINUTE));
     String sixDigitUs =
-        sixDigits(inMicroseconds.remainder(microsecondsPerSecond));
+        sixDigits(inMicroseconds.remainder(MICROSECONDS_PER_SECOND));
     return "$inHours:$twoDigitMinutes:$twoDigitSeconds.$sixDigitUs";
   }
 

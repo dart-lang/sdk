@@ -25,7 +25,7 @@ void isolateEntry(isolate.SendPort initialReplyTo) {
   }
 
   // Check that convert library was loaded to isolate.
-  json.encode([1, 2, 3]);
+  JSON.encode([1, 2, 3]);
 
   port.listen((message) {
     var data = message[0];

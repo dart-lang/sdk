@@ -5,15 +5,15 @@
 library json_map_test;
 
 import "package:expect/expect.dart";
-import 'dart:convert' show json;
+import 'dart:convert' show JSON;
 import 'dart:collection' show LinkedHashMap, HashMap;
 
 bool useReviver = false;
 Map jsonify(Map map) {
-  String encoded = json.encode(map);
+  String encoded = JSON.encode(map);
   return useReviver
-      ? json.decode(encoded, reviver: (key, value) => value)
-      : json.decode(encoded);
+      ? JSON.decode(encoded, reviver: (key, value) => value)
+      : JSON.decode(encoded);
 }
 
 List listEach(Map map) {

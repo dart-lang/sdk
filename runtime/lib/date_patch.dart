@@ -36,7 +36,7 @@ class DateTime {
   DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
       {bool isUtc: false})
       : this._withValue(
-            millisecondsSinceEpoch * Duration.microsecondsPerMillisecond,
+            millisecondsSinceEpoch * Duration.MICROSECONDS_PER_MILLISECOND,
             isUtc: isUtc);
 
   @patch
@@ -94,7 +94,7 @@ class DateTime {
 
     // Always round down.
     final int daysSince1970 =
-        _flooredDivision(localMicros, Duration.microsecondsPerDay);
+        _flooredDivision(localMicros, Duration.MICROSECONDS_PER_DAY);
     int days = daysSince1970;
     days += DAYS_OFFSET;
     resultYear = 400 * (days ~/ DAYS_IN_400_YEARS) - YEARS_OFFSET;
@@ -123,28 +123,28 @@ class DateTime {
     }
     resultDay = days - daysUntilMonth[resultMonth - 1] + 1;
 
-    int resultMicrosecond = localMicros % Duration.microsecondsPerMillisecond;
+    int resultMicrosecond = localMicros % Duration.MICROSECONDS_PER_MILLISECOND;
     int resultMillisecond =
-        _flooredDivision(localMicros, Duration.microsecondsPerMillisecond) %
-            Duration.millisecondsPerSecond;
+        _flooredDivision(localMicros, Duration.MICROSECONDS_PER_MILLISECOND) %
+            Duration.MILLISECONDS_PER_SECOND;
     int resultSecond =
-        _flooredDivision(localMicros, Duration.microsecondsPerSecond) %
-            Duration.secondsPerMinute;
+        _flooredDivision(localMicros, Duration.MICROSECONDS_PER_SECOND) %
+            Duration.SECONDS_PER_MINUTE;
 
     int resultMinute =
-        _flooredDivision(localMicros, Duration.microsecondsPerMinute);
-    resultMinute %= Duration.minutesPerHour;
+        _flooredDivision(localMicros, Duration.MICROSECONDS_PER_MINUTE);
+    resultMinute %= Duration.MINUTES_PER_HOUR;
 
     int resultHour =
-        _flooredDivision(localMicros, Duration.microsecondsPerHour);
-    resultHour %= Duration.hoursPerDay;
+        _flooredDivision(localMicros, Duration.MICROSECONDS_PER_HOUR);
+    resultHour %= Duration.HOURS_PER_DAY;
 
     // In accordance with ISO 8601 a week
     // starts with Monday. Monday has the value 1 up to Sunday with 7.
     // 1970-1-1 was a Thursday.
-    int resultWeekday = ((daysSince1970 + DateTime.thursday - DateTime.monday) %
-            DateTime.daysPerWeek) +
-        DateTime.monday;
+    int resultWeekday = ((daysSince1970 + DateTime.THURSDAY - DateTime.MONDAY) %
+            DateTime.DAYS_PER_WEEK) +
+        DateTime.MONDAY;
 
     List list = new List(_YEAR_INDEX + 1);
     list[_MICROSECOND_INDEX] = resultMicrosecond;
@@ -185,7 +185,7 @@ class DateTime {
 
   @patch
   int get millisecondsSinceEpoch =>
-      _value ~/ Duration.microsecondsPerMillisecond;
+      _value ~/ Duration.MICROSECONDS_PER_MILLISECOND;
 
   @patch
   int get microsecondsSinceEpoch => _value;
@@ -236,7 +236,7 @@ class DateTime {
     int micros = _value;
     if (isUtc) return micros;
     int offset =
-        _timeZoneOffsetInSeconds(micros) * Duration.microsecondsPerSecond;
+        _timeZoneOffsetInSeconds(micros) * Duration.MICROSECONDS_PER_SECOND;
     return micros + offset;
   }
 
@@ -279,11 +279,11 @@ class DateTime {
     int days = day - 1;
     days += _DAYS_UNTIL_MONTH[_isLeapYear(year) ? 1 : 0][month];
     days += _dayFromYear(year);
-    int microsecondsSinceEpoch = days * Duration.microsecondsPerDay +
-        hour * Duration.microsecondsPerHour +
-        minute * Duration.microsecondsPerMinute +
-        second * Duration.microsecondsPerSecond +
-        millisecond * Duration.microsecondsPerMillisecond +
+    int microsecondsSinceEpoch = days * Duration.MICROSECONDS_PER_DAY +
+        hour * Duration.MICROSECONDS_PER_HOUR +
+        minute * Duration.MICROSECONDS_PER_MINUTE +
+        second * Duration.MICROSECONDS_PER_SECOND +
+        millisecond * Duration.MICROSECONDS_PER_MILLISECOND +
         microsecond;
 
     // Since [_timeZoneOffsetInSeconds] will crash if the input is far out of
@@ -292,7 +292,7 @@ class DateTime {
     // The timezone adjustment is always less than a day, so adding a security
     // margin of one day should be enough.
     if (microsecondsSinceEpoch.abs() >
-        _maxMillisecondsSinceEpoch * 1000 + Duration.microsecondsPerDay) {
+        _MAX_MILLISECONDS_SINCE_EPOCH * 1000 + Duration.MICROSECONDS_PER_DAY) {
       return null;
     }
 
@@ -306,8 +306,8 @@ class DateTime {
 
       // We need to remove the local timezone adjustment before asking for the
       // correct zone offset.
-      int adjustment =
-          _localTimeZoneAdjustmentInSeconds() * Duration.microsecondsPerSecond;
+      int adjustment = _localTimeZoneAdjustmentInSeconds() *
+          Duration.MICROSECONDS_PER_SECOND;
       // The adjustment is independent of the actual date and of the daylight
       // saving time. It is positive east of the Prime Meridian and negative
       // west of it, e.g. -28800 sec for America/Los_Angeles timezone.
@@ -315,7 +315,7 @@ class DateTime {
       // We remove one hour to ensure that we have the correct offset at
       // DST transitioning points. This is a temporary solution and only
       // correct in timezones that shift for exactly one hour.
-      adjustment += Duration.microsecondsPerHour;
+      adjustment += Duration.MICROSECONDS_PER_HOUR;
       int zoneOffset =
           _timeZoneOffsetInSeconds(microsecondsSinceEpoch - adjustment);
 
@@ -323,13 +323,13 @@ class DateTime {
       // saving time and/or historical deviation relative to UTC time.
       // It is positive east of the Prime Meridian and negative west of it,
       // e.g. -25200 sec for America/Los_Angeles timezone during DST.
-      microsecondsSinceEpoch -= zoneOffset * Duration.microsecondsPerSecond;
+      microsecondsSinceEpoch -= zoneOffset * Duration.MICROSECONDS_PER_SECOND;
       // The resulting microsecondsSinceEpoch value is therefore the calculated
       // UTC value decreased by a (positive if east of GMT) timezone adjustment
       // and decreased by typically one hour if DST is in effect.
     }
     if (microsecondsSinceEpoch.abs() >
-        _maxMillisecondsSinceEpoch * Duration.microsecondsPerMillisecond) {
+        _MAX_MILLISECONDS_SINCE_EPOCH * Duration.MICROSECONDS_PER_MILLISECOND) {
       return null;
     }
     return microsecondsSinceEpoch;
@@ -378,12 +378,12 @@ class DateTime {
     const int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
     const int DAYS_YEAR_2098 = DAYS_IN_100_YEARS + 6 * DAYS_IN_4_YEARS;
 
-    int days = secondsSinceEpoch ~/ Duration.secondsPerDay;
+    int days = secondsSinceEpoch ~/ Duration.SECONDS_PER_DAY;
     if (days > 0 && days < DAYS_YEAR_2098) {
       // According to V8 this fast case works for dates from 1970 to 2099.
       return 1970 + (4 * days + 2) ~/ DAYS_IN_4_YEARS;
     }
-    int micros = secondsSinceEpoch * Duration.microsecondsPerSecond;
+    int micros = secondsSinceEpoch * Duration.MICROSECONDS_PER_SECOND;
     return _computeUpperPart(micros)[_YEAR_INDEX];
   }
 
@@ -403,7 +403,7 @@ class DateTime {
     const int CUT_OFF_SECONDS = 0x7FFFFFFF;
 
     int secondsSinceEpoch = _flooredDivision(
-        microsecondsSinceEpoch, Duration.microsecondsPerSecond);
+        microsecondsSinceEpoch, Duration.MICROSECONDS_PER_SECOND);
 
     if (secondsSinceEpoch.abs() > CUT_OFF_SECONDS) {
       int year = _yearsFromSecondsSinceEpoch(secondsSinceEpoch);
@@ -411,7 +411,7 @@ class DateTime {
       int equivalentYear = _equivalentYear(year);
       int equivalentDays = _dayFromYear(equivalentYear);
       int diffDays = equivalentDays - days;
-      secondsSinceEpoch += diffDays * Duration.secondsPerDay;
+      secondsSinceEpoch += diffDays * Duration.SECONDS_PER_DAY;
     }
     return secondsSinceEpoch;
   }

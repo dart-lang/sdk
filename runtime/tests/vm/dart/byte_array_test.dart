@@ -1124,15 +1124,15 @@ class ByteArrayTest {
     Expect.isTrue(copy is Float32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    array.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
+    array.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.negativeInfinity,
+      double.NEGATIVE_INFINITY,
       0.0,
       1.0,
-      double.infinity,
+      double.INFINITY,
       7.0,
       8.0,
       9.0
@@ -1229,15 +1229,15 @@ class ByteArrayTest {
     Expect.isTrue(copy is Float64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    array.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
+    array.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.negativeInfinity,
+      double.NEGATIVE_INFINITY,
       0.0,
       1.0,
-      double.infinity,
+      double.INFINITY,
       7.0,
       8.0,
       9.0
@@ -1486,7 +1486,7 @@ class ByteArrayTest {
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF - i;
     }
-    byte_array.setUint32(0, 0xBF800000, Endian.little);
+    byte_array.setUint32(0, 0xBF800000, Endianness.LITTLE_ENDIAN);
     Expect.equals(0, byte_array.getInt8(0));
     Expect.equals(0, byte_array.getInt8(1));
     Expect.equals(-128, byte_array.getInt8(2));
@@ -1504,18 +1504,22 @@ class ByteArrayTest {
     Expect.equals(0xF9, byte_array.getUint8(6));
     Expect.equals(0xF8, byte_array.getUint8(7));
     Expect.equals(0, byte_array.getInt16(0));
-    Expect.equals(-16512, byte_array.getInt16(2, Endian.little));
-    Expect.equals(-1285, byte_array.getInt16(4, Endian.little));
-    Expect.equals(-1799, byte_array.getInt16(6, Endian.little));
-    Expect.equals(0x0000, byte_array.getUint16(0, Endian.little));
-    Expect.equals(0xBF80, byte_array.getUint16(2, Endian.little));
-    Expect.equals(0xFAFB, byte_array.getUint16(4, Endian.little));
-    Expect.equals(0xF8F9, byte_array.getUint16(6, Endian.little));
-    Expect.equals(-1082130432, byte_array.getInt32(0, Endian.little));
-    Expect.equals(0xBF800000, byte_array.getUint32(0, Endian.little));
-    Expect.equals(-506097523945897984, byte_array.getInt64(0, Endian.little));
-    Expect.equals(0xF8F9FAFBBF800000, byte_array.getUint64(0, Endian.little));
-    Expect.equals(-1.0, byte_array.getFloat32(0, Endian.little));
+    Expect.equals(-16512, byte_array.getInt16(2, Endianness.LITTLE_ENDIAN));
+    Expect.equals(-1285, byte_array.getInt16(4, Endianness.LITTLE_ENDIAN));
+    Expect.equals(-1799, byte_array.getInt16(6, Endianness.LITTLE_ENDIAN));
+    Expect.equals(0x0000, byte_array.getUint16(0, Endianness.LITTLE_ENDIAN));
+    Expect.equals(0xBF80, byte_array.getUint16(2, Endianness.LITTLE_ENDIAN));
+    Expect.equals(0xFAFB, byte_array.getUint16(4, Endianness.LITTLE_ENDIAN));
+    Expect.equals(0xF8F9, byte_array.getUint16(6, Endianness.LITTLE_ENDIAN));
+    Expect.equals(
+        -1082130432, byte_array.getInt32(0, Endianness.LITTLE_ENDIAN));
+    Expect.equals(
+        0xBF800000, byte_array.getUint32(0, Endianness.LITTLE_ENDIAN));
+    Expect.equals(
+        -506097523945897984, byte_array.getInt64(0, Endianness.LITTLE_ENDIAN));
+    Expect.equals(
+        0xF8F9FAFBBF800000, byte_array.getUint64(0, Endianness.LITTLE_ENDIAN));
+    Expect.equals(-1.0, byte_array.getFloat32(0, Endianness.LITTLE_ENDIAN));
     // TODO: byte_array.getFloat64(0)
   }
 
@@ -4635,15 +4639,15 @@ class ByteArrayTest {
     Expect.isTrue(copy is Float32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    view.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
+    view.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.negativeInfinity,
+      double.NEGATIVE_INFINITY,
       0.0,
       1.0,
-      double.infinity,
+      double.INFINITY,
       7.0,
       8.0,
       9.0
@@ -4800,15 +4804,15 @@ class ByteArrayTest {
     Expect.isTrue(copy is Float64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    view.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
+    view.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.negativeInfinity,
+      double.NEGATIVE_INFINITY,
       0.0,
       1.0,
-      double.infinity,
+      double.INFINITY,
       7.0,
       8.0,
       9.0

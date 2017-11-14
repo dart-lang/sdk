@@ -27,7 +27,7 @@ Future setupFiles() async {
 
   Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
     closeDown();
-    var result = json.encode({'type': 'foobar'});
+    var result = JSON.encode({'type': 'foobar'});
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 
@@ -60,7 +60,7 @@ Future setupFiles() async {
       closeDown();
       throw e;
     }
-    var result = json.encode({'type': 'foobar'});
+    var result = JSON.encode({'type': 'foobar'});
     return new Future.value(new ServiceExtensionResponse.result(result));
   }
 

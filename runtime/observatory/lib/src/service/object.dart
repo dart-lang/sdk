@@ -1257,19 +1257,19 @@ class HeapSpace implements M.HeapSpace {
 
   Duration get avgCollectionTime {
     final mcs = totalCollectionTimeInSeconds *
-        Duration.microsecondsPerSecond /
+        Duration.MICROSECONDS_PER_SECOND /
         math.max(collections, 1);
     return new Duration(microseconds: mcs.ceil());
   }
 
   Duration get totalCollectionTime {
-    final mcs = totalCollectionTimeInSeconds * Duration.microsecondsPerSecond;
+    final mcs = totalCollectionTimeInSeconds * Duration.MICROSECONDS_PER_SECOND;
     return new Duration(microseconds: mcs.ceil());
   }
 
   Duration get avgCollectionPeriod {
     final mcs =
-        averageCollectionPeriodInMillis * Duration.microsecondsPerMillisecond;
+        averageCollectionPeriodInMillis * Duration.MICROSECONDS_PER_MILLISECOND;
     return new Duration(microseconds: mcs.ceil());
   }
 
@@ -2248,8 +2248,8 @@ class ServiceEvent extends ServiceObject {
       exceptions = map['_debuggerSettings']['_exceptions'];
     }
     if (map['bytes'] != null) {
-      var bytes = base64.decode(map['bytes']);
-      bytesAsString = utf8.decode(bytes);
+      var bytes = BASE64.decode(map['bytes']);
+      bytesAsString = UTF8.decode(bytes);
     }
     if (map['logRecord'] != null) {
       logRecord = map['logRecord'];
@@ -2898,7 +2898,7 @@ class Instance extends HeapObject implements M.Instance {
     }
     ;
     if (map['bytes'] != null) {
-      Uint8List bytes = base64.decode(map['bytes']);
+      Uint8List bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
         case "Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList();

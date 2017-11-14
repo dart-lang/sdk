@@ -88,7 +88,7 @@ void test() {
   Expect.isFalse(null == []);
   Expect.isFalse(null == 0.0);
   Expect.isFalse(null == -0.0);
-  Expect.isFalse(null == double.nan);
+  Expect.isFalse(null == double.NAN);
 
   Expect.isFalse(obj == false);
   Expect.isFalse(obj == 0);
@@ -96,7 +96,7 @@ void test() {
   Expect.isFalse(obj == []);
   Expect.isFalse(obj == 0.0);
   Expect.isFalse(obj == -0.0);
-  Expect.isFalse(obj == double.nan);
+  Expect.isFalse(obj == double.NAN);
 
   // Explicit constant expressions.
   const t1 = null == null;

@@ -35,9 +35,9 @@ class _Uri {
       Encoding encoding, bool spaceToPlus) {
     // First check if the text will be changed by encoding.
     int i = 0;
-    if (identical(encoding, utf8) ||
-        identical(encoding, latin1) ||
-        identical(encoding, ascii)) {
+    if (identical(encoding, UTF8) ||
+        identical(encoding, LATIN1) ||
+        identical(encoding, ASCII)) {
       // Encoding is compatible with the original string.
       // Find first character that needs encoding.
       for (; i < text.length; i++) {

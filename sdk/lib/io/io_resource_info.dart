@@ -114,8 +114,8 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
   static Future<ServiceExtensionResponse> getOpenFiles(function, params) {
     assert(function == 'ext.dart.io.getOpenFiles');
     var data = {'type': '_openfiles', 'data': getOpenFilesList()};
-    var jsonValue = json.encode(data);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
+    var json = JSON.encode(data);
+    return new Future.value(new ServiceExtensionResponse.result(json));
   }
 
   Map<String, dynamic> getFileInfoMap() {
@@ -127,8 +127,8 @@ class _FileResourceInfo extends _ReadWriteResourceInfo {
     var id = int.parse(params['id']);
     var result =
         openFiles.containsKey(id) ? openFiles[id].getFileInfoMap() : {};
-    var jsonValue = json.encode(result);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
+    var json = JSON.encode(result);
+    return new Future.value(new ServiceExtensionResponse.result(json));
   }
 
   String get name {
@@ -184,8 +184,8 @@ class _ProcessResourceInfo extends _IOResourceInfo {
       String function, Map<String, String> params) {
     assert(function == 'ext.dart.io.getProcesses');
     var data = {'type': '_startedprocesses', 'data': getStartedProcessesList()};
-    var jsonValue = json.encode(data);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
+    var json = JSON.encode(data);
+    return new Future.value(new ServiceExtensionResponse.result(json));
   }
 
   static Future<ServiceExtensionResponse> getProcessInfoMapById(
@@ -194,8 +194,8 @@ class _ProcessResourceInfo extends _IOResourceInfo {
     var result = startedProcesses.containsKey(id)
         ? startedProcesses[id].fullValueMap
         : {};
-    var jsonValue = json.encode(result);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
+    var json = JSON.encode(result);
+    return new Future.value(new ServiceExtensionResponse.result(json));
   }
 }
 
@@ -259,15 +259,15 @@ class _SocketResourceInfo extends _ReadWriteResourceInfo {
     var id = int.parse(params['id']);
     var result =
         openSockets.containsKey(id) ? openSockets[id].getSocketInfoMap() : {};
-    var jsonValue = json.encode(result);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
+    var json = JSON.encode(result);
+    return new Future.value(new ServiceExtensionResponse.result(json));
   }
 
   static Future<ServiceExtensionResponse> getOpenSockets(function, params) {
     assert(function == 'ext.dart.io.getOpenSockets');
     var data = {'type': '_opensockets', 'data': getOpenSocketsList()};
-    var jsonValue = json.encode(data);
-    return new Future.value(new ServiceExtensionResponse.result(jsonValue));
+    var json = JSON.encode(data);
+    return new Future.value(new ServiceExtensionResponse.result(json));
   }
 
   static SocketOpened(_SocketResourceInfo info) {

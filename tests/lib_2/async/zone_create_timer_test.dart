@@ -10,7 +10,7 @@ main() {
   Completer done = new Completer();
   List events = [];
 
-  Expect.identical(Zone.root, Zone.current);
+  Expect.identical(Zone.ROOT, Zone.current);
   Zone forked;
   forked = Zone.current.fork(specification: new ZoneSpecification(createTimer:
       (Zone self, ZoneDelegate parent, Zone origin, Duration duration, f()) {
@@ -23,14 +23,14 @@ main() {
 
   asyncStart();
   forked.run(() {
-    new Timer(Duration.zero, () {
+    new Timer(Duration.ZERO, () {
       events.add("createTimer");
       Expect.identical(forked, Zone.current);
       done.complete(true);
     });
   });
 
-  Expect.identical(Zone.root, Zone.current);
+  Expect.identical(Zone.ROOT, Zone.current);
   events.add("after createTimer");
 
   done.future.whenComplete(() {

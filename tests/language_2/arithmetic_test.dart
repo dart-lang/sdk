@@ -232,7 +232,7 @@ class ArithmeticTest {
     Expect.equals(0, (0.0).ceil());
     Expect.equals(false, (0.0).ceil().isNegative);
     Expect.equals(1, (0.1).ceil());
-    Expect.equals(1, double.minPositive.ceil());
+    Expect.equals(1, double.MIN_POSITIVE.ceil());
     Expect.equals(1, (0.49999999999999994).ceil());
     Expect.equals(0, (-0.0).ceil());
     Expect.equals(0, (-0.3).ceil());
@@ -254,7 +254,7 @@ class ArithmeticTest {
     Expect.equals(0, (0.0).floor());
     Expect.equals(0, (0.1).floor());
     Expect.equals(0, (0.49999999999999994).floor());
-    Expect.equals(0, double.minPositive.floor());
+    Expect.equals(0, double.MIN_POSITIVE.floor());
     Expect.isTrue((0.0).floor() is int);
     Expect.isTrue((0.1).floor() is int);
     Expect.equals(0, (-0.0).floor());
@@ -533,11 +533,11 @@ class ArithmeticTest {
   }
 
   static testDoubleEquality() {
-    Expect.isFalse(self_equality(double.nan));
+    Expect.isFalse(self_equality(double.NAN));
     for (int i = 0; i < 20; i++) {
       self_equality(3.0);
     }
-    Expect.isFalse(self_equality(double.nan));
+    Expect.isFalse(self_equality(double.NAN));
   }
 
   static testMain() {

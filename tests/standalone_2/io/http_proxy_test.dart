@@ -162,7 +162,7 @@ class ProxyServer {
             if (authScheme == "Basic") {
               List<String> tokens = authorization.split(" ");
               Expect.equals("Basic", tokens[0]);
-              String auth = base64.encode(utf8.encode("$username:$password"));
+              String auth = BASE64.encode(UTF8.encode("$username:$password"));
               if (auth != tokens[1]) {
                 basicAuthenticationRequired(request);
                 return;

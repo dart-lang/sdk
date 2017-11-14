@@ -54,7 +54,7 @@ class MappingState {
 void generateHtml(String jsFileName, String jsMapFileName) {
   String jsFile = new File(jsFileName).readAsStringSync();
   String jsMapFile = new File(jsMapFileName).readAsStringSync();
-  SingleMapping mapping = new SingleMapping.fromJson(json.decode(jsMapFile));
+  SingleMapping mapping = new SingleMapping.fromJson(JSON.decode(jsMapFile));
   StringBuffer output = new StringBuffer();
   output.write('''
 <html>

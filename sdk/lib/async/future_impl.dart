@@ -57,16 +57,16 @@ class _SyncCompleter<T> extends _Completer<T> {
 }
 
 class _FutureListener<S, T> {
-  static const int maskValue = 1;
-  static const int maskError = 2;
-  static const int maskTestError = 4;
-  static const int maskWhencomplete = 8;
-  static const int stateChain = 0;
-  static const int stateThen = maskValue;
-  static const int stateThenOnerror = maskValue | maskError;
-  static const int stateCatcherror = maskError;
-  static const int stateCatcherrorTest = maskError | maskTestError;
-  static const int stateWhencomplete = maskWhencomplete;
+  static const int MASK_VALUE = 1;
+  static const int MASK_ERROR = 2;
+  static const int MASK_TEST_ERROR = 4;
+  static const int MASK_WHENCOMPLETE = 8;
+  static const int STATE_CHAIN = 0;
+  static const int STATE_THEN = MASK_VALUE;
+  static const int STATE_THEN_ONERROR = MASK_VALUE | MASK_ERROR;
+  static const int STATE_CATCHERROR = MASK_ERROR;
+  static const int STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
+  static const int STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
   // Listeners on the same future are linked through this link.
   _FutureListener _nextListener = null;
   // The future to complete when this listener is activated.
@@ -82,24 +82,24 @@ class _FutureListener<S, T> {
       this.result, _FutureOnValue<S, T> onValue, Function errorCallback)
       : callback = onValue,
         errorCallback = errorCallback,
-        state = (errorCallback == null) ? stateThen : stateThenOnerror;
+        state = (errorCallback == null) ? STATE_THEN : STATE_THEN_ONERROR;
 
   _FutureListener.catchError(
       this.result, this.errorCallback, _FutureErrorTest test)
       : callback = test,
-        state = (test == null) ? stateCatcherror : stateCatcherrorTest;
+        state = (test == null) ? STATE_CATCHERROR : STATE_CATCHERROR_TEST;
 
   _FutureListener.whenComplete(this.result, _FutureAction onComplete)
       : callback = onComplete,
         errorCallback = null,
-        state = stateWhencomplete;
+        state = STATE_WHENCOMPLETE;
 
   Zone get _zone => result._zone;
 
-  bool get handlesValue => (state & maskValue != 0);
-  bool get handlesError => (state & maskError != 0);
-  bool get hasErrorTest => (state == stateCatcherrorTest);
-  bool get handlesComplete => (state == stateWhencomplete);
+  bool get handlesValue => (state & MASK_VALUE != 0);
+  bool get handlesError => (state & MASK_ERROR != 0);
+  bool get hasErrorTest => (state == STATE_CATCHERROR_TEST);
+  bool get handlesComplete => (state == STATE_WHENCOMPLETE);
 
   _FutureOnValue<S, T> get _onValue {
     assert(handlesValue);
@@ -156,26 +156,26 @@ class _Future<T> implements Future<T> {
   /// Initial state, waiting for a result. In this state, the
   /// [resultOrListeners] field holds a single-linked list of
   /// [_FutureListener] listeners.
-  static const int _stateIncomplete = 0;
+  static const int _INCOMPLETE = 0;
 
   /// Pending completion. Set when completed using [_asyncComplete] or
   /// [_asyncCompleteError]. It is an error to try to complete it again.
   /// [resultOrListeners] holds listeners.
-  static const int _statePendingComplete = 1;
+  static const int _PENDING_COMPLETE = 1;
 
   /// The future has been chained to another future. The result of that
   /// other future becomes the result of this future as well.
   /// [resultOrListeners] contains the source future.
-  static const int _stateChained = 2;
+  static const int _CHAINED = 2;
 
   /// The future has been completed with a value result.
-  static const int _stateValue = 4;
+  static const int _VALUE = 4;
 
   /// The future has been completed with an error result.
-  static const int _stateError = 8;
+  static const int _ERROR = 8;
 
   /** Whether the future is complete, and as what. */
-  int _state = _stateIncomplete;
+  int _state = _INCOMPLETE;
 
   /**
    * Zone that the future was completed from.
@@ -219,22 +219,22 @@ class _Future<T> implements Future<T> {
     _setValue(value);
   }
 
-  bool get _mayComplete => _state == _stateIncomplete;
-  bool get _isPendingComplete => _state == _statePendingComplete;
-  bool get _mayAddListener => _state <= _statePendingComplete;
-  bool get _isChained => _state == _stateChained;
-  bool get _isComplete => _state >= _stateValue;
-  bool get _hasError => _state == _stateError;
+  bool get _mayComplete => _state == _INCOMPLETE;
+  bool get _isPendingComplete => _state == _PENDING_COMPLETE;
+  bool get _mayAddListener => _state <= _PENDING_COMPLETE;
+  bool get _isChained => _state == _CHAINED;
+  bool get _isComplete => _state >= _VALUE;
+  bool get _hasError => _state == _ERROR;
 
   void _setChained(_Future source) {
     assert(_mayAddListener);
-    _state = _stateChained;
+    _state = _CHAINED;
     _resultOrListeners = source;
   }
 
   Future<E> then<E>(FutureOr<E> f(T value), {Function onError}) {
     Zone currentZone = Zone.current;
-    if (!identical(currentZone, _rootZone)) {
+    if (!identical(currentZone, _ROOT_ZONE)) {
       f = currentZone.registerUnaryCallback<FutureOr<E>, T>(f);
       if (onError != null) {
         onError = _registerErrorHandler<E>(onError, currentZone);
@@ -253,7 +253,7 @@ class _Future<T> implements Future<T> {
 
   Future<T> catchError(Function onError, {bool test(error)}) {
     _Future<T> result = new _Future<T>();
-    if (!identical(result._zone, _rootZone)) {
+    if (!identical(result._zone, _ROOT_ZONE)) {
       onError = _registerErrorHandler<T>(onError, result._zone);
       if (test != null) test = result._zone.registerUnaryCallback(test);
     }
@@ -263,7 +263,7 @@ class _Future<T> implements Future<T> {
 
   Future<T> whenComplete(dynamic action()) {
     _Future<T> result = new _Future<T>();
-    if (!identical(result._zone, _rootZone)) {
+    if (!identical(result._zone, _ROOT_ZONE)) {
       action = result._zone.registerCallback<dynamic>(action);
     }
     _addListener(new _FutureListener<T, T>.whenComplete(result, action));
@@ -274,12 +274,12 @@ class _Future<T> implements Future<T> {
 
   void _setPendingComplete() {
     assert(_mayComplete);
-    _state = _statePendingComplete;
+    _state = _PENDING_COMPLETE;
   }
 
   void _clearPendingComplete() {
     assert(_isPendingComplete);
-    _state = _stateIncomplete;
+    _state = _INCOMPLETE;
   }
 
   AsyncError get _error {
@@ -295,13 +295,13 @@ class _Future<T> implements Future<T> {
   // This method is used by async/await.
   void _setValue(T value) {
     assert(!_isComplete); // But may have a completion pending.
-    _state = _stateValue;
+    _state = _VALUE;
     _resultOrListeners = value;
   }
 
   void _setErrorObject(AsyncError error) {
     assert(!_isComplete); // But may have a completion pending.
-    _state = _stateError;
+    _state = _ERROR;
     _resultOrListeners = error;
   }
 

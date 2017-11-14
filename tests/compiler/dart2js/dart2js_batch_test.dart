@@ -70,8 +70,8 @@ Future runTests(Process process) {
   process.stdin.writeln('too many arguments');
   process.stdin.writeln(r'"non existing file.dart"');
   process.stdin.close();
-  Future<String> output = process.stdout.transform(utf8.decoder).join();
-  Future<String> errorOut = process.stderr.transform(utf8.decoder).join();
+  Future<String> output = process.stdout.transform(UTF8.decoder).join();
+  Future<String> errorOut = process.stderr.transform(UTF8.decoder).join();
   return Future.wait([output, errorOut]).then((result) {
     String stdoutOutput = result[0];
     String stderrOutput = result[1];

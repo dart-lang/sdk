@@ -16,7 +16,7 @@
  *     import 'dart:convert';
  *
  * Two commonly used converters are the top-level instances of
- * [JsonCodec] and [Utf8Codec], named [json] and [utf8], respectively.
+ * [JsonCodec] and [Utf8Codec], named JSON and UTF8, respectively.
  *
  * JSON is a simple text format for representing
  * structured objects and collections.
@@ -39,7 +39,7 @@
  *     int lineNumber = 1;
  *     Stream<List<int>> stream = new File('quotes.txt').openRead();
  *
- *     stream.transform(utf8.decoder)
+ *     stream.transform(UTF8.decoder)
  *           .transform(const LineSplitter())
  *           .listen((line) {
  *             if (showLineNumbers) {

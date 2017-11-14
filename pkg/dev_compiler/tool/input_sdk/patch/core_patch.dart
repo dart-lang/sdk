@@ -651,7 +651,7 @@ class _Uri {
   @patch
   static String _uriEncode(List<int> canonicalTable, String text,
       Encoding encoding, bool spaceToPlus) {
-    if (identical(encoding, utf8) && _needsNoEncoding.hasMatch(text)) {
+    if (identical(encoding, UTF8) && _needsNoEncoding.hasMatch(text)) {
       return text;
     }
 

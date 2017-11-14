@@ -10,8 +10,8 @@ negate(x) => -x;
 main() {
   // Test matrix:
   // -inf < -499.0 == -499 < -0.0 < 0.0 == 0 < 499.0 == 499 < +inf < -NaN, NaN.
-  var inf = double.infinity;
-  var nan = double.nan;
+  var inf = double.INFINITY;
+  var nan = double.NAN;
   var mnan = negate(nan);
 
   Expect.equals(0, (-inf).compareTo(-inf));

@@ -15,19 +15,19 @@ main() {
 
   var result;
 
-  Expect.identical(Zone.root, Zone.current);
+  Expect.identical(Zone.ROOT, Zone.current);
   Zone forked;
   forked = Zone.current.fork(
       specification: new ZoneSpecification(
           run: <R>(Zone self, ZoneDelegate parent, Zone origin, R f()) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
-    Expect.identical(Zone.root, Zone.current);
+    Expect.identical(Zone.ROOT, Zone.current);
     events.add("forked.run");
     return parent.run(origin, f);
   }, handleUncaughtError:
               (Zone self, ZoneDelegate parent, Zone origin, error, stackTrace) {
-    Expect.identical(Zone.root, Zone.current);
+    Expect.identical(Zone.ROOT, Zone.current);
     Expect.identical(forked, origin);
     events.add("forked.handleUncaught $error");
     result = 499;
@@ -38,7 +38,7 @@ main() {
     Expect.identical(forked, Zone.current);
     result = 42;
   });
-  Expect.identical(Zone.root, Zone.current);
+  Expect.identical(Zone.ROOT, Zone.current);
   Expect.equals(42, result);
   events.add("after runGuarded 1");
 

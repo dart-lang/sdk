@@ -998,15 +998,15 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    array.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
+    array.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.negativeInfinity,
+      double.NEGATIVE_INFINITY,
       0.0,
       1.0,
-      double.infinity,
+      double.INFINITY,
       7.0,
       8.0,
       9.0
@@ -1100,15 +1100,15 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    array.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
+    array.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.negativeInfinity,
+      double.NEGATIVE_INFINITY,
       0.0,
       1.0,
-      double.infinity,
+      double.INFINITY,
       7.0,
       8.0,
       9.0
@@ -4241,15 +4241,15 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    view.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
+    view.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.negativeInfinity,
+      double.NEGATIVE_INFINITY,
       0.0,
       1.0,
-      double.infinity,
+      double.INFINITY,
       7.0,
       8.0,
       9.0
@@ -4406,15 +4406,15 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    view.setRange(3, 7, [double.negativeInfinity, 0.0, 1.0, double.infinity]);
+    view.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([
       0.0,
       1.0,
       2.0,
-      double.negativeInfinity,
+      double.NEGATIVE_INFINITY,
       0.0,
       1.0,
-      double.infinity,
+      double.INFINITY,
       7.0,
       8.0,
       9.0

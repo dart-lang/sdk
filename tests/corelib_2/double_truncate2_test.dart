@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 
 main() {
-  Expect.throwsUnsupportedError(() => double.infinity.truncate());
-  Expect.throwsUnsupportedError(() => double.negativeInfinity.truncate());
-  Expect.throwsUnsupportedError(() => double.nan.truncate());
+  Expect.throwsUnsupportedError(() => double.INFINITY.truncate());
+  Expect.throwsUnsupportedError(() => double.NEGATIVE_INFINITY.truncate());
+  Expect.throwsUnsupportedError(() => double.NAN.truncate());
 }

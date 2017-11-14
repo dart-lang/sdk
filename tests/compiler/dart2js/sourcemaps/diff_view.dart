@@ -185,7 +185,7 @@ class AnnotatedOutput {
 
   static AnnotatedOutput loadOutput(filename) {
     AnnotatedOutput output = AnnotatedOutput
-        .fromJson(json.decode(new File(filename).readAsStringSync()));
+        .fromJson(JSON.decode(new File(filename).readAsStringSync()));
     print('Output loaded from $filename');
     return output;
   }

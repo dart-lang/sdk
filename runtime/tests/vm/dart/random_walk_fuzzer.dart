@@ -164,11 +164,11 @@ void setupInterestingValues() {
   addInstance(0.0);
   addInstance(1.0);
   addInstance(2.0);
-  addInstance(double.nan);
-  addInstance(double.infinity);
-  addInstance(double.negativeInfinity);
-  addInstance(double.minPositive);
-  addInstance(double.maxFinite);
+  addInstance(double.NAN);
+  addInstance(double.INFINITY);
+  addInstance(double.NEGATIVE_INFINITY);
+  addInstance(double.MIN_POSITIVE);
+  addInstance(double.MAX_FINITE);
 
   addInstance("foo"); // ASCII string
   addInstance("blåbærgrød"); // Latin1 string

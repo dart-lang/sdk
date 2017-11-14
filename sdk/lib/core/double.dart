@@ -23,21 +23,11 @@ part of dart.core;
  * double.
  */
 abstract class double extends num {
-  @Deprecated("Use nan instead")
-  static const double NAN = nan;
-  static const double nan = 0.0 / 0.0;
-  @Deprecated("Use infinity instead")
-  static const double INFINITY = infinity;
-  static const double infinity = 1.0 / 0.0;
-  @Deprecated("Use negativeInfinity instead")
-  static const double NEGATIVE_INFINITY = negativeInfinity;
-  static const double negativeInfinity = -infinity;
-  @Deprecated("Use minPositive instead")
-  static const double MIN_POSITIVE = minPositive;
-  static const double minPositive = 5e-324;
-  @Deprecated("Use maxFinite instead")
-  static const double MAX_FINITE = maxFinite;
-  static const double maxFinite = 1.7976931348623157e+308;
+  static const double NAN = 0.0 / 0.0;
+  static const double INFINITY = 1.0 / 0.0;
+  static const double NEGATIVE_INFINITY = -INFINITY;
+  static const double MIN_POSITIVE = 5e-324;
+  static const double MAX_FINITE = 1.7976931348623157e+308;
 
   double remainder(num other);
 

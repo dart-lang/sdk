@@ -229,7 +229,7 @@ void tdivTest() {
   Expect.throws(() => -1e200 ~/ 1e-200);
   Expect.throws(() => 1e200 ~/ -1e-200);
   Expect.throws(() => -1e200 ~/ -1e-200);
-  Expect.throws(() => double.nan ~/ 2);
+  Expect.throws(() => double.NAN ~/ 2);
 }
 
 @NoInline()

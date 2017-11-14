@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-final List<int> _UTF8_PLS_CERTIFICATE = utf8.encode('''
+final List<int> _UTF8_PLS_CERTIFICATE = UTF8.encode('''
 -----BEGIN CERTIFICATE-----
 MIIDZDCCAkygAwIBAgIBATANBgkqhkiG9w0BAQsFADAgMR4wHAYDVQQDDBVpbnRl
 cm1lZGlhdGVhdXRob3JpdHkwHhcNMTUxMDI3MTAyNjM1WhcNMjUxMDI0MTAyNjM1

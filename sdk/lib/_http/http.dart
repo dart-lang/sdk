@@ -1838,7 +1838,7 @@ abstract class HttpClientRequest implements IOSink {
  *     new HttpClient().get('localhost', 80, '/file.txt')
  *          .then((HttpClientRequest request) => request.close())
  *          .then((HttpClientResponse response) {
- *            response.transform(utf8.decoder).listen((contents) {
+ *            response.transform(UTF8.decoder).listen((contents) {
  *              // handle data
  *            });
  *          });

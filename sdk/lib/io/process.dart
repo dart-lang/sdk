@@ -194,7 +194,7 @@ enum ProcessStartMode {
  *     main() {
  *       Process.start('cat', []).then((Process process) {
  *         process.stdout
- *             .transform(utf8.decoder)
+ *             .transform(UTF8.decoder)
  *             .listen((data) { print(data); });
  *         process.stdin.writeln('Hello, world!');
  *         process.stdin.writeln('Hello, galaxy!');

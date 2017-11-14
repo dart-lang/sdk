@@ -6,7 +6,7 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.equals("NaN", (double.nan).toString());
+  Expect.equals("NaN", (double.NAN).toString());
   Expect.equals("Infinity", (1 / 0).toString());
   Expect.equals("-Infinity", (-1 / 0).toString());
   Expect.equals("90.12", (90.12).toString());

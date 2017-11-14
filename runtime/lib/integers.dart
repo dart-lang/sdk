@@ -168,7 +168,7 @@ abstract class _IntegerImplementation implements int {
       const int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
       double d = other;
       if (d.isInfinite) {
-        return d == double.negativeInfinity ? GREATER : LESS;
+        return d == double.NEGATIVE_INFINITY ? GREATER : LESS;
       }
       if (d.isNaN) {
         return LESS;

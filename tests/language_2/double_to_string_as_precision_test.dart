@@ -6,9 +6,9 @@
 import "package:expect/expect.dart";
 
 main() {
-  Expect.equals("NaN", (double.nan).toStringAsPrecision(1));
-  Expect.equals("Infinity", (double.infinity).toStringAsPrecision(2));
-  Expect.equals("-Infinity", (-double.infinity).toStringAsPrecision(2));
+  Expect.equals("NaN", (double.NAN).toStringAsPrecision(1));
+  Expect.equals("Infinity", (double.INFINITY).toStringAsPrecision(2));
+  Expect.equals("-Infinity", (-double.INFINITY).toStringAsPrecision(2));
   Expect.equals("0.000555000000000000", (0.000555).toStringAsPrecision(15));
   Expect.equals("5.55000000000000e-7", (0.000000555).toStringAsPrecision(15));
   Expect.equals("-5.55000000000000e-7", (-0.000000555).toStringAsPrecision(15));

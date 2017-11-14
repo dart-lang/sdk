@@ -21,7 +21,7 @@ part "rectangle.dart";
  *
  * Typically written as "e".
  */
-const double e = 2.718281828459045;
+const double E = 2.718281828459045;
 
 /**
  * Natural logarithm of 10.
@@ -30,7 +30,7 @@ const double e = 2.718281828459045;
  * This value is not exact, but it is the closest representable double to the
  * exact mathematical value.
  */
-const double ln10 = 2.302585092994046;
+const double LN10 = 2.302585092994046;
 
 /**
  * Natural logarithm of 2.
@@ -39,49 +39,32 @@ const double ln10 = 2.302585092994046;
  * This value is not exact, but it is the closest representable double to the
  * exact mathematical value.
  */
-const double ln2 = 0.6931471805599453;
+const double LN2 = 0.6931471805599453;
 
 /**
- * Base-2 logarithm of [e].
+ * Base-2 logarithm of [E].
  */
-const double log2e = 1.4426950408889634;
+const double LOG2E = 1.4426950408889634;
 
 /**
- * Base-10 logarithm of [e].
+ * Base-10 logarithm of [E].
  */
-const double log10e = 0.4342944819032518;
+const double LOG10E = 0.4342944819032518;
 
 /**
  * The PI constant.
  */
-const double pi = 3.1415926535897932;
+const double PI = 3.1415926535897932;
 
 /**
  * Square root of 1/2.
  */
-const double sqrt1_2 = 0.7071067811865476;
+const double SQRT1_2 = 0.7071067811865476;
 
 /**
  * Square root of 2.
  */
-const double sqrt2 = 1.4142135623730951;
-
-@Deprecated("Use e instead")
-const double E = e;
-@Deprecated("Use ln10 instead")
-const double LN10 = ln10;
-@Deprecated("Use ln2 instead")
-const double LN2 = ln2;
-@Deprecated("Use log2e instead")
-const double LOG2E = log2e;
-@Deprecated("Use log10e instead")
-const double LOG10E = log10e;
-@Deprecated("Use pi instead")
-const double PI = pi;
-@Deprecated("Use sqrt1_2 instead")
-const double SQRT1_2 = sqrt1_2;
-@Deprecated("Use sqrt2 instead")
-const double SQRT2 = sqrt2;
+const double SQRT2 = 1.4142135623730951;
 
 /**
   * Returns the lesser of two numbers.
@@ -161,7 +144,7 @@ external double atan2(num a, num b);
  * This corresponds to the `pow` function defined in the IEEE Standard 754-2008.
  *
  * Notice that an [int] result cannot overflow, but a [double] result might
- * be [double.infinity].
+ * be [double.INFINITY].
  */
 external num pow(num x, num exponent);
 
@@ -219,7 +202,7 @@ external double atan(num x);
 external double sqrt(num x);
 
 /**
- * Converts [x] to a [double] and returns the natural exponent, [e],
+ * Converts [x] to a [double] and returns the natural exponent, [E],
  * to the power [x].
  *
  * Returns NaN if [x] is NaN.

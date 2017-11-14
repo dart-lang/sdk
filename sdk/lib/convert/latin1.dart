@@ -12,15 +12,13 @@ part of dart.convert;
  *
  * Examples:
  *
- *     var encoded = latin1.encode("blåbærgrød");
- *     var decoded = latin1.decode([0x62, 0x6c, 0xe5, 0x62, 0xe6,
+ *     var encoded = LATIN1.encode("blåbærgrød");
+ *     var decoded = LATIN1.decode([0x62, 0x6c, 0xe5, 0x62, 0xe6,
  *                                  0x72, 0x67, 0x72, 0xf8, 0x64]);
  */
-const Latin1Codec latin1 = const Latin1Codec();
-@Deprecated("Use latin1 instead")
-const Latin1Codec LATIN1 = latin1;
+const Latin1Codec LATIN1 = const Latin1Codec();
 
-const int _latin1Mask = 0xFF;
+const int _LATIN1_MASK = 0xFF;
 
 /**
  * A [Latin1Codec] encodes strings to ISO Latin-1 (aka ISO-8859-1) bytes
@@ -72,7 +70,7 @@ class Latin1Codec extends Encoding {
  * This class converts strings of only ISO Latin-1 characters to bytes.
  */
 class Latin1Encoder extends _UnicodeSubsetEncoder {
-  const Latin1Encoder() : super(_latin1Mask);
+  const Latin1Encoder() : super(_LATIN1_MASK);
 }
 
 /**
@@ -91,7 +89,7 @@ class Latin1Decoder extends _UnicodeSubsetDecoder {
    * Otherwise it throws a [FormatException].
    */
   const Latin1Decoder({bool allowInvalid: false})
-      : super(allowInvalid, _latin1Mask);
+      : super(allowInvalid, _LATIN1_MASK);
 
   /**
    * Starts a chunked conversion.
@@ -151,7 +149,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
     for (int i = start; i < end; i++) {
       mask |= source[i];
     }
-    if (mask >= 0 && mask <= _latin1Mask) {
+    if (mask >= 0 && mask <= _LATIN1_MASK) {
       return;
     }
     _reportInvalidLatin1(source, start, end); // Always throws.
@@ -161,7 +159,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
     // Find the index of the first non-Latin-1 character code.
     for (int i = start; i < end; i++) {
       int char = source[i];
-      if (char < 0 || char > _latin1Mask) {
+      if (char < 0 || char > _LATIN1_MASK) {
         throw new FormatException(
             "Source contains non-Latin-1 characters.", source, i);
       }
@@ -178,7 +176,7 @@ class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {
     RangeError.checkValidRange(start, end, source.length);
     for (int i = start; i < end; i++) {
       int char = source[i];
-      if (char > _latin1Mask || char < 0) {
+      if (char > _LATIN1_MASK || char < 0) {
         if (i > start) _addSliceToSink(source, start, i, false);
         // Add UTF-8 encoding of U+FFFD.
         _addSliceToSink(const [0xFFFD], 0, 1, false);
