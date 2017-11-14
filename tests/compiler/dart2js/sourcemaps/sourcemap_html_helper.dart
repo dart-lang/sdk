@@ -382,6 +382,7 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
 
   int start = startLine ?? 0;
   int end = endLine ?? lines.length - 1;
+  if (lastLine == 0) lastLine = firstLine;
   if (windowSize != null) {
     start = Math.max(firstLine - windowSize, start);
     end = Math.min(lastLine + windowSize, end);

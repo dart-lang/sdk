@@ -3,15 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'source_mapping_tester.dart';
-import 'sourcemap_helper.dart';
 
 void main() {
-  test(['operators'], whiteListFunction: (String config, String file) {
-    bool allowGtOptimization(CodePoint codePoint) {
-      // Allow missing code points for bailout optimization.
-      return codePoint.jsCode.contains(r'.$gt()'); // # Issue 25304
-    }
-
-    return allowGtOptimization;
+  test(['operators'], whiteListFunction: (String configuration, String file) {
+    // TODO(redemption): Create source information from kernel.
+    if (configuration == 'kernel') return (_) => true;
+    return emptyWhiteList;
   });
 }

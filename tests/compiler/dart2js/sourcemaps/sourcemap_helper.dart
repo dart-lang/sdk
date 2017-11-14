@@ -336,11 +336,11 @@ class SourceMapProcessor {
     }
 
     SourceMapInfo mainSourceMapInfo;
-    Map<Element, SourceMapInfo> elementSourceMapInfos =
-        <Element, SourceMapInfo>{};
+    Map<MemberEntity, SourceMapInfo> elementSourceMapInfos =
+        <MemberEntity, SourceMapInfo>{};
     if (perElement) {
       backend.generatedCode.forEach((_element, js.Expression node) {
-        MemberElement element = _element;
+        MemberEntity element = _element;
         RecordedSourceInformationProcess subProcess =
             strategy.subProcessForNode(node);
         if (subProcess == null) {
@@ -392,7 +392,7 @@ class SourceMaps {
   final SourceFileManager sourceFileManager;
   // TODO(johnniwinther): Supported multiple output units.
   final SourceMapInfo mainSourceMapInfo;
-  final Map<Element, SourceMapInfo> elementSourceMapInfos;
+  final Map<MemberEntity, SourceMapInfo> elementSourceMapInfos;
 
   SourceMaps(this.compiler, this.sourceFileManager, this.mainSourceMapInfo,
       this.elementSourceMapInfos);
@@ -401,14 +401,14 @@ class SourceMaps {
 /// Source mapping information for the JavaScript code of an [Element].
 class SourceMapInfo {
   final String name;
-  final Element element;
+  final MemberEntity element;
   final String code;
   final js.Node node;
   final List<CodePoint> codePoints;
   final CodePositionMap jsCodePositions;
   final LocationMap nodeMap;
 
-  SourceMapInfo(Element element, this.code, this.node, this.codePoints,
+  SourceMapInfo(MemberEntity element, this.code, this.node, this.codePoints,
       this.jsCodePositions, this.nodeMap)
       : this.name =
             element != null ? computeElementNameForSourceMaps(element) : '',

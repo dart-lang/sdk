@@ -244,7 +244,15 @@ class OffsetSourceLocation extends AbstractSourceLocation {
 }
 
 /// Compute the source map name for [element].
-String computeElementNameForSourceMaps(AstElement element) {
+String computeElementNameForSourceMaps(Entity element) {
+  if (element is AstElement) {
+    return _computeAstElementNameForSourceMaps(element);
+  }
+  // TODO(redemption): Create element names from kernel.
+  return element.name;
+}
+
+String _computeAstElementNameForSourceMaps(AstElement element) {
   if (element.isClosure) {
     return computeElementNameForSourceMaps(element.enclosingElement);
   } else if (element.isClass) {

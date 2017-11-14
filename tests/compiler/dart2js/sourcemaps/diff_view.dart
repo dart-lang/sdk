@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/position_information.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/io/source_file.dart';
@@ -110,7 +111,7 @@ main(List<String> args) async {
 /// element-to-offset in [result].
 void computeEntityCodeSources(
     CodeLinesResult result, OutputStructure structure) {
-  result.elementMap.forEach((int line, Element element) {
+  result.elementMap.forEach((int line, MemberEntity element) {
     OutputEntity entity = structure.getEntityForLine(line);
     if (entity != null) {
       entity.codeSource = codeSourceFromElement(element);
@@ -602,7 +603,7 @@ Source mapped Dart code</span><br/>
 class CodeLinesResult {
   final List<CodeLine> codeLines;
   final Coverage coverage;
-  final Map<int, Element> elementMap;
+  final Map<int, MemberEntity> elementMap;
   final SourceFileManager sourceFileManager;
   final CodeSources codeSources;
 
@@ -846,9 +847,9 @@ Future<CodeLinesResult> computeCodeLines(
 
   // Associate JavaScript offsets with [Element]s.
   StringSourceFile sourceFile = new StringSourceFile.fromName(filename, code);
-  Map<int, Element> elementMap = <int, Element>{};
+  Map<int, MemberEntity> elementMap = <int, MemberEntity>{};
   sourceMaps.elementSourceMapInfos
-      .forEach((Element element, SourceMapInfo info) {
+      .forEach((MemberEntity element, SourceMapInfo info) {
     CodePosition position = info.jsCodePositions[info.node];
     elementMap[sourceFile.getLocation(position.startPosition).line - 1] =
         element;
@@ -876,7 +877,9 @@ class SourceLocationCollector extends js.BaseVisitor {
 }
 
 /// Compute a [CodeSource] for source span of [element].
-CodeSource codeSourceFromElement(Element element) {
+CodeSource codeSourceFromElement(Entity _element) {
+  // TODO(johnniwinther): Handle kernel based elements.
+  Element element = _element;
   CodeKind kind;
   Uri uri;
   String name;

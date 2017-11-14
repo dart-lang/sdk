@@ -5,5 +5,9 @@
 import 'source_mapping_tester.dart';
 
 void main() {
-  test(['invokes']);
+  test(['invokes'], whiteListFunction: (String configuration, String file) {
+    // TODO(redemption): Create source information from kernel.
+    if (configuration == 'kernel') return (_) => true;
+    return emptyWhiteList;
+  });
 }
