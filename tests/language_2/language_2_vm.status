@@ -1103,6 +1103,17 @@ deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: RuntimeError
 
+[ $runtime == dart_precompiled && $mode == product ]
+vm/type_vm_test/28: MissingRuntimeError
+vm/type_vm_test/29: MissingRuntimeError
+vm/type_vm_test/30: MissingRuntimeError
+vm/type_vm_test/31: MissingRuntimeError
+vm/type_vm_test/32: MissingRuntimeError
+vm/type_vm_test/33: MissingRuntimeError
+vm/type_vm_test/34: MissingRuntimeError
+vm/type_vm_test/35: MissingRuntimeError
+vm/type_vm_test/36: MissingRuntimeError
+
 [ $runtime == vm && $compiler != dartk ]
 generic_no_such_method_dispatcher_simple_test: Skip # This test is only for kernel.
 type_promotion_functions_test/01: MissingCompileTimeError
