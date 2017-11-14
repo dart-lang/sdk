@@ -8,9 +8,6 @@
 [ $strong ]
 *: SkipByDesign # tests/language_2 has the strong mode versions of these tests.
 
-[ $compiler == precompiler && $runtime == dart_precompiled && $arch == simarm64 ]
-compile_time_constant_checked_test/none: Skip # Issue 31176
-
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 stacktrace_demangle_ctors_test: RuntimeError
 deep_nesting1_negative_test: Skip  # Issue 31158
