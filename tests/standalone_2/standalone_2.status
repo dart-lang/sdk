@@ -41,7 +41,7 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 
 
 # All static_tests have expected compile-time errors.
-[ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
+[ $strong && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp ]
 float_array_static_test: MissingCompileTimeError
 
 [ !$strong ]

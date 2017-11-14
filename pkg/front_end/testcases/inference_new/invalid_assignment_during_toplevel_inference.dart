@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=warning,inference*/
+/*@testedFeatures=error,inference*/
 
 int i;
 String s;
-var /*@topType=int*/ x = /*@warning=InvalidAssignment*/ i = s;
+var /*@topType=int*/ x = /*@error=InvalidAssignment*/ i = s;
 
 main() {}

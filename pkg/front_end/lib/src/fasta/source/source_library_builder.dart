@@ -647,6 +647,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       }
     }
   }
+
+  @override
+  void addError(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    super.addError(message, charOffset, uri, silent: silent, context: context);
+    if (!silent) {
+      // TODO(ahe): Should I add a value for messages?
+      loader.instrumentation?.record(uri, charOffset, "error",
+          new InstrumentationValueLiteral(message.code.name));
+      if (context != null) {
+        loader.instrumentation?.record(context.uri, context.charOffset,
+            "context", new InstrumentationValueLiteral(context.code.name));
+      }
+    }
+  }
 }
 
 /// Unlike [Scope], this scope is used during construction of builders to

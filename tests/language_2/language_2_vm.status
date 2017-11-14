@@ -241,9 +241,7 @@ field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-field_override_test/02: MissingCompileTimeError
 field_override_test/none: MissingCompileTimeError
-field_type_check_test/01: MissingCompileTimeError
 final_for_in_variable_test: MissingCompileTimeError
 final_param_test: MissingCompileTimeError
 final_super_field_set_test: MissingCompileTimeError
@@ -322,27 +320,21 @@ if_null_assignment_behavior_test/15: MissingCompileTimeError
 if_null_assignment_static_test/02: MissingCompileTimeError
 if_null_assignment_static_test/04: MissingCompileTimeError
 if_null_assignment_static_test/06: MissingCompileTimeError
-if_null_assignment_static_test/07: MissingCompileTimeError
 if_null_assignment_static_test/09: MissingCompileTimeError
 if_null_assignment_static_test/11: MissingCompileTimeError
 if_null_assignment_static_test/13: MissingCompileTimeError
-if_null_assignment_static_test/14: MissingCompileTimeError
 if_null_assignment_static_test/16: MissingCompileTimeError
 if_null_assignment_static_test/18: MissingCompileTimeError
 if_null_assignment_static_test/20: MissingCompileTimeError
-if_null_assignment_static_test/21: MissingCompileTimeError
 if_null_assignment_static_test/23: MissingCompileTimeError
 if_null_assignment_static_test/25: MissingCompileTimeError
 if_null_assignment_static_test/27: MissingCompileTimeError
-if_null_assignment_static_test/28: MissingCompileTimeError
 if_null_assignment_static_test/30: MissingCompileTimeError
 if_null_assignment_static_test/32: MissingCompileTimeError
 if_null_assignment_static_test/34: MissingCompileTimeError
-if_null_assignment_static_test/35: MissingCompileTimeError
 if_null_assignment_static_test/37: MissingCompileTimeError
 if_null_assignment_static_test/39: MissingCompileTimeError
 if_null_assignment_static_test/41: MissingCompileTimeError
-if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 implicit_this_test/01: MissingCompileTimeError
@@ -373,7 +365,6 @@ library_ambiguous_test/03: MissingCompileTimeError
 library_ambiguous_test/04: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
-list_literal4_test/03: MissingCompileTimeError
 list_literal4_test/04: MissingCompileTimeError
 list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
@@ -387,7 +378,6 @@ local_function3_test/none: RuntimeError
 local_function_test/01: MissingCompileTimeError
 local_function_test/02: MissingCompileTimeError
 local_function_test/03: MissingCompileTimeError
-local_function_test/04: MissingCompileTimeError
 local_function_test/none: RuntimeError
 logical_expression3_test: MissingCompileTimeError
 main_test/03: RuntimeError
@@ -649,9 +639,6 @@ regress_12561_test: MissingCompileTimeError
 regress_13494_test: MissingCompileTimeError
 regress_17382_test: MissingCompileTimeError
 regress_19413_test: MissingCompileTimeError
-regress_19728_test: MissingCompileTimeError
-regress_21912_test/01: MissingCompileTimeError
-regress_21912_test/02: MissingCompileTimeError
 regress_22438_test: MissingCompileTimeError
 regress_22936_test: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
@@ -810,6 +797,21 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+
+[ $runtime == vm && $compiler != dartk && $compiler != dartkp ]
+field_override_test/02: MissingCompileTimeError
+field_type_check_test/01: MissingCompileTimeError
+if_null_assignment_static_test/07: MissingCompileTimeError
+if_null_assignment_static_test/14: MissingCompileTimeError
+if_null_assignment_static_test/21: MissingCompileTimeError
+if_null_assignment_static_test/28: MissingCompileTimeError
+if_null_assignment_static_test/35: MissingCompileTimeError
+if_null_assignment_static_test/42: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+local_function_test/04: MissingCompileTimeError
+regress_19728_test: MissingCompileTimeError
+regress_21912_test/01: MissingCompileTimeError
+regress_21912_test/02: MissingCompileTimeError
 
 [ $runtime == vm && ! $strong ]
 type_variable_promotion_test: RuntimeError
@@ -1117,12 +1119,12 @@ vm/type_vm_test/36: MissingRuntimeError
 [ $runtime == vm && $compiler != dartk ]
 generic_no_such_method_dispatcher_simple_test: Skip # This test is only for kernel.
 type_promotion_functions_test/01: MissingCompileTimeError
+
+[ $runtime == vm && $compiler != dartk && $compiler != dartkp ]
+fuzzy_arrows_test/01: MissingCompileTimeError
+fuzzy_arrows_test/03: RuntimeError
 type_promotion_functions_test/05: MissingCompileTimeError
 type_promotion_functions_test/06: MissingCompileTimeError
 type_promotion_functions_test/07: MissingCompileTimeError
 type_promotion_functions_test/08: MissingCompileTimeError
 type_promotion_functions_test/10: MissingCompileTimeError
-
-[ $runtime == vm && $compiler != dartk && $compiler != dartkp ]
-fuzzy_arrows_test/01: MissingCompileTimeError
-fuzzy_arrows_test/03: RuntimeError
