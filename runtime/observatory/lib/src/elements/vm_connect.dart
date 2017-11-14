@@ -165,7 +165,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
       var reader = new FileReader();
       reader.readAsText(e.files[0]);
       reader.onLoad.listen((_) {
-        var crashDump = JSON.decode(reader.result);
+        var crashDump = json.decode(reader.result);
         _loadDump(crashDump);
       });
     });

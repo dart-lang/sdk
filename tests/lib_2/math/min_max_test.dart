@@ -9,8 +9,8 @@ library min_max_test;
 import "package:expect/expect.dart";
 import 'dart:math';
 
-var inf = double.INFINITY;
-var nan = double.NAN;
+var inf = double.infinity;
+var nan = double.nan;
 
 // A class that might work if [min] and [max] worked for non-numbers.
 class Wrap implements Comparable<dynamic> {

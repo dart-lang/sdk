@@ -29,18 +29,18 @@ main() {
     49,
     93
   ];
-  Expect.listEquals(ENCODED, UTF8.encode(RAW));
-  Expect.equals(RAW, UTF8.decode(ENCODED));
+  Expect.listEquals(ENCODED, utf8.encode(RAW));
+  Expect.equals(RAW, utf8.decode(ENCODED));
 
-  Expect.listEquals([], UTF8.encode(""));
-  Expect.equals("", UTF8.decode([]));
+  Expect.listEquals([], utf8.encode(""));
+  Expect.equals("", utf8.decode([]));
 
   final JSON_ENCODED = RAW;
-  Expect.equals(JSON_ENCODED, JSON.encode(["122ç", 50, 50, 231]));
-  Expect.listEquals(["122ç", 50, 50, 231], JSON.decode(JSON_ENCODED));
+  Expect.equals(JSON_ENCODED, json.encode(["122ç", 50, 50, 231]));
+  Expect.listEquals(["122ç", 50, 50, 231], json.decode(JSON_ENCODED));
 
   // Test that the reviver is passed to the decoder.
-  var decoded = JSON.decode('{"p": 5}', reviver: (k, v) {
+  var decoded = json.decode('{"p": 5}', reviver: (k, v) {
     if (k == null) return v;
     return v * 2;
   });
@@ -53,7 +53,7 @@ main() {
   Expect.equals(10, decoded["p"]);
 
   // Test example from comments.
-  final JSON_TO_BYTES = JSON.fuse(UTF8);
+  final JSON_TO_BYTES = json.fuse(utf8);
   List<int> bytes = JSON_TO_BYTES.encode(["json-object"]);
   decoded = JSON_TO_BYTES.decode(bytes);
   Expect.isTrue(decoded is List);

@@ -29,10 +29,10 @@ runPeer(String path, int len, FileLock mode) {
     ..add(path)
     ..add(len.toString());
   return Process.start(Platform.executable, arguments).then((process) {
-    process.stdout.transform(UTF8.decoder).listen((data) {
+    process.stdout.transform(utf8.decoder).listen((data) {
       print(data);
     });
-    process.stderr.transform(UTF8.decoder).listen((data) {
+    process.stderr.transform(utf8.decoder).listen((data) {
       print(data);
     });
     return process;

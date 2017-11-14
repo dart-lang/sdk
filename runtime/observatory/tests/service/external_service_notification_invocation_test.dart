@@ -7,7 +7,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:io' show WebSocket;
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:async' show Future, StreamController;
 
 var tests = [
@@ -26,10 +26,10 @@ var tests = [
     final socket_invoker = new StreamController();
 
     // Avoid to manually encode and decode messages from the stream
-    socket.stream.map(JSON.encode).pipe(_socket);
-    socket_invoker.stream.map(JSON.encode).pipe(_socket_invoker);
-    final client = _socket.map(JSON.decode).asBroadcastStream();
-    final client_invoker = _socket_invoker.map(JSON.decode).asBroadcastStream();
+    socket.stream.map(json.encode).pipe(_socket);
+    socket_invoker.stream.map(json.encode).pipe(_socket_invoker);
+    final client = _socket.map(json.decode).asBroadcastStream();
+    final client_invoker = _socket_invoker.map(json.decode).asBroadcastStream();
 
     const serviceName = 'successService';
     const serviceAlias = 'serviceAlias';

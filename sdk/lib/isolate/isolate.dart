@@ -697,7 +697,7 @@ abstract class RawReceivePort {
   /**
    * Sets the handler that is invoked for every incoming message.
    *
-   * The handler is invoked in the root-zone ([Zone.ROOT]).
+   * The handler is invoked in the root-zone ([Zone.root]).
    */
   void set handler(Function newHandler);
 

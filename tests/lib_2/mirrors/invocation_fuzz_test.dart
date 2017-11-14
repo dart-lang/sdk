@@ -154,7 +154,7 @@ doOneTask() {
   // scheduled in the current task. This isn't necessary for the test itself,
   // but is helpful when trying to figure out which function is responsible for
   // a crash.
-  testZone.createTimer(Duration.ZERO, doOneTask);
+  testZone.createTimer(Duration.zero, doOneTask);
 }
 
 var fuzzArgument;
@@ -195,5 +195,5 @@ main() {
   var zoneSpec =
       new ZoneSpecification(handleUncaughtError: uncaughtErrorHandler);
   testZone = Zone.current.fork(specification: zoneSpec);
-  testZone.createTimer(Duration.ZERO, doOneTask);
+  testZone.createTimer(Duration.zero, doOneTask);
 }

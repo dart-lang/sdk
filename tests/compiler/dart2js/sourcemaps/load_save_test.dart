@@ -47,7 +47,7 @@ const String HUMAN_READABLE_SOURCE_MAP = '''
 void main() {
   test('read/write', () {
     SingleMapping sourceMap =
-        new SingleMapping.fromJson(JSON.decode(SOURCEMAP));
+        new SingleMapping.fromJson(json.decode(SOURCEMAP));
     String humanReadable = convertToHumanReadableSourceMap(sourceMap);
     SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
     String humanReadable2 = convertToHumanReadableSourceMap(sourceMap2);
@@ -58,8 +58,8 @@ void main() {
     // Target line entries without sourceUrl are removed.
     //expect(sourceMap.toJson(), equals(sourceMap2.toJson()));
     expect(sourceMap2.toJson(), equals(sourceMap3.toJson()));
-    expect(JSON.decode(humanReadable), equals(JSON.decode(humanReadable2)));
-    expect(JSON.decode(humanReadable2), equals(JSON.decode(humanReadable3)));
+    expect(json.decode(humanReadable), equals(json.decode(humanReadable2)));
+    expect(json.decode(humanReadable2), equals(json.decode(humanReadable3)));
   });
 
   test('write/read', () {
@@ -69,8 +69,8 @@ void main() {
     String humanReadable = convertToHumanReadableSourceMap(sourceMap);
     print(humanReadable);
     SingleMapping sourceMap2 = convertFromHumanReadableSourceMap(humanReadable);
-    expect(JSON.decode(HUMAN_READABLE_SOURCE_MAP),
-        equals(JSON.decode(humanReadable)));
+    expect(json.decode(HUMAN_READABLE_SOURCE_MAP),
+        equals(json.decode(humanReadable)));
     expect(sourceMap.toJson(), equals(sourceMap2.toJson()));
   });
 }

@@ -858,7 +858,7 @@ class SampleProfile extends M.SampleProfile {
 
         sampleCount = profile['sampleCount'];
         samplePeriod = profile['samplePeriod'];
-        sampleRate = (Duration.MICROSECONDS_PER_SECOND / samplePeriod);
+        sampleRate = (Duration.microsecondsPerSecond / samplePeriod);
         stackDepth = profile['stackDepth'];
         timeSpan = profile['timeSpan'];
 
@@ -1080,10 +1080,10 @@ class SampleProfile extends M.SampleProfile {
   }
 
   int approximateMillisecondsForCount(count) {
-    return (count * samplePeriod) ~/ Duration.MICROSECONDS_PER_MILLISECOND;
+    return (count * samplePeriod) ~/ Duration.microsecondsPerMillisecond;
   }
 
   double approximateSecondsForCount(count) {
-    return (count * samplePeriod) / Duration.MICROSECONDS_PER_SECOND;
+    return (count * samplePeriod) / Duration.microsecondsPerSecond;
   }
 }

@@ -35,8 +35,8 @@ void checkVeryClose(double a, double b) {
   Expect.equals(true, b <= limitHigh);
 }
 
-const NaN = double.NAN;
-const Infinity = double.INFINITY;
+const NaN = double.nan;
+const Infinity = double.infinity;
 
 var samples = [
   NaN,

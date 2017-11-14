@@ -22,7 +22,7 @@ main() {
     Expect.equals(i, xor0(i));
   }
 
-  Expect.isTrue(mul0double(double.NAN).isNaN);
+  Expect.isTrue(mul0double(double.nan).isNaN);
   Expect.isFalse(add0double(-0.0).isNegative);
 }
 

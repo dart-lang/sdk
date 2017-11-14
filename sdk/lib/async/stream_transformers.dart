@@ -222,7 +222,7 @@ class _HandlerEventSink<S, T> implements EventSink<S> {
 
   _reportClosedSink() {
     // TODO(29554): throw a StateError, and don't just report the problem.
-    Zone.ROOT
+    Zone.root
       ..print("Sink is closed and adding to it is an error.")
       ..print("  See http://dartbug.com/29554.")
       ..print(StackTrace.current.toString());

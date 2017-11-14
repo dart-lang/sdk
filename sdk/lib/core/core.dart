@@ -156,7 +156,14 @@ import "dart:collection";
 import "dart:_internal" hide Symbol, LinkedList, LinkedListEntry;
 import "dart:_internal" as internal show Symbol;
 import "dart:convert"
-    show Encoding, ASCII, LATIN1, UTF8, BASE64, StringConversionSink;
+    show
+        ascii,
+        base64,
+        Base64Codec,
+        Encoding,
+        latin1,
+        StringConversionSink,
+        utf8;
 import "dart:math" show Random; // Used by List.shuffle.
 import "dart:typed_data" show Uint8List;
 

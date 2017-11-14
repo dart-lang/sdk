@@ -19,7 +19,7 @@ isomain2(args) {
 
 // Isolate exiting after running timers.
 isomain3(args) {
-  new Timer(Duration.ZERO, () {});
+  new Timer(Duration.zero, () {});
 }
 
 main() {

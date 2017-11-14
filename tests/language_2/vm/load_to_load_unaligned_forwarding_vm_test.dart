@@ -13,7 +13,7 @@ testViewAliasing5() {
   final f32 = new Float32List(2);
   final raw = f32.buffer.asByteData();
   f32[0] = 1.5; // Aliased by unaligned write of the same size.
-  raw.setInt32(1, 0x00400000, Endianness.LITTLE_ENDIAN);
+  raw.setInt32(1, 0x00400000, Endian.little);
   return f32[0];
 }
 

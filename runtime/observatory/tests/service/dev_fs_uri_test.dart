@@ -13,7 +13,7 @@ import 'test_helper.dart';
 Future<String> readResponse(HttpClientResponse response) {
   var completer = new Completer();
   var contents = new StringBuffer();
-  response.transform(UTF8.decoder).listen((String data) {
+  response.transform(utf8.decoder).listen((String data) {
     contents.write(data);
   }, onDone: () => completer.complete(contents.toString()));
   return completer.future;
@@ -26,9 +26,9 @@ var tests = [
     // NOTE: When using the URI encoding scheme, paths cannot be absolute.
     var filePath = 'foo/bar.dat';
     var fileUri = Uri.parse(filePath);
-    var fileUriBase64 = BASE64.encode(UTF8.encode(fileUri.toString()));
+    var fileUriBase64 = base64.encode(utf8.encode(fileUri.toString()));
     var fileContents = [0, 1, 2, 3, 4, 5, 6, 255];
-    var fileContentsBase64 = BASE64.encode(fileContents);
+    var fileContentsBase64 = base64.encode(fileContents);
 
     var filePath2 = 'baz/boo.dat';
     var fileUri2 = Uri.parse(filePath2);
@@ -49,7 +49,7 @@ var tests = [
     request.add(GZIP.encode([9]));
     HttpClientResponse response = await request.close();
     String responseBody = await readResponse(response);
-    result = JSON.decode(responseBody);
+    result = json.decode(responseBody);
     print(result);
     expect(result['result']['type'], equals('Success'));
 
@@ -60,7 +60,7 @@ var tests = [
     request.write(GZIP.encode(fileContents));
     response = await request.close();
     responseBody = await readResponse(response);
-    result = JSON.decode(responseBody);
+    result = json.decode(responseBody);
     Map error = result['error']['data'];
     expect(error, isNotNull);
     expect(error['details'].contains("expects the 'path' parameter"), isTrue);
@@ -73,7 +73,7 @@ var tests = [
     request.add(GZIP.encode(fileContents));
     response = await request.close();
     responseBody = await readResponse(response);
-    result = JSON.decode(responseBody);
+    result = json.decode(responseBody);
     expect(result['result']['type'], equals('Success'));
 
     // Close the HTTP client.

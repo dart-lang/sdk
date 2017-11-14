@@ -62,7 +62,7 @@ async_<T>(Function() initGenerator) {
   };
 
   var zone = Zone.current;
-  if (zone != Zone.ROOT) {
+  if (zone != Zone.root) {
     onValue = zone.registerUnaryCallback(onValue);
     onError = zone.registerUnaryCallback(onError);
   }
@@ -180,7 +180,7 @@ class _AsyncRun {
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {
-    Timer._createTimer(Duration.ZERO, callback);
+    Timer._createTimer(Duration.zero, callback);
   }
 }
 

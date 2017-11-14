@@ -23,8 +23,8 @@ main() {
     (new StringBuffer()..writeCharCode(0xd801)..writeCharCode(0xdc12))
         .toString(),
     (new StringBuffer()..writeCharCode(0x10412)).toString(),
-    JSON.decode('"\u{10412}"'),
-    (JSON.decode('{"\u{10412}":[]}') as Map).keys.first
+    json.decode('"\u{10412}"'),
+    (json.decode('{"\u{10412}":[]}') as Map).keys.first
   ];
   for (String string in strings) {
     Expect.equals(base.length, string.length);

@@ -10,7 +10,7 @@ import "dart:io";
 main() {
   var subscription;
   subscription = stdin
-      .transform(UTF8.decoder)
+      .transform(utf8.decoder)
       .transform(new LineSplitter())
       .listen((String line) {
     // Unsubscribe after the first line.

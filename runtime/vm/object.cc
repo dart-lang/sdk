@@ -7590,7 +7590,7 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
-      // sed -i.bak -f /tmp/newkeys runtime/vm/method_recognizer.h
+      // sed -i.bak -f /tmp/newkeys runtime/vm/compiler/method_recognizer.h
       THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     } else {
       THR_Print(

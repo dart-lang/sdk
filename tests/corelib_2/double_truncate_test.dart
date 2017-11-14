@@ -6,8 +6,8 @@ import 'package:expect/expect.dart';
 
 main() {
   Expect.equals(0, 0.0.truncate());
-  Expect.equals(0, double.MIN_POSITIVE.truncate());
-  Expect.equals(0, (2.0 * double.MIN_POSITIVE).truncate());
+  Expect.equals(0, double.minPositive.truncate());
+  Expect.equals(0, (2.0 * double.minPositive).truncate());
   Expect.equals(0, (1.18e-38).truncate());
   Expect.equals(0, (1.18e-38 * 2).truncate());
   Expect.equals(0, 0.49999999999999994.truncate());
@@ -26,10 +26,10 @@ main() {
   Expect.equals(9007199254740992, 9007199254740992.0.truncate());
   Expect.equals(
       179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368,
-      double.MAX_FINITE.truncate());
+      double.maxFinite.truncate());
 
-  Expect.equals(0, (-double.MIN_POSITIVE).truncate());
-  Expect.equals(0, (2.0 * -double.MIN_POSITIVE).truncate());
+  Expect.equals(0, (-double.minPositive).truncate());
+  Expect.equals(0, (2.0 * -double.minPositive).truncate());
   Expect.equals(0, (-1.18e-38).truncate());
   Expect.equals(0, (-1.18e-38 * 2).truncate());
   Expect.equals(0, (-0.49999999999999994).truncate());
@@ -45,11 +45,11 @@ main() {
   Expect.equals(-9007199254740992, (-9007199254740992.0).truncate());
   Expect.equals(
       -179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368,
-      (-double.MAX_FINITE).truncate());
+      (-double.maxFinite).truncate());
 
   Expect.isTrue(0.0.truncate() is int);
-  Expect.isTrue(double.MIN_POSITIVE.truncate() is int);
-  Expect.isTrue((2.0 * double.MIN_POSITIVE).truncate() is int);
+  Expect.isTrue(double.minPositive.truncate() is int);
+  Expect.isTrue((2.0 * double.minPositive).truncate() is int);
   Expect.isTrue((1.18e-38).truncate() is int);
   Expect.isTrue((1.18e-38 * 2).truncate() is int);
   Expect.isTrue(0.49999999999999994.truncate() is int);
@@ -63,18 +63,18 @@ main() {
   Expect.isTrue(4503599627370499.0.truncate() is int);
   Expect.isTrue(9007199254740991.0.truncate() is int);
   Expect.isTrue(9007199254740992.0.truncate() is int);
-  Expect.isTrue(double.MAX_FINITE.truncate() is int);
+  Expect.isTrue(double.maxFinite.truncate() is int);
 
-  Expect.isTrue((-double.MIN_POSITIVE).truncateToDouble().isNegative);
-  Expect.isTrue((2.0 * -double.MIN_POSITIVE).truncateToDouble().isNegative);
+  Expect.isTrue((-double.minPositive).truncateToDouble().isNegative);
+  Expect.isTrue((2.0 * -double.minPositive).truncateToDouble().isNegative);
   Expect.isTrue((-1.18e-38).truncateToDouble().isNegative);
   Expect.isTrue((-1.18e-38 * 2).truncateToDouble().isNegative);
   Expect.isTrue((-0.49999999999999994).truncateToDouble().isNegative);
   Expect.isTrue((-0.5).truncateToDouble().isNegative);
   Expect.isTrue((-0.9999999999999999).truncateToDouble().isNegative);
 
-  Expect.isTrue((-double.MIN_POSITIVE).truncate() is int);
-  Expect.isTrue((2.0 * -double.MIN_POSITIVE).truncate() is int);
+  Expect.isTrue((-double.minPositive).truncate() is int);
+  Expect.isTrue((2.0 * -double.minPositive).truncate() is int);
   Expect.isTrue((-1.18e-38).truncate() is int);
   Expect.isTrue((-1.18e-38 * 2).truncate() is int);
   Expect.isTrue((-0.49999999999999994).truncate() is int);
@@ -88,5 +88,5 @@ main() {
   Expect.isTrue((-4503599627370499.0).truncate() is int);
   Expect.isTrue((-9007199254740991.0).truncate() is int);
   Expect.isTrue((-9007199254740992.0).truncate() is int);
-  Expect.isTrue((-double.MAX_FINITE).truncate() is int);
+  Expect.isTrue((-double.maxFinite).truncate() is int);
 }

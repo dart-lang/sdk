@@ -26,7 +26,7 @@ void test({bool closeStdout, bool closeStderr}) {
   asyncStart();
   Process
       .run(Platform.executable, arguments,
-          stdoutEncoding: ASCII, stderrEncoding: ASCII)
+          stdoutEncoding: ascii, stderrEncoding: ascii)
       .then((result) {
     print(result.stdout);
     print(result.stderr);

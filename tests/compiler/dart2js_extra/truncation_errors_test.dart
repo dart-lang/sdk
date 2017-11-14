@@ -35,8 +35,8 @@ void find(expected, [thunk1, thunk2, thunk3, thunk4]) {
 }
 
 main() {
-  var NaN = double.NAN;
-  var Infinity = double.INFINITY;
+  var NaN = double.nan;
+  var Infinity = double.infinity;
 
   find(' Infinity: 123 ~/ 0', () => confuse(123) ~/ confuse(0),
       () => confuse(123) ~/ 0, () => 123 ~/ confuse(0), () => 123 ~/ 0);
