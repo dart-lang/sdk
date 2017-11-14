@@ -2216,6 +2216,32 @@ class C {
     verify([source]);
   }
 
+  test_fieldFormalParameter_genericFunctionTyped() async {
+    Source source = addSource(r'''
+class C {
+  final Object Function(int, double) field;
+
+  C(String Function(num, Object) this.field);
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_fieldFormalParameter_genericFunctionTyped_named() async {
+    Source source = addSource(r'''
+class C {
+  final Object Function(int, double) field;
+
+  C({String Function(num, Object) this.field});
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_fieldInitializedByMultipleInitializers() async {
     Source source = addSource(r'''
 class A {

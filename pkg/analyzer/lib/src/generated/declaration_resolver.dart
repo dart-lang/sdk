@@ -136,6 +136,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       normalParameter.element = element;
       _setGenericFunctionType(normalParameter.type, element.type);
     }
+    if (normalParameter is FieldFormalParameterImpl) {
+      _setGenericFunctionType(normalParameter.type, element.type);
+    }
 
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null) {
@@ -215,6 +218,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         super.visitFieldFormalParameter(node);
       });
       _resolveMetadata(node, node.metadata, element);
+      _setGenericFunctionType(node.type, element.type);
       return null;
     } else {
       return super.visitFieldFormalParameter(node);
