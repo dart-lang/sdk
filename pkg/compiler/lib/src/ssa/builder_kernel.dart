@@ -781,6 +781,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void buildConstructorBody(ir.Constructor constructor) {
     openFunction(constructor.function);
     _addClassTypeVariablesIfNeeded(constructor);
+    _potentiallyAddFunctionParameterTypeChecks(constructor.function);
     constructor.function.body.accept(this);
     closeFunction();
   }
@@ -793,6 +794,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (parent is ir.Procedure && parent.kind == ir.ProcedureKind.Factory) {
       _addClassTypeVariablesIfNeeded(parent);
     }
+    _potentiallyAddFunctionParameterTypeChecks(functionNode);
 
     // If [functionNode] is `operator==` we explicitly add a null check at the
     // beginning of the method. This is to avoid having call sites do the null
@@ -825,6 +827,34 @@ class KernelSsaGraphBuilder extends ir.Visitor
     closeFunction();
   }
 
+  void _potentiallyAddFunctionParameterTypeChecks(ir.FunctionNode function) {
+    // Put the type checks in the first successor of the entry,
+    // because that is where the type guards will also be inserted.
+    // This way we ensure that a type guard will dominate the type
+    // check.
+    MemberDefinition definition =
+        _elementMap.getMemberDefinition(targetElement);
+    bool nodeIsConstructorBody = definition.kind == MemberKind.constructorBody;
+
+    void _handleParameter(ir.VariableDeclaration variable) {
+      Local local = localsMap.getLocalVariable(variable);
+      if (nodeIsConstructorBody &&
+          closureDataLookup.getCapturedScope(targetElement).isBoxed(local)) {
+        // If local is boxed, then `variable` will be a field inside the box
+        // passed as the last parameter, so no need to update our locals
+        // handler or check types at this point.
+        return;
+      }
+      HInstruction newParameter = localsHandler.directLocals[local];
+      newParameter = typeBuilder.potentiallyCheckOrTrustType(
+          newParameter, _getDartTypeIfValid(variable.type));
+      localsHandler.directLocals[local] = newParameter;
+    }
+
+    function.positionalParameters.forEach(_handleParameter);
+    function.namedParameters.toList()..forEach(_handleParameter);
+  }
+
   /// Builds a SSA graph for FunctionNodes of external methods.
   void buildExternalFunctionNode(ir.FunctionNode functionNode) {
     assert(functionNode.body == null);
@@ -833,6 +863,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (parent is ir.Procedure && parent.kind == ir.ProcedureKind.Factory) {
       _addClassTypeVariablesIfNeeded(parent);
     }
+    _potentiallyAddFunctionParameterTypeChecks(functionNode);
 
     if (closedWorld.nativeData.isNativeMember(targetElement)) {
       nativeEmitter.nativeMethods.add(targetElement);
@@ -1068,7 +1099,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       returnStatement.expression.accept(this);
       value = pop();
-      DartType returnType = _elementMap.getFunctionType(_targetFunction);
+      DartType returnType =
+          _elementMap.getFunctionType(_targetFunction).returnType;
       if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
         if (options.enableTypeAssertions &&
             !isValidAsyncReturnType(returnType)) {
