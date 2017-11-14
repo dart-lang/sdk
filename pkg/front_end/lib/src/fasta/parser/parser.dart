@@ -790,10 +790,10 @@ class Parser {
   Token parseTypeList(Token token) {
     // TODO(brianwilkerson) Return the last consumed token.
     listener.beginTypeList(token.next);
-    token = parseType(token.next);
+    token = parseType(token.next).next;
     int count = 1;
     while (optional(',', token)) {
-      token = parseType(token.next);
+      token = parseType(token.next).next;
       count++;
     }
     listener.endTypeList(count);
@@ -933,14 +933,15 @@ class Parser {
     assert(optional('typedef', typedefKeyword));
     listener.beginFunctionTypeAlias(typedefKeyword);
     Token equals;
-    Token afterType = parseType(typedefKeyword.next, TypeContinuation.Typedef);
+    Token afterType =
+        parseType(typedefKeyword.next, TypeContinuation.Typedef)?.next;
     if (afterType == null) {
       token = ensureIdentifier(
           typedefKeyword.next, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token).next;
       equals = token;
       expect('=', token);
-      token = parseType(token.next);
+      token = parseType(token.next).next;
     } else {
       token = ensureIdentifier(afterType, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token);
@@ -1341,7 +1342,7 @@ class Parser {
     Token equals = token = token.next;
     assert(optional('=', equals));
     token = parseType(token.next);
-    token = parseMixinApplicationRest(token);
+    token = parseMixinApplicationRest(token.next);
     Token implementsKeyword = null;
     if (optional('implements', token)) {
       implementsKeyword = token;
@@ -1430,7 +1431,7 @@ class Parser {
         rewriter.insertToken(extendsKeyword, token);
         rewriter.insertToken(superclassToken, token);
         token = parseType(extendsKeyword.next);
-        token = parseMixinApplicationRest(token);
+        token = parseMixinApplicationRest(token.next);
         listener.handleClassExtends(extendsKeyword);
       } else {
         token = parseClassExtendsOpt(token);
@@ -1494,7 +1495,7 @@ class Parser {
     // TODO(brianwilkerson) Return the last consumed token.
     if (optional('extends', token)) {
       Token extendsKeyword = token;
-      token = parseType(token.next);
+      token = parseType(token.next).next;
       if (optional('with', token)) {
         token = parseMixinApplicationRest(token);
       }
@@ -1519,7 +1520,7 @@ class Parser {
     if (optional('implements', token)) {
       implementsKeyword = token;
       do {
-        token = parseType(token.next);
+        token = parseType(token.next).next;
         ++interfacesCount;
       } while (optional(',', token));
     }
@@ -1799,7 +1800,7 @@ class Parser {
     Token extendsOrSuper = null;
     if (optional('extends', token) || optional('super', token)) {
       extendsOrSuper = token;
-      token = parseType(token.next);
+      token = parseType(token.next).next;
     } else {
       listener.handleNoType(token);
     }
@@ -1846,7 +1847,6 @@ class Parser {
       IdentifierContext continuationContext,
       MemberKind memberKind]) {
     // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     /// True if we've seen the `var` keyword.
     bool hasVar = false;
 
@@ -1954,7 +1954,6 @@ class Parser {
     /// function will call the appropriate event methods on [listener] to
     /// handle the type.
     Token commitType() {
-      // TODO(brianwilkerson) Return the last consumed token.
       int count = 0;
       for (Token typeVariableStart in typeVariableStarters) {
         count++;
@@ -2007,7 +2006,9 @@ class Parser {
         reportRecoverableError(begin, fasta.messageTypeAfterVar);
       }
 
-      return token;
+      // TODO(brianwilkerson): Remove the invocation of `previous` when
+      // this method accepts the last consumed token.
+      return token.previous;
     }
 
     /// Returns true if [kind] is '=', ';', or ',', that is, if [kind] could be
@@ -2054,7 +2055,9 @@ class Parser {
             reportRecoverableError(
                 begin, fasta.messageMissingConstFinalVarOrType);
             listener.handleNoType(begin);
-            return begin;
+            // TODO(brianwilkerson): Remove the invocation of `previous` when
+            // this method accepts the last consumed token.
+            return begin.previous;
           }
         }
         return commitType();
@@ -2067,14 +2070,16 @@ class Parser {
           }
           if (voidToken != null) {
             listener.handleVoidKeyword(voidToken);
-            return voidToken.next;
+            return voidToken;
           }
           if (token.isIdentifier || optional('this', token)) {
             return commitType(); // Parse type.
           }
         }
         listener.handleNoType(begin);
-        return begin;
+        // TODO(brianwilkerson): Remove the invocation of `previous` when
+        // this method accepts the last consumed token.
+        return begin.previous;
 
       case TypeContinuation.OptionalAfterVar:
         hasVar = true;
@@ -2089,7 +2094,7 @@ class Parser {
       case TypeContinuation.ExpressionStatementOrDeclaration:
         assert(begin.isIdentifier || identical(begin.stringValue, 'void'));
         if (!inPlainSync && optional("await", begin)) {
-          return parseExpressionStatement(begin).next;
+          return parseExpressionStatement(begin);
         }
 
         if (looksLikeType && token.isIdentifier) {
@@ -2104,7 +2109,7 @@ class Parser {
             // parseVariablesDeclarationRest instead.
             // TODO(brianwilkerson): Remove the invocation of `previous` when
             // this method accepts the last consumed token.
-            return parseVariablesDeclaration(begin.previous).next;
+            return parseVariablesDeclaration(begin.previous);
           } else if (OPEN_PAREN_TOKEN == afterIdKind) {
             // We are looking at `type identifier '('`.
             if (looksLikeFunctionBody(closeBraceTokenFor(afterId).next)) {
@@ -2122,7 +2127,10 @@ class Parser {
               } else {
                 commitType();
               }
-              return parseNamedFunctionRest(begin, token, beforeFormals, false);
+              // TODO(brianwilkerson): Remove the invocation of `previous` when
+              // `parseNamedFunctionRest` returns the last consumed token.
+              return parseNamedFunctionRest(begin, token, beforeFormals, false)
+                  .previous;
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
@@ -2141,8 +2149,11 @@ class Parser {
                 } else {
                   commitType();
                 }
+                // TODO(brianwilkerson): Remove the invocation of `previous` when
+                // `parseNamedFunctionRest` returns the last consumed token.
                 return parseNamedFunctionRest(
-                    begin, token, beforeFormals, false);
+                        begin, token, beforeFormals, false)
+                    .previous;
               }
             }
           }
@@ -2150,7 +2161,7 @@ class Parser {
         } else {
           token = begin;
           if (optional(':', token.next)) {
-            return parseLabeledStatement(token).next;
+            return parseLabeledStatement(token);
           } else if (optional('(', token.next)) {
             if (looksLikeFunctionBody(closeBraceTokenFor(token.next).next)) {
               // We are looking at `identifier '(' ... ')'` followed by `'{'`,
@@ -2163,7 +2174,10 @@ class Parser {
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
               listener.handleNoType(token);
-              return parseNamedFunctionRest(begin, token, formals, false);
+              // TODO(brianwilkerson): Remove the invocation of `previous` when
+              // `parseNamedFunctionRest` returns the last consumed token.
+              return parseNamedFunctionRest(begin, token, formals, false)
+                  .previous;
             }
           } else if (optional('<', token.next)) {
             Token gt = closeBraceTokenFor(token.next);
@@ -2175,13 +2189,15 @@ class Parser {
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
                 listener.handleNoType(token);
-                return parseNamedFunctionRest(begin, token, gt, false);
+                // TODO(brianwilkerson): Remove the invocation of `previous` when
+                // `parseNamedFunctionRest` returns the last consumed token.
+                return parseNamedFunctionRest(begin, token, gt, false).previous;
               }
             }
             // Fall through to expression statement.
           }
         }
-        return parseExpressionStatement(begin).next;
+        return parseExpressionStatement(begin);
 
       case TypeContinuation.ExpressionStatementOrConstDeclaration:
         Token identifier;
@@ -2199,12 +2215,12 @@ class Parser {
             // parseVariablesDeclarationRest instead.
             // TODO(brianwilkerson): Remove the invocation of `previous` when
             // this method accepts the last consumed token.
-            return parseVariablesDeclaration(begin.previous).next;
+            return parseVariablesDeclaration(begin.previous);
           }
           // Fall-through to expression statement.
         }
 
-        return parseExpressionStatement(begin).next;
+        return parseExpressionStatement(begin);
 
       case TypeContinuation.SendOrFunctionLiteral:
         Token name;
@@ -2218,7 +2234,7 @@ class Parser {
           hasReturnType = false;
           // Fall-through to parseNamedFunctionRest below.
         } else {
-          return parseSend(begin, continuationContext).next;
+          return parseSend(begin, continuationContext);
         }
 
         Token formals = parseTypeVariablesOpt(name);
@@ -2236,7 +2252,9 @@ class Parser {
           listener.handleNoType(begin);
         }
 
-        return parseNamedFunctionRest(begin, name, formals, true);
+        // TODO(brianwilkerson): Remove the invocation of `previous` when
+        // `parseNamedFunctionRest` returns the last consumed token.
+        return parseNamedFunctionRest(begin, name, formals, true).previous;
 
       case TypeContinuation.VariablesDeclarationOrExpression:
         if (looksLikeType &&
@@ -2246,9 +2264,9 @@ class Parser {
           // parseVariablesDeclarationNoSemicolonRest instead.
           // TODO(brianwilkerson): Remove the invocation of `previous` when
           // this method accepts the last consumed token.
-          return parseVariablesDeclarationNoSemicolon(begin.previous).next;
+          return parseVariablesDeclarationNoSemicolon(begin.previous);
         }
-        return parseExpression(begin).next;
+        return parseExpression(begin);
 
       case TypeContinuation.NormalFormalParameter:
       case TypeContinuation.NormalFormalParameterAfterVar:
@@ -2407,7 +2425,9 @@ class Parser {
         listener.endFormalParameter(
             thisKeyword, periodAfterThis, nameToken, parameterKind, memberKind);
 
-        return token;
+        // TODO(brianwilkerson): Remove the invocation of `previous` when this
+        // method accepts the last consumed token.
+        return token.previous;
     }
 
     throw "Internal error: Unhandled continuation '$continuation'.";
@@ -2417,7 +2437,7 @@ class Parser {
     return parseStuff(
         token,
         (t) => listener.beginTypeArguments(t),
-        (t) => parseType(t.next),
+        (t) => parseType(t.next).next,
         (c, bt, et) => listener.endTypeArguments(c, bt, et),
         (t) => listener.handleNoTypeArguments(t));
   }
@@ -3055,7 +3075,7 @@ class Parser {
             : TypeContinuation.Optional;
 
     token = parseType(token.next, context.typeContinuation, null, memberKind);
-    return token;
+    return token.next;
   }
 
   Token parseNativeClause(Token token) {
@@ -3867,11 +3887,8 @@ class Parser {
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
-    // TODO(brianwilkerson): Remove the invocation of `previous` after
-    // converting `parseType` to return the last consumed token.
     return parseType(
-            token.next, TypeContinuation.ExpressionStatementOrDeclaration)
-        .previous;
+        token.next, TypeContinuation.ExpressionStatementOrDeclaration);
   }
 
   Token parseExpressionStatementOrConstDeclaration(Token token) {
@@ -3880,11 +3897,8 @@ class Parser {
     if (next.next.isModifier) {
       return parseVariablesDeclaration(token);
     } else {
-      // TODO(brianwilkerson): Remove the invocation of `previous` after
-      // converting `parseType` to return the last consumed token.
-      return parseType(token.next,
-              TypeContinuation.ExpressionStatementOrConstDeclaration)
-          .previous;
+      return parseType(
+          token.next, TypeContinuation.ExpressionStatementOrConstDeclaration);
     }
   }
 
@@ -4582,7 +4596,8 @@ class Parser {
       return parseSend(token.next, context).next;
     } else {
       return parseType(
-          token.next, TypeContinuation.SendOrFunctionLiteral, context);
+              token.next, TypeContinuation.SendOrFunctionLiteral, context)
+          .next;
     }
   }
 
@@ -4895,7 +4910,7 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
-    token = parseType(token.next);
+    token = parseType(token.next).next;
     listener.handleIsOperator(operator, not, token);
     String value = token.stringValue;
     if (identical(value, 'is') || identical(value, 'as')) {
@@ -4916,7 +4931,7 @@ class Parser {
     // TODO(brianwilkerson) Return the last consumed token.
     assert(optional('as', token));
     Token operator = token;
-    token = parseType(token.next);
+    token = parseType(token.next).next;
     listener.handleAsOperator(operator, token);
     String value = token.stringValue;
     if (identical(value, 'is') || identical(value, 'as')) {
@@ -5073,11 +5088,8 @@ class Parser {
     } else if (isOneOf4(next, '@', 'var', 'final', 'const')) {
       return parseVariablesDeclarationNoSemicolon(token);
     }
-    // TODO(brianwilkerson): Remove the invocation of `previous` when
-    // `parseType` returns the last consumed token.
     return parseType(
-            token.next, TypeContinuation.VariablesDeclarationOrExpression)
-        .previous;
+        token.next, TypeContinuation.VariablesDeclarationOrExpression);
   }
 
   /// This method parses the portion of the forLoopParts that starts with the
@@ -5301,7 +5313,7 @@ class Parser {
       if (identical(value, 'on')) {
         // 'on' type catchPart?
         onKeyword = token;
-        token = parseType(token.next);
+        token = parseType(token.next).next;
         value = token.stringValue;
       }
       Token catchKeyword = null;
