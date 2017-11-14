@@ -608,6 +608,44 @@
       ]
     },
     {
+      "builders": ["pkg-linux-release","pkg-win-release","pkg-mac-release"],
+      "meta": {
+        "description": "This configuration is used by the pkg builders. The builder is triggered by the SDK builders with the pkg fileset."
+      },
+      "steps": [
+        {
+          "name": "package unit tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "third_party/pkg_tested unit tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked"
+          ],
+          "tests": ["pkg_tested"]
+        },
+        {
+          "name": "pub get dependencies",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=none",
+            "--runtime=vm",
+            "--checked"
+          ],
+          "tests": ["pkgbuild"]
+        }
+      ]
+    },
+    {
       "builders": ["benchmark-linux"],
       "meta": {
         "description": "Verify benchmarks build and run correctly.",
