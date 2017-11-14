@@ -51,7 +51,7 @@ namespace dart {
   V(_Double, _div, DoubleDiv, Double, 0x0854181b)                              \
   V(::, min, MathMin, Dynamic, 0x32ebc57d)                                     \
   V(::, max, MathMax, Dynamic, 0x377e8889)                                     \
-  V(::, _doublePow, MathDoublePow, Double, 0x65ba546e)                         \
+  V(::, _doublePow, MathDoublePow, Double, 0x5add0ec1)                         \
   V(Float32x4, Float32x4., Float32x4Constructor, Float32x4, 0x26ea459b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, Float32x4, 0x16eca604)           \
   V(Float32x4, Float32x4.splat, Float32x4Splat, Float32x4, 0x694e83e3)         \
