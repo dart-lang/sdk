@@ -811,7 +811,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   // Multiplexes socket events to the socket handlers.
-  void multiplex(int events) {
+  void multiplex(Object eventsObj) {
+    // TODO(paulberry): when issue #31305 is fixed, we should be able to simply
+    // declare `events` as a `covariant int` parameter.
+    int events = eventsObj;
     for (int i = FIRST_EVENT; i <= LAST_EVENT; i++) {
       if (((events & (1 << i)) != 0)) {
         if ((i == CLOSED_EVENT || i == READ_EVENT) && isClosedRead) continue;
