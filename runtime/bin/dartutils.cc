@@ -945,7 +945,9 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
     return NULL;
   }
   uint8_t* data = IOBuffer::Allocate(static_cast<intptr_t>(length));
-  ASSERT(data != NULL);
+  if (data == NULL) {
+    return NULL;
+  }
   return NewExternalUint8Array(static_cast<intptr_t>(length), data, data,
                                IOBuffer::Finalizer);
 }

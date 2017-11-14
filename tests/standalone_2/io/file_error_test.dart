@@ -400,7 +400,7 @@ testRepeatedlyCloseFileSync() {
 
 testReadSyncBigInt() {
   createTestFile((file, done) {
-    var bigint = 100000000000000000000000000000000000000000;
+    var bigint = 9223372036854775807;
     var openedFile = file.openSync();
     Expect.throws(
         () => openedFile.readSync(bigint), (e) => e is FileSystemException);
