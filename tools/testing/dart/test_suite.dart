@@ -914,9 +914,15 @@ class StandardTestSuite extends TestSuite {
             args,
             compilationArtifact);
 
+    Map<String, String> environment = environmentOverrides;
+    Map<String, String> extraEnv = info.optionsFromFile['environment'];
+    if (extraEnv != null) {
+      environment = new Map.from(environment)..addAll(extraEnv);
+    }
+
     return commands
       ..addAll(configuration.runtimeConfiguration.computeRuntimeCommands(
-          this, compilationArtifact, runtimeArguments, environmentOverrides));
+          this, compilationArtifact, runtimeArguments, environment));
   }
 
   CreateTest makeTestCaseCreator(Map<String, dynamic> optionsFromFile) {
@@ -1355,6 +1361,12 @@ class StandardTestSuite extends TestSuite {
    *
    *     // DartOptions=--flag1 --flag2
    *
+   *   - Extra environment variables can be passed to the process that runs
+   *   the test by adding comment(s) to the test file:
+   *
+   *     // Environment=ENV_VAR1=foo bar
+   *     // Environment=ENV_VAR2=bazz
+   *
    *   - For tests that depend on compiling other files with dart2js (e.g.
    *   isolate tests that use multiple source scripts), you can specify
    *   additional files to compile using a comment too, as follows:
@@ -1408,6 +1420,7 @@ class StandardTestSuite extends TestSuite {
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
     RegExp sharedOptionsRegExp = new RegExp(r"// SharedOptions=(.*)");
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
+    RegExp environmentRegExp = new RegExp(r"// Environment=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
     RegExp otherResourcesRegExp = new RegExp(r"// OtherResources=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
@@ -1426,6 +1439,7 @@ class StandardTestSuite extends TestSuite {
     var result = <List<String>>[];
     List<String> dartOptions;
     List<String> sharedOptions;
+    Map<String, String> environment;
     String packageRoot;
     String packages;
 
@@ -1451,6 +1465,16 @@ class StandardTestSuite extends TestSuite {
             'More than one "// SharedOptions=" line in test $filePath');
       }
       sharedOptions = match[1].split(' ').where((e) => e != '').toList();
+    }
+
+    matches = environmentRegExp.allMatches(contents);
+    for (var match in matches) {
+      final String envDef = match[1];
+      final int pos = envDef.indexOf('=');
+      final String name = (pos < 0) ? envDef : envDef.substring(0, pos);
+      final String value = (pos < 0) ? '' : envDef.substring(pos + 1);
+      environment ??= <String, String>{};
+      environment[name] = value;
     }
 
     matches = packageRootRegExp.allMatches(contents);
@@ -1539,6 +1563,7 @@ class StandardTestSuite extends TestSuite {
       "vmOptions": result,
       "sharedOptions": sharedOptions ?? [],
       "dartOptions": dartOptions,
+      "environment": environment,
       "packageRoot": packageRoot,
       "packages": packages,
       "hasSyntaxError": hasSyntaxError,
