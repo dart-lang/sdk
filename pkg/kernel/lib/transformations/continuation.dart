@@ -873,9 +873,10 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     // We will make a malformed type.
     // In an "Future<FooBar> foo() async {}" function the body can either return
     // a "FooBar" or a "Future<FooBar>" => a "FutureOr<FooBar>".
-    final DartType returnType = new InterfaceType(helper.futureOrClass,
-        <DartType>[elementTypeFromReturnType(helper.futureClass)]);
-    var completerTypeArguments = <DartType>[returnType];
+    final DartType valueType = elementTypeFromReturnType(helper.futureClass);
+    final DartType returnType =
+        new InterfaceType(helper.futureOrClass, <DartType>[valueType]);
+    var completerTypeArguments = <DartType>[valueType];
     var completerType =
         new InterfaceType(helper.completerClass, completerTypeArguments);
 
