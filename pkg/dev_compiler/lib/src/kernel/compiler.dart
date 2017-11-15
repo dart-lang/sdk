@@ -3133,7 +3133,7 @@ class ProgramCompiler
   @override
   visitTryCatch(TryCatch node) {
     return new JS.Try(
-        _visitStatement(node.body), _visitCatch(node.catches), null);
+        _visitStatement(node.body).toBlock(), _visitCatch(node.catches), null);
   }
 
   JS.Catch _visitCatch(List<Catch> clauses) {
@@ -3200,7 +3200,7 @@ class ProgramCompiler
     _superAllowed = false;
     var finallyBlock = _visitStatement(node.finalizer);
     _superAllowed = savedSuperAllowed;
-    return new JS.Try(body, catchPart, finallyBlock);
+    return new JS.Try(body.toBlock(), catchPart, finallyBlock.toBlock());
   }
 
   @override

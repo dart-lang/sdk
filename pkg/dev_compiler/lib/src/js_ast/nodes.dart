@@ -338,6 +338,8 @@ abstract class Statement extends ModuleItem {
 
   Statement toStatement() => this;
   Statement toReturn() => new Block([this, new Return()]);
+
+  Block toBlock() => new Block([this]);
 }
 
 class Block extends Statement {
@@ -352,6 +354,9 @@ class Block extends Statement {
   Block.empty()
       : statements = <Statement>[],
         isScope = false;
+
+  @override
+  Block toBlock() => this;
 
   accept(NodeVisitor visitor) => visitor.visitBlock(this);
   void visitChildren(NodeVisitor visitor) {

@@ -2183,8 +2183,8 @@ Future syncInAsync(f) async {
 class FakeValueFuture implements Future {
   final _value;
   FakeValueFuture(this._value);
-  Future/*<S>*/ then/*<S>*/(callback(value), {Function onError}) {
-    return new Future/*<S>*/ .microtask(() => callback(_value));
+  Future<S> then<S>(callback(value), {Function onError}) {
+    return new Future<S>.microtask(() => callback(_value));
   }
 
   Future whenComplete(callback()) {
@@ -2209,14 +2209,14 @@ typedef BinaryFunction(a, b);
 class FakeErrorFuture implements Future {
   final _error;
   FakeErrorFuture(this._error);
-  Future/*<S>*/ then/*<S>*/(callback(value), {Function onError}) {
+  Future<S> then<S>(callback(value), {Function onError}) {
     if (onError != null) {
       if (onError is BinaryFunction) {
-        return new Future/*<S>*/ .microtask(() => onError(_error, null));
+        return new Future<S>.microtask(() => onError(_error, null));
       }
-      return new Future/*<S>*/ .microtask(() => onError(_error));
+      return new Future<S>.microtask(() => onError(_error));
     }
-    return new Future/*<S>*/ .error(_error);
+    return new Future<S>.error(_error);
   }
 
   Future whenComplete(callback()) {

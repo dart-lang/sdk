@@ -182,27 +182,24 @@ async_await_syntax_test/b10a: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
-async_await_test/02: CompileTimeError
-async_await_test/03: CompileTimeError
-async_await_test/none: CompileTimeError
+async_await_test/none: RuntimeError # Loop continue is incorrectly compiled to break
+async_await_test/02: RuntimeError # Loop continue is incorrectly compiled to break
+async_await_test/03: RuntimeError # Loop continue is incorrectly compiled to break
 async_break_in_finally_test: RuntimeError # Uncaught SyntaxError: Illegal break statement
 async_continue_label_test/await_in_body: RuntimeError # Uncaught Expect.equals(expected: <5>, actual: <0>) fails.
 async_continue_label_test/await_in_condition: RuntimeError # Uncaught Expect.equals(expected: <5>, actual: <0>) fails.
 async_continue_label_test/await_in_init: RuntimeError # Uncaught Expect.equals(expected: <5>, actual: <0>) fails.
 async_continue_label_test/await_in_update: RuntimeError # Uncaught Expect.equals(expected: <5>, actual: <0>) fails.
 async_continue_label_test/none: RuntimeError # Uncaught Expect.equals(expected: <5>, actual: <0>) fails.
-async_control_structures_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-async_finally_rethrow_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: Crash
 async_return_types_test/wrongTypeParameter: MissingCompileTimeError
-asyncstar_throw_in_catch_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-async_throw_in_catch_test/forceAwait: RuntimeError # Uncaught SyntaxError: Unexpected token try
-async_throw_in_catch_test/none: RuntimeError # Uncaught SyntaxError: Unexpected token try
-await_exceptions_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
+asyncstar_throw_in_catch_test: RuntimeError # Uncaught Expect.equals(expected: <abcX>, actual: <abbcX>) fails.
+async_throw_in_catch_test/forceAwait: RuntimeError # Uncaught Expect.equals(expected: <Error2>, actual: <Expect.equals(expected: <e>, actual: <c>) fails.>) fails.
+async_throw_in_catch_test/none: RuntimeError # Uncaught Expect.equals(expected: <Error2>, actual: <Expect.equals(expected: <e>, actual: <c>) fails.>) fails.
 await_for_cancel_test: Timeout
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
@@ -272,6 +269,7 @@ closure_internals_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
 closures_initializer_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
+closure_type_test: RuntimeError
 closure_type_variables_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
@@ -408,7 +406,7 @@ const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 continue_test: RuntimeError # Expect.equals(expected: <10>, actual: <4>) fails.
-covariant_subtyping_test: Crash
+covariant_subtyping_test: CompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
 cyclic_typedef_test/13: MissingCompileTimeError
 cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
@@ -469,12 +467,8 @@ enum_private_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unex
 enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 error_stacktrace_test/00: MissingCompileTimeError
-execute_finally10_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-execute_finally11_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
 execute_finally12_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx._equals)' of null
 execute_finally3_test: RuntimeError # Expect.equals(expected: <1401>, actual: <201400>) fails.
-execute_finally7_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-execute_finally9_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
 exhaustive_for_test: RuntimeError # Expect.equals(expected: <0>, actual: <4>) fails.
 export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
@@ -675,7 +669,6 @@ issue14014_3_test: RuntimeError # ReferenceError: TTodynamic is not defined
 issue14014_test: RuntimeError # ReferenceError: TToint is not defined
 issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
-issue20476_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 least_upper_bound_expansive_test/01: MissingCompileTimeError
@@ -993,7 +986,6 @@ redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
-regress_22445_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
 regress_22666_test: Crash
 regress_22719_test: Crash
 regress_22777_test: RuntimeError # Uncaught Expect.equals(expected: <100>, actual: <0>) fails.
@@ -1017,8 +1009,6 @@ setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 side_effect_throw_test: RuntimeError # Expect.throws fails: Did not throw
 skip_expression_test: RuntimeError # ReferenceError: OneArgOfA is not defined
-stack_trace_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-statement_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
 static_const_field_test: RuntimeError # RangeError: Maximum call stack size exceeded
 static_field1a_test/01: MissingCompileTimeError
 static_field1_test/01: MissingCompileTimeError
@@ -1074,9 +1064,6 @@ switch_case_test/02: MissingCompileTimeError
 switch_test: RuntimeError # RangeError: Maximum call stack size exceeded
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
-sync_generator3_test/none: RuntimeError # Uncaught SyntaxError: Unexpected token try
-sync_generator3_test/test1: RuntimeError # Uncaught SyntaxError: Unexpected token try
-sync_generator3_test/test2: RuntimeError # Uncaught SyntaxError: Unexpected token try
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
@@ -1084,15 +1071,7 @@ syntax_test/30: MissingCompileTimeError
 syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
-throw1_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-throw2_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-throw3_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-throw4_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-throw5_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-throw6_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-throw_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-try_catch3_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
-try_catch4_test: RuntimeError # Uncaught SyntaxError: Unexpected token try
+try_catch4_test: RuntimeError # Expect.isTrue(null) fails.
 try_catch5_test: RuntimeError # Expect.isTrue(null) fails.
 try_catch_test/01: MissingCompileTimeError
 type_argument_in_super_type_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
@@ -1414,12 +1393,12 @@ vm/*: SkipByDesign # Tests for the VM.; VM only tests.
 assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
-async_star_test/01: RuntimeError # Uncaught SyntaxError: Unexpected token try
-async_star_test/02: RuntimeError # Uncaught SyntaxError: Unexpected token try
-async_star_test/03: RuntimeError # Uncaught SyntaxError: Unexpected token try
-async_star_test/04: RuntimeError # Uncaught SyntaxError: Unexpected token try
-async_star_test/05: RuntimeError # Uncaught SyntaxError: Unexpected token try
-async_star_test/none: RuntimeError # Uncaught SyntaxError: Unexpected token try
+async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
 bit_operations_test/none: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
 branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
 call_closurization_test: RuntimeError # Issue 29920; TypeError: Cannot read property '0' of undefined
