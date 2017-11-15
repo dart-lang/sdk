@@ -33,6 +33,14 @@
       "third_party/pkg/",
       "third_party/pkg_tested/",
       ".packages"
+    ],
+    "dart2js": [
+      "out/ReleaseX64/",
+      "xcodebuild/ReleaseX64/",
+      "tools/",
+      "tests/",
+      "pkg/",
+      ".packages"
     ]
   },
   "configurations": [
@@ -551,17 +559,143 @@
     },
     {
       "builders": [
+        "dart2js-linux-x64-chrome",
+        "dart2js-linux-x64-ff",
+        "dart2js-linux-x64-drt",
+        "dart2js-mac-x64-chrome",
+        "dart2js-mac-x64-safari",
+        "dart2js-win-x64-chrome",
+        "dart2js-win-x64-ie11",
+        "dart2js-win-x64-ff",
+        "dart2js-win-x64-edge"
+      ],
+      "meta": {
+        "description": "These builders are triggered by dart-sdk-linux and runs the dart2js tests."
+      },
+      "steps": [
+        {
+          "name": "dart2js tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js co19 tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration"
+          ],
+          "tests": ["co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js fast-startup tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--fast-startup"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js fast-startup co19 tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--fast-startup"
+          ],
+          "tests": ["co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js package tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "dart2js observatory-ui tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration"
+          ],
+          "tests": ["observatory_ui"]
+        },
+        {
+          "name": "dart2js extra tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration"
+          ],
+          "tests": ["dart2js_extra","dart2js_native"]
+        },
+        {
+          "name": "dart2js fast-startup pkg tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--fast-startup"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "dart2js fast-startup observatory-ui tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--fast-startup"
+          ],
+          "tests": ["observatory_ui"]
+        },
+        {
+          "name": "dart2js fast-startup extra tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--fast-startup"
+          ],
+          "tests": ["dart2js_extra","dart2js_native"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart-sdk-linux"
       ],
       "meta": {
         "description": "This configuration is used by the linux sdk builder. The difference between this configuration and the other sdk builder configurations is that this one also generates the api docs."
       },
       "steps": [
-        {
-          "name": "build dart ia32",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32","create_sdk"]
-        },
         {
           "name": "build dart x64",
           "script": "tools/build.py",
@@ -577,6 +711,11 @@
           "fileset": "analyzer"
         },
         {
+          "name": "build dart ia32",
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32","create_sdk"]
+        },
+        {
           "name": "generate API docs",
           "script": "tools/bots/dart_sdk.py",
           "arguments": [ "api_docs" ]
@@ -584,23 +723,38 @@
       ]
     },
     {
-      "builders": [
-        "dart-sdk-mac",
-        "dart-sdk-win"
-      ],
+      "builders": ["dart-sdk-mac"],
       "meta": {
-        "description": "This configuration is used by the sdk-builders for windows and mac."
+        "description": "This configuration is used by the sdk-builder for mac. The builder triggers the analyzer and dart2js mac builders."
       },
       "steps": [
         {
+          "name": "build dart x64",
+          "script": "tools/build.py",
+          "arguments": ["create_sdk"]
+        },
+        {
           "name": "build dart ia32",
           "script": "tools/build.py",
-          "arguments": [ "--arch=ia32", "create_sdk" ]
-        },
+          "arguments": ["--arch=ia32","create_sdk"]
+        }
+      ]
+    },
+    {
+      "builders": ["dart-sdk-win"],
+      "meta": {
+        "description": "This configuration is used by the sdk-builder for windows. The builder triggers the analyzer and dart2js windows builders."
+      },
+      "steps": [
         {
           "name": "build dart x64",
           "script": "tools/build.py",
-          "arguments": [ "create_sdk" ]
+          "arguments": ["create_sdk"]
+        },
+        {
+          "name": "build dart ia32",
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32","create_sdk"]
         }
       ]
     },
