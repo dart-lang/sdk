@@ -268,5 +268,79 @@ string_interpolation_test: RuntimeError
 type_constant_switch_test/01: MissingCompileTimeError
 unconditional_dartio_import_test: RuntimeError
 
+[ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+17645_test: RuntimeError
+17856_test: RuntimeError
+21666_test: RuntimeError
+22868_test: RuntimeError
+async_stacktrace_test: RuntimeError
+bound_closure_interceptor_methods_test: RuntimeError
+closure_capture2_test: RuntimeError
+closure_capture7_test: RuntimeError
+closure_type_reflection2_test: RuntimeError
+closure_type_reflection_test: RuntimeError
+conditional_send_test: RuntimeError
+constant_javascript_semantics_test/01: MissingCompileTimeError
+deferred/default_arg_is_tearoff_test: RuntimeError
+deferred/deferred_class_test: RuntimeError
+deferred/deferred_constant2_test: RuntimeError
+deferred/deferred_constant3_test: RuntimeError
+deferred/deferred_constant4_test: RuntimeError
+deferred/deferred_function_test: RuntimeError
+deferred/deferred_mirrors1_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/deferred_mirrors2_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/deferred_overlapping_test: RuntimeError
+deferred/interface_type_variable_test: RuntimeError
+deferred/load_in_correct_order_test: RuntimeError
+deferred/multiple_default_arg_test: RuntimeError
+deferred/reflect_multiple_annotations_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/reflect_multiple_default_arg_test: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred/uninstantiated_type_variable_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+deferred_custom_loader_test: RuntimeError
+deferred_fail_and_retry_test: RuntimeError
+deferred_fail_and_retry_worker_test: RuntimeError
+deferred_inheritance_test: RuntimeError
+deferred_split_test: RuntimeError
+dummy_compiler_test: CompileTimeError
+for_in_test: RuntimeError
+if_null_test: RuntimeError
+invalid_annotation2_test/none: RuntimeError
+js_interop_test: RuntimeError
+label_test/06: MissingCompileTimeError
+minus_zero_test/01: MissingCompileTimeError
+mirror_invalid_field_access2_test: RuntimeError
+mirror_invalid_field_access3_test: RuntimeError
+mirror_invalid_field_access4_test: RuntimeError
+mirror_invalid_field_access_test: RuntimeError
+mirror_invalid_invoke2_test: RuntimeError
+mirror_invalid_invoke3_test: RuntimeError
+mirror_invalid_invoke_test: RuntimeError
+mirror_printer_test/01: RuntimeError
+mirror_printer_test/none: RuntimeError
+mirror_test: RuntimeError
+mirror_type_inference_field2_test: RuntimeError
+mirror_type_inference_field_test: RuntimeError
+mirror_type_inference_function_test: RuntimeError
+mirrors_declarations_filtering_test: RuntimeError
+mirrors_used_metatargets_test: RuntimeError
+mirrors_used_native_test: RuntimeError
+mirrors_used_warning2_test: RuntimeError
+mirrors_used_warning_test/minif: RuntimeError
+mirrors_used_warning_test/none: RuntimeError
+private_symbol_literal_test/01: MissingCompileTimeError
+private_symbol_literal_test/02: MissingCompileTimeError
+private_symbol_literal_test/03: MissingCompileTimeError
+private_symbol_literal_test/04: MissingCompileTimeError
+private_symbol_literal_test/05: MissingCompileTimeError
+private_symbol_literal_test/06: MissingCompileTimeError
+recursive_import_test: CompileTimeError
+reflect_native_types_test: RuntimeError
+regress/4562_test/none: CompileTimeError
+string_interpolation_dynamic_test: RuntimeError
+string_interpolation_test: RuntimeError
+timer_test: RuntimeError
+type_constant_switch_test/01: MissingCompileTimeError
+unconditional_dartio_import_test: RuntimeError
+
 [ $compiler == dart2js && $runtime == drt && $csp ]
 deferred/load_in_correct_order_test: SkipByDesign # Purposely uses `eval`

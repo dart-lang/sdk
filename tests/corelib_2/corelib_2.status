@@ -499,19 +499,12 @@ list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply3_test: RuntimeError
-hash_set_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-iterable_element_at_test/static: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-iterable_mapping_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
-iterable_to_set_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # type 'DillClassBuilder' is not a subtype of type 'SourceClassBuilder' of 'named' where
-splay_tree_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-splay_tree_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-splay_tree_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
@@ -519,7 +512,6 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply3_test: RuntimeError
@@ -677,3 +669,120 @@ symbol_test/01: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 map_test: Crash # crash in front_end.
+
+[ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+apply2_test: RuntimeError
+apply3_test: RuntimeError
+apply4_test: RuntimeError
+apply5_test: RuntimeError
+apply_test: RuntimeError
+collection_from_test: RuntimeError
+collection_length_test: RuntimeError
+collection_removes_test: RuntimeError
+collection_test: RuntimeError
+collection_to_string_test: RuntimeError
+core_runtime_types_test: RuntimeError
+data_uri_test: RuntimeError
+for_in_test: RuntimeError
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+has_next_iterator_test: RuntimeError
+hash_map2_test: RuntimeError
+hash_set_test/none: RuntimeError
+iterable_element_at_test/none: RuntimeError
+iterable_expand_test: RuntimeError
+iterable_first_where_test: RuntimeError
+iterable_fold_test/01: RuntimeError
+iterable_fold_test/02: RuntimeError
+iterable_fold_test/none: RuntimeError
+iterable_join_test: RuntimeError
+iterable_last_where_test: RuntimeError
+iterable_mapping_test/none: RuntimeError
+iterable_reduce_test/01: RuntimeError
+iterable_reduce_test/none: RuntimeError
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_return_type_test/none: RuntimeError
+iterable_single_test: RuntimeError
+iterable_single_where_test: RuntimeError
+iterable_skip_test: RuntimeError
+iterable_skip_while_test: RuntimeError
+iterable_take_test: RuntimeError
+iterable_take_while_test: RuntimeError
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
+iterable_tostring_test: RuntimeError
+linked_hash_map_from_iterables_test: RuntimeError
+linked_hash_map_test: RuntimeError
+list_get_range_test: RuntimeError
+list_insert_all_test: RuntimeError
+list_insert_test: RuntimeError
+list_iterators_test: RuntimeError
+list_map_test: RuntimeError
+list_reversed_test: RuntimeError
+list_set_all_test: RuntimeError
+list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
+list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
+list_to_string2_test: RuntimeError
+list_to_string_test: RuntimeError
+list_unmodifiable_test: RuntimeError
+main_test: RuntimeError
+map_from_iterables_test: RuntimeError
+map_from_test: RuntimeError
+map_keys_test: RuntimeError
+map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
+map_values2_test: RuntimeError
+map_values3_test: RuntimeError
+map_values_test: RuntimeError
+maps_test: RuntimeError
+queue_first_test: RuntimeError
+queue_iterator_test: RuntimeError
+queue_last_test: RuntimeError
+queue_single_test: RuntimeError
+queue_test: RuntimeError
+reg_exp_all_matches_test: RuntimeError
+regexp/parentheses_test: RuntimeError
+regexp/pcre-test-4_test: RuntimeError
+regexp/regexp_kde_test: RuntimeError
+regress_11099_test: RuntimeError
+set_iterator_test: RuntimeError
+set_test: RuntimeError
+set_to_string_test: RuntimeError
+splay_tree_from_iterable_test: RuntimeError
+splay_tree_from_iterables_test: RuntimeError
+splay_tree_test/none: RuntimeError
+stacktrace_fromstring_test: RuntimeError
+string_buffer_test: RuntimeError
+string_codeunits_test: RuntimeError
+string_from_list_test: RuntimeError
+string_fromcharcodes_test: RuntimeError
+string_runes_test: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+uri_file_test: RuntimeError
+uri_parameters_all_test: RuntimeError
+uri_path_test: RuntimeError
+uri_query_test: RuntimeError
+uri_test: RuntimeError
+

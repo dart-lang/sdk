@@ -9,7 +9,7 @@
 /// a convention for how the status files are structured, In particular,
 /// every status file for dart2js should have 3 sections:
 ///
-///   [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+///     [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 ///
 /// and:
 ///
@@ -18,6 +18,10 @@
 /// and:
 ///
 ///     [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+///
+/// and:
+///
+///     [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
 library status_files.update_from_log;
 
 import 'dart:io';
@@ -26,11 +30,13 @@ import 'record.dart';
 import 'log_parser.dart';
 
 final configurations = {
-  'checked':
+  'host-checked':
       r'[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]',
   'minified': r'[ $compiler == dart2js && $dart2js_with_kernel && $minified ]',
   'fast-startup':
       r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]',
+  'checked-mode':
+      r'[ $compiler == dart2js && $dart2js_with_kernel && $checked ]',
 };
 
 final statusFiles = {

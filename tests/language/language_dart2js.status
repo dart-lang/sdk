@@ -1308,3 +1308,728 @@ truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_checks_in_factory_method_test: RuntimeError
 
+[ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+arithmetic_canonicalization_test: RuntimeError
+assertion_initializer_const_function_test/none: Pass
+assert_message_test: RuntimeError
+assertion_initializer_const_function_test/01: RuntimeError
+assertion_initializer_test: CompileTimeError
+assign_static_type_test/01: Fail
+assign_static_type_test/02: MissingCompileTimeError
+assign_static_type_test/03: Fail
+assign_static_type_test/04: Fail
+async_and_or_test: RuntimeError
+async_await_catch_regression_test: RuntimeError
+async_await_syntax_test/a01a: RuntimeError
+async_await_syntax_test/a02a: RuntimeError
+async_await_syntax_test/a03a: RuntimeError
+async_await_syntax_test/a03b: RuntimeError
+async_await_syntax_test/a05a: RuntimeError
+async_await_syntax_test/a05b: RuntimeError
+async_await_syntax_test/a06a: RuntimeError
+async_await_syntax_test/a09a: RuntimeError
+async_await_syntax_test/a10a: RuntimeError
+async_await_syntax_test/a11c: RuntimeError
+async_await_syntax_test/a11d: RuntimeError
+async_await_syntax_test/a12g: RuntimeError
+async_await_syntax_test/b01a: RuntimeError
+async_await_syntax_test/b02a: RuntimeError
+async_await_syntax_test/b03a: RuntimeError
+async_await_syntax_test/b05a: RuntimeError
+async_await_syntax_test/b06a: RuntimeError
+async_await_syntax_test/b09a: RuntimeError
+async_await_syntax_test/b10a: RuntimeError
+async_await_syntax_test/b11c: RuntimeError
+async_await_syntax_test/b11d: RuntimeError
+async_await_syntax_test/b12g: RuntimeError
+async_await_syntax_test/c01a: RuntimeError
+async_await_syntax_test/c02a: RuntimeError
+async_await_syntax_test/c03a: RuntimeError
+async_await_syntax_test/c05a: RuntimeError
+async_await_syntax_test/c06a: RuntimeError
+async_await_syntax_test/c09a: RuntimeError
+async_await_syntax_test/c10a: RuntimeError
+async_await_syntax_test/d01a: RuntimeError
+async_await_syntax_test/d02a: RuntimeError
+async_await_syntax_test/d03a: RuntimeError
+async_await_syntax_test/d05a: RuntimeError
+async_await_syntax_test/d06a: RuntimeError
+async_await_syntax_test/d09a: RuntimeError
+async_await_syntax_test/d10a: RuntimeError
+async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
+async_break_in_finally_test: RuntimeError
+async_continue_label_test/await_in_body: RuntimeError
+async_continue_label_test/await_in_condition: RuntimeError
+async_continue_label_test/await_in_init: RuntimeError
+async_continue_label_test/await_in_update: RuntimeError
+async_continue_label_test/none: RuntimeError
+async_control_structures_test: RuntimeError
+async_finally_rethrow_test: RuntimeError
+async_or_generator_return_type_stacktrace_test/01: RuntimeError
+async_or_generator_return_type_stacktrace_test/02: RuntimeError
+async_regression_23058_test: RuntimeError
+async_rethrow_test: RuntimeError
+async_return_types_test/none: RuntimeError
+async_return_types_test/tooManyTypeParameters: RuntimeError
+async_star_cancel_and_throw_in_finally_test: RuntimeError
+async_star_cancel_while_paused_test: RuntimeError
+async_star_no_cancel2_test: RuntimeError
+async_star_no_cancel_test: RuntimeError
+async_star_pause_test: RuntimeError
+async_star_regression_2238_test: RuntimeError
+async_star_regression_23116_test: RuntimeError
+async_star_regression_fisk_test: RuntimeError
+async_star_stream_take_test: RuntimeError
+async_star_take_reyield_test: RuntimeError
+async_star_test: RuntimeError
+async_switch_test/none: RuntimeError
+async_switch_test/withDefault: RuntimeError
+async_test/none: RuntimeError
+async_this_bound_test: RuntimeError
+async_throw_in_catch_test/forceAwait: RuntimeError
+async_throw_in_catch_test/none: RuntimeError
+asyncstar_concat_test: RuntimeError
+asyncstar_throw_in_catch_test: RuntimeError
+asyncstar_yield_test: RuntimeError
+asyncstar_yieldstar_test: RuntimeError
+await_backwards_compatibility_test/none: RuntimeError
+await_exceptions_test: RuntimeError
+await_for_cancel_test: RuntimeError
+await_for_test: RuntimeError
+await_for_use_local_test: RuntimeError
+await_future_test: RuntimeError
+await_nonfuture_test: RuntimeError
+await_not_started_immediately_test: RuntimeError
+await_null_aware_test: RuntimeError
+await_postfix_expr_test: RuntimeError
+await_regression_test: RuntimeError
+await_test: RuntimeError
+bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
+bad_override_test/03: MissingCompileTimeError
+bad_override_test/04: MissingCompileTimeError
+bad_override_test/05: MissingCompileTimeError
+bit_operations_test/01: RuntimeError
+bit_operations_test/02: RuntimeError
+bit_operations_test/03: RuntimeError
+bit_operations_test/04: RuntimeError
+bit_operations_test/none: RuntimeError
+bound_closure_equality_test: RuntimeError
+branch_canonicalization_test: RuntimeError
+call_function_apply_test: RuntimeError
+call_nonexistent_constructor_test/01: RuntimeError
+call_with_no_such_method_test: RuntimeError
+canonical_const2_test: RuntimeError
+canonical_const3_test: CompileTimeError
+cha_deopt1_test: RuntimeError
+cha_deopt2_test: RuntimeError
+cha_deopt3_test: RuntimeError
+check_member_static_test/02: MissingCompileTimeError
+checked_setter2_test: RuntimeError
+checked_setter3_test/01: RuntimeError
+checked_setter3_test/02: RuntimeError
+checked_setter3_test/none: RuntimeError
+class_cycle_test/02: MissingCompileTimeError
+class_cycle_test/03: MissingCompileTimeError
+classes_static_method_clash_test: RuntimeError
+closure_cycles_test: RuntimeError
+closure_in_field_test/01: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (Instance of 'ThisLocal') for j:field(Mixin.field).
+closure_in_field_test/02: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (Instance of 'ThisLocal') for j:field(Mixin.field).
+closure_in_field_test/none: Crash # Assertion failure: Runtime type information not available for type_variable_local(Mixin.S) in (Instance of 'ThisLocal') for j:field(Mixin.field).
+closure_type_test/01: RuntimeError
+closure_type_test/none: RuntimeError
+compile_time_constant_a_test: RuntimeError
+compile_time_constant_b_test: RuntimeError
+compile_time_constant_checked2_test/01: MissingCompileTimeError
+compile_time_constant_checked2_test/02: MissingCompileTimeError
+compile_time_constant_checked2_test/03: MissingCompileTimeError
+compile_time_constant_checked2_test/04: MissingCompileTimeError
+compile_time_constant_checked2_test/05: MissingCompileTimeError
+compile_time_constant_checked2_test/06: MissingCompileTimeError
+compile_time_constant_checked3_test/01: MissingCompileTimeError
+compile_time_constant_checked3_test/02: MissingCompileTimeError
+compile_time_constant_checked3_test/03: MissingCompileTimeError
+compile_time_constant_checked3_test/04: MissingCompileTimeError
+compile_time_constant_checked3_test/05: MissingCompileTimeError
+compile_time_constant_checked3_test/06: MissingCompileTimeError
+compile_time_constant_checked4_test/01: MissingCompileTimeError
+compile_time_constant_checked4_test/02: MissingCompileTimeError
+compile_time_constant_checked4_test/03: MissingCompileTimeError
+compile_time_constant_checked5_test/03: MissingCompileTimeError
+compile_time_constant_checked5_test/04: MissingCompileTimeError
+compile_time_constant_checked5_test/08: MissingCompileTimeError
+compile_time_constant_checked5_test/09: MissingCompileTimeError
+compile_time_constant_checked5_test/13: MissingCompileTimeError
+compile_time_constant_checked5_test/14: MissingCompileTimeError
+compile_time_constant_checked5_test/18: MissingCompileTimeError
+compile_time_constant_checked5_test/19: MissingCompileTimeError
+compile_time_constant_checked_test/01: Fail
+compile_time_constant_checked_test/02: MissingCompileTimeError
+compile_time_constant_checked_test/03: Fail
+conditional_import_string_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Stream.timeout#onCancel), local(Stream.timeout#result)) for j:closure_call(Stream_timeout_onCancel.call).
+conditional_import_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Stream.timeout#onCancel), local(Stream.timeout#result)) for j:closure_call(Stream_timeout_onCancel.call).
+config_import_corelib_test: RuntimeError
+config_import_test: RuntimeError
+const_constructor2_test/13: MissingCompileTimeError
+const_constructor2_test/14: MissingCompileTimeError
+const_constructor2_test/15: MissingCompileTimeError
+const_constructor2_test/16: MissingCompileTimeError
+const_constructor2_test/17: MissingCompileTimeError
+const_constructor2_test/20: MissingCompileTimeError
+const_constructor2_test/22: MissingCompileTimeError
+const_constructor2_test/24: MissingCompileTimeError
+const_constructor3_test/02: MissingCompileTimeError
+const_constructor3_test/04: MissingCompileTimeError
+const_error_multiply_initialized_test/02: MissingCompileTimeError
+const_error_multiply_initialized_test/04: MissingCompileTimeError
+const_evaluation_test/01: RuntimeError
+const_factory_with_body_test/01: MissingCompileTimeError
+const_init2_test/02: MissingCompileTimeError
+const_instance_field_test/01: MissingCompileTimeError
+const_map2_test/00: MissingCompileTimeError
+const_map3_test/00: MissingCompileTimeError
+const_switch2_test/01: MissingCompileTimeError
+const_switch_test/02: RuntimeError
+const_switch_test/04: RuntimeError
+constants_test/05: MissingCompileTimeError
+constructor2_test: RuntimeError
+constructor3_test: RuntimeError
+constructor5_test: RuntimeError
+constructor6_test: RuntimeError
+constructor_named_arguments_test/none: RuntimeError
+constructor_redirect1_negative_test: Crash # Stack Overflow
+constructor_redirect2_negative_test: Crash # Stack Overflow
+constructor_redirect2_test/01: MissingCompileTimeError
+constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
+custom_await_stack_trace_test: RuntimeError
+cyclic_constructor_test/01: Crash # Stack Overflow
+cyclic_default_values_test: RuntimeError
+default_factory2_test/01: Fail
+deferred_closurize_load_library_test: RuntimeError
+deferred_constant_list_test: RuntimeError
+deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
+deferred_constraints_type_annotation_test/as_operation: RuntimeError
+deferred_constraints_type_annotation_test/catch_check: RuntimeError
+deferred_constraints_type_annotation_test/is_check: RuntimeError
+deferred_constraints_type_annotation_test/new: RuntimeError
+deferred_constraints_type_annotation_test/new_before_load: RuntimeError
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError
+deferred_constraints_type_annotation_test/none: RuntimeError
+deferred_constraints_type_annotation_test/static_method: RuntimeError
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError
+deferred_function_type_test: RuntimeError
+deferred_global_test: RuntimeError
+deferred_import_core_test: RuntimeError
+deferred_inheritance_constraints_test/extends: MissingCompileTimeError
+deferred_inheritance_constraints_test/implements: MissingCompileTimeError
+deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
+deferred_inlined_test: RuntimeError
+deferred_load_constants_test/none: RuntimeError
+deferred_load_inval_code_test: RuntimeError
+deferred_load_library_wrong_args_test/none: RuntimeError
+deferred_mixin_test: RuntimeError
+deferred_no_such_method_test: RuntimeError
+deferred_not_loaded_check_test: RuntimeError
+deferred_only_constant_test: RuntimeError
+deferred_optimized_test: RuntimeError
+deferred_redirecting_factory_test: RuntimeError
+deferred_regression_22995_test: RuntimeError
+deferred_regression_28678_test: RuntimeError
+deferred_shadow_load_library_test: RuntimeError
+deferred_shared_and_unshared_classes_test: RuntimeError
+deferred_static_seperate_test: RuntimeError
+deferred_super_dependency_test/01: RuntimeError
+deferred_super_dependency_test/none: RuntimeError
+deferred_type_dependency_test/as: RuntimeError
+deferred_type_dependency_test/is: RuntimeError
+deferred_type_dependency_test/none: RuntimeError
+deferred_type_dependency_test/type_annotation: RuntimeError
+double_int_to_string_test: RuntimeError
+duplicate_export_negative_test: Fail
+duplicate_implements_test/01: MissingCompileTimeError
+duplicate_implements_test/02: MissingCompileTimeError
+duplicate_implements_test/03: MissingCompileTimeError
+duplicate_implements_test/04: MissingCompileTimeError
+dynamic_prefix_core_test/01: RuntimeError
+dynamic_prefix_core_test/none: RuntimeError
+enum_mirror_test: RuntimeError
+example_constructor_test: RuntimeError
+expect_test: RuntimeError
+external_test/10: MissingRuntimeError
+external_test/13: MissingRuntimeError
+external_test/20: MissingRuntimeError
+f_bounded_quantification5_test: RuntimeError
+f_bounded_quantification_test/01: RuntimeError
+f_bounded_quantification_test/02: RuntimeError
+factory_redirection_test/07: MissingCompileTimeError
+factory_redirection_test/08: Fail
+factory_redirection_test/09: Fail
+factory_redirection_test/10: Fail
+factory_redirection_test/12: Fail
+factory_redirection_test/13: Fail
+factory_redirection_test/14: Fail
+fauxverride_test/03: MissingCompileTimeError
+fauxverride_test/05: MissingCompileTimeError
+field_initialization_order_test: RuntimeError
+field_override3_test/00: MissingCompileTimeError
+field_override3_test/01: MissingCompileTimeError
+field_override3_test/02: MissingCompileTimeError
+field_override3_test/03: MissingCompileTimeError
+field_override4_test/02: MissingCompileTimeError
+field_type_check2_test/01: Fail
+field_wierd_name_test: RuntimeError
+final_attempt_reinitialization_test/01: MissingCompileTimeError
+final_attempt_reinitialization_test/02: MissingCompileTimeError
+final_field_initialization_order_test: RuntimeError
+flatten_test/02: RuntimeError
+flatten_test/03: RuntimeError
+flatten_test/06: RuntimeError
+flatten_test/07: RuntimeError
+flatten_test/10: RuntimeError
+flatten_test/11: RuntimeError
+flatten_test/none: RuntimeError
+for_in2_test: RuntimeError
+function_subtype_closure0_test: RuntimeError
+function_subtype_closure1_test: RuntimeError
+function_subtype_inline2_test: RuntimeError
+function_subtype_setter0_test: RuntimeError
+function_type/function_type0_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U0.testF20#)) for j:closure_call(U0_testF20_closure.call).
+function_type/function_type10_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U10.testF22#)) for j:closure_call(U10_testF22_closure.call).
+function_type/function_type11_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U11.testF22#)) for j:closure_call(U11_testF22_closure.call).
+function_type/function_type12_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U12.testF21#)) for j:closure_call(U12_testF21_closure.call).
+function_type/function_type13_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U13.testF21#)) for j:closure_call(U13_testF21_closure.call).
+function_type/function_type14_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U14.testF21#)) for j:closure_call(U14_testF21_closure.call).
+function_type/function_type15_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U15.testF21#)) for j:closure_call(U15_testF21_closure.call).
+function_type/function_type16_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U16.testF20#)) for j:closure_call(U16_testF20_closure.call).
+function_type/function_type17_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U17.testF20#)) for j:closure_call(U17_testF20_closure.call).
+function_type/function_type18_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U18.testF20#)) for j:closure_call(U18_testF20_closure.call).
+function_type/function_type19_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U19.testF20#)) for j:closure_call(U19_testF20_closure.call).
+function_type/function_type1_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U1.testF20#)) for j:closure_call(U1_testF20_closure.call).
+function_type/function_type20_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U20.testF20#)) for j:closure_call(U20_testF20_closure.call).
+function_type/function_type21_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U21.testF20#)) for j:closure_call(U21_testF20_closure.call).
+function_type/function_type22_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U22.testF20#)) for j:closure_call(U22_testF20_closure.call).
+function_type/function_type23_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U23.testF20#)) for j:closure_call(U23_testF20_closure.call).
+function_type/function_type24_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U24.testF20#)) for j:closure_call(U24_testF20_closure.call).
+function_type/function_type25_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U25.testF20#)) for j:closure_call(U25_testF20_closure.call).
+function_type/function_type26_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U26.testF20#)) for j:closure_call(U26_testF20_closure.call).
+function_type/function_type27_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U27.testF20#)) for j:closure_call(U27_testF20_closure.call).
+function_type/function_type28_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U28.testF23#)) for j:closure_call(U28_testF23_closure.call).
+function_type/function_type29_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U29.testF23#)) for j:closure_call(U29_testF23_closure.call).
+function_type/function_type2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U2.testF20#)) for j:closure_call(U2_testF20_closure.call).
+function_type/function_type30_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U30.testF15#)) for j:closure_call(U30_testF15_closure.call).
+function_type/function_type31_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U31.testF15#)) for j:closure_call(U31_testF15_closure.call).
+function_type/function_type32_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U32.testF15#)) for j:closure_call(U32_testF15_closure.call).
+function_type/function_type33_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U33.testF15#)) for j:closure_call(U33_testF15_closure.call).
+function_type/function_type34_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U34.testF15#)) for j:closure_call(U34_testF15_closure.call).
+function_type/function_type35_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U35.testF15#)) for j:closure_call(U35_testF15_closure.call).
+function_type/function_type36_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U36.testF15#)) for j:closure_call(U36_testF15_closure.call).
+function_type/function_type37_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U37.testF15#)) for j:closure_call(U37_testF15_closure.call).
+function_type/function_type38_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U38.testF15#)) for j:closure_call(U38_testF15_closure.call).
+function_type/function_type39_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U39.testF15#)) for j:closure_call(U39_testF15_closure.call).
+function_type/function_type3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U3.testF20#)) for j:closure_call(U3_testF20_closure.call).
+function_type/function_type40_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U40.testF22#)) for j:closure_call(U40_testF22_closure.call).
+function_type/function_type41_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U41.testF22#)) for j:closure_call(U41_testF22_closure.call).
+function_type/function_type42_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U42.testF22#)) for j:closure_call(U42_testF22_closure.call).
+function_type/function_type43_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U43.testF22#)) for j:closure_call(U43_testF22_closure.call).
+function_type/function_type44_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U44.testF21#)) for j:closure_call(U44_testF21_closure.call).
+function_type/function_type45_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U45.testF21#)) for j:closure_call(U45_testF21_closure.call).
+function_type/function_type46_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U46.testF23#)) for j:closure_call(U46_testF23_closure.call).
+function_type/function_type47_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U47.testF23#)) for j:closure_call(U47_testF23_closure.call).
+function_type/function_type48_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U48.testF20#)) for j:closure_call(U48_testF20_closure.call).
+function_type/function_type49_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U49.testF20#)) for j:closure_call(U49_testF20_closure.call).
+function_type/function_type4_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U4.testF23#)) for j:closure_call(U4_testF23_closure.call).
+function_type/function_type50_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U50.testF20#)) for j:closure_call(U50_testF20_closure.call).
+function_type/function_type51_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U51.testF20#)) for j:closure_call(U51_testF20_closure.call).
+function_type/function_type52_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U52.testF15#)) for j:closure_call(U52_testF15_closure.call).
+function_type/function_type53_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U53.testF15#)) for j:closure_call(U53_testF15_closure.call).
+function_type/function_type54_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U54.testF15#)) for j:closure_call(U54_testF15_closure.call).
+function_type/function_type55_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U55.testF15#)) for j:closure_call(U55_testF15_closure.call).
+function_type/function_type56_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U56.testF15#)) for j:closure_call(U56_testF15_closure.call).
+function_type/function_type57_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U57.testF15#)) for j:closure_call(U57_testF15_closure.call).
+function_type/function_type58_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U58.testF15#)) for j:closure_call(U58_testF15_closure.call).
+function_type/function_type59_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U59.testF15#)) for j:closure_call(U59_testF15_closure.call).
+function_type/function_type5_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U5.testF23#)) for j:closure_call(U5_testF23_closure.call).
+function_type/function_type60_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U60.testF21#)) for j:closure_call(U60_testF21_closure.call).
+function_type/function_type61_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U61.testF21#)) for j:closure_call(U61_testF21_closure.call).
+function_type/function_type62_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U62.testF21#)) for j:closure_call(U62_testF21_closure.call).
+function_type/function_type63_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U63.testF21#)) for j:closure_call(U63_testF21_closure.call).
+function_type/function_type64_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U64.testF21#)) for j:closure_call(U64_testF21_closure.call).
+function_type/function_type65_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U65.testF21#)) for j:closure_call(U65_testF21_closure.call).
+function_type/function_type66_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U66.testF21#)) for j:closure_call(U66_testF21_closure.call).
+function_type/function_type67_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U67.testF21#)) for j:closure_call(U67_testF21_closure.call).
+function_type/function_type68_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U68.testF21#)) for j:closure_call(U68_testF21_closure.call).
+function_type/function_type69_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U69.testF21#)) for j:closure_call(U69_testF21_closure.call).
+function_type/function_type6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U6.testF23#)) for j:closure_call(U6_testF23_closure.call).
+function_type/function_type70_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U70.testF21#)) for j:closure_call(U70_testF21_closure.call).
+function_type/function_type71_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U71.testF21#)) for j:closure_call(U71_testF21_closure.call).
+function_type/function_type72_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U72.testF22#)) for j:closure_call(U72_testF22_closure.call).
+function_type/function_type73_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U73.testF22#)) for j:closure_call(U73_testF22_closure.call).
+function_type/function_type74_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U74.testF22#)) for j:closure_call(U74_testF22_closure.call).
+function_type/function_type75_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U75.testF22#)) for j:closure_call(U75_testF22_closure.call).
+function_type/function_type76_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U76.testF21#)) for j:closure_call(U76_testF21_closure.call).
+function_type/function_type77_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U77.testF21#)) for j:closure_call(U77_testF21_closure.call).
+function_type/function_type78_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U78.testF21#)) for j:closure_call(U78_testF21_closure.call).
+function_type/function_type79_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U79.testF21#)) for j:closure_call(U79_testF21_closure.call).
+function_type/function_type7_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U7.testF23#)) for j:closure_call(U7_testF23_closure.call).
+function_type/function_type80_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U80.testF21#)) for j:closure_call(U80_testF21_closure.call).
+function_type/function_type81_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U81.testF21#)) for j:closure_call(U81_testF21_closure.call).
+function_type/function_type82_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U82.testF21#)) for j:closure_call(U82_testF21_closure.call).
+function_type/function_type83_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U83.testF21#)) for j:closure_call(U83_testF21_closure.call).
+function_type/function_type84_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U84.testF21#)) for j:closure_call(U84_testF21_closure.call).
+function_type/function_type85_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U85.testF21#)) for j:closure_call(U85_testF21_closure.call).
+function_type/function_type86_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U86.testF21#)) for j:closure_call(U86_testF21_closure.call).
+function_type/function_type87_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U87.testF21#)) for j:closure_call(U87_testF21_closure.call).
+function_type/function_type88_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U88.testF21#)) for j:closure_call(U88_testF21_closure.call).
+function_type/function_type89_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U89.testF21#)) for j:closure_call(U89_testF21_closure.call).
+function_type/function_type8_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U8.testF22#)) for j:closure_call(U8_testF22_closure.call).
+function_type/function_type90_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U90.testF21#)) for j:closure_call(U90_testF21_closure.call).
+function_type/function_type91_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U91.testF21#)) for j:closure_call(U91_testF21_closure.call).
+function_type/function_type92_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U92.testF19#)) for j:closure_call(U92_testF19_closure.call).
+function_type/function_type93_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U93.testF19#)) for j:closure_call(U93_testF19_closure.call).
+function_type/function_type94_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U94.testF19#)) for j:closure_call(U94_testF19_closure.call).
+function_type/function_type95_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U95.testF19#)) for j:closure_call(U95_testF19_closure.call).
+function_type/function_type96_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U96.testF19#)) for j:closure_call(U96_testF19_closure.call).
+function_type/function_type97_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U97.testF19#)) for j:closure_call(U97_testF19_closure.call).
+function_type/function_type98_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U98.testF19#)) for j:closure_call(U98_testF19_closure.call).
+function_type/function_type99_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U99.testF19#)) for j:closure_call(U99_testF19_closure.call).
+function_type/function_type9_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U9.testF22#)) for j:closure_call(U9_testF22_closure.call).
+generic_constructor_mixin2_test: RuntimeError
+generic_constructor_mixin3_test: RuntimeError
+generic_constructor_mixin_test: RuntimeError
+generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in (Instance of 'ThisLocal') for j:field(M.field).
+generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in (Instance of 'ThisLocal') for j:field(M.field).
+generic_field_mixin6_test/01: RuntimeError
+generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
+generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
+generic_methods_type_expression_test/01: RuntimeError
+generic_methods_type_expression_test/03: RuntimeError
+generic_methods_type_expression_test/none: RuntimeError
+generic_test: RuntimeError
+getter_override2_test/02: MissingCompileTimeError
+getter_override_test/00: MissingCompileTimeError
+getter_override_test/01: MissingCompileTimeError
+getter_override_test/02: MissingCompileTimeError
+getter_setter_interceptor_test: RuntimeError
+identical_closure2_test: RuntimeError
+if_null_assignment_behavior_test/14: RuntimeError
+infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
+infinity_test: RuntimeError
+instance_creation_in_function_annotation_test: RuntimeError
+integer_division_by_zero_test: RuntimeError
+interceptor2_test: RuntimeError
+internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
+invocation_mirror2_test: RuntimeError
+invocation_mirror_empty_arguments_test: RuntimeError
+invocation_mirror_test: RuntimeError
+issue1363_test: RuntimeError
+issue14242_test: RuntimeError
+issue21079_test: RuntimeError
+issue_1751477_test: RuntimeError
+left_shift_test: RuntimeError
+library_env_test/has_no_html_support: RuntimeError
+library_env_test/has_no_io_support: RuntimeError
+library_env_test/has_no_mirror_support: RuntimeError
+list_literal1_test/01: MissingCompileTimeError
+list_literal4_test: RuntimeError
+main_not_a_function_test/01: CompileTimeError
+main_test/01: RuntimeError
+main_test/02: RuntimeError
+main_test/04: RuntimeError
+main_test/05: RuntimeError
+main_test/20: RuntimeError
+main_test/21: RuntimeError
+main_test/22: RuntimeError
+main_test/41: RuntimeError
+main_test/42: RuntimeError
+main_test/43: RuntimeError
+main_test/44: RuntimeError
+main_test/45: RuntimeError
+malbounded_instantiation_test/02: Fail
+malbounded_instantiation_test/03: Fail
+malbounded_redirecting_factory2_test/02: Fail
+malbounded_redirecting_factory2_test/03: Fail
+malbounded_redirecting_factory2_test/04: Fail
+malbounded_redirecting_factory_test/02: Fail
+malbounded_redirecting_factory_test/03: Fail
+malbounded_redirecting_factory_test/04: Fail
+malbounded_type_cast2_test: RuntimeError
+malbounded_type_cast_test: RuntimeError
+malbounded_type_test2_test: RuntimeError
+malbounded_type_test_test/01: Fail
+malbounded_type_test_test/03: Fail
+malbounded_type_test_test/04: Fail
+malformed2_test/00: RuntimeError
+malformed2_test/01: MissingCompileTimeError
+many_named_arguments_test: RuntimeError
+map_literal10_test: RuntimeError
+map_literal1_test/01: MissingCompileTimeError
+map_test: RuntimeError
+method_name_test: CompileTimeError
+method_override5_test: RuntimeError
+method_override7_test/00: MissingCompileTimeError
+method_override7_test/01: MissingCompileTimeError
+method_override7_test/02: MissingCompileTimeError
+method_override8_test/00: MissingCompileTimeError
+method_override8_test/01: MissingCompileTimeError
+mint_arithmetic_test: RuntimeError
+mixin_black_listed_test/02: MissingCompileTimeError
+mixin_forwarding_constructor4_test/01: MissingCompileTimeError
+mixin_forwarding_constructor4_test/02: MissingCompileTimeError
+mixin_forwarding_constructor4_test/03: MissingCompileTimeError
+mixin_illegal_super_use_test/01: MissingCompileTimeError
+mixin_illegal_super_use_test/02: MissingCompileTimeError
+mixin_illegal_super_use_test/03: MissingCompileTimeError
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/05: MissingCompileTimeError
+mixin_illegal_super_use_test/06: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
+mixin_illegal_super_use_test/08: MissingCompileTimeError
+mixin_illegal_super_use_test/09: MissingCompileTimeError
+mixin_illegal_super_use_test/10: MissingCompileTimeError
+mixin_illegal_super_use_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/01: MissingCompileTimeError
+mixin_illegal_superclass_test/02: MissingCompileTimeError
+mixin_illegal_superclass_test/03: MissingCompileTimeError
+mixin_illegal_superclass_test/04: MissingCompileTimeError
+mixin_illegal_superclass_test/05: MissingCompileTimeError
+mixin_illegal_superclass_test/06: MissingCompileTimeError
+mixin_illegal_superclass_test/07: MissingCompileTimeError
+mixin_illegal_superclass_test/08: MissingCompileTimeError
+mixin_illegal_superclass_test/09: MissingCompileTimeError
+mixin_illegal_superclass_test/10: MissingCompileTimeError
+mixin_illegal_superclass_test/11: MissingCompileTimeError
+mixin_illegal_superclass_test/12: MissingCompileTimeError
+mixin_illegal_superclass_test/13: MissingCompileTimeError
+mixin_illegal_superclass_test/14: MissingCompileTimeError
+mixin_illegal_superclass_test/15: MissingCompileTimeError
+mixin_illegal_superclass_test/16: MissingCompileTimeError
+mixin_illegal_superclass_test/17: MissingCompileTimeError
+mixin_illegal_superclass_test/18: MissingCompileTimeError
+mixin_illegal_superclass_test/19: MissingCompileTimeError
+mixin_illegal_superclass_test/20: MissingCompileTimeError
+mixin_illegal_superclass_test/21: MissingCompileTimeError
+mixin_illegal_superclass_test/22: MissingCompileTimeError
+mixin_illegal_superclass_test/23: MissingCompileTimeError
+mixin_illegal_superclass_test/24: MissingCompileTimeError
+mixin_illegal_superclass_test/25: MissingCompileTimeError
+mixin_illegal_superclass_test/26: MissingCompileTimeError
+mixin_illegal_superclass_test/27: MissingCompileTimeError
+mixin_illegal_superclass_test/28: MissingCompileTimeError
+mixin_illegal_superclass_test/29: MissingCompileTimeError
+mixin_illegal_superclass_test/30: MissingCompileTimeError
+mixin_invalid_bound2_test/02: Fail
+mixin_invalid_bound2_test/03: Fail
+mixin_invalid_bound2_test/05: Fail
+mixin_invalid_bound2_test/06: Fail
+mixin_invalid_bound2_test/08: Fail
+mixin_invalid_bound2_test/09: Fail
+mixin_invalid_bound2_test/10: Fail
+mixin_invalid_bound2_test/11: Fail
+mixin_invalid_bound2_test/12: Fail
+mixin_invalid_bound2_test/13: Fail
+mixin_invalid_bound2_test/14: Fail
+mixin_invalid_bound_test/02: Fail
+mixin_invalid_bound_test/04: Fail
+mixin_invalid_bound_test/06: Fail
+mixin_invalid_bound_test/07: Fail
+mixin_invalid_bound_test/08: Fail
+mixin_invalid_bound_test/09: Fail
+mixin_invalid_bound_test/10: Fail
+mixin_issue10216_2_test: RuntimeError
+mixin_mixin2_test: RuntimeError
+mixin_mixin3_test: RuntimeError
+mixin_mixin4_test: RuntimeError
+mixin_mixin5_test: RuntimeError
+mixin_mixin6_test: RuntimeError
+mixin_mixin7_test: RuntimeError
+mixin_mixin_bound2_test: RuntimeError
+mixin_mixin_bound_test: RuntimeError
+mixin_mixin_test: RuntimeError
+mixin_mixin_type_arguments_test: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+mixin_of_mixin_test/01: CompileTimeError
+mixin_of_mixin_test/02: CompileTimeError
+mixin_of_mixin_test/03: CompileTimeError
+mixin_of_mixin_test/04: CompileTimeError
+mixin_of_mixin_test/05: CompileTimeError
+mixin_of_mixin_test/06: CompileTimeError
+mixin_of_mixin_test/07: CompileTimeError
+mixin_of_mixin_test/08: CompileTimeError
+mixin_of_mixin_test/09: CompileTimeError
+mixin_of_mixin_test/10: CompileTimeError
+mixin_of_mixin_test/11: CompileTimeError
+mixin_of_mixin_test/12: CompileTimeError
+mixin_of_mixin_test/13: CompileTimeError
+mixin_of_mixin_test/14: CompileTimeError
+mixin_of_mixin_test/15: CompileTimeError
+mixin_of_mixin_test/16: CompileTimeError
+mixin_of_mixin_test/17: CompileTimeError
+mixin_of_mixin_test/18: CompileTimeError
+mixin_of_mixin_test/19: CompileTimeError
+mixin_of_mixin_test/20: CompileTimeError
+mixin_of_mixin_test/21: CompileTimeError
+mixin_of_mixin_test/22: CompileTimeError
+mixin_of_mixin_test/none: CompileTimeError
+mixin_super_2_test: CompileTimeError
+mixin_super_bound2_test/01: CompileTimeError
+mixin_super_bound2_test/none: CompileTimeError
+mixin_super_bound_test: RuntimeError
+mixin_super_constructor_named_test/01: MissingCompileTimeError
+mixin_super_constructor_positionals_test/01: MissingCompileTimeError
+mixin_super_test: CompileTimeError
+mixin_super_use_test: CompileTimeError
+mixin_superclass_test: CompileTimeError
+mixin_supertype_subclass2_test/01: CompileTimeError
+mixin_supertype_subclass2_test/02: CompileTimeError
+mixin_supertype_subclass2_test/03: CompileTimeError
+mixin_supertype_subclass2_test/04: CompileTimeError
+mixin_supertype_subclass2_test/05: CompileTimeError
+mixin_supertype_subclass2_test/none: CompileTimeError
+mixin_supertype_subclass3_test/01: CompileTimeError
+mixin_supertype_subclass3_test/02: CompileTimeError
+mixin_supertype_subclass3_test/03: CompileTimeError
+mixin_supertype_subclass3_test/04: CompileTimeError
+mixin_supertype_subclass3_test/05: CompileTimeError
+mixin_supertype_subclass3_test/none: CompileTimeError
+mixin_supertype_subclass4_test/01: CompileTimeError
+mixin_supertype_subclass4_test/02: CompileTimeError
+mixin_supertype_subclass4_test/03: CompileTimeError
+mixin_supertype_subclass4_test/04: CompileTimeError
+mixin_supertype_subclass4_test/05: CompileTimeError
+mixin_supertype_subclass4_test/none: CompileTimeError
+mixin_supertype_subclass_test/01: CompileTimeError
+mixin_supertype_subclass_test/02: CompileTimeError
+mixin_supertype_subclass_test/03: CompileTimeError
+mixin_supertype_subclass_test/04: CompileTimeError
+mixin_supertype_subclass_test/05: CompileTimeError
+mixin_supertype_subclass_test/none: CompileTimeError
+modulo_test: RuntimeError
+multiline_newline_test/04: MissingCompileTimeError
+multiline_newline_test/04r: MissingCompileTimeError
+multiline_newline_test/05: MissingCompileTimeError
+multiline_newline_test/05r: MissingCompileTimeError
+multiline_newline_test/06: MissingCompileTimeError
+multiline_newline_test/06r: MissingCompileTimeError
+named_constructor_test/01: MissingRuntimeError
+named_parameters_default_eq_test/02: MissingCompileTimeError
+nan_identical_test: RuntimeError
+nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
+no_main_test/01: CompileTimeError
+no_such_method_dispatcher_test: RuntimeError
+null_test/02: MissingCompileTimeError
+null_test/03: MissingCompileTimeError
+null_test/none: RuntimeError
+number_identity2_test: RuntimeError
+numbers_test: RuntimeError
+optimized_setter_test: RuntimeError
+ordered_maps_test: RuntimeError
+override_field_method1_negative_test: Fail
+override_field_method2_negative_test: Fail
+override_field_method4_negative_test: Fail
+override_field_method5_negative_test: Fail
+override_field_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/01: MissingCompileTimeError
+override_inheritance_mixed_test/02: MissingCompileTimeError
+override_inheritance_mixed_test/03: MissingCompileTimeError
+override_inheritance_mixed_test/04: MissingCompileTimeError
+override_method_with_field_test/01: MissingCompileTimeError
+parameter_initializer_test: RuntimeError
+private_super_constructor_test/01: MissingCompileTimeError
+redirecting_constructor_initializer_test: RuntimeError
+redirecting_factory_default_values_test/01: MissingCompileTimeError
+redirecting_factory_default_values_test/02: MissingCompileTimeError
+redirecting_factory_infinite_steps_test/01: Fail
+redirecting_factory_long_test: RuntimeError
+redirecting_factory_malbounded_test/01: Fail
+redirecting_factory_reflection_test: RuntimeError
+reg_exp_test: RuntimeError
+regress_13494_test: RuntimeError
+regress_17382_test: RuntimeError
+regress_18535_test: RuntimeError
+regress_20394_test/01: MissingCompileTimeError
+regress_22438_test: RuntimeError
+regress_22443_test: RuntimeError
+regress_22445_test: RuntimeError
+regress_22579_test: RuntimeError
+regress_22719_test: RuntimeError
+regress_22728_test: RuntimeError
+regress_22777_test: RuntimeError
+regress_22936_test/01: RuntimeError
+regress_22976_test/01: CompileTimeError
+regress_22976_test/02: CompileTimeError
+regress_22976_test/none: CompileTimeError
+regress_23408_test: RuntimeError
+regress_23498_test: RuntimeError
+regress_23500_test/01: RuntimeError
+regress_23500_test/02: RuntimeError
+regress_23500_test/none: RuntimeError
+regress_23996_test: RuntimeError
+regress_24283_test: RuntimeError
+regress_24935_test/none: RuntimeError
+regress_26133_test: RuntimeError
+regress_26175_test: RuntimeError
+regress_26668_test: RuntimeError
+regress_26948_test: RuntimeError
+regress_27572_test: RuntimeError
+regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
+regress_27659_test: RuntimeError
+regress_28217_test/01: MissingCompileTimeError
+regress_28217_test/none: MissingCompileTimeError
+regress_28255_test: RuntimeError
+regress_28278_test: RuntimeError
+regress_29405_test: RuntimeError
+savannah_test: RuntimeError
+setter_override_test/00: MissingCompileTimeError
+setter_override_test/03: MissingCompileTimeError
+stacktrace_demangle_ctors_test: RuntimeError
+stacktrace_test: RuntimeError
+static_getter_no_setter1_test/01: RuntimeError
+static_getter_no_setter2_test/01: RuntimeError
+static_getter_no_setter3_test/01: RuntimeError
+string_interpolation_newline_test: RuntimeError
+super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
+super_test: RuntimeError
+switch_bad_case_test/01: MissingCompileTimeError
+switch_bad_case_test/02: MissingCompileTimeError
+switch_case_test/00: MissingCompileTimeError
+switch_case_test/01: MissingCompileTimeError
+switch_case_test/02: MissingCompileTimeError
+sync_generator1_test/01: RuntimeError
+sync_generator1_test/none: RuntimeError
+sync_generator2_test/none: RuntimeError
+sync_generator3_test/test1: RuntimeError
+syncstar_yieldstar_test: RuntimeError
+syntax_test/none: CompileTimeError
+top_level_getter_no_setter1_test/01: RuntimeError
+top_level_getter_no_setter2_test/01: RuntimeError
+truncdiv_test: RuntimeError
+try_catch_test/01: MissingCompileTimeError
+type_check_const_function_typedef2_test/00: MissingCompileTimeError
+type_parameter_test/01: Crash # Internal Error: Unexpected type variable in static context.
+type_parameter_test/02: Crash # Internal Error: Unexpected type variable in static context.
+type_parameter_test/03: Crash # Internal Error: Unexpected type variable in static context.
+type_parameter_test/04: Crash # Internal Error: Unexpected type variable in static context.
+type_parameter_test/05: Crash # Internal Error: Unexpected type variable in static context.
+type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
+type_parameter_test/none: Crash # Internal Error: Unexpected type variable in static context.
+type_variable_bounds2_test/00: Fail
+type_variable_bounds2_test/03: Fail
+type_variable_bounds2_test/05: Fail
+type_variable_bounds3_test/00: Fail
+type_variable_bounds4_test/01: RuntimeError
+type_variable_bounds_test/01: Fail
+type_variable_bounds_test/02: Fail
+type_variable_bounds_test/04: Fail
+type_variable_bounds_test/05: Fail
+type_variable_field_initializer_closure2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (Instance of 'ThisLocal') for j:field(A.c).
+type_variable_field_initializer_closure_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (Instance of 'ThisLocal') for j:field(A.c).
+type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
+typevariable_substitution2_test/02: RuntimeError
+yieldstar_pause_test: RuntimeError
+

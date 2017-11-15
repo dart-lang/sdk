@@ -2375,8 +2375,15 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
     // Add a field for the captured 'this'.
     if (info.thisUsedAsFreeVariable) {
-      _constructClosureField(cls.thisLocal, cls, memberThisType, memberMap,
-          getMemberDefinition(member).node, true, false, fieldNumber);
+      _constructClosureField(
+          cls.thisLocal,
+          cls,
+          memberThisType,
+          memberMap,
+          getClassDefinition(member.enclosingClass).node,
+          true,
+          false,
+          fieldNumber);
       fieldNumber++;
     }
 

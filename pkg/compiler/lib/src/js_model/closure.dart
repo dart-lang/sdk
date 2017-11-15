@@ -666,13 +666,34 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
 }
 
 class ClosureFieldData extends ClosureMemberData implements FieldData {
+  DartType _type;
   ClosureFieldData(MemberDefinition definition, InterfaceType memberThisType)
       : super(definition, memberThisType);
 
   @override
   DartType getFieldType(KernelToElementMap elementMap) {
-    // A closure field doesn't have a Dart type.
-    return null;
+    if (_type != null) return _type;
+    ir.TreeNode sourceNode = definition.node;
+    ir.DartType type;
+    if (sourceNode is ir.Class) {
+      type = sourceNode.thisType;
+    } else if (sourceNode is ir.VariableDeclaration) {
+      type = sourceNode.type;
+    } else if (sourceNode is ir.Field) {
+      type = sourceNode.type;
+    } else if (sourceNode is ir.TypeLiteral) {
+      type = sourceNode.type;
+    } else if (sourceNode is ir.Typedef) {
+      type = sourceNode.type;
+    } else if (sourceNode is ir.TypeParameter) {
+      type = sourceNode.bound;
+    } else {
+      failedAt(
+          definition.member,
+          'Unexpected node type ${sourceNode} in '
+          'ClosureFieldData.getFieldType');
+    }
+    return _type = elementMap.getDartType(type);
   }
 
   @override
