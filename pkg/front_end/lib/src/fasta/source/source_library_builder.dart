@@ -530,8 +530,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // This is an error, but the part is still included, so that
       // metadata annotations can be associated with it.
       assert(!part.isPart);
-      addCompileTimeError(
-          templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
+      if (uriIsValid(part.fileUri)) {
+        addCompileTimeError(
+            templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
+      }
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {

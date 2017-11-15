@@ -27,6 +27,13 @@ class ClassMemberParser extends Parser {
   }
 
   @override
+  Token parseIdentifierExpression(Token token) {
+    // TODO(brianwilkerson) Return token.next when super implementation of
+    // parseIdentifierExpression accepts the last consumed token.
+    return token;
+  }
+
+  @override
   Token parseAssert(Token token, Assert kind) {
     if (kind == Assert.Statement) {
       return super.parseAssert(token, kind);

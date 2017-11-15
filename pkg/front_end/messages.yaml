@@ -1477,6 +1477,9 @@ CouldNotParseUri:
 ExpectedUri:
   template: "Expected a URI."
 
+InterpolationInUri:
+  template: "Can't use string interpolation in a URI."
+
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."
   tip: "Try using BigInt (from 'dart:typed_data' library) if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."

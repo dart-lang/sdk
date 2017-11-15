@@ -4780,7 +4780,7 @@ class Parser {
         token = expect('}', token);
       } else if (identical(kind, STRING_INTERPOLATION_IDENTIFIER_TOKEN)) {
         // Parsing $identifier.
-        token = parseExpression(token.next.next).next;
+        token = parseIdentifierExpression(token.next.next).next;
       } else {
         break;
       }
@@ -4791,6 +4791,17 @@ class Parser {
     }
     listener.endLiteralString(interpolationCount, token.next);
     return token;
+  }
+
+  Token parseIdentifierExpression(Token token) {
+    // TODO(brianwilkerson) Accept the last consumed token and
+    // adjust override in ClassMemberParser accordingly.
+    if (token.kind == KEYWORD_TOKEN && identical(token.stringValue, "this")) {
+      listener.handleThisExpression(token, IdentifierContext.expression);
+      return token;
+    } else {
+      return parseSend(token, IdentifierContext.expression);
+    }
   }
 
   /// ```

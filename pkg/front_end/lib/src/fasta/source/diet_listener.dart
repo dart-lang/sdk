@@ -304,9 +304,13 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleStringPart(Token token) {
+    debugEvent("StringPart");
+  }
+
+  @override
   void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
-    discard(interpolationCount);
   }
 
   @override

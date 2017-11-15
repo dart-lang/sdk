@@ -16,6 +16,7 @@ import '../fasta_codes.dart'
     show
         Message,
         messageExpectedBlockToSkip,
+        messageInterpolationInUri,
         messageOperatorWithOptionalFormals,
         messageTypedefNotFunction,
         templateDuplicatedParameterName,
@@ -37,7 +38,7 @@ import '../operator.dart'
 import '../parser.dart'
     show FormalParameterKind, IdentifierContext, MemberKind, optional;
 
-import '../problems.dart' show unhandled, unimplemented;
+import '../problems.dart' show unhandled;
 
 import '../quote.dart' show unescapeString;
 
@@ -241,6 +242,12 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleStringPart(Token token) {
+    debugEvent("StringPart");
+    // Ignore string parts - report error later.
+  }
+
+  @override
   void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
     if (interpolationCount == 0) {
@@ -248,7 +255,13 @@ class OutlineBuilder extends UnhandledListener {
       push(unescapeString(token.lexeme));
       push(token.charOffset);
     } else {
-      unimplemented("string interpolation", endToken.charOffset, uri);
+      Token beginToken = pop();
+      int charOffset = beginToken.charOffset;
+      push("${SourceLibraryBuilder.MALFORMED_URI_SCHEME}:bad${charOffset}");
+      push(charOffset);
+      // Point to dollar sign
+      int interpolationOffset = charOffset + beginToken.lexeme.length;
+      addCompileTimeError(messageInterpolationInUri, interpolationOffset, 1);
     }
   }
 
