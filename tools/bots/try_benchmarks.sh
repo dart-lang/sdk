@@ -202,7 +202,7 @@ EOF
     out/ReleaseIA32/dart --profile-period=10000 --packages=.packages --checked hello.dart
     out/ReleaseIA32/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
-    out/ReleaseIA32/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
+    out/ReleaseIA32/dart-sdk/bin/dart2js --checked --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseIA32/dart-sdk/bin/dart2js --packages=.packages --out=out.js -m hello.dart
     LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
