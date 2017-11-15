@@ -299,6 +299,28 @@ generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
 generic_tearoff_test: CompileTimeError
 operator2_negative_test: Fail
+syntax_test/04: MissingCompileTimeError
+syntax_test/05: MissingCompileTimeError
+syntax_test/06: MissingCompileTimeError
+syntax_test/07: MissingCompileTimeError
+syntax_test/08: MissingCompileTimeError
+syntax_test/09: MissingCompileTimeError
+syntax_test/10: MissingCompileTimeError
+syntax_test/11: MissingCompileTimeError
+syntax_test/13: MissingCompileTimeError
+syntax_test/14: MissingCompileTimeError
+syntax_test/15: MissingCompileTimeError
+syntax_test/17: MissingCompileTimeError
+syntax_test/16: MissingCompileTimeError
+syntax_test/18: MissingCompileTimeError
+syntax_test/19: MissingCompileTimeError
+syntax_test/20: MissingCompileTimeError
+syntax_test/21: MissingCompileTimeError
+syntax_test/22: MissingCompileTimeError
+syntax_test/24: MissingCompileTimeError
+syntax_test/23: MissingCompileTimeError
+syntax_test/25: MissingCompileTimeError
+syntax_test/26: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && !$strong ]
