@@ -98,7 +98,7 @@ class Simulator {
 
   RawObject** fp_;
   uword pc_;
-  NOT_IN_PRODUCT(uint64_t icount_;)
+  DEBUG_ONLY(uint64_t icount_;)
 
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
   uword top_exit_frame_info_;

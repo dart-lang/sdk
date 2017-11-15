@@ -558,7 +558,7 @@ Simulator::Simulator() : stack_(NULL), fp_(NULL), pp_(NULL), argdesc_(NULL) {
   last_setjmp_buffer_ = NULL;
   top_exit_frame_info_ = 0;
 
-  NOT_IN_PRODUCT(icount_ = 0;)
+  DEBUG_ONLY(icount_ = 0);
 }
 
 Simulator::~Simulator() {
@@ -579,7 +579,7 @@ Simulator* Simulator::Current() {
   return simulator;
 }
 
-#if !defined(PRODUCT)
+#if defined(DEBUG)
 // Returns true if tracing of executed instructions is enabled.
 DART_FORCE_INLINE bool Simulator::IsTracingExecution() const {
   return icount_ > FLAG_trace_sim_after;
@@ -595,7 +595,7 @@ DART_NOINLINE void Simulator::TraceInstruction(uint32_t* pc) const {
     THR_Print("Disassembler not supported in this mode.\n");
   }
 }
-#endif  // !defined(PRODUCT)
+#endif  // defined(DEBUG)
 
 // Calls into the Dart runtime are based on this interface.
 typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
@@ -993,8 +993,8 @@ static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
 
 // Note: all macro helpers are intended to be used only inside Simulator::Call.
 
-// Counts and prints executed bytecode instructions (in a non-PRODUCT mode).
-#if !defined(PRODUCT)
+// Counts and prints executed bytecode instructions (in DEBUG mode).
+#if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
   icount_++;                                                                   \
   if (IsTracingExecution()) {                                                  \
@@ -1002,7 +1002,7 @@ static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
   }
 #else
 #define TRACE_INSTRUCTION
-#endif  // !defined(PRODUCT)
+#endif  // defined(DEBUG)
 
 // Decode opcode and A part of the given value and dispatch to the
 // corresponding bytecode handler.
