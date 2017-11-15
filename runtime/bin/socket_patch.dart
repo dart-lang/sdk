@@ -1486,7 +1486,7 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
 class _Socket extends Stream<List<int>> implements Socket {
   RawSocket _raw; // Set to null when the raw socket is closed.
   bool _closed = false; // Set to true when the raw socket is closed.
-  StreamController _controller;
+  StreamController<List<int>> _controller;
   bool _controllerClosed = false;
   _SocketStreamConsumer _consumer;
   IOSink _sink;
