@@ -71,7 +71,10 @@ main(List<String> args) async {
       parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
 
   var overlayFs = new OverlayFileSystem();
-  var compilerOptions = new CompilerOptions()..fileSystem = overlayFs;
+  var compilerOptions = new CompilerOptions()
+    ..fileSystem = overlayFs
+    ..reportMessages = true
+    ..onError = onErrorHandler;
 
   if (options['sdk-summary'] != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(options["sdk-summary"]);
@@ -210,6 +213,12 @@ ByteStore createByteStore(String cachePolicy, String path) {
           64 * 1024 * 1024 /* 64M */);
     default:
       throw new UnsupportedError('Unknown cache policy: $cachePolicy');
+  }
+}
+
+void onErrorHandler(CompilationMessage m) {
+  if (m.severity == Severity.internalProblem || m.severity == Severity.error) {
+    exitCode = 1;
   }
 }
 

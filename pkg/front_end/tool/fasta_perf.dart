@@ -86,11 +86,19 @@ Uri _computeRoot() {
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
 UriTranslator uriResolver;
 
+void onErrorHandler(CompilationMessage m) {
+  if (m.severity == Severity.internalProblem || m.severity == Severity.error) {
+    exitCode = 1;
+  }
+}
+
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
 Future setup(Uri entryUri) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..reportMessages = true
+    ..onError = onErrorHandler
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.packages');
   uriResolver = await new ProcessedOptions(options).getUriTranslator();
@@ -226,6 +234,8 @@ generateKernel(Uri entryUri,
   var flags = new TargetFlags(strongMode: strongMode);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..reportMessages = true
+    ..onError = onErrorHandler
     ..strongMode = strongMode
     ..target = (strongMode ? new VmTarget(flags) : new LegacyVmTarget(flags))
     ..chaseDependencies = true
