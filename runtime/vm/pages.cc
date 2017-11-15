@@ -984,15 +984,9 @@ void PageSpace::MarkSweep() {
 
       mid3 = OS::GetCurrentMonotonicMicros();
 
-#if defined(TARGET_ARCH_DBC)
-      const bool dbc = true;
-#else
-      const bool dbc = false;
-#endif
-
-      if (FLAG_use_compactor_evacuating && !dbc) {
+      if (FLAG_use_compactor_evacuating) {
         EvacuatingCompact(thread);
-      } else if (FLAG_use_compactor_sliding && !dbc) {
+      } else if (FLAG_use_compactor_sliding) {
         SlidingCompact(thread);
       } else if (FLAG_concurrent_sweep) {
         ConcurrentSweep(isolate);
