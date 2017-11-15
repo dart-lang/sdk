@@ -122,7 +122,11 @@
         },
         {
           "name": "strong vm tests",
-          "arguments": ["--compiler=dartkp", "--runtime=dart_precompiled"],
+          "arguments": [
+            "--compiler=dartkp",
+            "--runtime=dart_precompiled",
+            "--strong"
+          ],
           "tests": [
             "language_2",
             "corelib_2",
@@ -173,7 +177,8 @@
           "arguments": [
             "--compiler=dartkp",
             "--runtime=dart_precompiled",
-            "--vm-options=--no-enable-malloc-hooks"
+            "--vm-options=--no-enable-malloc-hooks",
+            "--strong"
           ],
           "tests": [
             "language_2",
