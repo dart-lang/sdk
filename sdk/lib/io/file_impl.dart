@@ -968,11 +968,11 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
-  static final int LOCK_UNLOCK = 0;
-  static final int LOCK_SHARED = 1;
-  static final int LOCK_EXCLUSIVE = 2;
-  static final int LOCK_BLOCKING_SHARED = 3;
-  static final int LOCK_BLOCKING_EXCLUSIVE = 4;
+  static const int LOCK_UNLOCK = 0;
+  static const int LOCK_SHARED = 1;
+  static const int LOCK_EXCLUSIVE = 2;
+  static const int LOCK_BLOCKING_SHARED = 3;
+  static const int LOCK_BLOCKING_EXCLUSIVE = 4;
 
   int _fileLockValue(FileLock fl) {
     switch (fl) {
