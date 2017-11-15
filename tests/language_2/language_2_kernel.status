@@ -1466,4 +1466,4 @@ type_promotion_functions_test/08: Pass
 type_promotion_functions_test/10: Pass
 
 [ $compiler == dartk && $strong && $mode == debug ]
-flatten_test/04: Crash
+flatten_test/04: Crash # Issue #31381
