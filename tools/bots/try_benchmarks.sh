@@ -76,6 +76,8 @@ for command; do
       third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/vm_outline.dill \
       out/ReleaseIA32/vm_platform.dill \
+      out/ReleaseIA32/vm_outline_strong.dill \
+      out/ReleaseIA32/vm_platform_strong.dill \
       third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
@@ -172,6 +174,8 @@ for command; do
       third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/vm_outline.dill \
       out/ReleaseIA32/vm_platform.dill \
+      out/ReleaseIA32/vm_outline_strong.dill \
+      out/ReleaseIA32/vm_platform_strong.dill \
       third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
@@ -233,6 +237,8 @@ EOF
       third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/vm_outline.dill \
       out/ReleaseX64/vm_platform.dill \
+      out/ReleaseX64/vm_outline_strong.dill \
+      out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
       out/ReleaseX64/patched_sdk \
@@ -350,6 +356,8 @@ EOF
       third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/vm_outline.dill \
       out/ReleaseX64/vm_platform.dill \
+      out/ReleaseX64/vm_outline_strong.dill \
+      out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
       out/ReleaseX64/patched_sdk \
@@ -382,6 +390,9 @@ EOF
     out/ReleaseX64/dart --profile-period=10000 --packages=.packages --dfe=out/ReleaseX64/gen/kernel-service.dart.snapshot --kernel-binaries=out/ReleaseX64 hello.dart
     out/ReleaseX64/dart_bootstrap --packages=.packages --use-blobs --snapshot-kind=app-aot --snapshot=blob.bin hello.dart
     out/ReleaseX64/dart_precompiled_runtime --profile-period=10000 blob.bin
+    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart2 --profile-period=10000 --packages=.packages hello.dart
+    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/precompiler2 --packages=.packages hello.dart blob.bin
+    DART_CONFIGURATION=ReleaseX64 pkg/vm/tool/dart_precompiled_runtime2 --profile-period=10000 blob.bin
     out/ReleaseSIMDBC64/dart --profile-period=10000 --packages=.packages hello.dart
     out/ReleaseSIMDBC64/dart --profile-period=10000 --checked --packages=.packages hello.dart
     out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
