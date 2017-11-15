@@ -1008,6 +1008,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    listener?.handleInvalidOperatorName(operatorKeyword, token);
+  }
+
+  @override
   void handleInvalidTypeReference(Token token) {
     listener?.handleInvalidTypeReference(token);
   }

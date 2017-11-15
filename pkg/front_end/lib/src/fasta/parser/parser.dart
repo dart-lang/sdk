@@ -3353,7 +3353,7 @@ class Parser {
     } else {
       parseType(type, TypeContinuation.Optional);
     }
-    if (optional('operator', name)) {
+    if (getOrSet == null && optional('operator', name)) {
       token = parseOperatorName(name);
       if (staticModifier != null) {
         reportRecoverableError(staticModifier, fasta.messageStaticOperator);
@@ -3478,13 +3478,19 @@ class Parser {
   Token parseOperatorName(Token token) {
     // TODO(brianwilkerson) Accept the last consumed token.
     assert(optional('operator', token));
-    if (token.next.isUserDefinableOperator) {
-      Token operator = token;
-      token = token.next;
-      listener.handleOperatorName(operator, token);
-      return token;
-    } else {
+    Token next = token.next;
+    if (next.isUserDefinableOperator) {
+      listener.handleOperatorName(token, next);
+      return next;
+    } else if (optional('(', next)) {
       return ensureIdentifier(token, IdentifierContext.operatorName);
+    } else {
+      // Recovery
+      // The user has specified an invalid operator name.
+      // Report the error, accept the invalid operator name, and move on.
+      reportRecoverableErrorWithToken(next, fasta.templateInvalidOperator);
+      listener.handleInvalidOperatorName(token, next);
+      return next;
     }
   }
 

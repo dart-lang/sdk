@@ -351,6 +351,12 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    debugEvent("InvalidOperatorName");
+    push('invalid');
+  }
+
+  @override
   void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
     discard(count);

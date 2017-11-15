@@ -1089,6 +1089,12 @@ class Listener {
     logEvent("OperatorName");
   }
 
+  /// Handle the end of a construct of the form "operator <token>"
+  /// where <token> is not a valid operator token.
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    logEvent("InvalidOperatorName");
+  }
+
   void handleParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
   }

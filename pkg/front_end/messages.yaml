@@ -1336,6 +1336,13 @@ MemberWithSameNameAsClass:
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
 
+InvalidOperator:
+  template: "The string '#lexeme' isn't a user-definable operator."
+  analyzerCode: INVALID_OPERATOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { void operator ===(x) {} }"
+
 OperatorParameterMismatch0:
   template: "Operator '#name' shouldn't have any parameters."
 

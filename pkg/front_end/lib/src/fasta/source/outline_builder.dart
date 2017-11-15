@@ -221,6 +221,13 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    debugEvent("InvalidOperatorName");
+    push('invalid');
+    push(token.charOffset);
+  }
+
+  @override
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
       // Discard the metadata.

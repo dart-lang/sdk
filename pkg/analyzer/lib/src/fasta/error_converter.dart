@@ -265,6 +265,11 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);
         return;
+      case "INVALID_OPERATOR":
+        String text = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_OPERATOR, offset, length, [text]);
+        return;
       case "INVALID_OPERATOR_FOR_SUPER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, offset, length);

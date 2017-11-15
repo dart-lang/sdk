@@ -2338,6 +2338,27 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateInvalidOperator =
+    const Template<Message Function(Token token)>(
+        messageTemplate:
+            r"""The string '#lexeme' isn't a user-definable operator.""",
+        withArguments: _withArgumentsInvalidOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeInvalidOperator =
+    const Code<Message Function(Token token)>(
+        "InvalidOperator", templateInvalidOperator,
+        analyzerCode: "INVALID_OPERATOR", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidOperator(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeInvalidOperator,
+      message: """The string '$lexeme' isn't a user-definable operator.""",
+      arguments: {'token': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_, String string)>
     templateInvalidPackageUri =
     const Template<Message Function(Uri uri_, String string)>(
