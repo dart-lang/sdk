@@ -81,7 +81,6 @@ for command; do
       third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
-      out/ReleaseIA32/patched_sdk \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/dart_bootstrap \
       out/ReleaseIA32/run_vm_tests \
@@ -91,6 +90,8 @@ for command; do
       third_party/pkg_tested \
       .packages \
       pkg \
+      runtime/bin \
+      runtime/lib \
       --exclude .git \
       --exclude .gitignore || (rm -f linux-ia32_profile.tar.gz; exit 1)
     strip -w \
@@ -179,7 +180,6 @@ for command; do
       third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
-      out/ReleaseIA32/patched_sdk \
       out/ReleaseIA32/dart \
       out/ReleaseIA32/dart_bootstrap \
       out/ReleaseIA32/run_vm_tests \
@@ -190,6 +190,8 @@ for command; do
       third_party/pkg_tested \
       .packages \
       pkg \
+      runtime/bin \
+      runtime/lib \
       --exclude .git \
       --exclude .gitignore || (rm -f linux-ia32.tar.gz; exit 1)
   elif [ "$command" = linux-ia32-benchmark ]; then
@@ -241,7 +243,6 @@ EOF
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
-      out/ReleaseX64/patched_sdk \
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
       out/ReleaseX64/dart_bootstrap \
@@ -254,6 +255,8 @@ EOF
       third_party/pkg_tested \
       .packages \
       pkg \
+      runtime/bin \
+      runtime/lib \
       --exclude .git \
       --exclude .gitignore || (rm -f linux-x64_profile.tar.gz; exit 1)
     strip -w \
@@ -360,7 +363,6 @@ EOF
       out/ReleaseX64/vm_platform_strong.dill \
       out/ReleaseX64/dart-sdk \
       out/ReleaseSIMDBC64/dart \
-      out/ReleaseX64/patched_sdk \
       out/ReleaseX64/gen/kernel-service.dart.snapshot \
       out/ReleaseX64/dart \
       out/ReleaseX64/dart_bootstrap \
@@ -373,6 +375,8 @@ EOF
       third_party/pkg_tested \
       .packages \
       pkg \
+      runtime/bin \
+      runtime/lib \
       --exclude .git \
       --exclude .gitignore  || (rm -f linux-x64.tar.gz; exit 1)
   elif [ "$command" = linux-x64-benchmark ]; then
@@ -408,10 +412,10 @@ EOF
     out/ReleaseX64/dart pkg/analysis_server/benchmark/benchmarks.dart run --quick --repeat 1 analysis-server-cold
     out/ReleaseX64/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
     echo '[{"name":"foo","edits":[["pkg/compiler/lib/src/dart2js.dart","2016","2017"],["pkg/compiler/lib/src/options.dart","2016","2017"]]}]' > appjit_train_edits.json
-    out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform.dill --sdk-library-specification=out/ReleaseX64/patched_sdk/sdk/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
-    out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform.dill --sdk-library-specification=out/ReleaseX64/patched_sdk/sdk/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
-    echo '[{"name":"foo","edits":[["pkg/compiler/lib/src/dart2js.dart","2016","2017"],["pkg/compiler/lib/src/options.dart","2016","2017"]]}]' > appjit_train_edits.json && out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform.dill --sdk-library-specification=out/ReleaseX64/patched_sdk/sdk/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
-    out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform.dill --sdk-library-specification=out/ReleaseX64/patched_sdk/sdk/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
+    out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform.dill --sdk-library-specification=sdk/lib/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
+    out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
+    echo '[{"name":"foo","edits":[["pkg/compiler/lib/src/dart2js.dart","2016","2017"],["pkg/compiler/lib/src/options.dart","2016","2017"]]}]' > appjit_train_edits.json && out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform.dill --sdk-library-specification=sdk/lib/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
+    out/ReleaseX64/dart --background-compilation=false pkg/front_end/tool/incremental_perf.dart.appjit --target=vm --sdk-summary=out/ReleaseX64/vm_platform.dill --sdk-library-specification=sdk/lib/libraries.json pkg/front_end/benchmarks/ikg/hello.dart pkg/front_end/benchmarks/ikg/hello.edits.json
     cd ..
     rm -rf tmp
   else
