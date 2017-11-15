@@ -560,14 +560,15 @@
     {
       "builders": [
         "dart2js-linux-x64-chrome",
-        "dart2js-linux-x64-ff",
         "dart2js-linux-x64-drt",
+        "dart2js-linux-x64-ff",
+        "dart2js-linux-x64-jsshell",
         "dart2js-mac-x64-chrome",
         "dart2js-mac-x64-safari",
         "dart2js-win-x64-chrome",
-        "dart2js-win-x64-ie11",
+        "dart2js-win-x64-edge",
         "dart2js-win-x64-ff",
-        "dart2js-win-x64-edge"
+        "dart2js-win-x64-ie11"
       ],
       "meta": {
         "description": "These builders are triggered by dart-sdk-linux and runs the dart2js tests."
