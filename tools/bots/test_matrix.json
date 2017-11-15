@@ -23,6 +23,16 @@
       "runtime/",
       "sdk/",
       ".packages"
+    ],
+    "analyzer": [
+      "out/ReleaseX64/",
+      "xcodebuild/ReleaseX64/",
+      "tools/",
+      "tests/",
+      "pkg/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      ".packages"
     ]
   },
   "configurations": [
@@ -556,6 +566,15 @@
           "name": "build dart x64",
           "script": "tools/build.py",
           "arguments": [ "create_sdk" ]
+        },
+        {
+          "name": "trigger analyzer",
+          "trigger": [
+            "analyzer-linux-release",
+            "analyzer-strong-linux-release",
+            "analyzer-analysis-server-linux"
+          ],
+          "fileset": "analyzer"
         },
         {
           "name": "generate API docs",
