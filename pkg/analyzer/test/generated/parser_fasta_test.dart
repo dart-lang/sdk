@@ -61,21 +61,7 @@ class ClassMemberParserTest_Fasta extends FastaParserTestCase
  */
 @reflectiveTest
 class ComplexParserTest_Fasta extends FastaParserTestCase
-    with ComplexParserTestMixin {
-  @override
-  @failingTest
-  void test_equalityExpression_normal() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_equalityExpression_normal();
-  }
-
-  @override
-  @failingTest
-  void test_equalityExpression_super() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_equalityExpression_super();
-  }
-}
+    with ComplexParserTestMixin {}
 
 /**
  * Tests of the fasta parser based on [ErrorParserTest].
@@ -195,27 +181,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, found 0
     super.test_duplicateLabelInSwitchStatement();
-  }
-
-  @override
-  @failingTest
-  void test_equalityCannotBeEqualityOperand_eq_eq() {
-    // TODO(brianwilkerson) Does not recover (fails to parse all tokens).
-    super.test_equalityCannotBeEqualityOperand_eq_eq();
-  }
-
-  @override
-  @failingTest
-  void test_equalityCannotBeEqualityOperand_eq_neq() {
-    // TODO(brianwilkerson) Does not recover (fails to parse all tokens).
-    super.test_equalityCannotBeEqualityOperand_eq_neq();
-  }
-
-  @override
-  @failingTest
-  void test_equalityCannotBeEqualityOperand_neq_eq() {
-    // TODO(brianwilkerson) Does not recover (fails to parse all tokens).
-    super.test_equalityCannotBeEqualityOperand_neq_eq();
   }
 
   @override
@@ -2960,13 +2925,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_equalityExpression_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_equalityExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_expressionList_multiple_start() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
@@ -3195,13 +3153,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_missingIdentifier_afterAnnotation() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_missingIdentifier_afterAnnotation();
-  }
-
-  @override
-  @failingTest
-  void test_multiplicativeExpression_super() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_multiplicativeExpression_super();
   }
 
   @override

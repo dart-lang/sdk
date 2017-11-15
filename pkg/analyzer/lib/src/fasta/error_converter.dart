@@ -145,6 +145,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ENUM_IN_CLASS, offset, length);
         return;
+      case "EQUALITY_CANNOT_BE_EQUALITY_OPERAND":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+            offset,
+            length);
+        return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);

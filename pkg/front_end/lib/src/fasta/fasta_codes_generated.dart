@@ -1040,6 +1040,19 @@ const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
     tip: r"""Try moving the enum to the top-level.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEqualityCannotBeEqualityOperand =
+    messageEqualityCannotBeEqualityOperand;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
+    "EqualityCannotBeEqualityOperand",
+    analyzerCode: "EQUALITY_CANNOT_BE_EQUALITY_OPERAND",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""An equality expression can't be an operand of another equality expression.""",
+    tip: r"""Try re-writing the expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -228,6 +228,15 @@ ExpectedIdentifier:
   dart2jsCode: EXPECTED_IDENTIFIER
   script: "do() {} main() {}"
 
+EqualityCannotBeEqualityOperand:
+  template: "An equality expression can't be an operand of another equality expression."
+  tip: "Try re-writing the expression."
+  analyzerCode: EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  dart2jsCode: "*fatal*"
+  script:
+    - "main() { var b = a < b < c; }"
+    - "main() { var b = a == b != c; }"
+
 ExpectedOpenParens:
   template: "Expected '('."
   dart2jsCode: GENERIC
