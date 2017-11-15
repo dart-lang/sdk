@@ -30,33 +30,7 @@ else
   OUT_DIR="$CUR_DIR"/../../../out/
 fi
 
-if [ -z "$DART_CONFIGURATION" ];
-then
-  DIRS=$( ls "$OUT_DIR" )
-  # list of possible configurations in decreasing desirability
-  CONFIGS=("ReleaseX64" "ReleaseIA32" "DebugX64" "DebugIA32"
-    "ReleaseARM"    "ReleaseARM64"    "ReleaseARMV5TE"
-    "DebugARM"      "DebugARM64"      "DebugARMV5TE")
-  DART_CONFIGURATION="None"
-  for CONFIG in ${CONFIGS[*]}
-  do
-    for DIR in $DIRS;
-    do
-      if [ "$CONFIG" = "$DIR" ];
-      then
-        # choose most desirable configuration that is available and break
-        DART_CONFIGURATION="$DIR"
-        break 2
-      fi
-    done
-  done
-  if [ "$DART_CONFIGURATION" = "None" ]
-  then
-    echo "No valid dart configuration found in $OUT_DIR"
-    exit 1
-  fi
-fi
-
+export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
 
 exec "$BIN_DIR"/dart_precompiled_runtime               \
