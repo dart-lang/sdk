@@ -398,17 +398,6 @@ testRepeatedlyCloseFileSync() {
   });
 }
 
-testReadSyncBigInt() {
-  createTestFile((file, done) {
-    var bigint = 100000000000000000000000000000000000000000;
-    var openedFile = file.openSync();
-    Expect.throws(
-        () => openedFile.readSync(bigint), (e) => e is FileSystemException);
-    openedFile.closeSync();
-    done();
-  });
-}
-
 testReadSyncClosedFile() {
   createTestFile((file, done) {
     var openedFile = file.openSync();
@@ -434,6 +423,5 @@ main() {
   testOperateOnClosedFile();
   testRepeatedlyCloseFile();
   testRepeatedlyCloseFileSync();
-  testReadSyncBigInt();
   testReadSyncClosedFile();
 }
