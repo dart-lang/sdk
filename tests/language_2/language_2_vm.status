@@ -977,22 +977,37 @@ implicit_downcast_during_if_null_assignment_test: RuntimeError
 tearoff_dynamic_test: Crash
 
 [ $runtime == vm && $compiler == none ]
+async_star_cancel_while_paused_test: RuntimeError
+async_star_pause_test: Fail, OK
 async_star_regression_2238_test: CompileTimeError, RuntimeError
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
+constructor3_test: Fail, OK, Pass
+cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the vm.
+cyclic_type_test/04: Fail, OK
+cyclic_type2_test: Fail, OK
+duplicate_export_negative_test: Fail # Issue 6134
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
+example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
+field_initialization_order_test: Fail, OK
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
+main_not_a_function_test: Skip
+mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 multiline_strings_test: Fail # Issue 23020
+no_main_test/01: Skip
 regress_19413_test: MissingCompileTimeError
 regress_21793_test/01: MissingCompileTimeError
+super_test: Fail, OK
 type_variable_scope_test/03: MissingCompileTimeError
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
+vm/regress_29145_test: Skip # Issue 29145
 
 [ $runtime == vm && $compiler == none && $checked ]
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392. The VM doesn't enforce that potentially const expressions are actually const expressions when the constructor is called with `const`.
@@ -1028,38 +1043,46 @@ vm/causal_async_exception_stack_test: RuntimeError
 vm/causal_async_exception_stack2_test: RuntimeError
 vm/math_vm_test: Crash
 
-[ $runtime == vm && $compiler == dartk ]
-arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
-constructor_call_as_function_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/02: MissingCompileTimeError
-const_native_factory_test: MissingCompileTimeError
-export_ambiguous_main_test: Pass
-generic_function_bounds_test: CompileTimeError
-
 [ $runtime == vm && $compiler == app_jit ]
+async_star_cancel_while_paused_test: RuntimeError
+async_star_pause_test: Fail, OK
 async_star_regression_2238_test: CompileTimeError, RuntimeError
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
+constructor3_test: Fail, OK, Pass
 ct_const2_test: Skip # Incompatible flag: --compile_all
+cyclic_type2_test: Fail, OK
+cyclic_type_test/02: Fail, OK
+cyclic_type_test/04: Fail, OK
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
+duplicate_export_negative_test: Fail # Issue 6134
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
+example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
+field_initialization_order_test: Fail, OK
 generalized_void_syntax_test: CompileTimeError # Issue #30176
+generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 hello_dart_test: Skip # Incompatible flag: --compile_all
+language_2/least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
+main_not_a_function_test: Skip
+mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 multiline_strings_test: Fail # Issue 23020
+no_main_test/01: Skip
 regress_21793_test/01: MissingCompileTimeError
 regress_23408_test: Crash
+super_test: Fail, OK
 type_parameter_test/05: MissingCompileTimeError
 type_variable_scope_test/03: MissingCompileTimeError
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 vm/regress_27201_test: Fail
+vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
 [ $runtime == vm && $compiler == app_jit && $checked ]

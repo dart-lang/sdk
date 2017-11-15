@@ -5,18 +5,34 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-[ $compiler == dartk ]
+[ $compiler == dartk && !$strong]
+*: SkipByDesign # language_2 is only supported in strong mode.
+
+[ $compiler == dartkp && !$strong]
+*: SkipByDesign # language_2 is only supported in strong mode.
+
+[ $compiler == dartk && $strong]
+arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
+async_star_cancel_while_paused_test: RuntimeError
+async_star_pause_test: Fail, OK
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
+const_locals_test: RuntimeError
+const_native_factory_test: MissingCompileTimeError
 const_string_test: RuntimeError
+constructor_call_as_function_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
 ct_const2_test: Pass, Crash # Flaky
+export_ambiguous_main_test: Pass
 fuzzy_arrows_test/01: MissingCompileTimeError
+generic_function_bounds_test: CompileTimeError
 generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, issue 30931
+generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 hello_dart_test: Crash # error: expected: cls.is_type_finalized()
 library_env_test/has_no_mirror_support: RuntimeError
+redirecting_factory_reflection_test: Crash, Pass
 regress_19413_test: MissingCompileTimeError
 regress_21793_test/01: MissingCompileTimeError
 regress_29784_test/01: MissingCompileTimeError
@@ -28,14 +44,11 @@ syntax_test/30: MissingCompileTimeError
 syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
-type_variable_bounds4_test/01: MissingCompileTimeError
-const_locals_test: RuntimeError
-const_string_test: RuntimeError
-redirecting_factory_reflection_test: Crash, Pass
 type_promotion_functions_test/01: MissingCompileTimeError
+type_variable_bounds4_test/01: MissingCompileTimeError
 vm/type_vm_test/none: RuntimeError
 
-[ $compiler == dartk && $runtime == vm ]
+[ $compiler == dartk && $runtime == vm && $strong ]
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
@@ -240,25 +253,19 @@ type_parameter_test/05: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 
-[ $compiler == dartk && $runtime == vm && !$checked ]
+[ $compiler == dartk && $runtime == vm && $strong && !$checked ]
 checked_setter_test: RuntimeError
 checked_setter3_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 tearoff_dynamic_test: RuntimeError
 
-[ $compiler == dartk && $runtime == vm && !$checked && !$strong ]
-fuzzy_arrows_test/03: RuntimeError
-getters_setters2_test/01: RuntimeError
-getters_setters2_test/none: RuntimeError
-implicit_downcast_during_compound_assignment_test: RuntimeError
-
-[ $compiler == dartk && $runtime == vm && $checked ]
+[ $compiler == dartk && $runtime == vm && $strong && $checked ]
 assertion_initializer_const_function_test/01: RuntimeError
 if_null_precedence_test/none: Pass
 regress_30339_test: RuntimeError
 
-[ $compiler == dartkp && $runtime == dart_precompiled ]
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 assert_with_type_test_or_cast_test: Pass, Crash
 assertion_test: Crash
 bool_check_test: RuntimeError
@@ -323,10 +330,7 @@ syntax_test/25: MissingCompileTimeError
 syntax_test/26: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
-[ $compiler == dartkp && $runtime == dart_precompiled && !$strong ]
-fuzzy_arrows_test/03: RuntimeError
-
-[ $compiler == dartkp && $runtime == dart_precompiled && $checked ]
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong && $checked ]
 assertion_initializer_const_error2_test/cc02: Crash
 assertion_initializer_const_error_test/none: Crash
 assertion_initializer_const_function_test/01: Crash
@@ -334,7 +338,7 @@ assertion_initializer_const_function_test/none: Crash
 regress_30339_test: Crash
 
 # dartk: checked mode failures
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+[ ($compiler == dartk || $compiler == dartkp) && $strong && $checked ]
 assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/32: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 assert_initializer_test/33: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -390,7 +394,7 @@ mixin_invalid_bound_test/07: Fail
 redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_malbounded_test/01: Fail
 
-[ $compiler == dartk || $compiler == dartkp ]
+[ ($compiler == dartk || $compiler == dartkp) && $strong ]
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt2_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 cha_deopt3_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -613,23 +617,12 @@ vm/type_vm_test/25: MissingCompileTimeError
 vm/type_vm_test/26: MissingCompileTimeError
 vm/type_vm_test/27: MissingCompileTimeError
 
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
+[ ($compiler == dartk || $compiler == dartkp) && $strong && $checked ]
 assign_static_type_test/02: MissingCompileTimeError
 async_return_types_test/nestedFuture: Fail
 async_return_types_test/wrongTypeParameter: Fail
 
-# These test entries will be valid for vm (with and without kernel).
-[ $compiler == none || $compiler == app_jit || $compiler == dartk ]
-async_star_cancel_while_paused_test: RuntimeError
-async_star_pause_test: Fail, OK
-
-[ $compiler == dartk && $runtime == vm ]
-async_star_cancel_while_paused_test: RuntimeError
-
-[ $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
-generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
-
-[ $compiler == dartkp ]
+[ $compiler == dartkp && $strong ]
 constructor_call_as_function_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/02: MissingCompileTimeError
@@ -653,10 +646,10 @@ stacktrace_demangle_ctors_test: RuntimeError
 vm/optimized_stacktrace_test: Crash
 vm/regress_27671_test: Crash
 
-[ ($compiler == dartkp) && !$checked ]
+[ $compiler == dartkp && $strong && !$checked ]
 generic_field_mixin6_test/none: RuntimeError
 
-[ !$checked && ($compiler == dartk || $compiler == dartkp) ]
+[ ($compiler == dartk || $compiler == dartkp) && $strong && !$checked ]
 deferred_constraints_type_annotation_test/type_annotation1: Crash # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # KernelVM bug: Deferred loading kernel issue 28335.
@@ -669,7 +662,7 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError # Fasta bug:
 redirecting_factory_default_values_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 private_super_constructor_test/01: MissingCompileTimeError # Fasta bug: Illegal access to private constructor.
 
-[ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+[ $compiler == dartk && $strong ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
@@ -679,13 +672,14 @@ duplicate_export_negative_test: Fail # Issue 6134
 example_constructor_test: Fail, OK
 field_initialization_order_test: Fail, OK
 no_main_test/01: Skip
-constructor3_test: Fail, OK
+constructor3_test: Fail, OK, Pass
 main_not_a_function_test: Skip
 mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
 mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 super_test: Fail, OK
+vm/regress_29145_test: Skip # Issue 29145
 
-[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
+[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug ]
 cyclic_type_variable_test/01: Crash
 cyclic_type_variable_test/02: Crash
 cyclic_type_variable_test/03: Crash
@@ -695,20 +689,16 @@ type_parameter_test/04: Crash
 type_parameter_test/05: Crash
 const_instance_field_test/01: Crash
 
-[ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
-constructor3_test: Fail, OK, Pass
-vm/regress_29145_test: Skip # Issue 29145
-
-[ $compiler == dartk && $mode == debug ]
+[ $compiler == dartk && $strong && $mode == debug ]
 deopt_inlined_function_lazy_test: Skip
 
-[ $compiler == dartkp || $compiler == dartk ]
+[ ($compiler == dartkp || $compiler == dartk) && $strong ]
 async_star_test/01: Pass
 
-[ ($compiler == dartk || $compiler == dartkp) && $checked ]
+[ ($compiler == dartk || $compiler == dartkp) && $strong && $checked ]
 regress_22728_test: Fail # Dartk Issue 28498
 
-[ $compiler == dartkp && $mode == debug ]
+[ $compiler == dartkp && $strong && $mode == debug ]
 malbounded_type_cast_test: Crash
 external_test/13: Crash
 final_syntax_test/09: Crash
