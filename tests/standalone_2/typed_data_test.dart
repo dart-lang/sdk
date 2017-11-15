@@ -443,7 +443,7 @@ testCreationFromList() {
 }
 
 void testStrings() {
-  test(list) {
+  test(List<int> list) {
     Uint16List uints = new Uint16List(list.length)..setAll(0, list);
     String string = new String.fromCharCodes(list);
     for (int i = 0; i < string.length; i++) {
