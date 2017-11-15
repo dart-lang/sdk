@@ -749,7 +749,7 @@ class BatchRunnerProcess {
     processFuture.then((io.Process p) {
       _process = p;
 
-      var _stdoutStream =
+      Stream<String> _stdoutStream =
           _process.stdout.transform(UTF8.decoder).transform(new LineSplitter());
       _stdoutSubscription = _stdoutStream.listen((String line) {
         if (line.startsWith('>>> TEST')) {
@@ -770,7 +770,7 @@ class BatchRunnerProcess {
       });
       _stdoutSubscription.pause();
 
-      var _stderrStream =
+      Stream<String> _stderrStream =
           _process.stderr.transform(UTF8.decoder).transform(new LineSplitter());
       _stderrSubscription = _stderrStream.listen((String line) {
         if (line.startsWith('>>> EOF STDERR')) {
