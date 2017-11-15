@@ -689,6 +689,137 @@
       ]
     },
     {
+      "builders": ["dart2js-minified-linux-x64-d8"],
+      "meta": {
+        "description": "This builder is triggered by dart-sdk-linux and runs the dart2js tests with minified."
+      },
+      "steps": [
+        {
+          "name": "dart2js tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js co19 tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified"
+          ],
+          "tests": ["co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js fast-startup tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified",
+            "--fast-startup"
+          ],
+          "exclude_tests": ["observatory_ui", "co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js fast-startup co19 tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified",
+            "--fast-startup"
+          ],
+          "tests": ["co19"],
+          "shards": 4,
+          "fileset": "dart2js"
+        },
+        {
+          "name": "dart2js package tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "dart2js observatory-ui tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified"
+          ],
+          "tests": ["observatory_ui"]
+        },
+        {
+          "name": "dart2js extra tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified"
+          ],
+          "tests": ["dart2js_extra","dart2js_native"]
+        },
+        {
+          "name": "dart2js fast-startup pkg tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified",
+            "--fast-startup"
+          ],
+          "tests": ["pkg"]
+        },
+        {
+          "name": "dart2js fast-startup observatory-ui tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified",
+            "--fast-startup"
+          ],
+          "tests": ["observatory_ui"]
+        },
+        {
+          "name": "dart2js fast-startup extra tests",
+          "arguments": [
+            "--use-sdk",
+            "--compiler=dart2js",
+            "--dart2js-batch",
+            "--reset-browser-configuration",
+            "--minified",
+            "--fast-startup"
+          ],
+          "tests": ["dart2js_extra","dart2js_native"]
+        }
+      ]
+    },
+    {
       "builders": [
         "dart-sdk-linux"
       ],
