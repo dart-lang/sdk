@@ -4,6 +4,3 @@
 
 [ $compiler == app_jit ]
 mirrors/*: Skip # Issue 27929: Triage
-
-[$compiler == app_jit && $runtime == vm && $mode == debug]
-isolate/compile_time_error_test/none: Crash # Issue 31376
