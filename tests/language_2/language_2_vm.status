@@ -840,6 +840,10 @@ malbounded_type_test_test/none: RuntimeError
 
 [ $runtime == vm && $checked ]
 constructor_call_as_function_test/01: MissingCompileTimeError
+covariance_type_parameter_test/01: RuntimeError
+covariance_type_parameter_test/02: RuntimeError
+covariance_type_parameter_test/03: RuntimeError
+covariance_type_parameter_test/none: RuntimeError
 covariant_subtyping_test: RuntimeError
 factory_implementation_test/00: Fail
 function_type/function_type0_test: RuntimeError # Issue 30475
@@ -934,6 +938,25 @@ const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
+covariance_field_test/01: RuntimeError
+covariance_field_test/02: RuntimeError
+covariance_field_test/03: RuntimeError
+covariance_field_test/04: RuntimeError
+covariance_field_test/05: RuntimeError
+covariance_method_test/01: RuntimeError
+covariance_method_test/02: RuntimeError
+covariance_method_test/03: RuntimeError
+covariance_method_test/04: RuntimeError
+covariance_method_test/05: RuntimeError
+covariance_method_test/06: RuntimeError
+covariance_setter_test/01: RuntimeError
+covariance_setter_test/02: RuntimeError
+covariance_setter_test/03: RuntimeError
+covariance_setter_test/04: RuntimeError
+covariance_setter_test/05: RuntimeError
+covariance_type_parameter_test/01: RuntimeError
+covariance_type_parameter_test/02: RuntimeError
+covariance_type_parameter_test/03: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError

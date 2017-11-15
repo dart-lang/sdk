@@ -21,6 +21,9 @@ const_types_test/08: MissingCompileTimeError
 const_types_test/14: MissingCompileTimeError
 const_types_test/15: MissingCompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+covariance_field_test/03: RuntimeError
+covariance_field_test/04: RuntimeError
+covariance_field_test/05: RuntimeError
 export_private_test/01: MissingCompileTimeError # Issue 29920
 field_wierd_name_test: Crash
 final_field_initialization_order_test: RuntimeError # Issue 31058

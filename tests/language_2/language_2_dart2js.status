@@ -123,6 +123,9 @@ class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
 constructor_call_as_function_test/01: MissingCompileTimeError
+covariance_type_parameter_test/01: RuntimeError
+covariance_type_parameter_test/02: RuntimeError
+covariance_type_parameter_test/03: RuntimeError
 create_unresolved_type_test/01: MissingCompileTimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
@@ -3231,6 +3234,22 @@ regress_29405_test: Fail # Issue 29422
 function_type_call_getter2_test/05: MissingCompileTimeError
 
 [ $compiler == dart2js && !$checked ]
+covariance_field_test/01: RuntimeError
+covariance_field_test/02: RuntimeError
+covariance_field_test/03: RuntimeError
+covariance_field_test/04: RuntimeError
+covariance_field_test/05: RuntimeError
+covariance_method_test/01: RuntimeError
+covariance_method_test/02: RuntimeError
+covariance_method_test/03: RuntimeError
+covariance_method_test/04: RuntimeError
+covariance_method_test/05: RuntimeError
+covariance_method_test/06: RuntimeError
+covariance_setter_test/01: RuntimeError
+covariance_setter_test/02: RuntimeError
+covariance_setter_test/03: RuntimeError
+covariance_setter_test/04: RuntimeError
+covariance_setter_test/05: RuntimeError
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 recursive_mixin_test: RuntimeError # no check without --checked
