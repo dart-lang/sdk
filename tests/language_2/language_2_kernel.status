@@ -298,6 +298,7 @@ generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
 generic_tearoff_test: CompileTimeError
+operator2_negative_test: Fail
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && !$strong ]
