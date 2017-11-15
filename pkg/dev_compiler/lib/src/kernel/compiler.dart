@@ -1232,7 +1232,6 @@ class ProgramCompiler
 
   JS.Block _emitConstructorBody(
       Constructor node, List<Field> fields, JS.Expression className) {
-    var body = <JS.Statement>[];
     var cls = node.enclosingClass;
 
     // Generate optional/named argument value assignment. These can not have
@@ -1240,8 +1239,7 @@ class ProgramCompiler
     // nice to do them first.
     // Also for const constructors we need to ensure default values are
     // available for use by top-level constant initializers.
-    var init = _emitArgumentInitializers(node.function);
-    if (init != null) body.add(init);
+    var body = _emitArgumentInitializers(node.function);
 
     // Redirecting constructors: these are not allowed to have initializers,
     // and the redirecting ctor invocation runs before field initializers.
@@ -2668,38 +2666,42 @@ class ProgramCompiler
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
-    var block = <JS.Statement>[];
-    var initArgs = _emitArgumentInitializers(f);
-    if (initArgs != null) block.add(initArgs);
+    var block = _emitArgumentInitializers(f);
     var jsBody = _visitStatement(f.body);
-    if (jsBody != null) block.add(jsBody);
-
-    bool shadowsParam = false;
-    var body = f.body;
-    if (body is Block) {
-      var params = new Set<String>()
-        ..addAll(f.positionalParameters.map((p) => p.name))
-        ..addAll(f.namedParameters.map((p) => p.name));
-      shadowsParam = body.statements
-          .any((s) => s is VariableDeclaration && params.contains(s.name));
+    if (jsBody != null) {
+      if (jsBody is JS.Block && (block.isEmpty || !jsBody.isScope)) {
+        // If the body is a nested block that can be flattened, do so.
+        block.addAll(jsBody.statements);
+      } else {
+        block.add(jsBody);
+      }
     }
 
     _initTempVars(block);
     _currentFunction = savedFunction;
     _letVariables = savedLetVariables;
 
-    if (shadowsParam) {
-      return new JS.Block([new JS.Block(block, isScope: shadowsParam)]);
+    if (f.asyncMarker == AsyncMarker.Sync) {
+      // It is a JS syntax error to use let or const to bind two variables with
+      // the same name in the same scope.  If the let- and const- bound
+      // variables in the block shadow any of the parameters, wrap the body in
+      // an extra block.  (sync*, async, and async* function bodies are placed
+      // in an inner function that is a separate scope from the parameters.)
+      var parameterNames = new Set<String>()
+        ..addAll(f.positionalParameters.map((p) => p.name))
+        ..addAll(f.namedParameters.map((p) => p.name));
+
+      if (block.any((s) => s.shadows(parameterNames))) {
+        block = [new JS.Block(block, isScope: true)];
+      }
     }
+
     return new JS.Block(block);
   }
 
   /// Emits argument initializers, which handles optional/named args, as well
   /// as generic type checks needed due to our covariance.
-  JS.Statement _emitArgumentInitializers(FunctionNode f) {
-    if (f.positionalParameters.isEmpty && f.namedParameters.isEmpty)
-      return null;
-
+  List<JS.Statement> _emitArgumentInitializers(FunctionNode f) {
     var body = <JS.Statement>[];
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
@@ -2754,7 +2756,7 @@ class ProgramCompiler
       }
       initParameter(p, jsParam);
     }
-    return body.isEmpty ? null : JS.Statement.from(body);
+    return body;
   }
 
   bool _annotatedNullCheck(List<Expression> annotations) =>
