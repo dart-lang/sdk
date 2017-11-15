@@ -440,7 +440,7 @@ class ProgramCompiler
     if (c.typeParameters.isNotEmpty) {
       // Generic classes will be defined inside a function that closes over the
       // type parameter. So we can use their local variable name directly.
-      className = new JS.Identifier(getClassName(c));
+      className = new JS.Identifier(getLocalClassName(c));
     } else {
       className = _emitTopLevelName(c);
     }
@@ -527,7 +527,7 @@ class ProgramCompiler
 
   JS.Statement _emitClassStatement(Class c, JS.Expression className,
       JS.Expression heritage, List<JS.Method> methods) {
-    var name = getClassName(c);
+    var name = getLocalClassName(c);
     var classExpr =
         new JS.ClassExpression(new JS.Identifier(name), heritage, methods);
     if (c.typeParameters.isNotEmpty) {
@@ -657,7 +657,7 @@ class ProgramCompiler
         mixinBody.add(_callHelperStatement('mixinMembers(#, #)', [
           className,
           new JS.ClassExpression(
-              new JS.TemporaryId(getClassName(c)), mixinClass, methods)
+              new JS.TemporaryId(getLocalClassName(c)), mixinClass, methods)
         ]));
       }
 
@@ -668,8 +668,9 @@ class ProgramCompiler
     if (c.isMixinApplication) {
       var m = c.mixedInType.asInterfaceType;
 
-      var mixinId = new JS.TemporaryId(
-          getClassName(c.superclass) + '_' + getClassName(c.mixedInClass));
+      var mixinId = new JS.TemporaryId(getLocalClassName(c.superclass) +
+          '_' +
+          getLocalClassName(c.mixedInClass));
       body.add(new JS.ClassExpression(mixinId, baseClass, []).toStatement());
       // Add constructors
 
@@ -939,7 +940,7 @@ class ProgramCompiler
     if (isClassSymbol == null) {
       // TODO(jmesserly): we could export these symbols, if we want to mark
       // implemented interfaces for user-defined classes.
-      var id = new JS.TemporaryId("_is_${getClassName(c)}_default");
+      var id = new JS.TemporaryId("_is_${getLocalClassName(c)}_default");
       _moduleItems.add(
           js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
       isClassSymbol = id;
@@ -2330,7 +2331,7 @@ class ProgramCompiler
     // have to use a helper to define them.
     if (isJSAnonymousType(c)) {
       return _callHelper(
-          'anonymousJSType(#)', js.escapedString(getClassName(c)));
+          'anonymousJSType(#)', js.escapedString(getLocalClassName(c)));
     }
     var jsName = _getJSNameWithoutGlobal(c);
     if (jsName != null) {
@@ -2475,7 +2476,7 @@ class ProgramCompiler
 
   JS.Identifier _emitTypeParameter(TypeParameter t) {
     _typeParamInConst?.add(t);
-    return new JS.Identifier(t.name);
+    return new JS.Identifier(getTypeParameterName(t));
   }
 
   @override
@@ -2542,14 +2543,16 @@ class ProgramCompiler
 
   void _emitVirtualFieldSymbols(Class c, List<JS.Statement> body) {
     _classProperties.virtualFields.forEach((field, virtualField) {
-      body.add(js.statement('const # = Symbol(#);',
-          [virtualField, js.string('${getClassName(c)}.${field.name.name}')]));
+      body.add(js.statement('const # = Symbol(#);', [
+        virtualField,
+        js.string('${getLocalClassName(c)}.${field.name.name}')
+      ]));
     });
   }
 
   List<JS.Parameter> _emitTypeFormals(List<TypeParameter> typeFormals) {
     return typeFormals
-        .map((t) => new JS.Identifier(t.name))
+        .map((t) => new JS.Identifier(getTypeParameterName(t)))
         .toList(growable: false);
   }
 

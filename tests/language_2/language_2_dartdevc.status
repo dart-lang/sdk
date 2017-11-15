@@ -588,7 +588,6 @@ generalized_void_syntax_test: CompileTimeError
 generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_constructor_mixin2_test/01: Crash
-generic_constructor_mixin2_test/none: Crash
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
 generic_creation_test: RuntimeError # ReferenceError: AOfZ$X$Y is not defined
@@ -601,7 +600,6 @@ generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: CompileTimeError
 generic_functions_test: RuntimeError # ReferenceError: BinaryTreeOfK$V is not defined
 generic_instanceof4_test: RuntimeError # ReferenceError: AOfT is not defined
-generic_instanceof5_test: Crash
 generic_instanceof_test: RuntimeError # ReferenceError: ListOfT is not defined
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -613,10 +611,7 @@ generic_methods_tearoff_specialization_test: RuntimeError # Expect.isTrue(false)
 generic_methods_test: RuntimeError # ReferenceError: BinaryTreeOfK$V is not defined
 generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
 generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
-generic_method_types_test/01: Crash
-generic_method_types_test/02: Crash
-generic_method_types_test/03: Crash
-generic_method_types_test/none: Crash
+generic_method_types_test/02: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: RuntimeError # NoSuchMethodError: method not found: '+'
 generics3_test: RuntimeError # ReferenceError: C5OfC1OfT is not defined
@@ -748,7 +743,7 @@ method_override8_test/01: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
 method_override_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_black_listed_test/02: MissingCompileTimeError
-mixin_bound_test: Crash
+mixin_bound_test: RuntimeError
 mixin_extends_field_test: RuntimeError # Expect.equals(expected: <M1-bar>, actual: <null>) fails.
 mixin_field_test: RuntimeError # NoSuchMethodError: method not found: 'bar'
 mixin_forwarding_constructor1_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
@@ -757,7 +752,6 @@ mixin_forwarding_constructor3_test: RuntimeError # Expect.equals(expected: <2>, 
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
-mixin_generic_test: Crash
 mixin_illegal_superclass_test/01: MissingCompileTimeError
 mixin_illegal_superclass_test/02: MissingCompileTimeError
 mixin_illegal_superclass_test/03: MissingCompileTimeError
@@ -794,7 +788,6 @@ mixin_illegal_super_use_test/07: MissingCompileTimeError
 mixin_illegal_super_use_test/10: MissingCompileTimeError
 mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_super_use_test/none: RuntimeError # TypeError: e.bar is not a function
-mixin_illegal_syntax_test/none: Crash
 mixin_invalid_bound2_test/02: MissingCompileTimeError
 mixin_invalid_bound2_test/03: MissingCompileTimeError
 mixin_invalid_bound2_test/04: Crash
@@ -822,7 +815,7 @@ mixin_is_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_lib_extends_field_test: Crash
 mixin_lib_extends_method_test: Crash
 mixin_method_test: RuntimeError # Expect.equals(expected: <M2-bar>, actual: <M1-bar>) fails.
-mixin_mixin_type_arguments_test: Crash
+mixin_mixin_type_arguments_test: RuntimeError
 mixin_naming_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_of_mixin_test/01: Crash
 mixin_of_mixin_test/02: Crash
@@ -831,7 +824,7 @@ mixin_of_mixin_test/04: Crash
 mixin_of_mixin_test/05: Crash
 mixin_of_mixin_test/06: Crash
 mixin_of_mixin_test/none: Crash
-mixin_regress_13688_test: Crash
+mixin_regress_13688_test: RuntimeError
 mixin_super_2_test/01: Crash
 mixin_super_2_test/02: Crash
 mixin_super_2_test/03: Crash
@@ -839,7 +832,6 @@ mixin_super_2_test/04: Crash
 mixin_super_2_test/none: Crash
 mixin_super_bound_test/01: Crash
 mixin_super_bound_test/02: Crash
-mixin_super_bound_test/none: Crash
 mixin_superclass_test: Crash
 mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
@@ -869,23 +861,12 @@ mixin_supertype_subclass_test/04: Crash
 mixin_supertype_subclass_test/05: Crash
 mixin_supertype_subclass_test/none: Crash
 mixin_super_use_test: Crash
-mixin_type_parameter1_test: Crash
-mixin_type_parameter2_test: Crash
-mixin_type_parameter3_test: Crash
-mixin_type_parameter4_test: Crash
-mixin_type_parameter5_test: Crash
-mixin_type_parameter6_test: Crash
+mixin_type_parameter5_test: RuntimeError
 mixin_type_parameters_errors_test/01: Crash
 mixin_type_parameters_errors_test/02: Crash
 mixin_type_parameters_errors_test/03: Crash
 mixin_type_parameters_errors_test/04: Crash
 mixin_type_parameters_errors_test/05: Crash
-mixin_type_parameters_errors_test/none: Crash
-mixin_type_parameters_mixin_extends_test: Crash
-mixin_type_parameters_simple_test: Crash
-mixin_type_parameters_super_extends_test: Crash
-mixin_type_variable_test/07: Crash
-mixin_type_variable_test/08: Crash
 mock_writable_final_field_test: Crash
 mock_writable_final_private_field_test: Crash
 multiline_newline_test/06: MissingCompileTimeError
@@ -978,7 +959,6 @@ positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 recursive_generic_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 recursive_inheritance_test: RuntimeError # Expect.isTrue(false) fails.
-recursive_mixin_test: Crash
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
@@ -986,17 +966,13 @@ redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
 redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
-regress_22666_test: Crash
-regress_22719_test: Crash
 regress_22777_test: RuntimeError # Uncaught Expect.equals(expected: <100>, actual: <0>) fails.
 regress_23089_test: MissingCompileTimeError
 regress_23408_test: RuntimeError # Expect.equals(expected: <K>, actual: <dynamic>) fails.
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_26133_test: MissingCompileTimeError
-regress_26230_test: Crash
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
-regress_29949_test: Crash
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 return_type_test: MissingCompileTimeError
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
@@ -1272,9 +1248,7 @@ type_variable_initializer_test: RuntimeError # ReferenceError: LinkedMapOfT$T is
 type_variable_nested_test/01: RuntimeError # ReferenceError: ListOfAOfT is not defined
 type_variable_nested_test/none: RuntimeError # ReferenceError: ListOfAOfT is not defined
 type_variable_promotion_test: RuntimeError # ReferenceError: JSArrayOfT is not defined
-typevariable_substitution2_test/01: Crash
-typevariable_substitution2_test/02: Crash
-typevariable_substitution2_test/none: Crash
+typevariable_substitution2_test/02: RuntimeError
 type_variable_typedef_test: RuntimeError # ReferenceError: BOfTTodynamic is not defined
 void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
