@@ -12,6 +12,7 @@ import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import '../equivalence/id_equivalence_helper.dart';
+import '../kernel/test_helpers.dart';
 import 'inference_test_helper.dart';
 
 main(List<String> args) async {
@@ -53,9 +54,7 @@ main(List<String> args) async {
       if (show != null && !show.any((f) => '$uri'.endsWith(f))) {
         continue;
       }
-      if (!uri.isAbsolute && uri.path.startsWith('patched_dart2js_sdk/')) {
-        uri = Uri.base.resolve('out/ReleaseX64/${uri.path}');
-      }
+      uri = resolveFastaUri(uri);
       SourceFile sourceFile = await provider.autoReadFromFile(uri);
       String sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {

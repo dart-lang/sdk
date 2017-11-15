@@ -20,6 +20,7 @@ import 'package:expect/expect.dart';
 import '../annotated_code_helper.dart';
 import '../memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
+import '../kernel/test_helpers.dart';
 
 /// `true` if ANSI colors are supported by stdout.
 bool useColors = stdout.supportsAnsiEscapes;
@@ -103,14 +104,7 @@ Future<CompiledData> computeData(
   Map<Id, ActualData> actualMapFor(Entity entity) {
     SourceSpan span =
         compiler.backendStrategy.spanFromSpannable(entity, entity);
-    Uri uri = span.uri;
-    // TODO(johnniwinther): Remove this when fasta uses patching.
-    if (!uri.isAbsolute && uri.path.startsWith('patched_dart2js_sdk/')) {
-      uri = Uri.base.resolve('out/ReleaseX64/${uri.path}');
-    } else {
-      uri = Uri.base.resolveUri(uri);
-    }
-
+    Uri uri = resolveFastaUri(span.uri);
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData>{});
   }
 
@@ -530,8 +524,8 @@ Future compareCompiledData(CompiledData data1, CompiledData data2,
       String uriText = '$uri1';
       if (uriText.startsWith(libraryRoot1)) {
         String relativePath = uriText.substring(libraryRoot1.length);
-        uri2 = Uri.base
-            .resolve('out/ReleaseX64/patched_dart2js_sdk/${relativePath}');
+        uri2 =
+            resolveFastaUri(Uri.parse('patched_dart2js_sdk/${relativePath}'));
         actualMap2 = data2.actualMaps[uri2];
       }
       if (actualMap2 == null) {
