@@ -61,6 +61,8 @@ import 'kernel_shadow_ast.dart'
         ShadowTypeLiteral,
         ShadowVariableAssignment;
 
+import 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
+
 import 'utils.dart' show offsetForToken;
 
 abstract class BuilderHelper {
@@ -1068,6 +1070,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         expected = declaration.target.typeParameters.length;
       } else if (declaration is FunctionTypeAliasBuilder) {
         expected = declaration.target.typeParameters.length;
+      } else if (declaration is KernelTypeVariableBuilder) {
+        // Type arguments on a type variable - error reported elsewhere.
       } else {
         return unhandled(
             "${declaration.runtimeType}",
