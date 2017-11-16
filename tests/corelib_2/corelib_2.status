@@ -534,6 +534,7 @@ list_insert_all_test: RuntimeError
 regexp/stack-overflow_test: RuntimeError
 iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
 iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+iterable_to_list_test/none: RuntimeError
 
 [ ($compiler == dartk || $compiler == dartkp) && $strong ]
 bool_from_environment2_test/01: MissingCompileTimeError
