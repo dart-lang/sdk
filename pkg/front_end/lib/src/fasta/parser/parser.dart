@@ -788,12 +788,11 @@ class Parser {
   /// ;
   /// ```
   Token parseTypeList(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     listener.beginTypeList(token.next);
-    token = parseType(token.next).next;
+    token = parseType(token.next);
     int count = 1;
-    while (optional(',', token)) {
-      token = parseType(token.next).next;
+    while (optional(',', token.next)) {
+      token = parseType(token.next.next);
       count++;
     }
     listener.endTypeList(count);
@@ -962,7 +961,7 @@ class Parser {
     listener.beginMixinApplication(token);
     Token withKeyword = token;
     expect('with', token);
-    token = parseTypeList(token);
+    token = parseTypeList(token).next;
     listener.endMixinApplication(withKeyword);
     return token;
   }
@@ -1034,7 +1033,8 @@ class Parser {
         token = next.next;
         break;
       }
-      token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
+      token =
+          parseFormalParameter(token, FormalParameterKind.mandatory, kind).next;
     } while (optional(',', token));
     listener.endFormalParameters(parameterCount, begin, token, kind);
     expect(')', token);
@@ -1075,7 +1075,6 @@ class Parser {
   /// ```
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
-    // TODO(brianwilkerson) Return the last consumed token.
     token = parseMetadataStar(token);
     listener.beginFormalParameter(token.next, memberKind);
     token = parseModifiers(token, memberKind, parameterKind: parameterKind);
@@ -1110,7 +1109,7 @@ class Parser {
       var type = isNamed
           ? FormalParameterKind.optionalNamed
           : FormalParameterKind.optionalPositional;
-      token = parseFormalParameter(token, type, kind);
+      token = parseFormalParameter(token, type, kind).next;
       ++parameterCount;
     } while (optional(',', token));
     if (parameterCount == 0) {
@@ -1346,7 +1345,7 @@ class Parser {
     Token implementsKeyword = null;
     if (optional('implements', token)) {
       implementsKeyword = token;
-      token = parseTypeList(token);
+      token = parseTypeList(token).next;
     }
     token = ensureSemicolon(token);
     listener.endNamedMixinApplication(
@@ -1495,9 +1494,11 @@ class Parser {
     // TODO(brianwilkerson) Return the last consumed token.
     if (optional('extends', token)) {
       Token extendsKeyword = token;
-      token = parseType(token.next).next;
-      if (optional('with', token)) {
-        token = parseMixinApplicationRest(token);
+      token = parseType(token.next);
+      if (optional('with', token.next)) {
+        token = parseMixinApplicationRest(token.next);
+      } else {
+        token = token.next;
       }
       listener.handleClassExtends(extendsKeyword);
     } else {
@@ -1791,20 +1792,19 @@ class Parser {
   /// ;
   /// ```
   Token parseTypeVariable(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     listener.beginTypeVariable(token.next);
     token = parseMetadataStar(token);
     token =
-        ensureIdentifier(token.next, IdentifierContext.typeVariableDeclaration)
-            .next;
+        ensureIdentifier(token.next, IdentifierContext.typeVariableDeclaration);
     Token extendsOrSuper = null;
-    if (optional('extends', token) || optional('super', token)) {
-      extendsOrSuper = token;
-      token = parseType(token.next).next;
+    Token next = token.next;
+    if (optional('extends', next) || optional('super', next)) {
+      extendsOrSuper = next;
+      token = parseType(next.next);
     } else {
-      listener.handleNoType(token);
+      listener.handleNoType(next);
     }
-    listener.endTypeVariable(token, extendsOrSuper);
+    listener.endTypeVariable(token.next, extendsOrSuper);
     return token;
   }
 
@@ -2446,7 +2446,7 @@ class Parser {
     return parseStuff(
         token,
         (t) => listener.beginTypeVariables(t),
-        (t) => parseTypeVariable(t),
+        (t) => parseTypeVariable(t).next,
         (c, bt, et) => listener.endTypeVariables(c, bt, et),
         (t) => listener.handleNoTypeVariables(t));
   }
@@ -2565,8 +2565,9 @@ class Parser {
       }
     }
     Token token = parseModifiers(start,
-        isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
-        isVarAllowed: true);
+            isTopLevel ? MemberKind.TopLevelField : MemberKind.NonStaticField,
+            isVarAllowed: true)
+        .next;
 
     if (token != name) {
       reportRecoverableErrorWithToken(token, fasta.templateExtraneousModifier);
@@ -3056,7 +3057,6 @@ class Parser {
   /// non-null.
   Token parseModifiers(Token token, MemberKind memberKind,
       {FormalParameterKind parameterKind, bool isVarAllowed: false}) {
-    // TODO(brianwilkerson) Return the last consumed token.
     ModifierContext context = new ModifierContext(
         this,
         memberKind,
@@ -3084,7 +3084,7 @@ class Parser {
             : TypeContinuation.Optional;
 
     token = parseType(token.next, context.typeContinuation, null, memberKind);
-    return token.next;
+    return token;
   }
 
   Token parseNativeClause(Token token) {
@@ -4157,9 +4157,9 @@ class Parser {
             token = reportUnexpectedToken(token).next;
           }
         } else if (identical(type, TokenType.IS)) {
-          token = parseIsOperatorRest(token);
+          token = parseIsOperatorRest(token).next;
         } else if (identical(type, TokenType.AS)) {
-          token = parseAsOperatorRest(token);
+          token = parseAsOperatorRest(token).next;
         } else if (identical(type, TokenType.QUESTION)) {
           token = parseConditionalExpressionRest(token).next;
         } else {
@@ -4321,7 +4321,7 @@ class Parser {
     token = listener.injectGenericCommentTypeList(token.next).previous;
     final kind = token.next.kind;
     if (kind == IDENTIFIER_TOKEN) {
-      return parseSendOrFunctionLiteral(token, context);
+      return parseSendOrFunctionLiteral(token, context).next;
     } else if (kind == INT_TOKEN || kind == HEXADECIMAL_TOKEN) {
       return parseLiteralInt(token).next;
     } else if (kind == DOUBLE_TOKEN) {
@@ -4345,14 +4345,14 @@ class Parser {
       } else if (identical(value, "const")) {
         return parseConstExpression(token);
       } else if (identical(value, "void")) {
-        return parseSendOrFunctionLiteral(token, context);
+        return parseSendOrFunctionLiteral(token, context).next;
       } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         // Fall through to the recovery code.
       } else if (identical(value, "assert")) {
         return parseAssert(token, Assert.Expression).next;
       } else if (token.next.isIdentifier) {
-        return parseSendOrFunctionLiteral(token, context);
+        return parseSendOrFunctionLiteral(token, context).next;
       } else {
         // Fall through to the recovery code.
       }
@@ -4611,13 +4611,11 @@ class Parser {
   }
 
   Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
-    // TODO(brianwilkerson) Return the last consumed token.
     if (!mayParseFunctionExpressions) {
-      return parseSend(token.next, context).next;
+      return parseSend(token.next, context);
     } else {
       return parseType(
-              token.next, TypeContinuation.SendOrFunctionLiteral, context)
-          .next;
+          token.next, TypeContinuation.SendOrFunctionLiteral, context);
     }
   }
 
@@ -4934,20 +4932,20 @@ class Parser {
   /// ```
   Token parseIsOperatorRest(Token token) {
     // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     assert(optional('is', token));
     Token operator = token;
     Token not = null;
     if (optional('!', token.next)) {
       not = token = token.next;
     }
-    token = parseType(token.next).next;
-    listener.handleIsOperator(operator, not, token);
-    String value = token.stringValue;
+    token = parseType(token.next);
+    Token next = token.next;
+    listener.handleIsOperator(operator, not, next);
+    String value = next.stringValue;
     if (identical(value, 'is') || identical(value, 'as')) {
       // The is- and as-operators cannot be chained, but they can take part of
       // expressions like: foo is Foo || foo is Bar.
-      reportUnexpectedToken(token);
+      reportUnexpectedToken(next);
     }
     return token;
   }
@@ -4959,15 +4957,15 @@ class Parser {
   /// ```
   Token parseAsOperatorRest(Token token) {
     // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     assert(optional('as', token));
     Token operator = token;
-    token = parseType(token.next).next;
-    listener.handleAsOperator(operator, token);
-    String value = token.stringValue;
+    token = parseType(token.next);
+    Token next = token.next;
+    listener.handleAsOperator(operator, next);
+    String value = next.stringValue;
     if (identical(value, 'is') || identical(value, 'as')) {
       // The is- and as-operators cannot be chained.
-      reportUnexpectedToken(token);
+      reportUnexpectedToken(next);
     }
     return token;
   }
@@ -5007,7 +5005,7 @@ class Parser {
           .previous;
     }
 
-    token = parseModifiers(token, MemberKind.Local, isVarAllowed: true);
+    token = parseModifiers(token, MemberKind.Local, isVarAllowed: true).next;
     return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
   }
 

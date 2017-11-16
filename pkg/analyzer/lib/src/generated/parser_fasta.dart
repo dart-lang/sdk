@@ -299,7 +299,8 @@ abstract class ParserAdapter implements Parser {
   @override
   TypeParameter parseTypeParameter() {
     currentToken = fastaParser
-        .parseTypeVariable(fastaParser.syntheticPreviousToken(currentToken));
+        .parseTypeVariable(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     return astBuilder.pop();
   }
 
