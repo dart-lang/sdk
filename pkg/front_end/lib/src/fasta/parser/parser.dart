@@ -3401,14 +3401,15 @@ class Parser {
     if (getOrSet != null && !inPlainSync && optional("set", getOrSet)) {
       reportRecoverableError(asyncToken, fasta.messageSetterNotSync);
     }
+    Token next = token.next;
     if (externalModifier != null) {
-      if (!optional(';', token)) {
-        reportRecoverableError(token, fasta.messageExternalMethodWithBody);
+      if (!optional(';', next)) {
+        reportRecoverableError(next, fasta.messageExternalMethodWithBody);
       }
       allowAbstract = true;
     }
-    if (optional('=', token)) {
-      token = parseRedirectingFactoryBody(token);
+    if (optional('=', next)) {
+      token = parseRedirectingFactoryBody(token.next);
     } else {
       token = parseFunctionBody(token, false, allowAbstract);
     }
@@ -3463,21 +3464,22 @@ class Parser {
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next;
     token = parseAsyncModifier(token);
+    Token next = token.next;
     if (!inPlainSync) {
       reportRecoverableError(asyncToken, fasta.messageFactoryNotSync);
     }
-    if (optional('=', token)) {
+    if (optional('=', next)) {
       if (externalToken != null) {
-        reportRecoverableError(token, fasta.messageExternalFactoryRedirection);
+        reportRecoverableError(next, fasta.messageExternalFactoryRedirection);
       }
-      token = parseRedirectingFactoryBody(token);
+      token = parseRedirectingFactoryBody(token.next);
     } else if (externalToken != null) {
-      if (!optional(';', token)) {
-        reportRecoverableError(token, fasta.messageExternalFactoryWithBody);
+      if (!optional(';', next)) {
+        reportRecoverableError(next, fasta.messageExternalFactoryWithBody);
       }
       token = parseFunctionBody(token, false, true);
     } else {
-      if (constToken != null && !optional('native', token)) {
+      if (constToken != null && !optional('native', next)) {
         // TODO(danrubel): report error to fix
         // test_constFactory in parser_fasta_test.dart
         //reportRecoverableError(constToken, fasta.messageConstFactory);
@@ -3608,10 +3610,9 @@ class Parser {
   }
 
   Token skipFunctionBody(Token token, bool isExpression, bool allowAbstract) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
     assert(!isExpression);
-    token = skipAsyncModifier(token);
+    token = skipAsyncModifier(token.next);
     if (optional('native', token)) {
       Token nativeToken = token;
       // TODO(danrubel): skip the native clause rather than parsing it
@@ -3659,28 +3660,29 @@ class Parser {
   /// It's an error if there's no function body unless [allowAbstract] is true.
   Token parseFunctionBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
-    if (optional('native', token)) {
-      Token nativeToken = token;
-      token = parseNativeClause(nativeToken).next;
-      if (optional(';', token)) {
-        listener.handleNativeFunctionBody(nativeToken, token);
-        return token;
+    Token next = token.next;
+    if (optional('native', next)) {
+      Token nativeToken = next;
+      token = parseNativeClause(nativeToken);
+      next = token.next;
+      if (optional(';', next)) {
+        listener.handleNativeFunctionBody(nativeToken, next);
+        return token.next;
       }
-      reportRecoverableError(token, fasta.messageExternalMethodWithBody);
-      listener.handleNativeFunctionBodyIgnored(nativeToken, token);
+      reportRecoverableError(next, fasta.messageExternalMethodWithBody);
+      listener.handleNativeFunctionBodyIgnored(nativeToken, next);
       // Ignore the native keyword and fall through to parse the body
     }
-    if (optional(';', token)) {
+    if (optional(';', next)) {
       if (!allowAbstract) {
-        reportRecoverableError(token, fasta.messageExpectedBody);
+        reportRecoverableError(next, fasta.messageExpectedBody);
       }
-      listener.handleEmptyFunctionBody(token);
-      return token;
-    } else if (optional('=>', token)) {
-      Token begin = token;
-      token = parseExpression(token.next);
+      listener.handleEmptyFunctionBody(next);
+      return token.next;
+    } else if (optional('=>', next)) {
+      Token begin = next;
+      token = parseExpression(next.next);
       if (!ofFunctionExpression) {
         token = ensureSemicolon(token.next);
         listener.handleExpressionFunctionBody(begin, token);
@@ -3693,11 +3695,11 @@ class Parser {
             token, fasta.messageGeneratorReturnsValue);
       }
       return token;
-    } else if (optional('=', token)) {
-      Token begin = token;
+    } else if (optional('=', next)) {
+      Token begin = next;
       // Recover from a bad factory method.
-      reportRecoverableError(token, fasta.messageExpectedBody);
-      token = parseExpression(token.next);
+      reportRecoverableError(next, fasta.messageExpectedBody);
+      token = parseExpression(next.next);
       if (!ofFunctionExpression) {
         token = ensureSemicolon(token.next);
         listener.handleExpressionFunctionBody(begin, token);
@@ -3707,17 +3709,17 @@ class Parser {
       }
       return token;
     }
-    Token begin = token;
+    Token begin = next;
     int statementCount = 0;
-    if (!optional('{', token)) {
+    if (!optional('{', next)) {
       token = reportUnrecoverableErrorWithToken(
-              token, fasta.templateExpectedFunctionBody)
-          .next;
-      listener.handleInvalidFunctionBody(token);
-      return token;
+          next, fasta.templateExpectedFunctionBody);
+      listener.handleInvalidFunctionBody(token.next);
+      return token.next;
     }
 
     listener.beginBlockFunctionBody(begin);
+    token = next;
     while (notEofOrValue('}', token.next)) {
       Token startToken = token.next;
       token = parseStatementOpt(token);
@@ -3759,7 +3761,6 @@ class Parser {
   }
 
   Token parseAsyncModifier(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     // TODO(brianwilkerson): Rename to `parseAsyncModifierOpt`?
     Token async;
     Token star;
@@ -3790,7 +3791,7 @@ class Parser {
     if (!inPlainSync && optional(';', token.next)) {
       reportRecoverableError(token.next, fasta.messageAbstractNotSync);
     }
-    return token.next;
+    return token;
   }
 
   int statementDepth = 0;

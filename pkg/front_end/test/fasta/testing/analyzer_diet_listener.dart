@@ -190,7 +190,7 @@ class AnalyzerDietListener extends DietListener {
     token = parser.parseInitializersOpt(token);
     bool isExpression = false;
     bool allowAbstract = asyncModifier == AsyncMarker.Sync;
-    parser.parseFunctionBody(token.next, isExpression, allowAbstract);
+    parser.parseFunctionBody(token, isExpression, allowAbstract);
     var bodyBuilderBody = _bodyBuilder.pop();
     _bodyBuilder.checkEmpty(token.charOffset);
     _bodyBuilder.finishFunction(bodyBuilderMetadataConstants,
