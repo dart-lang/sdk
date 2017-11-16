@@ -997,6 +997,9 @@ implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 
+[ $runtime == vm && $mode == debug ]
+built_in_identifier_type_annotation_test/15: Crash # Issue 31390
+
 [ $runtime == vm && $checked && $mode == debug ]
 tearoff_dynamic_test: Crash
 
