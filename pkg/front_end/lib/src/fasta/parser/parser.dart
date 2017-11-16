@@ -1587,6 +1587,15 @@ class Parser {
           // match the default constructor.
           token = insertSyntheticIdentifier(
               token, context, '\$_synthetic_method_name_${token.offset}');
+        } else if (context == IdentifierContext.topLevelVariableDeclaration ||
+            context == IdentifierContext.fieldDeclaration) {
+          // Since the token is not a keyword or identifier,
+          // consume it to ensure forward progress in parseField.
+          token = token.next;
+          // Supply a non-empty method name so that it does not accidently
+          // match the default constructor.
+          token = insertSyntheticIdentifier(
+              token, context, '\$_synthetic_field_name_${token.offset}');
         }
       }
     } else if (token.type.isBuiltIn && !context.isBuiltInIdentifierAllowed) {

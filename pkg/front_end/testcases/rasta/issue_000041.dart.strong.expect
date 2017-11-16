@@ -14,5 +14,5 @@ static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/ra
 static method use(dynamic _) → dynamic
   return null;
 static method main() → dynamic {
-  new self::C::•().test();
+  new self::C::•().{self::C::test}();
 }

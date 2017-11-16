@@ -1309,6 +1309,13 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     super.test_missingKeywordOperator();
   }
 
+  void test_missingKeywordOperator_ignoreErrors() {
+    // TODO(danrubel): Remove this test once test_missingKeywordOperator passes.
+    createParser('+(x) {}');
+    MethodDeclaration method = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(method);
+  }
+
   @override
   @failingTest
   void test_missingKeywordOperator_parseClassMember() {
@@ -1323,6 +1330,14 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
     //   test/generated/parser_fasta_test.dart 3544:39                      ParserProxy._run
     super.test_missingKeywordOperator_parseClassMember();
+  }
+
+  void test_missingKeywordOperator_parseClassMember_ignoreErrors() {
+    // TODO(danrubel): Remove this test once
+    // test_missingKeywordOperator_parseClassMember passes.
+    createParser('+() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
   }
 
   @override
@@ -1341,6 +1356,14 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     super.test_missingKeywordOperator_parseClassMember_afterTypeName();
   }
 
+  void test_missingKeywordOperator_parseClassMember_afterTypeName_noErrors() {
+    // TODO(danrubel): Remove this test once
+    // test_missingKeywordOperator_parseClassMember_afterTypeName passes.
+    createParser('int +() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+  }
+
   @override
   @failingTest
   void test_missingKeywordOperator_parseClassMember_afterVoid() {
@@ -1355,6 +1378,14 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
     //   test/generated/parser_fasta_test.dart 3593:39                      ParserProxy._run
     super.test_missingKeywordOperator_parseClassMember_afterVoid();
+  }
+
+  void test_missingKeywordOperator_parseClassMember_afterVoid_ignoreErrors() {
+    // TODO(danrubel): Remove this test once
+    // test_missingKeywordOperator_parseClassMember_afterVoid passes.
+    createParser('void +() {}');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
   }
 
   @override
@@ -1649,6 +1680,14 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
     //   test/generated/parser_fasta_test.dart 3766:39                      ParserProxy._run
     super.test_nonUserDefinableOperator();
+  }
+
+  void test_nonUserDefinableOperator_ignoreErrors() {
+    // TODO(danrubel): Remove this test
+    // once test_nonUserDefinableOperator passes.
+    createParser('operator +=(int x) => x + 1;');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
   }
 
   @override
