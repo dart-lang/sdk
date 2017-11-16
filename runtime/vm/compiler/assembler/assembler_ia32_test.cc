@@ -3188,7 +3188,7 @@ ASSEMBLER_TEST_RUN(BitTestImmediate, test) {
   }                                                                            \
                                                                                \
   ASSEMBLER_TEST_RUN(NAME, test) {                                             \
-    typedef int (*NAME)();                                                     \
+    typedef uint32_t (*NAME)();                                                \
     uint32_t expectation_l = 0x42649381;                                       \
     uint16_t expectation_w = expectation_l;                                    \
     uint32_t expectation = expectation_##WIDTH | expectation_w;                \
@@ -3225,8 +3225,8 @@ ALU_TEST(RegAddrL2, l, __ pushl(ECX), EAX, Address(ESP, 0), __ popl(ECX))
   }                                                                            \
                                                                                \
   ASSEMBLER_TEST_RUN(NAME, test) {                                             \
-    typedef int (*NAME)();                                                     \
-    unsigned expectation = MASK < 0x100 ? 0x24 : 0x30624223;                   \
+    typedef uint32_t (*NAME)();                                                \
+    uint32_t expectation = MASK < 0x100 ? 0x24 : 0x30624223;                   \
     EXPECT_EQ(expectation, reinterpret_cast<NAME>(test->entry())());           \
   }
 
