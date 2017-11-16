@@ -1542,12 +1542,11 @@ class Parser {
   /// Insert a synthetic identifier before the given [token] and create an error
   /// message based on the given [context]. Return the synthetic identifier that
   /// was inserted.
-  Token insertSyntheticIdentifier(Token token, IdentifierContext context,
-      [String stringValue = '']) {
+  Token insertSyntheticIdentifier(Token token, IdentifierContext context) {
     // TODO(brianwilkerson) Accept the last consumed token.
     Message message = context.recoveryTemplate.withArguments(token);
-    Token identifier = new SyntheticStringToken(
-        TokenType.IDENTIFIER, stringValue, token.charOffset, 0);
+    Token identifier =
+        new SyntheticStringToken(TokenType.IDENTIFIER, '', token.charOffset, 0);
     return rewriteAndRecover(token, message, identifier);
   }
 
@@ -1575,21 +1574,8 @@ class Parser {
       } else if (isPostIdentifierForRecovery(token, context) ||
           isStartOfNextSibling(token, context)) {
         token = insertSyntheticIdentifier(token, context);
-      } else if (token.isKeywordOrIdentifier) {
-        reportRecoverableErrorWithToken(token, context.recoveryTemplate);
       } else {
         reportRecoverableErrorWithToken(token, context.recoveryTemplate);
-        // If the token is not a keyword or identifier,
-        // then consume it to ensure forward progress.
-        token = token.next;
-        if (context == IdentifierContext.methodDeclaration) {
-          // Supply a non-empty method name so that it does not accidently
-          // match the default constructor.
-          token = insertSyntheticIdentifier(
-              token, context, '_synthetic_method_name');
-        } else {
-          token = insertSyntheticIdentifier(token, context);
-        }
       }
     } else if (token.type.isBuiltIn && !context.isBuiltInIdentifierAllowed) {
       if (context.inDeclaration) {
