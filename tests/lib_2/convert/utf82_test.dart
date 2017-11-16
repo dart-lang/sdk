@@ -6,6 +6,7 @@ library utf8_test;
 
 import "package:expect/expect.dart";
 import 'dart:convert';
+import 'dart:typed_data' show Uint8List;
 
 String decode(List<int> bytes) => new Utf8Decoder().convert(bytes);
 String decodeAllowMalformed(List<int> bytes) {
@@ -256,17 +257,24 @@ main() {
     return [test[0], expected];
   });
 
-  for (var test in []..addAll(allTests)..addAll(allTests2)) {
-    List<int> bytes = test[0];
+  check(String expected, List<int> bytes, String description) {
     Expect.throwsFormatException(() => decode(bytes));
     Expect.throwsFormatException(() => decode2(bytes));
     Expect.throwsFormatException(() => decode3(bytes));
     Expect.throwsFormatException(() => decode4(bytes));
 
-    String expected = test[1];
     Expect.equals(expected, decodeAllowMalformed(bytes));
     Expect.equals(expected, decodeAllowMalformed2(bytes));
     Expect.equals(expected, decodeAllowMalformed3(bytes));
     Expect.equals(expected, decodeAllowMalformed4(bytes));
+  }
+
+  for (var test in []..addAll(allTests)..addAll(allTests2)) {
+    List<int> bytes = test[0];
+    String expected = test[1];
+    check(expected, bytes, 'plain list');
+    if (bytes.every((byte) => 0 <= byte && byte < 256)) {
+      check(expected, new Uint8List.fromList(bytes), 'Uint8List');
+    }
   }
 }
