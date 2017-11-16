@@ -1932,23 +1932,20 @@ class G<T> extends T \{\}
 
 \end{dartCode}
 
-
 \LMHash{}
-A class $S$ is {\em a superclass} of a class $C$ iff either:
+A class $S$ is {\em a superclass} of a class $C$ if{}f either:
 \begin{itemize}
 \item $S$ is the superclass of $C$, or
-\item $S$ is a superclass of a class $S^{\prime}$ and $S^{\prime}$ is a superclass of $C$.
+\item $S$ is a superclass of a class $S^{\prime}$,
+and $S^{\prime}$ is the superclass of $C$.
 \end{itemize}
 
 \LMHash{}
 It is a compile-time error if a class $C$ is a superclass of itself.
 
 
-
-
- \subsubsection{Inheritance and Overriding}
- \LMLabel{inheritanceAndOverriding}
-
+\subsubsection{Inheritance and Overriding}
+\LMLabel{inheritanceAndOverriding}
 
 %A class $C$  {\em inherits} any accessible instance members of its superclass that are not overridden by members declared in $C$.
 
