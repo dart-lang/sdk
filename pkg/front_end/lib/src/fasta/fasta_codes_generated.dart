@@ -2633,6 +2633,18 @@ const MessageCode messageMissingMethodParameters = const MessageCode(
     tip: r"""Try adding a parameter list to the method declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingOperatorKeyword = messageMissingOperatorKeyword;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingOperatorKeyword = const MessageCode(
+    "MissingOperatorKeyword",
+    analyzerCode: "MISSING_KEYWORD_OPERATOR",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""Operator declarations must be preceeded by the keyword 'operator'.""",
+    tip: r"""Try adding the keyword 'operator'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Uri uri_)> templateMissingPartOf = const Template<
         Message Function(Uri uri_)>(

@@ -308,6 +308,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
         return;
+      case "MISSING_KEYWORD_OPERATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_KEYWORD_OPERATOR, offset, length);
+        return;
       case "MISSING_METHOD_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_METHOD_PARAMETERS, offset, length);

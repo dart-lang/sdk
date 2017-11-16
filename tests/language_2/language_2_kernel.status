@@ -1091,10 +1091,6 @@ async_await_syntax_test/a12b: MissingCompileTimeError
 async_await_syntax_test/a12d: MissingCompileTimeError
 async_await_syntax_test/a15b: MissingCompileTimeError
 async_await_syntax_test/a15d: MissingCompileTimeError
-async_await_syntax_test/b12b: MissingCompileTimeError
-async_await_syntax_test/b12d: MissingCompileTimeError
-async_await_syntax_test/b15b: MissingCompileTimeError
-async_await_syntax_test/b15d: MissingCompileTimeError
 async_await_syntax_test/e1: MissingCompileTimeError
 async_star_regression_2238_test: Pass
 async_star_test/01: Crash
@@ -1368,7 +1364,6 @@ sync_generator2_test/41: MissingCompileTimeError
 sync_generator2_test/52: MissingCompileTimeError
 syntax_test/02: MissingCompileTimeError
 syntax_test/03: MissingCompileTimeError
-syntax_test/12: MissingCompileTimeError
 syntax_test/27: MissingCompileTimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError

@@ -6,10 +6,10 @@ class C extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  method $_synthetic_method_name_245() → dynamic
+  operator unary-() → dynamic
     return 0;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31183.dart:6:3: Error: Unexpected token 'operator'.\n  operator unary- => 0;\n  ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: Expected an identifier, but got '-'.\n  operator unary- => 0;\n                ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:19: Error: Expected an identifier, but got '=>'.\n  operator unary- => 0;\n                  ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: A function should have formal parameters.\nTry adding '()' after '-', or add 'get' before '-' to declare a getter.\n  operator unary- => 0;\n                ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31183.dart:6:3: Error: Unexpected token 'operator'.\n  operator unary- => 0;\n  ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: Operator declarations must be preceeded by the keyword 'operator'.\nTry adding the keyword 'operator'.\n  operator unary- => 0;\n                ^", "pkg/front_end/testcases/regress/issue_31183.dart:6:17: Error: A function should have formal parameters.\nTry adding '()' after '-', or add 'get' before '-' to declare a getter.\n  operator unary- => 0;\n                ^"]/* from null */;
 static method main() → dynamic {
   new self::C::•();
 }

@@ -1570,6 +1570,13 @@ class Parser {
         token = insertSyntheticIdentifier(token, context);
       } else if (token.isKeywordOrIdentifier) {
         reportRecoverableErrorWithToken(token, context.recoveryTemplate);
+      } else if (token.isUserDefinableOperator &&
+          context == IdentifierContext.methodDeclaration) {
+        // If this is a user definable operator,
+        // then assume that the user has forgotten the `operator` keyword.
+        token = rewriteAndRecover(token, fasta.messageMissingOperatorKeyword,
+            new SyntheticKeywordToken(Keyword.OPERATOR, token.offset));
+        return parseOperatorName(token);
       } else {
         reportRecoverableErrorWithToken(token, context.recoveryTemplate);
         if (context == IdentifierContext.methodDeclaration) {
