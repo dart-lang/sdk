@@ -55,9 +55,10 @@ static ByteMnemonic call_jump_instr[] = {{0xE8, "call", UNSET_OP_ORDER},
 
 static ByteMnemonic short_immediate_instr[] = {
     {0x05, "add", UNSET_OP_ORDER}, {0x0D, "or", UNSET_OP_ORDER},
-    {0x15, "adc", UNSET_OP_ORDER}, {0x25, "and", UNSET_OP_ORDER},
-    {0x2D, "sub", UNSET_OP_ORDER}, {0x35, "xor", UNSET_OP_ORDER},
-    {0x3D, "cmp", UNSET_OP_ORDER}, {-1, "", UNSET_OP_ORDER}};
+    {0x15, "adc", UNSET_OP_ORDER}, {0x1d, "sbb", UNSET_OP_ORDER},
+    {0x25, "and", UNSET_OP_ORDER}, {0x2D, "sub", UNSET_OP_ORDER},
+    {0x35, "xor", UNSET_OP_ORDER}, {0x3D, "cmp", UNSET_OP_ORDER},
+    {-1, "", UNSET_OP_ORDER}};
 
 static const char* jump_conditional_mnem[] = {
     /*0*/ "jo",  "jno", "jc",  "jnc",
@@ -614,41 +615,15 @@ int X86Decoder::PrintOperands(const char* mnem,
   return advance;
 }
 
+static const char* alu_op_names[] = {"add", "or",  "adc", "sbb",
+                                     "and", "sub", "xor", "cmp"};
+
 int X86Decoder::PrintImmediateOp(uint8_t* data, bool size_override) {
   bool sign_extension_bit = (*data & 0x02) != 0;
   uint8_t modrm = *(data + 1);
   int mod, regop, rm;
   GetModRm(modrm, &mod, &regop, &rm);
-  const char* mnem = "Imm???";
-  switch (regop) {
-    case 0:
-      mnem = "add";
-      break;
-    case 1:
-      mnem = "or";
-      break;
-    case 2:
-      mnem = "adc";
-      break;
-    case 3:
-      mnem = "sbb";
-      break;
-    case 4:
-      mnem = "and";
-      break;
-    case 5:
-      mnem = "sub";
-      break;
-    case 6:
-      mnem = "xor";
-      break;
-    case 7:
-      mnem = "cmp";
-      break;
-    default:
-      UNIMPLEMENTED();
-  }
-  Print(mnem);
+  Print(alu_op_names[regop]);
   Print(" ");
   int count = PrintRightOperand(data + 1);
   Print(",");
@@ -1686,14 +1661,22 @@ int X86Decoder::InstructionDecode(uword pc) {
           } else {
             UNIMPLEMENTED();
           }
-        } else if (*data == 0x3B) {
+        } else if ((*data & 0xc5) == 0x01) {
+          bool reversed = (*data & 2) == 0;
+          Print(alu_op_names[(*data >> 3) & 7]);
+          Print("w ");
           data++;
-          Print("cmp_w ");
           int mod, regop, rm;
           GetModRm(*data, &mod, &regop, &rm);
-          PrintCPURegister(regop);
-          Print(",");
-          data += PrintRightOperand(data);
+          if (reversed) {
+            data += PrintRightOperand(data);
+            Print(",");
+            PrintCPURegister(regop);
+          } else {
+            PrintCPURegister(regop);
+            Print(",");
+            data += PrintRightOperand(data);
+          }
         } else if ((*data == 0x81) || (*data == 0x83)) {
           data += PrintImmediateOp(data, true /* size_override */);
         } else if (*data == 0xC7) {

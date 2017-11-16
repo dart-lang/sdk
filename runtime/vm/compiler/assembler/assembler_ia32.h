@@ -517,13 +517,6 @@ class Assembler : public ValueObject {
 
   void xchgl(Register dst, Register src);
 
-  void cmpl(Register reg, const Immediate& imm);
-  void cmpl(Register reg0, Register reg1);
-  void cmpl(Register reg, const Address& address);
-
-  void cmpl(const Address& address, Register reg);
-  void cmpl(const Address& address, const Immediate& imm);
-  void cmpw(Register reg, const Address& address);
   void cmpw(const Address& address, const Immediate& imm);
   void cmpb(const Address& address, const Immediate& imm);
 
@@ -531,35 +524,38 @@ class Assembler : public ValueObject {
   void testl(Register reg, const Immediate& imm);
   void testb(const Address& address, const Immediate& imm);
 
-  void andl(Register dst, const Immediate& imm);
-  void andl(Register dst, Register src);
-  void andl(Register dst, const Address& address);
+// clang-format off
+// Macro for handling common ALU instructions. Arguments to F:
+//   name, opcode, reversed opcode, opcode for the reg field of the modrm byte.
+#define ALU_OPS(F)                                                             \
+  F(and, 0x23, 0x21, 4)                                                        \
+  F(or, 0x0b, 0x09, 1)                                                         \
+  F(xor, 0x33, 0x31, 6)                                                        \
+  F(add, 0x03, 0x01, 0)                                                        \
+  F(adc, 0x13, 0x11, 2)                                                        \
+  F(sub, 0x2b, 0x29, 5)                                                        \
+  F(sbb, 0x1b, 0x19, 3)                                                        \
+  F(cmp, 0x3b, 0x39, 7)
+// clang-format on
 
-  void orl(Register dst, const Immediate& imm);
-  void orl(Register dst, Register src);
-  void orl(Register dst, const Address& address);
-  void orl(const Address& address, Register dst);
+#define DECLARE_ALU(op, opcode, opcode2, modrm_opcode)                         \
+  void op##l(Register dst, Register src) { Alu(4, opcode, dst, src); }         \
+  void op##w(Register dst, Register src) { Alu(2, opcode, dst, src); }         \
+  void op##l(Register dst, const Address& src) { Alu(4, opcode, dst, src); }   \
+  void op##w(Register dst, const Address& src) { Alu(2, opcode, dst, src); }   \
+  void op##l(const Address& dst, Register src) { Alu(4, opcode2, dst, src); }  \
+  void op##w(const Address& dst, Register src) { Alu(2, opcode2, dst, src); }  \
+  void op##l(Register dst, const Immediate& imm) {                             \
+    Alu(modrm_opcode, dst, imm);                                               \
+  }                                                                            \
+  void op##l(const Address& dst, const Immediate& imm) {                       \
+    Alu(modrm_opcode, dst, imm);                                               \
+  }
 
-  void xorl(Register dst, const Immediate& imm);
-  void xorl(Register dst, Register src);
-  void xorl(Register dst, const Address& address);
+  ALU_OPS(DECLARE_ALU);
 
-  void addl(Register dst, Register src);
-  void addl(Register reg, const Immediate& imm);
-  void addl(Register reg, const Address& address);
-
-  void addl(const Address& address, Register reg);
-  void addl(const Address& address, const Immediate& imm);
-
-  void adcl(Register dst, Register src);
-  void adcl(Register reg, const Immediate& imm);
-  void adcl(Register dst, const Address& address);
-  void adcl(const Address& dst, Register src);
-
-  void subl(Register dst, Register src);
-  void subl(Register reg, const Immediate& imm);
-  void subl(Register reg, const Address& address);
-  void subl(const Address& address, Register reg);
+#undef DECLARE_ALU
+#undef ALU_OPS
 
   void cdq();
 
@@ -576,11 +572,6 @@ class Assembler : public ValueObject {
 
   void mull(Register reg);
   void mull(const Address& address);
-
-  void sbbl(Register dst, Register src);
-  void sbbl(Register reg, const Immediate& imm);
-  void sbbl(Register reg, const Address& address);
-  void sbbl(const Address& address, Register reg);
 
   void incl(Register reg);
   void incl(const Address& address);
@@ -941,6 +932,12 @@ class Assembler : public ValueObject {
 
     DISALLOW_COPY_AND_ASSIGN(CodeComment);
   };
+
+  void Alu(int bytes, uint8_t opcode, Register dst, Register src);
+  void Alu(uint8_t modrm_opcode, Register dst, const Immediate& imm);
+  void Alu(int bytes, uint8_t opcode, Register dst, const Address& src);
+  void Alu(int bytes, uint8_t opcode, const Address& dst, Register src);
+  void Alu(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);
 
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);
