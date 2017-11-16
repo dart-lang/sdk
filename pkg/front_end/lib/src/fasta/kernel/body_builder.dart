@@ -1620,6 +1620,32 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  List<VariableDeclaration> buildVariableDeclarations(variableOrExpression) {
+    if (variableOrExpression is FastaAccessor) {
+      variableOrExpression = variableOrExpression.buildForEffect();
+    }
+    if (variableOrExpression is VariableDeclaration) {
+      return <VariableDeclaration>[variableOrExpression];
+    } else if (variableOrExpression is List) {
+      List<VariableDeclaration> variables = <VariableDeclaration>[];
+      for (var v in variableOrExpression) {
+        variables.addAll(buildVariableDeclarations(v));
+      }
+      return variables;
+    } else if (variableOrExpression == null) {
+      return <VariableDeclaration>[];
+    } else if (variableOrExpression is Expression) {
+      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
+          variableOrExpression, functionNestingLevel);
+      return <VariableDeclaration>[variable];
+    } else if (variableOrExpression is ExpressionStatement) {
+      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
+          variableOrExpression.expression, functionNestingLevel);
+      return <VariableDeclaration>[variable];
+    }
+    return null;
+  }
+
   @override
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
@@ -1633,26 +1659,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       assert(conditionStatement is EmptyStatement);
     }
-    List<VariableDeclaration> variables;
     dynamic variableOrExpression = pop();
-    if (variableOrExpression is FastaAccessor) {
-      variableOrExpression = variableOrExpression.buildForEffect();
-    }
-    if (variableOrExpression is VariableDeclaration) {
-      variables = <VariableDeclaration>[variableOrExpression];
-    } else if (variableOrExpression is List) {
-      variables = variableOrExpression;
-    } else if (variableOrExpression == null) {
-      variables = <VariableDeclaration>[];
-    } else if (variableOrExpression is Expression) {
-      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
-          variableOrExpression, functionNestingLevel);
-      variables = <VariableDeclaration>[variable];
-    } else if (variableOrExpression is ExpressionStatement) {
-      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
-          variableOrExpression.expression, functionNestingLevel);
-      variables = <VariableDeclaration>[variable];
-    } else {
+    List<VariableDeclaration> variables =
+        buildVariableDeclarations(variableOrExpression);
+    if (variables == null) {
       return unhandled("${variableOrExpression.runtimeType}", "endForStatement",
           forKeyword.charOffset, uri);
     }
