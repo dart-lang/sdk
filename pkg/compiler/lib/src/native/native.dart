@@ -27,8 +27,8 @@ const Iterable<String> _allowedDartSchemePaths = const <String>[
 bool maybeEnableNative(Uri uri, {bool allowNativeExtensions: false}) {
   bool allowedTestLibrary() {
     String scriptName = uri.path;
-    return scriptName.contains('sdk/tests/compiler/dart2js_native') ||
-        scriptName.contains('sdk/tests/compiler/dart2js_extra');
+    return scriptName.contains('tests/compiler/dart2js_native') ||
+        scriptName.contains('tests/compiler/dart2js_extra');
   }
 
   bool allowedDartLibary() {

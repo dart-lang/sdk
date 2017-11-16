@@ -120,9 +120,9 @@ class _ResolvedUriTranslator implements ResolvedUriTranslator {
               importingLibrary.isPatch ||
               importingLibrary.canonicalUri.scheme == 'memory' ||
               importingLibrary.canonicalUri.path
-                  .contains('sdk/tests/compiler/dart2js_native') ||
+                  .contains('tests/compiler/dart2js_native') ||
               importingLibrary.canonicalUri.path
-                  .contains('sdk/tests/compiler/dart2js_extra'));
+                  .contains('tests/compiler/dart2js_extra'));
 
       if (!allowInternalLibraryAccess) {
         if (importingLibrary != null) {
