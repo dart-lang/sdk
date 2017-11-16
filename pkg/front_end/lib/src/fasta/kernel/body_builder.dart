@@ -22,7 +22,8 @@ import '../fasta_codes.dart'
         LocatedMessage,
         Message,
         messageNativeClauseShouldBeAnnotation,
-        messageSetterWithWrongNumberOfFormals;
+        messageSetterWithWrongNumberOfFormals,
+        messageSuperAsExpression;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -232,6 +233,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (node is PrefixBuilder) {
       return deprecated_buildCompileTimeError(
           "A library can't be used as an expression.");
+    } else if (node is SuperInitializer) {
+      return buildCompileTimeError(messageSuperAsExpression, node.fileOffset);
     } else if (node is ProblemBuilder) {
       return buildProblemExpression(node, -1);
     } else {

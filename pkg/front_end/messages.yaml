@@ -1413,6 +1413,10 @@ ThisAsIdentifier:
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
 
+SuperAsExpression:
+  template: "Super calls can't be used as expressions."
+  tip: "To delegate a constructor to a super constructor, put the super call as an initializer."
+
 SwitchCaseFallThrough:
   template: "Switch case may fall through to the next case."
 

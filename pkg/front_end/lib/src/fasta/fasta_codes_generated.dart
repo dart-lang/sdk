@@ -3637,6 +3637,16 @@ const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
     tip: r"""Try removing the keyword 'static'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSuperAsExpression = const MessageCode(
+    "SuperAsExpression",
+    message: r"""Super calls can't be used as expressions.""",
+    tip:
+        r"""To delegate a constructor to a super constructor, put the super call as an initializer.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsIdentifier = messageSuperAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

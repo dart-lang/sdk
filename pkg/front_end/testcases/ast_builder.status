@@ -428,6 +428,7 @@ regress/issue_31180: Crash
 regress/issue_31184: Crash
 regress/issue_31186: Crash
 regress/issue_31187: Crash
+regress/issue_31198: Crash
 reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash
