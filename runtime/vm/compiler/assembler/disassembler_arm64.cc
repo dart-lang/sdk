@@ -503,12 +503,25 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
                                    remaining_size_in_buffer(), "0x%" Px64, imm);
         return ret;
       } else {
-        ASSERT(STRING_STARTS_WITH(format, "immd"));
-        double dimm =
-            bit_cast<double, int64_t>(Instr::VFPExpandImm(instr->Imm8Field()));
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(), "%f", dimm);
-        return 4;
+        ASSERT(STRING_STARTS_WITH(format, "imm"));
+        if (format[3] == 'd') {
+          double dimm = bit_cast<double, int64_t>(
+              Instr::VFPExpandImm(instr->Imm8Field()));
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(), "%f", dimm);
+          return 4;
+        } else if (format[3] == 'r') {
+          int immr = instr->ImmRField();
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(), "#%d", immr);
+          return 4;
+        } else {
+          ASSERT(format[3] == 's');
+          int imms = instr->ImmSField();
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(), "#%d", imms);
+          return 4;
+        }
       }
     }
     case 'm': {
@@ -765,6 +778,47 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   }
 }
 
+void ARM64Decoder::DecodeBitfield(Instr* instr) {
+  int op = instr->Bits(29, 2);
+  int r_imm = instr->ImmRField();
+  int s_imm = instr->ImmSField();
+  switch (op) {
+    case 0:
+      if (r_imm == 0) {
+        if (s_imm == 7) {
+          Format(instr, "sxtb 'rd, 'rn");
+          break;
+        } else if (s_imm == 15) {
+          Format(instr, "sxth 'rd, 'rn");
+          break;
+        } else if (s_imm == 31) {
+          Format(instr, "sxtw 'rd, 'rn");
+          break;
+        }
+      }
+      Format(instr, "sbfm'sf 'rd, 'rn, 'immr, 'imms");
+      break;
+    case 1:
+      Format(instr, "bfm'sf 'rd, 'rn, 'immr, 'imms");
+      break;
+    case 2:
+      if (r_imm == 0) {
+        if (s_imm == 7) {
+          Format(instr, "uxtb 'rd, 'rn");
+          break;
+        } else if (s_imm == 15) {
+          Format(instr, "uxth 'rd, 'rn");
+          break;
+        }
+      }
+      Format(instr, "ubfm'sf 'rd, 'rn, 'immr, 'imms");
+      break;
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
 void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
   int op = instr->Bits(29, 2);
   switch (op) {
@@ -805,6 +859,8 @@ void ARM64Decoder::DecodeDPImmediate(Instr* instr) {
     DecodeMoveWide(instr);
   } else if (instr->IsAddSubImmOp()) {
     DecodeAddSubImm(instr);
+  } else if (instr->IsBitfieldOp()) {
+    DecodeBitfield(instr);
   } else if (instr->IsLogicalImmOp()) {
     DecodeLogicalImm(instr);
   } else if (instr->IsPCRelOp()) {

@@ -436,6 +436,16 @@ enum AddSubImmOp {
   SUBI = AddSubImmFixed | B30,
 };
 
+// C3.4.2
+enum BitfieldOp {
+  BitfieldMask = 0x1f800000,
+  BitfieldFixed = 0x13000000,
+  SBFM = BitfieldFixed,
+  BFM = BitfieldFixed | B29,
+  UBFM = BitfieldFixed | B30,
+  Bitfield64 = B31 | B22,
+};
+
 // C3.4.4
 enum LogicalImmOp {
   LogicalImmMask = 0x1f800000,
@@ -663,6 +673,7 @@ enum FPIntCvtOp {
   _V(LoadRegLiteral)                                                           \
   _V(LoadStoreExclusive)                                                       \
   _V(AddSubImm)                                                                \
+  _V(Bitfield)                                                                 \
   _V(LogicalImm)                                                               \
   _V(MoveWide)                                                                 \
   _V(PCRel)                                                                    \

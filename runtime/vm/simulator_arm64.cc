@@ -1292,6 +1292,48 @@ void Simulator::DecodeAddSubImm(Instr* instr) {
   }
 }
 
+void Simulator::DecodeBitfield(Instr* instr) {
+  int bitwidth = instr->SFField() == 0 ? 32 : 64;
+  unsigned op = instr->Bits(29, 2);
+  ASSERT(op <= 2);
+  bool sign_extend = op == 0;
+  bool zero_extend = op == 2;
+  ASSERT(instr->NField() == instr->SFField());
+  const Register rn = instr->RnField();
+  const Register rd = instr->RdField();
+  int64_t result = get_register(rn, instr->RnMode());
+  int r_bit = instr->ImmRField();
+  int s_bit = instr->ImmSField();
+  result &= Utils::NBitMask(bitwidth);
+  ASSERT(s_bit < bitwidth && r_bit < bitwidth);
+  // See ARM v8 Instruction set overview 5.4.5.
+  // If s >= r then Rd[s-r:0] := Rn[s:r], else Rd[bitwidth+s-r:bitwidth-r] :=
+  // Rn[s:0].
+  uword mask = Utils::NBitMask(s_bit + 1);
+  if (s_bit >= r_bit) {
+    mask >>= r_bit;
+    result >>= r_bit;
+  } else {
+    result <<= bitwidth - r_bit;
+    mask <<= bitwidth - r_bit;
+  }
+  result &= mask;
+  if (sign_extend) {
+    int highest_bit = (s_bit - r_bit) & (bitwidth - 1);
+    int shift = bitwidth - highest_bit - 1;
+    result <<= shift;
+    result = static_cast<word>(result) >> shift;
+  } else if (!zero_extend) {
+    const int64_t rd_val = get_register(rd, instr->RnMode());
+    result |= rd_val & ~mask;
+  }
+  if (bitwidth == 64) {
+    set_register(instr, rd, result, instr->RdMode());
+  } else {
+    set_wregister(rd, result, instr->RdMode());
+  }
+}
+
 void Simulator::DecodeLogicalImm(Instr* instr) {
   const int op = instr->Bits(29, 2);
   const bool set_flags = op == 3;
@@ -1362,6 +1404,8 @@ void Simulator::DecodeDPImmediate(Instr* instr) {
     DecodeMoveWide(instr);
   } else if (instr->IsAddSubImmOp()) {
     DecodeAddSubImm(instr);
+  } else if (instr->IsBitfieldOp()) {
+    DecodeBitfield(instr);
   } else if (instr->IsLogicalImmOp()) {
     DecodeLogicalImm(instr);
   } else if (instr->IsPCRelOp()) {

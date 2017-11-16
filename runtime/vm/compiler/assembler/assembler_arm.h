@@ -105,6 +105,29 @@ class Label : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
+class ArmEncode : public AllStatic {
+ public:
+  static inline uint32_t Rd(Register rd) {
+    ASSERT(rd < 16);
+    return static_cast<uint32_t>(rd) << kRdShift;
+  }
+
+  static inline uint32_t Rm(Register rm) {
+    ASSERT(rm < 16);
+    return static_cast<uint32_t>(rm) << kRmShift;
+  }
+
+  static inline uint32_t Rn(Register rn) {
+    ASSERT(rn < 16);
+    return static_cast<uint32_t>(rn) << kRnShift;
+  }
+
+  static inline uint32_t Rs(Register rs) {
+    ASSERT(rs < 16);
+    return static_cast<uint32_t>(rs) << kRsShift;
+  }
+};
+
 // Encodes Addressing Mode 1 - Data-processing operands.
 class Operand : public ValueObject {
  public:
@@ -265,7 +288,7 @@ class Address : public ValueObject {
     } else {
       encoding_ = am | offset;
     }
-    encoding_ |= static_cast<uint32_t>(rn) << kRnShift;
+    encoding_ |= ArmEncode::Rn(rn);
   }
 
   // There is no register offset mode unless Mode is Offset, in which case the
@@ -284,7 +307,7 @@ class Address : public ValueObject {
     } else {
       kind_ = ScaledIndexRegister;
     }
-    encoding_ = o.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
+    encoding_ = o.encoding() | am | ArmEncode::Rn(rn);
   }
 
   // There is no shifted register mode with a register shift.
