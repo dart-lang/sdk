@@ -8,6 +8,6 @@ static method f() → dynamic sync* {
 static method g() → dynamic sync* 
   const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_29983.dart:11:14: Error: 'sync*' and 'async*' can't return a value.\ng() sync* => dummy;\n             ^"));
 static method h() → dynamic sync* {
-  () → core::String => "return".call();
+  (() → core::String => "return").call();
 }
 static method main() → dynamic {}

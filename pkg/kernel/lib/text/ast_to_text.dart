@@ -1725,7 +1725,7 @@ class Precedence extends ExpressionVisitor<int> {
   int visitListLiteral(ListLiteral node) => PRIMARY;
   int visitMapLiteral(MapLiteral node) => PRIMARY;
   int visitAwaitExpression(AwaitExpression node) => PREFIX;
-  int visitFunctionExpression(FunctionExpression node) => PRIMARY;
+  int visitFunctionExpression(FunctionExpression node) => EXPRESSION;
   int visitStringLiteral(StringLiteral node) => CALLEE;
   int visitIntLiteral(IntLiteral node) => CALLEE;
   int visitDoubleLiteral(DoubleLiteral node) => CALLEE;
