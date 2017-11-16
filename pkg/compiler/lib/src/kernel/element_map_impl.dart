@@ -1159,7 +1159,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
 
   ScopeModel computeScopeModel(KMember member) {
     ir.Member node = _members.getData(member).definition.node;
-    return KernelClosureAnalysis.computeScopeModel(member, node);
+    return KernelClosureAnalysis.computeScopeModel(member, node, _options);
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].

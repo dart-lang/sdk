@@ -335,7 +335,6 @@ js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
-deferred_multi_app_htmltest: CompileTimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_default_arg_test/none: RuntimeError
 js_typed_interop_test/object literal: RuntimeError
@@ -525,9 +524,9 @@ js_test/context: RuntimeError
 js_test/identity: RuntimeError
 js_test/new_JsObject: RuntimeError
 js_test/transferrables: RuntimeError
-js_type_test/dynamic: RuntimeError
 js_type_test/dynamic-null-not-dynamic-Foo: RuntimeError
 js_type_test/dynamic-type: RuntimeError
+js_type_test/dynamic: RuntimeError
 js_type_test/static: RuntimeError
 js_typed_interop_anonymous2_exp_test: RuntimeError
 js_typed_interop_anonymous2_test: RuntimeError
@@ -614,7 +613,7 @@ shadow_dom_test/supported: RuntimeError
 shadowroot_test: RuntimeError
 speechrecognition_test/supported: RuntimeError
 storage_test: RuntimeError
-streams_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Stream.singleWhere#isMatch), local(Stream.singleWhere#)) for j:closure_call(Stream_singleWhere__closure.call).
+streams_test: RuntimeError
 svg_test/svgBehavioral: RuntimeError
 svg_test/svgInterfaceMatch: RuntimeError
 svg_test/svgPresence: RuntimeError

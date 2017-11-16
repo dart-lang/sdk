@@ -45,7 +45,7 @@ function update_suite {
   local suite=$1
   local runtime="d8"
   if [ "$suite" == "html" ]; then
-    runtime="chrome"
+    runtime="drt"
   fi
   echo -e "\nupdate suite: [32m$suite[0m"
   echo "  - minified tests"

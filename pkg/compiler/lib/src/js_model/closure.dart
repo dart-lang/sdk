@@ -14,6 +14,7 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
+import '../options.dart';
 import '../ssa/type_builder.dart';
 import '../world.dart';
 import 'elements.dart';
@@ -24,7 +25,8 @@ import 'js_strategy.dart' show JsClosedWorldBuilder;
 class KernelClosureAnalysis {
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  static ScopeModel computeScopeModel(MemberEntity entity, ir.Member node) {
+  static ScopeModel computeScopeModel(
+      MemberEntity entity, ir.Member node, CompilerOptions options) {
     if (entity.isAbstract) return null;
     if (entity.isField && !entity.isInstanceMember) {
       ir.Field field = node;
@@ -40,8 +42,9 @@ class KernelClosureAnalysis {
       hasThisLocal = !constructor.isFactoryConstructor;
     }
     ScopeModel model = new ScopeModel();
-    CapturedScopeBuilder translator =
-        new CapturedScopeBuilder(model, hasThisLocal: hasThisLocal);
+    CapturedScopeBuilder translator = new CapturedScopeBuilder(model,
+        hasThisLocal: hasThisLocal,
+        addTypeChecks: options.enableTypeAssertions);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         node.accept(translator);
@@ -87,8 +90,12 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   Map<ir.TreeNode, ClosureRepresentationInfo> _localClosureRepresentationMap =
       <ir.TreeNode, ClosureRepresentationInfo>{};
 
-  KernelClosureConversionTask(
-      Measurer measurer, this._elementMap, this._globalLocalsMap)
+  /// If true add type assertions to assert that at runtime the type is in line
+  /// with the stated type.
+  final bool _addTypeChecks;
+
+  KernelClosureConversionTask(Measurer measurer, this._elementMap,
+      this._globalLocalsMap, this._addTypeChecks)
       : super(measurer);
 
   /// The combined steps of generating our intermediate representation of
@@ -108,8 +115,8 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       Set<ClassEntity> classesNeedingRti,
       MemberEntity outermostEntity) {
     if (localFunctionsNeedingRti.contains(node) ||
-        classesNeedingRti.contains(outermostEntity.enclosingClass)) {
-      // TODO(efortuna): add clause "or compiler.options.enableTypeAssertions"?
+        classesNeedingRti.contains(outermostEntity.enclosingClass) ||
+        _addTypeChecks) {
       if (outermostEntity is FunctionEntity &&
           outermostEntity is! ConstructorEntity) {
         scope.thisUsedAsFreeVariable = scope.thisUsedAsFreeVariableIfNeedsRti ||

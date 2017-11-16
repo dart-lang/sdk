@@ -2055,6 +2055,7 @@ type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was 
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_error2_test/none: CompileTimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
@@ -2069,11 +2070,8 @@ bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_function_apply_test: RuntimeError
-call_with_no_such_method_test: RuntimeError
 callable_test/none: RuntimeError
 canonical_const2_test: RuntimeError
-cast_test/02: MissingRuntimeError
-cast_test/03: MissingRuntimeError
 check_member_static_test/02: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
@@ -2175,7 +2173,7 @@ covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError
-covariant_subtyping_test: Crash # NoSuchMethodError: The method 'accept' was called on null.
+covariant_subtyping_test: CompileTimeError
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
@@ -2316,7 +2314,6 @@ method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 mint_arithmetic_test: RuntimeError
 mixin_black_listed_test/02: MissingCompileTimeError
-mixin_bound_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
@@ -2374,13 +2371,8 @@ mixin_mixin_test: RuntimeError
 mixin_mixin_type_arguments_test: RuntimeError
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
-mixin_super_constructor2_test: RuntimeError
-mixin_super_constructor_default_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
-mixin_super_constructor_named_test/none: RuntimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
-mixin_super_constructor_positionals_test/none: RuntimeError
-mixin_super_constructor_test: RuntimeError
 mixin_super_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
 mixin_superclass_test: CompileTimeError
@@ -2487,16 +2479,11 @@ typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
 arithmetic_canonicalization_test: RuntimeError
-checked_setter_test: Pass
-flatten_test/05: Pass
-flatten_test/08: Pass
-flatten_test/09: Pass
-flatten_test/12: Pass
 assert_message_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_and_or_test: RuntimeError
+#async_and_or_test: RuntimeError
 async_await_catch_regression_test: RuntimeError
 async_await_foreign_test: RuntimeError
 async_await_syntax_test/a01a: RuntimeError
@@ -2601,6 +2588,7 @@ cha_deopt1_test: RuntimeError
 cha_deopt2_test: RuntimeError
 cha_deopt3_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
+checked_setter_test: Pass
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 classes_static_method_clash_test: RuntimeError
@@ -2611,8 +2599,8 @@ compile_time_constant_a_test: RuntimeError
 compile_time_constant_b_test: RuntimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
-conditional_import_string_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Stream.timeout#onCancel), local(Stream.timeout#result)) for j:closure_call(Stream_timeout_onCancel.call).
-conditional_import_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(Stream.timeout#onCancel), local(Stream.timeout#result)) for j:closure_call(Stream_timeout_onCancel.call).
+conditional_import_string_test: RuntimeError
+conditional_import_test: RuntimeError
 conditional_method_invocation_test/05: MissingCompileTimeError
 conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
@@ -2701,6 +2689,11 @@ constructor_redirect1_negative_test/none: MissingCompileTimeError
 constructor_redirect2_negative_test: Crash # Stack Overflow
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
+covariance_setter_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+covariance_type_parameter_test/01: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
+covariance_type_parameter_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
 custom_await_stack_trace_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
@@ -2790,106 +2783,38 @@ function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_type/function_type0_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U0.testF20#)) for j:closure_call(U0_testF20_closure.call).
-function_type/function_type10_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U10.testF22#)) for j:closure_call(U10_testF22_closure.call).
-function_type/function_type11_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U11.testF22#)) for j:closure_call(U11_testF22_closure.call).
-function_type/function_type12_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U12.testF21#)) for j:closure_call(U12_testF21_closure.call).
-function_type/function_type13_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U13.testF21#)) for j:closure_call(U13_testF21_closure.call).
-function_type/function_type14_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U14.testF21#)) for j:closure_call(U14_testF21_closure.call).
-function_type/function_type15_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U15.testF21#)) for j:closure_call(U15_testF21_closure.call).
-function_type/function_type16_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U16.testF20#)) for j:closure_call(U16_testF20_closure.call).
-function_type/function_type17_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U17.testF20#)) for j:closure_call(U17_testF20_closure.call).
-function_type/function_type18_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U18.testF20#)) for j:closure_call(U18_testF20_closure.call).
-function_type/function_type19_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U19.testF20#)) for j:closure_call(U19_testF20_closure.call).
-function_type/function_type1_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U1.testF20#)) for j:closure_call(U1_testF20_closure.call).
-function_type/function_type20_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U20.testF20#)) for j:closure_call(U20_testF20_closure.call).
-function_type/function_type21_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U21.testF20#)) for j:closure_call(U21_testF20_closure.call).
-function_type/function_type22_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U22.testF20#)) for j:closure_call(U22_testF20_closure.call).
-function_type/function_type23_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U23.testF20#)) for j:closure_call(U23_testF20_closure.call).
-function_type/function_type24_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U24.testF20#)) for j:closure_call(U24_testF20_closure.call).
-function_type/function_type25_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U25.testF20#)) for j:closure_call(U25_testF20_closure.call).
-function_type/function_type26_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U26.testF20#)) for j:closure_call(U26_testF20_closure.call).
-function_type/function_type27_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U27.testF20#)) for j:closure_call(U27_testF20_closure.call).
-function_type/function_type28_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U28.testF23#)) for j:closure_call(U28_testF23_closure.call).
-function_type/function_type29_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U29.testF23#)) for j:closure_call(U29_testF23_closure.call).
-function_type/function_type2_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U2.testF20#)) for j:closure_call(U2_testF20_closure.call).
-function_type/function_type30_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U30.testF15#)) for j:closure_call(U30_testF15_closure.call).
-function_type/function_type31_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U31.testF15#)) for j:closure_call(U31_testF15_closure.call).
-function_type/function_type32_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U32.testF15#)) for j:closure_call(U32_testF15_closure.call).
-function_type/function_type33_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U33.testF15#)) for j:closure_call(U33_testF15_closure.call).
-function_type/function_type34_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U34.testF15#)) for j:closure_call(U34_testF15_closure.call).
-function_type/function_type35_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U35.testF15#)) for j:closure_call(U35_testF15_closure.call).
-function_type/function_type36_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U36.testF15#)) for j:closure_call(U36_testF15_closure.call).
-function_type/function_type37_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U37.testF15#)) for j:closure_call(U37_testF15_closure.call).
-function_type/function_type38_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U38.testF15#)) for j:closure_call(U38_testF15_closure.call).
-function_type/function_type39_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U39.testF15#)) for j:closure_call(U39_testF15_closure.call).
-function_type/function_type3_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U3.testF20#)) for j:closure_call(U3_testF20_closure.call).
-function_type/function_type40_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U40.testF22#)) for j:closure_call(U40_testF22_closure.call).
-function_type/function_type41_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U41.testF22#)) for j:closure_call(U41_testF22_closure.call).
-function_type/function_type42_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U42.testF22#)) for j:closure_call(U42_testF22_closure.call).
-function_type/function_type43_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U43.testF22#)) for j:closure_call(U43_testF22_closure.call).
-function_type/function_type44_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U44.testF21#)) for j:closure_call(U44_testF21_closure.call).
-function_type/function_type45_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U45.testF21#)) for j:closure_call(U45_testF21_closure.call).
-function_type/function_type46_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U46.testF23#)) for j:closure_call(U46_testF23_closure.call).
-function_type/function_type47_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U47.testF23#)) for j:closure_call(U47_testF23_closure.call).
-function_type/function_type48_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U48.testF20#)) for j:closure_call(U48_testF20_closure.call).
-function_type/function_type49_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U49.testF20#)) for j:closure_call(U49_testF20_closure.call).
-function_type/function_type4_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U4.testF23#)) for j:closure_call(U4_testF23_closure.call).
-function_type/function_type50_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U50.testF20#)) for j:closure_call(U50_testF20_closure.call).
-function_type/function_type51_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U51.testF20#)) for j:closure_call(U51_testF20_closure.call).
-function_type/function_type52_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U52.testF15#)) for j:closure_call(U52_testF15_closure.call).
-function_type/function_type53_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U53.testF15#)) for j:closure_call(U53_testF15_closure.call).
-function_type/function_type54_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U54.testF15#)) for j:closure_call(U54_testF15_closure.call).
-function_type/function_type55_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U55.testF15#)) for j:closure_call(U55_testF15_closure.call).
-function_type/function_type56_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U56.testF15#)) for j:closure_call(U56_testF15_closure.call).
-function_type/function_type57_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U57.testF15#)) for j:closure_call(U57_testF15_closure.call).
-function_type/function_type58_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U58.testF15#)) for j:closure_call(U58_testF15_closure.call).
-function_type/function_type59_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U59.testF15#)) for j:closure_call(U59_testF15_closure.call).
-function_type/function_type5_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U5.testF23#)) for j:closure_call(U5_testF23_closure.call).
-function_type/function_type60_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U60.testF21#)) for j:closure_call(U60_testF21_closure.call).
-function_type/function_type61_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U61.testF21#)) for j:closure_call(U61_testF21_closure.call).
-function_type/function_type62_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U62.testF21#)) for j:closure_call(U62_testF21_closure.call).
-function_type/function_type63_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U63.testF21#)) for j:closure_call(U63_testF21_closure.call).
-function_type/function_type64_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U64.testF21#)) for j:closure_call(U64_testF21_closure.call).
-function_type/function_type65_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U65.testF21#)) for j:closure_call(U65_testF21_closure.call).
-function_type/function_type66_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U66.testF21#)) for j:closure_call(U66_testF21_closure.call).
-function_type/function_type67_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U67.testF21#)) for j:closure_call(U67_testF21_closure.call).
-function_type/function_type68_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U68.testF21#)) for j:closure_call(U68_testF21_closure.call).
-function_type/function_type69_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U69.testF21#)) for j:closure_call(U69_testF21_closure.call).
-function_type/function_type6_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U6.testF23#)) for j:closure_call(U6_testF23_closure.call).
-function_type/function_type70_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U70.testF21#)) for j:closure_call(U70_testF21_closure.call).
-function_type/function_type71_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U71.testF21#)) for j:closure_call(U71_testF21_closure.call).
-function_type/function_type72_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U72.testF22#)) for j:closure_call(U72_testF22_closure.call).
-function_type/function_type73_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U73.testF22#)) for j:closure_call(U73_testF22_closure.call).
-function_type/function_type74_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U74.testF22#)) for j:closure_call(U74_testF22_closure.call).
-function_type/function_type75_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U75.testF22#)) for j:closure_call(U75_testF22_closure.call).
-function_type/function_type76_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U76.testF21#)) for j:closure_call(U76_testF21_closure.call).
-function_type/function_type77_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U77.testF21#)) for j:closure_call(U77_testF21_closure.call).
-function_type/function_type78_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U78.testF21#)) for j:closure_call(U78_testF21_closure.call).
-function_type/function_type79_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U79.testF21#)) for j:closure_call(U79_testF21_closure.call).
-function_type/function_type7_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U7.testF23#)) for j:closure_call(U7_testF23_closure.call).
-function_type/function_type80_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U80.testF21#)) for j:closure_call(U80_testF21_closure.call).
-function_type/function_type81_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U81.testF21#)) for j:closure_call(U81_testF21_closure.call).
-function_type/function_type82_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U82.testF21#)) for j:closure_call(U82_testF21_closure.call).
-function_type/function_type83_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U83.testF21#)) for j:closure_call(U83_testF21_closure.call).
-function_type/function_type84_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U84.testF21#)) for j:closure_call(U84_testF21_closure.call).
-function_type/function_type85_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U85.testF21#)) for j:closure_call(U85_testF21_closure.call).
-function_type/function_type86_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U86.testF21#)) for j:closure_call(U86_testF21_closure.call).
-function_type/function_type87_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U87.testF21#)) for j:closure_call(U87_testF21_closure.call).
-function_type/function_type88_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U88.testF21#)) for j:closure_call(U88_testF21_closure.call).
-function_type/function_type89_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U89.testF21#)) for j:closure_call(U89_testF21_closure.call).
-function_type/function_type8_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U8.testF22#)) for j:closure_call(U8_testF22_closure.call).
-function_type/function_type90_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U90.testF21#)) for j:closure_call(U90_testF21_closure.call).
-function_type/function_type91_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U91.testF21#)) for j:closure_call(U91_testF21_closure.call).
-function_type/function_type92_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U92.testF19#)) for j:closure_call(U92_testF19_closure.call).
-function_type/function_type93_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U93.testF19#)) for j:closure_call(U93_testF19_closure.call).
-function_type/function_type94_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U94.testF19#)) for j:closure_call(U94_testF19_closure.call).
-function_type/function_type95_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U95.testF19#)) for j:closure_call(U95_testF19_closure.call).
-function_type/function_type96_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U96.testF19#)) for j:closure_call(U96_testF19_closure.call).
-function_type/function_type97_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U97.testF19#)) for j:closure_call(U97_testF19_closure.call).
-function_type/function_type98_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U98.testF19#)) for j:closure_call(U98_testF19_closure.call).
-function_type/function_type99_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U99.testF19#)) for j:closure_call(U99_testF19_closure.call).
-function_type/function_type9_test: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(U9.testF22#)) for j:closure_call(U9_testF22_closure.call).
+function_type/function_type11_test: RuntimeError
+function_type/function_type23_test: RuntimeError
+function_type/function_type35_test: RuntimeError
+function_type/function_type37_test: RuntimeError
+function_type/function_type38_test: RuntimeError
+function_type/function_type39_test: RuntimeError
+function_type/function_type40_test: RuntimeError
+function_type/function_type41_test: RuntimeError
+function_type/function_type42_test: RuntimeError
+function_type/function_type43_test: RuntimeError
+function_type/function_type55_test: RuntimeError
+function_type/function_type67_test: RuntimeError
+function_type/function_type68_test: RuntimeError
+function_type/function_type69_test: RuntimeError
+function_type/function_type70_test: RuntimeError
+function_type/function_type71_test: RuntimeError
+function_type/function_type72_test: RuntimeError
+function_type/function_type73_test: RuntimeError
+function_type/function_type74_test: RuntimeError
+function_type/function_type75_test: RuntimeError
+function_type/function_type76_test: RuntimeError
+function_type/function_type77_test: RuntimeError
+function_type/function_type78_test: RuntimeError
+function_type/function_type79_test: RuntimeError
+function_type/function_type91_test: RuntimeError
+function_type/function_type92_test: RuntimeError
+function_type/function_type93_test: RuntimeError
+function_type/function_type94_test: RuntimeError
+function_type/function_type95_test: RuntimeError
+function_type/function_type97_test: RuntimeError
+function_type/function_type98_test: RuntimeError
+function_type/function_type99_test: RuntimeError
 function_type_alias10_test: RuntimeError
 function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
