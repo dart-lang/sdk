@@ -28,9 +28,7 @@ class ClassMemberParser extends Parser {
 
   @override
   Token parseIdentifierExpression(Token token) {
-    // TODO(brianwilkerson) Return token.next when super implementation of
-    // parseIdentifierExpression accepts the last consumed token.
-    return token;
+    return token.next;
   }
 
   @override
