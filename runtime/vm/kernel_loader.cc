@@ -482,10 +482,6 @@ Object& KernelLoader::LoadProgram(bool process_pending_classes) {
     NameIndex main_library = H.EnclosingName(main);
     Library& library = LookupLibrary(main_library);
 
-    // Sanity check that we can find the main entrypoint.
-    ASSERT(library.LookupObjectAllowPrivate(H.DartSymbol("main")) !=
-           Object::null());
-
     return library;
   }
 
