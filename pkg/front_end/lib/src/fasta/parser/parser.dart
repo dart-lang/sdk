@@ -1018,10 +1018,10 @@ class Parser {
       ++parameterCount;
       String value = next.stringValue;
       if (identical(value, '[')) {
-        token = parseOptionalFormalParameters(token, false, kind).next;
+        token = parseOptionalPositionalParameters(token, kind).next;
         break;
       } else if (identical(value, '{')) {
-        token = parseOptionalFormalParameters(token, true, kind).next;
+        token = parseOptionalNamedParameters(token, kind).next;
         break;
       } else if (identical(value, '[]')) {
         --parameterCount;
@@ -1081,46 +1081,56 @@ class Parser {
   /// defaultFormalParameter:
   ///   normalFormalParameter ('=' expression)?
   /// ;
-  ///
+  /// ```
+  Token parseOptionalPositionalParameters(Token token, MemberKind kind) {
+    Token begin = token = token.next;
+    assert(optional('[', token));
+    listener.beginOptionalFormalParameters(begin);
+    int parameterCount = 0;
+    do {
+      Token next = token.next;
+      if (optional(']', next)) {
+        token = next;
+        break;
+      }
+      var type = FormalParameterKind.optionalPositional;
+      token = parseFormalParameter(token, type, kind).next;
+      ++parameterCount;
+    } while (optional(',', token));
+    if (parameterCount == 0) {
+      reportRecoverableError(token, fasta.messageEmptyOptionalParameterList);
+    }
+    listener.endOptionalFormalParameters(parameterCount, begin, token);
+    expect(']', token);
+    return token;
+  }
+
+  /// ```
   /// defaultNamedParameter:
   ///   normalFormalParameter ('=' expression)? |
   ///   normalFormalParameter (':' expression)?
   /// ;
   /// ```
-  Token parseOptionalFormalParameters(
-      Token token, bool isNamed, MemberKind kind) {
+  Token parseOptionalNamedParameters(Token token, MemberKind kind) {
     Token begin = token = token.next;
-    assert(isNamed ? optional('{', token) : optional('[', token));
+    assert(optional('{', token));
     listener.beginOptionalFormalParameters(begin);
     int parameterCount = 0;
     do {
       Token next = token.next;
-      if (isNamed && optional('}', next)) {
-        token = next;
-        break;
-      } else if (!isNamed && optional(']', next)) {
+      if (optional('}', next)) {
         token = next;
         break;
       }
-      var type = isNamed
-          ? FormalParameterKind.optionalNamed
-          : FormalParameterKind.optionalPositional;
+      var type = FormalParameterKind.optionalNamed;
       token = parseFormalParameter(token, type, kind).next;
       ++parameterCount;
     } while (optional(',', token));
     if (parameterCount == 0) {
-      reportRecoverableError(
-          token,
-          isNamed
-              ? fasta.messageEmptyNamedParameterList
-              : fasta.messageEmptyOptionalParameterList);
+      reportRecoverableError(token, fasta.messageEmptyNamedParameterList);
     }
     listener.endOptionalFormalParameters(parameterCount, begin, token);
-    if (isNamed) {
-      expect('}', token);
-    } else {
-      expect(']', token);
-    }
+    expect('}', token);
     return token;
   }
 
