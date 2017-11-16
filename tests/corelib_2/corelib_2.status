@@ -46,7 +46,7 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ $compiler == none || $compiler == precompiler || $compiler == dart2js ]
+[ $compiler == none || $compiler == app_jit || $compiler == precompiler || $compiler == dart2js ]
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$strong ]
@@ -520,7 +520,7 @@ error_stack_trace1_test: Skip  # Expects unobfuscated stack trace
 [ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
 list_concurrent_modify_test: Crash # Issue 30559
 
-[ $compiler == dartk && !$strong ]
+[ ($compiler == dartk || $compiler == dartkp) && !$strong ]
 *: SkipByDesign
 
 [ $compiler == dartk && $strong ]
@@ -533,6 +533,7 @@ list_insert_all_test: RuntimeError
 [ $compiler == dartkp && $strong ]
 regexp/stack-overflow_test: RuntimeError
 iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
 
 [ ($compiler == dartk || $compiler == dartkp) && $strong ]
 bool_from_environment2_test/01: MissingCompileTimeError
