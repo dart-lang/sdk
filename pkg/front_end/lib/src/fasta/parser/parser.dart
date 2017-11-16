@@ -563,10 +563,8 @@ class Parser {
       Token start = token.next;
 
       // Check for extraneous token in the middle of an import statement.
-      // TODO(brianwilkerson) Remove the invocation of `previous` when
-      // `skipUnexpectedTokenOpt` returns the last consumed token.
-      token = skipUnexpectedTokenOpt(start,
-          const <String>['if', 'deferred', 'as', 'hide', 'show', ';']).previous;
+      token = skipUnexpectedTokenOpt(
+          token, const <String>['if', 'deferred', 'as', 'hide', 'show', ';']);
 
       // During recovery, clauses are parsed in the same order
       // and generate the same events as in the parseImport method above.
@@ -956,12 +954,10 @@ class Parser {
   /// Parse a mixin application starting from `with`. Assumes that the first
   /// type has already been parsed.
   Token parseMixinApplicationRest(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
-    listener.beginMixinApplication(token);
-    Token withKeyword = token;
-    expect('with', token);
-    token = parseTypeList(token).next;
+    Token withKeyword = token.next;
+    listener.beginMixinApplication(withKeyword);
+    expect('with', withKeyword);
+    token = parseTypeList(withKeyword);
     listener.endMixinApplication(withKeyword);
     return token;
   }
@@ -1341,7 +1337,7 @@ class Parser {
     Token equals = token = token.next;
     assert(optional('=', equals));
     token = parseType(token.next);
-    token = parseMixinApplicationRest(token.next);
+    token = parseMixinApplicationRest(token).next;
     Token implementsKeyword = null;
     if (optional('implements', token)) {
       implementsKeyword = token;
@@ -1414,26 +1410,29 @@ class Parser {
       start = token;
 
       // Check for extraneous token in the middle of a class header.
+      // TODO(brianwilkerson): Remove the invocation of `previous` when
+      // `parseClassHeader` returns the last consumed token.
       token = skipUnexpectedTokenOpt(
-          token, const <String>['extends', 'with', 'implements', '{']);
+          token.previous, const <String>['extends', 'with', 'implements', '{']);
 
       // During recovery, clauses are parsed in the same order
       // and generate the same events as in the parseClassHeader method above.
       recoveryListener.clear();
-      if (optional('with', token)) {
+      Token next = token.next;
+      if (optional('with', next)) {
         // If there is a `with` clause without a preceding `extends` clause
         // then insert a synthetic `extends` clause and parse both clauses.
         Token extendsKeyword =
-            new SyntheticKeywordToken(Keyword.EXTENDS, token.offset);
+            new SyntheticKeywordToken(Keyword.EXTENDS, next.offset);
         Token superclassToken = new SyntheticStringToken(
-            TokenType.IDENTIFIER, 'Object', token.offset);
-        rewriter.insertToken(extendsKeyword, token);
-        rewriter.insertToken(superclassToken, token);
+            TokenType.IDENTIFIER, 'Object', next.offset);
+        rewriter.insertToken(extendsKeyword, next);
+        rewriter.insertToken(superclassToken, next);
         token = parseType(extendsKeyword.next);
-        token = parseMixinApplicationRest(token.next);
+        token = parseMixinApplicationRest(token).next;
         listener.handleClassExtends(extendsKeyword);
       } else {
-        token = parseClassExtendsOpt(token);
+        token = parseClassExtendsOpt(token.next);
 
         if (recoveryListener.extendsKeyword != null) {
           if (hasExtends) {
@@ -1496,7 +1495,7 @@ class Parser {
       Token extendsKeyword = token;
       token = parseType(token.next);
       if (optional('with', token.next)) {
-        token = parseMixinApplicationRest(token.next);
+        token = parseMixinApplicationRest(token).next;
       } else {
         token = token.next;
       }
@@ -2992,16 +2991,16 @@ class Parser {
     return rewriter.insertToken(newToken, token);
   }
 
-  /// Report the given token as unexpected and return the next token
-  /// if the next token is one of the [expectedNext],
-  /// otherwise just return the given token.
+  /// Report the given token as unexpected and return the next token if the next
+  /// token is one of the [expectedNext], otherwise just return the given token.
   Token skipUnexpectedTokenOpt(Token token, List<String> expectedNext) {
-    if (token.keyword == null) {
-      final String nextValue = token.next.stringValue;
+    Token next = token.next;
+    if (next.keyword == null) {
+      final String nextValue = next.next.stringValue;
       for (String expectedValue in expectedNext) {
         if (identical(nextValue, expectedValue)) {
-          reportRecoverableErrorWithToken(token, fasta.templateUnexpectedToken);
-          return token.next;
+          reportRecoverableErrorWithToken(next, fasta.templateUnexpectedToken);
+          return next;
         }
       }
     }
