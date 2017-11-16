@@ -1363,24 +1363,23 @@ class Parser {
   Token parseClass(Token token, Token begin, Token classKeyword) {
     Token start = token;
     token = parseClassHeader(token, begin, classKeyword);
-    if (!optional('{', token)) {
+    if (!optional('{', token.next)) {
       // Recovery
       token = parseClassHeaderRecovery(start, begin, classKeyword);
     }
-    token = parseClassBody(token, start.next);
+    token = parseClassBody(token.next, start.next);
     listener.endClassDeclaration(begin, token);
     return token;
   }
 
   Token parseClassHeader(Token token, Token begin, Token classKeyword) {
-    // TODO(brianwilkerson) Return the last consumed token.
     // TODO(brianwilkerson): Rename to `parseClassHeaderOpt`?
-    token = parseClassExtendsOpt(token.next);
+    token = parseClassExtendsOpt(token);
     token = parseClassImplementsOpt(token);
     Token nativeToken;
-    if (optional('native', token)) {
-      nativeToken = token;
-      token = parseNativeClause(nativeToken).next;
+    if (optional('native', token.next)) {
+      nativeToken = token.next;
+      token = parseNativeClause(nativeToken);
     }
     listener.handleClassHeader(begin, classKeyword, nativeToken);
     return token;
@@ -1388,7 +1387,6 @@ class Parser {
 
   /// Recover given out-of-order clauses in a class header.
   Token parseClassHeaderRecovery(Token token, Token begin, Token classKeyword) {
-    // TODO(brianwilkerson) Return the last consumed token.
     final primaryListener = listener;
     final recoveryListener = new ClassHeaderRecoveryListener(primaryListener);
 
@@ -1410,10 +1408,8 @@ class Parser {
       start = token;
 
       // Check for extraneous token in the middle of a class header.
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `parseClassHeader` returns the last consumed token.
       token = skipUnexpectedTokenOpt(
-          token.previous, const <String>['extends', 'with', 'implements', '{']);
+          token, const <String>['extends', 'with', 'implements', '{']);
 
       // During recovery, clauses are parsed in the same order
       // and generate the same events as in the parseClassHeader method above.
@@ -1429,10 +1425,10 @@ class Parser {
         rewriter.insertToken(extendsKeyword, next);
         rewriter.insertToken(superclassToken, next);
         token = parseType(extendsKeyword.next);
-        token = parseMixinApplicationRest(token).next;
+        token = parseMixinApplicationRest(token);
         listener.handleClassExtends(extendsKeyword);
       } else {
-        token = parseClassExtendsOpt(token.next);
+        token = parseClassExtendsOpt(token);
 
         if (recoveryListener.extendsKeyword != null) {
           if (hasExtends) {
@@ -1478,7 +1474,7 @@ class Parser {
       listener.handleRecoverClassHeader();
 
       // Exit if a class body is detected, or if no progress has been made
-    } while (!optional('{', token) && start != token);
+    } while (!optional('{', token.next) && start != token);
 
     if (withKeyword != null && !hasExtends) {
       reportRecoverableError(withKeyword, fasta.messageWithWithoutExtends);
@@ -1489,19 +1485,18 @@ class Parser {
   }
 
   Token parseClassExtendsOpt(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
-    if (optional('extends', token)) {
-      Token extendsKeyword = token;
-      token = parseType(token.next);
+    Token next = token.next;
+    if (optional('extends', next)) {
+      Token extendsKeyword = next;
+      token = parseType(next.next);
       if (optional('with', token.next)) {
-        token = parseMixinApplicationRest(token).next;
+        token = parseMixinApplicationRest(token);
       } else {
-        token = token.next;
+        token = token;
       }
       listener.handleClassExtends(extendsKeyword);
     } else {
-      listener.handleNoType(token);
+      listener.handleNoType(next);
       listener.handleClassExtends(null);
     }
     return token;
@@ -1513,16 +1508,14 @@ class Parser {
   /// ;
   /// ```
   Token parseClassImplementsOpt(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     Token implementsKeyword;
     int interfacesCount = 0;
-    if (optional('implements', token)) {
-      implementsKeyword = token;
+    if (optional('implements', token.next)) {
+      implementsKeyword = token.next;
       do {
-        token = parseType(token.next).next;
+        token = parseType(token.next.next);
         ++interfacesCount;
-      } while (optional(',', token));
+      } while (optional(',', token.next));
     }
     listener.handleClassImplements(implementsKeyword, interfacesCount);
     return token;
