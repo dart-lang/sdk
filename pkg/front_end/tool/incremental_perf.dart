@@ -56,6 +56,7 @@ import 'package:front_end/physical_file_system.dart';
 import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:kernel/target/flutter.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/target/vm.dart';
 
 main(List<String> args) async {
   var options = argParser.parse(args);
@@ -71,10 +72,15 @@ main(List<String> args) async {
       parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
 
   var overlayFs = new OverlayFileSystem();
+  var targetFlags = new TargetFlags(strongMode: options['mode'] == 'strong');
   var compilerOptions = new CompilerOptions()
     ..fileSystem = overlayFs
+    ..strongMode = (options['mode'] == 'strong')
     ..reportMessages = true
-    ..onError = onErrorHandler;
+    ..onError = onErrorHandler
+    ..target = options['target'] == 'flutter'
+        ? new FlutterTarget(targetFlags)
+        : new VmTarget(targetFlags);
 
   if (options['sdk-summary'] != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(options["sdk-summary"]);
@@ -82,16 +88,14 @@ main(List<String> args) async {
     compilerOptions.librariesSpecificationUri =
         _resolveOverlayUri(options["sdk-library-specification"]);
   }
-  if (options['target'] == 'flutter') {
-    compilerOptions.target = new FlutterTarget(new TargetFlags());
-  }
 
   var dir = Directory.systemTemp.createTempSync('ikg-cache');
   compilerOptions.byteStore = createByteStore(options['cache'], dir.path);
 
   var timer1 = new Stopwatch()..start();
-  var generator =
-      await IncrementalKernelGenerator.newInstance(compilerOptions, entryUri);
+  var generator = await IncrementalKernelGenerator.newInstance(
+      compilerOptions, entryUri,
+      useMinimalGenerator: options['implementation'] == 'minimal');
 
   var delta = await generator.computeDelta();
   generator.acceptLastDelta();
@@ -254,6 +258,14 @@ ArgParser argParser = new ArgParser()
       help: 'caching policy used by the compiler',
       defaultsTo: 'protected',
       allowed: ['evicting', 'memory', 'protected'])
+  ..addOption('mode',
+      help: 'whether to run in strong or legacy mode',
+      defaultsTo: 'strong',
+      allowed: ['legacy', 'strong'])
+  ..addOption('implementation',
+      help: 'incremental compiler implementation to use',
+      defaultsTo: 'driver',
+      allowed: ['driver', 'minimal'])
   ..addOption('sdk-summary', help: 'Location of the sdk outline.dill file')
   ..addOption('sdk-library-specification',
       help: 'Location of the '
