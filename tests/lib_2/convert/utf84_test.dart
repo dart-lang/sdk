@@ -4,7 +4,6 @@
 
 import 'package:expect/expect.dart';
 import 'dart:convert';
-import 'dart:typed_data' show Uint8List;
 
 const String testEnglishPhrase = "The quick brown fox jumps over the lazy dog.";
 
@@ -622,33 +621,19 @@ const List<int> testKatakanaUtf8 = const <int>[
 ];
 
 void main() {
+  testUtf8bytesToCodepoints();
+  testUtf8BytesToString();
   testEncodeToUtf8();
-
-  String decodeUtf8List(List<int> codeUnits) => utf8.decode(codeUnits);
-  String decodeUtf8Uint8List(List<int> codeUnits) =>
-      UTF8.decode(new Uint8List.fromList(codeUnits));
-
-  testUtf8BytesToString(decodeUtf8List);
-  testUtf8BytesToString(decodeUtf8Uint8List);
-
-  List<int> utf8ToRunes1(List<int> codeUnits) {
-    return utf8.decode(codeUnits, allowMalformed: true).runes.toList();
-  }
-
-  List<int> utf8ToRunes2(List<int> codeUnits) {
-    return utf8
-        .decode(new Uint8List.fromList(codeUnits), allowMalformed: true)
-        .runes
-        .toList();
-  }
-
-  testUtf8bytesToCodepoints(utf8ToRunes1);
-  testUtf8bytesToCodepoints(utf8ToRunes2);
 }
 
-void testEncodeToUtf8() {
-  List<int> encodeUtf8(String str) => UTF8.encode(str);
+List<int> encodeUtf8(String str) => utf8.encode(str);
+List<int> utf8ToRunes(List<int> codeUnits) {
+  return utf8.decode(codeUnits, allowMalformed: true).runes.toList();
+}
 
+String decodeUtf8(List<int> codeUnits) => utf8.decode(codeUnits);
+
+void testEncodeToUtf8() {
   Expect.listEquals(
       testEnglishUtf8, encodeUtf8(testEnglishPhrase), "english to utf8");
 
@@ -668,7 +653,7 @@ void testEncodeToUtf8() {
       testKatakanaUtf8, encodeUtf8(testKatakanaPhrase), "Katakana to utf8");
 }
 
-void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
+void testUtf8bytesToCodepoints() {
   Expect.listEquals(
       [954, 972, 963, 956, 949],
       utf8ToRunes([0xce, 0xba, 0xcf, 0x8c, 0xcf, 0x83, 0xce, 0xbc, 0xce, 0xb5]),
@@ -991,7 +976,7 @@ void testUtf8bytesToCodepoints(List<int> utf8ToRunes(List<int> utf8)) {
   Expect.listEquals([0xffff], utf8ToRunes([0xef, 0xbf, 0xbf]), "U+FFFF");
 }
 
-void testUtf8BytesToString(String decodeUtf8(List<int> input)) {
+void testUtf8BytesToString() {
   Expect.stringEquals(
       testEnglishPhrase, decodeUtf8(testEnglishUtf8), "English");
 
