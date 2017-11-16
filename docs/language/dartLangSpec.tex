@@ -209,15 +209,15 @@ When the specification introduces a fresh variable bound to a value, the fresh v
 References to otherwise unspecified names of program entities (such as classes or functions) are interpreted as the names of members of the Dart core library.
 
 \commentary{
-Examples would be the classes \code{Object} and \code{Type} representing the root of the class hierarchy and the reification of runtime types respectively.
+Examples would be the classes \code{Object} and \code{Type} representing the root of the class hierarchy and the reification of run-time types respectively.
 }
 
 \LMHash{}
-When the specification says that one piece of syntax {\em is equivalent to} another piece of syntax, it means that it is equivalent in all ways, and the former syntax should generate the same static warnings and have the same runtime behavior as the latter.
+When the specification says that one piece of syntax {\em is equivalent to} another piece of syntax, it means that it is equivalent in all ways, and the former syntax should generate the same static warnings and have the same run-time behavior as the latter.
 \commentary {
 Error messages, if any, should always refer to the original syntax.
 }
-If execution or evaluation of a construct is said to be equivalent to execution or evaluation of another construct, then only the runtime behavior is equivalent, and only the static warnings or errors mentioned for the original syntax applies.
+If execution or evaluation of a construct is said to be equivalent to execution or evaluation of another construct, then only the run-time behavior is equivalent, and only the static warnings or errors mentioned for the original syntax applies.
 
 \section{Overview}
 \LMLabel{overview}
@@ -243,9 +243,9 @@ In checked mode, assignments are dynamically checked, and certain violations of 
 \commentary{
 The coexistence between optional typing and reification is based on the following:
 \begin{enumerate}
-\item Reified type information reflects the types of objects at runtime and may always be queried by dynamic typechecking constructs (the analogs of instanceOf, casts, typecase etc. in other languages). Reified type information includes class declarations, the runtime type (aka class) of an object, and type arguments to constructors.
+\item Reified type information reflects the types of objects at run time and may always be queried by dynamic typechecking constructs (the analogs of instanceOf, casts, typecase etc. in other languages). Reified type information includes class declarations, the run-time type (aka class) of an object, and type arguments to constructors.
 \item Static type annotations determine the types of variables and function declarations (including methods and constructors).
-\item Production mode respects optional typing. Static type annotations do not affect runtime behavior.
+\item Production mode respects optional typing. Static type annotations do not affect run-time behavior.
 \item Checked mode utilizes static type annotations and dynamic type information aggressively yet selectively to provide early error detection during development.
 \end{enumerate}
 }
@@ -395,7 +395,7 @@ a program that interfaces between the engine and the surrounding computing envir
 }
 
 \LMHash{}
-{\em Static  warnings} are those errors reported by the static checker. They have no effect on execution. Many, but not all, static warnings relate to types, in which case they are known as {\em static type warnings.} Static warnings must be provided by Dart compilers used during development such as those incorporated in IDEs or otherwise intended to be used by developers for developing code. Compilers that are part of runtime execution environments such as virtual machines should not issue static warnings.
+{\em Static  warnings} are those errors reported by the static checker. They have no effect on execution. Many, but not all, static warnings relate to types, in which case they are known as {\em static type warnings.} Static warnings must be provided by Dart compilers used during development such as those incorporated in IDEs or otherwise intended to be used by developers for developing code. Compilers that are part of run-time execution environments such as virtual machines should not issue static warnings.
 
 \LMHash{}
 {\em Dynamic type errors} are type errors reported in checked mode.
@@ -471,7 +471,7 @@ It is a static warning and a dynamic error to assign to a final local variable.
 
 A library or static variable is guaranteed to have an initializer at its declaration by the grammar.
 
-Attempting to assign to a final variable anywhere except in its declaration or in a constructor header  will cause a runtime error to be thrown as discussed below. The assignment will also give rise to a static warning. Any repeated assignment to a final variable will also lead to a runtime error.
+Attempting to assign to a final variable anywhere except in its declaration or in a constructor header will cause a run-time error to be thrown as discussed below. The assignment will also give rise to a static warning. Any repeated assignment to a final variable will also lead to a run-time error.
 
 Taken as a whole, the rules ensure that any attempt to execute multiple assignments to a final variable will yield static warnings and repeated assignments will fail dynamically.
 }
@@ -513,16 +513,16 @@ The example below illustrates the expected behavior.  A variable $x$ is declared
 f(y) \{
   \VAR{} z = x; // compile-time error
   if (y) \{
-    x = x + 1; // two compile time errors
-    print(x); // compile time error
+    x = x + 1; // two compile-time errors
+    print(x); // compile-time error
   \}
- \VAR{} x = x++; // compile time error
+ \VAR{} x = x++; // compile-time error
  print(x);
 \}
 \end{dartCode}
 
 \commentary{
-The declaration inside $f$ hides the enclosing one.  So all references to $x$ inside $f$ refer to the inner declaration of $x$. However, many of these references are illegal, because they appear before the declaration. The assignment to $z$ is one such case. The assignment to $x$ in the \IF{} statement suffers from multiple problems. The right hand side reads $x$ before its declaration, and the left hand side assigns to $x$ before its declaration. Each of these are, independently, compile time errors.  The print statement inside the \IF{} is also illegal.
+The declaration inside $f$ hides the enclosing one.  So all references to $x$ inside $f$ refer to the inner declaration of $x$. However, many of these references are illegal, because they appear before the declaration. The assignment to $z$ is one such case. The assignment to $x$ in the \IF{} statement suffers from multiple problems. The right hand side reads $x$ before its declaration, and the left hand side assigns to $x$ before its declaration. Each of these are, independently, compile-time errors.  The print statement inside the \IF{} is also illegal.
 
 The inner declaration of $x$ is itself erroneous because its right hand side attempts to read $x$ before the declaration has terminated.  The left hand side is not, technically, a reference or an assignment but a declaration and so is legal.  The last print statement is perfectly legal as well.
 }
@@ -595,7 +595,7 @@ Let $d$ be the declaration of a static or instance variable $v$.  If $d$ is an i
 If $d$ is a static or library variable then the implicit getter method of $v$ executes as follows:
 \begin{itemize}
 \item {\bf Non-constant variable declaration with initializer}. If $d$ is of one of the forms \code{\VAR{} $v$ = $e$;} ,  \code{$T$ $v$ = $e$;} ,   \code{\FINAL{} $v$ = $e$;} ,  \code{\FINAL{} $T$ $v$ = $e$;}, \code{\STATIC{} $v$ = $e$; }, \code{\STATIC{} $T$ $v$ = $e$; }, \code{\STATIC{} \FINAL{} $v$ = $e$; } or \code{\STATIC{} \FINAL{} $T$ $v$ = $e$;} and no value has yet been stored into $v$ then the initializer expression $e$ is evaluated. If, during the evaluation of $e$, the getter for $v$ is invoked, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r = o$, otherwise let $r = \NULL{}$. In any case, $r$ is stored into $v$. The result of executing the getter is $r$.
-\item  {\bf Constant variable declaration}. If $d$ is of one of the forms \code{\CONST{} $v$ = $e$; } ,  \code{\CONST{} $T$  $v$ = $e$; },  \code{\STATIC{} \CONST{} $v$ = $e$; }  or \code{\STATIC{} \CONST{} $T$ $v$ = $e$;} the result of the getter is the value of the compile time constant $e$. \commentary{Note that a compile time constant cannot depend on itself, so no cyclic references can occur.}
+\item  {\bf Constant variable declaration}. If $d$ is of one of the forms \code{\CONST{} $v$ = $e$; } ,  \code{\CONST{} $T$  $v$ = $e$; },  \code{\STATIC{} \CONST{} $v$ = $e$; }  or \code{\STATIC{} \CONST{} $T$ $v$ = $e$;} the result of the getter is the value of the compile-time constant $e$. \commentary{Note that a compile-time constant cannot depend on itself, so no cyclic references can occur.}
 Otherwise
 \item {\bf Variable declaration without initializer}. The result of executing the getter method is the value stored in $v$.
 \end{itemize}
@@ -883,10 +883,10 @@ Let $F$ be a function with required formal parameters $T_1$ $p_1 \ldots, T_n$ $p
 Let $F$ be a function with required formal parameters $T_1$ $p_1 \ldots, T_n$ $p_n$, return type $T_0$ and named optional parameters $T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$ $ p_{n+k}$. Then the type of $F$ is $(T_1 ,\ldots, T_n, \{T_{n+1}$ $p_{n+1}, \ldots, T_{n+k}$  $p_{n+k}\}) \rightarrow T_0$.
 
 \LMHash{}
-The run time type of a function object always implements the class \cd{Function}.
+The run-time type of a function object always implements the class \cd{Function}.
 
 \commentary{
-One cannot assume, based on the above, that  given a function \cd{f}, \cd{f.runtimeType} will actually be \cd{Function}, or that any two distinct function objects necessarily have the same runtime type.
+One cannot assume, based on the above, that  given a function \cd{f}, \cd{f.runtimeType} will actually be \cd{Function}, or that any two distinct function objects necessarily have the same run-time type.
 }
 
 \rationale{
@@ -906,7 +906,7 @@ External functions allow us to introduce  type information for code that is not 
 }
 
 \commentary{
-Examples of external functions might be foreign functions (defined in C, or Javascript etc.), primitives of the implementation (as defined by the Dart runtime), or code that was dynamically generated but whose interface is statically known. However, an abstract method is different from an external function, as it has {\em no} body.
+Examples of external functions might be foreign functions (defined in C, or Javascript etc.), primitives of the implementation (as defined by the Dart run-time system), or code that was dynamically generated but whose interface is statically known. However, an abstract method is different from an external function, as it has {\em no} body.
 }
 
 \LMHash{}
@@ -1052,7 +1052,7 @@ It is a compile-time error if a class has an instance member and a static member
 \end{dartCode}
 
 \LMHash{}
-It is a compile time error if a class $C$ declares a member with the same name as $C$. It is a compile time error if a generic class declares a type variable with the same name as the class or any of its members or constructors.
+It is a compile-time error if a class $C$ declares a member with the same name as $C$. It is a compile-time error if a generic class declares a type variable with the same name as the class or any of its members or constructors.
 
 \subsection{Instance Methods}
 \LMLabel{instanceMethods}
@@ -1302,7 +1302,7 @@ It is a compile-time error if an instance variable is declared to be constant.
 The notion of a constant instance variable is subtle and confusing to programmers.
 An instance variable is intended to vary per instance. A constant instance variable would have the same value for all instances, and as such is already a dubious idea.
 
-The language could interpret const instance variable declarations as instance getters that return a constant.  However, a constant instance variable could not be treated as a true compile time constant, as its getter would be subject to overriding.
+The language could interpret const instance variable declarations as instance getters that return a constant.  However, a constant instance variable could not be treated as a true compile-time constant, as its getter would be subject to overriding.
 
 Given that the value does not depend on  the instance, it is better to use a static class variable.
 An instance getter for it can always be defined manually if desired.
@@ -1390,7 +1390,7 @@ The type of the constructor is defined in terms of its formal parameters, includ
 \LMHash{}
 Initializing formals are executed during the execution of generative constructors detailed below.
 Executing an initializing formal \code{\THIS{}.$id$} causes the instance variable $id$ of the immediately surrounding class to be assigned the value of the corresponding actual parameter,
-unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
+unless $id$ is a final variable that has already been initialized, in which case a run-time error occurs.
 
 \commentary{
 The above rule allows initializing formals to be used as optional parameters:
@@ -1654,7 +1654,7 @@ Default values specified in $k$ would be ignored, since it is the {\em actual} p
 \LMHash{}
 It is a run-time error if a redirecting factory constructor redirects to itself, either directly or indirectly via a sequence of redirections. %does not redirect to a non-redirecting factory constructor or to a generative constructor in a finite number of steps.
 
-% Make this a runtime error so deferred loading works
+% Make this a run-time error so deferred loading works
 
 \rationale{
 If a redirecting factory $F_1$ redirects to another redirecting factory $F_2$ and $F_2$ then redirects to $F_1$, then both $F_1$ and $F_2$ are ill-defined. Such cycles are therefore illegal.
@@ -1883,7 +1883,7 @@ It is a static warning if a class $C$ declares a static method named $n$ and has
 %Let $d$ be the declaration of a static variable $v$. The implicit getter method of $v$ executes as follows:
 %\begin{itemize}
 %\item If $d$ is of one of the forms \code{\STATIC{} \VAR{} $v$ = $e$;} , \code{\STATIC{} $T$ $v$ = $e$; }, \code{\STATIC{} \FINAL{} $v$ = $e$; } or \code{\STATIC{} \FINAL{} $T$ $v$ = $e$;} and no value has yet been stored into $v$ then the initializer expression $e$ is evaluated. If, during the evaluation of $e$, the getter for $v$ is referenced, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r = o$, otherwise let $r = \NULL{}$. In any case, $r$ is stored into $v$. The result of executing the getter is $r$.
-%\item  If $d$ is of one of the forms \code{\STATIC{} \CONST{} $v$ = $e$; } or \code{\STATIC{} \CONST{} $T$ $v$ = $e$;} the result of the getter is the value of the compile time constant $e$.
+%\item  If $d$ is of one of the forms \code{\STATIC{} \CONST{} $v$ = $e$; } or \code{\STATIC{} \CONST{} $T$ $v$ = $e$;} the result of the getter is the value of the compile-time constant $e$.
 %Otherwise
 %\item The result of executing the getter method is the value stored in $v$.
 %\end{itemize}
@@ -2201,7 +2201,7 @@ Then $I$ has a method named $n$, with $r$ required parameters of type \DYNAMIC{}
 
 
 
-\commentary{The only situation where the runtime would be concerned with this would be during reflection, if a mirror attempted to obtain the signature of an interface member.
+\commentary{The only situation where the run-time system would be concerned with this would be during reflection, if a mirror attempted to obtain the signature of an interface member.
 }
 
 \rationale{
@@ -2269,7 +2269,7 @@ $q'_i(a_{i1}, \ldots , a_{ik_i}):\SUPER(a_{i1}, \ldots , a_{ik_i});$.
 If the mixin application declares support for interfaces, the resulting class implements those interfaces.
 
 \LMHash{}
-It is a compile-time error if $S$ is an enumerated type (\ref{enums}) or a malformed type. It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$) is an enumerated type (\ref{enums}) or a malformed type. It is a compile time error if a well formed mixin cannot be derived from $M$ (respectively, from each of $M_1, \ldots, M_k$).
+It is a compile-time error if $S$ is an enumerated type (\ref{enums}) or a malformed type. It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$) is an enumerated type (\ref{enums}) or a malformed type. It is a compile-time error if a well formed mixin cannot be derived from $M$ (respectively, from each of $M_1, \ldots, M_k$).
 
 \LMHash{}
 Let $K$ be a class declaration  with the same constructors, superclass and interfaces as $C$,  and the instance members declared by $M$ (respectively $M_1, \ldots, M_k$). It is a static warning if the declaration of $K$ would cause a static warning.  It is a compile-time error if the declaration of $K$ would cause a compile-time error.
@@ -2460,7 +2460,7 @@ The normative versions of these  are given in the appropriate sections of this s
 %\subsection{Interface Injection}
 %\LMLabel{interfaceInjection}
 
-%An {\em interface injection declaration} causes a pre-existing class $S$ to be considered a subinterface of another interface $I$. It is a static type warning if $S$ is not a structural subtype of $I$. However, the subinterface relations implied by the interface injection declaration are considered to hold by both the typechecker and the runtime, regardless.
+%An {\em interface injection declaration} causes a pre-existing class $S$ to be considered a subinterface of another interface $I$. It is a static type warning if $S$ is not a structural subtype of $I$. However, the subinterface relations implied by the interface injection declaration are considered to hold by both the typechecker and the run-time system, regardless.
 
 %\begin{grammar}
 %classInterfaceInjection:
@@ -2500,21 +2500,21 @@ Dart supports metadata which is used to attach user defined annotations to progr
 \end{grammar}
 
 \LMHash{}
-Metadata consists of a series of annotations, each of which begin with the character @, followed by  a constant expression that starts with an identifier. It is a compile time error if the expression is not one of the following:
+Metadata consists of a series of annotations, each of which begin with the character @, followed by  a constant expression that starts with an identifier. It is a compile-time error if the expression is not one of the following:
 \begin{itemize}
 \item A reference to a compile-time constant variable.
 \item A call to a constant constructor.
 \end{itemize}
 
 \LMHash{}
-Metadata is associated with the abstract syntax tree of the program construct $p$ that immediately follows the metadata, assuming $p$ is not itself metadata or a comment. Metadata can be retrieved at runtime via a reflective call, provided the annotated program construct $p$ is accessible via reflection.
+Metadata is associated with the abstract syntax tree of the program construct $p$ that immediately follows the metadata, assuming $p$ is not itself metadata or a comment. Metadata can be retrieved at run time via a reflective call, provided the annotated program construct $p$ is accessible via reflection.
 
 \commentary{
 Obviously, metadata can also be retrieved statically by parsing the program and evaluating the constants via a suitable interpreter. In fact many if not most uses of metadata are entirely static.
 }
 
 \rationale{
-It is important that no runtime overhead be incurred by the introduction of metadata that is not actually used. Because metadata only involves constants, the time at which it is computed is irrelevant so that implementations may skip the metadata during ordinary parsing and execution and evaluate it lazily.
+It is important that no run-time overhead be incurred by the introduction of metadata that is not actually used. Because metadata only involves constants, the time at which it is computed is irrelevant so that implementations may skip the metadata during ordinary parsing and execution and evaluate it lazily.
 }
 
 \commentary{
@@ -2671,7 +2671,7 @@ It is a compile-time error if an assertion is part of a compile-time constant co
 \commentary{
 Note that there is no requirement that every constant expression evaluate correctly. Only when a constant expression is required (e.g., to initialize a constant variable, or as a default value of a formal parameter, or as metadata) do we insist that a constant expression actually be evaluated successfully at compile time.
 
-The above is not dependent on program control-flow. The mere presence of a required compile time constant whose evaluation would fail within a program is an error.  This also holds recursively: since compound constants are composed out of constants, if any subpart of a constant would throw an exception when evaluated, that is an error.
+The above is not dependent on program control-flow. The mere presence of a required compile-time constant whose evaluation would fail within a program is an error.  This also holds recursively: since compound constants are composed out of constants, if any subpart of a constant would throw an exception when evaluated, that is an error.
 
 On the other hand, since implementations are free to compile code late, some compile-time errors may manifest quite late.
 }
@@ -2702,7 +2702,7 @@ The situation with respect to an invocation \code{m2} is different. Because \cod
 \rationale{
 The treatment of \NULL{} merits some discussion. Consider \code{\NULL{} + 2}.  This expression always causes an error. We could have chosen not to treat it as a constant expression (and in general, not to allow \NULL{} as a subexpression of numeric or boolean constant expressions).  There are two arguments for including it:
 \begin{enumerate}
-\item It is constant. We can evaluate it at compile-time.
+\item It is constant. We can evaluate it at compile time.
 \item It seems more useful to give the error stemming from the evaluation explicitly.
 \end{enumerate}
 }
@@ -3124,16 +3124,16 @@ A {\em list literal} denotes a list, which is an integer indexed collection of o
 \end{grammar}
 
 \LMHash{}
-A list may contain zero or more objects. The number of elements in a list is its size. A list has an associated set of indices.  An empty list has an empty set of indices. A non-empty list has the index set $\{0 \ldots n -1\}$ where $n$ is the size of the list. It is a runtime error to attempt to access a list using an index that is not a member of its set of indices.
+A list may contain zero or more objects. The number of elements in a list is its size. A list has an associated set of indices.  An empty list has an empty set of indices. A non-empty list has the index set $\{0 \ldots n -1\}$ where $n$ is the size of the list. It is a run-time error to attempt to access a list using an index that is not a member of its set of indices.
 
 
 \LMHash{}
-If a list literal begins with the reserved word \CONST{}, it is a {\em constant list literal} which is a compile-time constant (\ref{constants}) and therefore evaluated at compile-time. Otherwise, it is a {\em run-time list literal} and it is evaluated at run-time. Only run-time list literals can be mutated
+If a list literal begins with the reserved word \CONST{}, it is a {\em constant list literal} which is a compile-time constant (\ref{constants}) and therefore evaluated at compile time. Otherwise, it is a {\em run-time list literal} and it is evaluated at run time. Only run-time list literals can be mutated
 after they are created. Attempting to mutate a constant list literal will result in a dynamic error.
 
 \LMHash{}
 It is a compile-time error if an element of a constant list literal is not a compile-time constant. It is a compile-time error if the type argument of a constant list literal includes a type parameter.
-\rationale{The binding of a type parameter is not known at compile-time, so we cannot use type parameters inside compile-time constants.}
+\rationale{The binding of a type parameter is not known at compile time, so we cannot use type parameters inside compile-time constants.}
 
 \LMHash{}
 The value of a constant list literal  \CONST{} $<E>[e_1\ldots e_n]$ is an object $a$ whose class implements the built-in class $List<E>$. The $i$th element of $a$ is $v_{i+1}$, where $v_i$ is the value of the compile-time expression $e_i$.  The value of a constant list literal  \CONST{} $[e_1 \ldots e_n]$ is defined as the value of the constant list literal \CONST{}$ < \DYNAMIC{}>[e_1\ldots e_n]$.
@@ -3163,7 +3163,7 @@ Note that this document does not specify an order in which the elements are set.
 }
 
 \LMHash{}
-A runtime list literal  $[e_1 \ldots e_n]$ is evaluated as  $< \DYNAMIC{}>[e_1\ldots e_n]$.
+A run-time list literal  $[e_1 \ldots e_n]$ is evaluated as  $< \DYNAMIC{}>[e_1\ldots e_n]$.
 
 
 \commentary{
@@ -3175,7 +3175,7 @@ $<List<int>>[[1, 2, 3], [4, 5, 6]]$ is a list with type parameter $List<int>$, c
 The static type of a list literal of the form  \CONST{}$ <E>[e_1\ldots e_n]$  or the form $<E>[e_1 \ldots e_n]$ is $List<E>$. The static type a list literal of the form  \CONST{} $[e_1 \ldots e_n$]  or the form $[e_1\ldots e_n$] is $List< \DYNAMIC{}>$.
 
 \rationale{
-It is tempting to assume that the type of the list literal would be computed based on the types of its elements. However, for mutable lists this may be unwarranted. Even for constant lists, we found this behavior to be problematic. Since compile-time is often actually runtime, the runtime system must be able to perform a complex least upper bound computation to determine a reasonably precise type. It is better to leave this task to a tool in the IDE. It is also much more uniform (and therefore predictable and understandable) to insist that whenever types are unspecified they are assumed to be the unknown type  \DYNAMIC{}.
+It is tempting to assume that the type of the list literal would be computed based on the types of its elements. However, for mutable lists this may be unwarranted. Even for constant lists, we found this behavior to be problematic. Since compile time is often actually run time, the run-time system must be able to perform a complex least upper bound computation to determine a reasonably precise type. It is better to leave this task to a tool in the IDE. It is also much more uniform (and therefore predictable and understandable) to insist that whenever types are unspecified they are assumed to be the unknown type  \DYNAMIC{}.
 }
 
 %Invoking the getter \code{runtimeType} on a list literal returns the \code{Type} object that is the value of the expression \code{List}. The static type of a list literal is \code{List}.
@@ -3202,7 +3202,7 @@ A {\em map literal} denotes a map object.
 A {\em map literal} consists of zero or more entries. Each entry has a {\em key} and a {\em value}.  Each key and each value is denoted by an expression.
 
 \LMHash{}
-If a map literal begins with the reserved word \CONST{}, it is a {\em constant map literal} which is a compile-time constant (\ref{constants}) and therefore evaluated at compile-time. Otherwise, it is a {\em run-time map literal} and it is evaluated at run-time. Only run-time map literals can be mutated
+If a map literal begins with the reserved word \CONST{}, it is a {\em constant map literal} which is a compile-time constant (\ref{constants}) and therefore evaluated at compile time. Otherwise, it is a {\em run-time map literal} and it is evaluated at run time. Only run-time map literals can be mutated
 after they are created. Attempting to mutate a constant map literal will result in a dynamic error.
 
 \LMHash{}
@@ -3220,7 +3220,7 @@ Let $map_1 =$ \CONST{}$ <K, V>\{k_{11}:e_{11} \ldots k_{1n} :e_{1n}\}$ and  $map
 \commentary{In other words, constant map literals are canonicalized.}
 
 \LMHash{}
-A runtime map literal $<K, V>\{k_1:e_1\ldots k_n :e_n\}$  is evaluated as follows:
+A run-time map literal $<K, V>\{k_1:e_1\ldots k_n :e_n\}$  is evaluated as follows:
 \begin{itemize}
 \item
 For each $i \in 1..n$ in numeric order,
@@ -3236,7 +3236,7 @@ The result of the evaluation is $m$.
 
 
 \LMHash{}
-A runtime map literal  $\{k_1:e_1\ldots k_n :e_n\}$ is evaluated as
+A run-time map literal  $\{k_1:e_1\ldots k_n :e_n\}$ is evaluated as
 
 $<\DYNAMIC{},  \DYNAMIC{}>\{k_1:e_1\ldots k_n :e_n\}$.
 
@@ -3515,7 +3515,7 @@ Let $e$ be a new expression of the form
 
 \NEW{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
-%It is a runtime type error if
+%It is a run-time type error if
 %the type $T$  is malformed.
 %It is a static warning if $T$ is a malformed type.
 
@@ -3532,7 +3532,7 @@ If $e$ is of the form \NEW{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots ,
 If $T$ is a parameterized type (\ref{parameterizedTypes}) $S<U_1,  \ldots, U_m>$, let $R = S$.
 %It is a
 %compile-time CHANGED
-%runtime type
+%run-time type
 %error if $S$ is not a generic (\ref{generics}) type with $m$ type parameters.
 If $T$ is not a parameterized type, let $R = T$.
 Furthermore, if $e$ is of the form \NEW{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ then let  $q$ be the constructor  $T.id$, otherwise let $q$ be the constructor $T$.
@@ -3586,7 +3586,7 @@ Otherwise, $q$ is a factory constructor (\ref{factories}). Then:
 \LMHash{}
 If $q$ is a redirecting factory constructor of the form $T(p_1, \ldots, p_{n+k}) = c;$ or of the form  $T.id(p_1, \ldots, p_{n+k}) = c;$ then the result of the evaluation of $e$ is equivalent to evaluating the expression
 
-$[V_1,  \ldots, V_m/T_1,  \ldots, T_m]($\code{\NEW{} $c(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k}))$}.  If evaluation of $q$ causes $q$ to be re-evaluated cyclically, with only factory constructor redirections in-between, a runtime error occurs.
+$[V_1,  \ldots, V_m/T_1,  \ldots, T_m]($\code{\NEW{} $c(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k}))$}.  If evaluation of $q$ causes $q$ to be re-evaluated cyclically, with only factory constructor redirections in-between, a run-time error occurs.
 % Used to not have the "in-between" clause, which would disallow a factory constructor redirecting to another constructor which conditionally calls the original factory constructor again with different arguments.
 
 
@@ -3695,7 +3695,7 @@ In order to determine if an object is actually new, one has to compute it; then 
 If an equivalent object exists in the cache, we throw away the newly created object and use the cached one.
 Objects are equivalent if they have identical type arguments and identical instance variables.
 Since the constructor cannot induce any side effects, the execution of the constructor is unobservable.
-The constructor need only be executed once per call site, at compile-time.
+The constructor need only be executed once per call site, at compile time.
 }
 
 \LMHash{}
@@ -3946,7 +3946,7 @@ If there exists a lexically visible declaration named $id$, let $f_{id}$ be the 
 \item
 If $id$ is a type literal, then $i$ is interpreted as a function expression invocation (ref{functionExpressionInvociation}) with $(id)$ as the expression $e_f$.
 \commentary{
-The expression $(id)$ where $id$ is a type literal always evaluates to an instance of class \code{Type} which is not a function. This ensures that a runtime error occurs when trying to call a type literal.
+The expression $(id)$ where $id$ is a type literal always evaluates to an instance of class \code{Type} which is not a function. This ensures that a run-time error occurs when trying to call a type literal.
 }
 \item
 If $f_{id}$ is a prefix object, a compile-time error occurs.
@@ -3983,7 +3983,7 @@ where $e_f$ is an expression. If $e_f$ is an identifier $id$, then $id$ must nec
 If $e_f$ is a type literal, then it is equivalent to the expression $(e_f)$.
 
 \commentary{
-The expression $(e_f)$ where $e_f$ is a type literal always evaluates to an instance of class \code{Type} which is not a function. This ensures that a runtime error occurs when trying to call a type literal.
+The expression $(e_f)$ where $e_f$ is a type literal always evaluates to an instance of class \code{Type} which is not a function. This ensures that a run-time error occurs when trying to call a type literal.
 }
 
 If $e_f$ is a property extraction expression (\ref{propertyExtraction}), then $i$ isn't a function expression invocation and is instead recognized as an ordinary method invocation (\ref{ordinaryInvocation}).
@@ -5607,7 +5607,7 @@ The static type of a cast expression  \code{$e$ \AS{} $T$}  is $T$.
 \LMLabel{statements}
 
 \LMHash{}
-A {\em statement} is a fragment of Dart code that can be executed at runtime. Statements, unlike expressions, do not evaluate to a value, but are instead executed for their effect on the program state and control flow.
+A {\em statement} is a fragment of Dart code that can be executed at run time. Statements, unlike expressions, do not evaluate to a value, but are instead executed for their effect on the program state and control flow.
 
 \label{completion}
 Execution of a statement {\em completes} in one of five ways: either it {\em completes normally}, it {\em breaks} or it {\em continues} (either to a label or without a label), it {\em returns} (with or without a value), or it {\em throws} an exception object and an associated stack trace.
@@ -5799,7 +5799,7 @@ top2() \{ // a top level function
 The  rules for local functions differ slightly from those for local variables in that a function can be accessed within its declaration but a variable can only be accessed after its declaration. This is because recursive functions are useful whereas recursively defined variables are almost always errors.  It therefore makes sense to harmonize the rules for local functions with those for functions in general rather than with the rules for local variables.
 }
 
-% elaborate on function identity and equality, runtime type. Likewsie in function expressions (closures) and declarations
+% elaborate on function identity and equality, run-time type. Likewsie in function expressions (closures) and declarations
 
 \subsection{If}
 \LMLabel{if}
@@ -5827,7 +5827,7 @@ The reason for this equivalence is to catch errors such as
 \end{dartCode}
 
 \rationale {
-Under reasonable scope rules  such code is problematic. If we assume that \code{v} is declared in the scope of the method \code{main()}, then when \code{somePredicate} is false, \code{v} will be uninitialized when accessed.  The cleanest approach would be to require a block following the test, rather than an arbitrary statement. However, this goes against long standing custom, undermining Dart's goal of familiarity.  Instead, we choose to insert a block, introducing a scope,  around the statement following the predicate (and similarly for \ELSE{} and loops). This will cause both a warning and a runtime error in the case above.  Of course, if there is a declaration of \code{v} in the surrounding scope, programmers might still be surprised. We expect tools to highlight cases of shadowing to help avoid such situations.
+Under reasonable scope rules  such code is problematic. If we assume that \code{v} is declared in the scope of the method \code{main()}, then when \code{somePredicate} is false, \code{v} will be uninitialized when accessed.  The cleanest approach would be to require a block following the test, rather than an arbitrary statement. However, this goes against long standing custom, undermining Dart's goal of familiarity.  Instead, we choose to insert a block, introducing a scope,  around the statement following the predicate (and similarly for \ELSE{} and loops). This will cause both a warning and a run-time error in the case above.  Of course, if there is a declaration of \code{v} in the surrounding scope, programmers might still be surprised. We expect tools to highlight cases of shadowing to help avoid such situations.
 }
 
 
@@ -6152,7 +6152,7 @@ The {\em switch statement} supports dispatching control among a large number of 
  \item instances of a class that implements \cd{String}, for all $k \in 1..n$.
  \end{itemize}
 
-\commentary{In other words,  all the expressions in the cases evaluate to constants of the exact same user defined class or are of certain known types.  Note that the values of the expressions are known at compile-time, and are independent of any static type annotations.
+\commentary{In other words,  all the expressions in the cases evaluate to constants of the exact same user defined class or are of certain known types.  Note that the values of the expressions are known at compile time, and are independent of any static type annotations.
 }
 
 \LMHash{}
@@ -6192,7 +6192,7 @@ or the form
 proceeds as follows:
 
 \LMHash{}
-The statement \code{\VAR{} $id$ = $e$;} is evaluated, where $id$ is a fresh variable. In checked mode, it is a run time error if the value of $e$ is not an instance of the same class as the constants $e_1 \ldots e_n$.
+The statement \code{\VAR{} $id$ = $e$;} is evaluated, where $id$ is a fresh variable. In checked mode, it is a run-time error if the value of $e$ is not an instance of the same class as the constants $e_1 \ldots e_n$.
 
 \commentary{Note that if there are no case clauses ($n = 0$), the type of $e$ does not matter.}
 
@@ -6245,7 +6245,7 @@ If $s$ is a non-empty block statement, let $s$ instead be the last statement of 
 It is a static warning $s$ is not a \BREAK{}, \CONTINUE{}, \RETHROW{} or \RETURN{} statement or an expression statement where the expression is a \THROW{} expression.
 
 \rationale{
-The behavior of switch cases intentionally differs from the C tradition.  Implicit fall through is a known cause of programming errors and therefore disallowed.  Why not simply break the flow implicitly at the end of every case, rather than requiring explicit code to do so?  This would indeed be cleaner.  It would also be cleaner to insist that each case have a single (possibly compound) statement.  We have chosen not to do so in order to facilitate porting of switch statements from other languages.  Implicitly breaking the control flow at the end of a case would silently alter the meaning of ported code that relied on fall-through, potentially forcing the programmer to deal with subtle bugs. Our design ensures that the difference is immediately brought to the coder's attention.  The programmer will be notified at compile-time if they forget to end a case with a statement that terminates the straight-line control flow. We could make this warning a compile-time error, but refrain from doing so because do not wish to force the programmer to deal with this issue immediately while porting code.  If developers ignore the warning and run their code, a run time error will prevent the program from misbehaving in hard-to-debug ways (at least with respect to this issue).
+The behavior of switch cases intentionally differs from the C tradition.  Implicit fall through is a known cause of programming errors and therefore disallowed.  Why not simply break the flow implicitly at the end of every case, rather than requiring explicit code to do so?  This would indeed be cleaner.  It would also be cleaner to insist that each case have a single (possibly compound) statement.  We have chosen not to do so in order to facilitate porting of switch statements from other languages.  Implicitly breaking the control flow at the end of a case would silently alter the meaning of ported code that relied on fall-through, potentially forcing the programmer to deal with subtle bugs. Our design ensures that the difference is immediately brought to the coder's attention.  The programmer will be notified at compile time if they forget to end a case with a statement that terminates the straight-line control flow. We could make this warning a compile-time error, but refrain from doing so because do not wish to force the programmer to deal with this issue immediately while porting code.  If developers ignore the warning and run their code, a run-time error will prevent the program from misbehaving in hard-to-debug ways (at least with respect to this issue).
 
 The sophistication of the analysis of fall-through is another issue. For now, we have opted for a very straightforward syntactic requirement. There are obviously situations where code does not fall through, and yet does not conform to these simple rules, e.g.:
 }
@@ -6430,7 +6430,7 @@ Otherwise if execution of $b$ threw (\ref{completion}), the \TRY{} statement com
 Otherwise the \TRY{} statement completes in the same way as the execution of $b$.
 
 \LMHash{}
-If $T_1$ is a malformed or deferred type (\ref{staticTypes}), then performing a match causes a run time error.
+If $T_1$ is a malformed or deferred type (\ref{staticTypes}), then performing a match causes a run-time error.
 It is a static warning if $T_i$, $1 \le i \le n$ is a deferred or malformed type.
 
 \subsubsection{\ON{}-\CATCH{} clauses}
@@ -6491,7 +6491,7 @@ Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing funct
 It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<$flatten$(T)>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
 
 \LMHash{}
-Let $S$ be the runtime type of $o$. In checked mode:
+Let $S$ be the run-time type of $o$. In checked mode:
 \begin{itemize}
 \item  If the body of $f$ is marked \ASYNC{} (\ref{functions})
 it is a dynamic type error if $o$ is not \NULL{} (\ref{null}),
@@ -6503,7 +6503,7 @@ and \code{Future<$flatten$(S)>} is not a subtype of the actual return type of $f
 % we might want to allow.
 \item Otherwise, it is a dynamic type error if $o$ is not \NULL{},
 the actual return type of $f$ is not \VOID{},
-and the runtime type of $o$ is not a subtype of the actual return type of $f$.
+and the run-time type of $o$ is not a subtype of the actual return type of $f$.
 \end{itemize}
 
 \LMHash{}
@@ -6957,7 +6957,7 @@ It is a static warning if the specified URI of a deferred import does not refer 
 The {\em current library} is the library currently being compiled. The import modifies the  namespace of the current library in a manner that is determined by the imported library and by the optional elements of  the import.
 
 \LMHash{}
-An immediate import directive $I$ may optionally include a prefix clause of the form \code{\AS{} $id$} used to prefix names imported by $I$. A deferred import must include a prefix clause or a compile time error occurs. It is a compile-time error if a prefix used in a deferred import is used in another import clause.
+An immediate import directive $I$ may optionally include a prefix clause of the form \code{\AS{} $id$} used to prefix names imported by $I$. A deferred import must include a prefix clause or a compile-time error occurs. It is a compile-time error if a prefix used in a deferred import is used in another import clause.
 
 \LMHash{}
 An import directive $I$ may optionally include a namespace combinator clauses used to restrict the set of names imported by $I$. Currently, two namespace combinators are supported: \HIDE{} and \SHOW{}.
@@ -6971,14 +6971,14 @@ The deferred prefix object has the following methods:
 
 \begin{itemize}
 \item \code{loadLibrary}. This method returns a future $f$. When called, the method causes an immediate import $I'$ to be executed at some future time, where $I'$ is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $I'$ executes without error, $f$ completes successfully. If $I'$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
-\item  For every top level function $f$ named $id$ in the imported library $B$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a runtime error.
-\item For every top level getter $g$ named $id$ in $B$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a runtime error.
-\item For every top level setter $s$ named $id$ in $B$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a runtime error.
-\item For every type $T$ named $id$ in $B$, a corresponding getter named $id$ with return type \code{Type}.  Calling the method results in a runtime error.
+\item  For every top level function $f$ named $id$ in the imported library $B$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a run-time error.
+\item For every top level getter $g$ named $id$ in $B$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a run-time error.
+\item For every top level setter $s$ named $id$ in $B$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a run-time error.
+\item For every type $T$ named $id$ in $B$, a corresponding getter named $id$ with return type \code{Type}.  Calling the method results in a run-time error.
 \end{itemize}
 
 \rationale {
-The purpose of adding members of $B$ to $p$ is to ensure that any warnings  issued when using $p$ are correct, and no spurious warnings are generated.  In fact, at runtime we cannot add these members until $B$ is loaded; but any such invocations will fail at runtime as specified by virtue of being completely absent.
+The purpose of adding members of $B$ to $p$ is to ensure that any warnings  issued when using $p$ are correct, and no spurious warnings are generated.  In fact, at run time we cannot add these members until $B$ is loaded; but any such invocations will fail at run time as specified by virtue of being completely absent.
 }
 %But this is still a lie detectable by reflection. Probably revise so the type of p has these members but p does not.
 
@@ -7081,7 +7081,7 @@ imports of two libraries, $L_1$ and $L_2$, and the exported namespace of $L_1$ b
 \end{itemize}
 
 \rationale {
-Whereas normal conflicts are resolved at deployment time, the functionality of \code{dart:} libraries is injected into an application at run time, and may vary over time as browsers are upgraded.  Thus, conflicts with \code{dart:} libraries can arise at runtime, outside the developer's control. To avoid breaking deployed applications in this way, conflicts with the \code{dart:} libraries are treated specially.
+Whereas normal conflicts are resolved at deployment time, the functionality of \code{dart:} libraries is injected into an application at run time, and may vary over time as browsers are upgraded.  Thus, conflicts with \code{dart:} libraries can arise at run time, outside the developer's control. To avoid breaking deployed applications in this way, conflicts with the \code{dart:} libraries are treated specially.
 
 It is recommended that tools that deploy Dart code produce output in which all imports use show clauses to ensure that additions to the namespace of a library never impact deployed code.
 }
@@ -7257,14 +7257,14 @@ as follows:
 If \code{main} can be be called with with two positional arguments,
 it is invoked with the following two actual arguments:
 \begin{enumerate}
-\item An object whose runtime type implements \code{List<String>}.
+\item An object whose run-time type implements \code{List<String>}.
 \item An object specified when the current isolate $i$ was created,
 for example through the invocation of \code{Isolate.spawnUri} that spawned $i$,
 or \NULL{} if no such object was supplied.
 \end{enumerate}
 If \code{main} cannot be called with two positional arguments,
 but it can be called with one positional argument,
-it is invoked with an object whose runtime type implements \code{List<String>}
+it is invoked with an object whose run-time type implements \code{List<String>}
 as the only argument.
 If \code{main} cannot be called with one or two positional arguments,
 it is invoked with no arguments.
@@ -7381,7 +7381,7 @@ A type $T$ is {\em malformed} iff:
 \end{itemize}
 
 \LMHash{}
- Any use of a malformed  type gives rise to a static warning. A malformed type is then interpreted as \DYNAMIC{} by the static type checker and the runtime unless explicitly specified otherwise.
+ Any use of a malformed  type gives rise to a static warning. A malformed type is then interpreted as \DYNAMIC{} by the static type checker and the run-time system unless explicitly specified otherwise.
 
  \rationale{
 This ensures that the developer is spared a series of cascading warnings as the malformed type interacts with other types.
@@ -7444,7 +7444,7 @@ main() \{
 \end{dartCode}
 
 \commentary{
-The type of the formal parameter of $f$ is $foo$, which is undeclared in the lexical scope. This will lead to a static type warning. At runtime the program will print \cd{yoyoma}, because $foo$ is treated as \DYNAMIC{}.
+The type of the formal parameter of $f$ is $foo$, which is undeclared in the lexical scope. This will lead to a static type warning. At run time the program will print \cd{yoyoma}, because $foo$ is treated as \DYNAMIC{}.
 %fail when executing the type test on the first line of $main()$ because it leads to a subtype comparison involving a malformed type ($foo$).
 
 As another example take}
@@ -7458,7 +7458,7 @@ main() \{
 \end{dartCode}
 
 \commentary{
-Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because the undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at runtime.
+Since $i$ is not a type, a static warning will be issue at the declaration of $j$. However, the program can be executed without incident in production mode because the undeclared type $i$ is treated as \DYNAMIC{}. However, in checked mode, the implicit subtype test at the assignment will trigger an error at run time.
 }
 
 
@@ -7543,7 +7543,7 @@ In either case, iff no return type is specified, it is taken to be \DYNAMIC{}. L
 \LMHash{}
 It is a compile-time error if any default values are specified in the signature of a function type alias.
 %A typedef may only refer to itself  via the bounds of its generic parameters.
-Any  self reference in a typedef, either directly, or recursively via another typedef, is a compile time error.
+Any  self reference in a typedef, either directly, or recursively via another typedef, is a compile-time error.
 %via a chain of references that does not include a class declaration.
 
 
@@ -7613,7 +7613,7 @@ An interface type $T$ may be assigned to a type $S$, written  $T \Longleftrighta
 
 \rationale{This rule may surprise readers accustomed to conventional typechecking. The intent of the $\Longleftrightarrow$ relation is not to ensure that an assignment is correct. Instead, it aims to only flag assignments that are almost certain to be erroneous, without precluding assignments that may work.
 
-For example, assigning a value of static type Object to a variable with static type String, while not guaranteed to be correct, might be fine if the runtime value happens to be a string.
+For example, assigning a value of static type Object to a variable with static type String, while not guaranteed to be correct, might be fine if the run-time value happens to be a string.
 }
 
 \subsection{Function Types}
@@ -7762,7 +7762,7 @@ The current rules say that missing type arguments are treated as if they were th
 (2)  \code{typedAPI(new G()); }
 
 
-Under the alternative rules, (2) would cause a runtime error in checked mode. This seems desirable from the perspective of error localization. However, when a dynamic error is thrown at (2), the only way to keep running is rewriting (2) into
+Under the alternative rules, (2) would cause a run-time error in checked mode. This seems desirable from the perspective of error localization. However, when a dynamic error is thrown at (2), the only way to keep running is rewriting (2) into
 
 (3) \code{typedAPI(new G\lt{String}\gt());}
 
@@ -7798,7 +7798,7 @@ Using \code{FutureOr} instead of \DYNAMIC{} will allow some tools
 to provide a more precise type analysis.
 }
 %\rationale {
-%Type objects reify the runtime types of instances. No instance ever has type \DYNAMIC{}.
+%Type objects reify the run-time types of instances. No instance ever has type \DYNAMIC{}.
 %}
 
 \subsection{Type Void}
@@ -7819,21 +7819,21 @@ $\VOID{} <: \VOID{}$ (by reflexivity)
 \item
 $\bot <: \VOID{}$ (as bottom is a subtype of all types).
 \item
-$\VOID{} <:   \DYNAMIC{}$ (as  \DYNAMIC{} is a supertype of all types)
+$\VOID{} <:   \DYNAMIC{}$ (as \DYNAMIC{} is a supertype of all types)
 \end{itemize}
 
 The analogous rules also hold for the $<<$ relation for  similar reasons.
 
 Hence, the static checker will issue warnings if one attempts to access a member of the result of a void method invocation (even for members of \NULL{}, such as \code{==}).  Likewise, passing the result of a void method as a parameter or assigning it to a variable will cause a warning unless the variable/formal parameter has type dynamic.
 
-On the other hand, it is possible to return the result of a void method from within a void method. One can also return \NULL{}; or a value of type \DYNAMIC{}. Returning any other result will cause a type warning. In checked mode, a dynamic type error would arise if a non-null object was returned from a void method (since no object has runtime type  \DYNAMIC{}).
+On the other hand, it is possible to return the result of a void method from within a void method. One can also return \NULL{}; or a value of type \DYNAMIC{}. Returning any other result will cause a type warning. In checked mode, a dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
 }
 
 \commentary {The name \VOID{} does not denote a \cd{Type} object.}
 
 \rationale {
 It is syntacticly illegal to use \VOID{} as an expression, and it would make no sense to do so.
-Type objects reify the runtime types of instances. No instance ever has type \VOID{}.
+Type objects reify the run-time types of instances. No instance ever has type \VOID{}.
 }
 
 
@@ -8088,7 +8088,7 @@ Assignment &  =, *=, /=, +=, -= ,\&=, \^{}= etc.  &  Right &  1\\
 \commentary{
 The following naming conventions are customary in Dart programs.
 \begin{itemize}
-\item The names of compile time constant variables never use lower case letters. If they consist of multiple words, those words are separated by underscores. Examples: PI,  I\_AM\_A\_CONSTANT.
+\item The names of compile-time constant variables never use lower case letters. If they consist of multiple words, those words are separated by underscores. Examples: PI,  I\_AM\_A\_CONSTANT.
 \item The names of functions (including getters, setters, methods and local or library functions) and non-constant variables begin with a lowercase letter. If the name consists of multiple words, each  word (except the first) begins with an uppercase letter.  No other uppercase letters are used. Examples: camlCase, dart4TheWorld
 \item The names of types (including classes and type aliases) begin with an upper case letter.  If the name consists of multiple words, each  word  begins with an uppercase letter.  No other uppercase letters are used. Examples: CamlCase, Dart4TheWorld.
 \item The names of type variables are short (preferably single letter). Examples: T, S, K, V , E.
