@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  default constructor •() → void
+    ;
+  method $_synthetic_method_name_245() → dynamic
+    ;
+}
+static method main() → dynamic
+  ;

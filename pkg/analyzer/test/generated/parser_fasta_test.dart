@@ -784,6 +784,20 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
+  void test_invalidOperator_unary() {
+    // TODO(danrubel) Wrong errors
+    super.test_invalidOperator_unary();
+  }
+
+  void test_invalidOperator_unary_noErrors() {
+    // TODO(danrubel): remove this test once test_invalidOperator_unary passes.
+    createParser('int operator unary- => 0;');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+  }
+
+  @override
+  @failingTest
   void test_invalidOperatorAfterSuper_assignableExpression() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, found 0

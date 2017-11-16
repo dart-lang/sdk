@@ -3550,6 +3550,14 @@ class Wrong<T> {
         .assertErrors([expectedError(ParserErrorCode.INVALID_OPERATOR, 14, 3)]);
   }
 
+  void test_invalidOperator_unary() {
+    createParser('int operator unary- => 0;');
+    ClassMember member = parser.parseClassMember('C');
+    expectNotNullIfNoErrors(member);
+    listener
+        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 5)]);
+  }
+
   void test_invalidOperatorAfterSuper_assignableExpression() {
     Expression expression = parseAssignableExpression('super?.v', false);
     expectNotNullIfNoErrors(expression);
