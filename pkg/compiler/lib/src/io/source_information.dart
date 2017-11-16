@@ -177,7 +177,7 @@ abstract class SourceLocation {
 
   int get hashCode {
     return sourceUri.hashCode * 17 +
-        offset.hashCode * 17 +
+        offset.hashCode * 19 +
         sourceName.hashCode * 23;
   }
 
@@ -207,6 +207,8 @@ abstract class AbstractSourceLocation extends SourceLocation {
             "Invalid source location in ${sourceUri}: "
             "offset=$offset, length=${_sourceFile.length}."));
   }
+
+  AbstractSourceLocation.fromLocation(this._location) : _sourceFile = null;
 
   /// The absolute URI of the source file of this source location.
   Uri get sourceUri => _sourceFile.uri;
@@ -247,8 +249,25 @@ class OffsetSourceLocation extends AbstractSourceLocation {
 String computeElementNameForSourceMaps(Entity element) {
   if (element is AstElement) {
     return _computeAstElementNameForSourceMaps(element);
+  } else if (element is ClassEntity) {
+    return element.name;
+  } else if (element is MemberEntity) {
+    if (element is ConstructorEntity || element is ConstructorBodyEntity) {
+      String className = element.enclosingClass.name;
+      if (element.name == '') {
+        return className;
+      }
+      return '$className.${element.name}';
+    } else if (element.enclosingClass != null) {
+      if (element.enclosingClass.isClosure) {
+        return computeElementNameForSourceMaps(element.enclosingClass);
+      }
+      return '${element.enclosingClass.name}.${element.name}';
+    } else {
+      return element.name;
+    }
   }
-  // TODO(redemption): Create element names from kernel.
+  // TODO(redemption): Create element names from kernel locals and closures.
   return element.name;
 }
 

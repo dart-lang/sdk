@@ -493,7 +493,10 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
   });
   sourceLocationMap.forEach((Uri uri, Map<int, List<SourceLocation>> uriMap) {
     SourceFile sourceFile = sourceFileManager.getSourceFile(uri);
-    if (sourceFile == null) return;
+    if (sourceFile == null) {
+      print('No source file for $uri');
+      return;
+    }
     StringBuffer codeBuffer = new StringBuffer();
 
     int firstLineIndex;
