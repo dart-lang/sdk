@@ -28,7 +28,6 @@ main() {
   // Exceptions.
   Expect.throws(() => shiftLeft0(-1));
 
-  return;
   Expect.equals(1, shiftLeft1(0));
   Expect.equals(128, shiftLeft1(7));
   Expect.equals(536870912, shiftLeft1(29));
@@ -51,7 +50,7 @@ main() {
   Expect.equals(2377900603251621888, shiftLeft8448(48));
   // Deoptimize on 64 bits.
   Expect.equals(4755801206503243776, shiftLeft8448(49));
-  Expect.equals(9511602413006487552, shiftLeft8448(50));
+  Expect.equals(-8935141660703064064, shiftLeft8448(50));
 
   Expect.equals(-1, shiftLeftNeg1(0));
   Expect.equals(-128, shiftLeftNeg1(7));
@@ -75,5 +74,5 @@ main() {
   Expect.equals(-2377900603251621888, shiftLeftNeg8448(48));
   // Deoptimize on 64 bits.
   Expect.equals(-4755801206503243776, shiftLeftNeg8448(49));
-  Expect.equals(-9511602413006487552, shiftLeftNeg8448(50));
+  Expect.equals(8935141660703064064, shiftLeftNeg8448(50));
 }

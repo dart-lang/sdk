@@ -187,8 +187,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require',
       'try_catch_on_syntax_test_11_multi': fail,
       'type_variable_nested_test': fail,
 
-      'bit_operations_test_01_multi': fail,
-      'bit_operations_test_02_multi': fail,
       'bit_operations_test_03_multi': fail,
       'bit_operations_test_04_multi': fail,
       'deferred_load_constants_test_none_multi': fail,

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import "dart:math" show pow;
+import "dart:math" show pow, log;
 
 void main() {
   const String oneByteWhiteSpace = "\x09\x0a\x0b\x0c\x0d\x20"
@@ -65,10 +65,12 @@ void main() {
     }
   }
 
+  final max = 9223372036854775807;
   for (int i = 2; i <= 36; i++) { //             //# 02: ok
     // Test with bignums. //                     //# 02: continued
+    final n = (log(max) / log(i)).truncate(); // //# 02: continued
     var digit = digits[i - 1]; //                //# 02: continued
-    testParse(pow(i, 64) - 1, digit * 64, i); // //# 02: continued
+    testParse(pow(i, n) - 1, digit * n, i); //   //# 02: continued
     testParse(0, zeros, i); //                   //# 02: continued
   } //                                           //# 02: continued
 
@@ -77,9 +79,8 @@ void main() {
   Expect.equals(0xABCD, int.parse("abcd", radix: 16));
   Expect.equals(15628859, int.parse("09azAZ", radix: 36));
   // Big number.
-  Expect.equals(0x12345678123456781234567812345678, // //# 02: continued
-                int.parse("0x1234567812345678" //      //# 02: continued
-                          "1234567812345678")); //     //# 02: continued
+  Expect.equals(9223372036854775807, int.parse("9223372036854775807"));
+  Expect.equals(-9223372036854775808, int.parse("-9223372036854775808"));
   // Allow whitespace before and after the number.
   Expect.equals(1, int.parse(" 1", radix: 2));
   Expect.equals(1, int.parse("1 ", radix: 2));

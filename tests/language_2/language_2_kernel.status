@@ -1565,3 +1565,10 @@ type_promotion_functions_test/10: Pass
 
 [ $compiler == dartk && $strong && $mode == debug ]
 flatten_test/04: Crash # Issue #31381
+
+[ $compiler == dartkp ]
+bit_operations_test: CompileTimeError                             # Issue 31339
+vm/unaligned_integer_access_register_index_test: CompileTimeError # Issue 31339
+vm/unaligned_integer_access_literal_index_test: CompileTimeError  # Issue 31339
+mint_arithmetic_test: CompileTimeError                            # Issue 31339
+identical_closure2_test: CompileTimeError                         # Issue 31339

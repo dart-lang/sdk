@@ -66,3 +66,8 @@ io/socket_port_test: Pass, Crash
 [ $compiler == dartkp && $strong && $mode == debug ]
 float_array_static_test: Pass # Issue 31375
 io/skipping_dart2js_compilations_test: Crash
+
+[ $compiler == dartkp ]
+typed_array_int64_uint64_test: CompileTimeError, Crash # Issue 31339
+bytedata_test: CompileTimeError                        # Issue 31339
+typed_data_view_test: CompileTimeError                 # Issue 31339

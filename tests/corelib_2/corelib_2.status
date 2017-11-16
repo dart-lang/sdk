@@ -86,7 +86,6 @@ apply3_test: Fail # mirrors not supported
 dynamic_nosuchmethod_test: Fail # mirrors not supported
 
 [ $compiler == precompiler ]
-big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
@@ -100,8 +99,8 @@ growable_list_test: RuntimeError # Concurrent modifications test always runs
 [ $compiler == dartdevc && $runtime != none ]
 apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
-big_integer_arith_vm_test: RuntimeError # Issue 30170
-big_integer_parsed_arith_vm_test: RuntimeError # Issue 29921
+integer_arith_vm_test/modPow: RuntimeError # Issue 30170
+integer_parsed_arith_vm_test: RuntimeError # Issue 29921
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
 hash_set_test/01: RuntimeError # Issue 29921
@@ -169,17 +168,20 @@ int_modulo_arith_test/none: RuntimeError # Issue 29921
 iterable_return_type_test/02: RuntimeError # Issue 29921
 
 [ ($compiler == dart2js || $compiler == dartdevc) && $runtime != none ]
-big_integer_arith_vm_test: RuntimeError # Issues 10245, 30170
-big_integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
-big_integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
-big_integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
-bit_twiddling_bigint_test: RuntimeError # Required bigint support.
+integer_arith_vm_test/modPow: RuntimeError # Issues 10245, 30170
+integer_parsed_arith_vm_test: RuntimeError # Issues 10245, 29921
+integer_parsed_div_rem_vm_test: RuntimeError # Issue 29921
+integer_parsed_mul_div_vm_test: RuntimeError # Issue 29921
+bit_twiddling_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+double_ceil_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+double_floor_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+double_round_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
+double_truncate_test/int64: RuntimeError, OK # Requires fixed-size int64 support.
 json_map_test: RuntimeError
-compare_to2_test: RuntimeError, OK # Requires bigint support.
+compare_to2_test: RuntimeError, OK # Requires fixed-size int64 support.
 hash_set_test/01: RuntimeError # Issue 11551
-int_modulo_arith_test/bignum: RuntimeError # Issue 29921
 int_modulo_arith_test/modPow: RuntimeError # Issue 29921
-regress_r21715_test: RuntimeError # Requires bigint support.
+regress_r21715_test: RuntimeError # Requires fixed-size int64 support.
 int_parse_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
 typed_data_with_limited_ints_test: Skip # dart2js and dartdevc don't know about --limit-ints-to-64-bits
 
@@ -241,11 +243,7 @@ string_from_environment2_test: Fail # Flutter Issue 9111
 main_test: RuntimeError # Flutter Issue 9111
 
 [ $hot_reload || $hot_reload_rollback ]
-big_integer_huge_mul_vm_test: Pass, Slow # Slow
-big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow
-
-[ $hot_reload || $hot_reload_rollback ]
-big_integer_huge_mul_vm_test: Pass, Slow # Slow
+integer_parsed_mul_div_vm_test: Pass, Slow # Slow
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 compare_to2_test: Fail # Issue 4018
@@ -270,11 +268,11 @@ unicode_test: Fail
 string_case_test/01: Fail, OK
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $arch == simarmv5te ]
-big_integer_parsed_mul_div_vm_test: Pass, SloW
+integer_parsed_mul_div_vm_test: Pass, Slow
 int_parse_radix_test/*: Pass, Slow
 
 [ $compiler == precompiler ]
-big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
+integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 
 [ $compiler == none && ($runtime == vm || $runtime == flutter)]
 string_trimlr_test/02: RuntimeError # Issue 29060
@@ -757,3 +755,17 @@ uri_path_test: RuntimeError
 uri_query_test: RuntimeError
 uri_test: RuntimeError
 
+[ $runtime == vm || $runtime == dart_precompiled ]
+integer_to_radix_string_test/01: RuntimeError   # Issue 31346
+integer_parsed_div_rem_vm_test/01: RuntimeError # Issue 31346
+integer_parsed_arith_vm_test/01: RuntimeError   # Issue 31346
+
+[ $runtime == vm || $runtime == dart_precompiled ]
+integer_parsed_arith_vm_test/02: RuntimeError   # Issue 31369
+
+[ $compiler == dartkp ]
+integer_to_radix_string_test/01: CompileTimeError # Issue 31339
+integer_to_radix_string_test/02: CompileTimeError # Issue 31339
+integer_to_string_test/01: CompileTimeError       # Issue 31339
+bit_twiddling_test/int64: CompileTimeError        # Issue 31339
+num_sign_test: CompileTimeError, Crash            # Issue 31339
