@@ -18,9 +18,7 @@ const int _CR = 13;
  * The returned lines do not contain the line terminators.
  */
 
-class LineSplitter extends Converter<String, List<String>> /*=Object*/
-    implements
-        Object/*=StreamTransformer<String, String>*/ {
+class LineSplitter implements StreamTransformer<String, String> {
   const LineSplitter();
 
   /// Split [lines] into individual lines.
