@@ -14,6 +14,7 @@ assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
 black_listed_test/none: fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
+built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 conflicting_type_variable_and_setter_test: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 const_types_test/07: MissingCompileTimeError

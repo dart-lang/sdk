@@ -797,6 +797,26 @@ assertion_initializer_const_error2_test/*: Crash # Issue 30038
 assertion_initializer_test: Crash
 bad_constructor_test/05: CompileTimeError
 bad_typedef_test/00: Crash # Issue 28214
+built_in_identifier_type_annotation_test/13: Crash # Issue 28815
+built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
+built_in_identifier_type_annotation_test/30: Crash # Issue 28815
+built_in_identifier_type_annotation_test/52: Crash # Issue 28815
+built_in_identifier_type_annotation_test/53: Crash # Issue 28815
+built_in_identifier_type_annotation_test/54: Crash # Issue 28815
+built_in_identifier_type_annotation_test/55: Crash # Issue 28815
+built_in_identifier_type_annotation_test/57: Crash # Issue 28815
+built_in_identifier_type_annotation_test/58: Crash # Issue 28815
+built_in_identifier_type_annotation_test/59: Crash # Issue 28815
+built_in_identifier_type_annotation_test/60: Crash # Issue 28815
+built_in_identifier_type_annotation_test/61: Crash # Issue 28815
+built_in_identifier_type_annotation_test/62: Crash # Issue 28815
+built_in_identifier_type_annotation_test/63: Crash # Issue 28815
+built_in_identifier_type_annotation_test/64: Crash # Issue 28815
+built_in_identifier_type_annotation_test/65: Crash # Issue 28815
+built_in_identifier_type_annotation_test/66: Crash # Issue 28815
+built_in_identifier_type_annotation_test/67: Crash # Issue 28815
+built_in_identifier_type_annotation_test/68: Crash # Issue 28815
+built_in_identifier_type_annotation_test/81: Crash # Issue 28815
 call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
 compile_time_constant_o_test/01: MissingCompileTimeError
@@ -3161,6 +3181,23 @@ yieldstar_pause_test: RuntimeError
 checked_setter_test: RuntimeError # Issue 31128
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter3_test: RuntimeError # Issue 31128
+built_in_identifier_type_annotation_test/22: Crash # Issue 28815
+built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/53: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/54: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/55: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/57: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/58: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/59: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/60: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/61: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/62: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/63: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/64: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/65: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28815
+built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28815
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
 assertion_initializer_const_error2_test/none: Pass
@@ -3168,6 +3205,15 @@ assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
+
+[ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+known_identifier_usage_error_test/none: RuntimeError # Issue 28815
+built_in_identifier_test: RuntimeError # Issue 28815
+built_in_identifier_type_annotation_test/none: RuntimeError # Issue 28815
+built_in_identifier_type_annotation_test/05: RuntimeError # Issue 28815
+built_in_identifier_type_annotation_test/39: RuntimeError # Issue 28815
+built_in_identifier_type_annotation_test/56: RuntimeError # Issue 28815
+built_in_identifier_type_annotation_test/73: RuntimeError # Issue 28815
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified && $checked ]
 inline_super_field_test: Crash
@@ -3338,4 +3384,3 @@ regress_26855_test/4: Crash # Issue 26867
 [ $compiler == dart2js && $csp && $browser && !$fast_startup ]
 conditional_import_string_test: Fail # Issue 30615
 conditional_import_test: Fail # Issue 30615
-

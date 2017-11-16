@@ -63,6 +63,7 @@ bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
+built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError

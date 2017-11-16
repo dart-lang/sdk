@@ -467,6 +467,8 @@ mixin_invalid_bound_test/10: MissingCompileTimeError
 [ $compiler == dart2analyzer ]
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
 fuzzy_arrows_test/01: MissingCompileTimeError
+built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/85: Crash # Issue 28813
 
 [ $compiler == dart2analyzer && $checked ]
 assertion_initializer_const_error2_test/none: Pass
@@ -1209,6 +1211,26 @@ async_congruence_local_test/02: MissingCompileTimeError
 async_congruence_method_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/01: MissingCompileTimeError
 async_congruence_unnamed_test/02: MissingCompileTimeError
+built_in_identifier_type_annotation_test/35: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/36: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/37: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/38: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/40: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/41: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/42: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/43: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/44: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/45: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/46: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/47: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/48: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/49: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/50: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/51: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/70: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/72: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/78: MissingCompileTimeError # Issue 28813
+built_in_identifier_type_annotation_test/81: MissingCompileTimeError # Issue 28813
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 checked_null_test/01: MissingCompileTimeError
@@ -1359,6 +1381,8 @@ initializing_formal_type_test: MissingCompileTimeError
 instantiate_type_variable_test/01: StaticWarning
 interceptor6_test: StaticWarning
 invocation_mirror_test: StaticWarning
+known_identifier_prefix_error_test/none: Pass
+known_identifier_prefix_error_test/*: MissingCompileTimeError # Error only in strong mode.
 least_upper_bound_expansive_test/01: MissingCompileTimeError
 least_upper_bound_expansive_test/02: MissingCompileTimeError
 least_upper_bound_expansive_test/03: MissingCompileTimeError

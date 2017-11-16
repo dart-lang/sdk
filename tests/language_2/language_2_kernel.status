@@ -15,6 +15,23 @@
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
+built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
+built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/53: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/54: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/55: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/57: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/58: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/59: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/60: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/61: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/62: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/63: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/64: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/65: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28814
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 const_error_multiply_initialized_test/02: MissingCompileTimeError
 const_error_multiply_initialized_test/04: MissingCompileTimeError
@@ -271,6 +288,23 @@ assertion_test: Crash
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError
+built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
+built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/53: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/54: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/55: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/57: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/58: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/59: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/60: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/61: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/62: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/63: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/64: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/65: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28814
+built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28814
 checked_null_test/01: MissingCompileTimeError
 checked_setter2_test: MissingCompileTimeError
 checked_setter3_test/01: MissingCompileTimeError
@@ -336,6 +370,32 @@ assertion_initializer_const_error_test/none: Crash
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_const_function_test/none: Crash
 regress_30339_test: Crash
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $checked && $strong ]
+known_identifier_prefix_error_test/01: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/02: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/03: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/04: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/05: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/06: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/07: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/08: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/09: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/10: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/11: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/12: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/13: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/14: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/15: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/16: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/17: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/18: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/19: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/20: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/21: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/22: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/23: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/24: MissingCompileTimeError # Issue 28814
 
 # dartk: checked mode failures
 [ ($compiler == dartk || $compiler == dartkp) && $strong && $checked ]
@@ -833,6 +893,30 @@ issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue_25671b_test/01: DartkCrash
 list_is_test: RuntimeError
+known_identifier_prefix_error_test/01: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/02: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/03: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/04: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/05: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/06: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/07: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/08: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/09: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/10: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/11: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/12: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/13: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/14: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/15: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/16: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/17: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/18: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/19: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/20: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/21: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/22: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/23: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/24: MissingCompileTimeError # Issue 28814
 map_literal11_test/none: MissingRuntimeError
 map_literal1_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
@@ -997,6 +1081,9 @@ void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/none: Pass
 
+[ $compiler == dartk && $strong && $checked ]
+known_identifier_usage_error_test/none: RuntimeError # Issue 28814
+
 [ $compiler == dartkp && $strong ]
 abstract_syntax_test/01: MissingCompileTimeError
 assertion_initializer_const_error_test/01: Pass
@@ -1015,6 +1102,8 @@ async_star_test/02: Crash
 bad_constructor_test/00: MissingCompileTimeError
 bad_constructor_test/01: MissingCompileTimeError
 bad_named_parameters_test/04: Crash
+built_in_identifier_type_annotation_test/22: Crash # Issue 28814
+built_in_identifier_type_annotation_test/74: MissingCompileTimeError # Issue 28814
 built_in_identifier_illegal_test/01: MissingCompileTimeError
 built_in_identifier_illegal_test/04: MissingCompileTimeError
 built_in_identifier_illegal_test/05: MissingCompileTimeError
@@ -1029,6 +1118,7 @@ built_in_identifier_illegal_test/17: MissingCompileTimeError
 built_in_identifier_illegal_test/18: MissingCompileTimeError
 built_in_identifier_illegal_test/19: MissingCompileTimeError
 built_in_identifier_illegal_test/20: MissingCompileTimeError
+built_in_identifier_not_prefix_test/22: MissingCompileTimeError # Issue 28814
 call_function_test: CompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError

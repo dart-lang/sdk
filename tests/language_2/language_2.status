@@ -116,6 +116,8 @@ issue1363_test/01: MissingCompileTimeError # Requires strong mode
 issue15606_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
+known_identifier_prefix_error_test/none: Pass
+known_identifier_prefix_error_test/*: MissingCompileTimeError # Requires strong mode
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
