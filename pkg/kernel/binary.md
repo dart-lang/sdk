@@ -78,9 +78,14 @@ type StringReference {
   UInt index; // Index into the Program's strings.
 }
 
+type ConstantReference {
+  UInt index; // Index into the Program's constants.
+}
+
 type SourceInfo {
   List<Byte> uriUtf8Bytes;
   List<Byte> sourceUtf8Bytes;
+
   // Line starts are delta-encoded (they are encoded as line lengths).  The list
   // [0, 10, 25, 32, 42] is encoded as [0, 10, 15, 7, 10].
   List<UInt> lineStarts;
@@ -131,6 +136,7 @@ type ProgramFile {
   List<CanonicalName> canonicalNames;
   RList<MetadataMapping> metadataMappings;
   StringTable strings;
+  List<Constant> constants;
   ProgramIndex programIndex;
 }
 
@@ -155,6 +161,7 @@ type ProgramIndex {
   UInt32 binaryOffsetForSourceTable;
   UInt32 binaryOffsetForCanonicalNames;
   UInt32 binaryOffsetForStringTable;
+  UInt32 binaryOffsetForConstantTable;
   UInt32 mainMethodReference; // This is a ProcedureReference with a fixed-size integer.
   UInt32[libraryCount + 1] libraryOffsets;
   UInt32 libraryCount;
@@ -808,6 +815,61 @@ type ClosureCreation extends Expression {
   Expression contextVector;
   FunctionType functionType;
   List<DartType> typeArguments;
+}
+
+type ConstantExpression extends Expression {
+  Byte tag = 107;
+  ConstantReference constantReference;
+}
+
+abstract type Constant extends Node {}
+
+type NullConstant extends Constant {
+  Byte tag = 0;
+}
+
+type BoolConstant extends Constant {
+  Byte tag = 1;
+  Byte value;
+}
+
+type IntConstant extends Constant {
+  Byte tag = 2;
+  PositiveIntLiteral | NegativeIntLiteral | SpecializedIntLiteral | BigIntLiteral value;
+}
+
+type DoubleConstant extends Constant {
+  Byte tag = 3;
+  StringReference value;
+}
+
+type StringConstant extends Constant {
+  Byte tag = 4;
+  StringReference value;
+}
+
+type MapConstant extends Constant {
+  Byte tag = 5;
+  DartType keyType;
+  DartType valueType;
+  List<[ConstantReference, ConstantReference]> keyValueList;
+}
+
+type ListConstant extends Constant {
+  Byte tag = 6;
+  DartType type;
+  List<ConstantReference> values;
+}
+
+type InstanceConstant extends Constant {
+  Byte tag = 7;
+  List<DartType> typeArguments;
+  List<[FieldReference, ConstantReference]> values;
+}
+
+type TearOffConstant extends Constant {
+  Byte tag = 8;
+  CanonicalNameReference staticProcedureReference;
 }
 
 abstract type Statement extends Node {}

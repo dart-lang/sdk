@@ -175,7 +175,10 @@ KernelLoader::KernelLoader(Program* program)
                zone_,
                program_->kernel_data(),
                program_->kernel_data_size(),
-               0) {
+               0),
+      external_name_class_(Class::Handle(Z)),
+      external_name_field_(Field::Handle(Z)),
+      potential_natives_(GrowableObjectArray::Handle(Z)) {
   if (!program->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -344,7 +347,10 @@ KernelLoader::KernelLoader(const Script& script,
       kernel_program_info_(
           KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
       translation_helper_(this, thread_),
-      builder_(&translation_helper_, script.raw(), zone_, kernel_data, 0) {
+      builder_(&translation_helper_, script.raw(), zone_, kernel_data, 0),
+      external_name_class_(Class::Handle(Z)),
+      external_name_field_(Field::Handle(Z)),
+      potential_natives_(GrowableObjectArray::Handle(Z)) {
   T.active_class_ = &active_class_;
   T.finalize_ = false;
 
@@ -355,7 +361,84 @@ KernelLoader::KernelLoader(const Script& script,
   H.InitFromKernelProgramInfo(kernel_program_info_);
 }
 
+const Array& KernelLoader::ReadConstantTable() {
+  // We use the very first library's toplevel class as an owner for an
+  // [ActiveClassScope]
+  //
+  // Though since constants cannot refer to types containing type parameter
+  // references, the only purpose of the class is to serve as an owner for
+  // signature functions (which get created for function types).
+  const dart::Library& owner_library = LookupLibrary(library_canonical_name(0));
+  const dart::Class& toplevel_class =
+      Class::Handle(Z, owner_library.toplevel_class());
+  ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
+
+  builder_.SetOffset(program_->constant_table_offset());
+  StreamingDartTypeTranslator type_translator_(&builder_, true /* finalize */);
+  type_translator_.active_class_ = &active_class_;
+
+  ConstantHelper helper(&active_class_, &builder_, &type_translator_,
+                        &translation_helper_, Z, skip_vmservice_library_);
+  return helper.ReadConstantTable();
+}
+
+void KernelLoader::AnnotateNativeProcedures(const Array& constant_table) {
+  potential_natives_ = kernel_program_info_.potential_natives();
+  const intptr_t length =
+      !potential_natives_.IsNull() ? potential_natives_.Length() : 0;
+  if (length > 0) {
+    // Obtain `dart:_internal::ExternalName.name`.
+    EnsureExternalClassIsLookedUp();
+    Instance& constant = Instance::Handle(Z);
+    String& native_name = String::Handle(Z);
+
+    // Start scanning all candidates in [potential_natives] for the annotation
+    // constant.  If the annotation is found, flag the [Function] as native and
+    // attach the native name to it.
+    Function& function = Function::Handle(Z);
+    for (intptr_t i = 0; i < length; ++i) {
+      function ^= potential_natives_.At(i);
+      builder_.SetOffset(function.KernelDataProgramOffset() +
+                         function.kernel_offset());
+      {
+        ProcedureHelper procedure_helper(&builder_);
+        procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
+      }
+
+      const intptr_t annotation_count = builder_.ReadListLength();
+      for (intptr_t j = 0; j < annotation_count; ++j) {
+        const intptr_t tag = builder_.PeekTag();
+        if (tag == kConstantExpression) {
+          builder_.ReadByte();  // Skip the tag.
+
+          // We have a candiate.  Let's look if it's an instance of the
+          // ExternalName class.
+          const intptr_t constant_table_index = builder_.ReadUInt();
+          constant ^= constant_table.At(constant_table_index);
+          if (constant.clazz() == external_name_class_.raw()) {
+            // We found the annotation, let's flag the function as native and
+            // set the native name!
+            native_name ^= constant.GetField(external_name_field_);
+            function.set_is_native(true);
+            function.set_native_name(native_name);
+            break;
+          }
+        } else {
+          builder_.SkipExpression();
+        }
+      }
+    }
+
+    // Clear out the list of [Function] objects which might need their native
+    // name to be set after reading the constant table from the kernel blob.
+    potential_natives_ = GrowableObjectArray::null();
+    kernel_program_info_.set_potential_natives(potential_natives_);
+  }
+}
+
 Object& KernelLoader::LoadProgram(bool process_pending_classes) {
+  ASSERT(kernel_program_info_.constants() == Array::null());
+
   if (!program_->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -364,32 +447,46 @@ Object& KernelLoader::LoadProgram(bool process_pending_classes) {
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    intptr_t length = program_->library_count();
+    const intptr_t length = program_->library_count();
     for (intptr_t i = 0; i < length; i++) {
       LoadLibrary(i);
     }
 
-    if (process_pending_classes && ClassFinalizer::ProcessPendingClasses()) {
-      // If 'main' is not found return a null library, this is the case
-      // when bootstrapping is in progress.
-      NameIndex main = program_->main_method();
-      if (main == -1) {
-        return Library::Handle(Z);
+    if (process_pending_classes) {
+      if (!ClassFinalizer::ProcessPendingClasses()) {
+        // Class finalization failed -> sticky error would be set.
+        Error& error = Error::Handle(Z);
+        error = H.thread()->sticky_error();
+        H.thread()->clear_sticky_error();
+        return error;
       }
-
-      NameIndex main_library = H.EnclosingName(main);
-      Library& library = LookupLibrary(main_library);
-      return library;
-    } else if (!process_pending_classes) {
-      NameIndex main = program_->main_method();
-      if (main == -1) {
-        return Library::Handle(Z);
-      }
-
-      NameIndex main_library = H.EnclosingName(main);
-      Library& library = LookupLibrary(main_library);
-      return library;
     }
+
+    // All classes were successfully loaded, so let's:
+    //     a) load & canonicalize the constant table
+    const Array& constants = ReadConstantTable();
+
+    //     b) set the native names for native functions which have been created
+    //        so far (the rest will be directly set during LoadProcedure)
+    AnnotateNativeProcedures(constants);
+    ASSERT(kernel_program_info_.constants() == Array::null());
+
+    //     c) update all scripts with the constants array
+    kernel_program_info_.set_constants(constants);
+
+    NameIndex main = program_->main_method();
+    if (main == -1) {
+      return Library::Handle(Z);
+    }
+
+    NameIndex main_library = H.EnclosingName(main);
+    Library& library = LookupLibrary(main_library);
+
+    // Sanity check that we can find the main entrypoint.
+    ASSERT(library.LookupObjectAllowPrivate(H.DartSymbol("main")) !=
+           Object::null());
+
+    return library;
   }
 
   // Either class finalization failed or we caught a compile error.
@@ -495,11 +592,14 @@ void KernelLoader::LoadLibrary(intptr_t index) {
     if (H.StringEquals(lib_name_index, kVMServiceIOLibraryUri)) {
       // We are not the service isolate and we are not generating an AOT
       // snapshot so we skip loading 'dart:vmservice_io'.
+      skip_vmservice_library_ = library_helper.canonical_name_;
+      ASSERT(H.IsLibrary(skip_vmservice_library_));
       return;
     }
   }
 
   Library& library = LookupLibrary(library_helper.canonical_name_);
+
   // The Kernel library is external implies that it is already loaded.
   ASSERT(!library_helper.IsExternal() || library.Loaded());
   if (library.Loaded()) return;
@@ -964,58 +1064,98 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_external = procedure_helper.IsExternal();
   String* native_name = NULL;
   intptr_t annotation_count;
+  bool is_potential_native = false;
   if (is_external) {
     // Maybe it has a native implementation, which is not external as far as
     // the VM is concerned because it does have an implementation.  Check for
     // an ExternalName annotation and extract the string from it.
     annotation_count = builder_.ReadListLength();  // read list length.
     for (int i = 0; i < annotation_count; ++i) {
-      if (builder_.PeekTag() != kConstructorInvocation &&
-          builder_.PeekTag() != kConstConstructorInvocation) {
+      const intptr_t tag = builder_.PeekTag();
+      if (tag == kConstructorInvocation || tag == kConstConstructorInvocation) {
+        builder_.ReadTag();
+        builder_.ReadPosition();
+        NameIndex annotation_class = H.EnclosingName(
+            builder_.ReadCanonicalNameReference());  // read target reference,
+        ASSERT(H.IsClass(annotation_class));
+        StringIndex class_name_index = H.CanonicalNameString(annotation_class);
+        // Just compare by name, do not generate the annotation class.
+        if (!H.StringEquals(class_name_index, "ExternalName")) {
+          builder_.SkipArguments();
+          continue;
+        }
+        ASSERT(H.IsLibrary(H.CanonicalNameParent(annotation_class)));
+        StringIndex library_name_index =
+            H.CanonicalNameString(H.CanonicalNameParent(annotation_class));
+        if (!H.StringEquals(library_name_index, "dart:_internal")) {
+          builder_.SkipArguments();
+          continue;
+        }
+
+        is_external = false;
+        // Read arguments:
+        intptr_t total_arguments = builder_.ReadUInt();  // read argument count.
+        builder_.SkipListOfDartTypes();                  // read list of types.
+        intptr_t positional_arguments = builder_.ReadListLength();
+        ASSERT(total_arguments == 1 && positional_arguments == 1);
+
+        Tag tag = builder_.ReadTag();
+        ASSERT(tag == kStringLiteral);
+        native_name = &H.DartSymbol(
+            builder_.ReadStringReference());  // read index into string table.
+
+        // List of named.
+        intptr_t list_length = builder_.ReadListLength();  // read list length.
+        ASSERT(list_length == 0);
+
+        // Skip remaining annotations
+        for (++i; i < annotation_count; ++i) {
+          builder_.SkipExpression();  // read ith annotation.
+        }
+        break;
+      } else if (tag == kConstantExpression) {
+        if (kernel_program_info_.constants() == Array::null()) {
+          // We can only read in the constant table once all classes have been
+          // finalized (otherwise we can't create instances of the classes!).
+          //
+          // We therefore delay the scanning for `ExternalName {name: ... }`
+          // constants in the annotation list to later.
+          is_potential_native = true;
+          builder_.SkipExpression();
+        } else {
+          builder_.ReadByte();  // Skip the tag.
+
+          // Obtain `dart:_internal::ExternalName.name`.
+          EnsureExternalClassIsLookedUp();
+
+          const Array& constant_table =
+              Array::Handle(kernel_program_info_.constants());
+
+          // We have a candiate.  Let's look if it's an instance of the
+          // ExternalName class.
+          const intptr_t constant_table_index = builder_.ReadUInt();
+          const Object& constant =
+              Object::Handle(constant_table.At(constant_table_index));
+          if (constant.clazz() == external_name_class_.raw()) {
+            const Instance& instance =
+                Instance::Handle(Instance::RawCast(constant.raw()));
+
+            // We found the annotation, let's flag the function as native and
+            // set the native name!
+            native_name = &String::Handle(
+                String::RawCast(instance.GetField(external_name_field_)));
+
+            // Skip remaining annotations
+            for (++i; i < annotation_count; ++i) {
+              builder_.SkipExpression();  // read ith annotation.
+            }
+            break;
+          }
+        }
+      } else {
         builder_.SkipExpression();
         continue;
       }
-      builder_.ReadTag();
-      builder_.ReadPosition();
-      NameIndex annotation_class = H.EnclosingName(
-          builder_.ReadCanonicalNameReference());  // read target reference,
-      ASSERT(H.IsClass(annotation_class));
-      StringIndex class_name_index = H.CanonicalNameString(annotation_class);
-      // Just compare by name, do not generate the annotation class.
-      if (!H.StringEquals(class_name_index, "ExternalName")) {
-        builder_.SkipArguments();
-        continue;
-      }
-      ASSERT(H.IsLibrary(H.CanonicalNameParent(annotation_class)));
-      StringIndex library_name_index =
-          H.CanonicalNameString(H.CanonicalNameParent(annotation_class));
-      if (!H.StringEquals(library_name_index, "dart:_internal")) {
-        builder_.SkipArguments();
-        continue;
-      }
-
-      is_external = false;
-      // Read arguments:
-      intptr_t total_arguments = builder_.ReadUInt();  // read argument count.
-      builder_.SkipListOfDartTypes();                  // read list of types.
-      intptr_t positional_arguments = builder_.ReadListLength();
-      ASSERT(total_arguments == 1 && positional_arguments == 1);
-
-      Tag tag = builder_.ReadTag();
-      ASSERT(tag == kStringLiteral);
-      native_name = &H.DartSymbol(
-          builder_.ReadStringReference());  // read index into string table.
-
-      // List of named.
-      intptr_t list_length = builder_.ReadListLength();  // read list length.
-      ASSERT(list_length == 0);
-
-      // Skip remaining annotations
-      for (++i; i < annotation_count; ++i) {
-        builder_.SkipExpression();  // read ith annotation.
-      }
-
-      break;
     }
     procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   } else {
@@ -1065,6 +1205,10 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   if (native_name != NULL) {
     function.set_native_name(*native_name);
+  }
+  if (is_potential_native) {
+    EnsurePotentialNatives();
+    potential_natives_.Add(function);
   }
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);

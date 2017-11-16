@@ -5539,14 +5539,20 @@ RawFunction* Function::implicit_closure_function() const {
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction() && !IsSignatureFunction() &&
          !IsConvertedClosureFunction());
+  const Object& old_data = Object::Handle(raw_ptr()->data_);
   if (is_native()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    ASSERT(obj.IsArray());
-    ASSERT((Array::Cast(obj).At(1) == Object::null()) || value.IsNull());
-    Array::Cast(obj).SetAt(1, value);
+    ASSERT(old_data.IsArray());
+    ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
+    Array::Cast(old_data).SetAt(1, value);
   } else {
-    ASSERT((raw_ptr()->data_ == Object::null()) || value.IsNull());
-    set_data(value);
+    // Maybe this function will turn into a native later on :-/
+    if (old_data.IsArray()) {
+      ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
+      Array::Cast(old_data).SetAt(1, value);
+    } else {
+      ASSERT(old_data.IsNull() || value.IsNull());
+      set_data(value);
+    }
   }
 }
 
@@ -5827,11 +5833,26 @@ RawString* Function::native_name() const {
 }
 
 void Function::set_native_name(const String& value) const {
+  Zone* zone = Thread::Current()->zone();
   ASSERT(is_native());
-  ASSERT(raw_ptr()->data_ == Object::null());
-  const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
+
+  // Due to the fact that kernel needs to read in the constant table before the
+  // annotation data is available, we don't know at function creation time
+  // whether the function is a native or not.
+  //
+  // Reading the constant table can cause a static function to get an implicit
+  // closure function.
+  //
+  // We therefore handle both cases.
+  const Object& old_data = Object::Handle(zone, raw_ptr()->data_);
+  ASSERT(old_data.IsNull() ||
+         (old_data.IsFunction() &&
+          Function::Handle(zone, Function::RawCast(old_data.raw()))
+              .IsImplicitClosureFunction()));
+
+  const Array& pair = Array::Handle(zone, Array::New(2, Heap::kOld));
   pair.SetAt(0, value);
-  // pair[1] will be the implicit closure function if needed.
+  pair.SetAt(1, old_data);  // will be the implicit closure function if needed.
   set_data(pair);
 }
 
@@ -11919,6 +11940,15 @@ RawScript* KernelProgramInfo::ScriptAt(intptr_t index) const {
   const Array& all_scripts = Array::Handle(scripts());
   RawObject* script = all_scripts.At(index);
   return Script::RawCast(script);
+}
+
+void KernelProgramInfo::set_constants(const Array& constants) const {
+  StorePointer(&raw_ptr()->constants_, constants.raw());
+}
+
+void KernelProgramInfo::set_potential_natives(
+    const GrowableObjectArray& candidates) const {
+  StorePointer(&raw_ptr()->potential_natives_, candidates.raw());
 }
 
 RawError* Library::CompileAll() {

@@ -1396,6 +1396,10 @@ void StreamingScopeBuilder::VisitExpression() {
       VisitDartType();                  // read function type of the closure.
       builder_->SkipListOfDartTypes();  // read type arguments.
       return;
+    case kConstantExpression: {
+      builder_->SkipConstantReference();
+      return;
+    }
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
@@ -2603,6 +2607,9 @@ Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kNullLiteral:
         EvaluateNullLiteral();
         break;
+      case kConstantExpression:
+        EvaluateConstantExpression();
+        break;
       default:
         H.ReportError(script_, TokenPosition::kNoSource,
                       "Not a constant expression.");
@@ -3192,6 +3199,10 @@ void StreamingConstantEvaluator::EvaluateBoolLiteral(bool value) {
 
 void StreamingConstantEvaluator::EvaluateNullLiteral() {
   result_ = Instance::null();
+}
+
+void StreamingConstantEvaluator::EvaluateConstantExpression() {
+  result_ ^= H.constants().At(builder_->ReadUInt());
 }
 
 // This depends on being about to read the list of positionals on arguments.
@@ -4398,6 +4409,8 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildVectorCopy(position);
     case kClosureCreation:
       return BuildClosureCreation(position);
+    case kConstantExpression:
+      return BuildConstantExpression(position);
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
@@ -4565,6 +4578,10 @@ void StreamingFlowGraphBuilder::SkipFlags() {
 }
 
 void StreamingFlowGraphBuilder::SkipStringReference() {
+  ReadUInt();
+}
+
+void StreamingFlowGraphBuilder::SkipConstantReference() {
   ReadUInt();
 }
 
@@ -4933,6 +4950,9 @@ void StreamingFlowGraphBuilder::SkipExpression() {
     case kFalseLiteral:
       return;
     case kNullLiteral:
+      return;
+    case kConstantExpression:
+      SkipConstantReference();
       return;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
@@ -7469,6 +7489,13 @@ Fragment StreamingFlowGraphBuilder::BuildClosureCreation(
   return instructions;
 }
 
+Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
+    TokenPosition* position) {
+  if (position != NULL) *position = TokenPosition::kNoSource;
+  const intptr_t constant_index = ReadUInt();
+  return Constant(Object::ZoneHandle(Z, H.constants().At(constant_index)));
+}
+
 Fragment StreamingFlowGraphBuilder::BuildInvalidStatement() {
   H.ReportError("Invalid statements not implemented yet!");
   return Fragment();
@@ -8970,6 +8997,149 @@ void StreamingFlowGraphBuilder::EnsureMetadataIsScanned() {
       }
     }
   }
+}
+
+const Array& ConstantHelper::ReadConstantTable() {
+  const intptr_t number_of_constants = builder_.ReadUInt();
+  if (number_of_constants == 0) {
+    return Array::Handle(Z, Array::null());
+  }
+
+  const Library& corelib = Library::Handle(Z, Library::CoreLibrary());
+  const Class& list_class =
+      Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
+
+  // Eagerly finalize _ImmutableList (instead of doing it on every list
+  // constant).
+  temp_class_ = I->class_table()->At(kImmutableArrayCid);
+  temp_object_ = temp_class_.EnsureIsFinalized(H.thread());
+  ASSERT(temp_object_.IsNull());
+
+  const Array& constants =
+      Array::Handle(Z, Array::New(number_of_constants, Heap::kOld));
+  for (intptr_t i = 0; i < number_of_constants; ++i) {
+    const intptr_t constant_tag = builder_.ReadByte();
+    switch (constant_tag) {
+      case kNullConstant:
+        temp_instance_ = Instance::null();
+        break;
+      case kBoolConstant:
+        temp_instance_ = builder_.ReadByte() == 1 ? Object::bool_true().raw()
+                                                  : Object::bool_false().raw();
+        break;
+      case kIntConstant: {
+        temp_instance_ = const_evaluator_
+                             .EvaluateExpression(builder_.ReaderOffset(),
+                                                 false /* reset position */)
+                             .raw();
+        break;
+      }
+      case kDoubleConstant: {
+        temp_instance_ = Double::New(
+            H.DartString(builder_.ReadStringReference()), Heap::kOld);
+        temp_instance_ = H.Canonicalize(temp_instance_);
+        break;
+      }
+      case kStringConstant: {
+        temp_instance_ =
+            H.Canonicalize(H.DartString(builder_.ReadStringReference()));
+        break;
+      }
+      case kListConstant: {
+        temp_type_arguments_ = TypeArguments::New(1, Heap::kOld);
+        const AbstractType& type = type_translator_.BuildType();
+        temp_type_arguments_.SetTypeAt(0, type);
+        InstantiateTypeArguments(list_class, &temp_type_arguments_);
+
+        const intptr_t length = builder_.ReadUInt();
+        temp_array_ = ImmutableArray::New(length, Heap::kOld);
+        temp_array_.SetTypeArguments(temp_type_arguments_);
+        for (intptr_t j = 0; j < length; ++j) {
+          const intptr_t entry_index = builder_.ReadUInt();
+          ASSERT(entry_index < i);  // We have a DAG!
+          temp_object_ = constants.At(entry_index);
+          temp_array_.SetAt(j, temp_object_);
+        }
+
+        temp_instance_ = H.Canonicalize(temp_array_);
+        break;
+      }
+      case kInstanceConstant: {
+        temp_class_ =
+            H.LookupClassByKernelClass(builder_.ReadCanonicalNameReference());
+        temp_object_ = temp_class_.EnsureIsFinalized(H.thread());
+        ASSERT(temp_object_.IsNull());
+
+        temp_instance_ = Instance::New(temp_class_, Heap::kOld);
+
+        const intptr_t number_of_type_arguments = builder_.ReadUInt();
+        if (number_of_type_arguments > 0) {
+          temp_type_arguments_ =
+              TypeArguments::New(number_of_type_arguments, Heap::kOld);
+          for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
+            temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
+          }
+          InstantiateTypeArguments(list_class, &temp_type_arguments_);
+          temp_instance_.SetTypeArguments(temp_type_arguments_);
+        }
+
+        const intptr_t number_of_fields = builder_.ReadUInt();
+        for (intptr_t j = 0; j < number_of_fields; ++j) {
+          temp_field_ =
+              H.LookupFieldByKernelField(builder_.ReadCanonicalNameReference());
+          const intptr_t entry_index = builder_.ReadUInt();
+          ASSERT(entry_index < i);  // We have a DAG!
+          temp_object_ = constants.At(entry_index);
+          temp_instance_.SetField(temp_field_, temp_object_);
+        }
+
+        temp_instance_ = H.Canonicalize(temp_instance_);
+        break;
+      }
+      case kTearOffConstant: {
+        const NameIndex index = builder_.ReadCanonicalNameReference();
+        NameIndex lib_index = index;
+        while (!H.IsLibrary(lib_index)) {
+          lib_index = H.CanonicalNameParent(lib_index);
+        }
+        ASSERT(H.IsLibrary(lib_index));
+        if (lib_index == skip_vmservice_library_) {
+          temp_instance_ = Instance::null();
+          break;
+        }
+
+        temp_function_ = H.LookupStaticMethodByKernelProcedure(index);
+        temp_function_ = temp_function_.ImplicitClosureFunction();
+        temp_instance_ = temp_function_.ImplicitStaticClosure();
+        temp_instance_ = H.Canonicalize(temp_instance_);
+        break;
+      }
+      case kTypeLiteralConstant: {
+        temp_instance_ = type_translator_.BuildType().raw();
+        break;
+      }
+      case kMapConstant:
+        // Note: This is already lowered to InstanceConstant/ListConstant.
+        UNREACHABLE();
+        break;
+      default:
+        UNREACHABLE();
+    }
+    constants.SetAt(i, temp_instance_);
+  }
+  return constants;
+}
+
+void ConstantHelper::InstantiateTypeArguments(const Class& receiver_class,
+                                              TypeArguments* type_arguments) {
+  // We make a temporary [Type] object and use `ClassFinalizer::FinalizeType` to
+  // finalize the argument types.
+  // (This can for example make the [type_arguments] vector larger)
+  temp_type_ =
+      Type::New(receiver_class, *type_arguments, TokenPosition::kNoSource);
+  temp_type_ = ClassFinalizer::FinalizeType(*active_class_->klass, temp_type_,
+                                            ClassFinalizer::kCanonicalize);
+  *type_arguments = temp_type_.arguments();
 }
 
 }  // namespace kernel

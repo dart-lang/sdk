@@ -140,6 +140,13 @@ class KernelLoader {
 
   static void FinishLoading(const Class& klass);
 
+  const Array& ReadConstantTable();
+  void AnnotateNativeProcedures(const Array& constant_table);
+
+  const String& DartSymbol(StringIndex index) {
+    return translation_helper_.DartSymbol(index);
+  }
+
   const String& LibraryUri(intptr_t library_index) {
     return translation_helper_.DartSymbol(
         translation_helper_.CanonicalNameString(
@@ -221,6 +228,28 @@ class KernelLoader {
 
   RawFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
+  void EnsureExternalClassIsLookedUp() {
+    if (external_name_class_.IsNull()) {
+      ASSERT(external_name_field_.IsNull());
+      const Library& internal_lib =
+          Library::Handle(zone_, dart::Library::InternalLibrary());
+      external_name_class_ = internal_lib.LookupClass(Symbols::ExternalName());
+      external_name_field_ = external_name_class_.LookupField(Symbols::name());
+    } else {
+      ASSERT(!external_name_field_.IsNull());
+    }
+  }
+
+  void EnsurePotentialNatives() {
+    potential_natives_ = kernel_program_info_.potential_natives();
+    if (potential_natives_.IsNull()) {
+      // To avoid too many grows in this array, we'll set it's initial size to
+      // something close to the actual number of potential native functions.
+      potential_natives_ = GrowableObjectArray::New(100, Heap::kNew);
+      kernel_program_info_.set_potential_natives(potential_natives_);
+    }
+  }
+
   Program* program_;
 
   Thread* thread_;
@@ -236,10 +265,17 @@ class KernelLoader {
   // to their library's kernel data, have to be corrected.
   intptr_t correction_offset_;
   bool loading_native_wrappers_library_;
+
+  NameIndex skip_vmservice_library_;
+
   TypedData& library_kernel_data_;
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   StreamingFlowGraphBuilder builder_;
+
+  Class& external_name_class_;
+  Field& external_name_field_;
+  GrowableObjectArray& potential_natives_;
 
   Mapping<Library> libraries_;
   Mapping<Class> classes_;

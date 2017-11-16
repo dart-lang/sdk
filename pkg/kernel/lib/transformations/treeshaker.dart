@@ -1087,3 +1087,28 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
 /// Exception that is thrown to stop the tree shaking analysis when a use
 /// of `dart:mirrors` is found.
 class _UsingMirrorsException {}
+
+String findNativeName(Member procedure) {
+  // Native procedures are marked as external and have an annotation,
+  // which looks like this:
+  //
+  //    import 'dart:_internal' as internal;
+  //
+  //    @internal.ExternalName("<name-of-native>")
+  //    external Object foo(arg0, ...);
+  //
+  if (procedure.isExternal) {
+    for (final Expression annotation in procedure.annotations) {
+      if (annotation is ConstructorInvocation) {
+        final Class klass = annotation.target.enclosingClass;
+        if (klass.name == 'ExternalName' &&
+            klass.enclosingLibrary.importUri.toString() == 'dart:_internal') {
+          assert(annotation.arguments.positional.length == 1);
+          return (annotation.arguments.positional[0] as StringLiteral).value;
+        }
+      }
+    }
+    throw 'External procedure has no @ExternalName("...") annotation!';
+  }
+  return null;
+}

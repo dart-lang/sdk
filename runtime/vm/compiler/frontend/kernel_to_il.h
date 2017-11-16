@@ -321,6 +321,9 @@ class TranslationHelper {
   const TypedData& metadata_mappings() { return metadata_mappings_; }
   void SetMetadataMappings(const TypedData& metadata_mappings);
 
+  const Array& constants() { return constants_; }
+  void SetConstants(const Array& constants);
+
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
 
@@ -443,6 +446,7 @@ class TranslationHelper {
   TypedData& canonical_names_;
   TypedData& metadata_payloads_;
   TypedData& metadata_mappings_;
+  Array& constants_;
 };
 
 struct FunctionScope {

@@ -50,6 +50,7 @@ front_end/test/fasta/strong_test: Pass, Slow
 front_end/test/fasta/outline_test: Pass, Slow
 front_end/test/fasta/ast_builder_test: Pass, Slow
 front_end/tool/incremental_perf_test: Slow, Pass
+front_end/test/whole_program_test: Slow, Pass
 
 # These are not tests but input for tests.
 kernel/testcases/*: Skip
@@ -60,6 +61,9 @@ front_end/test/fasta/analyze_test: Pass, Slow
 kernel/test/closures_test: Slow, Pass
 
 front_end/tool/_fasta/compile_platform_test: Fail
+
+[ $use_sdk || $mode != release || $compiler != none || $runtime != vm || $arch != x64 ]
+front_end/test/whole_program_test: SkipByDesign
 
 [ $compiler != dart2analyzer ]
 analyzer/test/src/summary/summarize_fasta_test: RuntimeError, Slow

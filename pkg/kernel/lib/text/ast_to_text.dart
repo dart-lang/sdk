@@ -6,14 +6,35 @@ library kernel.ast_to_text;
 import '../ast.dart';
 import '../import_table.dart';
 
-class Namer<T> {
+abstract class Namer<T> {
   int index = 0;
-  final String prefix;
   final Map<T, String> map = <T, String>{};
 
-  Namer(this.prefix);
-
   String getName(T key) => map.putIfAbsent(key, () => '$prefix${++index}');
+
+  String get prefix;
+}
+
+class NormalNamer<T> extends Namer<T> {
+  final String prefix;
+  NormalNamer(this.prefix);
+}
+
+class ConstantNamer extends RecursiveVisitor<Null> with Namer<Constant> {
+  final String prefix;
+  ConstantNamer(this.prefix);
+
+  String getName(Constant constant) {
+    if (!map.containsKey(constant)) {
+      // Name everything in post-order visit of DAG.
+      constant.visitChildren(this);
+    }
+    return super.getName(constant);
+  }
+
+  defaultConstantReference(Constant constant) {
+    getName(constant);
+  }
 }
 
 class Disambiguator<T> {
@@ -103,12 +124,14 @@ String programToString(Program node) {
 
 class NameSystem {
   final Namer<VariableDeclaration> variables =
-      new Namer<VariableDeclaration>('#t');
-  final Namer<Member> members = new Namer<Member>('#m');
-  final Namer<Class> classes = new Namer<Class>('#class');
-  final Namer<Library> libraries = new Namer<Library>('#lib');
-  final Namer<TypeParameter> typeParameters = new Namer<TypeParameter>('#T');
-  final Namer<TreeNode> labels = new Namer<TreeNode>('#L');
+      new NormalNamer<VariableDeclaration>('#t');
+  final Namer<Member> members = new NormalNamer<Member>('#m');
+  final Namer<Class> classes = new NormalNamer<Class>('#class');
+  final Namer<Library> libraries = new NormalNamer<Library>('#lib');
+  final Namer<TypeParameter> typeParameters =
+      new NormalNamer<TypeParameter>('#T');
+  final Namer<TreeNode> labels = new NormalNamer<TreeNode>('#L');
+  final Namer<Constant> constants = new ConstantNamer('#C');
   final Disambiguator<Library> prefixes = new Disambiguator<Library>();
 
   nameVariable(VariableDeclaration node) => variables.getName(node);
@@ -118,6 +141,7 @@ class NameSystem {
   nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   nameSwitchCase(SwitchCase node) => labels.getName(node);
   nameLabeledStatement(LabeledStatement node) => labels.getName(node);
+  nameConstant(Constant node) => constants.getName(node);
 
   nameLibraryPrefix(Library node, {String proposedName}) {
     return prefixes.disambiguate(node, () {
@@ -369,6 +393,15 @@ class Printer extends Visitor<Null> {
       --inner.indentation;
       endLine('}');
     }
+    writeWord('constants ');
+    endLine(' {');
+    ++inner.indentation;
+    for (final Constant constant
+        in syntheticNames.constants.map.keys.toList()) {
+      inner.writeNode(constant);
+    }
+    --inner.indentation;
+    endLine('}');
   }
 
   int getPrecedence(TreeNode node) {
@@ -1644,6 +1677,55 @@ class Printer extends Visitor<Null> {
     writeWord(getTypeParameterName(node));
     writeSpaced('extends');
     writeType(node.bound);
+  }
+
+  visitConstantExpression(ConstantExpression node) {
+    writeWord(syntheticNames.nameConstant(node.constant));
+  }
+
+  defaultConstant(Constant node) {
+    final String name = syntheticNames.nameConstant(node);
+    endLine('  $name = $node');
+  }
+
+  visitListConstant(ListConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    write('  $name = ');
+    final String entries = node.entries.map((Constant constant) {
+      return syntheticNames.nameConstant(constant);
+    }).join(', ');
+    endLine('${node.runtimeType}<${node.typeArgument}>($entries)');
+  }
+
+  visitMapConstant(MapConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    write('  $name = ');
+    final String entries = node.entries.map((ConstantMapEntry entry) {
+      final String key = syntheticNames.nameConstant(entry.key);
+      final String value = syntheticNames.nameConstant(entry.value);
+      return '$key: $value';
+    }).join(', ');
+    endLine(
+        '${node.runtimeType}<${node.keyType}, ${node.valueType}>($entries)');
+  }
+
+  visitInstanceConstant(InstanceConstant node) {
+    final String name = syntheticNames.nameConstant(node);
+    write('  $name = ');
+    final sb = new StringBuffer();
+    sb.write('${node.klass}');
+    if (!node.klass.typeParameters.isEmpty) {
+      sb.write('<');
+      sb.write(node.typeArguments.map((type) => type.toString()).join(', '));
+      sb.write('>');
+    }
+    sb.write(' {');
+    node.fieldValues.forEach((Reference fieldRef, Constant constant) {
+      final String name = syntheticNames.nameConstant(constant);
+      sb.write('${fieldRef.asField.name}: $name, ');
+    });
+    sb.write('}');
+    endLine(sb.toString());
   }
 
   defaultNode(Node node) {

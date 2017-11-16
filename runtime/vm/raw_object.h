@@ -1204,7 +1204,9 @@ class RawKernelProgramInfo : public RawObject {
   RawTypedData* metadata_payloads_;
   RawTypedData* metadata_mappings_;
   RawArray* scripts_;
-  VISIT_TO(RawObject*, scripts_);
+  RawArray* constants_;
+  RawGrowableObjectArray* potential_natives_;
+  VISIT_TO(RawObject*, potential_natives_);
 };
 
 class RawCode : public RawObject {

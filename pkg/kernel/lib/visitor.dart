@@ -47,6 +47,7 @@ abstract class ExpressionVisitor<R> {
   R visitMapLiteral(MapLiteral node) => defaultExpression(node);
   R visitAwaitExpression(AwaitExpression node) => defaultExpression(node);
   R visitFunctionExpression(FunctionExpression node) => defaultExpression(node);
+  R visitConstantExpression(ConstantExpression node) => defaultExpression(node);
   R visitStringLiteral(StringLiteral node) => defaultBasicLiteral(node);
   R visitIntLiteral(IntLiteral node) => defaultBasicLiteral(node);
   R visitDoubleLiteral(DoubleLiteral node) => defaultBasicLiteral(node);
@@ -167,6 +168,7 @@ class TreeVisitor<R>
   R visitMapLiteral(MapLiteral node) => defaultExpression(node);
   R visitAwaitExpression(AwaitExpression node) => defaultExpression(node);
   R visitFunctionExpression(FunctionExpression node) => defaultExpression(node);
+  R visitConstantExpression(ConstantExpression node) => defaultExpression(node);
   R visitStringLiteral(StringLiteral node) => defaultBasicLiteral(node);
   R visitIntLiteral(IntLiteral node) => defaultBasicLiteral(node);
   R visitDoubleLiteral(DoubleLiteral node) => defaultBasicLiteral(node);
@@ -258,6 +260,21 @@ class DartTypeVisitor<R> {
   R visitTypedefType(TypedefType node) => defaultDartType(node);
 }
 
+class ConstantVisitor<R> {
+  R defaultConstant(Constant node) => null;
+
+  R visitNullConstant(NullConstant node) => defaultConstant(node);
+  R visitBoolConstant(BoolConstant node) => defaultConstant(node);
+  R visitIntConstant(IntConstant node) => defaultConstant(node);
+  R visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
+  R visitStringConstant(StringConstant node) => defaultConstant(node);
+  R visitMapConstant(MapConstant node) => defaultConstant(node);
+  R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
+}
+
 class MemberReferenceVisitor<R> {
   const MemberReferenceVisitor();
 
@@ -269,7 +286,10 @@ class MemberReferenceVisitor<R> {
 }
 
 class Visitor<R> extends TreeVisitor<R>
-    implements DartTypeVisitor<R>, MemberReferenceVisitor<R> {
+    implements
+        DartTypeVisitor<R>,
+        ConstantVisitor<R>,
+        MemberReferenceVisitor<R> {
   const Visitor();
 
   /// The catch-all case, except for references.
@@ -288,9 +308,45 @@ class Visitor<R> extends TreeVisitor<R>
   R visitTypeParameterType(TypeParameterType node) => defaultDartType(node);
   R visitTypedefType(TypedefType node) => defaultDartType(node);
 
+  // Constants
+  R defaultConstant(Constant node) => defaultNode(node);
+  R visitNullConstant(NullConstant node) => defaultConstant(node);
+  R visitBoolConstant(BoolConstant node) => defaultConstant(node);
+  R visitIntConstant(IntConstant node) => defaultConstant(node);
+  R visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
+  R visitStringConstant(StringConstant node) => defaultConstant(node);
+  R visitMapConstant(MapConstant node) => defaultConstant(node);
+  R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
+
   // Class references
   R visitClassReference(Class node) => null;
   R visitTypedefReference(Typedef node) => null;
+
+  // Constant references
+  R defaultConstantReference(Constant node) => null;
+  R visitNullConstantReference(NullConstant node) =>
+      defaultConstantReference(node);
+  R visitBoolConstantReference(BoolConstant node) =>
+      defaultConstantReference(node);
+  R visitIntConstantReference(IntConstant node) =>
+      defaultConstantReference(node);
+  R visitDoubleConstantReference(DoubleConstant node) =>
+      defaultConstantReference(node);
+  R visitStringConstantReference(StringConstant node) =>
+      defaultConstantReference(node);
+  R visitMapConstantReference(MapConstant node) =>
+      defaultConstantReference(node);
+  R visitListConstantReference(ListConstant node) =>
+      defaultConstantReference(node);
+  R visitInstanceConstantReference(InstanceConstant node) =>
+      defaultConstantReference(node);
+  R visitTearOffConstantReference(TearOffConstant node) =>
+      defaultConstantReference(node);
+  R visitTypeLiteralConstantReference(TypeLiteralConstant node) =>
+      defaultConstantReference(node);
 
   // Member references
   R defaultMemberReference(Member node) => null;
@@ -343,6 +399,8 @@ class Transformer extends TreeVisitor<TreeNode> {
   ///
   /// By default, recursion stops at this point.
   DartType visitDartType(DartType node) => node;
+
+  Constant visitConstant(Constant node) => node;
 
   Supertype visitSupertype(Supertype node) => node;
 
@@ -398,6 +456,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitTypeLiteral(TypeLiteral node, T arg) => defaultExpression(node, arg);
   R visitThisExpression(ThisExpression node, T arg) =>
       defaultExpression(node, arg);
+  R visitConstantExpression(ConstantExpression node, arg) =>
+      defaultExpression(node, arg);
   R visitRethrow(Rethrow node, T arg) => defaultExpression(node, arg);
   R visitThrow(Throw node, T arg) => defaultExpression(node, arg);
   R visitListLiteral(ListLiteral node, T arg) => defaultExpression(node, arg);
@@ -406,9 +466,9 @@ abstract class ExpressionVisitor1<R, T> {
       defaultExpression(node, arg);
   R visitFunctionExpression(FunctionExpression node, T arg) =>
       defaultExpression(node, arg);
+  R visitIntLiteral(IntLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitStringLiteral(StringLiteral node, T arg) =>
       defaultBasicLiteral(node, arg);
-  R visitIntLiteral(IntLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitDoubleLiteral(DoubleLiteral node, T arg) =>
       defaultBasicLiteral(node, arg);
   R visitBoolLiteral(BoolLiteral node, T arg) => defaultBasicLiteral(node, arg);

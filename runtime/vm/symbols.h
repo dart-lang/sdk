@@ -372,6 +372,7 @@ class ObjectPointerVisitor;
   V(DartIOLibName, "dart.io")                                                  \
   V(DartVMProduct, "dart.vm.product")                                          \
   V(EvalSourceUri, "evaluate:source")                                          \
+  V(ExternalName, "ExternalName")                                              \
   V(_Random, "_Random")                                                        \
   V(_state, "_state")                                                          \
   V(_A, "_A")                                                                  \
@@ -429,6 +430,7 @@ class ObjectPointerVisitor;
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
   V(_name, "_name")                                                            \
+  V(name, "name")                                                              \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
   V(_classRangeAssert, "_classRangeAssert")                                    \

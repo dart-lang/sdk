@@ -3979,6 +3979,19 @@ class KernelProgramInfo : public Object {
 
   RawArray* scripts() const { return raw_ptr()->scripts_; }
 
+  RawArray* constants() const { return raw_ptr()->constants_; }
+  void set_constants(const Array& constants) const;
+
+  // If we load a kernel blob with evaluated constants, then we delay setting
+  // the native names of [Function] objects until we've read the constant table
+  // (since native names are encoded as constants).
+  //
+  // This array will hold the functions which might need their native name set.
+  RawGrowableObjectArray* potential_natives() const {
+    return raw_ptr()->potential_natives_;
+  }
+  void set_potential_natives(const GrowableObjectArray& candidates) const;
+
   RawScript* ScriptAt(intptr_t index) const;
 
  private:
