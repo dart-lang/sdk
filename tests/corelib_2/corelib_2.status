@@ -520,27 +520,19 @@ error_stack_trace1_test: Skip  # Expects unobfuscated stack trace
 [ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
 list_concurrent_modify_test: Crash # Issue 30559
 
+# ===== Skip dartk and darkp in !$strong mode ====
+
 [ ($compiler == dartk || $compiler == dartkp) && !$strong ]
 *: SkipByDesign
 
-[ ($compiler == dartk || $compiler == dartkp) && $strong ]
-collection_removes_test: RuntimeError
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
-list_concurrent_modify_test: RuntimeError
-list_insert_all_test: RuntimeError
+# ===== dartk + vm status lines =====
 
-[ $compiler == dartkp && $strong ]
-regexp/stack-overflow_test: RuntimeError
-iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-map_keys2_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-
-[ ($compiler == dartk || $compiler == dartkp) && $strong ]
+[ $compiler == dartk && $runtime == vm && $strong ]
 bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 bool_from_environment2_test/04: MissingCompileTimeError
+collection_removes_test: RuntimeError
 compare_to2_test: RuntimeError
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
@@ -568,6 +560,10 @@ from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 int_parse_radix_test/badTypes: RuntimeError
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
+list_concurrent_modify_test: RuntimeError
+list_insert_all_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
@@ -589,14 +585,81 @@ symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 unicode_test: RuntimeError
 
-[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug ]
-list_test/none: Crash
+[ $compiler == dartk && $runtime == vm && $strong && $mode == debug ]
 list_test/01: Crash
+list_test/none: Crash
 
-[ $compiler == dartkp && $strong && $mode == debug ]
+# ===== dartkp + dart_precompiled status lines =====
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/03: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+collection_removes_test: RuntimeError
+compare_to2_test: RuntimeError
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+int_parse_radix_test/badTypes: RuntimeError
+iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
+iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+list_concurrent_modify_test: RuntimeError
+list_insert_all_test: RuntimeError
+map_keys2_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+regexp/stack-overflow_test: RuntimeError
+splay_tree_from_iterable_test: RuntimeError
+string_case_test/01: RuntimeError
+string_from_environment3_test/01: MissingCompileTimeError
+string_from_environment3_test/02: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+string_from_environment3_test/04: MissingCompileTimeError
+string_trimlr_test/02: RuntimeError
+symbol_operator_test/03: RuntimeError
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_reserved_word_test/06: RuntimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/09: RuntimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_reserved_word_test/12: RuntimeError
+symbol_test/01: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+symbol_test/none: RuntimeError
+unicode_test: RuntimeError
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug ]
 bit_twiddling_test/int64: CompileTimeError
 integer_parsed_arith_vm_test/01: RuntimeError
 integer_parsed_arith_vm_test/02: RuntimeError
+list_test/01: Crash
+list_test/none: Crash
+
 
 [ $compiler == dartdevk ]
 bool_from_environment2_test/01: MissingCompileTimeError
