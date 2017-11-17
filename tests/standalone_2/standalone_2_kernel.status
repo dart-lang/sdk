@@ -2,12 +2,29 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartk && $mode == debug ]
-io/file_lock_test: Slow, Pass
+# Sections in this file should contain "$compiler == dartk" or
+# "$compiler == dartkp".
+#
+# Note: these sections are processed by tools, keep sections alphabetized and
+# do not create new sections to share status lines.
 
-[ $compiler == dartk || $compiler == dartkp ]
+# ===== Skip dartk and darkp in !$strong mode ====
+[ $compiler == dartk && !$strong ]
+*: SkipByDesign
+
+[ $compiler == dartkp && !$strong ]
+*: SkipByDesign
+
+# ===== dartk + vm status lines =====
+
+[ $compiler == dartk && $runtime == vm && $strong ]
+io/compile_all_test: Crash
 io/http_client_connect_test: Skip # Flaky.
+io/http_client_request_test: Pass, Timeout
+io/http_compression_test: RuntimeError
 io/http_content_length_test: Skip # Flaky.
+io/http_cookie_test: Skip # Flaky
+io/http_proxy_advanced_test: Skip # Flaky
 io/http_proxy_test: Skip # Flaky.
 io/http_response_deadline_test: Skip # Flaky.
 io/http_reuse_server_port_test: Skip # Flaky.
@@ -19,43 +36,22 @@ io/raw_secure_server_closing_test: Skip # Flaky.
 io/secure_multiple_client_server_test: Skip # Flaky.
 io/secure_server_closing_test: Skip # Flaky.
 io/secure_server_socket_test: Skip # Flaky.
+io/socket_finalizer_test: Pass, Timeout
+io/socket_many_connections_test: Skip # Flaky
 io/web_socket_error_test: Skip # Flaky
 io/web_socket_ping_test: Skip # Flaky.
 io/web_socket_test: Skip # Flaky.
-no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
-regress_29350_test: MissingCompileTimeError
-io/compile_all_test: Crash
-io/http_cookie_test: Skip # Flaky
-io/http_proxy_advanced_test: Skip # Flaky
-io/socket_many_connections_test: Skip # Flaky
 map_insert_remove_oom_test: Crash
+no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
+regress_29350_test: MissingCompileTimeError
 
-[ $compiler == dartkp ]
-dwarf_stack_trace_test: RuntimeError
-
-[ $compiler == dartk && $strong ]
-io/http_client_request_test: Pass, Timeout
-io/http_compression_test: RuntimeError
-io/secure_builtin_roots_test: Timeout, RuntimeError
-io/socket_finalizer_test: Pass, Timeout
-
-[ $compiler == dartkp && $strong ]
-io/arguments_test: RuntimeError
-io/file_fuzz_test: RuntimeError, Pass
-io/http_close_test: Crash
-io/http_compression_test: RuntimeError
-io/https_client_certificate_test: Crash
-io/platform_test: Crash
-io/raw_socket_test: Crash
-io/secure_builtin_roots_test: Timeout, RuntimeError
-io/secure_socket_renegotiate_test: Crash
-
-[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug]
+[ $compiler == dartk && $runtime == vm && $strong && $mode == debug ]
+io/file_lock_test: Slow, Pass
 io/raw_socket_test: Crash
 io/socket_exception_test: Pass, Crash
 io/socket_finalizer_test: Pass, Crash
@@ -63,6 +59,54 @@ io/socket_info_ipv4_test: Pass, Crash
 io/socket_info_ipv6_test: Pass, Crash
 io/socket_port_test: Pass, Crash
 
-[ $compiler == dartkp && $strong && $mode == debug ]
+# ===== dartkp + dart_precompiled status lines =====
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+dwarf_stack_trace_test: RuntimeError
+io/arguments_test: RuntimeError
+io/compile_all_test: Crash
+io/file_fuzz_test: RuntimeError, Pass
+io/http_client_connect_test: Skip # Flaky.
+io/http_close_test: Crash
+io/http_compression_test: RuntimeError
+io/http_content_length_test: Skip # Flaky.
+io/http_cookie_test: Skip # Flaky
+io/http_proxy_advanced_test: Skip # Flaky
+io/http_proxy_test: Skip # Flaky.
+io/http_response_deadline_test: Skip # Flaky.
+io/http_reuse_server_port_test: Skip # Flaky.
+io/http_server_close_response_after_error_test: Skip # Flaky.
+io/http_shutdown_test: Skip # Flaky.
+io/https_client_certificate_test: Crash
+io/platform_test: Crash
+io/raw_datagram_socket_test: Skip # Flaky.
+io/raw_secure_server_closing_test: Skip # Flaky
+io/raw_secure_server_closing_test: Skip # Flaky.
+io/raw_socket_test: Crash
+io/secure_builtin_roots_test: Timeout, RuntimeError
+io/secure_multiple_client_server_test: Skip # Flaky.
+io/secure_server_closing_test: Skip # Flaky.
+io/secure_server_socket_test: Skip # Flaky.
+io/secure_socket_renegotiate_test: Crash
+io/socket_many_connections_test: Skip # Flaky
+io/web_socket_error_test: Skip # Flaky
+io/web_socket_ping_test: Skip # Flaky.
+io/web_socket_test: Skip # Flaky.
+map_insert_remove_oom_test: Crash
+no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
+package/package1_test: CompileTimeError
+package/package_test: CompileTimeError
+package/scenarios/invalid/invalid_utf8_test: CompileTimeError
+package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
+package/scenarios/invalid/same_package_twice_test: CompileTimeError
+regress_29350_test: MissingCompileTimeError
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug ]
 float_array_static_test: Pass # Issue 31375
+io/raw_socket_test: Crash
 io/skipping_dart2js_compilations_test: Crash
+io/socket_exception_test: Pass, Crash
+io/socket_finalizer_test: Pass, Crash
+io/socket_info_ipv4_test: Pass, Crash
+io/socket_info_ipv6_test: Pass, Crash
+io/socket_port_test: Pass, Crash
