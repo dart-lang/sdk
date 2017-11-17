@@ -22,14 +22,14 @@
 /// and:
 ///
 ///     [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
-library status_files.update_from_log;
+library compiler.status_files.update_from_log;
 
 import 'dart:io';
 
 import 'record.dart';
 import 'log_parser.dart';
 
-final configurations = {
+final dart2jsConfigurations = {
   'host-checked':
       r'[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]',
   'minified': r'[ $compiler == dart2js && $dart2js_with_kernel && $minified ]',
@@ -39,7 +39,7 @@ final configurations = {
       r'[ $compiler == dart2js && $dart2js_with_kernel && $checked ]',
 };
 
-final statusFiles = {
+final dart2jsStatusFiles = {
   'language': 'tests/language/language_dart2js.status',
   'corelib': 'tests/corelib/corelib.status',
   'language_2': 'tests/language_2/language_2_dart2js.status',
@@ -52,6 +52,13 @@ final statusFiles = {
 };
 
 main(args) {
+  mainInternal(args, dart2jsConfigurations, dart2jsStatusFiles);
+}
+
+/// Note: this is called above and also from
+/// pkg/front_end/tool/status_files/update_from_log.dart
+mainInternal(List<String> args, Map<String, String> configurations,
+    Map<String, String> statusFiles) {
   if (args.length < 2) {
     print('usage: update_from_log.dart <mode> log.txt');
     print('  where mode is one of these values: ${configurations.keys}');
@@ -70,12 +77,13 @@ main(args) {
     exit(1);
   }
 
-  updateLogs(mode, file.readAsStringSync());
+  updateLogs(mode, file.readAsStringSync(), configurations, statusFiles);
 }
 
 /// Update all status files based on the [log] records when running the compiler
 /// in [mode].
-void updateLogs(String mode, String log) {
+void updateLogs(String mode, String log, Map<String, String> configurations,
+    Map<String, String> statusFiles) {
   List<Record> records = parse(log);
   records.sort();
   var last;
@@ -84,7 +92,10 @@ void updateLogs(String mode, String log) {
     if (last == record) continue; // ignore duplicates
     if (section?.suite != record.suite) {
       section?.update();
-      section = ConfigurationInSuiteSection.create(record.suite, mode);
+      var statusFile = statusFiles[record.suite];
+      var condition = configurations[mode];
+      section = ConfigurationInSuiteSection.create(
+          record.suite, mode, statusFile, condition);
     }
     section.add(record);
     last = record;
@@ -218,10 +229,9 @@ class ConfigurationInSuiteSection {
     }
   }
 
-  static ConfigurationInSuiteSection create(String suite, String mode) {
-    var statusFile = statusFiles[suite];
+  static ConfigurationInSuiteSection create(
+      String suite, String mode, String statusFile, String condition) {
     var contents = new File(statusFile).readAsStringSync();
-    var condition = configurations[mode];
     int sectionDeclaration = contents.indexOf(condition);
     if (sectionDeclaration == -1) {
       print('error: unable to find condition $condition in $statusFile');
