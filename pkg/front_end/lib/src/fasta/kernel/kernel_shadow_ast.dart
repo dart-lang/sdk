@@ -1713,8 +1713,8 @@ class ShadowSuperMethodInvocation extends SuperMethodInvocation
       inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
           'target', new InstrumentationValueForMember(interfaceTarget));
     }
-    return inferrer.inferMethodInvocation(this, new ShadowThisExpression(),
-        fileOffset, false, typeContext, typeNeeded,
+    return inferrer.inferMethodInvocation(
+        this, null, fileOffset, false, typeContext, typeNeeded,
         interfaceMember: interfaceTarget,
         methodName: name,
         arguments: arguments);
@@ -1735,7 +1735,7 @@ class ShadowSuperPropertyGet extends SuperPropertyGet
           'target', new InstrumentationValueForMember(interfaceTarget));
     }
     return inferrer.inferPropertyGet(
-        this, new ShadowThisExpression(), fileOffset, typeContext, typeNeeded,
+        this, null, fileOffset, typeContext, typeNeeded,
         interfaceMember: interfaceTarget, propertyName: name);
   }
 }
@@ -2000,6 +2000,11 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   @override
   DartType inferExpression(
       Expression expression, DartType typeContext, bool typeNeeded) {
+    // It isn't safe to do type inference on an expression without a parent,
+    // because type inference might cause us to have to replace one expression
+    // with another, and we can only replace a node if it has a parent pointer.
+    assert(expression.parent != null);
+
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
     // those subexpressions.

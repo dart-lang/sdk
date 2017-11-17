@@ -32,6 +32,7 @@ import 'package:kernel/ast.dart'
         Initializer,
         InterfaceType,
         InvocationExpression,
+        ListLiteral,
         Member,
         MethodInvocation,
         Name,
@@ -656,7 +657,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       DartType inferredType,
       int fileOffset) {
     DispatchCategory callKind;
-    if (receiver is ThisExpression) {
+    if (receiver is ThisExpression || receiver == null) {
       callKind = DispatchCategory.viaThis;
     } else if (interfaceMember == null) {
       callKind = DispatchCategory.dynamicDispatch;
@@ -967,6 +968,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   @override
   void inferMetadata(List<Expression> annotations) {
     if (annotations != null) {
+      // Place annotations in a temporary list literal so that they will have a
+      // parent.  This is necessary in case any of the annotations need to get
+      // replaced during type inference.
+      new ListLiteral(annotations);
       for (var annotation in annotations) {
         inferExpression(annotation, null, false);
       }
@@ -990,7 +995,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     typeNeeded =
         listener.methodInvocationEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
-    var receiverType = inferExpression(receiver, null, true);
+    var receiverType =
+        receiver == null ? thisType : inferExpression(receiver, null, true);
     listener.methodInvocationBeforeArgs(expression, isImplicitCall);
     if (strongMode) {
       receiverVariable?.type = receiverType;
@@ -1044,7 +1050,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     typeNeeded =
         listener.propertyGetEnter(expression, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the getter that was invoked.
-    var receiverType = inferExpression(receiver, null, true);
+    var receiverType =
+        receiver == null ? thisType : inferExpression(receiver, null, true);
     if (strongMode) {
       receiverVariable?.type = receiverType;
     }
@@ -1107,7 +1114,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         callKind = DispatchCategory.dynamicDispatch;
       } else {
         callKind = DispatchCategory.closure;
-        if (receiver is! ThisExpression) {
+        if (receiver is! ThisExpression && receiver != null) {
           if (interfaceMember is Field &&
               interfaceMember.isGenericContravariant) {
             checkKind = MethodContravarianceCheckKind.checkGetterReturn;
@@ -1117,7 +1124,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           }
         }
       }
-    } else if (receiver is ThisExpression) {
+    } else if (receiver is ThisExpression || receiver == null) {
       callKind = DispatchCategory.viaThis;
     } else if (identical(interfaceMember, 'call')) {
       callKind = DispatchCategory.closure;

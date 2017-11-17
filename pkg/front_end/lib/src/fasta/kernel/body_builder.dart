@@ -650,9 +650,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         VariableDeclaration realParameter = formalBuilders.current.target;
         Expression initializer =
             parameter.initializer ?? new ShadowNullLiteral();
+        realParameter.initializer = initializer..parent = realParameter;
         _typeInferrer.inferParameterInitializer(
             initializer, realParameter.type);
-        realParameter.initializer = initializer..parent = realParameter;
       }
     }
     if (builder is KernelConstructorBuilder) {
