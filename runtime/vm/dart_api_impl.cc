@@ -5431,7 +5431,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   Dart_Handle result;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (I->use_dart_frontend()) {
-    result = LoadKernelProgram(T, url_str, reinterpret_cast<void*>(source));
+    void* kernel_pgm = reinterpret_cast<void*>(source);
+    result = LoadKernelProgram(T, url_str, kernel_pgm);
     if (::Dart_IsError(result)) {
       return result;
     }

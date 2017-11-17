@@ -300,6 +300,7 @@ class TestCase : TestCaseBase {
                                     Dart_NativeEntryResolver resolver,
                                     const char* lib_uri = USER_TEST_URI,
                                     bool finalize = true);
+  static Dart_Handle LoadTestLibrary(const char* lib_uri, const char* script);
   static Dart_Handle LoadTestScriptWithDFE(
       int sourcefiles_count,
       Dart_SourceFile sourcefiles[],

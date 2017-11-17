@@ -246,13 +246,7 @@ cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 cc/CanonicalizationInScriptSnapshots: Fail
 cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_CurrentStackTraceInfo: Fail
-cc/DartAPI_FieldAccess: Crash
 cc/DartAPI_ImplicitNativeFieldAccess: Crash
-cc/DartAPI_ImportLibrary2: Crash
-cc/DartAPI_ImportLibrary3: Crash
-cc/DartAPI_ImportLibrary4: Crash
-cc/DartAPI_ImportLibrary5: Crash
-cc/DartAPI_ImportLibraryWithPrefix: Crash
 cc/DartAPI_InjectNativeFields1: Skip
 cc/DartAPI_InjectNativeFields3: Crash
 cc/DartAPI_InjectNativeFields4: Crash
@@ -261,13 +255,7 @@ cc/DartAPI_Invoke_CrossLibrary:  Crash
 cc/DartAPI_InvokeNoSuchMethod: Fail
 cc/DartAPI_IsolateShutdownRunDartCode: Skip # Flaky
 cc/DartAPI_LazyLoadDeoptimizes: Fail
-cc/DartAPI_LibraryGetClassNames: Crash
-cc/DartAPI_LibraryId: Crash
-cc/DartAPI_LibraryImportLibrary: Crash
-cc/DartAPI_LibraryName: Crash
-cc/DartAPI_LibraryUrl: Crash
 cc/DartAPI_LoadLibrary: Crash
-cc/DartAPI_LoadLibrary_CompileError: Crash
 cc/DartAPI_LoadLibraryPatch_Error1: Fail
 cc/DartAPI_LoadLibraryPatch_Error2: Fail
 cc/DartAPI_LoadLibraryPatch_Error3: Fail

@@ -371,6 +371,31 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   }
 }
 
+Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri, const char* script) {
+  if (FLAG_use_dart_frontend) {
+    const char* prefixed_lib_uri =
+        OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
+    Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
+    Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
+    EXPECT_VALID(result);
+    void* kernel_pgm = NULL;
+    int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
+    OS::Print("Compiling %s %d\n", sourcefiles[0].uri, sourcefiles_count);
+    char* error = TestCase::CompileTestScriptWithDFE(
+        sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm, false);
+    if (error != NULL) {
+      return Dart_NewApiError(error);
+    }
+    Dart_Handle url = NewString(prefixed_lib_uri);
+    return Dart_LoadLibrary(url, Dart_Null(),
+                            reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
+  } else {
+    Dart_Handle url = NewString(lib_uri);
+    Dart_Handle source = NewString(script);
+    return Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  }
+}
+
 Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
                                             Dart_SourceFile sourcefiles[],
                                             Dart_NativeEntryResolver resolver,
