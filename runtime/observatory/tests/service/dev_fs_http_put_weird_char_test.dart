@@ -13,7 +13,7 @@ import 'test_helper.dart';
 Future<String> readResponse(HttpClientResponse response) {
   var completer = new Completer();
   var contents = new StringBuffer();
-  response.transform(utf8.decoder).listen((String data) {
+  response.transform(UTF8.decoder).listen((String data) {
     contents.write(data);
   }, onDone: () => completer.complete(contents.toString()));
   return completer.future;
@@ -24,9 +24,9 @@ var tests = [
   (VM vm) async {
     var fsId = 'test';
     var filePath = '/foo/b\rar.dart';
-    var filePathBase64 = base64.encode(utf8.encode(filePath));
+    var filePathBase64 = BASE64.encode(UTF8.encode(filePath));
     var fileContents = [0, 1, 2, 3, 4, 5, 6, 255];
-    var fileContentsBase64 = base64.encode(fileContents);
+    var fileContentsBase64 = BASE64.encode(fileContents);
 
     var result;
     // Create DevFS.
@@ -44,7 +44,7 @@ var tests = [
     request.add(GZIP.encode([9]));
     HttpClientResponse response = await request.close();
     String responseBody = await readResponse(response);
-    result = json.decode(responseBody);
+    result = JSON.decode(responseBody);
     expect(result['result']['type'], equals('Success'));
 
     // Trigger an error by issuing an HTTP PUT.
@@ -54,7 +54,7 @@ var tests = [
     request.write(GZIP.encode(fileContents));
     response = await request.close();
     responseBody = await readResponse(response);
-    result = json.decode(responseBody);
+    result = JSON.decode(responseBody);
     Map error = result['error']['data'];
     expect(error, isNotNull);
     expect(error['details'].contains("expects the 'path' parameter"), isTrue);
@@ -67,7 +67,7 @@ var tests = [
     request.add(GZIP.encode(fileContents));
     response = await request.close();
     responseBody = await readResponse(response);
-    result = json.decode(responseBody);
+    result = JSON.decode(responseBody);
     expect(result['result']['type'], equals('Success'));
 
     // Close the HTTP client.

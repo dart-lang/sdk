@@ -222,7 +222,7 @@ class _ServiceTesteeLauncher {
       var blank;
       var first = true;
       process.stdout
-          .transform(utf8.decoder)
+          .transform(UTF8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
         const kObservatoryListening = 'Observatory listening on ';
@@ -242,7 +242,7 @@ class _ServiceTesteeLauncher {
         print('>testee>out> $line');
       });
       process.stderr
-          .transform(utf8.decoder)
+          .transform(UTF8.decoder)
           .transform(new LineSplitter())
           .listen((line) {
         print('>testee>err> $line');
