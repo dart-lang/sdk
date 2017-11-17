@@ -40,12 +40,12 @@ main() {
   Expect.listEquals(["122ç", 50, 50, 231], json.decode(JSON_ENCODED));
 
   // Test that the reviver is passed to the decoder.
-  var decoded = json.decode('{"p": 5}', reviver: (k, v) {
+  var decoded = json.decode('{"p": 5}', reviver: (dynamic k, dynamic v) {
     if (k == null) return v;
     return v * 2;
   });
   Expect.equals(10, decoded["p"]);
-  var jsonWithReviver = new JsonCodec.withReviver((k, v) {
+  var jsonWithReviver = new JsonCodec.withReviver((dynamic k, dynamic v) {
     if (k == null) return v;
     return v * 2;
   });

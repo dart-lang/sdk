@@ -69,7 +69,7 @@ const JsonCodec json = const JsonCodec();
 /** Deprecated, use [json] instead. */
 const JsonCodec JSON = json;
 
-typedef _Reviver(var key, var value);
+typedef _Reviver(Object key, Object value);
 typedef _ToEncodable(var o);
 
 /**
@@ -108,7 +108,7 @@ class JsonCodec extends Codec<Object, String> {
    * If [toEncodable] is omitted, it defaults to a function that returns the
    * result of calling `.toJson()` on the unencodable object.
    */
-  const JsonCodec({reviver(var key, var value), toEncodable(var object)})
+  const JsonCodec({reviver(Object key, Object value), toEncodable(var object)})
       : _reviver = reviver,
         _toEncodable = toEncodable;
 
@@ -120,7 +120,8 @@ class JsonCodec extends Codec<Object, String> {
    * integer list index for a list property, the string map key for object
    * properties, or `null` for the final result.
    */
-  JsonCodec.withReviver(reviver(var key, var value)) : this(reviver: reviver);
+  JsonCodec.withReviver(reviver(Object key, Object value))
+      : this(reviver: reviver);
 
   /**
    * Parses the string and returns the resulting Json object.
@@ -132,7 +133,7 @@ class JsonCodec extends Codec<Object, String> {
    *
    * The default [reviver] (when not provided) is the identity function.
    */
-  dynamic decode(String source, {reviver(var key, var value)}) {
+  dynamic decode(String source, {reviver(Object key, Object value)}) {
     if (reviver == null) reviver = _reviver;
     if (reviver == null) return decoder.convert(source);
     return new JsonDecoder(reviver).convert(source);
@@ -486,7 +487,8 @@ class JsonDecoder extends Converter<String, Object> {
    *
    * The [reviver] may be `null`.
    */
-  const JsonDecoder([reviver(var key, var value)]) : this._reviver = reviver;
+  const JsonDecoder([reviver(Object key, Object value)])
+      : this._reviver = reviver;
 
   /**
    * Converts the given JSON-string [input] to its corresponding object.
