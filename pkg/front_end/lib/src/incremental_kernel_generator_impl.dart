@@ -329,14 +329,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         kernelTarget.read(changedLibrary.uri);
       }
 
-      Program program = await _logger.runAsync('Compile', () async {
+      var mainReference = _program.mainMethodName;
+      await _logger.runAsync('Compile', () async {
         await kernelTarget.buildOutlines(nameRoot: _program.root);
-        return await kernelTarget.buildProgram();
+        await kernelTarget.buildProgram();
       });
-
-      // Ensure that newly compiled libraries have canonical names.
-      // TODO(scheglov): This is expansive - we compute for all libraries.
-      program.computeCanonicalNames();
 
       // Attach the new library and replace references.
       _logger.run('Replace references', () {
@@ -344,12 +341,29 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         for (var changedLibrary in _changedLibrariesWithSameApi) {
           Library oldLibrary = _uriToLibrary[changedLibrary.fileUriStr];
           Library newLibrary = builders[changedLibrary.uri].target;
-          _uriToLibrary[changedLibrary.fileUriStr] = newLibrary;
+
+          _program.root
+              .getChildFromUri(newLibrary.importUri)
+              .bindTo(newLibrary.reference);
+          newLibrary.computeCanonicalNames();
+
           _program.root.adoptChild(newLibrary.canonicalName);
           _program.libraries.add(newLibrary);
+
+          _uriToLibrary[changedLibrary.fileUriStr] = newLibrary;
           _referenceIndex.replaceLibrary(oldLibrary, newLibrary);
+
+          // If main() was defined in the recompiled library, replace it.
+          if (mainReference?.asProcedure?.enclosingLibrary == oldLibrary) {
+            mainReference = newLibrary.procedures
+                .singleWhere((p) => p.name.name == 'main')
+                .reference;
+          }
         }
       });
+
+      // Restore the main() procedure reference.
+      _program.mainMethodName = mainReference;
     }
   }
 

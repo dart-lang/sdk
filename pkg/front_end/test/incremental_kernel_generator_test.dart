@@ -417,6 +417,7 @@ int foo() {
     Uri bUri = writeFile(bPath, r'''
 import 'a.dart';
 var f = foo;
+main() {}
 ''');
 
     {
@@ -438,6 +439,9 @@ static method foo() → core::int {
       // b.dart uses references to a.dart nodes.
       expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
           same(aLibrary.procedures[0].reference));
+      // main() is set
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod, _getMainProcedure(bLibrary));
     }
 
     // Update a.dart and recompile b.dart
@@ -467,6 +471,9 @@ static method foo() → core::int {
       // b.dart uses references to the new a.dart nodes.
       expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
           same(aLibrary.procedures[0].reference));
+      // main() is set
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod, _getMainProcedure(bLibrary));
     }
 
     // Update a.dart and recompile b.dart
@@ -681,6 +688,47 @@ static method foo() → core::int {
       expect(bLibrary.additionalExports, contains(fooReference));
       expect((cLibrary.fields[0].initializer as StaticGet).targetReference,
           same(fooReference));
+    }
+  }
+
+  test_computeDelta_updateBody_hasMain() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    Uri aUri = writeFile(aPath, r'''
+int foo() {
+  return 1;
+}
+main() {}
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(aUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, aUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      // main() is set
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod.enclosingLibrary, aLibrary);
+    }
+
+    // Recompile the library with main()
+    writeFile(aPath, r'''
+int foo() {
+  return 2;
+}
+main() {}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
+      _assertCompiledUris([aUri]);
+      Program program = delta.newProgram;
+      Library aLibrary = _getLibrary(program, aUri);
+      // main() is set
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod.enclosingLibrary, aLibrary);
     }
   }
 
@@ -1182,4 +1230,7 @@ import 'a.dart';
     var outputUri = translator.translate(inputUri) ?? inputUri;
     return outputUri.toString();
   }
+
+  static Procedure _getMainProcedure(Library library) => library.procedures
+      .singleWhere((procedure) => procedure.name.name == 'main');
 }
