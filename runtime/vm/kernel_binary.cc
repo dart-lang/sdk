@@ -51,9 +51,13 @@ Program* Program::ReadFrom(Reader* reader, bool take_buffer_ownership) {
       reader->size_, LibraryCountFieldCountFromEnd, 1, 0);
   program->source_table_offset_ = reader->ReadFromIndexNoReset(
       reader->size_,
-      LibraryCountFieldCountFromEnd + 1 + program->library_count_ + 1, 4, 0);
+      LibraryCountFieldCountFromEnd + 1 + program->library_count_ + 1 +
+          SourceTableFieldCountFromFirstLibraryOffset,
+      1, 0);
   program->name_table_offset_ = reader->ReadUInt32();
   program->string_table_offset_ = reader->ReadUInt32();
+  program->constant_table_offset_ = reader->ReadUInt32();
+
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
 
   return program;

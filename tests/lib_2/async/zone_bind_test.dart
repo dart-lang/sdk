@@ -9,7 +9,7 @@ import 'dart:async';
 main() {
   Completer done = new Completer();
 
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   // New zone, does nothing by itself.
   Zone forked = Zone.current.fork(specification: new ZoneSpecification());
 

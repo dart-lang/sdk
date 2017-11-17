@@ -777,6 +777,7 @@ class StreamingConstantEvaluator {
   void EvaluateDoubleLiteral();
   void EvaluateBoolLiteral(bool value);
   void EvaluateNullLiteral();
+  void EvaluateConstantExpression();
 
   void EvaluateGetStringLength(intptr_t expression_offset,
                                TokenPosition position);
@@ -898,7 +899,7 @@ class StreamingFlowGraphBuilder {
   intptr_t SourceTableSize();
   String& SourceTableUriFor(intptr_t index);
   String& GetSourceFor(intptr_t index);
-  Array& GetLineStartsFor(intptr_t index);
+  RawTypedData* GetLineStartsFor(intptr_t index);
   void SetOffset(intptr_t offset);
 
  private:
@@ -948,6 +949,7 @@ class StreamingFlowGraphBuilder {
   const String& ReadNameAsFieldName();
   void SkipFlags();
   void SkipStringReference();
+  void SkipConstantReference();
   void SkipCanonicalNameReference();
   void SkipDartType();
   void SkipOptionalDartType();
@@ -1179,6 +1181,7 @@ class StreamingFlowGraphBuilder {
   Fragment BuildVectorSet(TokenPosition* position);
   Fragment BuildVectorCopy(TokenPosition* position);
   Fragment BuildClosureCreation(TokenPosition* position);
+  Fragment BuildConstantExpression(TokenPosition* position);
 
   Fragment BuildInvalidStatement();
   Fragment BuildExpressionStatement();
@@ -1236,21 +1239,23 @@ class StreamingFlowGraphBuilder {
   DirectCallMetadataHelper direct_call_metadata_helper_;
   bool metadata_scanned_;
 
+  friend class ClassHelper;
+  friend class ConstantHelper;
+  friend class ConstructorHelper;
+  friend class DirectCallMetadataHelper;
+  friend class FieldHelper;
+  friend class FunctionNodeHelper;
+  friend class KernelLoader;
+  friend class KernelReader;
+  friend class LibraryDependencyHelper;
+  friend class LibraryHelper;
+  friend class MetadataHelper;
+  friend class ProcedureHelper;
+  friend class SimpleExpressionConverter;
   friend class StreamingConstantEvaluator;
   friend class StreamingDartTypeTranslator;
   friend class StreamingScopeBuilder;
-  friend class FunctionNodeHelper;
   friend class VariableDeclarationHelper;
-  friend class FieldHelper;
-  friend class ProcedureHelper;
-  friend class ClassHelper;
-  friend class LibraryHelper;
-  friend class LibraryDependencyHelper;
-  friend class MetadataHelper;
-  friend class DirectCallMetadataHelper;
-  friend class ConstructorHelper;
-  friend class SimpleExpressionConverter;
-  friend class KernelLoader;
 };
 
 // A helper class that saves the current reader position, goes to another reader
@@ -1302,6 +1307,60 @@ class AlternativeReadingScope {
   const uint8_t* saved_raw_buffer_;
   const TypedData* saved_typed_data_;
   intptr_t saved_offset_;
+};
+
+// Helper class that reads a kernel Constant from binary.
+class ConstantHelper {
+ public:
+  ConstantHelper(ActiveClass* active_class,
+                 StreamingFlowGraphBuilder* builder,
+                 StreamingDartTypeTranslator* type_translator,
+                 TranslationHelper* translation_helper,
+                 Zone* zone,
+                 NameIndex skip_vmservice_library)
+      : skip_vmservice_library_(skip_vmservice_library),
+        active_class_(active_class),
+        builder_(*builder),
+        type_translator_(*type_translator),
+        const_evaluator_(&builder_),
+        translation_helper_(*translation_helper),
+        zone_(zone),
+        temp_type_(AbstractType::Handle(zone)),
+        temp_type_arguments_(TypeArguments::Handle(zone)),
+        temp_object_(Object::Handle(zone)),
+        temp_array_(Array::Handle(zone)),
+        temp_instance_(Instance::Handle(zone)),
+        temp_field_(Field::Handle(zone)),
+        temp_class_(Class::Handle(zone)),
+        temp_function_(Function::Handle(zone)),
+        temp_integer_(Integer::Handle(zone)) {}
+
+  // Reads the constant table from the binary.
+  //
+  // This method assumes the Reader is positioned already at the constant table
+  // and an active class scope is setup.
+  const Array& ReadConstantTable();
+
+ private:
+  void InstantiateTypeArguments(const Class& receiver_class,
+                                TypeArguments* type_arguments);
+
+  NameIndex skip_vmservice_library_;
+  ActiveClass* active_class_;
+  StreamingFlowGraphBuilder& builder_;
+  StreamingDartTypeTranslator& type_translator_;
+  StreamingConstantEvaluator const_evaluator_;
+  TranslationHelper translation_helper_;
+  Zone* zone_;
+  AbstractType& temp_type_;
+  TypeArguments& temp_type_arguments_;
+  Object& temp_object_;
+  Array& temp_array_;
+  Instance& temp_instance_;
+  Field& temp_field_;
+  Class& temp_class_;
+  Function& temp_function_;
+  Integer& temp_integer_;
 };
 
 }  // namespace kernel

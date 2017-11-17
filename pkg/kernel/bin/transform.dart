@@ -13,6 +13,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/src/tool/batch_util.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/closure_conversion.dart' as closures;
+import 'package:kernel/transformations/constants.dart' as constants;
 import 'package:kernel/transformations/continuation.dart' as cont;
 import 'package:kernel/transformations/empty.dart' as empty;
 import 'package:kernel/transformations/method_call.dart' as method_call;
@@ -20,6 +21,7 @@ import 'package:kernel/transformations/mixin_full_resolution.dart' as mix;
 import 'package:kernel/transformations/treeshaker.dart' as treeshaker;
 // import 'package:kernel/verifier.dart';
 import 'package:kernel/transformations/coq.dart' as coq;
+import 'package:kernel/vm/constants_native_effects.dart';
 
 import 'util.dart';
 
@@ -78,8 +80,9 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       parseProgramRoots(embedderEntryPointManifests);
 
   var program = loadProgramFromBinary(input);
-  var coreTypes = new CoreTypes(program);
-  var hierarchy = new ClosedWorldClassHierarchy(program);
+
+  final coreTypes = new CoreTypes(program);
+  final hierarchy = new ClosedWorldClassHierarchy(program);
   switch (options['transformation']) {
     case 'continuation':
       program = cont.transformProgram(coreTypes, program);
@@ -93,6 +96,10 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
       break;
     case 'coq':
       program = coq.transformProgram(coreTypes, program);
+      break;
+    case 'constants':
+      final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
+      program = constants.transformProgram(program, backend);
       break;
     case 'treeshake':
       program = treeshaker.transformProgram(coreTypes, hierarchy, program,

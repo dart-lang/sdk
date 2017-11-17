@@ -941,7 +941,7 @@ class RawFunction : public RawObject {
   F(intptr_t, uint16_t, optimized_instruction_count)                           \
   F(intptr_t, uint16_t, optimized_call_site_count)                             \
   F(int8_t, int8_t, deoptimization_counter)                                    \
-  F(intptr_t, int8_t, was_compiled_numeric)                                    \
+  F(intptr_t, int8_t, state_bits)                                              \
   F(int, int8_t, inlining_depth)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1090,7 +1090,7 @@ class RawScript : public RawObject {
   RawString* url_;
   RawString* resolved_url_;
   RawArray* compile_time_constants_;
-  RawArray* line_starts_;
+  RawTypedData* line_starts_;
   RawArray* debug_positions_;
   RawArray* yield_positions_;
   RawKernelProgramInfo* kernel_program_info_;
@@ -1204,7 +1204,9 @@ class RawKernelProgramInfo : public RawObject {
   RawTypedData* metadata_payloads_;
   RawTypedData* metadata_mappings_;
   RawArray* scripts_;
-  VISIT_TO(RawObject*, scripts_);
+  RawArray* constants_;
+  RawGrowableObjectArray* potential_natives_;
+  VISIT_TO(RawObject*, potential_natives_);
 };
 
 class RawCode : public RawObject {
@@ -1409,17 +1411,13 @@ class RawStackMap : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(StackMap);
   VISIT_NOTHING();
 
-  // Regarding changing this to a bitfield: ARM64 requires register_bit_count_
-  // to be as large as 96, meaning 7 bits, leaving 25 bits for the length, or
-  // as large as ~33 million entries. If that is sufficient, then these two
-  // fields can be merged into a BitField.
-  int32_t length_;               // Length of payload, in bits.
-  int32_t slow_path_bit_count_;  // Slow path live values, included in length_.
-
   // Offset from code entry point corresponding to this stack map
-  // representation. This only needs to be an int32_t, but we make it a uword
-  // so that the variable length data is 64 bit aligned on 64 bit platforms.
-  uword pc_offset_;
+  // representation.
+  uint32_t pc_offset_;
+
+  uint16_t length_;               // Length of payload, in bits.
+  uint16_t slow_path_bit_count_;  // Slow path live values, included in length_.
+  // ARM64 requires register_bit_count_ to be as large as 96.
 
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }

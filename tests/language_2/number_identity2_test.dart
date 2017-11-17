@@ -18,7 +18,7 @@ double uint64toDouble(int i) {
 }
 
 testNumberIdentity() {
-  var a = double.NAN;
+  var a = double.nan;
   var b = a + 0.0;
   Expect.isTrue(identical(a, b));
 

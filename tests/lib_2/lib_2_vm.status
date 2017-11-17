@@ -43,10 +43,10 @@ mirrors/invocation_fuzz_test: Crash
 mirrors/library_uri_io_test: RuntimeError
 mirrors/library_uri_package_test: RuntimeError
 
-[ $strong && $runtime == vm ]
+[ $strong && $runtime == vm && $compiler != dartk ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 
-[ $runtime == vm ]
+[ $runtime == vm && $compiler != dartk ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
 js/datetime_roundtrip_test: CompileTimeError
@@ -60,10 +60,10 @@ mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a
 mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 
-[ $runtime == vm && !$checked ]
+[ $runtime == vm && $compiler != dartk && !$checked ]
 mirrors/inference_and_no_such_method_test: RuntimeError
 
-[ $runtime == vm && !$strong ]
+[ $runtime == vm && $compiler != dartk && !$strong ]
 mirrors/reflect_class_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/02: MissingCompileTimeError
 mirrors/reflected_type_classes_test/01: MissingCompileTimeError
@@ -91,5 +91,5 @@ convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 [ $runtime == vm && $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
-[ $runtime == vm && $compiler != dartk && $compiler != dartkp ]
+[ $runtime == vm && $compiler != dartk ]
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21

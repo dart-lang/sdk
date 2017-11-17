@@ -70,13 +70,17 @@ class AnalysisDomainGetErrorsTest
 
   @override
   Future startServer(
-      {bool checked: true, int diagnosticPort, int servicesPort}) {
+      {bool checked: true,
+      int diagnosticPort,
+      int servicesPort,
+      bool previewDart2: false}) {
     String sdkPath = createNonStandardSdk();
     return server.start(
         checked: checked,
         diagnosticPort: diagnosticPort,
         sdkPath: sdkPath,
-        servicesPort: servicesPort);
+        servicesPort: servicesPort,
+        previewDart2: previewDart2);
   }
 
   Future test_getErrors() async {

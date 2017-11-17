@@ -42,6 +42,10 @@
     Windows.
   * Deprecated the `proxy` annotation.
 
+* `dart:convert`
+  * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
+    some common cases for faster decoding.
+
 * `dart:developer`
   * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
     parameter `flow` of type `Flow`. The `flow` parameter is used to generate

@@ -49,6 +49,8 @@ class ImageReader;
 
 class SerializationCluster : public ZoneAllocated {
  public:
+  explicit SerializationCluster(const char* name)
+      : name_(name), size_(0), num_objects_(0) {}
   virtual ~SerializationCluster() {}
 
   // Add [object] to the cluster and push its outgoing references.
@@ -61,6 +63,18 @@ class SerializationCluster : public ZoneAllocated {
 
   // Write the byte and reference data of the cluster's objects.
   virtual void WriteFill(Serializer* serializer) = 0;
+
+  void WriteAndMeasureAlloc(Serializer* serializer);
+  void WriteAndMeasureFill(Serializer* serializer);
+
+  const char* name() const { return name_; }
+  intptr_t size() const { return size_; }
+  intptr_t num_objects() const { return num_objects_; }
+
+ protected:
+  const char* name_;
+  intptr_t size_;
+  intptr_t num_objects_;
 };
 
 class DeserializationCluster : public ZoneAllocated {
@@ -240,8 +254,11 @@ class Serializer : public StackResource {
 
   int32_t GetTextOffset(RawInstructions* instr, RawCode* code) const;
   int32_t GetDataOffset(RawObject* object) const;
+  intptr_t GetDataSize() const;
+  intptr_t GetTextSize() const;
 
   Snapshot::Kind kind() const { return kind_; }
+  intptr_t next_ref_index() const { return next_ref_index_; }
 
  private:
   Heap* heap_;
@@ -413,7 +430,7 @@ class FullSnapshotWriter {
   intptr_t clustered_vm_size_;
   intptr_t clustered_isolate_size_;
   intptr_t mapped_data_size_;
-  intptr_t mapped_instructions_size_;
+  intptr_t mapped_text_size_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };

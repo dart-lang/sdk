@@ -3154,6 +3154,28 @@ class FunctionExpression extends Expression {
   }
 }
 
+class ConstantExpression extends Expression {
+  Constant constant;
+
+  ConstantExpression(this.constant) {
+    assert(constant != null);
+  }
+
+  DartType getStaticType(TypeEnvironment types) =>
+      throw 'ConstantExpression.staticType() is unimplemented';
+
+  accept(ExpressionVisitor v) => v.visitConstantExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitConstantExpression(this, arg);
+
+  visitChildren(Visitor v) {
+    constant?.acceptReference(v);
+  }
+
+  transformChildren(Transformer v) {
+    constant = v.visitConstant(constant);
+  }
+}
+
 /// Synthetic expression of form `let v = x in y`
 class Let extends Expression {
   VariableDeclaration variable; // Must have an initializer.
@@ -3444,6 +3466,8 @@ class Block extends Statement {
 
   Block(this.statements) {
     setParents(statements, this);
+    statements.add(null);
+    statements.removeLast();
   }
 
   accept(StatementVisitor v) => v.visitBlock(this);
@@ -4901,6 +4925,277 @@ class Supertype extends Node {
 }
 
 // ------------------------------------------------------------------------
+//                             CONSTANTS
+// ------------------------------------------------------------------------
+
+abstract class Constant extends Node {
+  /// Calls the `visit*ConstantReference()` method on visitor [v] for all
+  /// constants referenced in this constant.
+  ///
+  /// (Note that a constant can be seen as a DAG (directed acyclic graph) and
+  ///  not a tree!)
+  visitChildren(Visitor v);
+
+  /// Calls the `visit*Constant()` method on the visitor [v].
+  accept(ConstantVisitor v);
+
+  /// Calls the `visit*ConstantReference()` method on the visitor [v].
+  acceptReference(Visitor v);
+
+  /// The Kernel AST will reference [Constant]s via [ConstantExpression]s.  The
+  /// constants are not required to be canonicalized, but they have to be deeply
+  /// comparable via hashCode/==!
+  int get hashCode;
+  bool operator ==(Object other);
+}
+
+abstract class PrimitiveConstant<T> extends Constant {
+  final T value;
+
+  PrimitiveConstant(this.value);
+
+  String toString() => '${this.runtimeType}($value)';
+
+  int get hashCode => value.hashCode;
+
+  bool operator ==(Object other) =>
+      other is PrimitiveConstant<T> && other.value == value;
+}
+
+class NullConstant extends PrimitiveConstant<Null> {
+  NullConstant() : super(null);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitNullConstant(this);
+  acceptReference(Visitor v) => v.visitNullConstantReference(this);
+}
+
+class BoolConstant extends PrimitiveConstant<bool> {
+  BoolConstant(bool value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitBoolConstant(this);
+  acceptReference(Visitor v) => v.visitBoolConstantReference(this);
+}
+
+class IntConstant extends PrimitiveConstant<int> {
+  IntConstant(int value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitIntConstant(this);
+  acceptReference(Visitor v) => v.visitIntConstantReference(this);
+}
+
+class DoubleConstant extends PrimitiveConstant<double> {
+  DoubleConstant(double value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitDoubleConstant(this);
+  acceptReference(Visitor v) => v.visitDoubleConstantReference(this);
+
+  int get hashCode => value.isNaN ? 199 : super.hashCode;
+  bool operator ==(Object other) =>
+      other is DoubleConstant &&
+      (other.value == value || identical(value, other.value) /* For NaN */);
+}
+
+class StringConstant extends PrimitiveConstant<String> {
+  StringConstant(String value) : super(value) {
+    assert(value != null);
+  }
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitStringConstant(this);
+  acceptReference(Visitor v) => v.visitStringConstantReference(this);
+}
+
+class MapConstant extends Constant {
+  final DartType keyType;
+  final DartType valueType;
+  final List<ConstantMapEntry> entries;
+
+  MapConstant(this.keyType, this.valueType, this.entries);
+
+  visitChildren(Visitor v) {
+    keyType.accept(v);
+    valueType.accept(v);
+    for (final ConstantMapEntry entry in entries) {
+      entry.key.acceptReference(v);
+      entry.value.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitMapConstant(this);
+  acceptReference(Visitor v) => v.visitMapConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
+
+  // TODO(kustermann): Consider combining the hash codes in a better way (also
+  // below and in [listHashCode]/[mapHashCode].
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??=
+        keyType.hashCode ^ valueType.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MapConstant &&
+          other.keyType == keyType &&
+          other.valueType == valueType &&
+          listEquals(other.entries, entries));
+}
+
+class ConstantMapEntry {
+  final Constant key;
+  final Constant value;
+  ConstantMapEntry(this.key, this.value);
+
+  String toString() => '$key: $value';
+
+  int get hashCode => key.hashCode ^ value.hashCode;
+
+  bool operator ==(Object other) =>
+      other is ConstantMapEntry && other.key == key && other.value == value;
+}
+
+class ListConstant extends Constant {
+  final DartType typeArgument;
+  final List<Constant> entries;
+
+  ListConstant(this.typeArgument, this.entries);
+
+  visitChildren(Visitor v) {
+    typeArgument.accept(v);
+    for (final Constant constant in entries) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitListConstant(this);
+  acceptReference(Visitor v) => v.visitListConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListConstant &&
+          other.typeArgument == typeArgument &&
+          listEquals(other.entries, entries));
+}
+
+class InstanceConstant extends Constant {
+  final Reference classReference;
+  final List<DartType> typeArguments;
+  final Map<Reference, Constant> fieldValues;
+
+  InstanceConstant(this.classReference, this.typeArguments, this.fieldValues);
+
+  Class get klass => classReference.asClass;
+
+  visitChildren(Visitor v) {
+    classReference.asClass.acceptReference(v);
+    visitList(typeArguments, v);
+    for (final Reference reference in fieldValues.keys) {
+      reference.asField.acceptReference(v);
+    }
+    for (final Constant constant in fieldValues.values) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitInstanceConstant(this);
+  acceptReference(Visitor v) => v.visitInstanceConstantReference(this);
+
+  String toString() {
+    final sb = new StringBuffer();
+    sb.write('${classReference.asClass}');
+    if (!classReference.asClass.typeParameters.isEmpty) {
+      sb.write('<');
+      sb.write(typeArguments.map((type) => type.toString()).join(', '));
+      sb.write('>');
+    }
+    sb.write(' {');
+    fieldValues.forEach((Reference fieldRef, Constant constant) {
+      sb.write('${fieldRef.asField.name}: $constant, ');
+    });
+    sb.write('}');
+    return sb.toString();
+  }
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= classReference.hashCode ^
+        listHashCode(typeArguments) ^
+        mapHashCode(fieldValues);
+  }
+
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is InstanceConstant &&
+            other.classReference == classReference &&
+            listEquals(other.typeArguments, typeArguments) &&
+            mapEquals(other.fieldValues, fieldValues));
+  }
+}
+
+class TearOffConstant extends Constant {
+  final Reference procedureReference;
+
+  TearOffConstant(Procedure procedure)
+      : procedureReference = procedure.reference {
+    assert(procedure.isStatic);
+  }
+
+  TearOffConstant.byReference(this.procedureReference);
+
+  Procedure get procedure => procedureReference?.asProcedure;
+
+  visitChildren(Visitor v) {
+    procedureReference.asProcedure.acceptReference(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitTearOffConstant(this);
+  acceptReference(Visitor v) => v.visitTearOffConstantReference(this);
+
+  String toString() {
+    return '${runtimeType}(${procedure})';
+  }
+
+  int get hashCode => procedure.hashCode;
+
+  bool operator ==(Object other) {
+    return other is TearOffConstant && other.procedure == procedure;
+  }
+}
+
+class TypeLiteralConstant extends Constant {
+  final DartType type;
+
+  TypeLiteralConstant(this.type);
+
+  visitChildren(Visitor v) {
+    type.accept(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitTypeLiteralConstant(this);
+  acceptReference(Visitor v) => v.visitTypeLiteralConstantReference(this);
+
+  String toString() => '${runtimeType}(${type})';
+
+  int get hashCode => type.hashCode;
+
+  bool operator ==(Object other) {
+    return other is TypeLiteralConstant && other.type == type;
+  }
+}
+
+// ------------------------------------------------------------------------
 //                                PROGRAM
 // ------------------------------------------------------------------------
 
@@ -5249,6 +5544,33 @@ CanonicalName getCanonicalNameOfLibrary(Library library) {
     throw '$library has no canonical name';
   }
   return library.canonicalName;
+}
+
+int listHashCode(List list) {
+  return list.fold(0, (int value, Object item) => value ^ item.hashCode);
+}
+
+int mapHashCode(Map map) {
+  int value = 0;
+  for (final Object x in map.keys) value ^= x.hashCode;
+  for (final Object x in map.values) value ^= x.hashCode;
+  return value;
+}
+
+bool listEquals(List a, List b) {
+  if (a.length != b.length) return false;
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
+bool mapEquals(Map a, Map b) {
+  if (a.length != b.length) return false;
+  for (final Object key in a.keys) {
+    if (!b.containsKey(key) || a[key] != b[key]) return false;
+  }
+  return true;
 }
 
 /// Returns the canonical name of [typedef_], or throws an exception if the

@@ -153,7 +153,8 @@ TranslationHelper::TranslationHelper(Thread* thread)
       string_data_(TypedData::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
       metadata_payloads_(TypedData::Handle(Z)),
-      metadata_mappings_(TypedData::Handle(Z)) {}
+      metadata_mappings_(TypedData::Handle(Z)),
+      constants_(Array::Handle(Z)) {}
 
 void TranslationHelper::InitFromScript(const Script& script) {
   const KernelProgramInfo& info =
@@ -175,6 +176,7 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
   SetMetadataPayloads(TypedData::Handle(Z, info.metadata_payloads()));
   SetMetadataMappings(TypedData::Handle(Z, info.metadata_mappings()));
+  SetConstants(Array::Handle(Z, info.constants()));
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
@@ -202,6 +204,11 @@ void TranslationHelper::SetMetadataMappings(
     const TypedData& metadata_mappings) {
   ASSERT(metadata_mappings_.IsNull());
   metadata_mappings_ = metadata_mappings.raw();
+}
+
+void TranslationHelper::SetConstants(const Array& constants) {
+  ASSERT(constants_.IsNull());
+  constants_ = constants.raw();
 }
 
 intptr_t TranslationHelper::StringOffset(StringIndex index) const {
@@ -766,7 +773,8 @@ FlowGraphBuilder::FlowGraphBuilder(
       next_used_try_index_(0),
       catch_block_(NULL),
       streaming_flow_graph_builder_(NULL) {
-  Script& script = Script::Handle(Z, parsed_function->function().script());
+  const Script& script =
+      Script::Handle(Z, parsed_function->function().script());
   H.InitFromScript(script);
 }
 
@@ -1788,6 +1796,19 @@ void FlowGraphBuilder::InlineBailout(const char* reason) {
 
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   const Function& function = parsed_function_->function();
+
+#ifdef DEBUG
+  // If we attached the native name to the function after it's creation (namely
+  // after reading the constant table from the kernel blob), we must have done
+  // so before building flow graph for the functions (since FGB depends needs
+  // the native name to be there).
+  const Script& script = Script::Handle(Z, function.script());
+  const KernelProgramInfo& info =
+      KernelProgramInfo::Handle(script.kernel_program_info());
+  ASSERT(info.IsNull() ||
+         info.potential_natives() == GrowableObjectArray::null());
+#endif
+
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, TypedData::Handle(Z, function.KernelData()),
       function.KernelDataProgramOffset());
@@ -2081,7 +2102,8 @@ Fragment FlowGraphBuilder::CheckAssignableInCheckedMode(
       !dst_type.IsObjectType() && !dst_type.IsVoidType()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
-    instructions += AssertAssignable(dst_type, dst_name);
+    instructions +=
+        AssertAssignable(TokenPosition::kNoSource, dst_type, dst_name);
     instructions += Drop();
   }
   return instructions;
@@ -2095,7 +2117,8 @@ Fragment FlowGraphBuilder::AssertBool() {
   return Fragment(instr);
 }
 
-Fragment FlowGraphBuilder::AssertAssignable(const AbstractType& dst_type,
+Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
+                                            const AbstractType& dst_type,
                                             const String& dst_name) {
   Fragment instructions;
   Value* value = Pop();
@@ -2115,8 +2138,8 @@ Fragment FlowGraphBuilder::AssertAssignable(const AbstractType& dst_type,
   Value* function_type_args = Pop();
 
   AssertAssignableInstr* instr = new (Z) AssertAssignableInstr(
-      TokenPosition::kNoSource, value, instantiator_type_args,
-      function_type_args, dst_type, dst_name, GetNextDeoptId());
+      position, value, instantiator_type_args, function_type_args, dst_type,
+      dst_name, GetNextDeoptId());
   Push(instr);
 
   instructions += Fragment(instr);

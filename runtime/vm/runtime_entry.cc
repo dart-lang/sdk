@@ -1819,7 +1819,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // being optimized in the background. INT_MIN should ensure that it
         // takes long time to trigger optimization.
         // Note that the background compilation queue rejects duplicate entries.
-        function.set_usage_counter(INT_MIN);
+        function.SetUsageCounter(INT_MIN);
         BackgroundCompiler::EnsureInit(thread);
         ASSERT(isolate->background_compiler() != NULL);
         isolate->background_compiler()->CompileOptimized(function);
@@ -1831,7 +1831,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
-    function.set_usage_counter(0);
+    function.SetUsageCounter(0);
     if (FLAG_trace_compiler || FLAG_trace_optimizing_compiler) {
       if (function.HasOptimizedCode()) {
         THR_Print("ReCompiling function: '%s' \n",

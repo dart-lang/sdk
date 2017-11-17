@@ -87,15 +87,17 @@ type `T` must evaluate to a value whose dynamic type `S` which is a subtype of
 type directly:
 
 ```dart
+// Going by the OLD RULES, showing why we need to introduce new ones.
+
 typedef void F(num n);
 
 class A {
-  // Assume the reified parameter type is `num`, directly as declared.
+  // The reified parameter type is `num`, directly as declared.
   void f(covariant num n) {}
 }
 
 class B extends A {
-  // Assume the reified parameter type is `int`, directly as declared.
+  // The reified parameter type is `int`, directly as declared.
   void f(int i) {}
 }
 
@@ -158,9 +160,12 @@ same typing situation arises.
 Parameters can have a covariant type because they are or contain a formal type
 parameter of an enclosing generic class. Here is an example using the core class
 `List` (which underscores that it is a common phenomenon, but any generic class
-would do):
+would do). It illustrates why we need to change the reified type of tear-offs
+also with parameters that are covariant due to class covariance:
 
 ```dart
+// Going by the OLD RULES, showing why we need to introduce new ones.
+
 // Here is the small part of the core List class that we need here.
 abstract class List<E> ... {
   // The reified type is `(E) -> void` in all modes, as declared.
@@ -177,7 +182,7 @@ main() {
   List<num> xs = <int>[1, 2];
   F myF = xs.add;    // Statically safe, yet fails at run time
                      // in strong mode and Dart 2.
-  G myG = xs.addAll; // Same as above.
+  G myG = xs.addAll; // Same situation as with myF.
 }
 ```
 
@@ -186,14 +191,33 @@ following two cases:
 
 - A covariant parameter type is induced by an overriding method declaration
   (example: `int i` in `B.f`).
-- A Covariant parameter type is induced by the use of a formal type parameter of
+- A covariant parameter type is induced by the use of a formal type parameter of
   the enclosing generic class in a covariant position in the parameter type
   declaration (example: `E value` and `Iterable<E> iterable` in `List.add`
   resp. `List.addAll`).
 
 This document specifies how to preserve the above mentioned expression soundness
 property of Dart, based on a modified rule for how to reify parameter types of
-tear-offs.
+tear-offs. Here is how it works with the new rules specified in this document:
+
+```dart
+abstract class List<E> ... {
+  // The reified type is `(Object) -> void` in all modes.
+  void add(E value);
+  // The reified type is `(Object) -> void` in all modes.
+  void addAll(Iterable<E> iterable);
+  ...
+}
+
+typedef void F(num n);
+typedef void G(Iterable<num> n);
+
+main() {
+  List<num> xs = <int>[1, 2];
+  F myF = xs.add;    // Statically safe, and succeeds at run time.
+  G myG = xs.addAll; // Same situation as with myF.
+}
+```
 
 ## Informal specification
 
@@ -330,8 +354,8 @@ computation of a finite type which is the least upper bound of all possible
 instantiations, so we cannot instantiate-to-bound:
 
 ```dart
-// There is no finite type `T` such that all possible values
-// for `X` are subtypes of `T`.
+// There is no finite type `T` such that all possible values for `X`
+// and no other types are subtypes of `T`.
 class D<X extends D<X>> {}
 ```
 
@@ -376,7 +400,7 @@ main() {
   List<Object> zs = ys;
   void Function(int) f9 = zs.add; // Statically an upcast, OK at runtime.
   void Function(num) fa = zs.add; // Statically an upcast, OK at runtime.
-  void Function(Object) fb = zs.add; // Statically a same type, OK at runtime.
+  void Function(Object) fb = zs.add; // Statically same type, OK at runtime.
   void Function(String) fc = zs.add; // Finally we can go wrong silently!
 }
 ```

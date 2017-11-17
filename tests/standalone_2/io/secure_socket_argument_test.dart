@@ -8,8 +8,8 @@ import "dart:io";
 void testServerSocketArguments() {
   Expect.throws(() => SecureServerSocket.bind(SERVER_ADDRESS, 65536, null));
   Expect.throws(() => SecureServerSocket.bind(SERVER_ADDRESS, -1, null));
-  Expect.throws(
-      () => SecureServerSocket.bind(SERVER_ADDRESS, 0, "not a context"));
+  Expect.throws(() =>
+      SecureServerSocket.bind(SERVER_ADDRESS, 0, "not a context" as dynamic));
 }
 
 void main() {

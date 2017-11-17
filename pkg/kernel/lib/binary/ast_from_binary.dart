@@ -25,6 +25,7 @@ class _ProgramIndex {
   int binaryOffsetForSourceTable;
   int binaryOffsetForStringTable;
   int binaryOffsetForCanonicalNames;
+  int binaryOffsetForConstantTable;
   int mainMethodReference;
   List<int> libraryOffsets;
   int libraryCount;
@@ -42,6 +43,7 @@ class BinaryBuilder {
   int _byteOffset = 0;
   final List<String> _stringTable = <String>[];
   final List<String> _sourceUriTable = <String>[];
+  List<Constant> _constantTable;
   List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
   Library _currentLibrary;
@@ -148,6 +150,82 @@ class BinaryBuilder {
       table[i] = readStringEntry(endOffsets[i] - startOffset);
       startOffset = endOffsets[i];
     }
+  }
+
+  void readConstantTable() {
+    final int length = readUInt();
+    _constantTable = new List<Constant>(length);
+    for (int i = 0; i < length; i++) {
+      _constantTable[i] = readConstantTableEntry();
+    }
+  }
+
+  Constant readConstantTableEntry() {
+    final int constantTag = readByte();
+    switch (constantTag) {
+      case ConstantTag.NullConstant:
+        return new NullConstant();
+      case ConstantTag.BoolConstant:
+        return new BoolConstant(readByte() == 1);
+      case ConstantTag.IntConstant:
+        return new IntConstant((readExpression() as IntLiteral).value);
+      case ConstantTag.DoubleConstant:
+        return new DoubleConstant(double.parse(readStringReference()));
+      case ConstantTag.StringConstant:
+        return new StringConstant(readStringReference());
+      case ConstantTag.MapConstant:
+        final DartType keyType = readDartType();
+        final DartType valueType = readDartType();
+        final int length = readUInt();
+        final List<ConstantMapEntry> entries =
+            new List<ConstantMapEntry>(length);
+        for (int i = 0; i < length; i++) {
+          final Constant key = readConstantReference();
+          final Constant value = readConstantReference();
+          entries[i] = new ConstantMapEntry(key, value);
+        }
+        return new MapConstant(keyType, valueType, entries);
+      case ConstantTag.ListConstant:
+        final DartType typeArgument = readDartType();
+        final int length = readUInt();
+        final List<Constant> entries = new List<Constant>(length);
+        for (int i = 0; i < length; i++) {
+          entries[i] = readConstantReference();
+        }
+        return new ListConstant(typeArgument, entries);
+      case ConstantTag.InstanceConstant:
+        final Reference classReference = readClassReference();
+        final int typeArgumentCount = readUInt();
+        final List<DartType> typeArguments =
+            new List<DartType>(typeArgumentCount);
+        for (int i = 0; i < typeArgumentCount; i++) {
+          typeArguments[i] = readDartType();
+        }
+        final int fieldValueCount = readUInt();
+        final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
+        for (int i = 0; i < fieldValueCount; i++) {
+          final Reference fieldRef =
+              readCanonicalNameReference().getReference();
+          final Constant constant = readConstantReference();
+          fieldValues[fieldRef] = constant;
+        }
+        return new InstanceConstant(classReference, typeArguments, fieldValues);
+      case ConstantTag.TearOffConstant:
+        final Reference reference = readCanonicalNameReference().getReference();
+        return new TearOffConstant.byReference(reference);
+      case ConstantTag.TypeLiteralConstant:
+        final DartType type = readDartType();
+        return new TypeLiteralConstant(type);
+    }
+
+    throw 'Invalid constant tag $constantTag';
+  }
+
+  Constant readConstantReference() {
+    final int index = readUInt();
+    Constant constant = _constantTable[index];
+    assert(constant != null);
+    return constant;
   }
 
   String readUriReference() {
@@ -340,12 +418,13 @@ class BinaryBuilder {
     // There are these fields: file size, library count, library count + 1
     // offsets, main reference, string table offset, canonical name offset and
     // source table offset. That's 6 fields + number of libraries.
-    _byteOffset -= (result.libraryCount + 7) * 4;
+    _byteOffset -= (result.libraryCount + 8) * 4;
 
     // Now read the program index.
     result.binaryOffsetForSourceTable = _programStartOffset + readUint32();
     result.binaryOffsetForCanonicalNames = _programStartOffset + readUint32();
     result.binaryOffsetForStringTable = _programStartOffset + readUint32();
+    result.binaryOffsetForConstantTable = _programStartOffset + readUint32();
     result.mainMethodReference = readUint32();
     for (int i = 0; i < result.libraryCount + 1; ++i) {
       result.libraryOffsets[i] = _programStartOffset + readUint32();
@@ -386,6 +465,9 @@ class BinaryBuilder {
     _byteOffset = index.binaryOffsetForSourceTable;
     Map<String, Source> uriToSource = readUriToSource();
     program.uriToSource.addAll(uriToSource);
+
+    _byteOffset = index.binaryOffsetForConstantTable;
+    readConstantTable();
 
     int numberOfLibraries = index.libraryCount;
     for (int i = 0; i < numberOfLibraries; ++i) {
@@ -1245,6 +1327,8 @@ class BinaryBuilder {
         var typeArgs = readDartTypeList();
         return new ClosureCreation.byReference(
             topLevelFunctionReference, contextVector, functionType, typeArgs);
+      case Tag.ConstantExpression:
+        return new ConstantExpression(readConstantReference());
       default:
         throw fail('Invalid expression tag: $tag');
     }
@@ -1265,7 +1349,8 @@ class BinaryBuilder {
 
   List<Statement> readStatementList() {
     int length = readUInt();
-    List<Statement> result = new List<Statement>(length);
+    List<Statement> result = <Statement>[];
+    result.length = length;
     for (int i = 0; i < length; ++i) {
       result[i] = readStatement();
     }

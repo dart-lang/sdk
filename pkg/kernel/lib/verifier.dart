@@ -382,7 +382,15 @@ class VerifyingVisitor extends RecursiveVisitor {
     if (node.target == null) {
       problem(node, "StaticGet without target.");
     }
-    if (!node.target.hasGetter) {
+    // Currently Constructor.hasGetter returns `false` even though fasta uses it
+    // as a getter for internal purposes:
+    //
+    // Fasta is letting all call site of a redirecting constructor be resolved
+    // to the real target.  In order to resolve it, it seems to add a body into
+    // the redirecting-factory constructor which caches the target constructor.
+    // That cache is via a `StaticGet(real-constructor)` node, which we make
+    // here pass the verifier.
+    if (!node.target.hasGetter && node.target is! Constructor) {
       problem(node, "StaticGet of '${node.target}' without getter.");
     }
     if (node.target.isInstanceMember) {

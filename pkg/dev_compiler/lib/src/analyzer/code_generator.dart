@@ -1397,8 +1397,18 @@ class CodeGenerator extends Object
     for (int i = 0; i < mixinLength; i++) {
       var m = classElem.mixins[i];
 
-      var mixinId = new JS.TemporaryId(classElem.supertype.name + '_' + m.name);
-      body.add(new JS.ClassExpression(mixinId, baseClass, []).toStatement());
+      var mixinString = classElem.supertype.name + '_' + m.name;
+      var mixinClassName = new JS.TemporaryId(mixinString);
+      var mixinId = new JS.TemporaryId(mixinString + '\$');
+      var mixinClassExpression =
+          new JS.ClassExpression(mixinClassName, baseClass, []);
+      // Bind the mixin class to a name to workaround a V8 bug with es6 classes
+      // and anonymous function names.
+      // TODO(leafp:) Eliminate this once the bug is fixed:
+      // https://bugs.chromium.org/p/v8/issues/detail?id=7069
+      var mixinClassDef =
+          js.statement("const # = #", [mixinId, mixinClassExpression]);
+      body.add(mixinClassDef);
       // Add constructors
 
       emitMixinConstructors(mixinId, m);

@@ -297,8 +297,8 @@ cc/Debugger_Rewind_Optimized: SkipSlow
 cc/Debugger_SetBreakpointInPartOfLibrary: Crash
 cc/FunctionSourceFingerprint: Fail
 cc/IsolateReload_BadClass: Fail
-cc/IsolateReload_ClassFieldAdded: Crash
-cc/IsolateReload_ClassFieldAdded2: Crash
+cc/IsolateReload_ClassFieldAdded: Skip # Crash, Timeout
+cc/IsolateReload_ClassFieldAdded2: Skip # Crash, Timeout
 cc/IsolateReload_ChangeInstanceFormat1: Skip
 cc/IsolateReload_ChangeInstanceFormat3: Skip
 cc/IsolateReload_ChangeInstanceFormat7: Skip
@@ -438,3 +438,6 @@ cc/Parser_AllocateVariables_TwoChains: Crash
 dart/inline_stack_frame_test: Skip
 dart/optimized_stacktrace_line_test: Skip
 
+
+[ ($compiler == dartkp) ]
+dart/truncating_ints_test: CompileTimeError # Issue 31339

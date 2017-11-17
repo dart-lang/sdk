@@ -552,15 +552,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   }
 
   // TODO(dartbug.com/30480): create a separate option to toggle
-  // strong mode optimizations if we need to test strong mode without
-  // optimizations.
-  bool get _experimentalStrongMode => _isStrong;
+  // strong mode optimizations.
+  bool get _enableStrongModeOptimizations => false;
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var commands = <Command>[];
 
-    if (_experimentalStrongMode) {
+    if (_isStrong) {
       commands.add(computeCompileToKernelCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -568,7 +567,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     commands.add(
         computeCompilationCommand(tempDir, arguments, environmentOverrides));
 
-    if (_experimentalStrongMode) {
+    if (_isStrong) {
       commands.add(computeRemoveKernelFileCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -596,10 +595,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       '--platform=${buildDir}/vm_platform_strong.dill',
       '--strong-mode',
       '--fatal=errors',
-      '--target-options=strong-aot',
-      '-o',
-      tempKernelFile(tempDir),
     ];
+    if (_enableStrongModeOptimizations) {
+      args.add('--target-options=strong-aot');
+    }
+    args.add('-o');
+    args.add(tempKernelFile(tempDir));
     args.addAll(arguments.where((name) => name.endsWith('.dart')));
     return Command.compilation('compile_to_kernel', tempDir,
         bootstrapDependencies(), exec, args, environmentOverrides,
@@ -637,7 +638,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
     var args = <String>[];
     if (useDfe) {
-      if (!_experimentalStrongMode) {
+      if (!_isStrong) {
         args.add('--dfe=utils/kernel-service/kernel-service.dart');
       }
       // TODO(dartbug.com/30480): avoid using additional kernel binaries
@@ -663,8 +664,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       args.add('--obfuscate');
     }
 
-    if (_experimentalStrongMode) {
+    if (_enableStrongModeOptimizations) {
       args.add('--experimental-strong-mode');
+    }
+
+    if (_isStrong) {
+      args.add('--strong');
       args.addAll(arguments.where((name) => !name.endsWith('.dart')));
       args.add(tempKernelFile(tempDir));
     } else {

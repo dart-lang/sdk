@@ -5,9 +5,6 @@
 # Sections in this file should contain "$compiler == dartdevc" or dartdevk.
 
 [ $compiler == dartdevc ]
-abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
-abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_error2_test/*: Crash # Issue #27809
@@ -15,15 +12,9 @@ assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue #31319
 assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue #31319
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
-async_return_types_test/nestedFuture: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
 black_listed_test/none: fail # Issue 14228
 built_in_identifier_prefix_test: CompileTimeError
-built_in_identifier_prefix_test: CompileTimeError
-config_import_corelib_test: CompileTimeError
+built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 conflicting_type_variable_and_setter_test: CompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError
 const_types_test/07: MissingCompileTimeError
@@ -31,79 +22,43 @@ const_types_test/08: MissingCompileTimeError
 const_types_test/14: MissingCompileTimeError
 const_types_test/15: MissingCompileTimeError
 constant_type_literal_test/01: MissingCompileTimeError # DDC allows type parameter type literals in const expressions.
+covariance_field_test/03: RuntimeError
+covariance_field_test/04: RuntimeError
+covariance_field_test/05: RuntimeError
 export_private_test/01: MissingCompileTimeError # Issue 29920
-field_initialization_order_test/none: RuntimeError
 field_wierd_name_test: Crash
 final_field_initialization_order_test: RuntimeError # Issue 31058
 final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
-field3_test/01: MissingCompileTimeError
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
+fuzzy_arrows_test/03: RuntimeError # Issue 29630
 generic_list_checked_test: CompileTimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_closure_test: CompileTimeError # Issue 29920
 generic_methods_generic_function_parameter_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
-generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
-generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 generic_methods_shadowing_test: CompileTimeError # Issue 29920
 generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
 generic_methods_type_expression_test: CompileTimeError
-generic_no_such_method_dispatcher_test: CompileTimeError
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
-generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
-import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
-local_function2_test/none: RuntimeError
-local_function3_test/none: RuntimeError
-local_function_test/none: RuntimeError
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError
 mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
 implicit_downcast_during_compound_assignment_test: RuntimeError
-interceptor6_test: CompileTimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
-internal_library_test/02: Crash
-least_upper_bound_expansive_test/none: RuntimeError # 30908
-library_env_test/none: RuntimeError # Issue 30907
-library_env_test/has_html_support: RuntimeError # Issue 30907
-library_env_test/has_no_io_support: RuntimeError # Issue 30907
-library_env_test/has_no_mirror_support: RuntimeError # Issue 30907
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_io_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 nested_generic_closure_test: CompileTimeError
-no_such_method_test: RuntimeError
-override_field_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/02: MissingCompileTimeError
-override_inheritance_abstract_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/04: MissingCompileTimeError
-override_inheritance_abstract_test/08: MissingCompileTimeError
-override_inheritance_abstract_test/09: MissingCompileTimeError
-override_inheritance_abstract_test/10: MissingCompileTimeError
-override_inheritance_abstract_test/11: MissingCompileTimeError
-override_inheritance_abstract_test/12: MissingCompileTimeError
-override_inheritance_abstract_test/13: MissingCompileTimeError
-override_inheritance_abstract_test/14: MissingCompileTimeError
-override_inheritance_abstract_test/17: MissingCompileTimeError
-override_inheritance_abstract_test/19: MissingCompileTimeError
-override_inheritance_abstract_test/20: MissingCompileTimeError
-override_inheritance_abstract_test/21: MissingCompileTimeError
-override_inheritance_abstract_test/22: MissingCompileTimeError
-override_inheritance_abstract_test/23: MissingCompileTimeError
-override_inheritance_abstract_test/24: MissingCompileTimeError
-override_inheritance_abstract_test/25: MissingCompileTimeError
-override_inheritance_abstract_test/26: MissingCompileTimeError
 override_inheritance_field_test/04: CompileTimeError
 override_inheritance_field_test/06: CompileTimeError
 override_inheritance_field_test/26: CompileTimeError
@@ -116,15 +71,10 @@ override_inheritance_field_test/50: CompileTimeError
 override_inheritance_generic_test/02: CompileTimeError
 override_inheritance_method_test/28: CompileTimeError
 override_inheritance_method_test/29: CompileTimeError
-override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parameter_initializer_test: CompileTimeError
-parser_quirks_test: CompileTimeError
 part_refers_to_core_library_test/01: Crash
-regress_22443_test: RuntimeError
 regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
 regress_23408_test: CompileTimeError
-regress_27617_test/1: MissingCompileTimeError
-stacktrace_demangle_ctors_test: RuntimeError # Issue 31089
 string_interpolate_test: CompileTimeError
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 29920
 super_call4_test: RuntimeError
@@ -135,7 +85,6 @@ super_no_such_method4_test: RuntimeError
 super_operator_index5_test: RuntimeError
 syntax_test/none: CompileTimeError
 type_variable_scope_test/none: CompileTimeError
-vm/*: SkipByDesign # VM only tests.
 
 [ $strong && $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -145,7 +94,6 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 method_override_test: CompileTimeError # Negative test
-method_override7_test/03: MissingCompileTimeError # Issue 30514
 mixin_super_test: RuntimeError
 mixin_super_use_test: RuntimeError
 mixin_supertype_subclass_test/02: MissingCompileTimeError
@@ -156,10 +104,6 @@ multiline_newline_test/02: CompileTimeError
 multiline_newline_test/02r: CompileTimeError
 multiline_newline_test/03: RuntimeError
 multiline_newline_test/03r: RuntimeError
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/none: RuntimeError
 regress_29025_test: CompileTimeError # Issue 29081
 regress_29349_test: CompileTimeError # Issue 31093
@@ -167,163 +111,37 @@ regress_29405_test: CompileTimeError # Issue 29421
 regress_29784_test/02: CompileTimeError, Crash # Issue 27809
 regress_30121_test: CompileTimeError # Issue 31087
 regress_30339_test: CompileTimeError # As expected. Should we make this a multi test?
-string_interpolation_and_buffer_test: RuntimeError
-string_literals_test: RuntimeError
 string_split_test: CompileTimeError
 string_supertype_checked_test: CompileTimeError
 super_bound_closure_test/none: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
-private3_test: RuntimeError
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
-void_type_function_types_test/none: CompileTimeError # Issue 30514
-void_type_override_test/none: CompileTimeError # Issue 30514
-void_type_usage_test/call_as: CompileTimeError # Issue 30514
-void_type_usage_test/call_for: CompileTimeError # Issue 30514
-void_type_usage_test/call_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/field_assign2: CompileTimeError # Issue 30514
-void_type_usage_test/field_assign: CompileTimeError # Issue 30514
-void_type_usage_test/final_local_as: CompileTimeError # Issue 30514
-void_type_usage_test/final_local_for: CompileTimeError # Issue 30514
-void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/global_as: CompileTimeError # Issue 30514
-void_type_usage_test/global_for: CompileTimeError # Issue 30514
-void_type_usage_test/global_for_in2: CompileTimeError # Issue 30514
-void_type_usage_test/global_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/instance2_as: CompileTimeError # Issue 30514
-void_type_usage_test/instance2_for: CompileTimeError # Issue 30514
-void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30514
-void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/instance3_as: CompileTimeError # Issue 30514
-void_type_usage_test/instance3_for: CompileTimeError # Issue 30514
-void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30514
-void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/instance_as: CompileTimeError # Issue 30514
-void_type_usage_test/instance_for: CompileTimeError # Issue 30514
-void_type_usage_test/instance_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/local_as: CompileTimeError # Issue 30514
-void_type_usage_test/local_assign: CompileTimeError # Issue 30514
-void_type_usage_test/local_for: CompileTimeError  # Issue 30514
-void_type_usage_test/local_for_in2: CompileTimeError # Issue 30514
-void_type_usage_test/local_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/none: CompileTimeError # Issue 30514
-void_type_usage_test/param_as: CompileTimeError # Issue 30514
-void_type_usage_test/param_for: CompileTimeError # Issue 30514
-void_type_usage_test/param_for_in2: CompileTimeError # Issue 30514
-void_type_usage_test/param_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/paren_as: CompileTimeError # Issue 30514
-void_type_usage_test/paren_for: CompileTimeError # Issue 30514
-void_type_usage_test/paren_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 
 [ $compiler == dartdevc && $runtime != none ]
-assertion_test: RuntimeError # Issue 30326
-async_star_cancel_while_paused_test: RuntimeError # Issue 29920
-async_star_pause_test: RuntimeError
-async_star_test/01: RuntimeError
-async_star_test/02: RuntimeError
-async_star_test/03: RuntimeError
-async_star_test/04: RuntimeError
-async_star_test/05: RuntimeError
-async_star_test/none: RuntimeError
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test/01: RuntimeError # No bigints on web.
 bit_operations_test/02: RuntimeError # No bigints on web.
 bit_operations_test/03: RuntimeError # No bigints on web.
 bit_operations_test/04: RuntimeError # No bigints on web.
-bit_operations_test/none: RuntimeError # No bigints on web.
-branch_canonicalization_test: RuntimeError # Issue 29920
-call_closurization_test: RuntimeError # Issue 29920
-call_test: RuntimeError
-canonical_const2_test: RuntimeError # Ints and doubles are unified.
-compile_time_constant_d_test: RuntimeError # Issue 30876
-compile_time_constant_e_test: RuntimeError # Issue 30876
-config_import_test: RuntimeError
-const_list_test: RuntimeError
-const_map4_test: RuntimeError
-const_switch_test/02: RuntimeError # Issue 29920
-const_switch_test/04: RuntimeError # Ints and doubles are unified.
-constructor12_test: RuntimeError # Issue 29920
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
-ct_const_test: RuntimeError # Issue 2992
-custom_await_stack_trace_test: RuntimeError # Issue 29920
-cyclic_type2_test: RuntimeError # Issue 29920
-cyclic_type_test/02: RuntimeError # Issue 29920
-cyclic_type_test/03: RuntimeError # Issue 29920
-cyclic_type_test/04: RuntimeError # Issue 29920
-deferred_call_empty_before_load_test: RuntimeError # Issue 27777
-deferred_load_constants_test/none: RuntimeError # Issue 27394
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
-deferred_not_loaded_check_test: RuntimeError # Issue 27777
-deferred_redirecting_factory_test: RuntimeError # Issue 27777
-deferred_static_seperate_test: RuntimeError # Issue 27777
-double_int_to_string_test: RuntimeError # Issue 29920
-double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920
-dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>
 emit_const_fields_test: CompileTimeError
 enum_syntax_test/05: MissingCompileTimeError
 enum_syntax_test/06: MissingCompileTimeError
-example_constructor_test: RuntimeError
-exception_test: RuntimeError # DDC doesn't implement NullThrownError?
 execute_finally6_test: RuntimeError # Issue 29920
-expect_test: RuntimeError # Issue 29920
-f_bounded_quantification3_test: RuntimeError # Issue 29920
-field_increment_bailout_test: RuntimeError # Issue 29920
 flatten_test/05: MissingRuntimeError # Issue 29920
 flatten_test/08: MissingRuntimeError # Issue 29920
 flatten_test/09: MissingRuntimeError # Issue 29920
 flatten_test/12: MissingRuntimeError # Issue 29920
-for_variable_capture_test: RuntimeError # Issue 29920
-function_subtype_inline2_test: RuntimeError
-function_type_alias6_test/none: RuntimeError
-generic_instanceof2_test: RuntimeError # Issue 29920
-generic_is_check_test: RuntimeError # Issue 29920
 generic_method_types_test/02: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
-identical_closure2_test: RuntimeError # Issue 29920
-infinite_switch_label_test: RuntimeError # Issue 29920
-infinity_test: RuntimeError # Issue 29920
-instance_creation_in_function_annotation_test: RuntimeError # Issue 29920
-integer_division_by_zero_test: RuntimeError # Issue 29920
-invocation_mirror2_test: RuntimeError
-invocation_mirror_empty_arguments_test: RuntimeError
-invocation_mirror_invoke_on2_test: RuntimeError
-invocation_mirror_invoke_on_test: RuntimeError
-invocation_mirror_test: RuntimeError
-issue21159_test: RuntimeError # Issue 30701
-issue23244_test: RuntimeError # Issue 29920
-label_test: RuntimeError # Issue 30675
-lazy_static3_test: RuntimeError # Issue 30852
-lazy_static8_test: RuntimeError # Issue 30852
-left_shift_test: RuntimeError # Ints and doubles are unified.
-list_is_test: RuntimeError # Issue 29920
-many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
-mint_arithmetic_test: RuntimeError # Issue 29920
-modulo_test: RuntimeError # Ints and doubles are unified.
-named_parameter_clash_test: RuntimeError # Issue 29920
-named_parameters_default_eq_test/none: RuntimeError
-nan_identical_test: RuntimeError # Issue 29920
-nested_switch_label_test: RuntimeError # Issue 29920
-null_test/mirrors: RuntimeError # Uses mirrors.
-number_identity2_test: RuntimeError # Issue 29920
-numbers_test: RuntimeError # Issue 29920
-overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
 prefix10_negative_test: Skip # Issue 29920
-regress_16640_test: RuntimeError # Issue 29920
 regress_29784_test/02: Crash # assert initializers not implemented
-stack_overflow_stacktrace_test: RuntimeError # Issue 29920
-stack_overflow_test: RuntimeError # Issue 29920
-stacktrace_test: RuntimeError # Issue 29920
 super_operator_index7_test: RuntimeError
 super_operator_index8_test: RuntimeError
-super_test: RuntimeError
 switch_case_test/none: CompileTimeError
-switch_label2_test: RuntimeError # Issue 29920
-switch_label_test: RuntimeError # Issue 29920
-switch_try_catch_test: RuntimeError # Issue 29920
-truncdiv_test: RuntimeError # Issue 29920
-vm/*: SkipByDesign # Tests for the VM.
 yieldstar_pause_test: Skip # Times out
 list_is_test: RuntimeError # Issue 29920
 prefix10_negative_test: Skip # Issue 29920
@@ -339,16 +157,23 @@ const_evaluation_test/01: RuntimeError # Issue 29920
 asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 
 [ $compiler == dartdevk ]
-vm/*: SkipByDesign # VM only tests.
 abstract_factory_constructor_test/00: MissingCompileTimeError
 abstract_getter_test/01: MissingCompileTimeError
-abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
-abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError
 abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
+arithmetic_test: RuntimeError # Expect.throws fails: Did not throw
+assertion_initializer_const_error2_test/cc01: RuntimeError # Assertion failed: is not true
+assertion_initializer_const_error2_test/cc02: RuntimeError # Assertion failed: is not true
+assertion_initializer_const_error2_test/cc03: RuntimeError # Assertion failed: is not true
+assertion_initializer_const_error2_test/cc05: RuntimeError # Assertion failed: is not true
+assertion_initializer_const_error2_test/cc06: RuntimeError # Assertion failed: is not true
+assertion_initializer_const_error2_test/cc07: RuntimeError # Assertion failed: is not true
+assertion_initializer_const_error2_test/cc08: RuntimeError # Assertion failed: is not true
+assertion_initializer_const_error2_test/cc09: RuntimeError # Assertion failed: "2 < 1"
+assertion_initializer_const_error2_test/cc10: RuntimeError # Assertion failed: is not true
+assertion_initializer_const_error2_test/cc11: RuntimeError # Assertion failed: "2 < 1"
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
@@ -361,16 +186,16 @@ async_await_syntax_test/b10a: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
-async_await_test/02: CompileTimeError
-async_await_test/03: CompileTimeError
-async_await_test/none: CompileTimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
-async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: Crash
 async_return_types_test/wrongTypeParameter: MissingCompileTimeError
+asyncstar_throw_in_catch_test: RuntimeError # Uncaught Expect.equals(expected: <abcX>, actual: <abbcX>) fails.
+async_throw_in_catch_test/forceAwait: RuntimeError # Uncaught Expect.equals(expected: <Error2>, actual: <Expect.equals(expected: <e>, actual: <c>) fails.>) fails.
+async_throw_in_catch_test/none: RuntimeError # Uncaught Expect.equals(expected: <Error2>, actual: <Expect.equals(expected: <e>, actual: <c>) fails.>) fails.
+await_for_cancel_test: Timeout
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
@@ -382,24 +207,22 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
-built_in_identifier_prefix_test: CompileTimeError
+break_test: RuntimeError # Expect.equals(expected: <6>, actual: <10>) fails.
+callable_test/00: MissingCompileTimeError
+callable_test/01: MissingCompileTimeError
+callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 call_function_test: CompileTimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
-callable_test/00: MissingCompileTimeError
-callable_test/01: MissingCompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
+checked_null_test/01: MissingCompileTimeError
+checked_setter3_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 check_member_static_test/01: MissingCompileTimeError
 check_member_static_test/02: MissingCompileTimeError
-checked_null_test/01: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 class_literal_static_test/01: MissingCompileTimeError
@@ -432,12 +255,17 @@ class_literal_test/14: MissingCompileTimeError
 class_literal_test/15: MissingCompileTimeError
 class_literal_test/16: MissingCompileTimeError
 class_literal_test/23: MissingCompileTimeError
-closure_call_wrong_argument_count_negative_test: Fail
+closure_break1_test: Timeout
+closure_break2_test: Timeout
+closure_in_constructor_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
 closure_internals_test/01: MissingCompileTimeError
 closure_internals_test/02: MissingCompileTimeError
 closure_internals_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
+closures_initializer_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
+closure_type_test: RuntimeError
+closure_type_variables_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -486,6 +314,8 @@ compile_time_constant_static5_test/25: MissingCompileTimeError
 compile_time_constant_static_test/01: MissingCompileTimeError
 compile_time_constant_static_test/02: MissingCompileTimeError
 compile_time_constant_static_test/03: MissingCompileTimeError
+conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
+conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 conditional_method_invocation_test/05: MissingCompileTimeError
 conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
@@ -522,8 +352,9 @@ conditional_property_increment_decrement_test/33: MissingCompileTimeError
 conditional_property_increment_decrement_test/34: MissingCompileTimeError
 conditional_property_increment_decrement_test/39: MissingCompileTimeError
 conditional_property_increment_decrement_test/40: MissingCompileTimeError
-config_import_corelib_test: CompileTimeError
 config_import_test: CompileTimeError
+constants_test/05: MissingCompileTimeError
+constant_string_interpolation2_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 const_conditional_test/08: MissingCompileTimeError
 const_constructor2_test/05: MissingCompileTimeError
 const_constructor2_test/06: MissingCompileTimeError
@@ -552,6 +383,14 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_optional_args_negative_test: Fail
 const_qq_test: Crash
+constructor_call_as_function_test/01: MissingCompileTimeError
+constructor_duplicate_final_test/01: Crash
+constructor_duplicate_final_test/02: Crash
+constructor_duplicate_final_test/03: Crash
+constructor_redirect1_negative_test/01: MissingCompileTimeError
+constructor_redirect2_negative_test: MissingCompileTimeError
+constructor_redirect2_test/01: MissingCompileTimeError
+constructor_redirect_test/01: MissingCompileTimeError
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
 const_syntax_test/08: MissingCompileTimeError
@@ -561,36 +400,38 @@ const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
-constants_test/05: MissingCompileTimeError
-constructor_call_as_function_test/01: MissingCompileTimeError
-constructor_duplicate_final_test/01: Crash
-constructor_duplicate_final_test/02: Crash
-constructor_duplicate_final_test/03: Crash
-constructor_redirect1_negative_test/01: MissingCompileTimeError
-constructor_redirect2_negative_test: MissingCompileTimeError
-constructor_redirect2_test/01: MissingCompileTimeError
-constructor_redirect_test/01: MissingCompileTimeError
-covariant_subtyping_test: Crash
+covariant_subtyping_test: CompileTimeError
 cyclic_constructor_test/01: MissingCompileTimeError
+cyclic_typedef_test/13: MissingCompileTimeError
+cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
+cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
 cyclic_type_variable_test/01: MissingCompileTimeError
 cyclic_type_variable_test/02: MissingCompileTimeError
 cyclic_type_variable_test/03: MissingCompileTimeError
 cyclic_type_variable_test/04: MissingCompileTimeError
-cyclic_typedef_test/13: MissingCompileTimeError
 default_factory2_test/01: MissingCompileTimeError
 default_factory_test/01: MissingCompileTimeError
+default_init_test: RuntimeError # RangeError: Maximum call stack size exceeded
+deferred_closurize_load_library_test: RuntimeError # NoSuchMethodError: method not found: 'then'
 deferred_constraints_constants_test/default_argument2: MissingCompileTimeError
+deferred_constraints_constants_test/none: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
+deferred_constraints_constants_test/reference_after_load: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
 deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/new: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
+deferred_constraints_type_annotation_test/none: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
+deferred_constraints_type_annotation_test/static_method: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
 deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
@@ -611,12 +452,18 @@ duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/none: CompileTimeError
+enum_duplicate_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_duplicate_test/02: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_duplicate_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_mirror_test: RuntimeError # Expect.equals(expected: <Foo.BAR>, actual: <null>) fails.
+enum_private_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 error_stacktrace_test/00: MissingCompileTimeError
+execute_finally12_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx._equals)' of null
 export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
-f_bounded_quantification_test/01: MissingCompileTimeError
-f_bounded_quantification_test/02: MissingCompileTimeError
 factory1_test/00: MissingCompileTimeError
 factory1_test/01: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
@@ -630,9 +477,12 @@ factory_redirection_test/13: MissingCompileTimeError
 factory_redirection_test/14: MissingCompileTimeError
 factory_redirection_test/none: MissingCompileTimeError
 factory_return_type_checked_test/00: MissingCompileTimeError
+factory_type_parameter_test: RuntimeError # ReferenceError: AOfT is not defined
 fauxverride_test/03: MissingCompileTimeError
 fauxverride_test/05: MissingCompileTimeError
-field3_test/01: MissingCompileTimeError
+f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
+f_bounded_quantification_test/01: MissingCompileTimeError
+f_bounded_quantification_test/02: MissingCompileTimeError
 field_initialization_order_test/01: MissingCompileTimeError
 field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
@@ -641,6 +491,7 @@ field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
+field_override_optimization_test: RuntimeError # Expect.fail('This should also be unreachable')
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
 field_override_test/none: MissingCompileTimeError
@@ -654,6 +505,15 @@ first_class_types_literals_test/07: MissingCompileTimeError
 first_class_types_literals_test/10: MissingCompileTimeError
 first_class_types_literals_test/11: MissingCompileTimeError
 first_class_types_literals_test/12: MissingCompileTimeError
+first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
+fixed_type_variable2_test/01: RuntimeError # ReferenceError: BOfT is not defined
+fixed_type_variable2_test/02: RuntimeError # ReferenceError: BOfT is not defined
+fixed_type_variable2_test/05: RuntimeError # ReferenceError: BOfT is not defined
+fixed_type_variable2_test/06: RuntimeError # ReferenceError: BOfT is not defined
+fixed_type_variable_test/01: RuntimeError # ReferenceError: BOfT is not defined
+fixed_type_variable_test/02: RuntimeError # ReferenceError: BOfT is not defined
+fixed_type_variable_test/05: RuntimeError # ReferenceError: BOfT is not defined
+fixed_type_variable_test/06: RuntimeError # ReferenceError: BOfT is not defined
 flatten_test/01: Crash
 flatten_test/02: Crash
 flatten_test/03: Crash
@@ -668,39 +528,85 @@ flatten_test/11: Crash
 flatten_test/12: Crash
 flatten_test/none: Crash
 for_in3_test: MissingCompileTimeError
+function_subtype2_test: RuntimeError # ReferenceError: TAndSToNull is not defined
+function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
+function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_bound_closure5a_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_bound_closure6_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_bound_closure7_test: RuntimeError # ReferenceError: TTodynamic is not defined
+function_subtype_cast0_test: RuntimeError # CastError: Casting value of type '(int) => void' to type '(dynamic) => void' which is incompatible
+function_subtype_cast2_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_cast3_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_checked0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_subtype_closure1_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_subtype_factory1_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_subtype_inline0_test: RuntimeError # ReferenceError: TAndStringToNull is not defined
+function_subtype_inline1_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_subtype_local1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
+function_subtype_local2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_local3_test: RuntimeError # ReferenceError: TAndStringTovoid is not defined
+function_subtype_local4_test: RuntimeError # ReferenceError: TAndStringTovoid is not defined
+function_subtype_local5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_local6_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_not0_test: RuntimeError # Expect.isFalse(true) fails.
+function_subtype_not2_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_not3_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_regression_ddc_588_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_subtype_simple1_test: RuntimeError # Expect.isTrue(false) fails.
+function_subtype_top_level1_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_typearg5_test: RuntimeError # ReferenceError: JSArrayOfXAndXToX is not defined
+function_type2_test: RuntimeError # ReferenceError: TToint is not defined
+function_type3_test: RuntimeError # ReferenceError: BOfT is not defined
+function_type_alias2_test: RuntimeError # Expect.isTrue(false) fails.
+function_type_alias3_test: RuntimeError # TypeError: library11.Library111$ is not a function
+function_type_alias4_test: RuntimeError # Expect.isTrue(false) fails.
+function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
 function_type_call_getter2_test/00: MissingCompileTimeError
 function_type_call_getter2_test/01: MissingCompileTimeError
 function_type_call_getter2_test/02: MissingCompileTimeError
 function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_call_getter2_test/04: MissingCompileTimeError
 function_type_call_getter2_test/05: MissingCompileTimeError
+function_type_call_getter2_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
+function_type_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 generalized_void_syntax_test: CompileTimeError
+generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
+generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_constructor_mixin2_test/01: Crash
-generic_constructor_mixin2_test/none: Crash
 generic_constructor_mixin3_test/01: MissingCompileTimeError
 generic_constructor_mixin_test/01: MissingCompileTimeError
+generic_creation_test: RuntimeError # ReferenceError: AOfZ$X$Y is not defined
+generic_deep_test: RuntimeError # ReferenceError: SOfSOfK is not defined
+generic_field_mixin3_test: RuntimeError # ReferenceError: AOfT is not defined
 generic_field_mixin6_test/01: MissingCompileTimeError
+generic_field_mixin6_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+generic_field_mixin_test: RuntimeError # ReferenceError: AOfT is not defined
 generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: CompileTimeError
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError
-generic_function_type_as_type_argument_test/03: CompileTimeError
-generic_instanceof5_test: Crash
-generic_method_types_test/01: Crash
-generic_method_types_test/02: Crash
-generic_method_types_test/03: Crash
-generic_method_types_test/none: Crash
+generic_functions_test: RuntimeError # ReferenceError: BinaryTreeOfK$V is not defined
+generic_instanceof4_test: RuntimeError # ReferenceError: AOfT is not defined
+generic_instanceof_test: RuntimeError # ReferenceError: ListOfT is not defined
+generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError
-generic_methods_overriding_test/03: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_no_such_method_dispatcher_test: CompileTimeError
-generic_tearoff_test: CompileTimeError
+generic_methods_tearoff_specialization_test: RuntimeError # Expect.isTrue(false) fails.
+generic_methods_test: RuntimeError # ReferenceError: BinaryTreeOfK$V is not defined
+generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
+generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
+generic_method_types_test/02: RuntimeError
+generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
+generic_no_such_method_dispatcher_test: RuntimeError # NoSuchMethodError: method not found: '+'
+generics3_test: RuntimeError # ReferenceError: C5OfC1OfT is not defined
+generic_syntax_test: RuntimeError # ReferenceError: AOfB$C$D$E$FTodynamic is not defined
+generic_test: RuntimeError # ReferenceError: BOfT is not defined
+generic_typedef_test: RuntimeError # ReferenceError: YAndYToY is not defined
 getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
@@ -733,15 +639,21 @@ if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
-import_core_prefix_test: CompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
+instanceof4_test/01: RuntimeError # ReferenceError: ListOfT is not defined
+instanceof4_test/none: RuntimeError # ReferenceError: ListOfT is not defined
 instantiate_type_variable_test/01: CompileTimeError
-internal_library_test/02: Crash
+issue10747_test: RuntimeError # ReferenceError: BOfT is not defined
+issue14014_2_test: RuntimeError # ReferenceError: TToNull is not defined
+issue14014_3_test: RuntimeError # ReferenceError: TTodynamic is not defined
+issue14014_test: RuntimeError # ReferenceError: TToint is not defined
 issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
+issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
+issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 least_upper_bound_expansive_test/01: MissingCompileTimeError
 least_upper_bound_expansive_test/02: MissingCompileTimeError
 least_upper_bound_expansive_test/03: MissingCompileTimeError
@@ -764,11 +676,15 @@ least_upper_bound_test/24: MissingCompileTimeError
 least_upper_bound_test/29: MissingCompileTimeError
 least_upper_bound_test/30: MissingCompileTimeError
 least_upper_bound_test/32: MissingCompileTimeError
+library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
 list_literal4_test/04: MissingCompileTimeError
 list_literal4_test/05: MissingCompileTimeError
+list_literal4_test/none: RuntimeError # ReferenceError: JSArrayOfT is not defined
 local_function2_test/01: MissingCompileTimeError
 local_function2_test/02: MissingCompileTimeError
 local_function3_test/01: MissingCompileTimeError
@@ -779,10 +695,12 @@ logical_expression3_test: MissingCompileTimeError
 malbounded_instantiation_test/01: MissingCompileTimeError
 malbounded_instantiation_test/02: MissingCompileTimeError
 malbounded_instantiation_test/03: MissingCompileTimeError
+malbounded_redirecting_factory_test/01: RuntimeError # ReferenceError: AOfTd is not defined
 malbounded_redirecting_factory_test/02: MissingCompileTimeError
 malbounded_redirecting_factory_test/03: MissingCompileTimeError
 malbounded_redirecting_factory_test/04: MissingCompileTimeError
 malbounded_redirecting_factory_test/05: MissingCompileTimeError
+malbounded_redirecting_factory_test/none: RuntimeError # ReferenceError: AOfTd is not defined
 malbounded_type_cast2_test: MissingCompileTimeError
 malbounded_type_cast_test/00: MissingCompileTimeError
 malbounded_type_cast_test/01: MissingCompileTimeError
@@ -793,6 +711,7 @@ malbounded_type_test_test/00: MissingCompileTimeError
 malbounded_type_test_test/01: MissingCompileTimeError
 malbounded_type_test_test/02: MissingCompileTimeError
 malformed_bound_test/01: MissingCompileTimeError
+many_generic_instanceof_test: RuntimeError # ReferenceError: ListOfT is not defined
 map_literal1_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
@@ -802,24 +721,25 @@ map_literal4_test/02: MissingCompileTimeError
 map_literal4_test/03: MissingCompileTimeError
 map_literal4_test/04: MissingCompileTimeError
 map_literal4_test/06: MissingCompileTimeError
+map_literal7_test: Pass
+map_literal11_test/none: Pass
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
-method_override7_test/03: MissingCompileTimeError
 method_override8_test/00: MissingCompileTimeError
 method_override8_test/01: MissingCompileTimeError
 method_override8_test/03: MissingCompileTimeError
+method_override_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_black_listed_test/02: MissingCompileTimeError
-mixin_bound_test: Crash
+mixin_bound_test: RuntimeError
+mixin_extends_field_test: RuntimeError # Expect.equals(expected: <M1-bar>, actual: <null>) fails.
+mixin_field_test: RuntimeError # NoSuchMethodError: method not found: 'bar'
+mixin_forwarding_constructor1_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
+mixin_forwarding_constructor2_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
+mixin_forwarding_constructor3_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError
-mixin_generic_test: Crash
-mixin_illegal_super_use_test/01: MissingCompileTimeError
-mixin_illegal_super_use_test/04: MissingCompileTimeError
-mixin_illegal_super_use_test/07: MissingCompileTimeError
-mixin_illegal_super_use_test/10: MissingCompileTimeError
-mixin_illegal_super_use_test/11: MissingCompileTimeError
 mixin_illegal_superclass_test/01: MissingCompileTimeError
 mixin_illegal_superclass_test/02: MissingCompileTimeError
 mixin_illegal_superclass_test/03: MissingCompileTimeError
@@ -850,7 +770,12 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mixin_illegal_syntax_test/none: Crash
+mixin_illegal_super_use_test/01: MissingCompileTimeError
+mixin_illegal_super_use_test/04: MissingCompileTimeError
+mixin_illegal_super_use_test/07: MissingCompileTimeError
+mixin_illegal_super_use_test/10: MissingCompileTimeError
+mixin_illegal_super_use_test/11: MissingCompileTimeError
+mixin_illegal_super_use_test/none: RuntimeError # TypeError: e.bar is not a function
 mixin_invalid_bound2_test/02: MissingCompileTimeError
 mixin_invalid_bound2_test/03: MissingCompileTimeError
 mixin_invalid_bound2_test/04: Crash
@@ -874,9 +799,12 @@ mixin_invalid_bound_test/07: Crash
 mixin_invalid_bound_test/08: Crash
 mixin_invalid_bound_test/09: Crash
 mixin_invalid_bound_test/10: Crash
+mixin_is_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_lib_extends_field_test: Crash
 mixin_lib_extends_method_test: Crash
-mixin_mixin_type_arguments_test: Crash
+mixin_method_test: RuntimeError # Expect.equals(expected: <M2-bar>, actual: <M1-bar>) fails.
+mixin_mixin_type_arguments_test: RuntimeError
+mixin_naming_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_of_mixin_test/01: Crash
 mixin_of_mixin_test/02: Crash
 mixin_of_mixin_test/03: Crash
@@ -884,7 +812,7 @@ mixin_of_mixin_test/04: Crash
 mixin_of_mixin_test/05: Crash
 mixin_of_mixin_test/06: Crash
 mixin_of_mixin_test/none: Crash
-mixin_regress_13688_test: Crash
+mixin_regress_13688_test: RuntimeError
 mixin_super_2_test/01: Crash
 mixin_super_2_test/02: Crash
 mixin_super_2_test/03: Crash
@@ -892,12 +820,10 @@ mixin_super_2_test/04: Crash
 mixin_super_2_test/none: Crash
 mixin_super_bound_test/01: Crash
 mixin_super_bound_test/02: Crash
-mixin_super_bound_test/none: Crash
+mixin_superclass_test: Crash
 mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 mixin_super_test: Crash
-mixin_super_use_test: Crash
-mixin_superclass_test: Crash
 mixin_supertype_subclass2_test/01: Crash
 mixin_supertype_subclass2_test/02: Crash
 mixin_supertype_subclass2_test/03: Crash
@@ -922,31 +848,18 @@ mixin_supertype_subclass_test/03: Crash
 mixin_supertype_subclass_test/04: Crash
 mixin_supertype_subclass_test/05: Crash
 mixin_supertype_subclass_test/none: Crash
-mixin_type_parameter1_test: Crash
-mixin_type_parameter2_test: Crash
-mixin_type_parameter3_test: Crash
-mixin_type_parameter4_test: Crash
-mixin_type_parameter5_test: Crash
-mixin_type_parameter6_test: Crash
+mixin_super_use_test: Crash
+mixin_type_parameter5_test: RuntimeError
 mixin_type_parameters_errors_test/01: Crash
 mixin_type_parameters_errors_test/02: Crash
 mixin_type_parameters_errors_test/03: Crash
 mixin_type_parameters_errors_test/04: Crash
 mixin_type_parameters_errors_test/05: Crash
-mixin_type_parameters_errors_test/none: Crash
-mixin_type_parameters_mixin_extends_test: Crash
-mixin_type_parameters_simple_test: Crash
-mixin_type_parameters_super_extends_test: Crash
-mixin_type_variable_test/07: Crash
-mixin_type_variable_test/08: Crash
 mock_writable_final_field_test: Crash
 mock_writable_final_private_field_test: Crash
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
+named_argument_in_const_creation_test: RuntimeError # RangeError: Maximum call stack size exceeded
 named_constructor_test/01: MissingCompileTimeError
 named_parameters_default_eq_test/02: MissingCompileTimeError
 named_parameters_test/02: MissingCompileTimeError
@@ -957,9 +870,14 @@ named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: MissingCompileTimeError
 named_parameters_type_test/02: MissingCompileTimeError
 named_parameters_type_test/03: MissingCompileTimeError
-no_such_method_negative_test: Fail
+nested_generic_closure_test: RuntimeError # Expect.equals(at index 3: Expected <...(<F>(F) => F) => void>, Found: <...(<F extends Object>(F) => F) => void...>) fails.
+new_expression_type_args_test/none: RuntimeError # ReferenceError: AOfT is not defined
+no_such_method_mock_test: RuntimeError # Type 'bool' is not a subtype of type '(String) => bool' in strong mode
+no_such_method_subtype_test: RuntimeError # Type 'int' is not a subtype of type '() => dynamic' in strong mode
+nsm4_test: RuntimeError # Type 'int' is not a subtype of type '() => int' in strong mode
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
+null_test/none: RuntimeError # ReferenceError: GenericOfT is not defined
 number_identifier_test/05: MissingCompileTimeError
 number_identifier_test/08: MissingCompileTimeError
 number_identifier_test/09: MissingCompileTimeError
@@ -970,32 +888,13 @@ optional_named_parameters_test/02: MissingCompileTimeError
 optional_named_parameters_test/04: MissingCompileTimeError
 optional_named_parameters_test/06: MissingCompileTimeError
 optional_named_parameters_test/08: MissingCompileTimeError
+osr_test: RuntimeError # ReferenceError: ListOfE is not defined
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
 override_field_method5_negative_test: Fail
 override_field_test/01: MissingCompileTimeError
 override_field_test/02: MissingCompileTimeError
-override_field_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/02: MissingCompileTimeError
-override_inheritance_abstract_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/04: MissingCompileTimeError
-override_inheritance_abstract_test/08: MissingCompileTimeError
-override_inheritance_abstract_test/09: MissingCompileTimeError
-override_inheritance_abstract_test/10: MissingCompileTimeError
-override_inheritance_abstract_test/11: MissingCompileTimeError
-override_inheritance_abstract_test/12: MissingCompileTimeError
-override_inheritance_abstract_test/13: MissingCompileTimeError
-override_inheritance_abstract_test/14: MissingCompileTimeError
-override_inheritance_abstract_test/17: MissingCompileTimeError
-override_inheritance_abstract_test/19: MissingCompileTimeError
-override_inheritance_abstract_test/20: MissingCompileTimeError
-override_inheritance_abstract_test/21: MissingCompileTimeError
-override_inheritance_abstract_test/22: MissingCompileTimeError
-override_inheritance_abstract_test/23: MissingCompileTimeError
-override_inheritance_abstract_test/24: MissingCompileTimeError
-override_inheritance_abstract_test/25: MissingCompileTimeError
-override_inheritance_abstract_test/26: MissingCompileTimeError
 override_inheritance_field_test/05: MissingCompileTimeError
 override_inheritance_field_test/07: MissingCompileTimeError
 override_inheritance_field_test/08: MissingCompileTimeError
@@ -1006,8 +905,8 @@ override_inheritance_field_test/28: MissingCompileTimeError
 override_inheritance_field_test/30: MissingCompileTimeError
 override_inheritance_field_test/31: MissingCompileTimeError
 override_inheritance_field_test/32: MissingCompileTimeError
-override_inheritance_field_test/33: MissingCompileTimeError
 override_inheritance_field_test/33a: MissingCompileTimeError
+override_inheritance_field_test/33: MissingCompileTimeError
 override_inheritance_field_test/34: MissingCompileTimeError
 override_inheritance_field_test/44: MissingCompileTimeError
 override_inheritance_field_test/47: MissingCompileTimeError
@@ -1042,45 +941,46 @@ override_inheritance_no_such_method_test/07: MissingCompileTimeError
 override_inheritance_no_such_method_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/10: MissingCompileTimeError
 override_inheritance_no_such_method_test/12: MissingCompileTimeError
-override_inheritance_no_such_method_test/13: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 override_method_with_field_test/02: MissingCompileTimeError
-parser_quirks_test: CompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
-prefix6_negative_test: Fail
-recursive_mixin_test: Crash
+recursive_generic_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+recursive_inheritance_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
+redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-regress_22666_test: Crash
-regress_22719_test: Crash
+redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
 regress_23089_test: MissingCompileTimeError
+regress_23408_test: RuntimeError # Expect.equals(expected: <K>, actual: <dynamic>) fails.
+regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_26133_test: MissingCompileTimeError
-regress_26230_test: Crash
-regress_27617_test/1: MissingCompileTimeError
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
-regress_29949_test: Crash
-regress_31057_test: CompileTimeError
+regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 return_type_test: MissingCompileTimeError
+runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 setter4_test: MissingCompileTimeError
 setter_no_getter_call_test/01: CompileTimeError
 setter_no_getter_test/01: CompileTimeError
-setter_override2_test/none: CompileTimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-static_field1_test/01: MissingCompileTimeError
+side_effect_throw_test: RuntimeError # Expect.throws fails: Did not throw
+skip_expression_test: RuntimeError # ReferenceError: OneArgOfA is not defined
+static_const_field_test: RuntimeError # RangeError: Maximum call stack size exceeded
 static_field1a_test/01: MissingCompileTimeError
+static_field1_test/01: MissingCompileTimeError
 static_field_test/01: MissingCompileTimeError
 static_field_test/02: MissingCompileTimeError
 static_field_test/03: MissingCompileTimeError
 static_field_test/04: MissingCompileTimeError
 static_initializer_type_error_test: MissingCompileTimeError
+string_interpolate_test: RuntimeError # Uncaught Type 'PrivateSymbol' is not a subtype of type 'Symbol' in strong mode
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError
@@ -1102,6 +1002,7 @@ string_test/01: MissingCompileTimeError
 substring_test/01: MissingCompileTimeError
 super_assign_test/01: MissingCompileTimeError
 super_bound_closure_test/01: MissingCompileTimeError
+super_bound_closure_test/none: RuntimeError # TypeError: Cannot read property '0' of undefined
 super_call4_test: CompileTimeError
 super_from_constructor_test: Crash
 super_getter_setter_test: CompileTimeError
@@ -1123,8 +1024,10 @@ switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
+switch_test: RuntimeError # RangeError: Maximum call stack size exceeded
 symbol_literal_test/01: MissingCompileTimeError
 sync_generator1_test/01: MissingCompileTimeError
+syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -1132,9 +1035,14 @@ syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 try_catch_test/01: MissingCompileTimeError
+type_argument_in_super_type_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 type_check_const_function_typedef2_test: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError
+typed_selector2_test: MissingCompileTimeError
+type_error_test: RuntimeError # expected TypeError
 type_literal_prefix_call_test/00: MissingCompileTimeError
+type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
+type_parameter_test/none: RuntimeError # ReferenceError: VoidToSetOfT is not defined
 type_promotion_assign_test/01: MissingCompileTimeError
 type_promotion_assign_test/02: MissingCompileTimeError
 type_promotion_assign_test/03: MissingCompileTimeError
@@ -1157,7 +1065,12 @@ type_promotion_functions_test/01: Pass
 type_promotion_functions_test/02: Pass
 type_promotion_functions_test/03: Pass
 type_promotion_functions_test/04: Pass
+type_promotion_functions_test/05: CompileTimeError # Warning: A value of type '#lib1::A' can't be assigned to a variable of type '#lib1::C'.
+type_promotion_functions_test/06: CompileTimeError # Warning: A value of type '#lib1::A' can't be assigned to a variable of type '#lib1::C'.
+type_promotion_functions_test/07: CompileTimeError # Warning: A value of type '#lib1::A' can't be assigned to a variable of type '#lib1::C'.
+type_promotion_functions_test/08: CompileTimeError # Warning: A value of type '#lib1::A' can't be assigned to a variable of type '#lib1::C'.
 type_promotion_functions_test/09: Pass
+type_promotion_functions_test/10: CompileTimeError # Warning: A value of type '#lib1::A' can't be assigned to a variable of type '#lib1::C'.
 type_promotion_functions_test/11: Pass
 type_promotion_functions_test/12: Pass
 type_promotion_functions_test/13: Pass
@@ -1289,9 +1202,11 @@ type_promotion_parameter_test/52: MissingCompileTimeError
 type_promotion_parameter_test/54: MissingCompileTimeError
 type_promotion_parameter_test/55: MissingCompileTimeError
 type_promotion_parameter_test/56: MissingCompileTimeError
+type_propagation_in_for_update_test: RuntimeError # Expect.throws fails: Did not throw
 type_variable_bounds2_test: MissingCompileTimeError
 type_variable_bounds3_test/00: MissingCompileTimeError
 type_variable_bounds4_test/01: MissingCompileTimeError
+type_variable_bounds4_test/none: RuntimeError # ReferenceError: AOfT is not defined
 type_variable_bounds_test/01: MissingCompileTimeError
 type_variable_bounds_test/02: MissingCompileTimeError
 type_variable_bounds_test/03: MissingCompileTimeError
@@ -1300,55 +1215,220 @@ type_variable_bounds_test/05: MissingCompileTimeError
 type_variable_bounds_test/06: MissingCompileTimeError
 type_variable_bounds_test/08: MissingCompileTimeError
 type_variable_bounds_test/11: MissingCompileTimeError
+type_variable_closure2_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
+type_variable_closure3_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
+type_variable_closure4_test: RuntimeError # ReferenceError: VoidToMapOfT$T is not defined
+type_variable_closure_test: RuntimeError # ReferenceError: dynamicToT is not defined
 type_variable_conflict2_test/01: MissingCompileTimeError
 type_variable_conflict2_test/05: MissingCompileTimeError
 type_variable_conflict2_test/07: MissingCompileTimeError
 type_variable_conflict2_test/09: MissingCompileTimeError
+type_variable_field_initializer2_test: RuntimeError # ReferenceError: XOfT is not defined
+type_variable_field_initializer_closure2_test: RuntimeError # ReferenceError: VoidToXOfT is not defined
+type_variable_field_initializer_closure_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
+type_variable_field_initializer_test: RuntimeError # ReferenceError: ListOfT is not defined
+type_variable_function_type_test: RuntimeError # ReferenceError: VoidToT is not defined
 type_variable_identifier_expression_test: MissingCompileTimeError
-typed_selector2_test: MissingCompileTimeError
-typevariable_substitution2_test/01: Crash
-typevariable_substitution2_test/02: Crash
-typevariable_substitution2_test/none: Crash
-unhandled_exception_negative_test: Fail
+type_variable_initializer_test: RuntimeError # ReferenceError: LinkedMapOfT$T is not defined
+type_variable_nested_test/01: RuntimeError # ReferenceError: ListOfAOfT is not defined
+type_variable_nested_test/none: RuntimeError # ReferenceError: ListOfAOfT is not defined
+type_variable_promotion_test: RuntimeError # ReferenceError: JSArrayOfT is not defined
+typevariable_substitution2_test/02: RuntimeError
+type_variable_typedef_test: RuntimeError # ReferenceError: BOfTTodynamic is not defined
 void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
-void_type_function_types_test/none: CompileTimeError
-void_type_override_test/none: CompileTimeError
-void_type_usage_test/call_as: CompileTimeError
-void_type_usage_test/call_for: CompileTimeError
-void_type_usage_test/call_stmt: CompileTimeError
-void_type_usage_test/field_assign2: CompileTimeError
-void_type_usage_test/field_assign: CompileTimeError
-void_type_usage_test/final_local_as: CompileTimeError
-void_type_usage_test/final_local_for: CompileTimeError
-void_type_usage_test/final_local_stmt: CompileTimeError
-void_type_usage_test/global_as: CompileTimeError
-void_type_usage_test/global_for: CompileTimeError
-void_type_usage_test/global_for_in2: CompileTimeError
-void_type_usage_test/global_stmt: CompileTimeError
-void_type_usage_test/instance2_as: CompileTimeError
-void_type_usage_test/instance2_for: CompileTimeError
-void_type_usage_test/instance2_for_in3: CompileTimeError
-void_type_usage_test/instance2_stmt: CompileTimeError
-void_type_usage_test/instance3_as: CompileTimeError
-void_type_usage_test/instance3_for: CompileTimeError
-void_type_usage_test/instance3_for_in3: CompileTimeError
-void_type_usage_test/instance3_stmt: CompileTimeError
-void_type_usage_test/instance_as: CompileTimeError
-void_type_usage_test/instance_for: CompileTimeError
-void_type_usage_test/instance_stmt: CompileTimeError
-void_type_usage_test/local_as: CompileTimeError
-void_type_usage_test/local_assign: CompileTimeError
-void_type_usage_test/local_for: CompileTimeError
-void_type_usage_test/local_for_in2: CompileTimeError
-void_type_usage_test/local_stmt: CompileTimeError
-void_type_usage_test/none: CompileTimeError
-void_type_usage_test/param_as: CompileTimeError
-void_type_usage_test/param_for: CompileTimeError
-void_type_usage_test/param_for_in2: CompileTimeError
-void_type_usage_test/param_stmt: CompileTimeError
-void_type_usage_test/paren_as: CompileTimeError
-void_type_usage_test/paren_for: CompileTimeError
-void_type_usage_test/paren_stmt: CompileTimeError
-void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
+yieldstar_pause_test: Timeout
+
+
+[($compiler == dartdevc) || ($compiler == dartdevk)]
+vm/*: SkipByDesign # VM only tests.; VM only tests.
+abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
+async_return_types_test/nestedFuture: MissingCompileTimeError
+bit_operations_test/01: MissingCompileTimeError
+bit_operations_test/02: MissingCompileTimeError
+bit_operations_test/03: MissingCompileTimeError
+bit_operations_test/04: MissingCompileTimeError
+built_in_identifier_prefix_test: CompileTimeError
+config_import_corelib_test: CompileTimeError
+field3_test/01: MissingCompileTimeError
+field_initialization_order_test/none: RuntimeError # Expect.equals(expected: <b.a.ai.bi.>, actual: <b.bi.a.ai.>) fails.
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
+generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
+generic_no_such_method_dispatcher_test: CompileTimeError
+generic_tearoff_test: CompileTimeError
+import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
+internal_library_test/02: Crash
+least_upper_bound_expansive_test/none: RuntimeError # 30908; Uncaught RangeError: Maximum call stack size exceeded
+library_env_test/has_html_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+library_env_test/has_no_io_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+library_env_test/has_no_mirror_support: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+library_env_test/none: RuntimeError # Issue 30907; Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+local_function2_test/none: RuntimeError # ReferenceError: TToNull is not defined
+local_function3_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
+local_function_test/none: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
+no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+override_field_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/08: MissingCompileTimeError
+override_inheritance_abstract_test/09: MissingCompileTimeError
+override_inheritance_abstract_test/10: MissingCompileTimeError
+override_inheritance_abstract_test/11: MissingCompileTimeError
+override_inheritance_abstract_test/12: MissingCompileTimeError
+override_inheritance_abstract_test/13: MissingCompileTimeError
+override_inheritance_abstract_test/14: MissingCompileTimeError
+override_inheritance_abstract_test/17: MissingCompileTimeError
+override_inheritance_abstract_test/19: MissingCompileTimeError
+override_inheritance_abstract_test/20: MissingCompileTimeError
+override_inheritance_abstract_test/21: MissingCompileTimeError
+override_inheritance_abstract_test/22: MissingCompileTimeError
+override_inheritance_abstract_test/23: MissingCompileTimeError
+override_inheritance_abstract_test/24: MissingCompileTimeError
+override_inheritance_abstract_test/25: MissingCompileTimeError
+override_inheritance_abstract_test/26: MissingCompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
+parser_quirks_test: CompileTimeError
+regress_22443_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
+regress_27617_test/1: MissingCompileTimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 31089; Expect.isTrue(false) fails.
+
+[($strong && $compiler == dartdevc) || ($compiler == dartdevk)]
+method_override7_test/03: MissingCompileTimeError # Issue 30514
+multiline_newline_test/04: MissingCompileTimeError
+multiline_newline_test/04r: MissingCompileTimeError
+multiline_newline_test/05: MissingCompileTimeError
+multiline_newline_test/05r: MissingCompileTimeError
+private3_test: RuntimeError # Type 'PrivateSymbol' is not a subtype of type 'Symbol' in strong mode
+string_interpolation_and_buffer_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+string_literals_test: RuntimeError # Expect.equals(expected: <\x00\x0A\x0D\x7F\xFF\u{FFFF}\u{D800}\u{DC00}\u{DBFF}\u{DFFF}>, actual: <\x00\x0A\x0D\x7F\xFF\u{FFFF}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}\u{FFFD}>) fails.
+void_type_function_types_test/none: CompileTimeError # Issue 30514
+void_type_override_test/none: CompileTimeError # Issue 30514
+void_type_usage_test/call_as: CompileTimeError # Issue 30514
+void_type_usage_test/call_for: CompileTimeError # Issue 30514
+void_type_usage_test/call_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/field_assign: CompileTimeError # Issue 30514
+void_type_usage_test/field_assign2: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_as: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_for: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/global_as: CompileTimeError # Issue 30514
+void_type_usage_test/global_for: CompileTimeError # Issue 30514
+void_type_usage_test/global_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/global_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/local_as: CompileTimeError # Issue 30514
+void_type_usage_test/local_assign: CompileTimeError # Issue 30514
+void_type_usage_test/local_for: CompileTimeError # Issue 30514
+void_type_usage_test/local_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/local_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/none: CompileTimeError # Issue 30514
+void_type_usage_test/param_as: CompileTimeError # Issue 30514
+void_type_usage_test/param_for: CompileTimeError # Issue 30514
+void_type_usage_test/param_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/param_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/paren_as: CompileTimeError # Issue 30514
+void_type_usage_test/paren_for: CompileTimeError # Issue 30514
+void_type_usage_test/paren_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
+
+[($compiler == dartdevc && $runtime != none) || ($compiler == dartdevk)]
+vm/*: SkipByDesign # Tests for the VM.; VM only tests.
+assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.
+async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
+async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
+async_star_test/01: RuntimeError
+async_star_test/02: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
+bit_operations_test/none: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
+branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
+call_closurization_test: RuntimeError # Issue 29920; TypeError: Cannot read property '0' of undefined
+call_test: RuntimeError # Expect.throws(NoSuchMethodError) fails: Did not throw
+canonical_const2_test: RuntimeError # Ints and doubles are unified.; Expect.isFalse(true) fails.
+compile_time_constant_d_test: RuntimeError # Issue 30876; Expect.isTrue(false) fails.
+compile_time_constant_e_test: RuntimeError # Issue 30876; Expect.identical(expected: <A 3 499 99 100>, actual: <A 3 499 99 100>) fails.
+config_import_test: RuntimeError # Expect.equals(expected: <b>, actual: <a>) fails.
+const_list_test: RuntimeError # Expect.equals(expected: <false>, actual: <true>) fails.
+const_map4_test: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
+const_switch_test/02: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <0.0>) fails.
+const_switch_test/04: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <1.0>) fails.
+constructor12_test: RuntimeError # Issue 29920; ReferenceError: JSArrayOfT is not defined
+ct_const_test: RuntimeError # Issue 2992; RangeError: Maximum call stack size exceeded
+custom_await_stack_trace_test: RuntimeError # Issue 29920; Uncaught Expect.equals(at index 0: Expected <Blah \x0ABloop\x0ABleep\x0A...>
+cyclic_type2_test: RuntimeError # Issue 29920; Uncaught ReferenceError: V is not defined
+cyclic_type_test/02: RuntimeError # Issue 29920; Uncaught RangeError: Maximum call stack size exceeded
+cyclic_type_test/03: RuntimeError # Issue 29920; Uncaught ReferenceError: U is not defined
+cyclic_type_test/04: RuntimeError # Issue 29920; Uncaught ReferenceError: U is not defined
+deferred_call_empty_before_load_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
+deferred_load_constants_test/none: RuntimeError # Issue 27394; Expect.throws fails: Did not throw
+deferred_not_loaded_check_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
+deferred_redirecting_factory_test: RuntimeError # Issue 27777; Uncaught Expect.throws fails: Did not throw
+deferred_static_seperate_test: RuntimeError # Issue 27777; Expect.throws fails: Did not throw
+double_int_to_string_test: RuntimeError # Issue 29920; Expect.equals(expected: <0.0>, actual: <0>) fails.
+double_to_string_as_fixed2_test/none: RuntimeError # Issue 29920; Expect.throws(ArgumentError) fails: Did not throw
+dynamic_test: RuntimeError # Strong mode is-check failure: M1 does not soundly subtype Iface<dynamic, num>; Expect.isTrue(false) fails.
+example_constructor_test: RuntimeError # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 3 4 1 2 5 6 >) fails.
+exception_test: RuntimeError # DDC doesn't implement NullThrownError?; Expect.isTrue(false) fails.
+expect_test: RuntimeError # Issue 29920; Expect.identical did not fail
+f_bounded_quantification3_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: (F1, F2) => {
+field_increment_bailout_test: RuntimeError # Issue 29920; UnimplementedError: JsInstanceMirror.delegate unimplemented
+for_variable_capture_test: RuntimeError # Issue 29920; Expect.equals(expected: <1>, actual: <0>) fails.
+function_subtype_inline2_test: RuntimeError # Expect.fail('Missing type error: 'new C.c1(m2)'.')
+function_type_alias6_test/none: RuntimeError # Expect.isTrue(false) fails.
+generic_instanceof2_test: RuntimeError # Issue 29920; ReferenceError: FooOfK$String is not defined
+generic_is_check_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
+identical_closure2_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
+infinite_switch_label_test: RuntimeError # Issue 29920; NoSuchMethodError: method not found: '<Unexpected Null Value>'
+infinity_test: RuntimeError # Issue 29920; Expect.isFalse(true) fails.
+instance_creation_in_function_annotation_test: RuntimeError # Issue 29920; UnimplementedError: JsClosureMirror.function unimplemented
+integer_division_by_zero_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'Unsupported operation: Infinity'
+invocation_mirror2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+invocation_mirror_empty_arguments_test: RuntimeError # Expect.throws(UnsupportedError) fails: Did not throw
+invocation_mirror_invoke_on2_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+invocation_mirror_invoke_on_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented
+invocation_mirror_test: RuntimeError # Type 'NativeJavaScriptObject' is not a subtype of type 'int' in strong mode
+issue21159_test: RuntimeError # Issue 30701; TypeError: method.bind is not a function
+issue23244_test: RuntimeError # Issue 29920; Uncaught Unsupported operation: only top-level functions can be spawned.
+label_test: RuntimeError # Issue 30675; Expect.equals(expected: <111>, actual: <1>) fails.
+lazy_static3_test: RuntimeError # Issue 30852; Expect.equals(expected: <null>, actual: <499>) fails.
+lazy_static8_test: RuntimeError # Issue 30852; Expect.equals(expected: <42>, actual: <2>) fails.
+left_shift_test: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <-4294967295>) fails.
+list_is_test: RuntimeError # Issue 29920; Expect.equals(expected: <true>, actual: <false>) fails.
+many_overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented; UnimplementedError: JsInstanceMirror.delegate unimplemented
+mint_arithmetic_test: RuntimeError # Issue 29920; Expect.equals(expected: <4294967297>, actual: <1>) fails.
+modulo_test: RuntimeError # Ints and doubles are unified.; Expect.throws fails: Did not throw
+named_parameter_clash_test: RuntimeError # Issue 29920; Expect.throws(NoSuchMethodError) fails: Did not throw
+named_parameters_default_eq_test/none: RuntimeError # Expect.isTrue(false) fails.
+nan_identical_test: RuntimeError # Issue 29920; Unsupported operation: Uint64 accessor not supported by dart2js.
+nested_switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
+null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is not defined
+number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
+numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
+overridden_no_such_method_test: RuntimeError # UnimplementedError: JsInstanceMirror.delegate unimplemented; UnimplementedError: JsInstanceMirror.delegate unimplemented
+regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
+stack_overflow_stacktrace_test: RuntimeError # Issue 29920; RangeError: Maximum call stack size exceeded
+stack_overflow_test: RuntimeError # Issue 29920; RangeError: Maximum call stack size exceeded
+stacktrace_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
+super_test: RuntimeError # Expect.equals(expected: <0>, actual: <2>) fails.
+switch_label2_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
+switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
+switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
+truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw

@@ -420,13 +420,13 @@ class FileTest {
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
     output.write("abcdABCD");
-    output.encoding = UTF8;
+    output.encoding = utf8;
     output.write("abcdABCD");
-    output.encoding = LATIN1;
+    output.encoding = latin1;
     output.write("abcdABCD");
-    output.encoding = ASCII;
+    output.encoding = ascii;
     output.write("abcdABCD");
-    output.encoding = UTF8;
+    output.encoding = utf8;
     output.write("æøå");
     output.close();
     output.done.then((_) {
@@ -567,7 +567,7 @@ class FileTest {
             var openedFile2 = file2.openSync();
             var length = openedFile2.lengthSync();
             Expect.equals(8, length);
-            List data = new List(length);
+            var data = new List<int>(length);
             openedFile2.readIntoSync(data, 0, length);
             for (var i = 0; i < data.length; i++) {
               Expect.equals(i, data[i]);
@@ -590,7 +590,7 @@ class FileTest {
       f.writeAsStringSync('pre-existing content\n', flush: true);
       raf = f.openSync(mode: FileMode.APPEND);
       String truth = "Hello world";
-      raf.writeFromSync(UTF8.encode('Hello world'), 2, 5);
+      raf.writeFromSync(utf8.encode('Hello world'), 2, 5);
       raf.flushSync();
       Expect.equals(f.readAsStringSync(), 'pre-existing content\nllo');
     } finally {
@@ -722,7 +722,7 @@ class FileTest {
   static void testTruncate() {
     asyncTestStarted();
     File file = new File(tempDirectory.path + "/out_truncate");
-    List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
+    List<int> buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     file.open(mode: WRITE).then((RandomAccessFile openedFile) {
       openedFile.writeFrom(buffer, 0, 10).then((ignore) {
         openedFile.length().then((length) {
@@ -747,7 +747,7 @@ class FileTest {
 
   static void testTruncateSync() {
     File file = new File(tempDirectory.path + "/out_truncate_sync");
-    List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
+    List<int> buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     RandomAccessFile openedFile = file.openSync(mode: WRITE);
     openedFile.writeFromSync(buffer, 0, 10);
     Expect.equals(10, openedFile.lengthSync());
@@ -1148,20 +1148,20 @@ class FileTest {
     asyncTestStarted();
     var name = getFilename("fixed_length_file");
     var f = new File(name);
-    f.readAsString(encoding: UTF8).then((text) {
+    f.readAsString(encoding: utf8).then((text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
       var name = getFilename("read_as_text.dat");
       var f = new File(name);
-      f.readAsString(encoding: UTF8).then((text) {
+      f.readAsString(encoding: utf8).then((text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];
         Expect.listEquals(expected, text.codeUnits);
-        f.readAsString(encoding: LATIN1).then((text) {
+        f.readAsString(encoding: latin1).then((text) {
           Expect.equals(7, text.length);
           var expected = [206, 187, 120, 46, 32, 120, 10];
           Expect.listEquals(expected, text.codeUnits);
-          var readAsStringFuture = f.readAsString(encoding: ASCII);
+          var readAsStringFuture = f.readAsString(encoding: ascii);
           readAsStringFuture.then((text) {
             Expect.fail("Non-ascii char should cause error");
           }).catchError((e) {
@@ -1176,7 +1176,7 @@ class FileTest {
     asyncTestStarted();
     var name = getFilename("empty_file");
     var f = new File(name);
-    f.readAsString(encoding: UTF8).then((text) {
+    f.readAsString(encoding: utf8).then((text) {
       Expect.equals(0, text.length);
       asyncTestDone("testReadAsTextEmptyFile");
       return true;
@@ -1194,7 +1194,7 @@ class FileTest {
     var expected = [955, 120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.codeUnits);
     // First character is not ASCII. The default ASCII decoder will throw.
-    Expect.throws(() => new File(name).readAsStringSync(encoding: ASCII),
+    Expect.throws(() => new File(name).readAsStringSync(encoding: ascii),
         (e) => e is FileSystemException);
     // We can use an ASCII decoder that inserts the replacement character.
     var lenientAscii = const AsciiCodec(allowInvalid: true);
@@ -1210,7 +1210,7 @@ class FileTest {
       10
     ];
     Expect.listEquals(expected, text.codeUnits);
-    text = new File(name).readAsStringSync(encoding: LATIN1);
+    text = new File(name).readAsStringSync(encoding: latin1);
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);
     Expect.listEquals(expected, text.codeUnits);
@@ -1226,7 +1226,7 @@ class FileTest {
     asyncTestStarted();
     var name = getFilename("fixed_length_file");
     var f = new File(name);
-    f.readAsLines(encoding: UTF8).then((lines) {
+    f.readAsLines(encoding: utf8).then((lines) {
       Expect.equals(1, lines.length);
       var line = lines[0];
       Expect.isTrue(line.endsWith("42 bytes."));
@@ -1257,11 +1257,11 @@ class FileTest {
     readAsBytesFuture
         .then((bytes) => Expect.fail("no bytes expected"))
         .catchError((e) {
-      var readAsStringFuture = f.readAsString(encoding: UTF8);
+      var readAsStringFuture = f.readAsString(encoding: utf8);
       readAsStringFuture
           .then((text) => Expect.fail("no text expected"))
           .catchError((e) {
-        var readAsLinesFuture = f.readAsLines(encoding: UTF8);
+        var readAsLinesFuture = f.readAsLines(encoding: utf8);
         readAsLinesFuture
             .then((lines) => Expect.fail("no lines expected"))
             .catchError((e) {

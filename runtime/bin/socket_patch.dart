@@ -811,7 +811,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   // Multiplexes socket events to the socket handlers.
-  void multiplex(int events) {
+  void multiplex(Object eventsObj) {
+    // TODO(paulberry): when issue #31305 is fixed, we should be able to simply
+    // declare `events` as a `covariant int` parameter.
+    int events = eventsObj;
     for (int i = FIRST_EVENT; i <= LAST_EVENT; i++) {
       if (((events & (1 << i)) != 0)) {
         if ((i == CLOSED_EVENT || i == READ_EVENT) && isClosedRead) continue;
@@ -1483,7 +1486,7 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
 class _Socket extends Stream<List<int>> implements Socket {
   RawSocket _raw; // Set to null when the raw socket is closed.
   bool _closed = false; // Set to true when the raw socket is closed.
-  StreamController _controller;
+  StreamController<List<int>> _controller;
   bool _controllerClosed = false;
   _SocketStreamConsumer _consumer;
   IOSink _sink;

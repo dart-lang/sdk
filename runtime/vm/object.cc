@@ -3802,7 +3802,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     // strong mode.
     // However, DynamicType is not more specific than any type.
     if (thsi.IsDynamicClass()) {
-      return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
+      return !Isolate::Current()->strong() &&
+             (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
     // (already checked above), is more specific than ObjectType/VoidType.
@@ -3834,7 +3835,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return !FLAG_strong && (test_kind == Class::kIsSubtypeOf);
+        return !Isolate::Current()->strong() &&
+               (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
@@ -5537,14 +5539,20 @@ RawFunction* Function::implicit_closure_function() const {
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction() && !IsSignatureFunction() &&
          !IsConvertedClosureFunction());
+  const Object& old_data = Object::Handle(raw_ptr()->data_);
   if (is_native()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    ASSERT(obj.IsArray());
-    ASSERT((Array::Cast(obj).At(1) == Object::null()) || value.IsNull());
-    Array::Cast(obj).SetAt(1, value);
+    ASSERT(old_data.IsArray());
+    ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
+    Array::Cast(old_data).SetAt(1, value);
   } else {
-    ASSERT((raw_ptr()->data_ == Object::null()) || value.IsNull());
-    set_data(value);
+    // Maybe this function will turn into a native later on :-/
+    if (old_data.IsArray()) {
+      ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
+      Array::Cast(old_data).SetAt(1, value);
+    } else {
+      ASSERT(old_data.IsNull() || value.IsNull());
+      set_data(value);
+    }
   }
 }
 
@@ -5825,11 +5833,26 @@ RawString* Function::native_name() const {
 }
 
 void Function::set_native_name(const String& value) const {
+  Zone* zone = Thread::Current()->zone();
   ASSERT(is_native());
-  ASSERT(raw_ptr()->data_ == Object::null());
-  const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
+
+  // Due to the fact that kernel needs to read in the constant table before the
+  // annotation data is available, we don't know at function creation time
+  // whether the function is a native or not.
+  //
+  // Reading the constant table can cause a static function to get an implicit
+  // closure function.
+  //
+  // We therefore handle both cases.
+  const Object& old_data = Object::Handle(zone, raw_ptr()->data_);
+  ASSERT(old_data.IsNull() ||
+         (old_data.IsFunction() &&
+          Function::Handle(zone, Function::RawCast(old_data.raw()))
+              .IsImplicitClosureFunction()));
+
+  const Array& pair = Array::Handle(zone, Array::New(2, Heap::kOld));
   pair.SetAt(0, value);
-  // pair[1] will be the implicit closure function if needed.
+  pair.SetAt(1, old_data);  // will be the implicit closure function if needed.
   set_data(pair);
 }
 
@@ -6336,7 +6359,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
     // HasCompatibleParametersWith is called at compile time to check for bad
     // overrides and can only detect some obviously wrong overrides, but it
     // should never give false negatives.
-    if (FLAG_strong) {
+    if (Isolate::Current()->strong()) {
       // Instantiating all type parameters to dynamic is not the right thing
       // to do in strong mode, because of contravariance of parameter types.
       // It is better to skip the test than to give a false negative.
@@ -6349,7 +6372,7 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   }
   Function& other_fun = Function::Handle(other.raw());
   if (!other_fun.HasInstantiatedSignature(kCurrentClass)) {
-    if (FLAG_strong) {
+    if (Isolate::Current()->strong()) {
       // See comment above.
       return true;
     }
@@ -6467,9 +6490,10 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) const {
+  Isolate* isolate = Isolate::Current();
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (!FLAG_strong && other_param_type.IsDynamicType()) {
+  if (!isolate->strong() && other_param_type.IsDynamicType()) {
     return true;
   }
   const AbstractType& param_type =
@@ -6478,8 +6502,9 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!((!FLAG_strong && param_type.IsSubtypeOf(other_param_type, bound_error,
-                                                  bound_trail, space)) ||
+    if (!((!isolate->strong() &&
+           param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
+                                  space)) ||
           other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
                                        space))) {
       return false;
@@ -6553,7 +6578,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  if (Isolate::Current()->reify_generic_functions()) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->reify_generic_functions()) {
     // Check the type parameters and bounds of generic functions.
     if (!HasSameTypeParametersAndBounds(other)) {
       return false;
@@ -6572,8 +6598,9 @@ bool Function::TypeTest(TypeTestKind test_kind,
     if (test_kind == kIsSubtypeOf) {
       if (!(res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
                                  space) ||
-            (!FLAG_strong && other_res_type.IsSubtypeOf(res_type, bound_error,
-                                                        bound_trail, space)))) {
+            (!isolate->strong() &&
+             other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
+                                        space)))) {
         return false;
       }
     } else {
@@ -6686,7 +6713,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
-  NOT_IN_PRECOMPILED(result.SetWasCompiled(false));
+  NOT_IN_PRECOMPILED(result.set_state_bits(0));
   result.set_owner(owner);
   NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
   NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
@@ -7584,7 +7611,7 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
-      // sed -i.bak -f /tmp/newkeys runtime/vm/method_recognizer.h
+      // sed -i.bak -f /tmp/newkeys runtime/vm/compiler/method_recognizer.h
       THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     } else {
       THR_Print(
@@ -9188,27 +9215,25 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Smi& value = Smi::Handle(zone);
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       // A well-formed line number array has a leading null.
       info.Add(line_separator);  // New line.
       return info.raw();
     }
-    intptr_t line_count = line_starts_array.Length();
+    intptr_t line_count = line_starts_data.Length();
     ASSERT(line_count > 0);
     const Array& debug_positions_array = Array::Handle(debug_positions());
     intptr_t token_count = debug_positions_array.Length();
     int token_index = 0;
 
     for (int line_index = 0; line_index < line_count; ++line_index) {
-      value ^= line_starts_array.At(line_index);
-      intptr_t start = value.Value();
+      intptr_t start = line_starts_data.GetInt32(line_index * 4);
       // Output the rest of the tokens if we have no next line.
       intptr_t end = TokenPosition::kMaxSourcePos;
       if (line_index + 1 < line_count) {
-        value ^= line_starts_array.At(line_index + 1);
-        end = value.Value();
+        end = line_starts_data.GetInt32((line_index + 1) * 4);
       }
       bool first = true;
       while (token_index < token_count) {
@@ -9340,7 +9365,7 @@ void Script::set_source(const String& value) const {
   StorePointer(&raw_ptr()->source_, value.raw());
 }
 
-void Script::set_line_starts(const Array& value) const {
+void Script::set_line_starts(const TypedData& value) const {
   StorePointer(&raw_ptr()->line_starts_, value.raw());
 }
 
@@ -9363,7 +9388,7 @@ RawArray* Script::yield_positions() const {
   return raw_ptr()->yield_positions_;
 }
 
-RawArray* Script::line_starts() const {
+RawTypedData* Script::line_starts() const {
   return raw_ptr()->line_starts_;
 }
 
@@ -9429,40 +9454,50 @@ intptr_t Script::GetTokenLineUsingLineStarts(
     return 0;
   }
   Zone* zone = Thread::Current()->zone();
-  Array& line_starts_array = Array::Handle(zone, line_starts());
-  Smi& token_pos = Smi::Handle(zone);
-  if (line_starts_array.IsNull()) {
+  TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  if (line_starts_data.IsNull()) {
     ASSERT(kind() != RawScript::kKernelTag);
-    GrowableObjectArray& line_starts_list =
-        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
     const TokenStream& tkns = TokenStream::Handle(zone, tokens());
+
+    intptr_t line_count = 0;
+    {
+      // Evaluate the number of lines in the script.
+      TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
+                                 TokenStream::Iterator::kAllTokens);
+      while (tkit.CurrentTokenKind() != Token::kEOS) {
+        if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+          line_count++;
+        }
+        tkit.Advance();
+      }
+    }
+    line_starts_data = TypedData::New(kTypedDataInt32ArrayCid, line_count + 1);
+
+    intptr_t cur_line = 0;
     TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
                                TokenStream::Iterator::kAllTokens);
-    intptr_t cur_line = line_offset() + 1;
-    token_pos = Smi::New(0);
-    line_starts_list.Add(token_pos);
+    line_starts_data.SetInt32(cur_line, 0);
     while (tkit.CurrentTokenKind() != Token::kEOS) {
       if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
         cur_line++;
-        token_pos = Smi::New(tkit.CurrentPosition().value() + 1);
-        line_starts_list.Add(token_pos);
+        line_starts_data.SetInt32(cur_line << 2,
+                                  tkit.CurrentPosition().value() + 1);
       }
       tkit.Advance();
     }
-    line_starts_array = Array::MakeFixedLength(line_starts_list);
-    set_line_starts(line_starts_array);
+    set_line_starts(line_starts_data);
   }
 
-  ASSERT(line_starts_array.Length() > 0);
+  ASSERT(line_starts_data.Length() > 0);
   intptr_t offset = target_token_pos.Pos();
   intptr_t min = 0;
-  intptr_t max = line_starts_array.Length() - 1;
+  intptr_t max = line_starts_data.Length() - 1;
 
   // Binary search to find the line containing this offset.
   while (min < max) {
     int midpoint = (max - min + 1) / 2 + min;
-    token_pos ^= line_starts_array.At(midpoint);
-    if (token_pos.Value() > offset) {
+    int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
+    if (token_pos > offset) {
       max = midpoint - 1;
     } else {
       min = midpoint;
@@ -9479,8 +9514,8 @@ void Script::GetTokenLocation(TokenPosition token_pos,
   Zone* zone = Thread::Current()->zone();
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(zone, line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       *line = -1;
       if (column != NULL) {
@@ -9491,27 +9526,26 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       }
       return;
     }
-    ASSERT(line_starts_array.Length() > 0);
+    ASSERT(line_starts_data.Length() > 0);
     intptr_t offset = token_pos.value();
     intptr_t min = 0;
-    intptr_t max = line_starts_array.Length() - 1;
+    intptr_t max = line_starts_data.Length() - 1;
 
     // Binary search to find the line containing this offset.
-    Smi& smi = Smi::Handle(zone);
     while (min < max) {
       intptr_t midpoint = (max - min + 1) / 2 + min;
 
-      smi ^= line_starts_array.At(midpoint);
-      if (smi.Value() > offset) {
+      int32_t value = line_starts_data.GetInt32(midpoint * 4);
+      if (value > offset) {
         max = midpoint - 1;
       } else {
         min = midpoint;
       }
     }
     *line = min + 1;  // Line numbers start at 1.
-    smi ^= line_starts_array.At(min);
+    int32_t min_value = line_starts_data.GetInt32(min * 4);
     if (column != NULL) {
-      *column = offset - smi.Value() + 1;
+      *column = offset - min_value + 1;
     }
     if (token_len != NULL) {
       // We don't explicitly save this data: Load the source
@@ -9583,20 +9617,19 @@ void Script::TokenRangeAtLine(intptr_t line_number,
   ASSERT(line_number > 0);
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       *first_token_index = TokenPosition::kNoSource;
       *last_token_index = TokenPosition::kNoSource;
       return;
     }
-    ASSERT(line_starts_array.Length() >= line_number);
-    Smi& value = Smi::Handle();
-    value ^= line_starts_array.At(line_number - 1);
-    *first_token_index = TokenPosition(value.Value());
-    if (line_starts_array.Length() > line_number) {
-      value ^= line_starts_array.At(line_number);
-      *last_token_index = TokenPosition(value.Value() - 1);
+    ASSERT(line_starts_data.Length() >= line_number);
+    int32_t value = line_starts_data.GetInt32((line_number - 1) * 4);
+    *first_token_index = TokenPosition(value);
+    if (line_starts_data.Length() > line_number) {
+      value = line_starts_data.GetInt32(line_number * 4);
+      *last_token_index = TokenPosition(value - 1);
     } else {
       // Length of source is last possible token in this script.
       *last_token_index = TokenPosition(String::Handle(Source()).Length());
@@ -11909,6 +11942,15 @@ RawScript* KernelProgramInfo::ScriptAt(intptr_t index) const {
   return Script::RawCast(script);
 }
 
+void KernelProgramInfo::set_constants(const Array& constants) const {
+  StorePointer(&raw_ptr()->constants_, constants.raw());
+}
+
+void KernelProgramInfo::set_potential_natives(
+    const GrowableObjectArray& candidates) const {
+  StorePointer(&raw_ptr()->potential_natives_, candidates.raw());
+}
+
 RawError* Library::CompileAll() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -12465,9 +12507,16 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
   // Guard against integer overflow of the instance size computation.
   intptr_t length = bmap->Length();
   intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if ((payload_size < 0) || (payload_size > kMaxLengthInBytes)) {
+  if ((length < 0) || (length > kMaxUint16) ||
+      (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
+  }
+  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
+           "\n",
+           slow_path_bit_count);
   }
   {
     // StackMap data objects are associated with a code object, allocate them
@@ -12478,9 +12527,6 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
     result ^= raw;
     result.SetLength(length);
   }
-  // When constructing a stackmap we store the pc offset in the stackmap's
-  // PC. StackMapTableBuilder::FinalizeStackMaps will replace it with the pc
-  // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
   for (intptr_t i = 0; i < length; ++i) {
@@ -12497,10 +12543,18 @@ RawStackMap* StackMap::New(intptr_t length,
   StackMap& result = StackMap::Handle();
   // Guard against integer overflow of the instance size computation.
   intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if ((payload_size < 0) || (payload_size > kMaxLengthInBytes)) {
+  if ((length < 0) || (length > kMaxUint16) ||
+      (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
   }
+  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
+           "\n",
+           slow_path_bit_count);
+  }
+
   {
     // StackMap data objects are associated with a code object, allocate them
     // in old generation.
@@ -12510,9 +12564,6 @@ RawStackMap* StackMap::New(intptr_t length,
     result ^= raw;
     result.SetLength(length);
   }
-  // When constructing a stackmap we store the pc offset in the stackmap's
-  // PC. StackMapTableBuilder::FinalizeStackMaps will replace it with the pc
-  // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
   result.SetSlowPathBitCount(slow_path_bit_count);
@@ -18313,12 +18364,22 @@ const char* Integer::ToCString() const {
   return "NULL Integer";
 }
 
+// String representation of kMaxInt64 + 1.
+static const char* kMaxInt64Plus1 = "9223372036854775808";
+
 RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
-  int64_t value;
-  if (!OS::StringToInt64(str.ToCString(), &value)) {
+  int64_t value = 0;
+  const char* cstr = str.ToCString();
+  if (!OS::StringToInt64(cstr, &value)) {
     if (FLAG_limit_ints_to_64_bits) {
+      if (strcmp(cstr, kMaxInt64Plus1) == 0) {
+        // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
+        // of unary minus to produce MIN_INT64 value. The value is automatically
+        // wrapped to MIN_INT64.
+        return Integer::New(kMinInt64, space);
+      }
       // Out of range.
       return Integer::null();
     }
@@ -18334,9 +18395,16 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
 RawInteger* Integer::NewCanonical(const String& str) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
-  int64_t value;
-  if (!OS::StringToInt64(str.ToCString(), &value)) {
+  int64_t value = 0;
+  const char* cstr = str.ToCString();
+  if (!OS::StringToInt64(cstr, &value)) {
     if (FLAG_limit_ints_to_64_bits) {
+      if (strcmp(cstr, kMaxInt64Plus1) == 0) {
+        // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
+        // of unary minus to produce MIN_INT64 value. The value is automatically
+        // wrapped to MIN_INT64.
+        return Mint::NewCanonical(kMinInt64);
+      }
       // Out of range.
       return Integer::null();
     }
@@ -21872,7 +21940,9 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
 
 uword TypedData::ComputeCanonicalTableHash() const {
   const intptr_t len = this->LengthInBytes();
-  ASSERT(len != 0);
+  if (len == 0) {
+    return 1;
+  }
   uword hash = len;
   for (intptr_t i = 0; i < len; i++) {
     hash = CombineHashes(len, GetUint8(i));

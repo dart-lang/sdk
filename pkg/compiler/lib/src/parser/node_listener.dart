@@ -820,6 +820,12 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    Operator op = new Operator(token);
+    pushNode(new Send(new Identifier(operatorKeyword), op, null));
+  }
+
+  @override
   void handleNamedArgument(Token colon) {
     Expression expression = popNode();
     Identifier name = popNode();

@@ -2684,8 +2684,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
     TypeMask mask = memberData.typeOfSend(node);
-    return inferrer.registerCalledClosure(node, selector, mask, closure,
-        outermostElement, arguments, sideEffects, inLoop);
+    return handleDynamicSend(
+        CallType.access, node, selector, mask, closure, arguments);
   }
 
   @override
@@ -2785,16 +2785,21 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     bool isConditional = false;
     if (send != null) {
       isConditional = send.isConditional;
-      ast.Node receiver = send.receiver;
-      if (receiver != null) {
-        Element element = elements[receiver];
-        if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
-          TypeInformation refinedType = types.refineReceiver(
-              selector, mask, receiverType,
-              isConditional: send.isConditional);
-          LocalElement local = element;
-          locals.update(local, refinedType, node, local.type);
-        }
+      ast.Send receiver = send.receiver?.asSend();
+      Element element;
+      if (receiver != null && receiver.isPropertyAccess) {
+        // We have `local.method()` || `local?.method()`.
+        element = elements[receiver];
+      } else if (send.receiver == null) {
+        // We have `local()`.
+        element = elements[send];
+      }
+      if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
+        TypeInformation refinedType = types.refineReceiver(
+            selector, mask, receiverType,
+            isConditional: send.isConditional);
+        LocalElement local = element;
+        locals.update(local, refinedType, node, local.type);
       }
       // TODO(johnniwinther): Enable this to improve precision of conditional
       // access. This cannot currently be done because the receiver and the

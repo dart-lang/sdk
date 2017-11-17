@@ -18,7 +18,8 @@ class K extends N {
   K(this.i);
 }
 
-void isolate(SendPort port) {
+void isolate(Object portObj) {
+  SendPort port = portObj;
   port.send(N);
   port.send(new J("8" * 4));
   for (int i = 0; i < 80000; i++) {

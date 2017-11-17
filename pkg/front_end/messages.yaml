@@ -228,6 +228,15 @@ ExpectedIdentifier:
   dart2jsCode: EXPECTED_IDENTIFIER
   script: "do() {} main() {}"
 
+EqualityCannotBeEqualityOperand:
+  template: "An equality expression can't be an operand of another equality expression."
+  tip: "Try re-writing the expression."
+  analyzerCode: EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  dart2jsCode: "*fatal*"
+  script:
+    - "main() { var b = a < b < c; }"
+    - "main() { var b = a == b != c; }"
+
 ExpectedOpenParens:
   template: "Expected '('."
   dart2jsCode: GENERIC
@@ -554,6 +563,10 @@ InvalidVoid:
   script:
     - "void x; main() {}"
     - "foo(void x) {} main() { foo(null); }"
+
+InvalidInitializer:
+  template: "Not a valid initializer."
+  tip: "To initialize a field, use the syntax 'name = value'."
 
 MissingExponent:
   template: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
@@ -1332,6 +1345,21 @@ MemberWithSameNameAsClass:
 EnumConstantSameNameAsEnclosing:
   template: "Name of enum constant '#name' can't be the same as the enum's own name."
 
+MissingOperatorKeyword:
+  template: "Operator declarations must be preceeded by the keyword 'operator'."
+  tip: "Try adding the keyword 'operator'."
+  analyzerCode: MISSING_KEYWORD_OPERATOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { +(x) {} }"
+
+InvalidOperator:
+  template: "The string '#lexeme' isn't a user-definable operator."
+  analyzerCode: INVALID_OPERATOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { void operator ===(x) {} }"
+
 OperatorParameterMismatch0:
   template: "Operator '#name' shouldn't have any parameters."
 
@@ -1392,6 +1420,10 @@ ThisAsIdentifier:
 
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
+
+SuperAsExpression:
+  template: "Super calls can't be used as expressions."
+  tip: "To delegate a constructor to a super constructor, put the super call as an initializer."
 
 SwitchCaseFallThrough:
   template: "Switch case may fall through to the next case."
@@ -1472,6 +1504,9 @@ CouldNotParseUri:
 
 ExpectedUri:
   template: "Expected a URI."
+
+InterpolationInUri:
+  template: "Can't use string interpolation in a URI."
 
 IntegerLiteralIsOutOfRange:
   template: "The integer literal #lexeme can't be represented in 64 bits."

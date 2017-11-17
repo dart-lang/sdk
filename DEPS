@@ -87,7 +87,7 @@ vars = {
   "http_tag" : "@0.11.3+14",
   "http_throttle_tag" : "@1.0.1",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
-  "intl_tag": "@0.15.1",
+  "intl_tag": "@0.15.2",
   "isolate_tag": "@1.1.0",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.4",

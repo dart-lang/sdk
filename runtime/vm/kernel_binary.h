@@ -21,6 +21,7 @@ namespace kernel {
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 static const uint32_t kBinaryFormatVersion = 1;
 
+// Keep in sync with package:kernel/lib/binary/tag.dart
 enum Tag {
   kNothing = 0,
   kSomething = 1,
@@ -125,6 +126,8 @@ enum Tag {
 
   kClosureCreation = 106,
 
+  kConstantExpression = 107,
+
   kSpecializedTagHighBit = 0x80,  // 10000000
   kSpecializedTagMask = 0xF8,     // 11111000
   kSpecializedPayloadMask = 0x7,  // 00000111
@@ -134,9 +137,23 @@ enum Tag {
   kSpecialIntLiteral = 144,
 };
 
+// Keep in sync with package:kernel/lib/binary/tag.dart
+enum ConstantTag {
+  kNullConstant = 0,
+  kBoolConstant = 1,
+  kIntConstant = 2,
+  kDoubleConstant = 3,
+  kStringConstant = 4,
+  kMapConstant = 5,
+  kListConstant = 6,
+  kInstanceConstant = 7,
+  kTearOffConstant = 8,
+  kTypeLiteralConstant = 9,
+};
+
 static const int SpecializedIntLiteralBias = 3;
 static const int LibraryCountFieldCountFromEnd = 1;
-static const int SourceTableFieldCountFromFirstLibraryOffset = 3;
+static const int SourceTableFieldCountFromFirstLibraryOffset = 4;
 
 static const int HeaderSize = 8;  // 'magic', 'formatVersion'.
 static const int MetadataPayloadOffset = HeaderSize;  // Right after header.

@@ -1660,6 +1660,8 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ adcl(EDX, Immediate(0));
   __ movl(addr_1, EDX);
   __ movl(addr_0, EAX);
+  ASSERT(Smi::RawValue(0) == 0);
+  __ xorl(EAX, EAX);
   __ ret();
 }
 

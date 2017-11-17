@@ -76,8 +76,6 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 
 [ ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
-Language/Libraries_and_Scripts/Parts/compilation_t03: Skip # Issue 31176
-Language/Statements/Local_Variable_Declaration/syntax_t01: Skip # Issue 31176
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Timeout
 LibTest/collection/IterableBase/IterableBase_class_A01_t02: Skip  # Timeout
 LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Skip  # Timeout
@@ -86,7 +84,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
-LibTest/math/MutableRectangle/boundingBox_A01_t02: Skip # Issue 31176
 
 [ $system == windows ]
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
@@ -121,27 +118,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: Pass
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) && $compiler != dartk && $compiler != dartkp ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
-Language/Expressions/Identifier_Reference/built_in_identifier_t35: MissingCompileTimeError # Issue 25732
-Language/Expressions/Identifier_Reference/built_in_identifier_t36: MissingCompileTimeError # Issue 25732
-Language/Expressions/Identifier_Reference/built_in_identifier_t37: MissingCompileTimeError # Issue 25732
-Language/Expressions/Identifier_Reference/built_in_identifier_t53: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t54: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t55: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t56: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t57: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t58: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t59: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t60: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t61: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t62: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t63: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t64: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t65: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t66: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t67: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_identifier_t68: MissingCompileTimeError # Issue 25733
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: MissingCompileTimeError # Issue 25732
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: MissingCompileTimeError # Issue 25772
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332

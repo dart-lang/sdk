@@ -922,7 +922,7 @@ bool Parser::FieldHasFunctionLiteralInitializer(const Field& field,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, field.Owner());
-  const Script& script = Script::Handle(zone, cls.script());
+  const Script& script = Script::Handle(zone, field.Script());
   const Library& lib = Library::Handle(zone, cls.library());
   Parser parser(script, lib, field.token_pos());
   return parser.GetFunctionLiteralInitializerRange(field, start, end);
@@ -6264,7 +6264,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
     ReportError("library url expected");
   }
   bool is_deferred_import = false;
-  if (is_import && (IsSymbol(Symbols::Deferred()))) {
+  if (is_import && (CurrentToken() == Token::kDEFERRED)) {
     is_deferred_import = true;
     ConsumeToken();
     CheckToken(Token::kAS, "'as' expected");
@@ -6274,7 +6274,8 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
     prefix_pos = TokenPos();
-    prefix = ExpectIdentifier("prefix identifier expected")->raw();
+    prefix =
+        ExpectUserDefinedTypeIdentifier("prefix identifier expected")->raw();
   }
 
   Array& show_names = Array::Handle(Z);
@@ -7643,6 +7644,7 @@ void Parser::FinalizeFormalParameterTypes(const ParamList* params) {
 // with the formal parameter types and names.
 void Parser::AddFormalParamsToFunction(const ParamList* params,
                                        const Function& func) {
+  Isolate* isolate = Isolate::Current();
   ASSERT((params != NULL) && (params->parameters != NULL));
   ASSERT((params->num_optional_parameters > 0) ==
          (params->has_optional_positional_parameters ||
@@ -7676,7 +7678,7 @@ void Parser::AddFormalParamsToFunction(const ParamList* params,
       }
       // In non-strong mode, the covariant keyword is ignored. In strong mode,
       // the parameter type is changed to Object.
-      if (FLAG_strong) {
+      if (isolate->strong()) {
         param_type = Type::ObjectType();
       }
     }

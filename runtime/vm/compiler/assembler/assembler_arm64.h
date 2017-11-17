@@ -82,6 +82,44 @@ class Label : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
+class Arm64Encode : public AllStatic {
+ public:
+  static inline uint32_t Rd(Register rd) {
+    ASSERT(rd <= ZR);
+    return static_cast<uint32_t>(ConcreteRegister(rd)) << kRdShift;
+  }
+
+  static inline uint32_t Rm(Register rm) {
+    ASSERT(rm <= ZR);
+    return static_cast<uint32_t>(ConcreteRegister(rm)) << kRmShift;
+  }
+
+  static inline uint32_t Rn(Register rn) {
+    ASSERT(rn <= ZR);
+    return static_cast<uint32_t>(ConcreteRegister(rn)) << kRnShift;
+  }
+
+  static inline uint32_t Ra(Register ra) {
+    ASSERT(ra <= ZR);
+    return static_cast<uint32_t>(ConcreteRegister(ra)) << kRaShift;
+  }
+
+  static inline uint32_t Rs(Register rs) {
+    ASSERT(rs <= ZR);
+    return static_cast<uint32_t>(ConcreteRegister(rs)) << kRsShift;
+  }
+
+  static inline uint32_t Rt(Register rt) {
+    ASSERT(rt <= ZR);
+    return static_cast<uint32_t>(ConcreteRegister(rt)) << kRtShift;
+  }
+
+  static inline uint32_t Rt2(Register rt2) {
+    ASSERT(rt2 <= ZR);
+    return static_cast<uint32_t>(ConcreteRegister(rt2)) << kRt2Shift;
+  }
+};
+
 class Address : public ValueObject {
  public:
   Address(const Address& other)
@@ -119,20 +157,17 @@ class Address : public ValueObject {
           OperandSize sz = kDoubleWord) {
     ASSERT((rn != kNoRegister) && (rn != R31) && (rn != ZR));
     ASSERT(CanHoldOffset(offset, at, sz));
-    const Register crn = ConcreteRegister(rn);
     const int32_t scale = Log2OperandSizeBytes(sz);
     if ((at == Offset) && Utils::IsUint(12 + scale, offset) &&
         (offset == ((offset >> scale) << scale))) {
-      encoding_ = B24 | ((offset >> scale) << kImm12Shift) |
-                  (static_cast<int32_t>(crn) << kRnShift);
+      encoding_ =
+          B24 | ((offset >> scale) << kImm12Shift) | Arm64Encode::Rn(rn);
     } else if ((at == Offset) && Utils::IsInt(9, offset)) {
-      encoding_ = ((offset & 0x1ff) << kImm9Shift) |
-                  (static_cast<int32_t>(crn) << kRnShift);
+      encoding_ = ((offset & 0x1ff) << kImm9Shift) | Arm64Encode::Rn(rn);
     } else if ((at == PreIndex) || (at == PostIndex)) {
       ASSERT(Utils::IsInt(9, offset));
       int32_t idx = (at == PostIndex) ? B10 : (B11 | B10);
-      encoding_ = idx | ((offset & 0x1ff) << kImm9Shift) |
-                  (static_cast<int32_t>(crn) << kRnShift);
+      encoding_ = idx | ((offset & 0x1ff) << kImm9Shift) | Arm64Encode::Rn(rn);
     } else {
       ASSERT((at == PairOffset) || (at == PairPreIndex) ||
              (at == PairPostIndex));
@@ -154,10 +189,10 @@ class Address : public ValueObject {
           break;
       }
       encoding_ = idx | (((offset >> scale) << kImm7Shift) & kImm7Mask) |
-                  (static_cast<int32_t>(crn) << kRnShift);
+                  Arm64Encode::Rn(rn);
     }
     type_ = at;
-    base_ = crn;
+    base_ = ConcreteRegister(rn);
   }
 
   // This addressing mode does not exist.
@@ -226,14 +261,11 @@ class Address : public ValueObject {
     // Can only scale when ext = UXTX.
     ASSERT((scale != Scaled) || (ext == UXTX));
     ASSERT((ext == UXTW) || (ext == UXTX) || (ext == SXTW) || (ext == SXTX));
-    const Register crn = ConcreteRegister(rn);
-    const Register crm = ConcreteRegister(rm);
     const int32_t s = (scale == Scaled) ? B12 : 0;
-    encoding_ = B21 | B11 | s | (static_cast<int32_t>(crn) << kRnShift) |
-                (static_cast<int32_t>(crm) << kRmShift) |
+    encoding_ = B21 | B11 | s | Arm64Encode::Rn(rn) | Arm64Encode::Rm(rm) |
                 (static_cast<int32_t>(ext) << kExtendTypeShift);
     type_ = Reg;
-    base_ = crn;
+    base_ = ConcreteRegister(rn);
   }
 
   static OperandSize OperandSizeFor(intptr_t cid) {
@@ -338,16 +370,14 @@ class Operand : public ValueObject {
 
   explicit Operand(Register rm) {
     ASSERT((rm != R31) && (rm != CSP));
-    const Register crm = ConcreteRegister(rm);
-    encoding_ = (static_cast<int32_t>(crm) << kRmShift);
+    encoding_ = Arm64Encode::Rm(rm);
     type_ = Shifted;
   }
 
   Operand(Register rm, Shift shift, int32_t imm) {
     ASSERT(Utils::IsUint(6, imm));
     ASSERT((rm != R31) && (rm != CSP));
-    const Register crm = ConcreteRegister(rm);
-    encoding_ = (imm << kImm6Shift) | (static_cast<int32_t>(crm) << kRmShift) |
+    encoding_ = (imm << kImm6Shift) | Arm64Encode::Rm(rm) |
                 (static_cast<int32_t>(shift) << kShiftTypeShift);
     type_ = Shifted;
   }
@@ -358,8 +388,7 @@ class Operand : public ValueObject {
   Operand(Register rm, Extend extend, int32_t imm) {
     ASSERT(Utils::IsUint(3, imm));
     ASSERT((rm != R31) && (rm != CSP));
-    const Register crm = ConcreteRegister(rm);
-    encoding_ = B21 | (static_cast<int32_t>(crm) << kRmShift) |
+    encoding_ = B21 | Arm64Encode::Rm(rm) |
                 (static_cast<int32_t>(extend) << kExtendTypeShift) |
                 ((imm & 0x7) << kImm3Shift);
     type_ = Extended;
@@ -382,7 +411,8 @@ class Operand : public ValueObject {
   // Encodes the value of an immediate for a logical operation.
   // Since these values are difficult to craft by hand, instead pass the
   // logical mask to the function IsImmLogical to get n, imm_s, and
-  // imm_r.
+  // imm_r.  Takes s before r like DecodeBitMasks from Appendix G but unlike
+  // the disassembly of the *bfm instructions.
   Operand(uint8_t n, int8_t imm_s, int8_t imm_r) {
     ASSERT((n == 1) || (n == 0));
     ASSERT(Utils::IsUint(6, imm_s) && Utils::IsUint(6, imm_r));
@@ -577,6 +607,127 @@ class Assembler : public ValueObject {
 
   // PC relative immediate add. imm is in bytes.
   void adr(Register rd, const Immediate& imm) { EmitPCRelOp(ADR, rd, imm); }
+
+  // Bitfield operations.
+  // Bitfield move.
+  // If s >= r then Rd[s-r:0] := Rn[s:r], else Rd[bitwidth+s-r:bitwidth-r] :=
+  // Rn[s:0].
+  void bfm(Register rd,
+           Register rn,
+           int r_imm,
+           int s_imm,
+           OperandSize size = kDoubleWord) {
+    EmitBitfieldOp(BFM, rd, rn, r_imm, s_imm, size);
+  }
+
+  // Signed bitfield move.
+  void sbfm(Register rd,
+            Register rn,
+            int r_imm,
+            int s_imm,
+            OperandSize size = kDoubleWord) {
+    EmitBitfieldOp(SBFM, rd, rn, r_imm, s_imm, size);
+  }
+
+  // Unsigned bitfield move.
+  void ubfm(Register rd,
+            Register rn,
+            int r_imm,
+            int s_imm,
+            OperandSize size = kDoubleWord) {
+    EmitBitfieldOp(UBFM, rd, rn, r_imm, s_imm, size);
+  }
+
+  // Bitfield insert.  Takes the low width bits and replaces bits in rd with
+  // them, starting at low_bit.
+  void bfi(Register rd,
+           Register rn,
+           int low_bit,
+           int width,
+           OperandSize size = kDoubleWord) {
+    int wordsize = size == kDoubleWord ? 64 : 32;
+    EmitBitfieldOp(BFM, rd, rn, -low_bit & (wordsize - 1), width - 1, size);
+  }
+
+  // Bitfield extract and insert low.  Takes width bits, starting at low_bit and
+  // replaces the low width bits of rd with them.
+  void bfxil(Register rd,
+             Register rn,
+             int low_bit,
+             int width,
+             OperandSize size = kDoubleWord) {
+    EmitBitfieldOp(BFM, rd, rn, low_bit, low_bit + width - 1, size);
+  }
+
+  // Signed bitfield insert in zero.  Takes the low width bits, sign extends
+  // them and writes them to rd, starting at low_bit, and zeroing bits below
+  // that.
+  void sbfiz(Register rd,
+             Register rn,
+             int low_bit,
+             int width,
+             OperandSize size = kDoubleWord) {
+    int wordsize = size == kDoubleWord ? 64 : 32;
+    EmitBitfieldOp(SBFM, rd, rn, (wordsize - low_bit) & (wordsize - 1),
+                   width - 1, size);
+  }
+
+  // Signed bitfield extract.  Takes width bits, starting at low_bit, sign
+  // extends them and writes them to rd, starting at the lowest bit.
+  void sbfx(Register rd,
+            Register rn,
+            int low_bit,
+            int width,
+            OperandSize size = kDoubleWord) {
+    EmitBitfieldOp(SBFM, rd, rn, low_bit, low_bit + width - 1, size);
+  }
+
+  // Unsigned bitfield insert in zero.  Takes the low width bits and writes
+  // them to rd, starting at low_bit, and zeroing bits above and below.
+  void ubfiz(Register rd,
+             Register rn,
+             int low_bit,
+             int width,
+             OperandSize size = kDoubleWord) {
+    int wordsize = size == kDoubleWord ? 64 : 32;
+    EmitBitfieldOp(UBFM, rd, rn, (width - low_bit) & (wordsize - 1),
+                   wordsize - 1, size);
+  }
+
+  // Unsigned bitfield extract.  Takes the width bits, starting at low_bit and
+  // writes them to the low bits of rd zeroing bits above.
+  void ubfx(Register rd,
+            Register rn,
+            int low_bit,
+            int width,
+            OperandSize size = kDoubleWord) {
+    EmitBitfieldOp(UBFM, rd, rn, low_bit, low_bit + width - 1, size);
+  }
+
+  // Sign extend byte->64 bit.
+  void sxtb(Register rd, Register rn) {
+    EmitBitfieldOp(SBFM, rd, rn, 0, 7, kDoubleWord);
+  }
+
+  // Sign extend halfword->64 bit.
+  void sxth(Register rd, Register rn) {
+    EmitBitfieldOp(SBFM, rd, rn, 0, 15, kDoubleWord);
+  }
+
+  // Sign extend word->64 bit.
+  void sxtw(Register rd, Register rn) {
+    EmitBitfieldOp(SBFM, rd, rn, 0, 31, kDoubleWord);
+  }
+
+  // Zero/unsigned extend byte->64 bit.
+  void uxtb(Register rd, Register rn) {
+    EmitBitfieldOp(UBFM, rd, rn, 0, 7, kDoubleWord);
+  }
+
+  // Zero/unsigned extend halfword->64 bit.
+  void uxth(Register rd, Register rn) {
+    EmitBitfieldOp(UBFM, rd, rn, 0, 15, kDoubleWord);
+  }
 
   // Logical immediate operations.
   void andi(Register rd, Register rn, const Immediate& imm) {
@@ -779,6 +930,13 @@ class Assembler : public ValueObject {
   }
   void csetm(Register rd, Condition cond) {
     csinv(rd, ZR, ZR, InvertCondition(cond));
+  }
+  void csneg(Register rd, Register rn, Register rm, Condition cond) {
+    EmitConditionalSelect(CSNEG, rd, rn, rm, cond, kDoubleWord);
+  }
+  void cneg(Register rd, Register rn, Condition cond) {
+    EmitConditionalSelect(CSNEG, rd, rn, rn, InvertCondition(cond),
+                          kDoubleWord);
   }
 
   // Comparison.
@@ -1131,12 +1289,15 @@ class Assembler : public ValueObject {
   void tst(Register rn, Operand o) { ands(ZR, rn, o); }
   void tsti(Register rn, const Immediate& imm) { andis(ZR, rn, imm); }
 
+  // We use an alias of add, where ARM recommends an alias of ubfm.
   void LslImmediate(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, LSL, shift));
   }
+  // We use an alias of add, where ARM recommends an alias of ubfm.
   void LsrImmediate(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, LSR, shift));
   }
+  // We use an alias of add, where ARM recommends an alias of sbfm.
   void AsrImmediate(Register rd, Register rn, int shift) {
     add(rd, ZR, Operand(rn, ASR, shift));
   }
@@ -1434,16 +1595,11 @@ class Assembler : public ValueObject {
                              Register rm) {
     ASSERT((rd != R31) && (rn != R31) && (rm != R31));
     ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP));
-    const Register crd = ConcreteRegister(rd);
-    const Register crn = ConcreteRegister(rn);
-    const Register crm = ConcreteRegister(rm);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t s = set_flags ? B29 : 0;
     const int32_t op = subtract ? SBC : ADC;
-    const int32_t encoding = op | size | s |
-                             (static_cast<int32_t>(crd) << kRdShift) |
-                             (static_cast<int32_t>(crn) << kRnShift) |
-                             (static_cast<int32_t>(crm) << kRmShift);
+    const int32_t encoding = op | size | s | Arm64Encode::Rd(rd) |
+                             Arm64Encode::Rn(rn) | Arm64Encode::Rm(rm);
     Emit(encoding);
   }
 
@@ -1456,9 +1612,28 @@ class Assembler : public ValueObject {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t s = set_flags ? B29 : 0;
-    const int32_t encoding =
-        op | size | s | (static_cast<int32_t>(rd) << kRdShift) |
-        (static_cast<int32_t>(rn) << kRnShift) | o.encoding();
+    const int32_t encoding = op | size | s | Arm64Encode::Rd(rd) |
+                             Arm64Encode::Rn(rn) | o.encoding();
+    Emit(encoding);
+  }
+
+  // Follows the *bfm instructions in taking r before s (unlike the Operand
+  // constructor, which follows DecodeBitMasks from Appendix G).
+  void EmitBitfieldOp(BitfieldOp op,
+                      Register rd,
+                      Register rn,
+                      int r_imm,
+                      int s_imm,
+                      OperandSize size) {
+    if (size != kDoubleWord) {
+      ASSERT(size == kWord);
+      ASSERT(r_imm < 32 && s_imm < 32);
+    } else {
+      ASSERT(r_imm < 64 && s_imm < 64);
+    }
+    const int32_t instr = op | (size == kDoubleWord ? Bitfield64 : 0);
+    const int32_t encoding = instr | Operand(0, s_imm, r_imm).encoding() |
+                             Arm64Encode::Rd(rd) | Arm64Encode::Rn(rn);
     Emit(encoding);
   }
 
@@ -1474,11 +1649,8 @@ class Assembler : public ValueObject {
     ASSERT((op != ANDIS) || (rd != CSP));  // op == ANDIS => rd != CSP.
     ASSERT(o.type() == Operand::BitfieldImm);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const Register crd = ConcreteRegister(rd);
-    const Register crn = ConcreteRegister(rn);
     const int32_t encoding =
-        op | size | (static_cast<int32_t>(crd) << kRdShift) |
-        (static_cast<int32_t>(crn) << kRnShift) | o.encoding();
+        op | size | Arm64Encode::Rd(rd) | Arm64Encode::Rn(rn) | o.encoding();
     Emit(encoding);
   }
 
@@ -1492,11 +1664,8 @@ class Assembler : public ValueObject {
     ASSERT((rd != CSP) && (rn != CSP));
     ASSERT(o.type() == Operand::Shifted);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const Register crd = ConcreteRegister(rd);
-    const Register crn = ConcreteRegister(rn);
     const int32_t encoding =
-        op | size | (static_cast<int32_t>(crd) << kRdShift) |
-        (static_cast<int32_t>(crn) << kRnShift) | o.encoding();
+        op | size | Arm64Encode::Rd(rd) | Arm64Encode::Rn(rn) | o.encoding();
     Emit(encoding);
   }
 
@@ -1509,9 +1678,8 @@ class Assembler : public ValueObject {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t s = set_flags ? B29 : 0;
-    const int32_t encoding =
-        op | size | s | (static_cast<int32_t>(rd) << kRdShift) |
-        (static_cast<int32_t>(rn) << kRnShift) | o.encoding();
+    const int32_t encoding = op | size | s | Arm64Encode::Rd(rd) |
+                             Arm64Encode::Rn(rn) | o.encoding();
     Emit(encoding);
   }
 
@@ -1576,11 +1744,9 @@ class Assembler : public ValueObject {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT(Utils::IsInt(21, imm) && ((imm & 0x3) == 0));
     ASSERT((rt != CSP) && (rt != R31));
-    const Register crt = ConcreteRegister(rt);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t encoded_offset = EncodeImm19BranchOffset(imm, 0);
-    const int32_t encoding =
-        op | size | (static_cast<int32_t>(crt) << kRtShift) | encoded_offset;
+    const int32_t encoding = op | size | Arm64Encode::Rt(rt) | encoded_offset;
     Emit(encoding);
   }
 
@@ -1672,8 +1838,7 @@ class Assembler : public ValueObject {
 
   void EmitUnconditionalBranchRegOp(UnconditionalBranchRegOp op, Register rn) {
     ASSERT((rn != CSP) && (rn != R31));
-    const Register crn = ConcreteRegister(rn);
-    const int32_t encoding = op | (static_cast<int32_t>(crn) << kRnShift);
+    const int32_t encoding = op | Arm64Encode::Rn(rn);
     Emit(encoding);
   }
 
@@ -1694,7 +1859,7 @@ class Assembler : public ValueObject {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
     const int32_t encoding =
-        op | size | (static_cast<int32_t>(rd) << kRdShift) |
+        op | size | Arm64Encode::Rd(rd) |
         (static_cast<int32_t>(hw_idx) << kHWShift) |
         (static_cast<int32_t>(imm.value() & 0xffff) << kImm16Shift);
     Emit(encoding);
@@ -1712,10 +1877,8 @@ class Assembler : public ValueObject {
     ASSERT((rn != kNoRegister) && (rn != ZR));
     ASSERT((rt != kNoRegister) && (rt != ZR));
 
-    const int32_t encoding =
-        op | size | (static_cast<int32_t>(ConcreteRegister(rs)) << kRsShift) |
-        (static_cast<int32_t>(ConcreteRegister(rn)) << kRnShift) |
-        (static_cast<int32_t>(ConcreteRegister(rt)) << kRtShift);
+    const int32_t encoding = op | size | Arm64Encode::Rs(rs) |
+                             Arm64Encode::Rn(rn) | Arm64Encode::Rt(rt);
 
     Emit(encoding);
   }
@@ -1724,11 +1887,9 @@ class Assembler : public ValueObject {
                         Register rt,
                         Address a,
                         OperandSize sz) {
-    const Register crt = ConcreteRegister(rt);
     const int32_t size = Log2OperandSizeBytes(sz);
-    const int32_t encoding = op | ((size & 0x3) << kSzShift) |
-                             (static_cast<int32_t>(crt) << kRtShift) |
-                             a.encoding();
+    const int32_t encoding =
+        op | ((size & 0x3) << kSzShift) | Arm64Encode::Rt(rt) | a.encoding();
     Emit(encoding);
   }
 
@@ -1738,10 +1899,8 @@ class Assembler : public ValueObject {
                           OperandSize sz) {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT((rt != CSP) && (rt != R31));
-    const Register crt = ConcreteRegister(rt);
     const int32_t size = (sz == kDoubleWord) ? B30 : 0;
-    const int32_t encoding =
-        op | size | (static_cast<int32_t>(crt) << kRtShift) | a.encoding();
+    const int32_t encoding = op | size | Arm64Encode::Rt(rt) | a.encoding();
     Emit(encoding);
   }
 
@@ -1753,8 +1912,6 @@ class Assembler : public ValueObject {
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
     ASSERT((rt != CSP) && (rt != R31));
     ASSERT((rt2 != CSP) && (rt2 != R31));
-    const Register crt = ConcreteRegister(rt);
-    const Register crt2 = ConcreteRegister(rt2);
     int32_t opc = 0;
     switch (sz) {
       case kDoubleWord:
@@ -1771,19 +1928,16 @@ class Assembler : public ValueObject {
         break;
     }
     const int32_t encoding =
-        opc | op | (static_cast<int32_t>(crt) << kRtShift) |
-        (static_cast<int32_t>(crt2) << kRt2Shift) | a.encoding();
+        opc | op | Arm64Encode::Rt(rt) | Arm64Encode::Rt2(rt2) | a.encoding();
     Emit(encoding);
   }
 
   void EmitPCRelOp(PCRelOp op, Register rd, const Immediate& imm) {
     ASSERT(Utils::IsInt(21, imm.value()));
     ASSERT((rd != R31) && (rd != CSP));
-    const Register crd = ConcreteRegister(rd);
     const int32_t loimm = (imm.value() & 0x3) << 29;
     const int32_t hiimm = ((imm.value() >> 2) << kImm19Shift) & kImm19Mask;
-    const int32_t encoding =
-        op | loimm | hiimm | (static_cast<int32_t>(crd) << kRdShift);
+    const int32_t encoding = op | loimm | hiimm | Arm64Encode::Rd(rd);
     Emit(encoding);
   }
 
@@ -1793,12 +1947,9 @@ class Assembler : public ValueObject {
                          OperandSize sz) {
     ASSERT((rd != CSP) && (rn != CSP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
-    const Register crd = ConcreteRegister(rd);
-    const Register crn = ConcreteRegister(rn);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const int32_t encoding = op | size |
-                             (static_cast<int32_t>(crd) << kRdShift) |
-                             (static_cast<int32_t>(crn) << kRnShift);
+    const int32_t encoding =
+        op | size | Arm64Encode::Rd(rd) | Arm64Encode::Rn(rn);
     Emit(encoding);
   }
 
@@ -1809,14 +1960,9 @@ class Assembler : public ValueObject {
                          OperandSize sz) {
     ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
-    const Register crd = ConcreteRegister(rd);
-    const Register crn = ConcreteRegister(rn);
-    const Register crm = ConcreteRegister(rm);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const int32_t encoding = op | size |
-                             (static_cast<int32_t>(crd) << kRdShift) |
-                             (static_cast<int32_t>(crn) << kRnShift) |
-                             (static_cast<int32_t>(crm) << kRmShift);
+    const int32_t encoding = op | size | Arm64Encode::Rd(rd) |
+                             Arm64Encode::Rn(rn) | Arm64Encode::Rm(rm);
     Emit(encoding);
   }
 
@@ -1828,16 +1974,10 @@ class Assembler : public ValueObject {
                          OperandSize sz) {
     ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP) && (ra != CSP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
-    const Register crd = ConcreteRegister(rd);
-    const Register crn = ConcreteRegister(rn);
-    const Register crm = ConcreteRegister(rm);
-    const Register cra = ConcreteRegister(ra);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const int32_t encoding = op | size |
-                             (static_cast<int32_t>(crd) << kRdShift) |
-                             (static_cast<int32_t>(crn) << kRnShift) |
-                             (static_cast<int32_t>(crm) << kRmShift) |
-                             (static_cast<int32_t>(cra) << kRaShift);
+    const int32_t encoding = op | size | Arm64Encode::Rd(rd) |
+                             Arm64Encode::Rn(rn) | Arm64Encode::Rm(rm) |
+                             Arm64Encode::Ra(ra);
     Emit(encoding);
   }
 
@@ -1849,14 +1989,9 @@ class Assembler : public ValueObject {
                              OperandSize sz) {
     ASSERT((rd != CSP) && (rn != CSP) && (rm != CSP));
     ASSERT((sz == kDoubleWord) || (sz == kWord) || (sz == kUnsignedWord));
-    const Register crd = ConcreteRegister(rd);
-    const Register crn = ConcreteRegister(rn);
-    const Register crm = ConcreteRegister(rm);
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    const int32_t encoding = op | size |
-                             (static_cast<int32_t>(crd) << kRdShift) |
-                             (static_cast<int32_t>(crn) << kRnShift) |
-                             (static_cast<int32_t>(crm) << kRmShift) |
+    const int32_t encoding = op | size | Arm64Encode::Rd(rd) |
+                             Arm64Encode::Rn(rn) | Arm64Encode::Rm(rm) |
                              (static_cast<int32_t>(cond) << kSelCondShift);
     Emit(encoding);
   }
@@ -1873,8 +2008,8 @@ class Assembler : public ValueObject {
                       OperandSize sz = kDoubleWord) {
     ASSERT((sz == kDoubleWord) || (sz == kWord));
     const int32_t sfield = (sz == kDoubleWord) ? B31 : 0;
-    const int32_t encoding = op | (static_cast<int32_t>(rd) << kRdShift) |
-                             (static_cast<int32_t>(rn) << kRnShift) | sfield;
+    const int32_t encoding =
+        op | Arm64Encode::Rd(rd) | Arm64Encode::Rn(rn) | sfield;
     Emit(encoding);
   }
 

@@ -37,6 +37,9 @@ class JsonMLConfig {
 int _maxSpanLength = 100;
 var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
 
+/// We truncate a toString() longer than [maxStringLength].
+int maxFormatterStringLength = 100;
+
 String _typeof(object) => JS('String', 'typeof #', object);
 
 List<String> getOwnPropertyNames(object) =>
@@ -522,7 +525,29 @@ class DartFormatter {
 class ObjectFormatter extends Formatter {
   bool accept(object, config) => !isNativeJavaScriptObject(object);
 
-  String preview(object) => getObjectTypeName(object);
+  String preview(object) {
+    var typeName = getObjectTypeName(object);
+    try {
+      // An explicit toString() call might not actually be a string. This way
+      // we're sure.
+      var toString = "$object";
+      if (toString.length > maxFormatterStringLength) {
+        toString = toString.substring(0, maxFormatterStringLength - 3) + "...";
+      }
+      // The default toString() will be "Instance of 'Foo'", in which case we
+      // don't need any further indication of the class.
+      if (toString.contains(typeName)) {
+        return toString;
+      } else {
+        // If there's no class indication, e.g. an Int64 that just prints as a
+        // number, then add the class name.
+        return "$toString ($typeName)";
+      }
+    } catch (e) {}
+    // We will only get here if there was an error getting the toString, in
+    // which case we just use the type name.
+    return typeName;
+  }
 
   bool hasChildren(object) => true;
 

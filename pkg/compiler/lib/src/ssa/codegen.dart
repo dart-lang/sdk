@@ -2333,7 +2333,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
       generateThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
-          [node.array, node.reportedIndex]);
+          [node.array, node.reportedIndex],
+          sourceInformation: node.sourceInformation);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
       pushStatement(new js.If.noElse(underOver, thenBody)
@@ -2910,8 +2911,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(node.checkedInput);
         js.Name methodName =
             _namer.invocationName(node.receiverTypeCheckSelector);
-        js.Expression call = js.propertyCall(pop(), methodName, []);
-        pushStatement(new js.Return(call));
+        js.Expression call = js.propertyCall(pop(), methodName,
+            []).withSourceInformation(node.sourceInformation);
+        pushStatement(
+            new js.Return(call).withSourceInformation(node.sourceInformation));
       }
       currentContainer = oldContainer;
       body = unwrapStatement(body);
@@ -2978,14 +2981,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _registry.registerStaticUse(
           new StaticUse.staticInvoke(helperElement, CallStructure.THREE_ARGS));
       js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      push(js.js(
-          r'#(#, #, #)', [helper, receiver, typeName, js.js.number(index)]));
+      push(js.js(r'#(#, #, #)', [
+        helper,
+        receiver,
+        typeName,
+        js.js.number(index)
+      ]).withSourceInformation(node.sourceInformation));
     } else {
       FunctionEntity helperElement = _commonElements.getTypeArgumentByIndex;
       _registry.registerStaticUse(
           new StaticUse.staticInvoke(helperElement, CallStructure.TWO_ARGS));
       js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      push(js.js(r'#(#, #)', [helper, receiver, js.js.number(index)]));
+      push(js.js(r'#(#, #)', [
+        helper,
+        receiver,
+        js.js.number(index)
+      ]).withSourceInformation(node.sourceInformation));
     }
   }
 

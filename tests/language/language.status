@@ -8,9 +8,6 @@
 [ $strong ]
 *: SkipByDesign # tests/language_2 has the strong mode versions of these tests.
 
-[ $compiler == precompiler && $runtime == dart_precompiled && $arch == simarm64 ]
-compile_time_constant_checked_test/none: Skip # Issue 31176
-
 [ $compiler == precompiler && $runtime == dart_precompiled ]
 stacktrace_demangle_ctors_test: RuntimeError
 deep_nesting1_negative_test: Skip  # Issue 31158
@@ -26,6 +23,9 @@ assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 [$compiler == app_jit && $runtime == vm && !$checked]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
+[$compiler == app_jit && $runtime == vm && $mode == debug]
+issue23244_test: Crash # Issue 31376
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171

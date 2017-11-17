@@ -4,7 +4,7 @@
 
 # Sections in this file should start with "$runtime == dart_precompiled".
 
-[ $runtime == dart_precompiled ]
+[ $compiler == precompiler && $runtime == dart_precompiled ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
 abstract_factory_constructor_test/00: MissingCompileTimeError
@@ -286,10 +286,8 @@ field_override2_test: MissingCompileTimeError
 field_override_optimization_test: RuntimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-field_override_test/02: MissingCompileTimeError
 field_override_test/none: MissingCompileTimeError
 field_type_check2_test/01: MissingRuntimeError
-field_type_check_test/01: MissingCompileTimeError
 final_for_in_variable_test: MissingCompileTimeError
 final_param_test: MissingCompileTimeError
 final_super_field_set_test: MissingCompileTimeError
@@ -346,6 +344,7 @@ function_type_call_getter2_test/02: MissingCompileTimeError
 function_type_call_getter2_test/03: MissingCompileTimeError
 function_type_call_getter2_test/04: MissingCompileTimeError
 function_type_call_getter2_test/05: MissingCompileTimeError
+fuzzy_arrows_test/01: MissingCompileTimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_closure_test: RuntimeError
 generic_constructor_mixin2_test/01: MissingCompileTimeError
@@ -374,6 +373,7 @@ generic_methods_recursive_bound_test/02: Crash
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_recursive_bound_test/03: Crash, Pass
 generic_methods_tearoff_specialization_test: RuntimeError
+generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: RuntimeError
 getter_no_setter2_test/00: MissingCompileTimeError
@@ -397,27 +397,21 @@ if_null_assignment_behavior_test/15: MissingCompileTimeError
 if_null_assignment_static_test/02: MissingCompileTimeError
 if_null_assignment_static_test/04: MissingCompileTimeError
 if_null_assignment_static_test/06: MissingCompileTimeError
-if_null_assignment_static_test/07: MissingCompileTimeError
 if_null_assignment_static_test/09: MissingCompileTimeError
 if_null_assignment_static_test/11: MissingCompileTimeError
 if_null_assignment_static_test/13: MissingCompileTimeError
-if_null_assignment_static_test/14: MissingCompileTimeError
 if_null_assignment_static_test/16: MissingCompileTimeError
 if_null_assignment_static_test/18: MissingCompileTimeError
 if_null_assignment_static_test/20: MissingCompileTimeError
-if_null_assignment_static_test/21: MissingCompileTimeError
 if_null_assignment_static_test/23: MissingCompileTimeError
 if_null_assignment_static_test/25: MissingCompileTimeError
 if_null_assignment_static_test/27: MissingCompileTimeError
-if_null_assignment_static_test/28: MissingCompileTimeError
 if_null_assignment_static_test/30: MissingCompileTimeError
 if_null_assignment_static_test/32: MissingCompileTimeError
 if_null_assignment_static_test/34: MissingCompileTimeError
-if_null_assignment_static_test/35: MissingCompileTimeError
 if_null_assignment_static_test/37: MissingCompileTimeError
 if_null_assignment_static_test/39: MissingCompileTimeError
 if_null_assignment_static_test/41: MissingCompileTimeError
-if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
@@ -464,7 +458,6 @@ library_env_test/has_no_io_support: RuntimeError, OK
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
-list_literal4_test/03: MissingCompileTimeError
 list_literal4_test/04: MissingCompileTimeError
 list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
@@ -478,7 +471,6 @@ local_function3_test/none: RuntimeError
 local_function_test/01: MissingCompileTimeError
 local_function_test/02: MissingCompileTimeError
 local_function_test/03: MissingCompileTimeError
-local_function_test/04: MissingCompileTimeError
 local_function_test/none: RuntimeError
 logical_expression3_test: MissingCompileTimeError
 main_test/03: RuntimeError
@@ -759,10 +751,7 @@ regress_13494_test: MissingCompileTimeError
 regress_17382_test: MissingCompileTimeError
 regress_18535_test: SkipByDesign
 regress_19413_test: MissingCompileTimeError
-regress_19728_test: MissingCompileTimeError
 regress_21793_test/01: MissingCompileTimeError
-regress_21912_test/01: MissingCompileTimeError
-regress_21912_test/02: MissingCompileTimeError
 regress_22438_test: MissingCompileTimeError
 regress_22936_test: MissingCompileTimeError
 regress_23089_test: MissingCompileTimeError
@@ -946,15 +935,51 @@ vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers
 void_block_return_test/00: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
+# Non-contractive types are not supported in the vm.
+cyclic_type_test/02: Fail, OK
+cyclic_type_test/04: Fail, OK
+cyclic_type2_test: Fail, OK
+language_2/least_upper_bound_expansive_test/none: CompileTimeError
+duplicate_export_negative_test: Fail # Issue 6134
+example_constructor_test: Fail, OK
+field_initialization_order_test: Fail, OK
+no_main_test/01: Skip
+constructor3_test: Fail, OK, Pass
+main_not_a_function_test: Skip
+mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
+mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
+super_test: Fail, OK
+vm/regress_29145_test: Skip # Issue 29145
 
-[ $runtime == dart_precompiled && $compiler == dartkp ]
-
-[ $runtime == dart_precompiled && $compiler != dartkp ]
+[ $compiler == precompiler && $runtime == dart_precompiled ]
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
+field_override_test/02: MissingCompileTimeError
+field_type_check_test/01: MissingCompileTimeError
+fuzzy_arrows_test/03: RuntimeError
+if_null_assignment_static_test/07: MissingCompileTimeError
+if_null_assignment_static_test/14: MissingCompileTimeError
+if_null_assignment_static_test/21: MissingCompileTimeError
+if_null_assignment_static_test/28: MissingCompileTimeError
+if_null_assignment_static_test/35: MissingCompileTimeError
+if_null_assignment_static_test/42: MissingCompileTimeError
+list_literal4_test/03: MissingCompileTimeError
+local_function_test/04: MissingCompileTimeError
+regress_19728_test: MissingCompileTimeError
+regress_21912_test/01: MissingCompileTimeError
+regress_21912_test/02: MissingCompileTimeError
+type_promotion_functions_test/05: MissingCompileTimeError
+type_promotion_functions_test/06: MissingCompileTimeError
+type_promotion_functions_test/07: MissingCompileTimeError
+type_promotion_functions_test/08: MissingCompileTimeError
+type_promotion_functions_test/10: MissingCompileTimeError
 
-[ $runtime == dart_precompiled && $checked ]
+[ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
+covariance_type_parameter_test/01: RuntimeError
+covariance_type_parameter_test/02: RuntimeError
+covariance_type_parameter_test/03: RuntimeError
+covariance_type_parameter_test/none: RuntimeError
 function_subtype_checked0_test: Pass
 function_subtype_closure0_test: Pass
 function_subtype_closure1_test: Pass
@@ -971,13 +996,32 @@ generic_methods_new_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
-[ $runtime == dart_precompiled && !$checked ]
+[ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 callable_test/none: RuntimeError
 checked_setter2_test: RuntimeError
 checked_setter3_test: RuntimeError
 checked_setter_test: RuntimeError
+covariance_field_test/01: RuntimeError
+covariance_field_test/02: RuntimeError
+covariance_field_test/03: RuntimeError
+covariance_field_test/04: RuntimeError
+covariance_field_test/05: RuntimeError
+covariance_method_test/01: RuntimeError
+covariance_method_test/02: RuntimeError
+covariance_method_test/03: RuntimeError
+covariance_method_test/04: RuntimeError
+covariance_method_test/05: RuntimeError
+covariance_method_test/06: RuntimeError
+covariance_setter_test/01: RuntimeError
+covariance_setter_test/02: RuntimeError
+covariance_setter_test/03: RuntimeError
+covariance_setter_test/04: RuntimeError
+covariance_setter_test/05: RuntimeError
+covariance_type_parameter_test/01: RuntimeError
+covariance_type_parameter_test/02: RuntimeError
+covariance_type_parameter_test/03: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
 function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
@@ -1021,5 +1065,5 @@ vm/no_such_method_error_message_vm_test: Skip
 vm/regress_28325_test:Skip
 full_stacktrace3_test: Skip
 
-[ $runtime == dart_precompiled && $mode == debug ]
+[ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
 regress_29025_test: Crash  # Issue dartbug.com/29331

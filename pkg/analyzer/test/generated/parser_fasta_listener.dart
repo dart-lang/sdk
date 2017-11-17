@@ -140,6 +140,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginConditionalUri(Token ifKeyword) {
+    expectIn('ConditionalUris');
     super.beginConditionalUri(ifKeyword);
     begin('ConditionalUri');
   }
@@ -356,6 +357,7 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void beginMember(Token token) {
+    expectIn('ClassBody');
     super.beginMember(token);
     begin('Member');
   }

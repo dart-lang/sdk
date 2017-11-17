@@ -24,6 +24,7 @@ class RawICData;
 class RawArray;
 class RawObjectPool;
 class RawFunction;
+class ObjectPointerVisitor;
 
 // Simulator intrinsic handler. It is invoked on entry to the intrinsified
 // function via Intrinsic bytecode before the frame is setup.
@@ -88,6 +89,8 @@ class Simulator {
     kSpecialIndexCount
   };
 
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
  private:
   uintptr_t* stack_;
   uword stack_base_;
@@ -95,11 +98,14 @@ class Simulator {
 
   RawObject** fp_;
   uword pc_;
-  NOT_IN_PRODUCT(uint64_t icount_;)
+  DEBUG_ONLY(uint64_t icount_;)
 
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
   uword top_exit_frame_info_;
 
+  RawObjectPool* pp_;  // Pool Pointer.
+  RawArray* argdesc_;  // Arguments Descriptor: used to pass information between
+                       // call instruction and the function entry.
   RawObject* special_[kSpecialIndexCount];
 
   static IntrinsicHandler intrinsics_[kIntrinsicCount];
@@ -121,13 +127,11 @@ class Simulator {
   void Invoke(Thread* thread,
               RawObject** call_base,
               RawObject** call_top,
-              RawObjectPool** pp,
               uint32_t** pc,
               RawObject*** FP,
               RawObject*** SP);
 
   bool Deoptimize(Thread* thread,
-                  RawObjectPool** pp,
                   uint32_t** pc,
                   RawObject*** FP,
                   RawObject*** SP,
@@ -146,8 +150,6 @@ class Simulator {
                      RawICData* icdata,
                      RawObject** call_base,
                      RawObject** call_top,
-                     RawArray** argdesc,
-                     RawObjectPool** pp,
                      uint32_t** pc,
                      RawObject*** FP,
                      RawObject*** SP,
@@ -157,8 +159,6 @@ class Simulator {
                      RawICData* icdata,
                      RawObject** call_base,
                      RawObject** call_top,
-                     RawArray** argdesc,
-                     RawObjectPool** pp,
                      uint32_t** pc,
                      RawObject*** FP,
                      RawObject*** SP,

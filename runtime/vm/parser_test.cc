@@ -277,8 +277,8 @@ TEST_CASE(Parser_AllocateVariables_CapturedVar) {
       " 0 ContextLevel  level=0   begin=0   end=6\n"
       " 1 ContextLevel  level=1   begin=8   end=16\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
-      " 3 ContextVar    level=1   begin=10  end=37  name=value\n"
-      " 4 StackVar      scope=2   begin=12  end=37  name=f\n",
+      " 3 ContextVar    level=1   begin=10  end=38  name=value\n"
+      " 4 StackVar      scope=2   begin=12  end=38  name=f\n",
       vars);
   free(vars);
 }
@@ -362,7 +362,7 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       // bb captures only value2 from aa.  No others.
       "a.b.aa.bb\n"
       " 0 ContextLevel  level=0   begin=0   end=10\n"
-      " 1 ContextVar    level=0   begin=34  end=44  name=value2\n"
+      " 1 ContextVar    level=0   begin=35  end=46  name=value2\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
 
@@ -380,8 +380,8 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       " 0 ContextLevel  level=0   begin=0   end=6\n"
       " 1 ContextLevel  level=1   begin=8   end=16\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
-      " 3 ContextVar    level=1   begin=29  end=53  name=value2\n"
-      " 4 StackVar      scope=2   begin=31  end=53  name=bb\n"
+      " 3 ContextVar    level=1   begin=30  end=55  name=value2\n"
+      " 4 StackVar      scope=2   begin=32  end=55  name=bb\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
@@ -393,10 +393,10 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       // b captures value1 from a.
       "a.b\n"
       " 0 ContextLevel  level=0   begin=0   end=16\n"
-      " 1 ContextVar    level=0   begin=14  end=63  name=value1\n"
+      " 1 ContextVar    level=0   begin=14  end=65  name=value1\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 3 StackVar      scope=2   begin=18  end=63  name=aa\n"
+      " 3 StackVar      scope=2   begin=18  end=65  name=aa\n"
 
       // Closure call saves current context.
       "_Closure.call\n"
@@ -411,8 +411,8 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       " 1 ContextLevel  level=1   begin=8   end=16\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 3 ContextVar    level=1   begin=10  end=71  name=value1\n"
-      " 4 StackVar      scope=2   begin=12  end=71  name=b\n",
+      " 3 ContextVar    level=1   begin=10  end=73  name=value1\n"
+      " 4 StackVar      scope=2   begin=12  end=73  name=b\n",
       vars);
   free(vars);
 }
@@ -451,7 +451,7 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       "doIt.<anonymous closure>\n"
       " 0 ContextLevel  level=0   begin=0   end=0\n"
       " 1 ContextLevel  level=1   begin=4   end=12\n"
-      " 2 ContextVar    level=1   begin=42  end=65  name=y\n"
+      " 2 ContextVar    level=1   begin=44  end=67  name=y\n"
       " 3 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // Closure call saves current context.
@@ -469,7 +469,7 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       "doIt\n"
       " 0 ContextLevel  level=0   begin=0   end=18\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
-      " 2 StackVar      scope=2   begin=35  end=80  name=x\n",
+      " 2 StackVar      scope=2   begin=36  end=83  name=x\n",
       vars);
   free(vars);
 }
@@ -497,7 +497,7 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       // inner function captures variable value.  That's fine.
       "outer.inner\n"
       " 0 ContextLevel  level=0   begin=0   end=10\n"
-      " 1 ContextVar    level=0   begin=33  end=43  name=value\n"
+      " 1 ContextVar    level=0   begin=34  end=44  name=value\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       // Closure call saves current context.
@@ -513,9 +513,9 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       " 1 ContextLevel  level=1   begin=10  end=18\n"
       " 2 ContextLevel  level=0   begin=20  end=34\n"
       " 3 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
-      " 4 StackVar      scope=3   begin=12  end=52  name=i\n"
-      " 5 ContextVar    level=1   begin=28  end=52  name=value\n"
-      " 6 StackVar      scope=4   begin=30  end=52  name=inner\n",
+      " 4 StackVar      scope=3   begin=12  end=53  name=i\n"
+      " 5 ContextVar    level=1   begin=29  end=53  name=value\n"
+      " 6 StackVar      scope=4   begin=31  end=53  name=inner\n",
       vars);
   free(vars);
 }
@@ -543,7 +543,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
   EXPECT_STREQ(
       "a.b.c\n"
       " 0 ContextLevel  level=0   begin=0   end=12\n"
-      " 1 ContextVar    level=0   begin=51  end=64  name=x\n"
+      " 1 ContextVar    level=0   begin=52  end=65  name=x\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
 
       "_Closure.call\n"
@@ -556,11 +556,11 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 0 ContextLevel  level=0   begin=0   end=6\n"
       " 1 ContextLevel  level=1   begin=8   end=32\n"
       " 2 ContextLevel  level=0   begin=34  end=40\n"
-      " 3 ContextVar    level=0   begin=12  end=73  name=x\n"
+      " 3 ContextVar    level=0   begin=12  end=74  name=x\n"
       " 4 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
-      " 5 StackVar      scope=2   begin=48  end=73  name=c\n"
-      " 6 ContextVar    level=1   begin=22  end=48  name=i\n"
-      " 7 StackVar      scope=4   begin=33  end=48  name=d\n"
+      " 5 StackVar      scope=2   begin=49  end=74  name=c\n"
+      " 6 ContextVar    level=1   begin=23  end=49  name=i\n"
+      " 7 StackVar      scope=4   begin=34  end=49  name=d\n"
 
       "_Closure.call\n"
       " 0 ContextLevel  level=0   begin=0   end=8\n"
@@ -571,8 +571,8 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 0 ContextLevel  level=0   begin=0   end=6\n"
       " 1 ContextLevel  level=1   begin=8   end=16\n"
       " 2 CurrentCtx    scope=0   begin=0   end=0   name=:current_context_var\n"
-      " 3 ContextVar    level=1   begin=9   end=81  name=x\n"
-      " 4 StackVar      scope=2   begin=11  end=81  name=b\n",
+      " 3 ContextVar    level=1   begin=9   end=82  name=x\n"
+      " 4 StackVar      scope=2   begin=11  end=82  name=b\n",
       vars);
   free(vars);
 }

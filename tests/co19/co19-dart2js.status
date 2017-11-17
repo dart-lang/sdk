@@ -2752,6 +2752,7 @@ LayoutTests/fast/backgrounds/background-shorthand-with-backgroundSize-style_t01:
 LayoutTests/fast/backgrounds/mask-box-image-width_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/backgrounds/repeat/parsing-background-repeat_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/borders/border-color-visited_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/borders/border-image-width-numbers-computed-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/borders/border-radius-child_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/borders/border-width-percent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/box-sizing/css-table-with-box-sizing_t01: Pass, RuntimeError # Please triage this failure
@@ -2909,7 +2910,6 @@ LayoutTests/fast/css/counters/counter-reset-subtree-insert-crash_t01: RuntimeErr
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/csstext-of-content-string_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cursor-parsing-image-set_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/cursor-parsing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # Please triage this failure
@@ -2974,8 +2974,6 @@ LayoutTests/fast/css/overflow-property_t01: RuntimeError # Please triage this fa
 LayoutTests/fast/css/padding-start-end_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/parsing-css-escapes_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/parsing-css-nonascii_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-selector-error-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-unexpected-eof_t01: RuntimeError # Please triage this failure
@@ -2985,6 +2983,7 @@ LayoutTests/fast/css/pseudo-any_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-invalid-001_t01: Pass, RuntimeError # Passes on ff 35. Please triage this failure
 LayoutTests/fast/css/pseudo-invalid-novalidate-001_t01: Pass, RuntimeError # Passes on ff 35. Please triage this failure
 LayoutTests/fast/css/pseudo-required-optional-004_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/pseudo-required-optional-005_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-required-optional-unapplied_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/pseudo-target-indirect-sibling-001_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/css/pseudo-target-indirect-sibling-002_t01: Skip # Times out. Please triage this failure
@@ -2997,7 +2996,6 @@ LayoutTests/fast/css/readonly-pseudoclass-opera-004_t01: RuntimeError # Please t
 LayoutTests/fast/css/readonly-pseudoclass-opera-005_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/readwrite-contenteditable-recalc_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/recalc-optgroup-inherit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/selector-text-escape_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/shorthand-setProperty-important_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/sibling-selectors_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/style-element-process-crash_t01: Skip # Times out. Please triage this failure
@@ -3191,6 +3189,7 @@ LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please tria
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/containerNode_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/css-delete-doc_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-rule-functions_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-shortHands_t01: RuntimeError # Please triage this failure
@@ -3333,6 +3332,7 @@ LayoutTests/fast/events/div-focus_t01: Pass, RuntimeError # Please triage this f
 LayoutTests/fast/events/document-elementFromPoint_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-attributes-after-exception_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-creation_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/events/event-fire-order_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-listener-html-non-html-confusion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/event-trace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/fire-scroll-event_t01: RuntimeError # Please triage this failure
@@ -3428,17 +3428,14 @@ LayoutTests/fast/forms/clone-input-with-dirty-value_t01: RuntimeError # Please t
 LayoutTests/fast/forms/datalist/datalist-child-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/datalist_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/input-list_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-onblur-setvalue-onfocusremoved_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-rangeOverflow-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-rangeUnderflow-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-stepMismatch-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/ValidityState-typeMismatch-date_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date/date-input-type_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/date-pseudo-classes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-date-validation-message_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date/input-valueasdate-date_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/date/input-valueasnumber-date_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal-multiple-fields/datetimelocal-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/ValidityState-rangeOverflow-datetimelocal_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datetimelocal/ValidityState-rangeUnderflow-datetimelocal_t01: RuntimeError # Please triage this failure
@@ -3643,6 +3640,7 @@ LayoutTests/fast/table/anonymous-table-section-removed_t01: RuntimeError # Pleas
 LayoutTests/fast/table/border-changes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/caption-orthogonal-writing-mode-sizing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/css-table-max-width_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/table/incorrect-colgroup-span-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/large-shrink-wrapped-width_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/min-width-css-block-table_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/min-width-css-inline-table_t01: RuntimeError # Please triage this failure
@@ -4109,9 +4107,12 @@ Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 2594
 Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/device-aspect-ratio_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/media-rule-screenDepthPerComponent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/submit-form-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/media/color-does-not-include-alpha_t01: RuntimeError # Issue 31161
+LayoutTests/fast/media/media-query-list_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/canvas/webgl/*: Skip # Issue 26725

@@ -3162,6 +3162,94 @@ ASSEMBLER_TEST_RUN(BitTestImmediate, test) {
   EXPECT_EQ(1, reinterpret_cast<BitTestImmediate>(test->entry())());
 }
 
+// clang-format off
+#define ALU_TEST(NAME, WIDTH, INTRO, LHS, RHS, OUTRO)                          \
+  ASSEMBLER_TEST_GENERATE(NAME, assembler) {                                   \
+    __ movl(EAX, Immediate(0x87654321));                                       \
+    __ movl(ECX, Immediate(0x12345678));                                       \
+                                                                               \
+    INTRO;                                                                     \
+                                                                               \
+    __ and##WIDTH(LHS, RHS);                                                   \
+    __ or##WIDTH(RHS, LHS);                                                    \
+    __ xor##WIDTH(LHS, RHS);                                                   \
+    __ add##WIDTH(RHS, LHS);                                                   \
+    __ cmp##WIDTH(LHS, RHS);                                                   \
+    __ adc##WIDTH(LHS, RHS);                                                   \
+    __ sub##WIDTH(RHS, LHS);                                                   \
+    __ sbb##WIDTH(LHS, RHS);                                                   \
+                                                                               \
+    OUTRO;                                                                     \
+    /* A sort of movx(EAX, EAX) */                                             \
+    __ xorl(ECX, ECX);                                                         \
+    __ add##WIDTH(ECX, EAX);                                                   \
+    __ andl(EAX, ECX);                                                         \
+    __ ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(NAME, test) {                                             \
+    typedef uint32_t (*NAME)();                                                \
+    uint32_t expectation_l = 0x42649381;                                       \
+    uint16_t expectation_w = expectation_l;                                    \
+    uint32_t expectation = expectation_##WIDTH | expectation_w;                \
+    EXPECT_EQ(expectation, reinterpret_cast<NAME>(test->entry())());           \
+  }
+// clang-format on
+
+ALU_TEST(RegRegW, w, , EAX, ECX, )
+ALU_TEST(RegAddrW1, w, __ pushl(EAX), Address(ESP, 0), ECX, __ popl(EAX))
+ALU_TEST(RegAddrW2, w, __ pushl(ECX), EAX, Address(ESP, 0), __ popl(ECX))
+ALU_TEST(RegRegL, l, , EAX, ECX, )
+ALU_TEST(RegAddrL1, l, __ pushl(EAX), Address(ESP, 0), ECX, __ popl(EAX))
+ALU_TEST(RegAddrL2, l, __ pushl(ECX), EAX, Address(ESP, 0), __ popl(ECX))
+
+#define IMMEDIATE_TEST(NAME, REG, MASK, INTRO, VALUE, OUTRO)                   \
+  ASSEMBLER_TEST_GENERATE(NAME, assembler) {                                   \
+    __ movl(REG, Immediate(0x87654321));                                       \
+                                                                               \
+    INTRO;                                                                     \
+                                                                               \
+    __ andl(VALUE, Immediate(0xa8df51d3 & MASK));                              \
+    __ orl(VALUE, Immediate(0x1582a681 & MASK));                               \
+    __ xorl(VALUE, Immediate(0xa5a5a5a5 & MASK));                              \
+    __ addl(VALUE, Immediate(0x7fffffff & MASK));                              \
+    __ cmpl(VALUE, Immediate(0x40404040 & MASK));                              \
+    __ adcl(VALUE, Immediate(0x6eeeeeee & MASK));                              \
+    __ subl(VALUE, Immediate(0x7eeeeeee & MASK));                              \
+    __ sbbl(VALUE, Immediate(0x6fffffff & MASK));                              \
+                                                                               \
+    OUTRO;                                                                     \
+                                                                               \
+    __ movl(EAX, REG);                                                         \
+    __ ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(NAME, test) {                                             \
+    typedef uint32_t (*NAME)();                                                \
+    uint32_t expectation = MASK < 0x100 ? 0x24 : 0x30624223;                   \
+    EXPECT_EQ(expectation, reinterpret_cast<NAME>(test->entry())());           \
+  }
+
+// EAX-based instructions have different encodings so we test both EAX and ECX.
+// If the immediate can be encoded as one byte there is also a different
+// encoding, so test that too.
+IMMEDIATE_TEST(RegImmEAX, EAX, 0xffffffff, , EAX, )
+IMMEDIATE_TEST(RegImmECX, ECX, 0xffffffff, , ECX, )
+IMMEDIATE_TEST(RegImmEAXByte, EAX, 0x7f, , EAX, )
+IMMEDIATE_TEST(RegImmECXByte, ECX, 0x7f, , ECX, )
+IMMEDIATE_TEST(AddrImmEAX,
+               EAX,
+               0xffffffff,
+               __ pushl(EAX),
+               Address(ESP, 0),
+               __ popl(EAX))
+IMMEDIATE_TEST(AddrImmEAXByte,
+               EAX,
+               0x7f,
+               __ pushl(EAX),
+               Address(ESP, 0),
+               __ popl(EAX))
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

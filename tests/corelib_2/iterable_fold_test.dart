@@ -19,7 +19,7 @@ class MyList extends ListBase {
   operator []=(index, val) => list[index] = val;
 }
 
-id (x) => x;
+Iterable id (Iterable x) => x;
 
 main() {
   for (dynamic iterable in [

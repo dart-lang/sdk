@@ -30,6 +30,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginBinaryExpression(Token token) {
+    listener?.beginBinaryExpression(token);
+  }
+
+  @override
   void beginBlock(Token token) {
     listener?.beginBlock(token);
   }
@@ -434,6 +439,11 @@ class ForwardingListener implements Listener {
   @override
   void endAwaitExpression(Token beginToken, Token endToken) {
     listener?.endAwaitExpression(beginToken, endToken);
+  }
+
+  @override
+  void endBinaryExpression(Token token) {
+    listener?.endBinaryExpression(token);
   }
 
   @override
@@ -870,16 +880,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginBinaryExpression(Token token) {
-    listener?.beginBinaryExpression(token);
-  }
-
-  @override
-  void endBinaryExpression(Token token) {
-    listener?.endBinaryExpression(token);
-  }
-
-  @override
   void handleBreakStatement(
       bool hasTarget, Token breakKeyword, Token endToken) {
     listener?.handleBreakStatement(hasTarget, breakKeyword, endToken);
@@ -1005,6 +1005,11 @@ class ForwardingListener implements Listener {
   @override
   void handleInvalidMember(Token endToken) {
     listener?.handleInvalidMember(endToken);
+  }
+
+  @override
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    listener?.handleInvalidOperatorName(operatorKeyword, token);
   }
 
   @override

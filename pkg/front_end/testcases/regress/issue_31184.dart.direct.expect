@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_31184.dart:6:21: Error: Expected ';' before this.\n  for (int i = 0, i > 10; i++) {}\n                    ^", "pkg/front_end/testcases/regress/issue_31184.dart:6:21: Error: Expected an identifier, but got '>'.\n  for (int i = 0, i > 10; i++) {}\n                    ^"]/* from null */;
+static method bad() → dynamic {
+  for (core::int i = 0, final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_31184.dart:6:19: Error: 'i' already declared in this scope.\n  for (int i = 0, i > 10; i++) {}\n                  ^")); (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#, 33, const <dynamic>[], const <dynamic>[], core::Map::unmodifiable<dynamic, dynamic>(const <dynamic, dynamic>{})))).>(10); i = i.+(1)) {
+  }
+}
+static method main() → dynamic {}

@@ -145,6 +145,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.ENUM_IN_CLASS, offset, length);
         return;
+      case "EQUALITY_CANNOT_BE_EQUALITY_OPERAND":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+            offset,
+            length);
+        return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);
@@ -265,6 +271,11 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);
         return;
+      case "INVALID_OPERATOR":
+        String text = stringOrTokenLexeme();
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.INVALID_OPERATOR, offset, length, [text]);
+        return;
       case "INVALID_OPERATOR_FOR_SUPER":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.INVALID_OPERATOR_FOR_SUPER, offset, length);
@@ -296,6 +307,10 @@ class FastaErrorReporter {
       case "MISSING_HEX_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
+        return;
+      case "MISSING_KEYWORD_OPERATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_KEYWORD_OPERATOR, offset, length);
         return;
       case "MISSING_METHOD_PARAMETERS":
         errorReporter?.reportErrorForOffset(

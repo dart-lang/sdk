@@ -91,7 +91,8 @@ class TestServerStatus {
   int _port;
 }
 
-void startTestServer(SendPort replyTo) {
+void startTestServer(Object replyToObj) {
+  SendPort replyTo = replyToObj;
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);

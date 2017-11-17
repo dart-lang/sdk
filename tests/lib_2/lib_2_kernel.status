@@ -2,34 +2,35 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dartkp ]
-mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
+# Sections in this file should contain "$compiler == dartk" or
+# "$compiler == dartkp".
+#
+# Note: these sections are processed by tools, keep sections alphabetized and do
+# not create new sections to share status lines.
+
+# ===== Skip dartk and darkp in !$strong mode ====
+[ $compiler == dartk && !$strong ]
+*: SkipByDesign
+
+[ $compiler == dartkp && !$strong ]
+*: SkipByDesign
+
+# ===== dartk + vm status lines =====
+
+[ $compiler == dartk && $runtime == vm && $strong ]
+async/future_or_only_in_async_test/00: MissingCompileTimeError
+convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: SkipByDesign # dart:html not supported on VM.
-
-[ $compiler == dartk || $compiler == dartkp ]
-async/future_or_strong_test: RuntimeError
-async/timer_not_available_test: RuntimeError
-isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
-mirrors/function_type_mirror_test: RuntimeError
-mirrors/generic_function_typedef_test: RuntimeError
-mirrors/generic_interface_test/01: RuntimeError
-mirrors/generic_interface_test/none: RuntimeError
-mirrors/private_types_test: RuntimeError
-mirrors/redirecting_factory_test/01: Crash
-mirrors/redirecting_factory_test/02: Crash
-mirrors/redirecting_factory_test/none: Crash
-mirrors/reflect_class_test/01: RuntimeError
-mirrors/reflect_class_test/02: RuntimeError
-mirrors/reflect_class_test/none: RuntimeError
-mirrors/reflected_type_classes_test/01: RuntimeError
-mirrors/reflected_type_function_type_test: RuntimeError
-mirrors/reflected_type_generics_test/01: RuntimeError
-mirrors/reflected_type_generics_test/02: RuntimeError
-mirrors/reflected_type_test/01: RuntimeError
-mirrors/reflected_type_typedefs_test: RuntimeError
-mirrors/reflected_type_typevars_test: RuntimeError
-
-[ $compiler == dartk ]
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError
+mirrors/deferred_type_test: CompileTimeError
+mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
+mirrors/generic_bounded_test/01: MissingCompileTimeError
+mirrors/generic_bounded_test/02: MissingCompileTimeError
+mirrors/generic_interface_test/01: MissingCompileTimeError
+mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
+mirrors/native_class_test: SkipByDesign # Imports dart:html
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/abstract_class_test: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError
 mirrors/class_declarations_test/none: RuntimeError
@@ -128,8 +129,27 @@ mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
-
-[ $compiler == dartk && $runtime == vm ]
+async/future_or_strong_test: RuntimeError
+async/timer_not_available_test: RuntimeError
+isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
+mirrors/function_type_mirror_test: RuntimeError
+mirrors/generic_function_typedef_test: RuntimeError
+mirrors/generic_interface_test/01: RuntimeError
+mirrors/generic_interface_test/none: RuntimeError
+mirrors/private_types_test: RuntimeError
+mirrors/redirecting_factory_test/01: Crash
+mirrors/redirecting_factory_test/02: Crash
+mirrors/redirecting_factory_test/none: Crash
+mirrors/reflect_class_test/01: RuntimeError
+mirrors/reflect_class_test/02: RuntimeError
+mirrors/reflect_class_test/none: RuntimeError
+mirrors/reflected_type_classes_test/01: RuntimeError
+mirrors/reflected_type_function_type_test: RuntimeError
+mirrors/reflected_type_generics_test/01: RuntimeError
+mirrors/reflected_type_generics_test/02: RuntimeError
+mirrors/reflected_type_test/01: RuntimeError
+mirrors/reflected_type_typedefs_test: RuntimeError
+mirrors/reflected_type_typevars_test: RuntimeError
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 html/*: DartkCompileTimeError
 mirrors/class_mirror_location_test: RuntimeError
@@ -191,47 +211,8 @@ mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
-
-[ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
-mirrors/variable_is_const_test/01: Crash
-
-[ $compiler == dartkp && $mode == debug ]
-html/canvas_test: DartkCompileTimeError
-html/canvasrenderingcontext2d_test: DartkCompileTimeError
-html/cdata_test: DartkCompileTimeError
-html/client_rect_test: DartkCompileTimeError
-html/cross_domain_iframe_test: DartkCompileTimeError
-html/crypto_test: DartkCompileTimeError
-html/css_rule_list_test: DartkCompileTimeError
-html/css_test: DartkCompileTimeError
-html/cssstyledeclaration_test: DartkCompileTimeError
-html/custom/attribute_changed_callback_test: DartkCompileTimeError
-mirrors/variable_is_const_test/01: Crash
-
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
-mirrors/invocation_fuzz_test/smi: Crash
-
-[ $compiler == dartk && $runtime == vm && $mode == debug && $arch == x64 ]
-mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
-
-[ ($compiler == dartk || $compiler == dartkp) && $mode == debug ]
-isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
-mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
-
-[ $compiler == dartk && $runtime == vm ]
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
-
-[ $compiler == dartkp ]
-js/datetime_roundtrip_test: CompileTimeError
-js/null_test: CompileTimeError
-
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
-mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
-mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
-mirrors/reflected_type_generics_test/02: Pass
-
-[ ($compiler == dartk || $compiler == dartkp) ]
 isolate/compile_time_error_test/01: MissingCompileTimeError
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
@@ -239,8 +220,6 @@ isolate/message3_test/int32x4: Crash
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
-
-[ $compiler == dartk && $strong ]
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
 async/stream_controller_async_test: RuntimeError
@@ -281,17 +260,57 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
-[ $compiler == dartkp && $strong ]
+[ $compiler == dartk && $runtime == vm && $strong && $mode == debug]
+isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
+mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
+isolate/isolate_complex_messages_test: Crash
+
+[ $compiler == dartk && $runtime == vm && $strong && $mode == debug && $arch == x64 ]
+mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
+mirrors/variable_is_const_test/01: Crash
+
+[ $compiler == dartk && $runtime == vm && $strong && !$checked ]
+mirrors/inference_and_no_such_method_test: RuntimeError
+
+[ $compiler == dartk && $runtime == vm && $strong && $checked ]
+mirrors/invocation_fuzz_test/smi: Crash
+mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
+mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
+mirrors/reflected_type_generics_test/02: Pass
+
+# ===== dartkp + dart_precompiled status lines =====
+
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
+async/future_or_strong_test: RuntimeError
+async/timer_not_available_test: RuntimeError
+html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: Crash
+isolate/compile_time_error_test/01: MissingCompileTimeError
+isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/isolate_import_test/01: MissingCompileTimeError
+isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_22778_test: Crash
+isolate/message3_test/byteBuffer: RuntimeError
+isolate/message3_test/constInstance: RuntimeError
+isolate/message3_test/constList: RuntimeError
+isolate/message3_test/constList_identical: RuntimeError
+isolate/message3_test/constMap: RuntimeError
+isolate/message3_test/fun: RuntimeError
+isolate/message3_test/int32x4: Crash
+isolate/message3_test/none: RuntimeError
 isolate/ping_pause_test: Crash
-profiler/metrics_num_test: RuntimeError
-profiler/metrics_test: Crash
+isolate/ping_pause_test: Pass, Timeout
+isolate/spawn_function_custom_class_test: Pass, Timeout
+isolate/spawn_uri_nested_vm_test: Pass, Timeout
+js/datetime_roundtrip_test: CompileTimeError
+js/null_test: CompileTimeError
+mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
-[ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug]
+[ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug]
 isolate/isolate_complex_messages_test: Crash
+isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).

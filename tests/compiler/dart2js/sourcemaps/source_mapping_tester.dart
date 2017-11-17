@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/js/js_debug.dart';
 import 'package:js_ast/js_ast.dart';
@@ -96,15 +97,19 @@ bool parseArgument(
 }
 
 const Map<String, List<String>> TEST_CONFIGURATIONS = const {
-  'ssa': const [
+  'ast': const [
     '--use-new-source-info',
+  ],
+  'kernel': const [
+    Flags.useKernel,
   ],
   'old': const [],
 };
 
 const Map<String, String> TEST_FILES = const <String, String>{
-  'invokes': 'tests/compiler/dart2js/sourcemaps/invokes_test_file.dart',
-  'operators': 'tests/compiler/dart2js/sourcemaps/operators_test_file.dart',
+  'invokes': 'tests/compiler/dart2js/sourcemaps/data/invokes_test_file.dart',
+  'operators':
+      'tests/compiler/dart2js/sourcemaps/data/operators_test_file.dart',
 };
 
 Future<TestResult> runTests(
@@ -116,7 +121,7 @@ Future<TestResult> runTests(
       verbose: verbose);
   TestResult result = new TestResult(config, filename, processor);
   for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
-    if (info.element.library.isPlatformLibrary) continue;
+    if (info.element.library.canonicalUri.scheme == 'dart') continue;
     result.userInfoList.add(info);
     Iterable<CodePoint> missingCodePoints =
         info.codePoints.where((c) => c.isMissing);

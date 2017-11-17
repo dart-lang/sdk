@@ -16,6 +16,7 @@ import '../messages.dart'
     show
         LocatedMessage,
         Message,
+        error,
         nit,
         report,
         templateInternalProblemConstructorNotFound,
@@ -98,6 +99,16 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
       warning(message, charOffset, uri);
       if (context != null) {
         report(context, Severity.warning);
+      }
+    }
+  }
+
+  void addError(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    if (!silent) {
+      error(message, charOffset, uri);
+      if (context != null) {
+        report(context, Severity.error);
       }
     }
   }

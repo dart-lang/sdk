@@ -65,9 +65,15 @@ abstract class ParserAdapter implements Parser {
   }
 
   @override
+  void set parseFunctionBodies(bool parseFunctionBodies) {
+    // ignored
+  }
+
+  @override
   Annotation parseAnnotation() {
     currentToken = fastaParser
-        .parseMetadata(fastaParser.syntheticPreviousToken(currentToken));
+        .parseMetadata(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     return astBuilder.pop();
   }
 
@@ -77,6 +83,22 @@ abstract class ParserAdapter implements Parser {
     var result = astBuilder.pop();
     return result is MethodInvocation ? result.argumentList : result;
   }
+
+  @override
+  Expression parseAssignableExpression(bool primaryAllowed) =>
+      parseExpression2();
+
+  @override
+  Expression parseAdditiveExpression() => parseExpression2();
+
+  @override
+  Expression parseBitwiseAndExpression() => parseExpression2();
+
+  @override
+  Expression parseBitwiseOrExpression() => parseExpression2();
+
+  @override
+  Expression parseBitwiseXorExpression() => parseExpression2();
 
   @override
   ClassMember parseClassMember(String className) {
@@ -105,7 +127,9 @@ abstract class ParserAdapter implements Parser {
 
   @override
   List<Combinator> parseCombinators() {
-    currentToken = fastaParser.parseCombinators(currentToken);
+    currentToken = fastaParser
+        .parseCombinators(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     return astBuilder.pop();
   }
 
@@ -120,6 +144,176 @@ abstract class ParserAdapter implements Parser {
     currentToken = fastaParser.parseUnit(currentToken);
     return astBuilder.pop();
   }
+
+  @override
+  Expression parseConditionalExpression() => parseExpression2();
+
+  @override
+  Configuration parseConfiguration() {
+    currentToken = fastaParser
+        .parseConditionalUri(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  Expression parseConstExpression() => parseExpression2();
+
+  @override
+  DottedName parseDottedName() {
+    currentToken = fastaParser
+        .parseDottedName(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  Expression parseEqualityExpression() => parseExpression2();
+
+  @override
+  Expression parseExpression2() {
+    currentToken = fastaParser.parseExpression(currentToken).next;
+    return astBuilder.pop();
+  }
+
+  @override
+  Expression parseExpressionWithoutCascade() => parseExpression2();
+
+  @override
+  FormalParameterList parseFormalParameterList({bool inFunctionType: false}) {
+    currentToken = fastaParser
+        .parseFormalParametersRequiredOpt(
+            fastaParser.syntheticPreviousToken(currentToken),
+            inFunctionType
+                ? fasta.MemberKind.GeneralizedFunctionType
+                : fasta.MemberKind.NonStaticMethod)
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  FunctionBody parseFunctionBody(
+      bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
+    currentToken = fastaParser
+        .parseAsyncModifier(fastaParser.syntheticPreviousToken(currentToken));
+    currentToken =
+        fastaParser.parseFunctionBody(currentToken, inExpression, mayBeEmpty);
+    return astBuilder.pop();
+  }
+
+  @override
+  FunctionExpression parseFunctionExpression() => parseExpression2();
+
+  @override
+  Expression parseLogicalAndExpression() => parseExpression2();
+
+  @override
+  Expression parseLogicalOrExpression() => parseExpression2();
+
+  @override
+  Expression parseMultiplicativeExpression() => parseExpression2();
+
+  @override
+  InstanceCreationExpression parseNewExpression() => parseExpression2();
+
+  @override
+  Expression parsePostfixExpression() => parseExpression2();
+
+  @override
+  Identifier parsePrefixedIdentifier() => parseExpression2();
+
+  @override
+  Expression parsePrimaryExpression() {
+    currentToken = fastaParser.parsePrimary(
+        fastaParser.syntheticPreviousToken(currentToken),
+        fasta.IdentifierContext.expression);
+    return astBuilder.pop();
+  }
+
+  @override
+  Expression parseRelationalExpression() => parseExpression2();
+
+  @override
+  Expression parseRethrowExpression() => parseExpression2();
+
+  @override
+  Expression parseShiftExpression() => parseExpression2();
+
+  @override
+  SimpleIdentifier parseSimpleIdentifier(
+          {bool allowKeyword: false, bool isDeclaration: false}) =>
+      parseExpression2();
+
+  @override
+  Statement parseStatement(Token token) {
+    currentToken = token;
+    return parseStatement2();
+  }
+
+  @override
+  Statement parseStatement2() {
+    currentToken = fastaParser
+        .parseStatementOpt(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  StringLiteral parseStringLiteral() => parseExpression2();
+
+  @override
+  SymbolLiteral parseSymbolLiteral() => parseExpression2();
+
+  @override
+  Expression parseThrowExpression() => parseExpression2();
+
+  @override
+  Expression parseThrowExpressionWithoutCascade() => parseExpression2();
+
+  AnnotatedNode parseTopLevelDeclaration(bool isDirective) {
+    currentToken = fastaParser.parseTopLevelDeclaration(currentToken);
+    return (isDirective ? astBuilder.directives : astBuilder.declarations)
+        .removeLast();
+  }
+
+  @override
+  TypeAnnotation parseTypeAnnotation(bool inExpression) {
+    currentToken = fastaParser.parseType(currentToken).next;
+    return astBuilder.pop();
+  }
+
+  @override
+  TypeArgumentList parseTypeArgumentList() {
+    currentToken = fastaParser
+        .parseTypeArgumentsOpt(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  TypeName parseTypeName(bool inExpression) {
+    currentToken = fastaParser.parseType(currentToken).next;
+    return astBuilder.pop();
+  }
+
+  @override
+  TypeParameter parseTypeParameter() {
+    currentToken = fastaParser
+        .parseTypeVariable(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  TypeParameterList parseTypeParameterList() {
+    currentToken = fastaParser
+        .parseTypeVariablesOpt(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
+    return astBuilder.pop();
+  }
+
+  @override
+  Expression parseUnaryExpression() => parseExpression2();
 }
 
 /**

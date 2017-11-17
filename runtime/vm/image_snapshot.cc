@@ -16,16 +16,16 @@ namespace dart {
 int32_t ImageWriter::GetTextOffsetFor(RawInstructions* instructions,
                                       RawCode* code) {
   intptr_t heap_size = instructions->Size();
-  intptr_t offset = next_offset_;
-  next_offset_ += heap_size;
+  intptr_t offset = next_text_offset_;
+  next_text_offset_ += heap_size;
   instructions_.Add(InstructionsData(instructions, code, offset));
   return offset;
 }
 
 int32_t ImageWriter::GetDataOffsetFor(RawObject* raw_object) {
   intptr_t heap_size = raw_object->Size();
-  intptr_t offset = next_object_offset_;
-  next_object_offset_ += heap_size;
+  intptr_t offset = next_data_offset_;
+  next_data_offset_ += heap_size;
   objects_.Add(ObjectData(raw_object));
   return offset;
 }
@@ -66,7 +66,7 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
   // Heap page starts here.
 
-  stream->WriteWord(next_object_offset_);  // Data length.
+  stream->WriteWord(next_data_offset_);  // Data length.
   COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
   stream->Align(OS::kMaxPreferredCodeAlignment);
 
@@ -100,7 +100,6 @@ AssemblyImageWriter::AssemblyImageWriter(uint8_t** assembly_buffer,
                                          intptr_t initial_size)
     : ImageWriter(),
       assembly_stream_(assembly_buffer, alloc, initial_size),
-      text_size_(0),
       dwarf_(NULL) {
 #if defined(DART_PRECOMPILER)
   Zone* zone = Thread::Current()->zone();
@@ -139,7 +138,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
   // This head also provides the gap to make the instructions snapshot
   // look like a HeapPage.
-  intptr_t instructions_length = next_offset_;
+  intptr_t instructions_length = next_text_offset_;
   WriteWordLiteralText(instructions_length);
   intptr_t header_words = Image::kHeaderSize / sizeof(uword);
   for (intptr_t i = 1; i < header_words; i++) {
@@ -332,7 +331,7 @@ void AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   // This header provides the gap to make the instructions snapshot look like a
   // HeapPage.
-  intptr_t instructions_length = next_offset_;
+  intptr_t instructions_length = next_text_offset_;
   instructions_blob_stream_.WriteWord(instructions_length);
   intptr_t header_words = Image::kHeaderSize / sizeof(uword);
   for (intptr_t i = 1; i < header_words; i++) {

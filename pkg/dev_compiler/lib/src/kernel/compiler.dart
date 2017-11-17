@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 import 'dart:math' show max, min;
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide ConstantVisitor;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
@@ -125,13 +125,54 @@ class ProgramCompiler
 
   final Map<String, String> declaredVariables;
 
-  /// A map of in-scope labeled statements and associated information to compile
-  /// a kernel `break` into a JS `break` or `continue` as appropriate.
-  final _labels = new HashMap<LabeledStatement, LabelTarget>.identity();
+  // Compilation of Kernel's [BreakStatement].
+  //
+  // Kernel represents Dart's `break` and `continue` uniformly as
+  // [BreakStatement], by representing a loop continue as a break from the
+  // loop's body.  [BreakStatement] always targets an enclosing
+  // [LabeledStatement] statement directly without naming it.  (Continue to
+  // a labeled switch case is not represented by a [BreakStatement].)
+  //
+  // We prefer to compile to `continue` where possible and to avoid labeling
+  // statements where it is not necessary.  We maintain some state to track
+  // which statements can be targets of break or continue without a label, which
+  // statements must be labeled to be targets, and the labels that have been
+  // assigned.
 
-  /// The currently active label in [_labels], used so we can
-  /// break/continue to the immediately enclosing block without a label name.
-  LabelTarget _currentLabel;
+  /// A list of statements that can be the target of break without a label.
+  ///
+  /// A [BreakStatement] targeting any [LabeledStatement] in this list can be
+  /// compiled to a break without a label.  All the statements in the list have
+  /// the same effective target which must compile to something that can be
+  /// targeted by break in JS.  This list and [_currentContinueTargets] are
+  /// disjoint.
+  List<LabeledStatement> _currentBreakTargets = [];
+
+  /// A list of statements that can be the target of a continue without a label.
+  ///
+  /// A [BreakStatement] targeting any [LabeledStatement] in this list can be
+  /// compiled to a continue without a label.  All the statements in this list
+  /// have the same effective target which must compile to something that can be
+  /// targeted by continue in JS.  This list and [_currentBreakTargets] are
+  /// disjoint.
+  List<LabeledStatement> _currentContinueTargets = [];
+
+  /// A map from labeled statements to their 'effective targets'.
+  ///
+  /// The effective target of a labeled loop body is the enclosing loop.  A
+  /// [BreakStatement] targeting this statement can be compiled to `continue`
+  /// either with or without a label.  The effective target of a labeled
+  /// statement that is not a loop body is the outermost non-labeled statement
+  /// that it encloses.  A [BreakStatement] targeting this statement can be
+  /// compiled to `break` either with or without a label.
+  final _effectiveTargets = new HashMap<LabeledStatement, Statement>.identity();
+
+  /// A map from effective targets to their label names.
+  ///
+  /// If the target needs to be labeled when compiled to JS, because it was
+  /// targeted by a break or continue with a label, then this map contains the
+  /// label name that was assigned to it.
+  final _labelNames = new HashMap<Statement, String>.identity();
 
   final Class _jsArrayClass;
   final Class privateSymbolClass;
@@ -440,7 +481,7 @@ class ProgramCompiler
     if (c.typeParameters.isNotEmpty) {
       // Generic classes will be defined inside a function that closes over the
       // type parameter. So we can use their local variable name directly.
-      className = new JS.Identifier(getClassName(c));
+      className = new JS.Identifier(getLocalClassName(c));
     } else {
       className = _emitTopLevelName(c);
     }
@@ -527,7 +568,7 @@ class ProgramCompiler
 
   JS.Statement _emitClassStatement(Class c, JS.Expression className,
       JS.Expression heritage, List<JS.Method> methods) {
-    var name = getClassName(c);
+    var name = getLocalClassName(c);
     var classExpr =
         new JS.ClassExpression(new JS.Identifier(name), heritage, methods);
     if (c.typeParameters.isNotEmpty) {
@@ -657,7 +698,7 @@ class ProgramCompiler
         mixinBody.add(_callHelperStatement('mixinMembers(#, #)', [
           className,
           new JS.ClassExpression(
-              new JS.TemporaryId(getClassName(c)), mixinClass, methods)
+              new JS.TemporaryId(getLocalClassName(c)), mixinClass, methods)
         ]));
       }
 
@@ -668,8 +709,9 @@ class ProgramCompiler
     if (c.isMixinApplication) {
       var m = c.mixedInType.asInterfaceType;
 
-      var mixinId = new JS.TemporaryId(
-          getClassName(c.superclass) + '_' + getClassName(c.mixedInClass));
+      var mixinId = new JS.TemporaryId(getLocalClassName(c.superclass) +
+          '_' +
+          getLocalClassName(c.mixedInClass));
       body.add(new JS.ClassExpression(mixinId, baseClass, []).toStatement());
       // Add constructors
 
@@ -939,7 +981,7 @@ class ProgramCompiler
     if (isClassSymbol == null) {
       // TODO(jmesserly): we could export these symbols, if we want to mark
       // implemented interfaces for user-defined classes.
-      var id = new JS.TemporaryId("_is_${getClassName(c)}_default");
+      var id = new JS.TemporaryId("_is_${getLocalClassName(c)}_default");
       _moduleItems.add(
           js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
       isClassSymbol = id;
@@ -1232,7 +1274,6 @@ class ProgramCompiler
 
   JS.Block _emitConstructorBody(
       Constructor node, List<Field> fields, JS.Expression className) {
-    var body = <JS.Statement>[];
     var cls = node.enclosingClass;
 
     // Generate optional/named argument value assignment. These can not have
@@ -1240,8 +1281,7 @@ class ProgramCompiler
     // nice to do them first.
     // Also for const constructors we need to ensure default values are
     // available for use by top-level constant initializers.
-    var init = _emitArgumentInitializers(node.function);
-    if (init != null) body.add(init);
+    var body = _emitArgumentInitializers(node.function);
 
     // Redirecting constructors: these are not allowed to have initializers,
     // and the redirecting ctor invocation runs before field initializers.
@@ -2332,7 +2372,7 @@ class ProgramCompiler
     // have to use a helper to define them.
     if (isJSAnonymousType(c)) {
       return _callHelper(
-          'anonymousJSType(#)', js.escapedString(getClassName(c)));
+          'anonymousJSType(#)', js.escapedString(getLocalClassName(c)));
     }
     var jsName = _getJSNameWithoutGlobal(c);
     if (jsName != null) {
@@ -2477,7 +2517,7 @@ class ProgramCompiler
 
   JS.Identifier _emitTypeParameter(TypeParameter t) {
     _typeParamInConst?.add(t);
-    return new JS.Identifier(t.name);
+    return new JS.Identifier(getTypeParameterName(t));
   }
 
   @override
@@ -2544,14 +2584,16 @@ class ProgramCompiler
 
   void _emitVirtualFieldSymbols(Class c, List<JS.Statement> body) {
     _classProperties.virtualFields.forEach((field, virtualField) {
-      body.add(js.statement('const # = Symbol(#);',
-          [virtualField, js.string('${getClassName(c)}.${field.name.name}')]));
+      body.add(js.statement('const # = Symbol(#);', [
+        virtualField,
+        js.string('${getLocalClassName(c)}.${field.name.name}')
+      ]));
     });
   }
 
   List<JS.Parameter> _emitTypeFormals(List<TypeParameter> typeFormals) {
     return typeFormals
-        .map((t) => new JS.Identifier(t.name))
+        .map((t) => new JS.Identifier(getTypeParameterName(t)))
         .toList(growable: false);
   }
 
@@ -2668,38 +2710,42 @@ class ProgramCompiler
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
-    var block = <JS.Statement>[];
-    var initArgs = _emitArgumentInitializers(f);
-    if (initArgs != null) block.add(initArgs);
+    var block = _emitArgumentInitializers(f);
     var jsBody = _visitStatement(f.body);
-    if (jsBody != null) block.add(jsBody);
-
-    bool shadowsParam = false;
-    var body = f.body;
-    if (body is Block) {
-      var params = new Set<String>()
-        ..addAll(f.positionalParameters.map((p) => p.name))
-        ..addAll(f.namedParameters.map((p) => p.name));
-      shadowsParam = body.statements
-          .any((s) => s is VariableDeclaration && params.contains(s.name));
+    if (jsBody != null) {
+      if (jsBody is JS.Block && (block.isEmpty || !jsBody.isScope)) {
+        // If the body is a nested block that can be flattened, do so.
+        block.addAll(jsBody.statements);
+      } else {
+        block.add(jsBody);
+      }
     }
 
     _initTempVars(block);
     _currentFunction = savedFunction;
     _letVariables = savedLetVariables;
 
-    if (shadowsParam) {
-      return new JS.Block([new JS.Block(block, isScope: shadowsParam)]);
+    if (f.asyncMarker == AsyncMarker.Sync) {
+      // It is a JS syntax error to use let or const to bind two variables with
+      // the same name in the same scope.  If the let- and const- bound
+      // variables in the block shadow any of the parameters, wrap the body in
+      // an extra block.  (sync*, async, and async* function bodies are placed
+      // in an inner function that is a separate scope from the parameters.)
+      var parameterNames = new Set<String>()
+        ..addAll(f.positionalParameters.map((p) => p.name))
+        ..addAll(f.namedParameters.map((p) => p.name));
+
+      if (block.any((s) => s.shadows(parameterNames))) {
+        block = [new JS.Block(block, isScope: true)];
+      }
     }
+
     return new JS.Block(block);
   }
 
   /// Emits argument initializers, which handles optional/named args, as well
   /// as generic type checks needed due to our covariance.
-  JS.Statement _emitArgumentInitializers(FunctionNode f) {
-    if (f.positionalParameters.isEmpty && f.namedParameters.isEmpty)
-      return null;
-
+  List<JS.Statement> _emitArgumentInitializers(FunctionNode f) {
     var body = <JS.Statement>[];
 
     _emitCovarianceBoundsCheck(f.typeParameters, body);
@@ -2754,7 +2800,7 @@ class ProgramCompiler
       }
       initParameter(p, jsParam);
     }
-    return body.isEmpty ? null : JS.Statement.from(body);
+    return body;
   }
 
   bool _annotatedNullCheck(List<Expression> annotations) =>
@@ -2821,7 +2867,13 @@ class ProgramCompiler
 
   JS.Statement _visitStatement(Statement s) {
     // TODO(jmesserly): attach source mapping to statements
-    return s?.accept(this);
+    var result = s?.accept(this);
+    if (result != null) {
+      // The statement might be the target of a break or continue with a label.
+      var name = _labelNames[s];
+      if (name != null) result = new JS.LabeledStatement(name, result);
+    }
+    return result;
   }
 
   /// Visits [nodes] with [_visitExpression].
@@ -2917,59 +2969,117 @@ class ProgramCompiler
     ]);
   }
 
+  static isBreakable(Statement stmt) {
+    // These are conservatively the things that compile to things that can be
+    // the target of a break without a label.
+    return stmt is ForStatement ||
+        stmt is WhileStatement ||
+        stmt is DoStatement ||
+        stmt is ForInStatement ||
+        stmt is SwitchStatement;
+  }
+
   @override
   visitLabeledStatement(LabeledStatement node) {
-    var labelTarget = _labels[node];
-    if (labelTarget != null) {
-      assert(identical(node, labelTarget.continueLabel));
-      return _visitStatement(node.body);
-    }
-    labelTarget = new LabelTarget(node);
+    var saved;
+    var target = _effectiveTargets[node];
+    // If the effective target is known then this statement is either contained
+    // in a labeled statement or a loop.  It has already been processed when
+    // the enclosing statement was visited.
+    if (target == null) {
+      // Find the effective target by bypassing and collecting labeled
+      // statements.
+      var statements = [node];
+      target = node.body;
+      while (target is LabeledStatement) {
+        statements.add(target);
+        target = (target as LabeledStatement).body;
+      }
+      for (var statement in statements) _effectiveTargets[statement] = target;
 
-    var savedLabel = _currentLabel;
-    _labels[node] = _currentLabel = labelTarget;
-    var continueLabel = labelTarget.continueLabel;
-    if (continueLabel != null) _labels[continueLabel] = labelTarget;
+      // If the effective target will compile to something that can have a
+      // break from it without a label (e.g., a loop but not a block), then any
+      // of the labeled statements can have a break from them by breaking from
+      // the effective target.  Otherwise breaks will need a label and a break
+      // without a label can still target an outer breakable so the list of
+      // current break targets does not change.
+      if (isBreakable(target)) {
+        saved = _currentBreakTargets;
+        _currentBreakTargets = statements;
+      }
+    }
 
     var result = _visitStatement(node.body);
-
-    _labels.remove(node);
-    if (continueLabel != null) _labels.remove(continueLabel);
-
-    _currentLabel = savedLabel;
-
-    var name = labelTarget.name;
-    return name != null ? new JS.LabeledStatement(name, result) : result;
+    if (saved != null) _currentBreakTargets = saved;
+    return result;
   }
 
   @override
   visitBreakStatement(BreakStatement node) {
-    var labelTarget = _labels[node.target];
-    if (labelTarget == null) {
-      throw new StateError('Trying to break to a non-enclosing label.');
+    // Can it be compiled to a break without a label?
+    if (_currentBreakTargets.contains(node.target)) {
+      return new JS.Break(null);
     }
-    String name;
-    if (!identical(labelTarget, _currentLabel)) {
-      // If we're not breaking to the immediately enclosing label, choose a name
-      // so we can break/continue to to it.
-      //
-      // TODO(jmesserly): this naming scheme is not ideal; we should use a user
-      // provided name when possible.
-      name = labelTarget.name ??= 'L${_labels.length}';
+    // Can it be compiled to a continue without a label?
+    if (_currentContinueTargets.contains(node.target)) {
+      return new JS.Continue(null);
     }
 
-    var isContinue = identical(node.target, labelTarget.continueLabel);
-    return isContinue ? new JS.Continue(name) : new JS.Break(name);
+    // Ensure the effective target is labeled.  Labels are named globally per
+    // Kernel binary.
+    //
+    // TODO(kmillikin): Preserve Dart label names in Kernel and here.
+    var target = _effectiveTargets[node.target];
+    var name = _labelNames[target];
+    if (name == null) _labelNames[target] = name = 'L${_labelNames.length}';
+
+    // It is a break if the target labeled statement encloses the effective
+    // target.
+    var current = node.target;
+    while (current is LabeledStatement) {
+      current = (current as LabeledStatement).body;
+    }
+    if (identical(current, target)) {
+      return new JS.Break(name);
+    }
+    // Otherwise it is a continue.
+    return new JS.Continue(name);
+  }
+
+  // Labeled loop bodies can be the target of a continue without a label
+  // (targeting the loop).  Find the outermost non-labeled statement starting
+  // from body and record all the intermediate labeled statements as continue
+  // targets.
+  Statement effectiveBodyOf(Statement loop, Statement body) {
+    // In a loop whose body is not labeled, this list should be empty because
+    // it is not possible to continue to an outer loop without a label.
+    _currentContinueTargets = <LabeledStatement>[];
+    while (body is LabeledStatement) {
+      _currentContinueTargets.add(body);
+      _effectiveTargets[body] = loop;
+      body = (body as LabeledStatement).body;
+    }
+    return body;
   }
 
   @override
   JS.While visitWhileStatement(WhileStatement node) {
-    return new JS.While(_visitTest(node.condition), _visitScope(node.body));
+    var condition = _visitTest(node.condition);
+
+    var saved = _currentContinueTargets;
+    var body = _visitScope(effectiveBodyOf(node, node.body));
+    _currentContinueTargets = saved;
+
+    return new JS.While(condition, body);
   }
 
   @override
   JS.Do visitDoStatement(DoStatement node) {
-    return new JS.Do(_visitScope(node.body), _visitTest(node.condition));
+    var saved = _currentContinueTargets;
+    var body = _visitScope(effectiveBodyOf(node, node.body));
+    _currentContinueTargets = saved;
+
+    return new JS.Do(body, _visitTest(node.condition));
   }
 
   @override
@@ -2989,7 +3099,12 @@ class ProgramCompiler
           .toVoidExpression();
     }
     var condition = _visitTest(node.condition);
-    return new JS.For(initList, condition, update, _visitScope(node.body));
+
+    var saved = _currentContinueTargets;
+    var body = _visitScope(effectiveBodyOf(node, node.body));
+    _currentContinueTargets = saved;
+
+    return new JS.For(initList, condition, update, body);
   }
 
   @override
@@ -2999,7 +3114,11 @@ class ProgramCompiler
     }
 
     var iterable = _visitAndMarkExpression(node.iterable);
-    var body = _visitScope(node.body);
+
+    var saved = _currentContinueTargets;
+    var body = _visitScope(effectiveBodyOf(node, node.body));
+    _currentContinueTargets = saved;
+
     var v = _emitVariableRef(node.variable);
     var init = js.call('let #', v);
     if (_annotatedNullCheck(node.variable.annotations)) {
@@ -3131,7 +3250,7 @@ class ProgramCompiler
   @override
   visitTryCatch(TryCatch node) {
     return new JS.Try(
-        _visitStatement(node.body), _visitCatch(node.catches), null);
+        _visitStatement(node.body).toBlock(), _visitCatch(node.catches), null);
   }
 
   JS.Catch _visitCatch(List<Catch> clauses) {
@@ -3198,7 +3317,7 @@ class ProgramCompiler
     _superAllowed = false;
     var finallyBlock = _visitStatement(node.finalizer);
     _superAllowed = savedSuperAllowed;
-    return new JS.Try(body, catchPart, finallyBlock);
+    return new JS.Try(body.toBlock(), catchPart, finallyBlock.toBlock());
   }
 
   @override
@@ -3263,6 +3382,11 @@ class ProgramCompiler
 
   @override
   visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
+
+  // [ConstantExpression] is produced by the Kernel constant evaluator, which
+  // we do not use.
+  @override
+  visitConstantExpression(ConstantExpression node) => defaultExpression(node);
 
   @override
   visitVariableGet(VariableGet node) => _emitVariableRef(node.variable);
@@ -4677,21 +4801,3 @@ bool isObjectMember(String name) {
 
 bool _isObjectMethod(String name) =>
     name == 'toString' || name == 'noSuchMethod';
-
-class LabelTarget {
-  final LabeledStatement label;
-  LabeledStatement continueLabel;
-  String name;
-
-  LabelTarget(this.label) {
-    var body = label.body;
-    var loopBody = body is ForStatement
-        ? body.body
-        : body is ForInStatement
-            ? body.body
-            : body is DoStatement
-                ? body.body
-                : body is WhileStatement ? body.body : null;
-    continueLabel = loopBody is LabeledStatement ? loopBody : null;
-  }
-}

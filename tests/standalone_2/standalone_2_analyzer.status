@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
-io/file_constructor_test: fail
 io/process_exit_negative_test: Skip
 io/http_parser_test: Pass, StaticWarning, CompileTimeError # Issue 28843
 io/http_headers_test: Pass, StaticWarning, CompileTimeError # Issue 28843

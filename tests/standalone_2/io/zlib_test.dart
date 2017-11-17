@@ -26,8 +26,9 @@ void testZLibDeflateEmpty() {
 void testZLibDeflateEmptyGzip() {
   asyncStart();
   var controller = new StreamController(sync: true);
-  controller.stream.transform(new ZLibEncoder(gzip: true, level: 6)).fold([],
-      (buffer, data) {
+  controller.stream
+      .transform(new ZLibEncoder(gzip: true, level: 6))
+      .fold(<int>[], (buffer, data) {
     buffer.addAll(data);
     return buffer;
   }).then((data) {

@@ -15,7 +15,7 @@ import "package:path/path.dart";
 check(String path, int start, int end, FileLock mode, {bool locked}) {
   // Client process returns either 'LOCK FAILED' or 'LOCK SUCCEEDED'.
   var expected = locked ? 'LOCK FAILED' : 'LOCK SUCCEEDED';
-  var arguments = []
+  var arguments = <String>[]
     ..addAll(Platform.executableArguments)
     ..add(Platform.script.resolve('file_lock_script.dart').toFilePath())
     ..add(path)

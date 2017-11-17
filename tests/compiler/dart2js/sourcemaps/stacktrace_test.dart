@@ -268,7 +268,10 @@ void main(List<String> arguments) {
 }
 
 Future runTest(int index, Test test,
-    {bool printJs: false, bool writeJs, bool verbose: false}) async {
+    {bool printJs: false,
+    bool writeJs,
+    bool verbose: false,
+    List<String> options: const <String>[]}) async {
   Directory tmpDir = await createTempDir();
   String input = '${tmpDir.path}/$INPUT_FILE_NAME';
   new File(input).writeAsStringSync(test.code);
@@ -279,13 +282,16 @@ Future runTest(int index, Test test,
     '--packages=${Platform.packageConfig}',
     Flags.useNewSourceInfo,
     input,
-  ];
+  ]..addAll(options);
   print("--$index------------------------------------------------------------");
   print("Compiling dart2js ${arguments.join(' ')}\n${test.code}");
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess,
       "Unsuccessful compilation of test:\n${test.code}");
-  String sourceMapText = new File('$output.map').readAsStringSync();
+  File sourceMapFile = new File('$output.map');
+  Expect.isTrue(
+      sourceMapFile.existsSync(), "Source map not generated for $arguments");
+  String sourceMapText = sourceMapFile.readAsStringSync();
   SingleMapping sourceMap = parse(sourceMapText);
 
   if (printJs) {

@@ -30,9 +30,7 @@ compute_this_script_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/types.dart': 
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError
-native_method_inlining_test: RuntimeError
 native_mirror_test: RuntimeError
-native_mixin_field_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
 optimization_hints_test: RuntimeError
@@ -46,9 +44,7 @@ bound_closure_super_test: RuntimeError
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError
-native_method_inlining_test: RuntimeError
 native_mirror_test: RuntimeError
-native_mixin_field_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
 optimization_hints_test: RuntimeError
@@ -68,6 +64,28 @@ native_mixin_field_test: RuntimeError
 native_no_such_method_exception3_frog_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
+optimization_hints_test: RuntimeError
+subclassing_constructor_1_test: RuntimeError
+subclassing_super_call_test: RuntimeError
+subclassing_super_field_1_test: RuntimeError
+subclassing_super_field_2_test: RuntimeError
+
+[ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+bound_closure_super_test: RuntimeError
+event_loop_test: RuntimeError
+fake_thing_test: RuntimeError
+internal_library_test: RuntimeError
+mirror_intercepted_field_test: RuntimeError
+native_checked_fields_frog_test: RuntimeError
+native_class_fields_3_test: RuntimeError
+native_class_fields_test: RuntimeError
+native_field_name_test: RuntimeError
+native_library_same_name_used_frog_test: CompileTimeError
+native_mirror_test: RuntimeError
+native_no_such_method_exception3_frog_test: RuntimeError
+native_no_such_method_exception4_frog_test: RuntimeError
+native_no_such_method_exception5_frog_test: RuntimeError
+oddly_named_fields_test: RuntimeError
 optimization_hints_test: RuntimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_super_call_test: RuntimeError

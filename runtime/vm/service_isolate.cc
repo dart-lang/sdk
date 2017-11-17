@@ -331,11 +331,12 @@ class RunServiceTask : public ThreadPool::Task {
 
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
-    if (FLAG_strong) {
+    if (api_flags.strong) {
       // TODO(dartbug.com/31203) currently we don't have a strong version of
       // vm service so disable type checking in the service completely.
       api_flags.enable_type_checks = false;
       api_flags.enable_asserts = false;
+      api_flags.strong = false;
     }
 
     isolate = reinterpret_cast<Isolate*>(create_callback(

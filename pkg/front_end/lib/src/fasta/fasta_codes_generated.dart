@@ -1040,6 +1040,19 @@ const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
     tip: r"""Try moving the enum to the top-level.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeEqualityCannotBeEqualityOperand =
+    messageEqualityCannotBeEqualityOperand;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
+    "EqualityCannotBeEqualityOperand",
+    analyzerCode: "EQUALITY_CANNOT_BE_EQUALITY_OPERAND",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""An equality expression can't be an operand of another equality expression.""",
+    tip: r"""Try re-writing the expression.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedAnInitializer = messageExpectedAnInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2269,6 +2282,14 @@ $string""", arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInterpolationInUri = messageInterpolationInUri;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInterpolationInUri = const MessageCode(
+    "InterpolationInUri",
+    message: r"""Can't use string interpolation in a URI.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType type,
@@ -2309,6 +2330,15 @@ const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
     tip: r"""Try removing the keyword, or use a for-each statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageInvalidInitializer = const MessageCode(
+    "InvalidInitializer",
+    message: r"""Not a valid initializer.""",
+    tip: r"""To initialize a field, use the syntax 'name = value'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidInlineFunctionType =
     messageInvalidInlineFunctionType;
 
@@ -2319,6 +2349,27 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
     message: r"""Invalid inline function type.""",
     tip:
         r"""Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)> templateInvalidOperator =
+    const Template<Message Function(Token token)>(
+        messageTemplate:
+            r"""The string '#lexeme' isn't a user-definable operator.""",
+        withArguments: _withArgumentsInvalidOperator);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)> codeInvalidOperator =
+    const Code<Message Function(Token token)>(
+        "InvalidOperator", templateInvalidOperator,
+        analyzerCode: "INVALID_OPERATOR", dart2jsCode: "*fatal*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidOperator(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeInvalidOperator,
+      message: """The string '$lexeme' isn't a user-definable operator.""",
+      arguments: {'token': token});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_, String string)>
@@ -2580,6 +2631,18 @@ const MessageCode messageMissingMethodParameters = const MessageCode(
     dart2jsCode: "*fatal*",
     message: r"""A method declaration needs an explicit list of parameters.""",
     tip: r"""Try adding a parameter list to the method declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingOperatorKeyword = messageMissingOperatorKeyword;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingOperatorKeyword = const MessageCode(
+    "MissingOperatorKeyword",
+    analyzerCode: "MISSING_KEYWORD_OPERATOR",
+    dart2jsCode: "*fatal*",
+    message:
+        r"""Operator declarations must be preceeded by the keyword 'operator'.""",
+    tip: r"""Try adding the keyword 'operator'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -3584,6 +3647,16 @@ const MessageCode messageStaticOperator = const MessageCode("StaticOperator",
     dart2jsCode: "EXTRANEOUS_MODIFIER",
     message: r"""Operators can't be static.""",
     tip: r"""Try removing the keyword 'static'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeSuperAsExpression = messageSuperAsExpression;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageSuperAsExpression = const MessageCode(
+    "SuperAsExpression",
+    message: r"""Super calls can't be used as expressions.""",
+    tip:
+        r"""To delegate a constructor to a super constructor, put the super call as an initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperAsIdentifier = messageSuperAsIdentifier;

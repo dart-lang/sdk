@@ -20,15 +20,19 @@ def debugLog(message):
 # backwards-compatible.
 VM_SNAPSHOT_FILES=[
   # Header files.
+  'clustered_snapshot.h',
   'datastream.h',
+  'image_snapshot.h',
   'object.h',
   'raw_object.h',
   'snapshot.h',
   'snapshot_ids.h',
   'symbols.h',
   # Source files.
+  'clustered_snapshot.cc',
   'dart.cc',
   'dart_api_impl.cc',
+  'image_snapshot.cc',
   'object.cc',
   'raw_object.cc',
   'raw_object_snapshot.cc',

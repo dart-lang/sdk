@@ -17,19 +17,19 @@ part of dart.async;
  * Frequently the duration is either a constant or computed as in the
  * following example (taking advantage of the multiplication operator of
  * the [Duration] class):
+ * ```dart
+ * const timeout = const Duration(seconds: 3);
+ * const ms = const Duration(milliseconds: 1);
  *
- *     const TIMEOUT = const Duration(seconds: 3);
- *     const ms = const Duration(milliseconds: 1);
- *
- *     startTimeout([int milliseconds]) {
- *       var duration = milliseconds == null ? TIMEOUT : ms * milliseconds;
- *       return new Timer(duration, handleTimeout);
- *     }
- *     ...
- *     void handleTimeout() {  // callback function
- *       ...
- *     }
- *
+ * startTimeout([int milliseconds]) {
+ *   var duration = milliseconds == null ? timeout : ms * milliseconds;
+ *   return new Timer(duration, handleTimeout);
+ * }
+ * ...
+ * void handleTimeout() {  // callback function
+ *   ...
+ * }
+ * ```
  * Note: If Dart code using Timer is compiled to JavaScript, the finest
  * granularity available in the browser is 4 milliseconds.
  *
@@ -43,7 +43,7 @@ abstract class Timer {
    *
    */
   factory Timer(Duration duration, void callback()) {
-    if (Zone.current == Zone.ROOT) {
+    if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
       return Zone.current.createTimer(duration, callback);
@@ -69,7 +69,7 @@ abstract class Timer {
    * scheduled for - even if the actual callback was delayed.
    */
   factory Timer.periodic(Duration duration, void callback(Timer timer)) {
-    if (Zone.current == Zone.ROOT) {
+    if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
       return Zone.current.createPeriodicTimer(duration, callback);
@@ -81,10 +81,10 @@ abstract class Timer {
   /**
    * Runs the given [callback] asynchronously as soon as possible.
    *
-   * This function is equivalent to `new Timer(Duration.ZERO, callback)`.
+   * This function is equivalent to `new Timer(Duration.zero, callback)`.
    */
   static void run(void callback()) {
-    new Timer(Duration.ZERO, callback);
+    new Timer(Duration.zero, callback);
   }
 
   /**

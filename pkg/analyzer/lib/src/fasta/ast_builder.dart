@@ -2183,6 +2183,15 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    assert(optional('operator', operatorKeyword));
+    debugEvent("InvalidOperatorName");
+
+    push(new _OperatorName(
+        operatorKeyword, ast.simpleIdentifier(token, isDeclaration: true)));
+  }
+
+  @override
   void beginMetadataStar(Token token) {
     debugEvent("beginMetadataStar");
   }

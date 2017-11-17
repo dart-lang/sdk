@@ -1332,7 +1332,7 @@ static bool GetUnusedChangesInLastReload(Thread* thread, JSONStream* js) {
     changed = changed_in_last_reload.At(i);
     if (changed.IsFunction()) {
       function ^= changed.raw();
-      if (function.usage_counter() == 0) {
+      if (!function.WasExecuted()) {
         jsarr.AddValue(function);
       }
     } else if (changed.IsField()) {
@@ -1350,7 +1350,7 @@ static bool GetUnusedChangesInLastReload(Thread* thread, JSONStream* js) {
         functions = cls.functions();
         for (intptr_t j = 0; j < functions.Length(); j++) {
           function ^= functions.At(j);
-          if (function.usage_counter() == 0) {
+          if (!function.WasExecuted()) {
             jsarr.AddValue(function);
           }
         }

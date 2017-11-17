@@ -131,42 +131,42 @@ testClamp() {
 
 testShuffle() {
   var m = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var xxxx = m.shuffle(Float32x4.XXXX);
+  var xxxx = m.shuffle(Float32x4.xxxx);
   Expect.equals(1.0, xxxx.x);
   Expect.equals(1.0, xxxx.y);
   Expect.equals(1.0, xxxx.z);
   Expect.equals(1.0, xxxx.w);
-  var yyyy = m.shuffle(Float32x4.YYYY);
+  var yyyy = m.shuffle(Float32x4.yyyy);
   Expect.equals(2.0, yyyy.x);
   Expect.equals(2.0, yyyy.y);
   Expect.equals(2.0, yyyy.z);
   Expect.equals(2.0, yyyy.w);
-  var zzzz = m.shuffle(Float32x4.ZZZZ);
+  var zzzz = m.shuffle(Float32x4.zzzz);
   Expect.equals(3.0, zzzz.x);
   Expect.equals(3.0, zzzz.y);
   Expect.equals(3.0, zzzz.z);
   Expect.equals(3.0, zzzz.w);
-  var wwww = m.shuffle(Float32x4.WWWW);
+  var wwww = m.shuffle(Float32x4.wwww);
   Expect.equals(4.0, wwww.x);
   Expect.equals(4.0, wwww.y);
   Expect.equals(4.0, wwww.z);
   Expect.equals(4.0, wwww.w);
-  var wzyx = m.shuffle(Float32x4.WZYX);
+  var wzyx = m.shuffle(Float32x4.wzyx);
   Expect.equals(4.0, wzyx.x);
   Expect.equals(3.0, wzyx.y);
   Expect.equals(2.0, wzyx.z);
   Expect.equals(1.0, wzyx.w);
-  var wwzz = m.shuffle(Float32x4.WWZZ);
+  var wwzz = m.shuffle(Float32x4.wwzz);
   Expect.equals(4.0, wwzz.x);
   Expect.equals(4.0, wwzz.y);
   Expect.equals(3.0, wwzz.z);
   Expect.equals(3.0, wwzz.w);
-  var xxyy = m.shuffle(Float32x4.XXYY);
+  var xxyy = m.shuffle(Float32x4.xxyy);
   Expect.equals(1.0, xxyy.x);
   Expect.equals(1.0, xxyy.y);
   Expect.equals(2.0, xxyy.z);
   Expect.equals(2.0, xxyy.w);
-  var yyww = m.shuffle(Float32x4.YYWW);
+  var yyww = m.shuffle(Float32x4.yyww);
   Expect.equals(2.0, yyww.x);
   Expect.equals(2.0, yyww.y);
   Expect.equals(4.0, yyww.z);
@@ -436,12 +436,12 @@ void testSpecialValues() {
     [4294967296.0, 4294967296.0],
     [4503599627370495.5, 4503599627370496.0],
     [9007199254740992.0, 9007199254740992.0],
-    [1.7976931348623157e+308, double.INFINITY],
+    [1.7976931348623157e+308, double.infinity],
     [0.49999999999999994, 0.5],
     [4503599627370497.0, 4503599627370496.0],
     [9007199254740991.0, 9007199254740992.0],
-    [double.INFINITY, double.INFINITY],
-    [double.NAN, double.NAN],
+    [double.infinity, double.infinity],
+    [double.nan, double.nan],
   ];
 
   var conserved = [

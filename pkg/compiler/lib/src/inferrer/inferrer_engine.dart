@@ -775,8 +775,12 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   bool hasCallType(ClassEntity cls);
 
   void processLoopInformation() {
-    types.allocatedCalls.forEach((dynamic info) {
+    types.allocatedCalls.forEach((CallSiteTypeInformation info) {
       if (!info.inLoop) return;
+      // We can't compute the callees of closures, no new information to add.
+      if (info is ClosureCallSiteTypeInformation) {
+        return;
+      }
       if (info is StaticCallSiteTypeInformation) {
         MemberEntity member = info.calledElement;
         closedWorldRefiner.addFunctionCalledInLoop(member);
@@ -785,7 +789,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.targets.forEach((MemberEntity element) {
+        info.callees.forEach((MemberEntity element) {
           closedWorldRefiner.addFunctionCalledInLoop(element);
         });
       }

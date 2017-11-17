@@ -1904,6 +1904,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+#if defined(TARGET_ARCH_DBC)
+  if (simulator() != NULL) {
+    simulator()->VisitObjectPointers(visitor);
+  }
+#endif  // defined(TARGET_ARCH_DBC)
+
   VisitStackPointers(visitor, validate_frames);
 }
 

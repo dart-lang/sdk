@@ -12,7 +12,7 @@ main() {
   // Pick an app that we expect to be on the PATH that returns 0 when run with
   // no arguments.
   var executable = 'true';
-  var args = [];
+  var args = <String>[];
   if (Platform.operatingSystem == 'windows') {
     executable = 'cmd.exe';
     args = ['/C', 'echo', '"ok"'];

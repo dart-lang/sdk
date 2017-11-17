@@ -49,7 +49,7 @@ void testRunShell() {
 }
 
 void testBadRunShell() {
-  test(exe, [args = const []]) {
+  test(exe, [List<String> args = const []]) {
     asyncStart();
     Process.run(exe, args, runInShell: true).then((result) {
       if (result.exitCode == 0) {

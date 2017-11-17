@@ -1117,6 +1117,11 @@ class AnalysisServerOptions {
    * should be accessed via a null-aware operator.
    */
   CrashReportSender crashReportSender;
+
+  /**
+   * Whether to enable the Dart 2.0 Front End.
+   */
+  bool previewDart2 = false;
 }
 
 /**
@@ -1331,6 +1336,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     builder.performanceLog = analysisServer._analysisPerformanceLogger;
     builder.byteStore = analysisServer.byteStore;
     builder.fileContentOverlay = analysisServer.fileContentOverlay;
+    builder.previewDart2 = analysisServer.options.previewDart2;
     return builder;
   }
 

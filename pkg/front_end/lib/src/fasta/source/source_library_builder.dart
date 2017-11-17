@@ -530,8 +530,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // This is an error, but the part is still included, so that
       // metadata annotations can be associated with it.
       assert(!part.isPart);
-      addCompileTimeError(
-          templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
+      if (uriIsValid(part.fileUri)) {
+        addCompileTimeError(
+            templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
+      }
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {
@@ -644,6 +646,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
           loader.instrumentation?.record(context.uri, context.charOffset,
               "context", new InstrumentationValueLiteral(context.code.name));
         }
+      }
+    }
+  }
+
+  @override
+  void addError(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    super.addError(message, charOffset, uri, silent: silent, context: context);
+    if (!silent) {
+      // TODO(ahe): Should I add a value for messages?
+      loader.instrumentation?.record(uri, charOffset, "error",
+          new InstrumentationValueLiteral(message.code.name));
+      if (context != null) {
+        loader.instrumentation?.record(context.uri, context.charOffset,
+            "context", new InstrumentationValueLiteral(context.code.name));
       }
     }
   }

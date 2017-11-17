@@ -13,7 +13,8 @@ import 'dart:isolate';
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-ConnectorIsolate(int port) async {
+ConnectorIsolate(Object portObj) async {
+  int port = portObj;
   Socket socket = await Socket.connect("127.0.0.1", port);
   socket.listen((_) {});
 }

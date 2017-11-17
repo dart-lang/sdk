@@ -19,6 +19,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
   SwitchCaseIndexer _switchCaseIndexer;
   final TypeParameterIndexer _typeParameterIndexer = new TypeParameterIndexer();
   final StringIndexer stringIndexer;
+  ConstantIndexer _constantIndexer;
   final StringIndexer _sourceUriIndexer = new StringIndexer();
   final Set<String> _knownSourceUri = new Set<String>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
@@ -38,6 +39,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
   int _binaryOffsetForSourceTable = -1;
   int _binaryOffsetForStringTable = -1;
   int _binaryOffsetForLinkTable = -1;
+  int _binaryOffsetForConstantTable = -1;
 
   List<CanonicalName> _canonicalNameList;
   Set<CanonicalName> _knownCanonicalNameNonRootTops = new Set<CanonicalName>();
@@ -53,7 +55,9 @@ class BinaryPrinter extends Visitor implements BinarySink {
   /// in every printer.
   BinaryPrinter(Sink<List<int>> sink, {StringIndexer stringIndexer})
       : _sink = new BufferedSink(sink),
-        stringIndexer = stringIndexer ?? new StringIndexer();
+        stringIndexer = stringIndexer ?? new StringIndexer() {
+    _constantIndexer = new ConstantIndexer(this.stringIndexer);
+  }
 
   void _flush() {
     _sink.flushAndDestroy();
@@ -93,10 +97,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     return _sink.flushedLength + _sink.length;
   }
 
-  void writeStringTable(StringIndexer indexer, bool updateBinaryOffset) {
-    if (updateBinaryOffset) {
-      _binaryOffsetForStringTable = getBufferOffset();
-    }
+  void writeStringTable(StringIndexer indexer) {
+    _binaryOffsetForStringTable = getBufferOffset();
 
     // Write the end offsets.
     writeUInt30(indexer.numberOfStrings);
@@ -117,6 +119,73 @@ class BinaryPrinter extends Visitor implements BinarySink {
 
   void writeStringReferenceList(List<String> strings) {
     writeList(strings, writeStringReference);
+  }
+
+  void writeConstantReference(Constant constant) {
+    writeUInt30(_constantIndexer.put(constant));
+  }
+
+  void writeConstantTable(ConstantIndexer indexer) {
+    _binaryOffsetForConstantTable = getBufferOffset();
+
+    writeUInt30(indexer.entries.length);
+    for (final entry in indexer.entries) {
+      writeConstantTableEntry(entry);
+    }
+  }
+
+  void writeConstantTableEntry(Constant constant) {
+    if (constant is NullConstant) {
+      writeByte(ConstantTag.NullConstant);
+    } else if (constant is BoolConstant) {
+      writeByte(ConstantTag.BoolConstant);
+      writeByte(constant.value ? 1 : 0);
+    } else if (constant is IntConstant) {
+      writeByte(ConstantTag.IntConstant);
+      writeInteger(constant.value);
+    } else if (constant is DoubleConstant) {
+      writeByte(ConstantTag.DoubleConstant);
+      writeStringReference('${constant.value}');
+    } else if (constant is StringConstant) {
+      writeByte(ConstantTag.StringConstant);
+      writeStringReference(constant.value);
+    } else if (constant is MapConstant) {
+      writeByte(ConstantTag.MapConstant);
+      writeDartType(constant.keyType);
+      writeDartType(constant.valueType);
+      writeUInt30(constant.entries.length);
+      for (final ConstantMapEntry entry in constant.entries) {
+        writeConstantReference(entry.key);
+        writeConstantReference(entry.value);
+      }
+    } else if (constant is ListConstant) {
+      writeByte(ConstantTag.ListConstant);
+      writeDartType(constant.typeArgument);
+      writeUInt30(constant.entries.length);
+      constant.entries.forEach(writeConstantReference);
+    } else if (constant is InstanceConstant) {
+      writeByte(ConstantTag.InstanceConstant);
+      writeClassReference(constant.klass);
+      writeUInt30(constant.typeArguments.length);
+      constant.typeArguments.forEach(writeDartType);
+      writeUInt30(constant.fieldValues.length);
+      constant.fieldValues.forEach((Reference fieldRef, Constant value) {
+        writeCanonicalNameReference(fieldRef.canonicalName);
+        writeConstantReference(value);
+      });
+    } else if (constant is TearOffConstant) {
+      writeByte(ConstantTag.TearOffConstant);
+      writeCanonicalNameReference(constant.procedure.canonicalName);
+    } else if (constant is TypeLiteralConstant) {
+      writeByte(ConstantTag.TypeLiteralConstant);
+      writeDartType(constant.type);
+    } else {
+      throw 'Unsupported constant $constant';
+    }
+  }
+
+  void writeDartType(DartType type) {
+    type.accept(this);
   }
 
   void writeUriReference(String string) {
@@ -220,7 +289,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeUriToSource(program.uriToSource);
     writeLinkTable(program);
     _writeMetadataMappingSection(program);
-    writeStringTable(stringIndexer, true);
+    writeStringTable(stringIndexer);
+    writeConstantTable(_constantIndexer);
     writeProgramIndex(program, program.libraries);
 
     _flush();
@@ -345,6 +415,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeUInt32(_binaryOffsetForLinkTable);
     assert(_binaryOffsetForStringTable >= 0);
     writeUInt32(_binaryOffsetForStringTable);
+    assert(_binaryOffsetForConstantTable >= 0);
+    writeUInt32(_binaryOffsetForConstantTable);
 
     CanonicalName main = getCanonicalNameOfMember(program.mainMethod);
     if (main == null) {
@@ -974,7 +1046,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
   }
 
   visitIntLiteral(IntLiteral node) {
-    int value = node.value;
+    writeInteger(node.value);
+  }
+
+  writeInteger(int value) {
     int biasedValue = value + Tag.SpecializedIntLiteralBias;
     if (biasedValue >= 0 &&
         biasedValue & Tag.SpecializedPayloadMask == biasedValue) {
@@ -990,14 +1065,18 @@ class BinaryPrinter extends Visitor implements BinarySink {
     } else {
       // TODO: Pick a better format for big int literals.
       writeByte(Tag.BigIntLiteral);
-      writeStringReference('${node.value}');
+      writeStringReference('$value');
     }
   }
 
   visitDoubleLiteral(DoubleLiteral node) {
+    writeDouble(node.value);
+  }
+
+  writeDouble(double value) {
     // TODO: Pick a better format for double literals.
     writeByte(Tag.DoubleLiteral);
-    writeStringReference('${node.value}');
+    writeStringReference('$value');
   }
 
   visitBoolLiteral(BoolLiteral node) {
@@ -1157,6 +1236,11 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeByte(Tag.LabeledStatement);
     writeNode(node.body);
     _labelIndexer.exit();
+  }
+
+  visitConstantExpression(ConstantExpression node) {
+    writeByte(Tag.ConstantExpression);
+    writeConstantReference(node.constant);
   }
 
   visitBreakStatement(BreakStatement node) {
@@ -1414,6 +1498,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeNode(node.bound);
   }
 
+  defaultConstant(Constant node) {
+    throw 'Implement handling of ${node.runtimeType}';
+  }
+
   defaultNode(Node node) {
     throw 'Unsupported node: $node';
   }
@@ -1477,6 +1565,72 @@ class SwitchCaseIndexer {
   }
 
   int operator [](SwitchCase node) => index[node];
+}
+
+class ConstantIndexer extends RecursiveVisitor {
+  final StringIndexer stringIndexer;
+
+  final List<Constant> entries = <Constant>[];
+  final Map<Constant, int> index = <Constant, int>{};
+
+  ConstantIndexer(this.stringIndexer);
+
+  defaultConstantReference(Constant node) {
+    put(node);
+  }
+
+  int put(Constant constant) {
+    final int value = index[constant];
+    if (value != null) return value;
+
+    // Traverse DAG in post-order to ensure children have their id's assigned
+    // before the parent.
+    return constant.accept(this);
+  }
+
+  defaultConstant(Constant node) {
+    final int oldIndex = index[node];
+    if (oldIndex != null) return oldIndex;
+
+    if (node is StringConstant) {
+      stringIndexer.put(node.value);
+    } else if (node is DoubleConstant) {
+      stringIndexer.put('${node.value}');
+    } else if (node is IntConstant) {
+      final int value = node.value;
+      if ((value.abs() >> 30) != 0) {
+        stringIndexer.put('$value');
+      }
+    }
+
+    final int newIndex = entries.length;
+    entries.add(node);
+    return index[node] = newIndex;
+  }
+
+  visitMapConstant(MapConstant node) {
+    for (final ConstantMapEntry entry in node.entries) {
+      put(entry.key);
+      put(entry.value);
+    }
+    return defaultConstant(node);
+  }
+
+  visitListConstant(ListConstant node) {
+    for (final Constant entry in node.entries) {
+      put(entry);
+    }
+    return defaultConstant(node);
+  }
+
+  visitInstanceConstant(InstanceConstant node) {
+    for (final Constant entry in node.fieldValues.values) {
+      put(entry);
+    }
+    return defaultConstant(node);
+  }
+
+  int operator [](Constant node) => index[node];
 }
 
 class TypeParameterIndexer {

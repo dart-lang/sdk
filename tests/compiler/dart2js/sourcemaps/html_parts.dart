@@ -85,7 +85,6 @@ AnnotationData getAnnotationDataFromSchemes(Iterable<Annotation> annotations,
   }
   if (id != null) {
     Set ids = annotations.map((l) => l.id).toSet();
-    data['tag'] = 'a';
     data['name'] = elementScheme.getName(id, ids);
     data['href'] = elementScheme.getHref(id, ids);
     data['onclick'] = elementScheme.onClick(id, ids);

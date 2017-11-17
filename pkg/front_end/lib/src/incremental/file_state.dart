@@ -10,6 +10,7 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/file_system.dart';
+import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/uri_translator.dart';
@@ -52,9 +53,13 @@ class FileState {
   List<FileState> _exportedLibraries;
   List<FileState> _partFiles;
 
+  /// If this file is a part, the [FileState] of its library.
+  FileState _libraryFile;
+
   Set<FileState> _directReferencedFiles = new Set<FileState>();
   List<FileState> _directReferencedLibraries = <FileState>[];
   Set<FileState> _transitiveFiles;
+  List<int> _signature;
 
   /// This flag is set to `true` during the mark phase of garbage collection
   /// and set back to `false` for survived instances.
@@ -106,6 +111,37 @@ class FileState {
   /// The list of files this library file references as parts.
   List<FileState> get partFiles => _partFiles;
 
+  /// Return the resolution signature of the library. It depends on API
+  /// signatures of transitive files, and the content of the library files.
+  List<int> get signature {
+    if (_signature == null) {
+      var signatureBuilder = new ApiSignature();
+      signatureBuilder.addBytes(_fsState._salt);
+
+      Set<FileState> transitiveFiles = this.transitiveFiles;
+      signatureBuilder.addInt(transitiveFiles.length);
+
+      // Append API signatures of transitive files.
+      for (var file in transitiveFiles) {
+        signatureBuilder.addBytes(file.uriBytes);
+        signatureBuilder.addBytes(file.apiSignature);
+      }
+
+      // Append content hashes of the library and part.
+      signatureBuilder.addBytes(contentHash);
+      for (var part in partFiles) {
+        signatureBuilder.addBytes(part.contentHash);
+      }
+
+      // Finalize the signature.
+      _signature = signatureBuilder.toByteList();
+    }
+    return _signature;
+  }
+
+  /// Return the hex string version of [signature].
+  String get signatureStr => hex.encode(signature);
+
   /// Return topologically sorted cycles of dependencies for this library.
   List<LibraryCycle> get topologicalOrder {
     var libraryWalker = new _LibraryWalker();
@@ -140,7 +176,9 @@ class FileState {
 
   /// Read the file content and ensure that all of the file properties are
   /// consistent with the read content, including all its dependencies.
-  Future<Null> refresh() async {
+  ///
+  /// Return `true` if the API signature changed since the last refresh.
+  Future<bool> refresh() async {
     // Read the content.
     try {
       FileSystemEntity entry = _fsState.fileSystem.entityForUri(fileUri);
@@ -176,8 +214,23 @@ class FileState {
 
     // Read the unlinked unit.
     UnlinkedUnit unlinkedUnit = new UnlinkedUnit(unlinkedBytes);
-    _apiSignature = unlinkedUnit.apiSignature;
     _hasMixinApplication = unlinkedUnit.hasMixinApplication;
+
+    // Prepare API signature.
+    List<int> newApiSignature = unlinkedUnit.apiSignature;
+    bool apiSignatureChanged = _apiSignature != null &&
+        !_equalByteLists(_apiSignature, newApiSignature);
+    _apiSignature = newApiSignature;
+
+    // The resolution signature of the library changed.
+    (_libraryFile ?? this)._signature = null;
+
+    // The existing parts might be not parts anymore.
+    if (_partFiles != null) {
+      for (var part in _partFiles) {
+        part._libraryFile = null;
+      }
+    }
 
     // Build the graph.
     _importedLibraries = <FileState>[];
@@ -207,6 +260,7 @@ class FileState {
       FileState file = await _getFileForRelativeUri(part_);
       if (file != null) {
         _partFiles.add(file);
+        file._libraryFile = this;
       }
     }
 
@@ -230,9 +284,13 @@ class FileState {
         if (file._transitiveFiles != null &&
             file._transitiveFiles.contains(this)) {
           file._transitiveFiles = null;
+          file._signature = null;
         }
       }
     }
+
+    // Return whether the API signature changed.
+    return apiSignatureChanged;
   }
 
   @override
@@ -274,6 +332,26 @@ class FileState {
     }
 
     return await _fsState.getFile(absoluteUri);
+  }
+
+  /**
+   * Return `true` if the given byte lists are equal.
+   */
+  static bool _equalByteLists(List<int> a, List<int> b) {
+    if (a == null) {
+      return b == null;
+    } else if (b == null) {
+      return false;
+    }
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
@@ -389,6 +467,12 @@ class FileSystemState {
   /// Return the [FileState] for the given [fileUri], or `null` if the
   /// [fileUri] does not yet correspond to any referenced [FileState].
   FileState getFileByFileUri(Uri fileUri) => _fileUriToFile[fileUri];
+
+  /// Return the [FileState] for the given [absoluteUri], or `null` if
+  /// the file have not yet been created for this URI.
+  FileState getFileOrNull(Uri absoluteUri) {
+    return _uriToFile[absoluteUri];
+  }
 }
 
 /// List of libraries that reference each other, so form a cycle.

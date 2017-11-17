@@ -14,6 +14,8 @@ main(args) {
   counter++;
   operations(args.length > 0, 0, 1.5, args[0], new Complex(0, 1),
       new Complex(1.5, 2.5));
+  specialized(args.length > 0, null, 2, []);
+  specialized(args.length > 0, 2, 2, []);
   return counter;
 }
 
@@ -43,6 +45,30 @@ void operations(cond, a, b, c, d, e) {
   if (cond) record(e + c);
   if (cond) record(e + d);
   if (cond) record(e + e);
+}
+
+void specialized(cond, a, b, c) {
+  if (cond) record(a + b);
+  if (cond) record(a & b);
+  if (cond) record(~a);
+  if (cond) record(a | b);
+  if (cond) record(a ^ b);
+  if (cond) record(a / b);
+  if (cond) record(a == b);
+  if (cond) record(a >= b);
+  if (cond) record(a > b);
+  if (cond) record(a <= b);
+  if (cond) record(a < b);
+  if (cond) record(a % b);
+  if (cond) record(a * b);
+  if (cond) record(a << b);
+  if (cond) record(a >> b);
+  if (cond) record(a - b);
+  if (cond) record(a ~/ b);
+  if (cond) record(-a);
+
+  if (cond) record(c[a] = b);
+  if (cond) record(c[a]);
 }
 
 class Complex {

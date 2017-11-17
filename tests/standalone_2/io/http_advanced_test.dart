@@ -95,7 +95,8 @@ class IsolatedHttpServerStatus {
   int _port;
 }
 
-void startIsolatedHttpServer(SendPort replyTo) {
+void startIsolatedHttpServer(Object replyToObj) {
+  SendPort replyTo = replyToObj;
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);
@@ -125,7 +126,7 @@ class TestServer {
   // Set the "Expires" header using the expires property.
   void _expires1Handler(HttpRequest request) {
     var response = request.response;
-    DateTime date = new DateTime.utc(1999, DateTime.JUNE, 11, 18, 46, 53, 0);
+    DateTime date = new DateTime.utc(1999, DateTime.june, 11, 18, 46, 53, 0);
     response.headers.expires = date;
     Expect.equals(date, response.headers.expires);
     response.close();
@@ -135,7 +136,7 @@ class TestServer {
   void _expires2Handler(HttpRequest request) {
     var response = request.response;
     response.headers.set("Expires", "Fri, 11 Jun 1999 18:46:53 GMT");
-    DateTime date = new DateTime.utc(1999, DateTime.JUNE, 11, 18, 46, 53, 0);
+    DateTime date = new DateTime.utc(1999, DateTime.june, 11, 18, 46, 53, 0);
     Expect.equals(date, response.headers.expires);
     response.close();
   }
@@ -171,7 +172,7 @@ class TestServer {
     Expect.equals(0, request.cookies.length);
 
     Cookie cookie1 = new Cookie("name1", "value1");
-    DateTime date = new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
+    DateTime date = new DateTime.utc(2014, DateTime.january, 5, 23, 59, 59, 0);
     cookie1.expires = date;
     cookie1.domain = "www.example.com";
     cookie1.httpOnly = true;
@@ -296,7 +297,7 @@ Future testExpires() {
       Expect.equals(HttpStatus.OK, response.statusCode);
       Expect.equals(
           "Fri, 11 Jun 1999 18:46:53 GMT", response.headers["expires"][0]);
-      Expect.equals(new DateTime.utc(1999, DateTime.JUNE, 11, 18, 46, 53, 0),
+      Expect.equals(new DateTime.utc(1999, DateTime.june, 11, 18, 46, 53, 0),
           response.headers.expires);
       response.listen((_) {}, onDone: () {
         responses++;
@@ -379,7 +380,7 @@ Future testCookies() {
         if (cookie.name == "name1") {
           Expect.equals("value1", cookie.value);
           DateTime date =
-              new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
+              new DateTime.utc(2014, DateTime.january, 5, 23, 59, 59, 0);
           Expect.equals(date, cookie.expires);
           Expect.equals("www.example.com", cookie.domain);
           Expect.isTrue(cookie.httpOnly);

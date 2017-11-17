@@ -6,7 +6,7 @@ library testing.analyze;
 
 import 'dart:async' show Stream, Future;
 
-import 'dart:convert' show LineSplitter, UTF8;
+import 'dart:convert' show LineSplitter, utf8;
 
 import 'dart:io'
     show Directory, File, FileSystemEntity, Platform, Process, ProcessResult;
@@ -140,7 +140,7 @@ class AnalyzerDiagnostic {
 Stream<AnalyzerDiagnostic> parseAnalyzerOutput(
     Stream<List<int>> stream) async* {
   Stream<String> lines =
-      stream.transform(UTF8.decoder).transform(new LineSplitter());
+      stream.transform(utf8.decoder).transform(new LineSplitter());
   await for (String line in lines) {
     if (line.startsWith(">>> ")) continue;
     yield new AnalyzerDiagnostic.fromLine(line);

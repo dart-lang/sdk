@@ -9,7 +9,7 @@ class A {
 }
 
 main() {
-  Expect.isTrue(foo(double.NAN));
+  Expect.isTrue(foo(double.nan));
   Expect.isFalse(foo(new A()));
   Expect.throwsNoSuchMethodError(() => foo('bar'));
 }

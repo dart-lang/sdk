@@ -53,6 +53,8 @@ class VmTarget extends Target {
 
         'dart:profiler',
         'dart:typed_data',
+        'dart:vmservice_io',
+        'dart:_vmservice',
         'dart:_builtin',
         'dart:nativewrappers',
         'dart:io',

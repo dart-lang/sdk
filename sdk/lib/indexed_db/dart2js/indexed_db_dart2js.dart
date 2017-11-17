@@ -644,7 +644,7 @@ Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {
-    var result = _cast/*<T>*/(request.result);
+    dynamic/*=T*/ result = request.result;
     completer.complete(result);
   });
   request.onError.listen(completer.completeError);
@@ -1188,18 +1188,18 @@ class ObjectStore extends Interceptor {
   /**
    * Helper for iterating over cursors in a request.
    */
-  static Stream/*<T>*/ _cursorStreamFromResult/*<T extends Cursor>*/(
+  static Stream<T> _cursorStreamFromResult<T extends Cursor>(
       Request request, bool autoAdvance) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
-    var controller = new StreamController/*<T>*/(sync: true);
+    var controller = new StreamController<T>(sync: true);
 
     //TODO: Report stacktrace once issue 4061 is resolved.
     request.onError.listen(controller.addError);
 
     request.onSuccess.listen((e) {
-      var cursor = _cast/*<T>*/(request.result);
+      T cursor = request.result as dynamic;
       if (cursor == null) {
         controller.close();
       } else {
@@ -1212,9 +1212,6 @@ class ObjectStore extends Interceptor {
     return controller.stream;
   }
 }
-
-// ignore: STRONG_MODE_DOWN_CAST_COMPOSITE
-/*=To*/ _cast/*<To>*/(dynamic x) => x;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

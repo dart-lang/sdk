@@ -9,7 +9,7 @@ static method test() → dynamic {
     return null;
   };
   core::String y = f.call(42);
-  f = (core::Object x) → core::String => "hello" as{TypeError} (core::Object) → core::Null;
+  f = ((core::Object x) → core::String => "hello") as{TypeError} (core::Object) → core::Null;
   self::foo((core::Object x) → core::Null {
     return null;
   });

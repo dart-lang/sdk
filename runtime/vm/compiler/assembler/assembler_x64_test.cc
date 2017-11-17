@@ -3447,6 +3447,106 @@ ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
   EXPECT_EQ(0, res);
 }
 
+// clang-format off
+#define ALU_TEST(NAME, WIDTH, INTRO, LHS, RHS, OUTRO)                          \
+  ASSEMBLER_TEST_GENERATE(NAME, assembler) {                                   \
+    int32_t input1_w = static_cast<int32_t>(0x87654321);                       \
+    int32_t input1_l = input1_w;                                               \
+    int64_t input1_q = 0xfedcba987654321ll;                                    \
+    input1_##WIDTH += input1_w * 0 + input1_l * 0 + input1_q * 0;              \
+    int32_t input2_w = static_cast<int32_t>(0x12345678);                       \
+    int32_t input2_l = input2_w;                                               \
+    int64_t input2_q = 0xabcdef912345678ll;                                    \
+    input2_##WIDTH += input2_w * 0 + input2_l * 0 + input2_q * 0;              \
+                                                                               \
+    __ movq(RAX, Immediate(input1_##WIDTH));                                   \
+    __ movq(RCX, Immediate(input2_##WIDTH));                                   \
+                                                                               \
+    INTRO;                                                                     \
+                                                                               \
+    __ and##WIDTH(LHS, RHS);                                                   \
+    __ or##WIDTH(RHS, LHS);                                                    \
+    __ xor##WIDTH(LHS, RHS);                                                   \
+    __ add##WIDTH(RHS, LHS);                                                   \
+    __ cmp##WIDTH(LHS, RHS);                                                   \
+    __ adc##WIDTH(LHS, RHS);                                                   \
+    __ sub##WIDTH(RHS, LHS);                                                   \
+    __ sbb##WIDTH(LHS, RHS);                                                   \
+                                                                               \
+    OUTRO;                                                                     \
+    /* A sort of movx(RAX, RAX) */                                             \
+    __ xorq(RCX, RCX);                                                         \
+    __ add##WIDTH(RCX, RAX);                                                   \
+    __ andq(RAX, RCX);                                                         \
+    __ ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(NAME, test) {                                             \
+    typedef uint64_t (*NAME)();                                                \
+    uint64_t expectation_q = 0xaed1be942649381ll;                              \
+    uint32_t expectation_l = expectation_q;                                    \
+    uint16_t expectation_w = expectation_l;                                    \
+    uint64_t expectation = expectation_##WIDTH | expectation_w;                \
+    EXPECT_EQ(expectation, reinterpret_cast<NAME>(test->entry())());           \
+  }
+// clang-format on
+
+ALU_TEST(RegRegW, w, , RAX, RCX, )
+ALU_TEST(RegAddrW1, w, __ pushq(RAX), Address(RSP, 0), RCX, __ popq(RAX))
+ALU_TEST(RegAddrW2, w, __ pushq(RCX), RAX, Address(RSP, 0), __ popq(RCX))
+ALU_TEST(RegRegL, l, , RAX, RCX, )
+ALU_TEST(RegAddrL1, l, __ pushq(RAX), Address(RSP, 0), RCX, __ popq(RAX))
+ALU_TEST(RegAddrL2, l, __ pushq(RCX), RAX, Address(RSP, 0), __ popq(RCX))
+ALU_TEST(RegRegQ, q, , RAX, RCX, )
+ALU_TEST(RegAddrQ1, q, __ pushq(RAX), Address(RSP, 0), RCX, __ popq(RAX))
+ALU_TEST(RegAddrQ2, q, __ pushq(RCX), RAX, Address(RSP, 0), __ popq(RCX))
+
+#define IMMEDIATE_TEST(NAME, REG, MASK, INTRO, VALUE, OUTRO)                   \
+  ASSEMBLER_TEST_GENERATE(NAME, assembler) {                                   \
+    __ movl(REG, Immediate(static_cast<int32_t>(0x87654321)));                 \
+                                                                               \
+    INTRO;                                                                     \
+                                                                               \
+    __ andl(VALUE, Immediate(static_cast<int32_t>(0xa8df51d3 & MASK)));        \
+    __ orl(VALUE, Immediate(0x1582a681 & MASK));                               \
+    __ xorl(VALUE, Immediate(static_cast<int32_t>(0xa5a5a5a5 & MASK)));        \
+    __ addl(VALUE, Immediate(0x7fffffff & MASK));                              \
+    __ cmpl(VALUE, Immediate(0x40404040 & MASK));                              \
+    __ adcl(VALUE, Immediate(0x6eeeeeee & MASK));                              \
+    __ subl(VALUE, Immediate(0x7eeeeeee & MASK));                              \
+    __ sbbl(VALUE, Immediate(0x6fffffff & MASK));                              \
+                                                                               \
+    OUTRO;                                                                     \
+                                                                               \
+    __ movl(RAX, REG);                                                         \
+    __ ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(NAME, test) {                                             \
+    typedef uint64_t (*NAME)();                                                \
+    unsigned expectation = MASK < 0x100 ? 0x24 : 0x30624223;                   \
+    EXPECT_EQ(expectation, reinterpret_cast<NAME>(test->entry())());           \
+  }
+
+// RAX-based instructions have different encodings so we test both RAX and RCX.
+// If the immediate can be encoded as one byte there is also a different
+// encoding, so test that too.
+IMMEDIATE_TEST(RegImmRAX, RAX, 0xffffffff, , RAX, )
+IMMEDIATE_TEST(RegImmRCX, RCX, 0xffffffff, , RCX, )
+IMMEDIATE_TEST(RegImmRAXByte, RAX, 0x7f, , RAX, )
+IMMEDIATE_TEST(RegImmRCXByte, RCX, 0x7f, , RCX, )
+IMMEDIATE_TEST(AddrImmRAX,
+               RAX,
+               0xffffffff,
+               __ pushq(RAX),
+               Address(RSP, 0),
+               __ popq(RAX))
+IMMEDIATE_TEST(AddrImmRAXByte,
+               RAX,
+               0x7f,
+               __ pushq(RAX),
+               Address(RSP, 0),
+               __ popq(RAX))
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

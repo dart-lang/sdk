@@ -4,6 +4,7 @@
 
 library dart2js.kernel.equivalence;
 
+import 'dart:io';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/elements.dart';
@@ -288,4 +289,18 @@ bool elementFilter(Entity element) {
     return false;
   }
   return true;
+}
+
+/// Create an absolute uri from the [uri] created by fasta.
+Uri resolveFastaUri(Uri uri) {
+  if (!uri.isAbsolute) {
+    // TODO(johnniwinther): Remove this when fasta uses patching.
+    if (uri.path.startsWith('patched_dart2js_sdk/')) {
+      Uri executable = new File(Platform.resolvedExecutable).uri;
+      uri = executable.resolve(uri.path);
+    } else {
+      uri = Uri.base.resolveUri(uri);
+    }
+  }
+  return uri;
 }

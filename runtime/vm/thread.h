@@ -590,9 +590,6 @@ class Thread : public BaseThread {
    *   kThreadInNative - The thread is running native code.
    *   kThreadInBlockedState - The thread is blocked waiting for a resource.
    */
-  static intptr_t safepoint_state_offset() {
-    return OFFSET_OF(Thread, safepoint_state_);
-  }
   static bool IsAtSafepoint(uint32_t state) {
     return AtSafepointField::decode(state);
   }
@@ -648,30 +645,39 @@ class Thread : public BaseThread {
   void set_execution_state(ExecutionState state) {
     execution_state_ = static_cast<uint32_t>(state);
   }
-  static intptr_t execution_state_offset() {
-    return OFFSET_OF(Thread, execution_state_);
+
+  bool TryEnterSafepoint() {
+    uint32_t new_state = SetAtSafepoint(true, 0);
+    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, 0,
+                                               new_state) != 0) {
+      return false;
+    }
+    return true;
   }
 
   void EnterSafepoint() {
     // First try a fast update of the thread state to indicate it is at a
     // safepoint.
-    uint32_t new_state = SetAtSafepoint(true, 0);
-    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), 0, new_state) != 0) {
+    if (!TryEnterSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       EnterSafepointUsingLock();
     }
   }
 
+  bool TryExitSafepoint() {
+    uint32_t old_state = SetAtSafepoint(true, 0);
+    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, old_state,
+                                               0) != old_state) {
+      return false;
+    }
+    return true;
+  }
+
   void ExitSafepoint() {
     // First try a fast update of the thread state to indicate it is not at a
     // safepoint anymore.
-    uint32_t old_state = SetAtSafepoint(true, 0);
-    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+    if (!TryExitSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       ExitSafepointUsingLock();

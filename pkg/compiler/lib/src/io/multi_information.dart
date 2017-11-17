@@ -8,23 +8,21 @@
 library dart2js.dual_source_information;
 
 import '../common.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../js/js_source_mapping.dart';
 import '../js/js.dart' as js;
-import '../tree/nodes.dart';
 import 'code_output.dart' show BufferedCodeOutput;
 import 'source_information.dart';
 
-class MultiSourceInformationStrategy
-    implements JavaScriptSourceInformationStrategy {
-  final List<JavaScriptSourceInformationStrategy> strategies;
+class MultiSourceInformationStrategy<T>
+    implements JavaScriptSourceInformationStrategy<T> {
+  final List<JavaScriptSourceInformationStrategy<T>> strategies;
 
   const MultiSourceInformationStrategy(this.strategies);
 
   @override
-  SourceInformationBuilder createBuilderForContext(MemberEntity member) {
-    return new MultiSourceInformationBuilder(
+  SourceInformationBuilder<T> createBuilderForContext(MemberEntity member) {
+    return new MultiSourceInformationBuilder<T>(
         strategies.map((s) => s.createBuilderForContext(member)).toList());
   }
 
@@ -75,8 +73,8 @@ class MultiSourceInformationProcessor implements SourceInformationProcessor {
   }
 }
 
-class MultiSourceInformationBuilder implements SourceInformationBuilder {
-  final List<SourceInformationBuilder> builders;
+class MultiSourceInformationBuilder<T> implements SourceInformationBuilder<T> {
+  final List<SourceInformationBuilder<T>> builders;
 
   MultiSourceInformationBuilder(this.builders);
 
@@ -87,85 +85,85 @@ class MultiSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformation buildSwitchCase(Node node) {
+  SourceInformation buildSwitchCase(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildSwitchCase(node)).toList());
   }
 
   @override
-  SourceInformation buildSwitch(Node node) {
+  SourceInformation buildSwitch(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildSwitch(node)).toList());
   }
 
   @override
-  SourceInformation buildAs(Node node) {
+  SourceInformation buildAs(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildAs(node)).toList());
   }
 
   @override
-  SourceInformation buildIs(Node node) {
+  SourceInformation buildIs(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildIs(node)).toList());
   }
 
   @override
-  SourceInformation buildCatch(Node node) {
+  SourceInformation buildCatch(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildCatch(node)).toList());
   }
 
   @override
-  SourceInformation buildBinary(Node node) {
+  SourceInformation buildBinary(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildBinary(node)).toList());
   }
 
   @override
-  SourceInformation buildIndexSet(Node node) {
+  SourceInformation buildIndexSet(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildIndexSet(node)).toList());
   }
 
   @override
-  SourceInformation buildIndex(Node node) {
+  SourceInformation buildIndex(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildIndex(node)).toList());
   }
 
   @override
-  SourceInformation buildForInSet(Node node) {
+  SourceInformation buildForInSet(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildForInSet(node)).toList());
   }
 
   @override
-  SourceInformation buildForInCurrent(Node node) {
+  SourceInformation buildForInCurrent(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildForInCurrent(node)).toList());
   }
 
   @override
-  SourceInformation buildForInMoveNext(Node node) {
+  SourceInformation buildForInMoveNext(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildForInMoveNext(node)).toList());
   }
 
   @override
-  SourceInformation buildForInIterator(Node node) {
+  SourceInformation buildForInIterator(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildForInIterator(node)).toList());
   }
 
   @override
-  SourceInformation buildStringInterpolation(Node node) {
+  SourceInformation buildStringInterpolation(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildStringInterpolation(node)).toList());
   }
 
   @override
-  SourceInformation buildForeignCode(Node node) {
+  SourceInformation buildForeignCode(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildForeignCode(node)).toList());
   }
@@ -177,67 +175,67 @@ class MultiSourceInformationBuilder implements SourceInformationBuilder {
   }
 
   @override
-  SourceInformation buildAssignment(Node node) {
+  SourceInformation buildAssignment(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildAssignment(node)).toList());
   }
 
   @override
-  SourceInformation buildThrow(Node node) {
+  SourceInformation buildThrow(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildThrow(node)).toList());
   }
 
   @override
-  SourceInformation buildNew(Node node) {
+  SourceInformation buildNew(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildNew(node)).toList());
   }
 
   @override
-  SourceInformation buildIf(Node node) {
+  SourceInformation buildIf(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildIf(node)).toList());
   }
 
   @override
-  SourceInformation buildCall(Node receiver, Node call) {
+  SourceInformation buildCall(T receiver, T call) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildCall(receiver, call)).toList());
   }
 
   @override
-  SourceInformation buildGet(Node node) {
+  SourceInformation buildGet(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildGet(node)).toList());
   }
 
   @override
-  SourceInformation buildLoop(Node node) {
+  SourceInformation buildLoop(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildLoop(node)).toList());
   }
 
   @override
-  SourceInformation buildImplicitReturn(AstElement element) {
+  SourceInformation buildImplicitReturn(MemberEntity element) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildImplicitReturn(element)).toList());
   }
 
   @override
-  SourceInformation buildReturn(Node node) {
+  SourceInformation buildReturn(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildReturn(node)).toList());
   }
 
   @override
-  SourceInformation buildCreate(Node node) {
+  SourceInformation buildCreate(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildCreate(node)).toList());
   }
 
   @override
-  SourceInformation buildGeneric(Node node) {
+  SourceInformation buildGeneric(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildGeneric(node)).toList());
   }

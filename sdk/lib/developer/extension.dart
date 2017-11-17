@@ -100,7 +100,7 @@ class ServiceExtensionResponse {
     } else {
       assert(_errorCode != null);
       assert(_errorDetail != null);
-      return JSON.encode({
+      return json.encode({
         'code': _errorCode,
         'message': _errorCodeMessage(_errorCode),
         'data': {'details': _errorDetail}
@@ -158,7 +158,7 @@ void postEvent(String eventKind, Map eventData) {
   if (eventData is! Map) {
     throw new ArgumentError.value(eventData, 'eventData', 'Must be a Map');
   }
-  String eventDataAsString = JSON.encode(eventData);
+  String eventDataAsString = json.encode(eventData);
   _postEvent(eventKind, eventDataAsString);
 }
 

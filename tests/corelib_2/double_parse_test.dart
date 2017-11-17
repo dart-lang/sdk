@@ -132,8 +132,8 @@ void main() {
   testDouble(9007199254740991.0);
   testDouble(9007199254740992.0);
   testDouble(1.7976931348623157e+308);
-  testDouble(double.INFINITY);
-  testDouble(double.NAN);
+  testDouble(double.infinity);
+  testDouble(double.nan);
 
   // Strings that cannot occur from toString of a number.
   testParse("000000000000", 0.0);
@@ -150,8 +150,8 @@ void main() {
   testParse(".1", 0.1);
   testParse("1.e1", 10.0);
   testParse(".1e1", 1.0);
-  testParse("Infinity", double.INFINITY);
-  testParse("NaN", double.NAN);
+  testParse("Infinity", double.infinity);
+  testParse("NaN", double.nan);
 
   // Cases where mantissa and 10^exponent are representable as a double.
   for (int i = -22; i <= 22; i++) {
@@ -1150,14 +1150,14 @@ void main() {
       "7851940402630657488671505820681908902000708383676273854845817711"
       "5317644757302700698555713669596228429148198608349364752927190741"
       "68444365510704342711559699508093042880177904174497792",
-      double.INFINITY);
+      double.infinity);
   testParse(
       "1797693134862315807937289714053034150799341327100378344436906077"
       "8514519826392244645590587928934680064583382309459227867357811816"
       "7083648350040856069002886669235928086706171002858964521148060973"
       "2932253823701752298952982895505254202514482107240818876126988420"
       "86346991665034681756244316627357656767417501840572416",
-      double.INFINITY);
+      double.infinity);
 
   // Edge cases of algorithm (e+-22/23).
   testParse("1e22", 1e22);

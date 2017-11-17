@@ -350,7 +350,7 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       ClassEnv env = _classes.getEnv(superclass);
       MemberEntity superMember =
           env.lookupMember(this, name.name, setter: setter);
-      if (superMember != null) {
+      if (superMember != null && !superMember.isAbstract) {
         return superMember;
       }
       superclass = _getSuperType(superclass)?.element;
@@ -1159,7 +1159,7 @@ class KernelToElementMapForImpactImpl extends KernelToElementMapBase
 
   ScopeModel computeScopeModel(KMember member) {
     ir.Member node = _members.getData(member).definition.node;
-    return KernelClosureAnalysis.computeScopeModel(member, node);
+    return KernelClosureAnalysis.computeScopeModel(member, node, _options);
   }
 
   /// Returns the kernel [ir.Procedure] node for the [method].
@@ -2375,8 +2375,15 @@ class JsKernelToElementMap extends KernelToElementMapBase
 
     // Add a field for the captured 'this'.
     if (info.thisUsedAsFreeVariable) {
-      _constructClosureField(cls.thisLocal, cls, memberThisType, memberMap,
-          getMemberDefinition(member).node, true, false, fieldNumber);
+      _constructClosureField(
+          cls.thisLocal,
+          cls,
+          memberThisType,
+          memberMap,
+          getClassDefinition(member.enclosingClass).node,
+          true,
+          false,
+          fieldNumber);
       fieldNumber++;
     }
 

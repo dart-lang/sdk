@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=warning*/
+/*@testedFeatures=error*/
 
 class A {
   String operator +(int i) => '';
@@ -10,11 +10,11 @@ class A {
 
 test(int i, String s, A a) {
   i = 1;
-  /*@warning=InvalidAssignment*/ i = s;
+  /*@error=InvalidAssignment*/ i = s;
   i ??= 1;
-  /*@warning=InvalidAssignment*/ i ??= s;
+  /*@error=InvalidAssignment*/ i ??= s;
   a = new A();
-  /*@warning=InvalidAssignment*/ a += 1;
+  /*@error=InvalidAssignment*/ a += 1;
 }
 
 main() {}

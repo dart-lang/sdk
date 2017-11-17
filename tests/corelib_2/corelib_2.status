@@ -22,7 +22,7 @@ string_static_test: MissingCompileTimeError
 [ !$checked && $compiler != dartdevc && $runtime != none ]
 null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
 
-[ $compiler != dartdevc && $runtime != none ]
+[ $compiler != dartdevc && $runtime != none && $compiler != dartk && $compiler != dartkp ]
 map_keys2_test: RuntimeError # needs Dart 2 is checks
 
 [ (!$checked && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
@@ -46,7 +46,7 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ $runtime == vm || $compiler == precompiler || $compiler == dart2js ]
+[ $compiler == none || $compiler == app_jit || $compiler == precompiler || $compiler == dart2js ]
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && !$strong ]
@@ -210,7 +210,6 @@ int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_radix_test/02: RuntimeError # Issue 29921
 integer_to_radix_string_test: RuntimeError # Issue 29921
 integer_to_string_test/01: RuntimeError # Issue 29921
-iterable_fold_test/01: CompileTimeError # type inference problem
 iterable_fold_test/02: RuntimeError # different type inference problem
 
 [ $runtime == flutter ]
@@ -262,87 +261,6 @@ symbol_test/none: Fail # Issue 11669
 symbol_operator_test/03: Fail # Issue 11669
 string_case_test/01: Fail # Bug 18061
 
-# dartk: checked mode failures
-[ $checked && ($compiler == dartk || $compiler == dartkp) ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-
-[ !$checked && ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
-symbol_test/01: MissingCompileTimeError
-
-[ ($compiler == dartk || $compiler == dartkp) && ($runtime == vm || $runtime == dart_precompiled) ]
-bool_from_environment2_test/01: MissingCompileTimeError
-bool_from_environment2_test/02: MissingCompileTimeError
-bool_from_environment2_test/03: MissingCompileTimeError
-bool_from_environment2_test/04: MissingCompileTimeError
-compare_to2_test: RuntimeError
-string_trimlr_test/02: RuntimeError
-symbol_operator_test/03: RuntimeError
-symbol_reserved_word_test/04: MissingCompileTimeError
-symbol_reserved_word_test/05: MissingCompileTimeError
-symbol_reserved_word_test/06: RuntimeError
-symbol_reserved_word_test/07: MissingCompileTimeError
-symbol_reserved_word_test/09: RuntimeError
-symbol_reserved_word_test/10: MissingCompileTimeError
-symbol_reserved_word_test/12: RuntimeError
-symbol_test/02: MissingCompileTimeError
-symbol_test/03: MissingCompileTimeError
-symbol_test/none: RuntimeError
-unicode_test: RuntimeError
-string_case_test/01: RuntimeError
-string_from_environment3_test/01: MissingCompileTimeError
-string_from_environment3_test/02: MissingCompileTimeError
-string_from_environment3_test/03: MissingCompileTimeError
-string_from_environment3_test/04: MissingCompileTimeError
-
-[ $compiler == dartkp ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
-int_parse_radix_bad_handler_test: MissingCompileTimeError
-int_parse_radix_test/badTypes: RuntimeError
-iterable_generate_test/01: RuntimeError
-iterable_to_set_test: RuntimeError
-regexp/stack-overflow_test: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
-
 [ $runtime == ff || $runtime == jsshell ]
 double_parse_test/02: Fail, OK # Issue 30468
 regexp/UC16_test: RuntimeError
@@ -384,7 +302,7 @@ string_static_test: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError # Issue 11669
 symbol_test/03: MissingCompileTimeError # Issue 11669
 
-[ $compiler == app_jit || $compiler == precompiler || $compiler == dartk ]
+[ $compiler == app_jit || $compiler == precompiler ]
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError
@@ -500,19 +418,12 @@ list_test/*: RuntimeError # VM doesn't implement strong mode covariance checks
 
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 apply3_test: RuntimeError
-hash_set_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-iterable_element_at_test/static: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-iterable_mapping_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 iterable_return_type_test/01: RuntimeError
 iterable_return_type_test/02: RuntimeError
 iterable_to_list_test/01: RuntimeError
-iterable_to_set_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
 list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
 map_test: Crash # type 'DillClassBuilder' is not a subtype of type 'SourceClassBuilder' of 'named' where
-splay_tree_from_iterable_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-splay_tree_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
-splay_tree_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/type_builder.dart': Failed assertion: line 141 pos 12: 'member.isInstanceMember': is not true.
 symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError
 symbol_reserved_word_test/05: MissingCompileTimeError
@@ -520,7 +431,6 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
-uri_base_test: Crash # RangeError (index): Invalid value: Valid value range is empty: 0
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
 apply3_test: RuntimeError
@@ -572,7 +482,7 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 [ $compiler == dart2js && $runtime != none && !$checked ]
 splay_tree_from_iterable_test: RuntimeError
 
-[ ($compiler == none || $compiler == app_jit || $compiler == dartk) && $runtime == vm && !$checked ]
+[ ($compiler == none || $compiler == app_jit) && $runtime == vm && !$checked ]
 iterable_generate_test/01: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
 
@@ -603,15 +513,6 @@ iterable_element_at_test/static: Pass
 [ $compiler == dart2analyzer && $strong ]
 int_parse_radix_bad_handler_test: Pass
 
-[ $compiler == dart2analyzer && $strong && $checked ]
-iterable_fold_test/01: CompileTimeError
-
-[ $compiler == dart2analyzer && $checked && !$strong ]
-iterable_fold_test/01: Pass
-
-[ $compiler == dart2analyzer && $strong  && !$checked ]
-iterable_fold_test/01: CompileTimeError
-
 [ $runtime == dart_precompiled && $minified ]
 apply_test: Skip  # Uses new Symbol via symbolMapToStringMap helper
 error_stack_trace1_test: Skip  # Expects unobfuscated stack trace
@@ -619,29 +520,83 @@ error_stack_trace1_test: Skip  # Expects unobfuscated stack trace
 [ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
 list_concurrent_modify_test: Crash # Issue 30559
 
-[ $compiler == dartk && $strong ]
+[ ($compiler == dartk || $compiler == dartkp) && !$strong ]
+*: SkipByDesign
+
+[ ($compiler == dartk || $compiler == dartkp) && $strong ]
 collection_removes_test: RuntimeError
-iterable_generate_test/01: Pass
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
-iterable_to_set_test: Pass
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
-map_keys2_test: Pass
 
 [ $compiler == dartkp && $strong ]
-collection_removes_test: RuntimeError
-int_parse_with_limited_ints_test: Crash
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
-list_concurrent_modify_test: RuntimeError
-list_insert_all_test: RuntimeError
-list_insert_test: RuntimeError
-typed_data_with_limited_ints_test: Crash
+regexp/stack-overflow_test: RuntimeError
+iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+map_keys2_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+
+[ ($compiler == dartk || $compiler == dartkp) && $strong ]
+bool_from_environment2_test/01: MissingCompileTimeError
+bool_from_environment2_test/02: MissingCompileTimeError
+bool_from_environment2_test/03: MissingCompileTimeError
+bool_from_environment2_test/04: MissingCompileTimeError
+compare_to2_test: RuntimeError
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+from_environment_const_type_undefined_test/09: MissingCompileTimeError
+from_environment_const_type_undefined_test/11: MissingCompileTimeError
+from_environment_const_type_undefined_test/12: MissingCompileTimeError
+from_environment_const_type_undefined_test/13: MissingCompileTimeError
+from_environment_const_type_undefined_test/14: MissingCompileTimeError
+from_environment_const_type_undefined_test/16: MissingCompileTimeError
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+int_parse_radix_test/badTypes: RuntimeError
+splay_tree_from_iterable_test: RuntimeError
+string_case_test/01: RuntimeError
+string_from_environment3_test/01: MissingCompileTimeError
+string_from_environment3_test/02: MissingCompileTimeError
+string_from_environment3_test/03: MissingCompileTimeError
+string_from_environment3_test/04: MissingCompileTimeError
+string_trimlr_test/02: RuntimeError
+symbol_operator_test/03: RuntimeError
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_reserved_word_test/06: RuntimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/09: RuntimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_reserved_word_test/12: RuntimeError
+symbol_test/01: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+symbol_test/none: RuntimeError
+unicode_test: RuntimeError
 
 [ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug ]
 list_test/none: Crash
 list_test/01: Crash
+
+[ $compiler == dartkp && $strong && $mode == debug ]
+bit_twiddling_test/int64: CompileTimeError
+integer_parsed_arith_vm_test/01: RuntimeError
+integer_parsed_arith_vm_test/02: RuntimeError
 
 [ $compiler == dartdevk ]
 bool_from_environment2_test/01: MissingCompileTimeError
@@ -690,3 +645,120 @@ symbol_test/01: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 map_test: Crash # crash in front_end.
+
+[ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+apply2_test: RuntimeError
+apply3_test: RuntimeError
+apply4_test: RuntimeError
+apply5_test: RuntimeError
+apply_test: RuntimeError
+collection_from_test: RuntimeError
+collection_length_test: RuntimeError
+collection_removes_test: RuntimeError
+collection_test: RuntimeError
+collection_to_string_test: RuntimeError
+core_runtime_types_test: RuntimeError
+data_uri_test: RuntimeError
+for_in_test: RuntimeError
+from_environment_const_type_test/02: MissingCompileTimeError
+from_environment_const_type_test/03: MissingCompileTimeError
+from_environment_const_type_test/04: MissingCompileTimeError
+from_environment_const_type_test/06: MissingCompileTimeError
+from_environment_const_type_test/07: MissingCompileTimeError
+from_environment_const_type_test/08: MissingCompileTimeError
+from_environment_const_type_test/09: MissingCompileTimeError
+from_environment_const_type_test/11: MissingCompileTimeError
+from_environment_const_type_test/12: MissingCompileTimeError
+from_environment_const_type_test/13: MissingCompileTimeError
+from_environment_const_type_test/14: MissingCompileTimeError
+from_environment_const_type_test/16: MissingCompileTimeError
+from_environment_const_type_undefined_test/02: MissingCompileTimeError
+from_environment_const_type_undefined_test/03: MissingCompileTimeError
+from_environment_const_type_undefined_test/04: MissingCompileTimeError
+from_environment_const_type_undefined_test/06: MissingCompileTimeError
+from_environment_const_type_undefined_test/07: MissingCompileTimeError
+from_environment_const_type_undefined_test/08: MissingCompileTimeError
+has_next_iterator_test: RuntimeError
+hash_map2_test: RuntimeError
+hash_set_test/none: RuntimeError
+iterable_element_at_test/none: RuntimeError
+iterable_expand_test: RuntimeError
+iterable_first_where_test: RuntimeError
+iterable_fold_test/01: RuntimeError
+iterable_fold_test/02: RuntimeError
+iterable_fold_test/none: RuntimeError
+iterable_join_test: RuntimeError
+iterable_last_where_test: RuntimeError
+iterable_mapping_test/none: RuntimeError
+iterable_reduce_test/01: RuntimeError
+iterable_reduce_test/none: RuntimeError
+iterable_return_type_test/01: RuntimeError
+iterable_return_type_test/02: RuntimeError
+iterable_return_type_test/none: RuntimeError
+iterable_single_test: RuntimeError
+iterable_single_where_test: RuntimeError
+iterable_skip_test: RuntimeError
+iterable_skip_while_test: RuntimeError
+iterable_take_test: RuntimeError
+iterable_take_while_test: RuntimeError
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
+iterable_tostring_test: RuntimeError
+linked_hash_map_from_iterables_test: RuntimeError
+linked_hash_map_test: RuntimeError
+list_get_range_test: RuntimeError
+list_insert_all_test: RuntimeError
+list_insert_test: RuntimeError
+list_iterators_test: RuntimeError
+list_map_test: RuntimeError
+list_reversed_test: RuntimeError
+list_set_all_test: RuntimeError
+list_test/01: Crash # Unsupported operation: Unsupported type parameter type node T.
+list_test/none: Crash # Unsupported operation: Unsupported type parameter type node T.
+list_to_string2_test: RuntimeError
+list_to_string_test: RuntimeError
+list_unmodifiable_test: RuntimeError
+main_test: RuntimeError
+map_from_iterables_test: RuntimeError
+map_from_test: RuntimeError
+map_keys_test: RuntimeError
+map_test: Crash # tests/corelib_2/map_test.dart:903:7: Internal problem: Unhandled Null in installDefaultConstructor.
+map_values2_test: RuntimeError
+map_values3_test: RuntimeError
+map_values_test: RuntimeError
+maps_test: RuntimeError
+queue_first_test: RuntimeError
+queue_iterator_test: RuntimeError
+queue_last_test: RuntimeError
+queue_single_test: RuntimeError
+queue_test: RuntimeError
+reg_exp_all_matches_test: RuntimeError
+regexp/parentheses_test: RuntimeError
+regexp/pcre-test-4_test: RuntimeError
+regexp/regexp_kde_test: RuntimeError
+regress_11099_test: RuntimeError
+set_iterator_test: RuntimeError
+set_test: RuntimeError
+set_to_string_test: RuntimeError
+splay_tree_from_iterable_test: RuntimeError
+splay_tree_from_iterables_test: RuntimeError
+splay_tree_test/none: RuntimeError
+stacktrace_fromstring_test: RuntimeError
+string_buffer_test: RuntimeError
+string_codeunits_test: RuntimeError
+string_from_list_test: RuntimeError
+string_fromcharcodes_test: RuntimeError
+string_runes_test: RuntimeError
+symbol_reserved_word_test/03: RuntimeError
+symbol_reserved_word_test/04: MissingCompileTimeError
+symbol_reserved_word_test/05: MissingCompileTimeError
+symbol_reserved_word_test/07: MissingCompileTimeError
+symbol_reserved_word_test/10: MissingCompileTimeError
+symbol_test/02: MissingCompileTimeError
+symbol_test/03: MissingCompileTimeError
+uri_file_test: RuntimeError
+uri_parameters_all_test: RuntimeError
+uri_path_test: RuntimeError
+uri_query_test: RuntimeError
+uri_test: RuntimeError
+

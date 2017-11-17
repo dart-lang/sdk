@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 class C extends core::Object {
   constructor expressionOnly() → void
-    : final dynamic #t1 = () → dynamic
+    : final dynamic #t1 = (() → dynamic
       assert(self::f<core::bool>());
-.call(), super core::Object::•()
+).call(), super core::Object::•()
     ;
   constructor expressionAndMessage() → void
-    : final dynamic #t2 = () → dynamic
+    : final dynamic #t2 = (() → dynamic
       assert(self::f<core::bool>(), self::f<dynamic>());
-.call(), super core::Object::•()
+).call(), super core::Object::•()
     ;
 }
 static method f<T extends core::Object>() → self::f::T

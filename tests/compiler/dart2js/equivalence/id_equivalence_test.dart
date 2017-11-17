@@ -316,6 +316,8 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
       return switchCaseName;
     } else if (node is ir.LabeledStatement) {
       return labelName;
+    } else if (node is ir.LoadLibrary) {
+      return computeInvokeName('call');
     }
     return '<unknown:$node (${node.runtimeType})>';
   }

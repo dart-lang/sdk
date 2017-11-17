@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
+import 'package:front_end/src/minimal_incremental_kernel_generator.dart';
 import 'package:kernel/kernel.dart';
 
 import 'compiler_options.dart';
@@ -137,14 +138,20 @@ abstract class IncrementalKernelGenerator {
   /// representation of the program, call [computeDelta].
   static Future<IncrementalKernelGenerator> newInstance(
       CompilerOptions options, Uri entryPoint,
-      {WatchUsedFilesFn watch}) async {
+      {WatchUsedFilesFn watch, bool useMinimalGenerator: false}) async {
     var processedOptions = new ProcessedOptions(options, false, [entryPoint]);
     return await CompilerContext.runWithOptions(processedOptions, (_) async {
       var uriTranslator = await processedOptions.getUriTranslator();
       var sdkOutlineBytes = await processedOptions.loadSdkSummaryBytes();
-      return new IncrementalKernelGeneratorImpl(
-          processedOptions, uriTranslator, sdkOutlineBytes, entryPoint,
-          watch: watch);
+      if (useMinimalGenerator) {
+        return new MinimalIncrementalKernelGenerator(
+            processedOptions, uriTranslator, sdkOutlineBytes, entryPoint,
+            watch: watch);
+      } else {
+        return new IncrementalKernelGeneratorImpl(
+            processedOptions, uriTranslator, sdkOutlineBytes, entryPoint,
+            watch: watch);
+      }
     });
   }
 }

@@ -18,6 +18,10 @@ export 'fasta_codes.dart';
 
 bool get isVerbose => CompilerContext.current.options.verbose;
 
+void error(Message message, int charOffset, Uri uri) {
+  report(message.withLocation(uri, charOffset), Severity.error);
+}
+
 void warning(Message message, int charOffset, Uri uri) {
   report(message.withLocation(uri, charOffset), Severity.warning);
 }

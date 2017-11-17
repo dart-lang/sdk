@@ -735,8 +735,11 @@ class ReadOnlyAccessor extends Accessor {
   }
 
   Expression _makeWrite(Expression value, bool voidContext,
-          ShadowComplexAssignment complexAssignment) =>
-      makeInvalidWrite(value);
+      ShadowComplexAssignment complexAssignment) {
+    var write = makeInvalidWrite(value);
+    complexAssignment?.write = write;
+    return write;
+  }
 
   Expression _finish(
           Expression body, ShadowComplexAssignment complexAssignment) =>

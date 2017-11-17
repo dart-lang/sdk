@@ -428,6 +428,13 @@ class FunctionType extends AbstractFunctionType {
     return false;
   }
 
+  static final void Function(Object, Object) _logIgnoredCast =
+      JS('', '''(() => $_ignoreMemo((actual, expected) => {
+        console.warn('Ignoring cast fail from ' + $typeName(actual) +
+                     ' to ' + $typeName(expected));
+        return null;
+        }))()''');
+
   @JSExportName('as')
   as_T(obj, [bool typeError]) {
     if (obj == null) return obj;
@@ -439,8 +446,7 @@ class FunctionType extends AbstractFunctionType {
       var result = isSubtype(actual, this);
       if (result == true) return obj;
       if (result == null && JS('bool', 'dart.__ignoreWhitelistedErrors')) {
-        JS('', "console.warn(#)",
-            'Ignoring cast fail from ${typeName(actual)} to ${typeName(this)}');
+        _logIgnoredCast(actual, this);
         return obj;
       }
     }

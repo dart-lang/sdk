@@ -2442,7 +2442,7 @@ String arrowReturnWithType(String type, expression) {
 }
 
 Node parseExpression(String text) =>
-    parseBodyCode(text, (parser, token) => parser.parseExpression(token));
+    parseBodyCode(text, (parser, token) => parser.parseExpression(token).next);
 
 const Map<String, String> ALT_SOURCE = const <String, String>{
   'num': r'''

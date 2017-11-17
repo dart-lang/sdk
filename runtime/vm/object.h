@@ -2728,14 +2728,35 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+  enum StateBits {
+    kWasCompiledPos = 0,
+    kWasExecutedPos = 1,
+  };
+  class WasCompiledBit : public BitField<uint8_t, bool, kWasCompiledPos, 1> {};
+  class WasExecutedBit : public BitField<uint8_t, bool, kWasExecutedPos, 1> {};
+
   // 'WasCompiled' is true if the function was compiled once in this
   // VM instantiation. It is independent from presence of type feedback
   // (ic_data_array) and code, which may be loaded from a snapshot.
   void SetWasCompiled(bool value) const {
-    set_was_compiled_numeric(value ? 1 : 0);
+    set_state_bits(WasCompiledBit::update(value, state_bits()));
+  }
+  bool WasCompiled() const { return WasCompiledBit::decode(state_bits()); }
+
+  // 'WasExecuted' is true if the usage counter has ever been positive.
+  void SetWasExecuted(bool value) const {
+    set_state_bits(WasExecutedBit::update(value, state_bits()));
+  }
+  bool WasExecuted() const {
+    return (usage_counter() > 0) || WasExecutedBit::decode(state_bits());
   }
 
-  bool WasCompiled() const { return was_compiled_numeric() != 0; }
+  void SetUsageCounter(intptr_t value) const {
+    if (usage_counter() > 0) {
+      SetWasExecuted(true);
+    }
+    set_usage_counter(value);
+  }
 
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.
@@ -3466,7 +3487,7 @@ class Script : public Object {
     return raw_ptr()->tokens_;
   }
 
-  void set_line_starts(const Array& value) const;
+  void set_line_starts(const TypedData& value) const;
 
   void set_debug_positions(const Array& value) const;
 
@@ -3523,7 +3544,7 @@ class Script : public Object {
   void set_kind(RawScript::Kind value) const;
   void set_load_timestamp(int64_t value) const;
   void set_tokens(const TokenStream& value) const;
-  RawArray* line_starts() const;
+  RawTypedData* line_starts() const;
   RawArray* debug_positions() const;
 
   static RawScript* New();
@@ -3957,6 +3978,19 @@ class KernelProgramInfo : public Object {
   }
 
   RawArray* scripts() const { return raw_ptr()->scripts_; }
+
+  RawArray* constants() const { return raw_ptr()->constants_; }
+  void set_constants(const Array& constants) const;
+
+  // If we load a kernel blob with evaluated constants, then we delay setting
+  // the native names of [Function] objects until we've read the constant table
+  // (since native names are encoded as constants).
+  //
+  // This array will hold the functions which might need their native name set.
+  RawGrowableObjectArray* potential_natives() const {
+    return raw_ptr()->potential_natives_;
+  }
+  void set_potential_natives(const GrowableObjectArray& candidates) const;
 
   RawScript* ScriptAt(intptr_t index) const;
 
@@ -4401,9 +4435,6 @@ class CodeSourceMap : public Object {
 
 class StackMap : public Object {
  public:
-  static const intptr_t kNoMaximum = -1;
-  static const intptr_t kNoMinimum = -1;
-
   bool IsObject(intptr_t index) const {
     ASSERT(InRange(index));
     return GetBit(index);
@@ -4419,7 +4450,7 @@ class StackMap : public Object {
 
   intptr_t SlowPathBitCount() const { return raw_ptr()->slow_path_bit_count_; }
   void SetSlowPathBitCount(intptr_t bit_count) const {
-    ASSERT(bit_count < kMaxInt32);
+    ASSERT(bit_count <= kMaxUint16);
     StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
   }
 
@@ -4453,6 +4484,7 @@ class StackMap : public Object {
 
  private:
   void SetLength(intptr_t length) const {
+    ASSERT(length <= kMaxUint16);
     StoreNonPointer(&raw_ptr()->length_, length);
   }
 

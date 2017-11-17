@@ -42,7 +42,7 @@ void testSuccessfulAlpnNegotiationConnection(List<String> clientProtocols,
       socket
         ..write('server message')
         ..close();
-      socket.transform(ASCII.decoder).join('').then((String s) {
+      socket.transform(ascii.decoder).join('').then((String s) {
         Expect.equals('client message', s);
         asyncEnd();
       });
@@ -57,7 +57,7 @@ void testSuccessfulAlpnNegotiationConnection(List<String> clientProtocols,
       socket
         ..write('client message')
         ..close();
-      socket.transform(ASCII.decoder).join('').then((String s) {
+      socket.transform(ascii.decoder).join('').then((String s) {
         Expect.equals('server message', s);
         server.close();
         asyncEnd();

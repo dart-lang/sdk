@@ -29,6 +29,8 @@ void main() {
   checkLintNormalizedSection_invalidAlphabeticalOrderingVariableArguments();
   checkLintNormalizedSection_invalidOrderingWithNotEqual();
   checkLintNormalizedSection_invalidOrderingWithNegation();
+
+  checkLintSectionHeaderDuplicates_invalidDuplicateSections();
 }
 
 StatusFile createFromString(String text) {
@@ -241,4 +243,17 @@ a_test: Pass
 a_test: Pass
 
 """);
+}
+
+void checkLintSectionHeaderDuplicates_invalidDuplicateSections() {
+  expectError(
+      r"""
+[ ! $browser ]
+a_test: Pass
+
+[ ! $browser ]
+a_test: Pass
+""",
+      r"Error at line 4: The condition !$browser is duplicated on lines 1 "
+      r"and 4.");
 }

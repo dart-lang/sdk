@@ -304,9 +304,13 @@ class DietListener extends StackListener {
   }
 
   @override
+  void handleStringPart(Token token) {
+    debugEvent("StringPart");
+  }
+
+  @override
   void endLiteralString(int interpolationCount, Token endToken) {
     debugEvent("endLiteralString");
-    discard(interpolationCount);
   }
 
   @override
@@ -344,6 +348,12 @@ class DietListener extends StackListener {
   void handleOperatorName(Token operatorKeyword, Token token) {
     debugEvent("OperatorName");
     push(token.stringValue);
+  }
+
+  @override
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    debugEvent("InvalidOperatorName");
+    push('invalid');
   }
 
   @override

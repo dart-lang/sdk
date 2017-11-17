@@ -52,7 +52,7 @@ class SecurityConfiguration {
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
-    String nonce = BASE64.encode(nonceData);
+    String nonce = base64.encode(nonceData);
 
     uri = new Uri(
         scheme: uri.scheme == "wss" ? "https" : "http",
@@ -66,7 +66,7 @@ class SecurityConfiguration {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
-        String auth = BASE64.encode(UTF8.encode(uri.userInfo));
+        String auth = base64.encode(utf8.encode(uri.userInfo));
         request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
       }
       // Setup the initial handshake.
@@ -173,7 +173,7 @@ class SecurityConfiguration {
 
         var key = request.headers.value('Sec-WebSocket-Key');
         var digest = sha1.convert("$key$WEB_SOCKET_GUID".codeUnits);
-        var accept = BASE64.encode(digest.bytes);
+        var accept = base64.encode(digest.bytes);
         request.response
           ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
           ..headers.add(HttpHeaders.CONNECTION, "Upgrade")

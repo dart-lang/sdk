@@ -17,7 +17,29 @@ Library getLibrary(NamedNode n) {
   return n;
 }
 
-String getClassName(Class c) => c.name?.replaceAll('&', r'$');
+final Pattern genericTypeEncodingCharacters = new RegExp('[&^#]');
+
+// TODO(karlklose): add a namer for all identifiers?
+String _escapeIdentifier(String identifier) {
+  // Remove the special characters used to encode mixin application class names
+  // which are legal in Kernel, but not in JavaScript.
+  return identifier?.replaceAll(genericTypeEncodingCharacters, r'$');
+}
+
+/// Returns the escaped name for class [node].
+///
+/// The caller of this function has to make sure that this name is unique in
+/// the current scope.
+///
+/// In the current encoding, generic classes are generated in a function scope
+/// which avoids name clashes of the escaped class name.
+String getLocalClassName(Class node) => _escapeIdentifier(node.name);
+
+/// Returns the escaped name for the type parameter [node].
+///
+/// In the current encoding, generic classes are generated in a function scope
+/// which avoids name clashes of the escaped parameter name.
+String getTypeParameterName(TypeParameter node) => _escapeIdentifier(node.name);
 
 String getTopLevelName(NamedNode n) {
   if (n is Procedure) return n.name.name;

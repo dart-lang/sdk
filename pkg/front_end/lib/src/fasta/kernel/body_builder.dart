@@ -22,7 +22,8 @@ import '../fasta_codes.dart'
         LocatedMessage,
         Message,
         messageNativeClauseShouldBeAnnotation,
-        messageSetterWithWrongNumberOfFormals;
+        messageSetterWithWrongNumberOfFormals,
+        messageSuperAsExpression;
 
 import '../messages.dart' as messages show getLocationFromUri;
 
@@ -232,6 +233,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (node is PrefixBuilder) {
       return deprecated_buildCompileTimeError(
           "A library can't be used as an expression.");
+    } else if (node is SuperInitializer) {
+      return buildCompileTimeError(messageSuperAsExpression, node.fileOffset);
     } else if (node is ProblemBuilder) {
       return buildProblemExpression(node, -1);
     } else {
@@ -647,9 +650,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         VariableDeclaration realParameter = formalBuilders.current.target;
         Expression initializer =
             parameter.initializer ?? new ShadowNullLiteral();
+        realParameter.initializer = initializer..parent = realParameter;
         _typeInferrer.inferParameterInitializer(
             initializer, realParameter.type);
-        realParameter.initializer = initializer..parent = realParameter;
       }
     }
     if (builder is KernelConstructorBuilder) {
@@ -1620,6 +1623,32 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
+  List<VariableDeclaration> buildVariableDeclarations(variableOrExpression) {
+    if (variableOrExpression is FastaAccessor) {
+      variableOrExpression = variableOrExpression.buildForEffect();
+    }
+    if (variableOrExpression is VariableDeclaration) {
+      return <VariableDeclaration>[variableOrExpression];
+    } else if (variableOrExpression is List) {
+      List<VariableDeclaration> variables = <VariableDeclaration>[];
+      for (var v in variableOrExpression) {
+        variables.addAll(buildVariableDeclarations(v));
+      }
+      return variables;
+    } else if (variableOrExpression == null) {
+      return <VariableDeclaration>[];
+    } else if (variableOrExpression is Expression) {
+      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
+          variableOrExpression, functionNestingLevel);
+      return <VariableDeclaration>[variable];
+    } else if (variableOrExpression is ExpressionStatement) {
+      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
+          variableOrExpression.expression, functionNestingLevel);
+      return <VariableDeclaration>[variable];
+    }
+    return null;
+  }
+
   @override
   void endForStatement(Token forKeyword, Token leftParen, Token leftSeparator,
       int updateExpressionCount, Token endToken) {
@@ -1633,26 +1662,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else {
       assert(conditionStatement is EmptyStatement);
     }
-    List<VariableDeclaration> variables;
     dynamic variableOrExpression = pop();
-    if (variableOrExpression is FastaAccessor) {
-      variableOrExpression = variableOrExpression.buildForEffect();
-    }
-    if (variableOrExpression is VariableDeclaration) {
-      variables = <VariableDeclaration>[variableOrExpression];
-    } else if (variableOrExpression is List) {
-      variables = variableOrExpression;
-    } else if (variableOrExpression == null) {
-      variables = <VariableDeclaration>[];
-    } else if (variableOrExpression is Expression) {
-      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
-          variableOrExpression, functionNestingLevel);
-      variables = <VariableDeclaration>[variable];
-    } else if (variableOrExpression is ExpressionStatement) {
-      VariableDeclaration variable = new ShadowVariableDeclaration.forEffect(
-          variableOrExpression.expression, functionNestingLevel);
-      variables = <VariableDeclaration>[variable];
-    } else {
+    List<VariableDeclaration> variables =
+        buildVariableDeclarations(variableOrExpression);
+    if (variables == null) {
       return unhandled("${variableOrExpression.runtimeType}", "endForStatement",
           forKeyword.charOffset, uri);
     }
@@ -2784,8 +2797,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ///     }
       variable = new VariableDeclaration.forValue(null);
       body = combineStatements(
-          new ShadowSyntheticStatement(new ExpressionStatement(lvalue
-              .buildAssignment(new VariableGet(variable), voidContext: true))),
+          new ShadowExpressionStatement(lvalue
+              .buildAssignment(new VariableGet(variable), voidContext: true)),
           body);
     } else {
       variable = new VariableDeclaration.forValue(

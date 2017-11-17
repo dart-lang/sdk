@@ -327,8 +327,19 @@ abstract class Statement extends ModuleItem {
     return new Block(statements);
   }
 
+  /// True if this declares any name from [names].
+  ///
+  /// This predicate is true if the statement declares a variable via `let` or
+  /// `const` with any name in the set.  This does not include variables nested
+  /// inside of blocks.  The predicate tests whether adding a declaration of one
+  /// of the named variables to a block containing this statement will be a
+  /// JavaScript syntax error due to a redeclared identifier.
+  bool shadows(Set<String> names) => false;
+
   Statement toStatement() => this;
   Statement toReturn() => new Block([this, new Return()]);
+
+  Block toBlock() => new Block([this]);
 }
 
 class Block extends Statement {
@@ -344,6 +355,9 @@ class Block extends Statement {
       : statements = <Statement>[],
         isScope = false;
 
+  @override
+  Block toBlock() => this;
+
   accept(NodeVisitor visitor) => visitor.visitBlock(this);
   void visitChildren(NodeVisitor visitor) {
     for (Statement statement in statements) statement.accept(visitor);
@@ -355,6 +369,12 @@ class Block extends Statement {
 class ExpressionStatement extends Statement {
   final Expression expression;
   ExpressionStatement(this.expression);
+
+  @override
+  bool shadows(Set<String> names) {
+    Expression expression = this.expression;
+    return expression is VariableDeclarationList && expression.shadows(names);
+  }
 
   accept(NodeVisitor visitor) => visitor.visitExpressionStatement(this);
   void visitChildren(NodeVisitor visitor) {
@@ -768,6 +788,15 @@ class VariableDeclarationList extends Expression {
 
   VariableDeclarationList(this.keyword, this.declarations);
 
+  /// True if this declares any name from [names].
+  ///
+  /// Analogous to the predicate [Statement.shadows].
+  bool shadows(Set<String> names) {
+    if (keyword == 'var') return false;
+    for (var d in declarations) if (d.declaration.shadows(names)) return true;
+    return false;
+  }
+
   accept(NodeVisitor visitor) => visitor.visitVariableDeclarationList(this);
 
   void visitChildren(NodeVisitor visitor) {
@@ -817,7 +846,12 @@ class VariableInitialization extends Assignment {
       new VariableInitialization(declaration, value);
 }
 
-abstract class VariableBinding extends Expression {}
+abstract class VariableBinding extends Expression {
+  /// True if this binding declares any name from [names].
+  ///
+  /// Analogous to the predicate [Statement.shadows].
+  bool shadows(Set<String> names);
+}
 
 class DestructuredVariable extends Expression implements Parameter {
   /// [LiteralString] or [Identifier].
@@ -828,6 +862,12 @@ class DestructuredVariable extends Expression implements Parameter {
   DestructuredVariable(
       {this.name, this.structure, this.defaultValue, this.type}) {
     assert(name != null || structure != null);
+  }
+
+  bool shadows(Set<String> names) {
+    Expression name = this.name;
+    return names.contains(
+        name is LiteralString ? name.value : (name as Identifier).name);
   }
 
   accept(NodeVisitor visitor) => visitor.visitDestructuredVariable(this);
@@ -849,6 +889,11 @@ abstract class BindingPattern extends Expression implements VariableBinding {
   final List<DestructuredVariable> variables;
   BindingPattern(this.variables);
 
+  bool shadows(Set<String> names) {
+    for (var v in variables) if (v.shadows(names)) return true;
+    return false;
+  }
+
   void visitChildren(NodeVisitor visitor) {
     for (DestructuredVariable v in variables) v.accept(visitor);
   }
@@ -861,6 +906,9 @@ class SimpleBindingPattern extends BindingPattern {
         super([new DestructuredVariable(name: name)]);
 
   accept(NodeVisitor visitor) => visitor.visitSimpleBindingPattern(this);
+
+  @override
+  bool shadows(Set<String> names) => names.contains(name.name);
 
   /// Avoid parenthesis when pretty-printing.
   @override
@@ -1102,6 +1150,8 @@ class Identifier extends Expression implements Parameter, VariableBinding {
   }
   static RegExp _identifierRE = new RegExp(r'^[A-Za-z_$][A-Za-z_$0-9]*$');
 
+  bool shadows(Set<String> names) => names.contains(name);
+
   Identifier _clone() => new Identifier(name, allowRename: allowRename);
   accept(NodeVisitor visitor) => visitor.visitIdentifier(this);
   int get precedenceLevel => PRIMARY;
@@ -1114,6 +1164,8 @@ class RestParameter extends Expression implements Parameter {
   TypeRef get type => null;
 
   RestParameter(this.parameter);
+
+  bool shadows(Set<String> names) => names.contains(parameter.name);
 
   RestParameter _clone() => new RestParameter(parameter);
   accept(NodeVisitor visitor) => visitor.visitRestParameter(this);
@@ -1636,6 +1688,8 @@ class InterpolatedParameter extends Expression
     throw "InterpolatedParameter.name must not be invoked";
   }
 
+  bool shadows(Set<String> names) => false;
+
   bool get allowRename => false;
 
   InterpolatedParameter(this.nameOrPosition);
@@ -1698,6 +1752,8 @@ class InterpolatedIdentifier extends Expression
   TypeRef get type => null;
 
   InterpolatedIdentifier(this.nameOrPosition);
+
+  bool shadows(Set<String> names) => false;
 
   accept(NodeVisitor visitor) => visitor.visitInterpolatedIdentifier(this);
   void visitChildren(NodeVisitor visitor) {}

@@ -749,7 +749,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_deoptimization_counter(reader->Read<int8_t>());
     func.set_optimized_instruction_count(reader->Read<uint16_t>());
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
-    func.SetWasCompiled(false);
+    func.set_state_bits(0);
 
     // Set all the object fields.
     READ_OBJECT_FIELDS(func, func.raw()->from(), func.raw()->to_snapshot(kind),

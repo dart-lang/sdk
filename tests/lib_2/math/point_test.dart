@@ -40,7 +40,7 @@ main() {
 
   // constructor X Y NaN
   {
-    var point = new Point(double.NAN, 1000);
+    var point = new Point(double.nan, 1000);
     Expect.isTrue(point.x.isNaN);
     Expect.equals(1000, point.y);
     Expect.equals('Point(NaN, 1000)', '$point');

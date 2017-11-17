@@ -13,7 +13,13 @@ main() {
   namedLocalFunctionInvokeExtraNamedArgument();
   closureToString();
   closureCallToString();
+  callCompare();
+  callClosure();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of a named local function.
+////////////////////////////////////////////////////////////////////////////////
 
 /*element: namedLocalFunctionInvoke:[exact=JSUInt31]*/
 namedLocalFunctionInvoke() {
@@ -21,11 +27,19 @@ namedLocalFunctionInvoke() {
   return local();
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Invocation of an unnamed local function.
+////////////////////////////////////////////////////////////////////////////////
+
 /*element: unnamedLocalFunctionInvoke:[null|subclass=Object]*/
 unnamedLocalFunctionInvoke() {
   var local = /*[exact=JSUInt31]*/ () => 0;
   return local();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Access of a named local function.
+////////////////////////////////////////////////////////////////////////////////
 
 /*element: namedLocalFunctionGet:[subclass=Closure]*/
 namedLocalFunctionGet() {
@@ -33,11 +47,19 @@ namedLocalFunctionGet() {
   return local;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Call a named local function recursively.
+////////////////////////////////////////////////////////////////////////////////
+
 /*element: recursiveLocalFunction:[subclass=Closure]*/
 recursiveLocalFunction() {
   /*[subclass=Closure]*/ local() => local;
   return local();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Call a named local function with a missing argument.
+////////////////////////////////////////////////////////////////////////////////
 
 /*element: namedLocalFunctionInvokeMissingArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeMissingArgument() {
@@ -46,12 +68,20 @@ namedLocalFunctionInvokeMissingArgument() {
   return local();
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Call a named local function with an extra argument.
+////////////////////////////////////////////////////////////////////////////////
+
 /*element: namedLocalFunctionInvokeExtraArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeExtraArgument() {
   /*[exact=JSUInt31]*/ local() => 0;
   // ignore: EXTRA_POSITIONAL_ARGUMENTS
   return local(0);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Call a named local function with an extra named argument.
+////////////////////////////////////////////////////////////////////////////////
 
 /*element: namedLocalFunctionInvokeExtraNamedArgument:[null|subclass=Object]*/
 namedLocalFunctionInvokeExtraNamedArgument() {
@@ -60,6 +90,10 @@ namedLocalFunctionInvokeExtraNamedArgument() {
   return local(a: 0);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Implicit .call on a local variable.
+////////////////////////////////////////////////////////////////////////////////
+
 /*element: closureToString:[exact=JSString]*/
 closureToString() {
   var local = /*[null]*/ () {};
@@ -67,15 +101,51 @@ closureToString() {
   return local. /*invoke: [subclass=Closure]*/ toString();
 }
 
-// TODO(johnniwinther): Handle .call on closures correctly the old inference.
-/*ast.element: closureCallToString:[empty]*/
-/*kernel.element: closureCallToString:[exact=JSString]*/
+////////////////////////////////////////////////////////////////////////////////
+// Explicit .call on a local variable.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: closureCallToString:[exact=JSString]*/
 closureCallToString() {
   var local = /*[null]*/ () {};
   local.call();
-  return local
-      .
-      /*ast.invoke: [empty]*/
-      /*kernel.invoke: [subclass=Closure]*/
-      toString();
+  return local. /*invoke: [subclass=Closure]*/ toString();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Operator == on the result of a parameter invocation.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _callCompare:[exact=callCompare_closure]*/
+_callCompare(int /*[subclass=Closure]*/ compare({a, b})) {
+  compare(a: 0, b: 1) == 0;
+  return compare;
+}
+
+/*element: callCompare:[null]*/
+callCompare() {
+  _callCompare(/*[subclass=JSInt]*/
+      ({/*[exact=JSUInt31]*/ a, /*[exact=JSUInt31]*/ b}) =>
+          a /*invoke: [exact=JSUInt31]*/ - b);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Invocation on the result of a parameter invocation.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: Class1.:[exact=Class1]*/
+class Class1 {
+  /*element: Class1.method1:[null]*/
+  method1() {}
+}
+
+/*element: _callClosure:[exact=callClosure_closure]*/
+_callClosure(/*[subclass=Closure]*/ f({c})) {
+  f(c: new Class1()).method1();
+  return f;
+}
+
+/*element: callClosure:[null]*/
+callClosure() {
+  _callClosure(/*[exact=Class1]*/ ({/*[exact=Class1]*/ c}) => c);
 }

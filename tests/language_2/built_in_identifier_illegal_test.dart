@@ -4,20 +4,20 @@
 // Check that we cannot use a pseudo keyword at the class level code.
 
 // Pseudo keywords are not allowed to be used as class names.
-class abstract { } //   //# 01: compile-time error
-class as { } //         //# 19: compile-time error
+class abstract { } //   //# 01: syntax error
+class as { } //         //# 19: syntax error
 class dynamic { } //    //# 04: compile-time error
-class export { } //     //# 17: compile-time error
-class external { } //   //# 20: compile-time error
-class factory { } //    //# 05: compile-time error
-class get { } //        //# 06: compile-time error
-class implements { } // //# 07: compile-time error
-class import { } //     //# 08: compile-time error
-class library { } //    //# 10: compile-time error
-class operator { } //   //# 12: compile-time error
-class part { } //       //# 18: compile-time error
-class set { } //        //# 13: compile-time error
-class static { } //     //# 15: compile-time error
-class typedef { } //    //# 16: compile-time error
+class export { } //     //# 17: syntax error
+class external { } //   //# 20: syntax error
+class factory { } //    //# 05: syntax error
+class get { } //        //# 06: syntax error
+class implements { } // //# 07: syntax error
+class import { } //     //# 08: syntax error
+class library { } //    //# 10: syntax error
+class operator { } //   //# 12: syntax error
+class part { } //       //# 18: syntax error
+class set { } //        //# 13: syntax error
+class static { } //     //# 15: syntax error
+class typedef { } //    //# 16: syntax error
 
 main() {}

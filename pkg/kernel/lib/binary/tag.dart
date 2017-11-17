@@ -113,6 +113,8 @@ class Tag {
 
   static const int ClosureCreation = 106;
 
+  static const int ConstantExpression = 107;
+
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000
   static const int SpecializedPayloadMask = 0x7; // 00000111
@@ -129,4 +131,17 @@ class Tag {
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h.
   static const int BinaryFormatVersion = 1;
+}
+
+abstract class ConstantTag {
+  static const int NullConstant = 0;
+  static const int BoolConstant = 1;
+  static const int IntConstant = 2;
+  static const int DoubleConstant = 3;
+  static const int StringConstant = 4;
+  static const int MapConstant = 5;
+  static const int ListConstant = 6;
+  static const int InstanceConstant = 7;
+  static const int TearOffConstant = 8;
+  static const int TypeLiteralConstant = 9;
 }

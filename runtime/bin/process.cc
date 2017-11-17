@@ -346,6 +346,10 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   }
   uint8_t* buffer = NULL;
   Dart_Handle external_array = IOBuffer::Allocate(system_len, &buffer);
+  if (Dart_IsNull(external_array)) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    return;
+  }
   if (!Dart_IsError(external_array)) {
     memmove(buffer, system_string, system_len);
   }

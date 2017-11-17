@@ -267,12 +267,18 @@ inference/refine_binary_expression_type_type_parameter_t_int: Crash
 inference/refine_binary_expression_type_type_parameter_t_t: Crash
 inference/static_method_tear_off: Crash
 inference/string_literal: Crash
+inference/super_index_set: Crash
+inference/super_index_set_substitution: Crash
 inference/super_initializer: Crash
+inference/super_initializer_substitution: Crash
 inference/super_method_invocation: Crash
+inference/super_method_invocation_substitution: Crash
 inference/super_property_get: Crash
+inference/super_property_get_substitution: Crash
 inference/super_property_get_invoke_function_typed: Crash
 inference/super_property_get_invoke_implicit_call: Crash
 inference/super_property_get_tearoff: Crash
+inference/super_property_set_substitution: Crash
 inference/switch_continue: Crash
 inference/this_reference: Crash
 inference/top_level_return_and_yield: Crash
@@ -289,10 +295,10 @@ inference/type_promotion_stopped_by_mutation_in_a_closure: Crash
 inference/unresolved_super: Crash
 inference/unsafe_block_closure_inference_closure_call: Crash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param: Crash
-inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail
+inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Crash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference/unsafe_block_closure_inference_function_call_explicit_type_param: Crash
-inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail
+inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Crash
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
 inference/unsafe_block_closure_inference_function_call_implicit_type_param: Crash
 inference/unsafe_block_closure_inference_function_call_implicit_type_param_via_expr: Crash
@@ -340,6 +346,8 @@ inference_new/property_assign_combiner: Crash
 inference_new/property_get_toplevel: Crash
 inference_new/static_assign_combiner: Crash
 inference_new/strongly_connected_component: Crash
+inference_new/super_index_get: Crash
+inference_new/super_index_get_substitution: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
 invalid_assignment: Crash
@@ -388,6 +396,7 @@ rasta/issue_000081: Crash
 rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: VerificationError
 rasta/mixin_library: Crash
+rasta/parser_error: Crash
 rasta/previsit_deferred: Crash
 rasta/static: Crash
 rasta/super: Crash
@@ -416,8 +425,10 @@ regress/issue_29985: Crash
 regress/issue_31155: Crash # Issue 31155.
 regress/issue_31157: Crash
 regress/issue_31180: Crash
+regress/issue_31184: Crash
 regress/issue_31186: Crash
 regress/issue_31187: Crash
+regress/issue_31198: Crash
 reorder_super: Crash
 runtime_checks/call_kinds: Crash
 runtime_checks/call_kinds_get: Crash

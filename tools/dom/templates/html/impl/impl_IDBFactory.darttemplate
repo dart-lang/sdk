@@ -97,7 +97,7 @@ Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {
-    var result = _cast/*<T>*/(request.result);
+    dynamic/*=T*/ result = request.result;
     completer.complete(result);
   });
   request.onError.listen(completer.completeError);

@@ -146,11 +146,9 @@ class KernelDriver {
     return await runWithFrontEndContext('Compute kernel', () async {
       await _refreshInvalidatedFiles();
 
-      CanonicalName nameRoot = new CanonicalName.root();
-
       // Load the SDK outline before building the graph, so that the file
       // system state is configured to skip SDK libraries.
-      await _loadSdkOutline(nameRoot);
+      await _loadSdkOutline();
 
       // Ensure that the graph starting at the entry point is ready.
       FileState entryLibrary =
@@ -223,7 +221,12 @@ class KernelDriver {
 
       // Load the SDK outline before building the graph, so that the file
       // system state is configured to skip SDK libraries.
-      await _loadSdkOutline(nameRoot);
+      await _loadSdkOutline();
+      if (_sdkOutline != null) {
+        for (var library in _sdkOutline.libraries) {
+          nameRoot.adoptChild(library.canonicalName);
+        }
+      }
 
       // Ensure that the graph starting at the entry point is ready.
       FileState entryLibrary =
@@ -491,10 +494,9 @@ class KernelDriver {
       DillTarget dillTarget = new DillTarget(
           new Ticker(isVerbose: false), uriTranslator, _options.target);
 
-      // If there is the SDK outline, load it.
       // Load the SDK outline before building the graph, so that the file
       // system state is configured to skip SDK libraries.
-      await _loadSdkOutline(nameRoot);
+      await _loadSdkOutline();
       if (_sdkOutline != null) {
         dillTarget.loader.appendLibraries(_sdkOutline);
         await dillTarget.buildOutlines();
@@ -623,13 +625,13 @@ class KernelDriver {
     return signatureBuilder.toHex();
   }
 
-  /// Load the SDK outline if its bytes are provided, and configure the file
-  /// system state to skip SDK library files.
-  Future<Null> _loadSdkOutline(CanonicalName nameRoot) async {
-    if (_sdkOutlineBytes != null) {
+  /// If SDK outline bytes are provided, and it is not loaded yet into
+  /// [_sdkOutline], load it and configure the file system state to skip SDK
+  /// library files.
+  Future<Null> _loadSdkOutline() async {
+    if (_sdkOutlineBytes != null && _sdkOutline == null) {
       await _logger.runAsync('Load SDK outline from bytes', () async {
-        _sdkOutline = new Program(nameRoot: nameRoot);
-        new BinaryBuilder(_sdkOutlineBytes).readProgram(_sdkOutline);
+        _sdkOutline = loadProgramFromBytes(_sdkOutlineBytes);
         // Configure the file system state to skip the outline libraries.
         for (var outlineLibrary in _sdkOutline.libraries) {
           _fsState.skipSdkLibraries.add(outlineLibrary.importUri);

@@ -236,6 +236,17 @@ abstract class TypeInformation {
     users = null;
     _assignments = null;
   }
+
+  String toStructuredTest() {
+    StringBuffer sb = new StringBuffer();
+    _toStructuredText(sb, '');
+    return sb.toString();
+  }
+
+  void _toStructuredText(StringBuffer sb, String indent) {
+    sb.write(indent);
+    sb.write(toString());
+  }
 }
 
 abstract class ApplyableTypeInformation implements TypeInformation {
@@ -1794,6 +1805,23 @@ class PhiElementTypeInformation<T> extends TypeInformation {
   }
 
   String toString() => 'Phi $variable $type';
+
+  void _toStructuredText(StringBuffer sb, String indent) {
+    sb.write(indent);
+    sb.write(toString());
+    if (branchNode != null) {
+      String context = '$branchNode'.replaceAll('\n', ' ');
+      if (context.length > 80) {
+        context = context.substring(0, 77) + '...';
+      }
+      sb.write(': $context');
+    } else {
+      for (TypeInformation assignment in assignments) {
+        sb.write('\n');
+        assignment._toStructuredText(sb, '$indent  ');
+      }
+    }
+  }
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitPhiElementTypeInformation(this);

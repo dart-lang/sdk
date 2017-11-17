@@ -7,7 +7,8 @@ import 'dart:isolate';
 
 import "package:expect/expect.dart";
 
-void checkResolvedExecutable(String re) {
+void checkResolvedExecutable(Object reObj) {
+  String re = reObj;
   Expect.equals(Platform.resolvedExecutable, re);
 }
 

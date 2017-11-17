@@ -14,7 +14,6 @@ import '../compiler.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../enqueue.dart';
-import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_emitter/sorter.dart';
 import '../js_model/js_strategy.dart';
@@ -106,8 +105,8 @@ class KernelSsaBuilder implements SsaBuilder {
         work.registry,
         _compiler.backendStrategy.closureDataLookup,
         _compiler.backend.emitter.nativeEmitter,
-        // TODO(redemption): Support these:
-        const SourceInformationBuilder(),
+        _compiler.backend.sourceInformationStrategy
+            .createBuilderForContext(work.element),
         null); // Function node used as capture scope id.
     return builder.build();
   }

@@ -14,7 +14,7 @@ namespace bin {
 
 class VmService {
  public:
-  static bool LoadForGenPrecompiled(void* vmservice_kernel);
+  static bool LoadForGenPrecompiled(bool use_dart_frontend);
 
   static bool Setup(const char* server_ip,
                     intptr_t server_port,

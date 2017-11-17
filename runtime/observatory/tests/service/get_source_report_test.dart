@@ -61,12 +61,12 @@ var tests = [
 
     var expectedRange = {
       'scriptIndex': 0,
-      'startPos': ifKernel(501, 39),
-      'endPos': ifKernel(633, 88),
+      'startPos': ifKernel(501, 40),
+      'endPos': ifKernel(633, 89),
       'compiled': true,
       'coverage': {
-        'hits': ifKernel([501, 539, 590, 619], [39, 54, 72, 82]),
-        'misses': ifKernel([552], [60])
+        'hits': ifKernel([501, 539, 590, 619], [40, 55, 73, 83]),
+        'misses': ifKernel([552], [61])
       }
     };
 

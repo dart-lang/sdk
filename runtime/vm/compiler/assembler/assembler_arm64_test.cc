@@ -1879,6 +1879,172 @@ ASSEMBLER_TEST_RUN(CsinvTrue, test) {
   EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(CsnegFalse, assembler) {
+  __ LoadImmediate(R1, 42);
+  __ LoadImmediate(R2, 1234);
+  __ CompareRegisters(R1, R2);
+  __ csneg(R0, R2, R1, GE);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(CsnegFalse, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(CsnegTrue, assembler) {
+  __ LoadImmediate(R1, 42);
+  __ LoadImmediate(R2, 1234);
+  __ CompareRegisters(R1, R2);
+  __ csneg(R0, R2, R1, LT);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(CsnegTrue, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(1234, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Ubfx, assembler) {
+  __ LoadImmediate(R1, 0x819);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ ubfx(R0, R1, 4, 8);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Ubfx, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x81, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Sbfx, assembler) {
+  __ LoadImmediate(R1, 0x819);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ sbfx(R0, R1, 4, 8);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Sbfx, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-0x7f, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Bfi, assembler) {
+  __ LoadImmediate(R1, 0x819);
+  __ LoadImmediate(R0, 0x5a5a5a5a);
+  __ bfi(R0, R1, 12, 5);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Bfi, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x5a5b9a5a, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Bfxil, assembler) {
+  __ LoadImmediate(R1, 0x819);
+  __ LoadImmediate(R0, 0x5a5a5a5a);
+  __ bfxil(R0, R1, 4, 8);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Bfxil, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x5a5a5a81, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Sbfiz, assembler) {
+  __ LoadImmediate(R1, 0x819);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ sbfiz(R0, R1, 4, 12);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Sbfiz, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(-0x7e70, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Sxtb, assembler) {
+  __ LoadImmediate(R1, 0xff);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ sxtb(R0, R1);
+  __ LoadImmediate(R2, 0x2a);
+  __ LoadImmediate(R1, 0x5a5a5a5a);  // Overwritten.
+  __ sxtb(R1, R2);
+  __ add(R0, R0, Operand(R1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Sxtb, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x29, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Sxth, assembler) {
+  __ LoadImmediate(R1, 0xffff);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ sxth(R0, R1);
+  __ LoadImmediate(R2, 0x1002a);
+  __ LoadImmediate(R1, 0x5a5a5a5a);  // Overwritten.
+  __ sxth(R1, R2);
+  __ add(R0, R0, Operand(R1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Sxth, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x29, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Sxtw, assembler) {
+  __ LoadImmediate(R1, 0xffffffffll);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ sxtw(R0, R1);
+  __ LoadImmediate(R2, 0x10000002all);
+  __ LoadImmediate(R1, 0x5a5a5a5a);  // Overwritten.
+  __ sxtw(R1, R2);
+  __ add(R0, R0, Operand(R1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Sxtw, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x29, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Uxtb, assembler) {
+  __ LoadImmediate(R1, -1);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ uxtb(R0, R1);
+  __ LoadImmediate(R2, 0x12a);
+  __ LoadImmediate(R1, 0x5a5a5a5a);  // Overwritten.
+  __ uxtb(R1, R2);
+  __ add(R0, R0, Operand(R1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Uxtb, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0xff + 0x2a, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(Uxth, assembler) {
+  __ LoadImmediate(R1, -1);
+  __ LoadImmediate(R0, 0x5a5a5a5a);  // Overwritten.
+  __ uxth(R0, R1);
+  __ LoadImmediate(R2, 0x1002a);
+  __ LoadImmediate(R1, 0x5a5a5a5a);  // Overwritten.
+  __ uxth(R1, R2);
+  __ add(R0, R0, Operand(R1));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Uxth, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0xffff + 0x2a, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
 // Floating point move immediate, to/from integer register.
 ASSEMBLER_TEST_GENERATE(Fmovdi, assembler) {
   __ LoadDImmediate(V0, 1.0);

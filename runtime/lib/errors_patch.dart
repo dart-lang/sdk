@@ -13,7 +13,7 @@ class Error {
 
   @patch
   static String _stringToSafeString(String string) {
-    return JSON.encode(string);
+    return json.encode(string);
   }
 
   @patch

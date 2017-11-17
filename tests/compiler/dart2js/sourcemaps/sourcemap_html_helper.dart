@@ -382,6 +382,7 @@ List<CodeLine> convertAnnotatedCodeToCodeLines(
 
   int start = startLine ?? 0;
   int end = endLine ?? lines.length - 1;
+  if (lastLine == 0) lastLine = firstLine;
   if (windowSize != null) {
     start = Math.max(firstLine - windowSize, start);
     end = Math.min(lastLine + windowSize, end);
@@ -483,6 +484,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
   StringBuffer dartCodeBuffer = new StringBuffer();
   Map<Uri, Map<int, List<SourceLocation>>> sourceLocationMap = {};
   collection.sourceLocations.forEach((SourceLocation sourceLocation) {
+    if (sourceLocation.sourceUri == null || sourceLocation.line == null) return;
     Map<int, List<SourceLocation>> uriMap =
         sourceLocationMap.putIfAbsent(sourceLocation.sourceUri, () => {});
     List<SourceLocation> lineList =
@@ -491,7 +493,10 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
   });
   sourceLocationMap.forEach((Uri uri, Map<int, List<SourceLocation>> uriMap) {
     SourceFile sourceFile = sourceFileManager.getSourceFile(uri);
-    if (sourceFile == null) return;
+    if (sourceFile == null) {
+      print('No source file for $uri');
+      return;
+    }
     StringBuffer codeBuffer = new StringBuffer();
 
     int firstLineIndex;
@@ -509,10 +514,12 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
             '${lastLineIndex + windowSize + 1}'
             '</h4>\n');
         dartCodeBuffer.write('<pre>\n');
+        dartCodeBuffer.write('<p class="line">');
         for (int line = firstLineIndex - windowSize;
             line < firstLineIndex;
             line++) {
           if (line >= 0) {
+            dartCodeBuffer.write('</p><p class="line">');
             dartCodeBuffer.write(lineNumber(line, width: lineNoWidth));
             dartCodeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
           }
@@ -522,10 +529,12 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
             line <= lastLineIndex + windowSize;
             line++) {
           if (line < sourceFile.lines) {
+            dartCodeBuffer.write('</p><p class="line">');
             dartCodeBuffer.write(lineNumber(line, width: lineNoWidth));
             dartCodeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
           }
         }
+        dartCodeBuffer.write('</p>');
         dartCodeBuffer.write('</pre>\n');
         firstLineIndex = null;
         lastLineIndex = null;
@@ -542,6 +551,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
         firstLineIndex = lineIndex;
       } else {
         for (int line = lastLineIndex + 1; line < lineIndex; line++) {
+          codeBuffer.write('</p><p class="line">');
           codeBuffer.write(lineNumber(line, width: lineNoWidth));
           codeBuffer.write(sourceFile.kernelSource.getTextLine(line + 1));
         }
@@ -557,6 +567,7 @@ String computeDartHtmlPart(String name, SourceFileManager sourceFileManager,
           end = locations[i + 1].column - 1;
         }
         if (i == 0) {
+          codeBuffer.write('</p><p class="line">');
           codeBuffer.write(lineNumber(lineIndex, width: lineNoWidth));
           codeBuffer.write(line.substring(0, start));
         }

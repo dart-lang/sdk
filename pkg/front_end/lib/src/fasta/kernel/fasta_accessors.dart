@@ -9,7 +9,8 @@ import 'package:kernel/ast.dart'
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show messageLoadLibraryTakesNoArguments;
+import '../fasta_codes.dart'
+    show messageInvalidInitializer, messageLoadLibraryTakesNoArguments;
 
 import '../messages.dart' show Message;
 
@@ -59,6 +60,8 @@ import 'kernel_shadow_ast.dart'
         ShadowThisExpression,
         ShadowTypeLiteral,
         ShadowVariableAssignment;
+
+import 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
 
 import 'utils.dart' show offsetForToken;
 
@@ -162,10 +165,7 @@ abstract class FastaAccessor implements Accessor {
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     int offset = offsetForToken(token);
     return helper.buildInvalidInitializer(
-        helper.deprecated_buildCompileTimeError(
-            // TODO(ahe): This error message is really bad.
-            "Can't use $plainNameForRead here.",
-            offset),
+        helper.buildCompileTimeError(messageInvalidInitializer, offset),
         offset);
   }
 
@@ -1070,6 +1070,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         expected = declaration.target.typeParameters.length;
       } else if (declaration is FunctionTypeAliasBuilder) {
         expected = declaration.target.typeParameters.length;
+      } else if (declaration is KernelTypeVariableBuilder) {
+        // Type arguments on a type variable - error reported elsewhere.
       } else {
         return unhandled(
             "${declaration.runtimeType}",

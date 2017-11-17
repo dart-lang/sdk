@@ -227,16 +227,12 @@ vm/regress_27671_test: Crash
 vm/type_vm_test: Crash
 deferred_redirecting_factory_test: CompileTimeError # Issue 31296
 vm/regress_27671_test: Skip # Unsupported
-assertion_initializer_const_error2_test/none: CompileTimeError
-assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
 
 # dartk: precompilation failures (debug)
 [ $compiler == dartkp && $mode == debug ]
 external_test/13: Crash
 final_syntax_test/09: Crash
 malbounded_type_cast_test: Crash
-regress_22445_test: Crash
-regress_23498_test: Crash
 regress_29025_test: Crash
 vm/async_await_catch_stacktrace_test: Crash
 
@@ -408,3 +404,6 @@ export_double_same_main_test: Crash # Issue 29895
 
 [ $compiler == dartk || $compiler == dartkp ]
 bad_constructor_test/06: DartkCrash # Issue 31299
+
+[ $compiler == dartkp && $mode == debug ]
+assertion_test: Crash

@@ -281,8 +281,9 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
   if (isolate->debugger()->IsStepping() ||
       isolate->debugger()->HasBreakpoint(function, thread->zone())) {
     // We cannot set breakpoints and single step in optimized code,
-    // so do not optimize the function.
-    function.set_usage_counter(0);
+    // so do not optimize the function. Bump usage counter down to avoid
+    // repeatedly entering the runtime for an optimization attempt.
+    function.SetUsageCounter(0);
     return false;
   }
 #endif
@@ -299,7 +300,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     // The function will not be optimized any longer. This situation can occur
     // mostly with small optimization counter thresholds.
     function.SetIsOptimizable(false);
-    function.set_usage_counter(INT_MIN);
+    function.SetUsageCounter(INT_MIN);
     return false;
   }
   if (FLAG_optimization_filter != NULL) {
@@ -321,7 +322,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     }
     delete[] filter;
     if (!found) {
-      function.set_usage_counter(INT_MIN);
+      function.SetUsageCounter(INT_MIN);
       return false;
     }
   }
@@ -331,7 +332,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     if (FLAG_trace_failed_optimization_attempts) {
       THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
     }
-    function.set_usage_counter(INT_MIN);
+    function.SetUsageCounter(INT_MIN);
     return false;
   }
   return true;
@@ -628,7 +629,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
-    function.set_usage_counter(INT_MIN);
+    function.SetUsageCounter(INT_MIN);
   }
 
   graph_compiler->FinalizePcDescriptors(code);
@@ -699,10 +700,10 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
       if (function.usage_counter() < 0) {
         // Reset to 0 so that it can be recompiled if needed.
         if (code_is_valid) {
-          function.set_usage_counter(0);
+          function.SetUsageCounter(0);
         } else {
           // Trigger another optimization pass soon.
-          function.set_usage_counter(FLAG_optimization_counter_threshold - 100);
+          function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
         }
       }
     }

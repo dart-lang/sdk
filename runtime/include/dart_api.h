@@ -546,7 +546,7 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000004)
+#define DART_FLAGS_CURRENT_VERSION (0x00000005)
 
 typedef struct {
   int32_t version;
@@ -560,6 +560,7 @@ typedef struct {
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
   bool reify_generic_functions;
+  bool strong;
 } Dart_IsolateFlags;
 
 /**

@@ -52,6 +52,10 @@ class CloneVisitor extends TreeVisitor {
     return substitute(type, typeSubstitution);
   }
 
+  Constant visitConstant(Constant constant) {
+    return constant;
+  }
+
   DartType visitOptionalType(DartType type) {
     return type == null ? null : substitute(type, typeSubstitution);
   }
@@ -200,6 +204,10 @@ class CloneVisitor extends TreeVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     return new FunctionExpression(clone(node.function));
+  }
+
+  visitConstantExpression(ConstantExpression node) {
+    return new ConstantExpression(visitConstant(node.constant));
   }
 
   visitStringLiteral(StringLiteral node) {

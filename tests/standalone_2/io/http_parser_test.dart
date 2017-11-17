@@ -33,13 +33,13 @@ class HttpParserTest {
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map expectedHeaders: null,
+      Map<String, String> expectedHeaders: null,
       bool chunked: false,
       bool upgrade: false,
       int unparsedLength: 0,
       bool connectionClose: false,
       String expectedVersion: "1.1"}) {
-    StreamController controller;
+    StreamController<List<int>> controller;
     void reset() {
       _HttpParser httpParser = new _HttpParser.requestParser();
       controller = new StreamController(sync: true);
@@ -132,7 +132,7 @@ class HttpParserTest {
       String request, String expectedMethod, String expectedUri,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map expectedHeaders: null,
+      Map<String, String> expectedHeaders: null,
       bool chunked: false,
       bool upgrade: false,
       int unparsedLength: 0,
@@ -162,7 +162,7 @@ class HttpParserTest {
   static void _testParseInvalidRequest(String request) {
     _HttpParser httpParser;
     bool errorCalled;
-    StreamController controller;
+    StreamController<List<int>> controller;
 
     void reset() {
       httpParser = new _HttpParser.requestParser();
@@ -206,7 +206,7 @@ class HttpParserTest {
       String response, int expectedStatusCode, String expectedReasonPhrase,
       {int expectedTransferLength: 0,
       int expectedBytesReceived: 0,
-      Map expectedHeaders: null,
+      Map<String, String> expectedHeaders: null,
       bool chunked: false,
       bool close: false,
       String responseToMethod: null,
@@ -214,7 +214,7 @@ class HttpParserTest {
       bool upgrade: false,
       int unparsedLength: 0,
       String expectedVersion: "1.1"}) {
-    StreamController controller;
+    StreamController<List<int>> controller;
     bool upgraded;
 
     void reset() {
@@ -309,7 +309,7 @@ class HttpParserTest {
   static void _testParseInvalidResponse(String response, [bool close = false]) {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       _HttpParser httpParser = new _HttpParser.responseParser();
-      StreamController controller = new StreamController(sync: true);
+      StreamController<List<int>> controller = new StreamController(sync: true);
       bool errorCalled = false;
       ;
 
@@ -352,7 +352,7 @@ class HttpParserTest {
 
   static void testParseRequest() {
     String request;
-    Map headers;
+    Map<String, String> headers;
     var methods = [
       // RFC 2616 methods.
       "OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT",
@@ -587,7 +587,7 @@ Sec-WebSocket-Version: 13\r
 
   static void testParseResponse() {
     String response;
-    Map headers;
+    Map<String, String> headers;
     response = "HTTP/1.1 100 Continue\r\nContent-Length: 0\r\n\r\n";
     _testParseResponse(response, 100, "Continue");
 

@@ -113,7 +113,7 @@ class TypeTest {
       if ("hello") {} //# 14: compile-time error
       if ("hello" || false) {} //# 15: compile-time error
       if (false || "hello") {} //# 16: compile-time error
-      if (null) {}
+      if (null) {}             //# 28: runtime error
     return 9;
   }
 
@@ -127,18 +127,18 @@ class TypeTest {
     {
       var a = new List(5);
       List a0 = a;
-      List<Object> ao = a;
-      List<int> ai = a;
-      List<num> an = a;
-      List<String> as = a;
+      List<Object> ao = a;  //# 29: runtime error
+      List<int> ai = a;  //# 30: runtime error
+      List<num> an = a;  //# 31: runtime error
+      List<String> as = a;  //# 32: runtime error
     }
     {
       var a = new List<Object>(5);
       List a0 = a;
       List<Object> ao = a;
-      List<int> ai = a;
-      List<num> an = a;
-      List<String> as = a;
+      List<int> ai = a;  //# 33: runtime error
+      List<num> an = a;  //# 34: runtime error
+      List<String> as = a;  //# 35: runtime error
     }
     {
       var a = new List<int>(5);
@@ -152,7 +152,7 @@ class TypeTest {
       var a = new List<num>(5);
       List a0 = a;
       List<Object> ao = a;
-      List<int> ai = a;
+      List<int> ai = a;  //# 36: runtime error
       List<num> an = a;
       List<String> as = a; //# 24: compile-time error
     }

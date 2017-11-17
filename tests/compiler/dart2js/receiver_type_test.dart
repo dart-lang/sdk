@@ -13,12 +13,12 @@ import 'type_test_helper.dart';
 
 main() {
   asyncTest(() async {
-    await runTest(CompileMode.memory, expectEmptyOnClosures: true);
+    await runTest(CompileMode.memory);
     await runTest(CompileMode.dill);
   });
 }
 
-Future runTest(CompileMode mode, {bool expectEmptyOnClosures: false}) async {
+Future runTest(CompileMode mode) async {
   var env = await TypeEnvironment.create("""
     class A {
       call() {}
@@ -54,7 +54,7 @@ Future runTest(CompileMode mode, {bool expectEmptyOnClosures: false}) async {
     TypeMask mask = new TypeMask.nonNullSubclass(cls, closedWorld);
     TypeMask receiverType = closedWorld.computeReceiverType(callSelector, mask);
     if (cls.isClosure) {
-      String expected = expectEmptyOnClosures ? '[empty]' : '$mask';
+      String expected = '$mask';
       Expect.equals(expected, '${receiverType}',
           "Unexpected receiver type for $callSelector on $mask");
       closureCount++;

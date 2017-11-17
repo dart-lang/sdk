@@ -82,9 +82,9 @@ main() {
   Expect.equals("-1.100e-1", (-0.11).toStringAsExponential(3));
   Expect.equals("-1.120e-1", (-0.112).toStringAsExponential(3));
 
-  Expect.equals("NaN", (double.NAN).toStringAsExponential(2));
-  Expect.equals("Infinity", (double.INFINITY).toStringAsExponential(2));
-  Expect.equals("-Infinity", (-double.INFINITY).toStringAsExponential(2));
+  Expect.equals("NaN", (double.nan).toStringAsExponential(2));
+  Expect.equals("Infinity", (double.infinity).toStringAsExponential(2));
+  Expect.equals("-Infinity", (-double.infinity).toStringAsExponential(2));
   Expect.equals("1e+0", (1.0).toStringAsExponential(0));
   Expect.equals("0e+0", (0.0).toStringAsExponential());
   Expect.equals("0e+0", (0.0).toStringAsExponential(null));

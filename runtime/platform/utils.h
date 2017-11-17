@@ -295,6 +295,19 @@ class Utils {
     return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
   }
 
+  // The lowest n bits are 1, the others are 0.
+  static uword NBitMask(uint32_t n) {
+    ASSERT(n <= kBitsPerWord);
+    if (n == kBitsPerWord) {
+#if defined(TARGET_ARCH_X64)
+      return 0xffffffffffffffffll;
+#else
+      return 0xffffffff;
+#endif
+    }
+    return (1ll << n) - 1;
+  }
+
   static char* StrError(int err, char* buffer, size_t bufsize);
 };
 

@@ -1558,6 +1558,8 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ umlal(R3, R8, R0, R2);  // R8:R3 <- R8:R3 + R0 * R2.
   __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
   __ StoreToOffset(kWord, R8, R1, disp_1 - kHeapObjectTag);
+  ASSERT(Smi::RawValue(0) == 0);
+  __ eor(R0, R0, Operand(R0));
   __ Ret();
 }
 

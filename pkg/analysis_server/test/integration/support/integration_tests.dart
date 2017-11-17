@@ -255,12 +255,18 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Start [server].
    */
-  Future startServer(
-          {bool checked: true, int diagnosticPort, int servicesPort}) =>
-      server.start(
-          checked: checked,
-          diagnosticPort: diagnosticPort,
-          servicesPort: servicesPort);
+  Future startServer({
+    bool checked: true,
+    int diagnosticPort,
+    int servicesPort,
+    bool previewDart2: false,
+  }) {
+    return server.start(
+        checked: checked,
+        diagnosticPort: diagnosticPort,
+        servicesPort: servicesPort,
+        previewDart2: previewDart2);
+  }
 
   /**
    * After every test, the server is stopped and [sourceDirectory] is deleted.
@@ -657,6 +663,7 @@ class Server {
     bool profileServer: false,
     String sdkPath,
     int servicesPort,
+    bool previewDart2: false,
     bool useAnalysisHighlight2: false,
   }) async {
     if (_process != null) {
@@ -710,6 +717,9 @@ class Server {
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
+    }
+    if (previewDart2) {
+      arguments.add('--preview-dart-2');
     }
     // TODO(devoncarew): We could experiment with instead launching the analysis
     // server in a separate isolate. This would make it easier to debug the

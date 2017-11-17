@@ -116,6 +116,8 @@ issue1363_test/01: MissingCompileTimeError # Requires strong mode
 issue15606_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_1_test/01: MissingCompileTimeError # Requires strong mode
 issue18628_2_test/01: MissingCompileTimeError # Requires strong mode
+known_identifier_prefix_error_test/none: Pass
+known_identifier_prefix_error_test/*: MissingCompileTimeError # Requires strong mode
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
@@ -206,6 +208,9 @@ deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
 [ $compiler == none || $compiler == app_jit ]
 library_env_test/has_no_mirror_support: RuntimeError, OK
+
+[ $mode == debug && ($compiler != dartk && $compiler != dartkp) && $runtime == vm]
+built_in_identifier_type_annotation_test/15: Crash  # Not supported by legacy VM front-end.
 
 [ $minified && !$dart2js_with_kernel ]
 regress_21795_test: RuntimeError # Issue 12605

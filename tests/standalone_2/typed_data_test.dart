@@ -236,22 +236,18 @@ void testGetAtIndex(TypedData list, num initial_value) {
     Expect.equals(42, bdata.getInt8(i));
   }
   for (int i = 0; i < bdata.lengthInBytes - 1; i += 2) {
-    Expect.equals(10794, bdata.getUint16(i, Endianness.LITTLE_ENDIAN));
-    Expect.equals(10794, bdata.getInt16(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(10794, bdata.getUint16(i, Endian.little));
+    Expect.equals(10794, bdata.getInt16(i, Endian.little));
   }
   for (int i = 0; i < bdata.lengthInBytes - 3; i += 4) {
-    Expect.equals(707406378, bdata.getUint32(i, Endianness.LITTLE_ENDIAN));
-    Expect.equals(707406378, bdata.getInt32(i, Endianness.LITTLE_ENDIAN));
-    Expect.equals(
-        1.511366173271439e-13, bdata.getFloat32(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(707406378, bdata.getUint32(i, Endian.little));
+    Expect.equals(707406378, bdata.getInt32(i, Endian.little));
+    Expect.equals(1.511366173271439e-13, bdata.getFloat32(i, Endian.little));
   }
   for (int i = 0; i < bdata.lengthInBytes - 7; i += 8) {
-    Expect.equals(
-        3038287259199220266, bdata.getUint64(i, Endianness.LITTLE_ENDIAN));
-    Expect.equals(
-        3038287259199220266, bdata.getInt64(i, Endianness.LITTLE_ENDIAN));
-    Expect.equals(
-        1.4260258159703532e-105, bdata.getFloat64(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(3038287259199220266, bdata.getUint64(i, Endian.little));
+    Expect.equals(3038287259199220266, bdata.getInt64(i, Endian.little));
+    Expect.equals(1.4260258159703532e-105, bdata.getFloat64(i, Endian.little));
   }
 }
 
@@ -273,35 +269,35 @@ void testSetAtIndex(List list, num initial_value, [bool use_double = false]) {
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes - 1; i += 2) {
-    bdata.setUint16(i, 10794, Endianness.LITTLE_ENDIAN);
+    bdata.setUint16(i, 10794, Endian.little);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes - 1; i += 2) {
-    bdata.setInt16(i, 10794, Endianness.LITTLE_ENDIAN);
+    bdata.setInt16(i, 10794, Endian.little);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes - 3; i += 4) {
-    bdata.setUint32(i, 707406378, Endianness.LITTLE_ENDIAN);
+    bdata.setUint32(i, 707406378, Endian.little);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes - 3; i += 4) {
-    bdata.setInt32(i, 707406378, Endianness.LITTLE_ENDIAN);
+    bdata.setInt32(i, 707406378, Endian.little);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes - 3; i += 4) {
-    bdata.setFloat32(i, 1.511366173271439e-13, Endianness.LITTLE_ENDIAN);
+    bdata.setFloat32(i, 1.511366173271439e-13, Endian.little);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes - 7; i += 8) {
-    bdata.setUint64(i, 3038287259199220266, Endianness.LITTLE_ENDIAN);
+    bdata.setUint64(i, 3038287259199220266, Endian.little);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes - 7; i += 8) {
-    bdata.setInt64(i, 3038287259199220266, Endianness.LITTLE_ENDIAN);
+    bdata.setInt64(i, 3038287259199220266, Endian.little);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes - 7; i += 8) {
-    bdata.setFloat64(i, 1.4260258159703532e-105, Endianness.LITTLE_ENDIAN);
+    bdata.setFloat64(i, 1.4260258159703532e-105, Endian.little);
   }
   validate(false);
 }
@@ -447,7 +443,7 @@ testCreationFromList() {
 }
 
 void testStrings() {
-  test(list) {
+  test(List<int> list) {
     Uint16List uints = new Uint16List(list.length)..setAll(0, list);
     String string = new String.fromCharCodes(list);
     for (int i = 0; i < string.length; i++) {

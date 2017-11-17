@@ -61,12 +61,17 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   final bool _hasThisLocal;
 
+  /// If true add type assetions to assert that at runtime the type is in line
+  /// with the stated type.
+  final bool _addTypeChecks;
+
   /// Keeps track of the number of boxes that we've created so that they each
   /// have unique names.
   int _boxCounter = 0;
 
-  CapturedScopeBuilder(this._model, {bool hasThisLocal})
-      : this._hasThisLocal = hasThisLocal;
+  CapturedScopeBuilder(this._model, {bool hasThisLocal, bool addTypeChecks})
+      : this._hasThisLocal = hasThisLocal,
+        this._addTypeChecks = addTypeChecks;
 
   /// Update the [CapturedScope] object corresponding to
   /// this node if any variables are captured.
@@ -168,12 +173,14 @@ class CapturedScopeBuilder extends ir.Visitor {
   @override
   visitVariableGet(ir.VariableGet node) {
     _markVariableAsUsed(node.variable);
+    node.visitChildren(this);
   }
 
   @override
   visitVariableSet(ir.VariableSet node) {
     _mutatedVariables.add(node.variable);
     _markVariableAsUsed(node.variable);
+    if (_addTypeChecks) node.variable.type.accept(this);
     node.visitChildren(this);
   }
 
@@ -221,9 +228,7 @@ class CapturedScopeBuilder extends ir.Visitor {
 
   @override
   void visitTypeParameter(ir.TypeParameter typeParameter) {
-    // TODO(efortuna): Only perform execute the below code if
-    // compiler.options.enableTypeAssertions is true.
-    if (false == true) {
+    if (_addTypeChecks) {
       ir.TreeNode context = _executableContext;
       if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
         // This is a closure in a factory constructor.  Since there is no
@@ -240,6 +245,17 @@ class CapturedScopeBuilder extends ir.Visitor {
         // therefore the closure needs a this-element, if it is not in a field
         // initializer; field initializers are evaluated in a context where
         // the type arguments are available in locals.
+
+        // TODO(efortuna): This is not correct for the case of type variables on
+        // methods. For example, the code:
+        //     class Foo<T> {
+        //         int bar<E>(...) {
+        //             ...use of E...
+        //         }
+        //     }
+        // We do not need the `this` variable in this case to use E.
+        // Add code to distinguish between this case and the case of a class
+        // type variable (like T, where we need `this`).
         _registerNeedsThis();
       }
     }

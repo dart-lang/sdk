@@ -189,7 +189,7 @@ topLevelDefinition
          EXTERNAL setterSignature ';'
     |    (getterSignature functionBodyPrefix) => getterSignature functionBody
     |    (type? SET identifier '(') => setterSignature functionBody
-    |    (type? identifierNotFunction typeParameters? '(') =>
+    |    (type? identifierNotFUNCTION typeParameters? '(') =>
          functionSignature functionBody
     |    (FINAL | CONST) type? staticFinalDeclarationList ';'
     |    topLevelVariableDeclaration ';'
@@ -223,7 +223,7 @@ initializedIdentifierList
     ;
 
 functionSignature
-    :    type? identifierNotFunction formalParameterPart
+    :    type? identifierNotFUNCTION formalParameterPart
     ;
 
 functionBodyPrefix
@@ -276,7 +276,7 @@ normalFormalParameter
     ;
 
 normalFormalParameterNoMetadata
-    :    (COVARIANT? type? identifierNotFunction formalParameterPart) =>
+    :    (COVARIANT? type? identifierNotFUNCTION formalParameterPart) =>
          functionFormalParameter
     |    (finalConstVarOrType? THIS) => fieldFormalParameter
     |    simpleFormalParameter
@@ -284,7 +284,7 @@ normalFormalParameterNoMetadata
 
 // NB: It is an anomaly that a functionFormalParameter cannot be FINAL.
 functionFormalParameter
-    :    COVARIANT? type? identifierNotFunction formalParameterPart
+    :    COVARIANT? type? identifierNotFUNCTION formalParameterPart
     ;
 
 simpleFormalParameter
@@ -329,7 +329,7 @@ classMemberDefinition
 methodSignature
     :    (constructorSignature ':') => constructorSignature initializers
     |    (FACTORY constructorName '(') => factoryConstructorSignature
-    |    (STATIC? type? identifierNotFunction typeParameters? '(') =>
+    |    (STATIC? type? identifierNotFUNCTION typeParameters? '(') =>
          STATIC? functionSignature
     |    (STATIC? type? GET) => STATIC? getterSignature
     |    (STATIC? type? SET) => STATIC? setterSignature
@@ -854,25 +854,25 @@ assignableSelector
     |    '?.' identifier
     ;
 
-identifierNotFunction
+identifierNotFUNCTION
     :    IDENTIFIER
-    |    ABSTRACT
-    |    AS
-    |    COVARIANT
-    |    DEFERRED
-    |    DYNAMIC
-    |    EXPORT
-    |    EXTERNAL
-    |    FACTORY
-    |    GET
-    |    IMPLEMENTS
-    |    IMPORT
-    |    LIBRARY
-    |    OPERATOR
-    |    PART
-    |    SET
-    |    STATIC
-    |    TYPEDEF
+    |    ABSTRACT // Built-in identifier.
+    |    AS // Built-in identifier.
+    |    COVARIANT // Built-in identifier.
+    |    DEFERRED // Built-in identifier.
+    |    DYNAMIC // Built-in identifier.
+    |    EXPORT // Built-in identifier.
+    |    EXTERNAL // Built-in identifier.
+    |    FACTORY // Built-in identifier.
+    |    GET // Built-in identifier.
+    |    IMPLEMENTS // Built-in identifier.
+    |    IMPORT // Built-in identifier.
+    |    LIBRARY // Built-in identifier.
+    |    OPERATOR // Built-in identifier.
+    |    PART // Built-in identifier.
+    |    SET // Built-in identifier.
+    |    STATIC // Built-in identifier.
+    |    TYPEDEF // Built-in identifier.
     |    HIDE // Not a built-in identifier.
     |    OF // Not a built-in identifier.
     |    ON // Not a built-in identifier.
@@ -882,8 +882,8 @@ identifierNotFunction
     ;
 
 identifier
-    :    identifierNotFunction
-    |    FUNCTION // Not a built-in identifier.
+    :    identifierNotFUNCTION
+    |    FUNCTION // Built-in identifier that can be used as a type.
     ;
 
 qualified
@@ -894,7 +894,7 @@ qualified
 
 typeIdentifier
     :    IDENTIFIER
-    |    DYNAMIC // The only built-in identifier that can be used as a type.
+    |    DYNAMIC // Built-in identifier that can be used as a type.
     |    HIDE // Not a built-in identifier.
     |    OF // Not a built-in identifier.
     |    ON // Not a built-in identifier.
@@ -1213,12 +1213,7 @@ optionalPositionalParameterTypes
     ;
 
 namedParameterTypes
-    :    LBRACE namedParameterType (',' namedParameterType)* ','? RBRACE
-    ;
-
-namedParameterType
-    :    typedIdentifier
-    |    identifier
+    :    LBRACE typedIdentifier (',' typedIdentifier)* ','? RBRACE
     ;
 
 typedIdentifier

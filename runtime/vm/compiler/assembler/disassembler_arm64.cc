@@ -39,6 +39,7 @@ class ARM64Decoder : public ValueObject {
   void PrintPairMemOperand(Instr* instr);
   void PrintS(Instr* instr);
   void PrintCondition(Instr* instr);
+  void PrintInvertedCondition(Instr* instr);
 
   // Handle formatting of instructions and their options.
   int FormatRegister(Instr* instr, const char* option);
@@ -128,6 +129,15 @@ void ARM64Decoder::PrintCondition(Instr* instr) {
     Print(cond_names[instr->SelectConditionField()]);
   } else {
     Print(cond_names[instr->ConditionField()]);
+  }
+}
+
+// Print the inverse of the condition guarding the instruction.
+void ARM64Decoder::PrintInvertedCondition(Instr* instr) {
+  if (instr->IsConditionalSelectOp()) {
+    Print(cond_names[InvertCondition(instr->SelectConditionField())]);
+  } else {
+    Print(cond_names[InvertCondition(instr->ConditionField())]);
   }
 }
 
@@ -368,8 +378,14 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         return 3;
       } else {
         ASSERT(STRING_STARTS_WITH(format, "cond"));
-        PrintCondition(instr);
-        return 4;
+        if (format[4] == 'i') {
+          ASSERT(STRING_STARTS_WITH(format, "condinverted"));
+          PrintInvertedCondition(instr);
+          return 12;
+        } else {
+          PrintCondition(instr);
+          return 4;
+        }
       }
     }
     case 'd': {
@@ -487,12 +503,25 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
                                    remaining_size_in_buffer(), "0x%" Px64, imm);
         return ret;
       } else {
-        ASSERT(STRING_STARTS_WITH(format, "immd"));
-        double dimm =
-            bit_cast<double, int64_t>(Instr::VFPExpandImm(instr->Imm8Field()));
-        buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
-                                   remaining_size_in_buffer(), "%f", dimm);
-        return 4;
+        ASSERT(STRING_STARTS_WITH(format, "imm"));
+        if (format[3] == 'd') {
+          double dimm = bit_cast<double, int64_t>(
+              Instr::VFPExpandImm(instr->Imm8Field()));
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(), "%f", dimm);
+          return 4;
+        } else if (format[3] == 'r') {
+          int immr = instr->ImmRField();
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(), "#%d", immr);
+          return 4;
+        } else {
+          ASSERT(format[3] == 's');
+          int imms = instr->ImmSField();
+          buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                     remaining_size_in_buffer(), "#%d", imms);
+          return 4;
+        }
       }
     }
     case 'm': {
@@ -749,6 +778,47 @@ void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   }
 }
 
+void ARM64Decoder::DecodeBitfield(Instr* instr) {
+  int op = instr->Bits(29, 2);
+  int r_imm = instr->ImmRField();
+  int s_imm = instr->ImmSField();
+  switch (op) {
+    case 0:
+      if (r_imm == 0) {
+        if (s_imm == 7) {
+          Format(instr, "sxtb 'rd, 'rn");
+          break;
+        } else if (s_imm == 15) {
+          Format(instr, "sxth 'rd, 'rn");
+          break;
+        } else if (s_imm == 31) {
+          Format(instr, "sxtw 'rd, 'rn");
+          break;
+        }
+      }
+      Format(instr, "sbfm'sf 'rd, 'rn, 'immr, 'imms");
+      break;
+    case 1:
+      Format(instr, "bfm'sf 'rd, 'rn, 'immr, 'imms");
+      break;
+    case 2:
+      if (r_imm == 0) {
+        if (s_imm == 7) {
+          Format(instr, "uxtb 'rd, 'rn");
+          break;
+        } else if (s_imm == 15) {
+          Format(instr, "uxth 'rd, 'rn");
+          break;
+        }
+      }
+      Format(instr, "ubfm'sf 'rd, 'rn, 'immr, 'imms");
+      break;
+    default:
+      Unknown(instr);
+      break;
+  }
+}
+
 void ARM64Decoder::DecodeLogicalImm(Instr* instr) {
   int op = instr->Bits(29, 2);
   switch (op) {
@@ -789,6 +859,8 @@ void ARM64Decoder::DecodeDPImmediate(Instr* instr) {
     DecodeMoveWide(instr);
   } else if (instr->IsAddSubImmOp()) {
     DecodeAddSubImm(instr);
+  } else if (instr->IsBitfieldOp()) {
+    DecodeBitfield(instr);
   } else if (instr->IsLogicalImmOp()) {
     DecodeLogicalImm(instr);
   } else if (instr->IsPCRelOp()) {
@@ -1077,12 +1149,29 @@ void ARM64Decoder::DecodeMiscDP3Source(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeConditionalSelect(Instr* instr) {
+  int cond = instr->SelectConditionField();
+  bool non_select =
+      (instr->RnField() == instr->RmField()) && ((cond & 0xe) != 0xe);
   if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 0)) {
     Format(instr, "mov'sf'cond 'rd, 'rn, 'rm");
   } else if ((instr->Bits(29, 2) == 0) && (instr->Bits(10, 2) == 1)) {
-    Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
+    if (non_select) {
+      Format(instr, "csinc'sf'cond 'rd, 'rn, 'rm");
+    } else {
+      Format(instr, "cinc'sf'condinverted 'rd, 'rn");
+    }
   } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 0)) {
-    Format(instr, "csinv'sf'cond 'rd, 'rn, 'rm");
+    if (non_select) {
+      Format(instr, "cinv'sf'condinverted 'rd, 'rn");
+    } else {
+      Format(instr, "csinv'sf'cond 'rd, 'rn, 'rm");
+    }
+  } else if ((instr->Bits(29, 2) == 2) && (instr->Bits(10, 2) == 1)) {
+    if (non_select) {
+      Format(instr, "cneg'sf'condinverted 'rd, 'rn");
+    } else {
+      Format(instr, "csneg'sf'cond 'rd, 'rn, 'rm");
+    }
   } else {
     Unknown(instr);
   }

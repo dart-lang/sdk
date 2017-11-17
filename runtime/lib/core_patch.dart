@@ -39,7 +39,7 @@ import "dart:collection"
         Maps,
         UnmodifiableMapView;
 
-import "dart:convert" show ASCII, Encoding, JSON, LATIN1, UTF8;
+import "dart:convert" show ascii, Encoding, json, latin1, utf8;
 
 import "dart:isolate" show Isolate;
 

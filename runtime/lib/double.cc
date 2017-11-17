@@ -75,8 +75,6 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
   if (FLAG_limit_ints_to_64_bits) {
-    // TODO(alexmarkov): decide on the double-to-integer conversion semantics
-    // in truncating mode.
     int64_t ival = 0;
     if (val <= static_cast<double>(kMinInt64)) {
       ival = kMinInt64;

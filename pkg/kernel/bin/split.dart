@@ -20,7 +20,7 @@ main(args) async {
     Library lib = binary.libraries[i];
     if (lib.name?.startsWith("dart.") == true ||
         lib.name == "builtin" ||
-        lib.name == "nativewrappers") return;
+        lib.name == "nativewrappers") continue;
     lib.isExternal = false;
     String path = args[0] + ".part${part++}.dill";
     await writeProgramToFile(binary, path);

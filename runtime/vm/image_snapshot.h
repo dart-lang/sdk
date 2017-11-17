@@ -64,14 +64,17 @@ class ImageReader : public ZoneAllocated {
 class ImageWriter : public ZoneAllocated {
  public:
   ImageWriter()
-      : next_offset_(0), next_object_offset_(0), instructions_(), objects_() {
+      : next_text_offset_(0),
+        next_data_offset_(0),
+        instructions_(),
+        objects_() {
     ResetOffsets();
   }
   virtual ~ImageWriter() {}
 
   void ResetOffsets() {
-    next_offset_ = Image::kHeaderSize;
-    next_object_offset_ = Image::kHeaderSize;
+    next_text_offset_ = Image::kHeaderSize;
+    next_data_offset_ = Image::kHeaderSize;
     instructions_.Clear();
     objects_.Clear();
   }
@@ -79,8 +82,8 @@ class ImageWriter : public ZoneAllocated {
   int32_t GetDataOffsetFor(RawObject* raw_object);
 
   void Write(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() const = 0;
-  intptr_t data_size() const { return next_object_offset_; }
+  intptr_t text_size() const { return next_text_offset_; }
+  intptr_t data_size() const { return next_data_offset_; }
 
  protected:
   void WriteROData(WriteStream* stream);
@@ -112,8 +115,8 @@ class ImageWriter : public ZoneAllocated {
     };
   };
 
-  intptr_t next_offset_;
-  intptr_t next_object_offset_;
+  intptr_t next_text_offset_;
+  intptr_t next_data_offset_;
   GrowableArray<InstructionsData> instructions_;
   GrowableArray<ObjectData> objects_;
 
@@ -129,7 +132,6 @@ class AssemblyImageWriter : public ImageWriter {
   void Finalize();
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() const { return text_size_; }
 
   intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
 
@@ -144,11 +146,9 @@ class AssemblyImageWriter : public ImageWriter {
 #else
     assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
 #endif
-    text_size_ += sizeof(value);
   }
 
   WriteStream assembly_stream_;
-  intptr_t text_size_;
   Dwarf* dwarf_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyImageWriter);
@@ -165,7 +165,6 @@ class BlobImageWriter : public ImageWriter {
                                   initial_size) {}
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
-  virtual intptr_t text_size() const { return InstructionsBlobSize(); }
 
   intptr_t InstructionsBlobSize() const {
     return instructions_blob_stream_.bytes_written();

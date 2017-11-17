@@ -419,7 +419,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
       inputs[0] = constant;
       instruction = new HInvokeDynamicMethod(
-          selector, mask, inputs, node.instructionType, true);
+          selector, mask, inputs, node.instructionType, true)
+        ..sourceInformation = node.sourceInformation;
     }
 
     HBasicBlock block = node.block;

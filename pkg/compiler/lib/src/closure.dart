@@ -507,6 +507,8 @@ class ClosureClassElement extends ClassElementX {
     callType = methodElement.type;
   }
 
+  MethodElement get callMethod => methodElement.callMethod;
+
   Iterable<ClosureFieldElement> get closureFields => _closureFields;
 
   void addField(ClosureFieldElement field, DiagnosticReporter listener) {
@@ -1400,10 +1402,10 @@ class ClosureTranslator extends Visitor {
     String closureName = computeClosureName(element);
     ClosureClassElement globalizedElement =
         new ClosureClassElement(node, closureName, compiler, element);
-    // Extend [globalizedElement] as an instantiated class in the closed world.
-    closedWorldRefiner.registerClosureClass(globalizedElement);
     MethodElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
+    // Extend [globalizedElement] as an instantiated class in the closed world.
+    closedWorldRefiner.registerClosureClass(globalizedElement);
     backend.mirrorsDataBuilder.maybeMarkClosureAsNeededForReflection(
         globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;

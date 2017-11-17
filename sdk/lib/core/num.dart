@@ -90,16 +90,16 @@ abstract class num implements Comparable<num> {
    * // The following comparisons yield different results than the
    * // corresponding comparison operators.
    * print((-0.0).compareTo(0.0));  // => -1
-   * print(double.NAN.compareTo(double.NAN));  // => 0
-   * print(double.INFINITY.compareTo(double.NAN)); // => -1
+   * print(double.nan.compareTo(double.nan));  // => 0
+   * print(double.infinity.compareTo(double.nan)); // => -1
    *
    * // -0.0, and NaN comparison operators have rules imposed by the IEEE
    * // standard.
    * print(-0.0 == 0.0); // => true
-   * print(double.NAN == double.NAN);  // => false
-   * print(double.INFINITY < double.NAN);  // => false
-   * print(double.NAN < double.INFINITY);  // => false
-   * print(double.NAN == double.INFINITY);  // => false
+   * print(double.nan == double.nan);  // => false
+   * print(double.infinity < double.nan);  // => false
+   * print(double.nan < double.infinity);  // => false
+   * print(double.nan == double.infinity);  // => false
    */
   int compareTo(num other);
 
@@ -318,7 +318,7 @@ abstract class num implements Comparable<num> {
    * Returns this [num] clamped to be in the range [lowerLimit]-[upperLimit].
    *
    * The comparison is done using [compareTo] and therefore takes `-0.0` into
-   * account. This also implies that [double.NAN] is treated as the maximal
+   * account. This also implies that [double.nan] is treated as the maximal
    * double value.
    *
    * The arguments [lowerLimit] and [upperLimit] must form a valid range where
@@ -415,8 +415,8 @@ abstract class num implements Comparable<num> {
    * except for special values like `NaN` or `Infinity`, this method returns an
    * exponential representation (see [toStringAsExponential]).
    *
-   * Returns `"NaN"` for [double.NAN], `"Infinity"` for [double.INFINITY], and
-   * `"-Infinity"` for [double.NEGATIVE_INFINITY].
+   * Returns `"NaN"` for [double.nan], `"Infinity"` for [double.infinity], and
+   * `"-Infinity"` for [double.negativeInfinity].
    *
    * An [int] is converted to a decimal representation with no decimal point.
    *
