@@ -336,6 +336,8 @@ bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was ca
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bit_operations_test/01: RuntimeError
+bit_operations_test/02: RuntimeError
 bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
@@ -648,6 +650,8 @@ bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was ca
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bit_operations_test/01: RuntimeError
+bit_operations_test/02: RuntimeError
 bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
@@ -986,6 +990,8 @@ bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was ca
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bit_operations_test/01: RuntimeError
+bit_operations_test/02: RuntimeError
 bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError

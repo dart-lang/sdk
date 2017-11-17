@@ -40,7 +40,8 @@ testChangeDirectory() {
 
 testChangeDirectoryIllegalArguments() {
   Expect.throwsArgumentError(() => Directory.current = 1);
-  Expect.throwsArgumentError(() => Directory.current = 9223372036854775807);
+  Expect.throwsArgumentError(
+      () => Directory.current = 111111111111111111111111111111111111);
   Expect.throwsArgumentError(() => Directory.current = true);
   Expect.throwsArgumentError(() => Directory.current = []);
   Expect.throwsArgumentError(() => Directory.current = new File("xxx"));

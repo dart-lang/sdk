@@ -70,11 +70,9 @@ double binOpDouble(double i, double x) {
 testOSR() {
   // Foul up  IC data in integer's unary minus.
   var y = -0x80000000;
-  Expect.equals(
-      (0x7fffffffffffffff + 2) * 10, testLoop(10, 0x7fffffffffffffff));
+  Expect.equals(1475739525896764129300, testLoop(10, 0x80000000000000000));
   // Second time no deoptimization can occur, since runtime feedback has been collected.
-  Expect.equals(
-      (0x7fffffffffffffff + 2) * 10, testLoop(10, 0x7fffffffffffffff));
+  Expect.equals(1475739525896764129300, testLoop(10, 0x80000000000000000));
 }
 
 testLoop(N, x) {
@@ -83,7 +81,7 @@ testLoop(N, x) {
   }
   int sum = 0;
   for (int i = 0; i < N; ++i) {
-    // Guess 'x' is Smi, but is actually Mint: deoptimize.
+    // Guess 'x' is Smi, but is actually Bigint: deoptimize.
     sum += x + 2;
   }
   return sum;

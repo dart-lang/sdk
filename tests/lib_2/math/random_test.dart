@@ -225,10 +225,6 @@ void checkSeed() {
     50711
   ];
   for (var i = 0, m = 1; i < 75; i++) {
-    if (rawSeed * m < 0) {
-      // Overflow.
-      break;
-    }
     Expect.equals(expectations[i], new Random(rawSeed * m).nextInt(65536));
     Expect.equals(
         negative_seed_expectations[i], new Random(rawSeed * -m).nextInt(65536));

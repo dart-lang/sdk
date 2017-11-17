@@ -300,6 +300,3 @@ typed_data/int32x4_static_test/02: MissingCompileTimeError
 
 [ ($compiler == dartk || $compiler == dartkp) && $strong && $mode == debug]
 isolate/isolate_complex_messages_test: Crash
-
-[ $compiler == dartkp ]
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Issue 31339

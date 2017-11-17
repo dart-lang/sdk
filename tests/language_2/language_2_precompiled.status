@@ -64,6 +64,10 @@ bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
+bit_operations_test/01: MissingCompileTimeError
+bit_operations_test/02: MissingCompileTimeError
+bit_operations_test/03: MissingCompileTimeError
+bit_operations_test/04: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 built_in_identifier_prefix_test: CompileTimeError

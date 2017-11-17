@@ -58,17 +58,17 @@ testSetters() {
   Expect.equals(-1, blist.getInt32(0, Endian.little));
   blist.setUint32(0, 0xffffffffffff, Endian.little);
   Expect.equals(0xffffffff, blist.getUint32(0, Endian.little));
-  blist.setInt64(0, 0xffffffffffffffff, Endian.little);
+  blist.setInt64(0, 0xffffffffffffffffff, Endian.little);
   Expect.equals(-1, blist.getInt64(0, Endian.little));
-  blist.setUint64(0, 0xffffffffffffffff, Endian.little);
+  blist.setUint64(0, 0xffffffffffffffffff, Endian.little);
   Expect.equals(0xffffffffffffffff, blist.getUint64(0, Endian.little));
-  blist.setInt32(0, 0xaabbccddfffffffe, Endian.little);
+  blist.setInt32(0, 18446744073709551614, Endian.little);
   Expect.equals(-2, blist.getInt32(0, Endian.little));
-  blist.setUint32(0, 0xaabbccddfffffffe, Endian.little);
+  blist.setUint32(0, 18446744073709551614, Endian.little);
   Expect.equals(0xfffffffe, blist.getUint32(0, Endian.little));
-  blist.setInt64(0, 0xfffffffffffffffe, Endian.little);
+  blist.setInt64(0, 18446744073709551614, Endian.little);
   Expect.equals(-2, blist.getInt64(0, Endian.little));
-  blist.setUint64(0, 0xfffffffffffffffe, Endian.little);
+  blist.setUint64(0, 18446744073709551614, Endian.little);
   Expect.equals(0xfffffffffffffffe, blist.getUint64(0, Endian.little));
 
   blist.setFloat32(0, 18446744073709551614.0, Endian.little);

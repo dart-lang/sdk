@@ -21,9 +21,9 @@ cmp(a, b, c) {
 }
 
 main() {
-  var str = "abc";
-  var before = cmp(str, str, 0);
+  var big = 100000000000000000000000000000000000;
+  var before = cmp(big, big, 0);
   Expect.equals(16, before);
-  for (var i = 0; i < 20; i++) cmp(str, str, 0);
-  Expect.equals(before, cmp(str, str, 0));
+  for (var i = 0; i < 20; i++) cmp(big, big + 1, 0);
+  Expect.equals(before, cmp(big, big, 0));
 }

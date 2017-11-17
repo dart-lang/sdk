@@ -61,6 +61,10 @@ bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
+bit_operations_test/01: MissingCompileTimeError
+bit_operations_test/02: MissingCompileTimeError
+bit_operations_test/03: MissingCompileTimeError
+bit_operations_test/04: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
@@ -1218,7 +1222,7 @@ async_star_test/02: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bit_operations_test: RuntimeError
+bit_operations_test/none: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
@@ -1637,7 +1641,7 @@ async_star_test/02: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bit_operations_test: RuntimeError
+bit_operations_test/none: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
@@ -2061,7 +2065,7 @@ async_star_test/02: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-bit_operations_test: RuntimeError
+bit_operations_test/none: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError

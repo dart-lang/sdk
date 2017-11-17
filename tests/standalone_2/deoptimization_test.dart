@@ -180,7 +180,7 @@ class DeoptimizationTest {
     Expect.equals(0, ShiftRight(10, 64));
     // Deoptimize ShiftRight because 'a' is a Mint.
     var mint = 1 << 63;
-    Expect.equals(-1 << 3, ShiftRight(mint, 60));
+    Expect.equals(1 << 3, ShiftRight(mint, 60));
   }
 
   static doubleUnary() {

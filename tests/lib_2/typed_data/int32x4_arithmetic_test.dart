@@ -91,16 +91,9 @@ testSub() {
   Expect.equals(1, o.w);
 }
 
-testTruncation() {
-  var n = 0xAABBCCDD00000001;
-  var x = new Int32x4(n, 0, 0, 0);
-  Expect.equals(x.x, 1);
-}
-
 main() {
   for (int i = 0; i < 20; i++) {
     testAdd();
     testSub();
-    testTruncation(); //   //# int64: ok
   }
 }

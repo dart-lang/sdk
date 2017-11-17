@@ -122,7 +122,7 @@ mirrors/reflected_type_special_types_test: RuntimeError # Issue 12607
 mirrors/reflected_type_typedefs_test: RuntimeError # Issue 12607
 mirrors/reflected_type_typevars_test: RuntimeError # Issue 12607
 profiler/metrics_num_test: Skip # Because of an int / double type test.
-typed_data/int32x4_arithmetic_test/int64: RuntimeError # Issue 1533
+typed_data/int32x4_bigint_test: RuntimeError # Issue 1533
 typed_data/int64_list_load_store_test: RuntimeError # Issue 10275
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
 
