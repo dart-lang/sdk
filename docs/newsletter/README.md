@@ -1,4 +1,9 @@
-This directory holds Dart Language and Library Newsletters. Here's what each newsletter contains:
+# Dart Language and Library Newsletters
+
+This directory contains newsletters about the Dart language and
+some of its core libraries.
+For more information about the newsletters, see
+[this news post](https://news.dartlang.org/2017/11/dart-language-and-library-newsletters.html).
 
 * [November 10, 2017](20171110.md)
   * Did you know: Constructors (generative, factory, redirecting, ...)
