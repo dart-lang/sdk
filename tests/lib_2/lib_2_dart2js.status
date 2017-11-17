@@ -262,10 +262,8 @@ html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_types_content_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: RuntimeError # Issue 29922
-html/input_element_date_test: Fail
 html/input_element_datetime_test: Fail
 html/input_element_month_test: Fail
-html/input_element_time_test: Fail
 html/input_element_week_test: Fail
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]

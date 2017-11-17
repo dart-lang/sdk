@@ -245,10 +245,8 @@ element_types_test/supported_shadow: Pass, RuntimeError # Issue 28983
 element_classes_test: RuntimeError # Issue 27535
 element_types_test/supported_keygen: Fail
 fileapi_test/supported: Fail
-input_element_test/supported_date: Fail
 input_element_test/supported_datetime-local: Fail
 input_element_test/supported_month: Fail
-input_element_test/supported_time: Fail
 input_element_test/supported_week: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
