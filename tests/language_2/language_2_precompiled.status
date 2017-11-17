@@ -999,6 +999,7 @@ generic_methods_generic_function_parameter_test: Pass # Issue 25869
 [ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+built_in_identifier_type_annotation_test/15: Crash
 callable_test/none: RuntimeError
 checked_setter2_test: RuntimeError
 checked_setter3_test: RuntimeError
