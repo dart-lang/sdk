@@ -16,6 +16,6 @@ main() {
     Expect.equals(x, mintRightShift(x, 0));
     Expect.equals(2 * x, mintLeftShift(x, 1));
     Expect.equals(x ~/ 2, mintRightShift(x, 1));
-    Expect.equals(x, mintRightShift(mintLeftShift(x, i), i));
+    Expect.equals((i >= 16) ? 1 : x, mintRightShift(mintLeftShift(x, i), i));
   }
 }

@@ -314,3 +314,6 @@ typed_data/int32x4_static_test/02: MissingCompileTimeError
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug]
 isolate/isolate_complex_messages_test: Crash
 isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
+
+[ $compiler == dartkp ]
+typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Issue 31339

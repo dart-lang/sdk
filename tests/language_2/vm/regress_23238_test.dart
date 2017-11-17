@@ -11,5 +11,10 @@ void main() {
     Expect.equals(r, x ~/ 5);
     x *= 10;
     r *= 10;
+
+    if (x < 0) {
+      // Overflow.
+      break;
+    }
   }
 }

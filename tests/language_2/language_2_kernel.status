@@ -72,10 +72,6 @@ bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: DartkCrash # Issue 28814
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
@@ -1728,10 +1724,6 @@ bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 built_in_identifier_illegal_test/01: MissingCompileTimeError
@@ -3549,3 +3541,10 @@ regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to pr
 tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
+
+[ $compiler == dartkp ]
+bit_operations_test: CompileTimeError                             # Issue 31339
+vm/unaligned_integer_access_register_index_test: CompileTimeError # Issue 31339
+vm/unaligned_integer_access_literal_index_test: CompileTimeError  # Issue 31339
+mint_arithmetic_test: CompileTimeError                            # Issue 31339
+identical_closure2_test: CompileTimeError                         # Issue 31339

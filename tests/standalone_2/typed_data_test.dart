@@ -407,13 +407,13 @@ testWhere() {
 
 testCreationFromList() {
   var intList = [
-    -10000000000000000000,
+    -1000000000000000000,
     -255,
     -127,
     0,
     128,
     256,
-    1000000000000000000000
+    1000000000000000000
   ];
   var intLists = [];
   intLists.add(new Int8List.fromList(intList));

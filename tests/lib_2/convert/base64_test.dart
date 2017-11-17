@@ -273,7 +273,7 @@ void testErrors() {
   badEncode(0x1000);
   badEncode(0x10000);
   badEncode(0x100000000); //         //# 01: ok
-  badEncode(0x10000000000000000); // //# 01: continued
+  badEncode(0x7000000000000000); //  //# 01: continued
 }
 
 void testIssue25577() {

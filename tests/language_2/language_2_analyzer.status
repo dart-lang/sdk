@@ -43,10 +43,8 @@ bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
+bit_operations_test/03: StaticWarning
+bit_operations_test/04: StaticWarning
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
@@ -513,10 +511,8 @@ bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
+bit_operations_test/03: StaticWarning
+bit_operations_test/04: StaticWarning
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
@@ -892,10 +888,6 @@ async_return_types_test/nestedFuture: MissingCompileTimeError
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
 bad_initializer2_negative_test: Fail # Issue 14880
 bad_named_constructor_negative_test: CompileTimeError # Issue 18693
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
 black_listed_test/none: Fail # Issue 14228
 body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
@@ -1061,10 +1053,6 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 async_return_types_test/nestedFuture: MissingCompileTimeError
-bit_operations_test/01: MissingStaticWarning # Issue 28823
-bit_operations_test/02: MissingStaticWarning # Issue 28823
-bit_operations_test/03: MissingStaticWarning # Issue 28823
-bit_operations_test/04: MissingStaticWarning # Issue 28823
 config_import_corelib_test: CompileTimeError
 const_types_test/07: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 const_types_test/08: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.

@@ -121,10 +121,7 @@ void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
 
 [ $compiler == dartdevc && $runtime != none ]
 await_future_test: Pass, Timeout # Issue 29920
-bit_operations_test/01: RuntimeError # No bigints on web.
-bit_operations_test/02: RuntimeError # No bigints on web.
-bit_operations_test/03: RuntimeError # No bigints on web.
-bit_operations_test/04: RuntimeError # No bigints on web.
+bit_operations_test: RuntimeError # No bigints on web.
 covariant_override/tear_off_type_test: RuntimeError # Issue 28395
 deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
 emit_const_fields_test: CompileTimeError
@@ -1247,10 +1244,6 @@ abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeE
 abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
 abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
 async_return_types_test/nestedFuture: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 config_import_corelib_test: CompileTimeError
 field3_test/01: MissingCompileTimeError
@@ -1358,7 +1351,7 @@ async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
-bit_operations_test/none: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
+bit_operations_test: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
 branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
 call_closurization_test: RuntimeError # Issue 29920; TypeError: Cannot read property '0' of undefined
 call_test: RuntimeError # Expect.throws(NoSuchMethodError) fails: Did not throw

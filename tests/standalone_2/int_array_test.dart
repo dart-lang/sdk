@@ -121,7 +121,7 @@ void testUint64ToSmi() {
   var z = intArray[2];
   var w = intArray[3];
   Expect.equals(4611686018427387903, x);
-  Expect.equals(18446744073709551615, y);
+  Expect.equals(-1, y);
   Expect.equals(4611686018427387904, z);
   Expect.equals(9223372036854775808, w);
 }

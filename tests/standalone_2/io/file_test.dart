@@ -552,14 +552,14 @@ class FileTest {
         openedFile.writeFromSync([0], 0, 1);
         openedFile.writeFromSync(const [1], 0, 1);
         openedFile.writeFromSync(new MyListOfOneElement(2), 0, 1);
-        var x = 12345678901234567890123456789012345678901234567890;
-        var y = 12345678901234567890123456789012345678901234567893;
+        var x = -259;
+        var y = 0;
         openedFile.writeFromSync([y - x], 0, 1);
         openedFile.writeFromSync([260], 0, 1); // 260 = 256 + 4 = 0x104.
         openedFile.writeFromSync(const [261], 0, 1);
         openedFile.writeFromSync(new MyListOfOneElement(262), 0, 1);
-        x = 12345678901234567890123456789012345678901234567890;
-        y = 12345678901234567890123456789012345678901234568153;
+        x = 0;
+        y = 263;
         openedFile.writeFrom([y - x], 0, 1).then((ignore) {
           openedFile.close().then((ignore) {
             // Check the written bytes.

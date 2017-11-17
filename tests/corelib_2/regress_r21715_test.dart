@@ -12,6 +12,6 @@ main() {
   for (int i = 0; i < 10; i++) {
     var x = 0x50000000;
     var shift = 34;
-    Expect.equals(sll(x, shift), 0x14000000000000000);
+    Expect.equals(sll(x, shift), 0x4000000000000000);
   }
 }

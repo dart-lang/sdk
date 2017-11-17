@@ -10,7 +10,7 @@ call_native(x) {
   // Wrap in try to avoid inlining.
   // Use a large int so the intrinsifier does not fire.
   try {
-    return x + 12342353257893275483274832;
+    return x + 9223372036854775807;
   } finally {}
 }
 

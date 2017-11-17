@@ -11,7 +11,7 @@ import 'dart:io';
 const typeMapping = const {
   'null': null,
   'int': 0,
-  'bigint': 18446744073709551617,
+  'int64': -9000000000000000000,
   'String': 'a',
   'FileMode': FileMode.READ,
   'num': 0.50,
