@@ -32,7 +32,6 @@ import 'package:kernel/ast.dart'
     hide InvalidExpression, InvalidInitializer, InvalidStatement;
 import 'package:kernel/frontend/accessors.dart';
 import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../problems.dart' show unhandled, unsupported;
 
@@ -917,6 +916,16 @@ class ShadowIfStatement extends IfStatement implements ShadowStatement {
 /// assignment is not allowed.
 class ShadowIllegalAssignment extends ShadowComplexAssignment {
   ShadowIllegalAssignment(Expression rhs) : super(rhs);
+
+  @override
+  DartType _inferExpression(
+      ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    if (write != null) {
+      inferrer.inferExpression(write, null, false);
+    }
+    _replaceWithDesugared();
+    return typeNeeded ? const DynamicType() : null;
+  }
 }
 
 /// Concrete shadow object representing an assignment to a target of the form
@@ -982,6 +991,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     _storeLetType(inferrer, index, indexType);
     var inferredType = _inferRhs(inferrer, readType, writeContext);
     inferrer.listener.indexAssignExit(desugared, inferredType);
+    _replaceWithDesugared();
     return inferredType;
   }
 }
@@ -1476,6 +1486,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     var inferredType = _inferRhs(inferrer, readType, writeContext);
     if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
     inferrer.listener.propertyAssignExit(desugared, inferredType);
+    _replaceWithDesugared();
     return inferredType;
   }
 }
@@ -1586,6 +1597,7 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
     }
     var inferredType = _inferRhs(inferrer, readType, writeContext);
     inferrer.listener.staticAssignExit(desugared, inferredType);
+    _replaceWithDesugared();
     return inferredType;
   }
 }
@@ -1778,43 +1790,32 @@ class ShadowSymbolLiteral extends SymbolLiteral implements ShadowExpression {
 /// Shadow object for expressions that are introduced by the front end as part
 /// of desugaring or the handling of error conditions.
 ///
-/// By default, type inference skips these expressions entirely.  Some derived
-/// classes have type inference behaviors.
-///
-/// Visitors skip over objects of this type, so it is not included in serialized
-/// output.
-class ShadowSyntheticExpression extends Expression implements ShadowExpression {
+/// These expressions are removed by type inference and replaced with their
+/// desugared equivalents.
+class ShadowSyntheticExpression extends Let implements ShadowExpression {
+  ShadowSyntheticExpression(Expression desugared)
+      : super(new VariableDeclaration('_', initializer: new NullLiteral()),
+            desugared);
+
   /// The desugared kernel representation of this synthetic expression.
-  Expression desugared;
+  Expression get desugared => body;
 
-  ShadowSyntheticExpression(this.desugared);
-
-  @override
-  void set parent(TreeNode node) {
-    super.parent = node;
-    desugared?.parent = node;
+  void set desugared(Expression value) {
+    this.body = value;
+    value.parent = this;
   }
-
-  @override
-  accept(ExpressionVisitor v) => desugared.accept(v);
-
-  @override
-  accept1(ExpressionVisitor1 v, arg) => desugared.accept1(v, arg);
-
-  @override
-  DartType getStaticType(TypeEnvironment types) =>
-      desugared.getStaticType(types);
-
-  @override
-  transformChildren(Transformer v) => desugared.transformChildren(v);
-
-  @override
-  visitChildren(Visitor v) => desugared.visitChildren(v);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    _replaceWithDesugared();
     return typeNeeded ? const DynamicType() : null;
+  }
+
+  /// Removes this expression from the expression tree, replacing it with
+  /// [desugared].
+  void _replaceWithDesugared() {
+    parent.replaceChild(this, desugared);
   }
 
   /// Updates any [Let] nodes in the desugared expression to account for the
@@ -2172,6 +2173,7 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
     }
     var inferredType = _inferRhs(inferrer, readType, writeContext);
     inferrer.listener.variableAssignExit(desugared, inferredType);
+    _replaceWithDesugared();
     return inferredType;
   }
 }

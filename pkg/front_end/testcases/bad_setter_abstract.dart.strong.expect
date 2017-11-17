@@ -7,24 +7,24 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → void
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:10:8: Error: A setter should have exactly one formal parameter.\n  set a();\n       ^"));
+    let dynamic _ = null in const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:10:8: Error: A setter should have exactly one formal parameter.\n  set a();\n       ^"));
   set d(dynamic #synthetic) → void
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:11:8: Error: A setter should have exactly one formal parameter.\n  set d(x, y);\n       ^"));
+    let dynamic _ = null in const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:11:8: Error: A setter should have exactly one formal parameter.\n  set d(x, y);\n       ^"));
 }
 abstract class B extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → void
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:15:8: Error: A setter should have exactly one formal parameter.\n  set a();\n       ^"));
+    let dynamic _ = null in const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:15:8: Error: A setter should have exactly one formal parameter.\n  set a();\n       ^"));
   set d(dynamic #synthetic) → void
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:16:8: Error: A setter should have exactly one formal parameter.\n  set d(x, y);\n       ^"));
+    let dynamic _ = null in const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:16:8: Error: A setter should have exactly one formal parameter.\n  set d(x, y);\n       ^"));
 }
 static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/bad_setter_abstract.dart:5:8: Error: Expected a function body or '=>'.\nTry adding {}.\nset b();\n       ^", "pkg/front_end/testcases/bad_setter_abstract.dart:7:12: Error: Expected a function body or '=>'.\nTry adding {}.\nset c(x, y);\n           ^"]/* from null */;
 static set b(dynamic #synthetic) → void
-  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:5:6: Error: A setter should have exactly one formal parameter.\nset b();\n     ^"));
+  let dynamic _ = null in const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:5:6: Error: A setter should have exactly one formal parameter.\nset b();\n     ^"));
 static set c(dynamic #synthetic) → void
-  const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:7:6: Error: A setter should have exactly one formal parameter.\nset c(x, y);\n     ^"));
+  let dynamic _ = null in const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/bad_setter_abstract.dart:7:6: Error: A setter should have exactly one formal parameter.\nset c(x, y);\n     ^"));
 static method main() → dynamic {
   core::bool threw;
   try {

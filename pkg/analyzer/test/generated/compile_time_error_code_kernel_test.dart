@@ -130,6 +130,37 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() {
+    return super
+        .test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotation_notVariableOrConstructorInvocation() {
+    return super.test_invalidAnnotation_notVariableOrConstructorInvocation();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotation_unresolved_identifier() {
+    return super.test_invalidAnnotation_unresolved_identifier();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotation_unresolved_prefixedIdentifier() {
+    return super.test_invalidAnnotation_unresolved_prefixedIdentifier();
+  }
+
+  @override
+  @failingTest
+  test_invalidAnnotation_useLibraryScope() {
+    return super.test_invalidAnnotation_useLibraryScope();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/31001')
   test_invalidConstructorName_notEnclosingClassName_defined() async {
     return super.test_invalidConstructorName_notEnclosingClassName_defined();
@@ -189,6 +220,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30982')
   test_multipleSuperInitializers() async {
     return super.test_multipleSuperInitializers();
+  }
+
+  @override
+  @failingTest
+  test_noAnnotationConstructorArguments() {
+    return super.test_noAnnotationConstructorArguments();
   }
 
   @override

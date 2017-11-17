@@ -2797,8 +2797,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ///     }
       variable = new VariableDeclaration.forValue(null);
       body = combineStatements(
-          new ShadowSyntheticStatement(new ExpressionStatement(lvalue
-              .buildAssignment(new VariableGet(variable), voidContext: true))),
+          new ShadowExpressionStatement(lvalue
+              .buildAssignment(new VariableGet(variable), voidContext: true)),
           body);
     } else {
       variable = new VariableDeclaration.forValue(
