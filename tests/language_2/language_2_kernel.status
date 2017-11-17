@@ -2530,6 +2530,30 @@ issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: SkipByDesign
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 issue_25671b_test/01: Crash
+known_identifier_prefix_error_test/01: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/02: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/03: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/04: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/05: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/06: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/07: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/08: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/09: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/10: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/11: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/12: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/13: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/14: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/15: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/16: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/17: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/18: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/19: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/20: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/21: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/22: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/23: MissingCompileTimeError # Issue 28814
+known_identifier_prefix_error_test/24: MissingCompileTimeError # Issue 28814
 language_2/least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_expansive_test/01: MissingCompileTimeError
 least_upper_bound_expansive_test/02: MissingCompileTimeError
@@ -3453,30 +3477,6 @@ generic_methods_function_type_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
-known_identifier_prefix_error_test/01: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/02: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/03: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/04: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/05: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/06: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/07: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/08: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/09: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/10: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/11: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/12: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/13: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/14: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/15: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/16: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/17: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/18: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/19: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/20: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/21: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/22: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/23: MissingCompileTimeError # Issue 28814
-known_identifier_prefix_error_test/24: MissingCompileTimeError # Issue 28814
 list_literal1_test/01: MissingCompileTimeError
 malbounded_redirecting_factory_test/03: Fail
 malbounded_redirecting_factory_test/04: Fail

@@ -593,6 +593,11 @@ unicode_test: RuntimeError
 list_test/none: Crash
 list_test/01: Crash
 
+[ $compiler == dartkp && $strong && $mode == debug ]
+bit_twiddling_test/int64: CompileTimeError
+integer_parsed_arith_vm_test/01: RuntimeError
+integer_parsed_arith_vm_test/02: RuntimeError
+
 [ $compiler == dartdevk ]
 bool_from_environment2_test/01: MissingCompileTimeError
 bool_from_environment2_test/02: MissingCompileTimeError
