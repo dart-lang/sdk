@@ -18,7 +18,7 @@ part of dart.convert;
  *     var decoded = base64.decode("YmzDpWLDpnJncsO4ZAo=");
  */
 const Base64Codec base64 = const Base64Codec();
-@Deprecated("Use base64 instead")
+/** Deprecated, use [base64] instead. */
 const Base64Codec BASE64 = base64;
 
 /**
@@ -35,7 +35,7 @@ const Base64Codec BASE64 = base64;
  *     var decoded = base64Url.decode("YmzDpWLDpnJncsO4ZAo=");
  */
 const Base64Codec base64Url = const Base64Codec.urlSafe();
-@Deprecated("Use base64Url instead")
+/** Deprecated, use [base64Url] instead. */
 const Base64Codec BASE64URL = base64Url;
 
 // Constants used in more than one class.

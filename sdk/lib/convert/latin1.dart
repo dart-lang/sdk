@@ -17,7 +17,7 @@ part of dart.convert;
  *                                  0x72, 0x67, 0x72, 0xf8, 0x64]);
  */
 const Latin1Codec latin1 = const Latin1Codec();
-@Deprecated("Use latin1 instead")
+/** Deprecated, use [latin1] instead. */
 const Latin1Codec LATIN1 = latin1;
 
 const int _latin1Mask = 0xFF;

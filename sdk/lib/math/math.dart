@@ -66,21 +66,21 @@ const double sqrt1_2 = 0.7071067811865476;
  */
 const double sqrt2 = 1.4142135623730951;
 
-@Deprecated("Use e instead")
+/** Deprecated, use [e] instead. */
 const double E = e;
-@Deprecated("Use ln10 instead")
+/** Deprecated, use [ln10] instead. */
 const double LN10 = ln10;
-@Deprecated("Use ln2 instead")
+/** Deprecated, use [ln2] instead. */
 const double LN2 = ln2;
-@Deprecated("Use log2e instead")
+/** Deprecated, use [log2e] instead. */
 const double LOG2E = log2e;
-@Deprecated("Use log10e instead")
+/** Deprecated, use [log10e] instead. */
 const double LOG10E = log10e;
-@Deprecated("Use pi instead")
+/** Deprecated, use [pi] instead. */
 const double PI = pi;
-@Deprecated("Use sqrt1_2 instead")
+/** Deprecated, use [sqrt1_2] instead. */
 const double SQRT1_2 = sqrt1_2;
-@Deprecated("Use sqrt2 instead")
+/** Deprecated, use [sqrt2] instead. */
 const double SQRT2 = sqrt2;
 
 /**
