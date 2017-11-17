@@ -11,7 +11,8 @@ import 'dart:isolate';
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-void ConnectorIsolate(SendPort sendPort) {
+void ConnectorIsolate(Object sendPortObj) {
+  SendPort sendPort = sendPortObj;
   stdin;
   sendPort.send(true);
 }

@@ -89,7 +89,7 @@ Future testExtension(bool withArchSuffix) {
     var testExtensionTesterFile =
         join(scriptDirectory, 'test_extension_tester.dart');
     return copyFileToDirectory(testExtensionTesterFile, testDirectory);
-  }).then((_) {
+  }).then<ProcessResult>((_) {
     var script = join(testDirectory, 'test_extension_tester.dart');
     return Process.run(Platform.executable, [script]);
   })

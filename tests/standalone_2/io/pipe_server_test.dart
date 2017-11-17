@@ -97,7 +97,8 @@ class PipeServerGame {
   int _messages;
 }
 
-void startPipeServer(SendPort replyPort) {
+void startPipeServer(Object replyPortObj) {
+  SendPort replyPort = replyPortObj;
   var server = new PipeServer();
   server.init().then((port) {
     replyPort.send([port, server.closeSendPort]);

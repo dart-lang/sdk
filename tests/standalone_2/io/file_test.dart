@@ -567,7 +567,7 @@ class FileTest {
             var openedFile2 = file2.openSync();
             var length = openedFile2.lengthSync();
             Expect.equals(8, length);
-            List data = new List(length);
+            var data = new List<int>(length);
             openedFile2.readIntoSync(data, 0, length);
             for (var i = 0; i < data.length; i++) {
               Expect.equals(i, data[i]);
@@ -722,7 +722,7 @@ class FileTest {
   static void testTruncate() {
     asyncTestStarted();
     File file = new File(tempDirectory.path + "/out_truncate");
-    List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
+    List<int> buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     file.open(mode: WRITE).then((RandomAccessFile openedFile) {
       openedFile.writeFrom(buffer, 0, 10).then((ignore) {
         openedFile.length().then((length) {
@@ -747,7 +747,7 @@ class FileTest {
 
   static void testTruncateSync() {
     File file = new File(tempDirectory.path + "/out_truncate_sync");
-    List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
+    List<int> buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     RandomAccessFile openedFile = file.openSync(mode: WRITE);
     openedFile.writeFromSync(buffer, 0, 10);
     Expect.equals(10, openedFile.lengthSync());

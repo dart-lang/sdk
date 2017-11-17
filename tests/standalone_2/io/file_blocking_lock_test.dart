@@ -23,7 +23,7 @@ import "package:path/path.dart";
 runPeer(String path, int len, FileLock mode) {
   var script =
       Platform.script.resolve('file_blocking_lock_script.dart').toFilePath();
-  var arguments = []
+  var arguments = <String>[]
     ..addAll(Platform.executableArguments)
     ..add(script)
     ..add(path)

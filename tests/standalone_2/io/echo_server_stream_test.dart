@@ -95,7 +95,8 @@ class EchoServerGame {
   int _messages;
 }
 
-void startEchoServer(SendPort replyPort) {
+void startEchoServer(Object replyPortObj) {
+  SendPort replyPort = replyPortObj;
   var server = new EchoServer();
   server.init().then((port) {
     replyPort.send([port, server.closeSendPort]);

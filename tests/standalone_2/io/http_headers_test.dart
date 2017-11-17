@@ -243,7 +243,8 @@ void testEnumeration() {
 }
 
 void testHeaderValue() {
-  void check(HeaderValue headerValue, String value, [Map parameters]) {
+  void check(HeaderValue headerValue, String value,
+      [Map<String, String> parameters]) {
     Expect.equals(value, headerValue.value);
     if (parameters != null) {
       Expect.equals(parameters.length, headerValue.parameters.length);
@@ -281,7 +282,7 @@ void testHeaderValue() {
 
 void testContentType() {
   void check(ContentType contentType, String primaryType, String subType,
-      [Map parameters]) {
+      [Map<String, String> parameters]) {
     Expect.equals(primaryType, contentType.primaryType);
     Expect.equals(subType, contentType.subType);
     Expect.equals("$primaryType/$subType", contentType.value);

@@ -11,7 +11,7 @@ import "dart:io";
 import "package:expect/expect.dart";
 
 final Duration delay = new Duration(milliseconds: 100);
-final List data = new List.generate(100, (i) => i % 20 + 65);
+final List<int> data = new List.generate(100, (i) => i % 20 + 65);
 RawServerSocket server;
 RawSocket client;
 bool serverReadClosedReceived = false;

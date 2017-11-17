@@ -90,7 +90,7 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
 
   Future runServer(Socket client) {
     var completer = new Completer();
-    var dataReceived = [];
+    var dataReceived = <int>[];
     client.listen((data) {
       dataReceived.addAll(data);
       if (dataReceived.length == messageSize) {
@@ -104,7 +104,7 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
 
   Future<RawSocket> runClient(Socket socket) {
     var completer = new Completer();
-    var dataReceived = [];
+    var dataReceived = <int>[];
     socket.listen((data) {
       dataReceived.addAll(data);
     }, onDone: () {

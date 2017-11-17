@@ -95,7 +95,8 @@ class IsolatedHttpServerStatus {
   int _port;
 }
 
-void startIsolatedHttpServer(SendPort replyTo) {
+void startIsolatedHttpServer(Object replyToObj) {
+  SendPort replyTo = replyToObj;
   var server = new TestServer();
   server.init();
   replyTo.send(server.dispatchSendPort);

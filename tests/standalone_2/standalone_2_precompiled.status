@@ -52,6 +52,13 @@ io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'd
 io/directory_list_sync_test: Timeout, Skip # Expects to find the test directory relative to the script.
 io/skipping_dart2js_compilations_test: RuntimeError # Issue 30008
 
+[ $runtime == dart_precompiled && !$checked ]
+io/file_constructor_test: RuntimeError
+
+[ $runtime == dart_precompiled && $checked ]
+io/namespace_test: RuntimeError
+io/test_runner_test: RuntimeError
+
 [ $runtime == dart_precompiled || $mode == product ]
 no_assert_test: SkipByDesign # Requires checked mode.
 io/code_collection_test: Skip # Incompatible flags

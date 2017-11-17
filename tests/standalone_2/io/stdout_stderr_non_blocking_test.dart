@@ -17,7 +17,7 @@ callIOSink(IOSink sink) {
   sink.writeCharCode(72);
   sink.add([101, 108, 108, 111, 10]);
 
-  var controller = new StreamController(sync: true);
+  var controller = new StreamController<List<int>>(sync: true);
   var future = sink.addStream(controller.stream);
   controller.add([72, 101, 108]);
   controller.add([108, 111, 10]);
