@@ -4085,10 +4085,16 @@ class Wrong<T> {
     FormalParameter parameter =
         parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 8, 1),
-      expectedError(ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, 7, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
+            expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 6, 1)
+          ]
+        : [
+            expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 8, 1),
+            expectedError(
+                ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, 7, 1)
+          ]);
     expect(parameter.identifier, isNotNull);
   }
 
@@ -4097,10 +4103,16 @@ class Wrong<T> {
     FormalParameter parameter =
         parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 8, 1),
-      expectedError(ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, 7, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [
+            expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
+            expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 6, 1)
+          ]
+        : [
+            expectedError(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 8, 1),
+            expectedError(
+                ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, 7, 1)
+          ]);
     expect(parameter.identifier, isNotNull);
   }
 
@@ -4109,9 +4121,12 @@ class Wrong<T> {
     FormalParameter parameter =
         parser.parseFormalParameterList(inFunctionType: true).parameters[0];
     expectNotNullIfNoErrors(parameter);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, 5, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 1)]
+        : [
+            expectedError(
+                ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, 5, 1)
+          ]);
     expect(parameter.identifier, isNotNull);
   }
 

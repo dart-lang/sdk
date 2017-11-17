@@ -1319,32 +1319,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingNameForNamedParameter_colon() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, found 0
-    super.test_missingNameForNamedParameter_colon();
-  }
-
-  @override
-  @failingTest
-  void test_missingNameForNamedParameter_equals() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, found 0
-    super.test_missingNameForNamedParameter_equals();
-  }
-
-  @override
-  @failingTest
-  void test_missingNameForNamedParameter_noDefault() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER, found 0
-    super.test_missingNameForNamedParameter_noDefault();
-  }
-
-  @override
-  @failingTest
   void test_missingNameInLibraryDirective() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE, found 0

@@ -1101,8 +1101,8 @@ class Parser {
     if (parameterCount == 0) {
       reportRecoverableError(token, fasta.messageEmptyOptionalParameterList);
     }
-    listener.endOptionalFormalParameters(parameterCount, begin, token);
     expect(']', token);
+    listener.endOptionalFormalParameters(parameterCount, begin, token);
     return token;
   }
 
@@ -1130,8 +1130,8 @@ class Parser {
     if (parameterCount == 0) {
       reportRecoverableError(token, fasta.messageEmptyNamedParameterList);
     }
-    listener.endOptionalFormalParameters(parameterCount, begin, token);
     expect('}', token);
+    listener.endOptionalFormalParameters(parameterCount, begin, token);
     return token;
   }
 
@@ -2338,7 +2338,12 @@ class Parser {
             IdentifierContext.formalParameterDeclaration;
         token = token.next;
         if (inFunctionType) {
-          if (isNamedParameter || nameToken.isIdentifier) {
+          if (isNamedParameter) {
+            nameContext = IdentifierContext.formalParameterDeclaration;
+            if (!nameToken.isKeywordOrIdentifier) {
+              token = nameToken;
+            }
+          } else if (nameToken.isIdentifier) {
             nameContext = IdentifierContext.formalParameterDeclaration;
           } else {
             // No name required in a function type.
