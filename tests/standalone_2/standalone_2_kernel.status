@@ -111,4 +111,3 @@ io/socket_finalizer_test: Pass, Crash
 io/socket_info_ipv4_test: Pass, Crash
 io/socket_info_ipv6_test: Pass, Crash
 io/socket_port_test: Pass, Crash
-typed_array_int64_uint64_test: Crash
