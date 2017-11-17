@@ -52,7 +52,7 @@ final dart2jsStatusFiles = {
 };
 
 main(args) {
-  mainInternal(args, dart2jsConfigurations, dart2jsStatusFiles);
+  mainInternal(args, dart2jsConfigurations, dart2jsStatusFiles, null);
 }
 
 /// Note: this is called above and also from
@@ -60,7 +60,7 @@ main(args) {
 mainInternal(List<String> args, Map<String, String> configurations,
     Map<String, String> statusFiles) {
   if (args.length < 2) {
-    print('usage: update_from_log.dart <mode> log.txt');
+    print('usage: update_from_log.dart <mode> log.txt [message-in-quotes]');
     print('  where mode is one of these values: ${configurations.keys}');
     exit(1);
   }
@@ -77,13 +77,17 @@ mainInternal(List<String> args, Map<String, String> configurations,
     exit(1);
   }
 
-  updateLogs(mode, file.readAsStringSync(), configurations, statusFiles);
+  var globalReason = args.length >= 2 ? args[2] : null;
+  updateLogs(
+      mode, file.readAsStringSync(), configurations, statusFiles, globalReason);
 }
 
 /// Update all status files based on the [log] records when running the compiler
-/// in [mode].
+/// in [mode]. If provided [globalReason] is added as a comment to new test
+/// failures. If not, an automated reason might be extracted from the test
+/// failure message.
 void updateLogs(String mode, String log, Map<String, String> configurations,
-    Map<String, String> statusFiles) {
+    Map<String, String> statusFiles, String globalReason) {
   List<Record> records = parse(log);
   records.sort();
   var last;
@@ -91,7 +95,7 @@ void updateLogs(String mode, String log, Map<String, String> configurations,
   for (var record in records) {
     if (last == record) continue; // ignore duplicates
     if (section?.suite != record.suite) {
-      section?.update();
+      section?.update(globalReason);
       var statusFile = statusFiles[record.suite];
       var condition = configurations[mode];
       section = ConfigurationInSuiteSection.create(
@@ -100,7 +104,7 @@ void updateLogs(String mode, String log, Map<String, String> configurations,
     section.add(record);
     last = record;
   }
-  section?.update();
+  section?.update(globalReason);
 }
 
 /// Represents an existing entry in the logs.
@@ -142,7 +146,7 @@ class ConfigurationInSuiteSection {
   /// Update the section in the file.
   ///
   /// This will reflect the new status lines as recorded in [_records].
-  void update() {
+  void update(String providedReason) {
     int changes = 0;
     int ignored = 0;
     var originalEntries = _contents.substring(_begin, _end).split('\n');
@@ -158,7 +162,8 @@ class ConfigurationInSuiteSection {
     var newContents = new StringBuffer();
     newContents.write(_contents.substring(0, _begin));
     addFromRecord(Record record) {
-      var comment = record.reason != null ? ' # ${record.reason}' : '';
+      var reason = providedReason ?? record.reason;
+      var comment = reason != null && reason.isNotEmpty ? ' # ${reason}' : '';
       newContents.writeln('${record.test}: ${record.actual}$comment');
     }
 

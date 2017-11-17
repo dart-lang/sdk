@@ -10,6 +10,7 @@
 suites=
 mode="release"
 extra_flags=""
+message=
 
 for arg in "$@"; do
   case $arg in
@@ -25,14 +26,19 @@ for arg in "$@"; do
     -h|--help)
       echo "$0 [options] <suites>"
       echo "where: "
-      echo "  <suites>      a space separated list of suites."
-      echo "                Currently only language_2, corelib_2, lib_2, "
-      echo "                and standalone_2 are supported. Defaults to all."
+      echo "  <suites>        a space separated list of suites."
+      echo "      Currently only language_2, corelib_2, lib_2, and standalone_2 "
+      echo "      are supported. Defaults to all."
       echo ""
-      echo "  --debug       update the status in \$mode == debug."
+      echo "  --debug         update the status in \$mode == debug."
       echo ""
-      echo "  -h | --help   this help message."
+      echo "  --message='...' include the given message as comments on updated status lines."
+      echo ""
+      echo "  -h | --help     this help message."
       exit 0
+      ;;
+    --message=*)
+      message="${arg/--message=/}"
       ;;
     -*)
       echo "Unknown option '$arg'"
@@ -70,12 +76,12 @@ function update_suite {
   echo "  - dark $mode tests"
   ./tools/test.py -m $mode -c dartk -r vm $flags \
       $suite > $tmp/$suite-dartk$mode.txt
-  $dart $update_script dartk$suffix $tmp/$suite-dartk$mode.txt
+  $dart $update_script dartk$suffix $tmp/$suite-dartk$mode.txt "$message"
 
   echo "  - darkp $mode tests"
   ./tools/test.py -m $mode -c dartkp -r dart_precompiled $flags \
       $suite > $tmp/$suite-dartkp$mode.txt
-  $dart $update_script dartkp$suffix $tmp/$suite-dartkp$mode.txt
+  $dart $update_script dartkp$suffix $tmp/$suite-dartkp$mode.txt "$message"
 }
 
 pushd $repodir > /dev/null
