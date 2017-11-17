@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 import 'dart:math' show max, min;
-import 'package:kernel/kernel.dart';
+import 'package:kernel/kernel.dart' hide ConstantVisitor;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart';
@@ -3382,6 +3382,11 @@ class ProgramCompiler
 
   @override
   visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
+
+  // [ConstantExpression] is produced by the Kernel constant evaluator, which
+  // we do not use.
+  @override
+  visitConstantExpression(ConstantExpression node) => defaultExpression(node);
 
   @override
   visitVariableGet(VariableGet node) => _emitVariableRef(node.variable);
