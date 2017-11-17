@@ -124,7 +124,7 @@ entirely to allow inference to fill in the type.
       `pub serve test --web-compiler=dartdevc`, and then run
       `pub run test -p chrome --pub-serve=8080`.
       
-      Note that `dart2js` is still the compiler you will use for production:
+      Note that `dart2js` is still the recommended compiler for production:
       it produces much smaller and more performant code. The Dart Development
       Compiler is for development.
 
