@@ -427,6 +427,8 @@ class Parser {
   /// Parse any top-level declaration that begins with a keyword.
   Token parseTopLevelKeywordDeclaration(
       Token abstractToken, Token token, DirectiveContext directiveState) {
+    // TODO(brianwilkerson) Accept the token before `abstractToken` so that it
+    // can be passed to `parseClassOrNamedMixinApplication`.
     Token previous = token;
     token = token.next;
     assert(token.isTopLevelKeyword);
@@ -986,15 +988,15 @@ class Parser {
   /// If `kind == MemberKind.GeneralizedFunctionType`, then names may be
   /// omitted (except for named arguments). Otherwise, types may be omitted.
   Token parseFormalParametersRequiredOpt(Token token, MemberKind kind) {
-    token = token.next;
-    if (!optional('(', token)) {
-      reportRecoverableError(token, missingParameterMessage(kind));
+    Token next = token.next;
+    if (!optional('(', next)) {
+      reportRecoverableError(next, missingParameterMessage(kind));
       Token replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
-          new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
-      token = rewriter.insertToken(replacement, token);
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, next.charOffset),
+          new SyntheticToken(TokenType.CLOSE_PAREN, next.charOffset));
+      rewriter.insertToken(replacement, next);
     }
-    return parseFormalParameters(token, kind);
+    return parseFormalParameters(token.next, kind);
   }
 
   /// Parses the formal parameter list of a function given that the left
@@ -1318,6 +1320,8 @@ class Parser {
   }
 
   Token parseClassOrNamedMixinApplication(Token abstractToken, Token token) {
+    // TODO(brianwilkerson) Accept the token before `abstractToken` so that it
+    // can be passed to `parseModifier`.
     token = token.next;
     listener.beginClassOrNamedMixinApplication(token);
     Token begin = abstractToken ?? token;
@@ -1388,7 +1392,7 @@ class Parser {
     Token nativeToken;
     if (optional('native', token.next)) {
       nativeToken = token.next;
-      token = parseNativeClause(nativeToken);
+      token = parseNativeClause(token.next);
     }
     listener.handleClassHeader(begin, classKeyword, nativeToken);
     return token;
@@ -2348,7 +2352,8 @@ class Parser {
             Message message = fasta.templateExpectedButGot.withArguments('.');
             Token newToken =
                 new SyntheticToken(TokenType.PERIOD, token.charOffset);
-            periodAfterThis = rewriteAndRecover(token, message, newToken);
+            periodAfterThis =
+                rewriteAndRecover(thisKeyword.next, message, newToken);
           } else {
             periodAfterThis = token;
           }
@@ -2584,6 +2589,8 @@ class Parser {
 
   Token parseFields(Token start, Link<Token> modifiers, Token type, Token name,
       bool isTopLevel) {
+    // TODO(brianwilkerson) Accept the token before `name` so that we can pass
+    // the last consumed token to `ensureIdentifier`.
     Token varFinalOrConst = null;
     for (Token modifier in modifiers) {
       if (optional("var", modifier) ||
@@ -2983,11 +2990,9 @@ class Parser {
       Message message = fasta.templateExpectedString.withArguments(next);
       Token newToken =
           new SyntheticStringToken(TokenType.STRING, '""', token.charOffset, 0);
-      token = rewriteAndRecover(token.next, message, newToken);
-    } else {
-      token = next;
+      rewriteAndRecover(token.next, message, newToken);
     }
-    return parseLiteralString(token);
+    return parseLiteralString(token.next);
   }
 
   /// If the given [token] is a semi-colon, return it. Otherwise, report an
@@ -3679,7 +3684,7 @@ class Parser {
     Token next = token.next;
     if (optional('native', next)) {
       Token nativeToken = next;
-      token = parseNativeClause(nativeToken);
+      token = parseNativeClause(token.next);
       next = token.next;
       if (optional(';', next)) {
         listener.handleNativeFunctionBody(nativeToken, next);
@@ -4301,6 +4306,8 @@ class Parser {
 
   Token parseArgumentOrIndexStar(Token token, Token typeArguments) {
     // TODO(danrubel): Accept the token before typeArguments
+    // TODO(brianwilkerson): Consider replacing `typeArguments` with a boolean
+    // flag, given that the only thing it's used for is to compare it with null.
     // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson) Return the last consumed token.
     Token beginToken = token;
@@ -4310,13 +4317,16 @@ class Parser {
         Token openSquareBracket = token;
         bool old = mayParseFunctionExpressions;
         mayParseFunctionExpressions = true;
-        token = parseExpression(token.next).next;
+        token = parseExpression(token.next);
+        Token next = token.next;
         mayParseFunctionExpressions = old;
-        if (!optional(']', token)) {
+        if (!optional(']', next)) {
           Message message = fasta.templateExpectedButGot.withArguments(']');
           Token newToken = new SyntheticToken(
-              TokenType.CLOSE_SQUARE_BRACKET, token.charOffset);
-          token = rewriteAndRecover(token, message, newToken);
+              TokenType.CLOSE_SQUARE_BRACKET, next.charOffset);
+          token = rewriteAndRecover(token.next, message, newToken);
+        } else {
+          token = next;
         }
         listener.handleIndexedExpression(openSquareBracket, token);
         token = token.next;
@@ -4832,12 +4842,12 @@ class Parser {
   }
 
   Token parseIdentifierExpression(Token token) {
-    token = token.next;
-    if (token.kind == KEYWORD_TOKEN && identical(token.stringValue, "this")) {
-      listener.handleThisExpression(token, IdentifierContext.expression);
-      return token;
+    Token next = token.next;
+    if (next.kind == KEYWORD_TOKEN && identical(next.stringValue, "this")) {
+      listener.handleThisExpression(next, IdentifierContext.expression);
+      return next;
     } else {
-      return parseSend(token, IdentifierContext.expression);
+      return parseSend(token.next, IdentifierContext.expression);
     }
   }
 
@@ -5032,8 +5042,9 @@ class Parser {
           .previous;
     }
 
-    token = parseModifiers(token, MemberKind.Local, isVarAllowed: true).next;
-    return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
+    token = parseModifiers(token, MemberKind.Local, isVarAllowed: true);
+    return parseVariablesDeclarationMaybeSemicolonRest(
+        token.next, endWithSemicolon);
   }
 
   Token parseVariablesDeclarationMaybeSemicolonRest(
@@ -5161,18 +5172,20 @@ class Parser {
   Token parseForRest(Token forToken, Token leftParenthesis, Token token) {
     Token leftSeparator = ensureSemicolon(token);
     if (optional(';', leftSeparator.next)) {
-      token = parseEmptyStatement(leftSeparator).next;
+      token = parseEmptyStatement(leftSeparator);
     } else {
-      token = parseExpressionStatement(leftSeparator.next).next;
+      token = parseExpressionStatement(leftSeparator.next);
     }
     int expressionCount = 0;
     while (true) {
-      if (optional(')', token)) break;
-      token = parseExpression(token).next;
+      Token next = token.next;
+      if (optional(')', next)) {
+        token = next;
+        break;
+      }
+      token = parseExpression(next).next;
       ++expressionCount;
-      if (optional(',', token)) {
-        token = token.next;
-      } else {
+      if (!optional(',', token)) {
         break;
       }
     }

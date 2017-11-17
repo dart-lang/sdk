@@ -648,6 +648,7 @@ class FactoryModifierContext {
       this.parser, this.modifierCount, this.externalToken, this.constToken);
 
   Token parseRecovery(Token token) {
+    // TODO(brianwilkerson) Return the last consumed token.
     while (true) {
       final value = token.stringValue;
       if (identical('const', value)) {
