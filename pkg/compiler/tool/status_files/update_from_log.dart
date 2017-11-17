@@ -52,7 +52,7 @@ final dart2jsStatusFiles = {
 };
 
 main(args) {
-  mainInternal(args, dart2jsConfigurations, dart2jsStatusFiles, null);
+  mainInternal(args, dart2jsConfigurations, dart2jsStatusFiles);
 }
 
 /// Note: this is called above and also from
