@@ -53,7 +53,9 @@ import 'package:front_end/front_end.dart';
 import 'package:front_end/incremental_kernel_generator.dart';
 import 'package:front_end/memory_file_system.dart';
 import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
+import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/target/flutter.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart';
@@ -84,13 +86,18 @@ main(List<String> args) async {
 
   if (options['sdk-summary'] != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(options["sdk-summary"]);
-  } else if (options['sdk-library-specification'] != null) {
+  }
+  if (options['sdk-library-specification'] != null) {
     compilerOptions.librariesSpecificationUri =
         _resolveOverlayUri(options["sdk-library-specification"]);
   }
 
   var dir = Directory.systemTemp.createTempSync('ikg-cache');
   compilerOptions.byteStore = createByteStore(options['cache'], dir.path);
+
+  final processedOptions =
+      new ProcessedOptions(compilerOptions, false, [entryUri]);
+  final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
 
   var timer1 = new Stopwatch()..start();
   var generator = await IncrementalKernelGenerator.newInstance(
@@ -104,7 +111,7 @@ main(List<String> args) async {
   print("Initial compilation took: ${timer1.elapsedMilliseconds}ms");
 
   for (final ChangeSet changeSet in changeSets) {
-    await applyEdits(changeSet.edits, overlayFs, generator);
+    await applyEdits(changeSet.edits, overlayFs, generator, uriTranslator);
     var iterTimer = new Stopwatch()..start();
     delta = await generator.computeDelta();
     generator.acceptLastDelta();
@@ -121,11 +128,13 @@ main(List<String> args) async {
 /// Apply all edits of a single iteration by updating the copy of the file in
 /// the memory file system.
 applyEdits(List<Edit> edits, OverlayFileSystem fs,
-    IncrementalKernelGenerator generator) async {
+    IncrementalKernelGenerator generator, UriTranslator uriTranslator) async {
   for (var edit in edits) {
     print('edit $edit');
-    generator.invalidate(edit.uri);
-    OverlayFileSystemEntity entity = fs.entityForUri(edit.uri);
+    var uri = edit.uri;
+    if (uri.scheme == 'package') uri = uriTranslator.translate(uri);
+    generator.invalidate(uri);
+    OverlayFileSystemEntity entity = fs.entityForUri(uri);
     var contents = await entity.readAsString();
     entity.writeAsStringSync(
         contents.replaceAll(edit.original, edit.replacement));
@@ -166,12 +175,18 @@ class OverlayFileSystem implements FileSystem {
 
   @override
   FileSystemEntity entityForUri(Uri uri) {
-    if (uri.scheme != 'org-dartlang-overlay') {
+    if (uri.scheme == 'org-dartlang-overlay') {
+      return new OverlayFileSystemEntity(uri, this);
+    } else if (uri.scheme == 'file') {
+      // The IKG compiler reads ".packages" which might contain absolute file
+      // URIs (which it will then try to use on the FS).  We therefore replace
+      // them with overlay-fs URIs as usual.
+      return new OverlayFileSystemEntity(_resolveOverlayUri('$uri'), this);
+    } else {
       throw "Unsupported scheme: ${uri.scheme}."
           " The OverlayFileSystem only accepts URIs"
           " with the 'org-dartlang-overlay' scheme";
     }
-    return new OverlayFileSystemEntity(uri, this);
   }
 }
 
@@ -233,7 +248,7 @@ class Edit {
   final String replacement;
 
   Edit(String uriString, this.original, this.replacement)
-      : uri = _resolveOverlayUri(uriString);
+      : uri = Uri.base.resolve(uriString);
 
   String toString() => 'Edit($uri, "$original" -> "$replacement")';
 }
@@ -248,7 +263,7 @@ class ChangeSet {
   String toString() => 'ChangeSet($name, $edits)';
 }
 
-_resolveOverlayUri(uriString) =>
+_resolveOverlayUri(String uriString) =>
     Uri.base.resolve(uriString).replace(scheme: 'org-dartlang-overlay');
 
 ArgParser argParser = new ArgParser()
