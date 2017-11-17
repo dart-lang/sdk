@@ -95,7 +95,7 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   // Override the following methods in subclasses to change the behavior.
 
   void _handleData(S data, _EventSink<T> sink) {
-    sink._add(data as Object/*=T*/);
+    sink._add(data as Object);
   }
 
   void _handleError(error, StackTrace stackTrace, _EventSink<T> sink) {

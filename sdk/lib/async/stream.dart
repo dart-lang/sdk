@@ -413,7 +413,7 @@ abstract class Stream<T> {
       final add = controller.add;
       assert(controller is _StreamController ||
           controller is _BroadcastStreamController);
-      final _EventSink<E> eventSink = controller as Object/*=_EventSink<E>*/;
+      final _EventSink<E> eventSink = controller as Object;
       final addError = eventSink._addError;
       subscription = this.listen((T event) {
         FutureOr<E> newValue;
@@ -429,7 +429,7 @@ abstract class Stream<T> {
               .then(add, onError: addError)
               .whenComplete(subscription.resume);
         } else {
-          controller.add(newValue as Object/*=E*/);
+          controller.add(newValue);
         }
       }, onError: addError, onDone: controller.close);
     }
@@ -480,7 +480,7 @@ abstract class Stream<T> {
     void onListen() {
       assert(controller is _StreamController ||
           controller is _BroadcastStreamController);
-      final _EventSink<E> eventSink = controller as Object/*=_EventSink<E>*/;
+      final _EventSink<E> eventSink = controller as Object;
       subscription = this.listen((T event) {
         Stream<E> newStream;
         try {

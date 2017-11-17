@@ -16,10 +16,8 @@ _invokeErrorHandler(
 
 Function _registerErrorHandler<R>(Function errorHandler, Zone zone) {
   if (errorHandler is ZoneBinaryCallback<dynamic, Null, Null>) {
-    return zone.registerBinaryCallback<R, Object, StackTrace>(
-        errorHandler as dynamic/*=ZoneBinaryCallback<R, Object, StackTrace>*/);
+    return zone.registerBinaryCallback<R, Object, StackTrace>(errorHandler);
   } else {
-    return zone.registerUnaryCallback<R, Object>(
-        errorHandler as dynamic/*=ZoneUnaryCallback<R, Object>*/);
+    return zone.registerUnaryCallback<R, Object>(errorHandler);
   }
 }

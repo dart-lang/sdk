@@ -960,7 +960,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   T get current {
     if (_subscription != null && _isPaused) {
-      return _stateData as Object/*=T*/;
+      return _stateData;
     }
     return null;
   }
@@ -988,7 +988,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
     assert(_subscription == null);
     var stateData = _stateData;
     if (stateData != null) {
-      Stream<T> stream = stateData as Object/*=Stream<T>*/;
+      Stream<T> stream = stateData;
       _subscription = stream.listen(_onData,
           onError: _onError, onDone: _onDone, cancelOnError: true);
       var future = new _Future<bool>();
@@ -1005,7 +1005,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
     if (subscription != null) {
       _subscription = null;
       if (!_isPaused) {
-        _Future<bool> future = stateData as Object/*=_Future<bool>*/;
+        _Future<bool> future = stateData;
         future._asyncComplete(false);
       }
       return subscription.cancel();
@@ -1015,7 +1015,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onData(T data) {
     assert(_subscription != null && !_isPaused);
-    _Future<bool> moveNextFuture = _stateData as Object/*=_Future<bool>*/;
+    _Future<bool> moveNextFuture = _stateData;
     _stateData = data;
     _isPaused = true;
     moveNextFuture._complete(true);
@@ -1024,7 +1024,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onError(Object error, [StackTrace stackTrace]) {
     assert(_subscription != null && !_isPaused);
-    _Future<bool> moveNextFuture = _stateData as Object/*=_Future<bool>*/;
+    _Future<bool> moveNextFuture = _stateData;
     _subscription = null;
     _stateData = null;
     moveNextFuture._completeError(error, stackTrace);
@@ -1032,7 +1032,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
 
   void _onDone() {
     assert(_subscription != null && !_isPaused);
-    _Future<bool> moveNextFuture = _stateData as Object/*=_Future<bool>*/;
+    _Future<bool> moveNextFuture = _stateData;
     _subscription = null;
     _stateData = null;
     moveNextFuture._complete(false);
