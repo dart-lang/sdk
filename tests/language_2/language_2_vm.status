@@ -5,7 +5,7 @@
 # Sections in this file should contain "$runtime == vm".
 
 # The VM does not implement the Dart 2.0 static type errors yet.
-[ $runtime == vm ]
+[ $runtime == vm && $compiler != dartk ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
 abstract_factory_constructor_test/00: MissingCompileTimeError
@@ -795,7 +795,7 @@ unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 
-[ $runtime == vm && $compiler != dartk && $compiler != dartkp ]
+[ $runtime == vm && $compiler != dartk ]
 async_congruence_top_level_test: RuntimeError
 async_congruence_unnamed_test/none: RuntimeError
 async_congruence_local_test/none: RuntimeError
@@ -814,7 +814,7 @@ regress_19728_test: MissingCompileTimeError
 regress_21912_test/01: MissingCompileTimeError
 regress_21912_test/02: MissingCompileTimeError
 
-[ $runtime == vm && ! $strong ]
+[ $runtime == vm && $compiler != dartk && ! $strong ]
 type_variable_promotion_test: RuntimeError
 type_variable_nested_test/01: RuntimeError
 regress_28341_test: Fail # Issue 28340
@@ -839,7 +839,7 @@ function_subtype_typearg3_test: RuntimeError
 generic_methods_named_parameters_test: RuntimeError
 malbounded_type_test_test/none: RuntimeError
 
-[ $runtime == vm && $checked ]
+[ $runtime == vm && $compiler != dartk && $checked ]
 constructor_call_as_function_test/01: MissingCompileTimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
@@ -920,7 +920,7 @@ recursive_mixin_test: Crash
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless
 # --checked is explicitly passed).
-[ $runtime == vm && !$checked ]
+[ $runtime == vm && $compiler != dartk && !$checked ]
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 callable_test/none: RuntimeError
@@ -990,14 +990,14 @@ type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
-[ $runtime == vm && !$checked && $compiler != dartk]
+[ $runtime == vm && !$checked && $compiler != dartk ]
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 
-[ $runtime == vm && $checked && $mode == debug ]
+[ $runtime == vm && $checked && $mode == debug && $compiler != dartk ]
 tearoff_dynamic_test: Crash
 
 [ $runtime == vm && $compiler == none ]
@@ -1133,11 +1133,11 @@ vm/regress_24517_test: Pass, Fail # Issue 24517.
 [ $runtime == vm && $compiler == app_jit && $mode != product ]
 vm/type_vm_test/none: RuntimeError
 
-[ $runtime == vm  && $arch == arm64 ]
+[ $runtime == vm && $arch == arm64 ]
 closure_cycles_test: Pass, Slow
 large_class_declaration_test: SkipSlow # Uses too much memory.
 
-[ $runtime == vm && $mode == product ]
+[ $runtime == vm && $compiler != dartk && $mode == product ]
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/regress_27201_test: Fail
@@ -1155,7 +1155,7 @@ deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
 deferred_not_loaded_check_test: RuntimeError
 
-[ $runtime == dart_precompiled && $mode == product ]
+[ $compiler != dartkp && $runtime == dart_precompiled && $mode == product ]
 vm/type_vm_test/28: MissingRuntimeError
 vm/type_vm_test/29: MissingRuntimeError
 vm/type_vm_test/30: MissingRuntimeError
@@ -1170,7 +1170,7 @@ vm/type_vm_test/36: MissingRuntimeError
 generic_no_such_method_dispatcher_simple_test: Skip # This test is only for kernel.
 type_promotion_functions_test/01: MissingCompileTimeError
 
-[ $runtime == vm && $compiler != dartk && $compiler != dartkp ]
+[ $runtime == vm && $compiler != dartk ]
 fuzzy_arrows_test/01: MissingCompileTimeError
 fuzzy_arrows_test/03: RuntimeError
 type_promotion_functions_test/05: MissingCompileTimeError

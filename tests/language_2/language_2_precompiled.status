@@ -4,7 +4,7 @@
 
 # Sections in this file should start with "$runtime == dart_precompiled".
 
-[ $runtime == dart_precompiled ]
+[ $compiler == precompiler && $runtime == dart_precompiled ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
 abstract_factory_constructor_test/00: MissingCompileTimeError
@@ -951,8 +951,7 @@ mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
 super_test: Fail, OK
 vm/regress_29145_test: Skip # Issue 29145
 
-
-[ $runtime == dart_precompiled && $compiler != dartkp ]
+[ $compiler == precompiler && $runtime == dart_precompiled ]
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
@@ -976,7 +975,7 @@ type_promotion_functions_test/07: MissingCompileTimeError
 type_promotion_functions_test/08: MissingCompileTimeError
 type_promotion_functions_test/10: MissingCompileTimeError
 
-[ $runtime == dart_precompiled && $checked ]
+[ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
@@ -997,7 +996,7 @@ generic_methods_new_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
-[ $runtime == dart_precompiled && !$checked ]
+[ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 callable_test/none: RuntimeError
@@ -1066,5 +1065,5 @@ vm/no_such_method_error_message_vm_test: Skip
 vm/regress_28325_test:Skip
 full_stacktrace3_test: Skip
 
-[ $runtime == dart_precompiled && $mode == debug ]
+[ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
 regress_29025_test: Crash  # Issue dartbug.com/29331
