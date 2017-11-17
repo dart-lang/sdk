@@ -10,12 +10,12 @@
 /// This is either invoked as the root script of the Kernel isolate when used
 /// as a part of
 ///
-///         dart --dfe=utils/kernel-service/kernel-service.dart ...
+///         dart --dfe=pkg/vm/bin/kernel_service.dart ...
 ///
 /// invocation or it is invoked as a standalone script to perform training for
 /// the app-jit snapshot
 ///
-///         dart utils/kernel-service/kernel-service.dart --train <source-file>
+///         dart pkg/vm/bin/kernel_service.dart --train <source-file>
 ///
 ///
 library runtime.tools.kernel_service;

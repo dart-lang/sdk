@@ -200,7 +200,7 @@ void KernelIsolate::InitCallback(Isolate* I) {
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
   ASSERT(I->name() != NULL);
-  if (strstr(I->name(), DART_KERNEL_ISOLATE_NAME) == NULL) {
+  if (strcmp(I->name(), DART_KERNEL_ISOLATE_NAME) != 0) {
     // Not kernel isolate.
     return;
   }

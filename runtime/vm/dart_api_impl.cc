@@ -1090,7 +1090,8 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
     }
   }
 
-  if (ServiceIsolate::NameEquals(script_uri)) {
+  if (ServiceIsolate::NameEquals(script_uri) ||
+      (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0)) {
     return strdup(script_uri);
   }
 

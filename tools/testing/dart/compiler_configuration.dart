@@ -639,7 +639,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var args = <String>[];
     if (useDfe) {
       if (!_isStrong) {
-        args.add('--dfe=utils/kernel-service/kernel-service.dart');
+        args.add('--dfe=pkg/vm/bin/kernel_service.dart');
       }
       // TODO(dartbug.com/30480): avoid using additional kernel binaries
       args.add('--kernel-binaries=' +
