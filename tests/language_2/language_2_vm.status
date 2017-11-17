@@ -63,7 +63,6 @@ bit_operations_test/02: MissingCompileTimeError
 bit_operations_test/03: MissingCompileTimeError
 bit_operations_test/04: MissingCompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
-built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
@@ -794,6 +793,9 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+
+[ ($runtime == vm && $compiler != dartk) || ($runtime == dart_precompiled && $compiler != dartkp) ]
+built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
 
 [ $runtime == vm && $compiler != dartk ]
 async_congruence_top_level_test: RuntimeError
