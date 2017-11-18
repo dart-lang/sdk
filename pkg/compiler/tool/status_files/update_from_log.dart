@@ -77,7 +77,7 @@ mainInternal(List<String> args, Map<String, String> configurations,
     exit(1);
   }
 
-  var globalReason = args.length >= 2 ? args[2] : null;
+  var globalReason = args.length > 2 ? args[2] : null;
   updateLogs(
       mode, file.readAsStringSync(), configurations, statusFiles, globalReason);
 }
@@ -91,7 +91,7 @@ void updateLogs(String mode, String log, Map<String, String> configurations,
   List<Record> records = parse(log);
   records.sort();
   var last;
-  var section;
+  ConfigurationInSuiteSection section;
   for (var record in records) {
     if (last == record) continue; // ignore duplicates
     if (section?.suite != record.suite) {
@@ -155,9 +155,12 @@ class ConfigurationInSuiteSection {
     // same order: preserving entries that didn't change, and updating entries
     // where the logs show that the test status changed.
 
-    // Records are already sorted, but we sort the file contents in case the
-    // file has been tampered with.
+    // Sort the file contents in case the file has been tampered with.
     originalEntries.sort();
+
+    /// Re-sort records by name (they came sorted by suite and status first, so
+    /// it may be wrong for the merging below).
+    _records.sort((a, b) => a.test.compareTo(b.test));
 
     var newContents = new StringBuffer();
     newContents.write(_contents.substring(0, _begin));
