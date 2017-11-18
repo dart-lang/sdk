@@ -4046,16 +4046,15 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     body = Fragment(body.entry, non_null_entry);
   }
 
-  // If we run in checked mode, we have to check the type of the passed
-  // arguments.
-  if (I->type_checks()) {
+  // If we run in checked mode or strong mode, we have to check the type of the
+  // passed arguments.
+  if (I->argument_type_checks()) {
     // Positional.
     intptr_t list_length = ReadListLength();
     for (intptr_t i = 0; i < list_length; ++i) {
       // ith variable offset.
       body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
-      body +=
-          CheckVariableTypeInCheckedMode(ReaderOffset() + data_program_offset_);
+      body += CheckArgumentType(ReaderOffset() + data_program_offset_);
       body += Drop();
       SkipVariableDeclaration();  // read ith variable.
     }
@@ -4065,8 +4064,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     for (intptr_t i = 0; i < list_length; ++i) {
       // ith variable offset.
       body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
-      body +=
-          CheckVariableTypeInCheckedMode(ReaderOffset() + data_program_offset_);
+      body += CheckArgumentType(ReaderOffset() + data_program_offset_);
       body += Drop();
       SkipVariableDeclaration();  // read ith variable.
     }
@@ -5659,7 +5657,17 @@ Fragment StreamingFlowGraphBuilder::CheckBooleanInCheckedMode() {
 Fragment StreamingFlowGraphBuilder::CheckAssignableInCheckedMode(
     const AbstractType& dst_type,
     const String& dst_name) {
-  return flow_graph_builder_->CheckAssignableInCheckedMode(dst_type, dst_name);
+  if (I->type_checks()) {
+    return flow_graph_builder_->CheckAssignable(dst_type, dst_name);
+  }
+  return Fragment();
+}
+
+Fragment StreamingFlowGraphBuilder::CheckArgumentType(
+    intptr_t variable_kernel_position) {
+  LocalVariable* variable = LookupVariable(variable_kernel_position);
+  return flow_graph_builder_->CheckAssignable(variable->type(),
+                                              variable->name());
 }
 
 Fragment StreamingFlowGraphBuilder::CheckVariableTypeInCheckedMode(

@@ -1376,8 +1376,11 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 
   StreamSubscription<Socket> listen(void onData(Socket event),
       {Function onError, void onDone(), bool cancelOnError}) {
-    return _socket.map((rawSocket) => new _Socket(rawSocket)).listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    return _socket.map<Socket>((rawSocket) => new _Socket(rawSocket)).listen(
+        onData,
+        onError: onError,
+        onDone: onDone,
+        cancelOnError: cancelOnError);
   }
 
   int get port => _socket.port;

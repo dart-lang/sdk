@@ -67,7 +67,7 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   Label fall_through;
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     const intptr_t type_args_field_offset =
         ComputeObjectArrayTypeArgumentsOffset();
     // Inline simple tests (Smi, null), fallthrough if not positive.
@@ -157,7 +157,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+2), value (+1), return-address (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->type_checks()) return;
+  if (Isolate::Current()->argument_type_checks()) return;
 
   Label fall_through;
   __ movl(EAX, Address(ESP, +2 * kWordSize));  // Array.

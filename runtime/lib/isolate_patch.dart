@@ -58,7 +58,7 @@ class RawReceivePort {
    * event is received.
    */
   @patch
-  factory RawReceivePort([void handler(event)]) {
+  factory RawReceivePort([Function handler]) {
     _RawReceivePortImpl result = new _RawReceivePortImpl();
     result.handler = handler;
     return result;

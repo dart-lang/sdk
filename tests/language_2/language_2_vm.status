@@ -171,8 +171,6 @@ const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constructor_call_as_function_test/01: MissingCompileTimeError
-covariant_override/runtime_check_test: RuntimeError
-covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
 create_unresolved_type_test/01: MissingCompileTimeError
 cyclic_type_variable_test/01: MissingCompileTimeError
@@ -798,6 +796,7 @@ async_congruence_top_level_test: RuntimeError
 async_congruence_unnamed_test/none: RuntimeError
 async_congruence_local_test/none: RuntimeError
 async_congruence_method_test/none: RuntimeError
+covariant_override/runtime_check_test: RuntimeError
 field_override_test/02: MissingCompileTimeError
 field_type_check_test/01: MissingCompileTimeError
 if_null_assignment_static_test/07: MissingCompileTimeError
@@ -813,29 +812,30 @@ regress_21912_test/01: MissingCompileTimeError
 regress_21912_test/02: MissingCompileTimeError
 
 [ $runtime == vm && $compiler != dartk && ! $strong ]
-type_variable_promotion_test: RuntimeError
-type_variable_nested_test/01: RuntimeError
-regress_28341_test: Fail # Issue 28340
-override_inheritance_mixed_test/08: MissingCompileTimeError
-no_such_method_mock_test: RuntimeError
-mixin_type_parameters_super_test: RuntimeError
-mixin_type_parameters_super_extends_test: RuntimeError
-mixin_type_parameters_mixin_test: RuntimeError
-mixin_type_parameters_mixin_extends_test: RuntimeError
-map_literal8_test: RuntimeError
-malbounded_type_cast_test/none: RuntimeError
-instanceof4_test/01: RuntimeError
-instanceof4_test/none: RuntimeError
-generic_methods_optional_parameters_test: RuntimeError
-generic_function_typedef_test/01: RuntimeError
+covariant_subtyping_with_substitution_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
 function_subtype_typearg2_test: RuntimeError
 function_subtype_typearg3_test: RuntimeError
+generic_function_typedef_test/01: RuntimeError
 generic_methods_named_parameters_test: RuntimeError
+generic_methods_optional_parameters_test: RuntimeError
+instanceof4_test/01: RuntimeError
+instanceof4_test/none: RuntimeError
+malbounded_type_cast_test/none: RuntimeError
 malbounded_type_test_test/none: RuntimeError
+map_literal8_test: RuntimeError
+mixin_type_parameters_mixin_extends_test: RuntimeError
+mixin_type_parameters_mixin_test: RuntimeError
+mixin_type_parameters_super_extends_test: RuntimeError
+mixin_type_parameters_super_test: RuntimeError
+no_such_method_mock_test: RuntimeError
+override_inheritance_mixed_test/08: MissingCompileTimeError
+regress_28341_test: Fail # Issue 28340
+type_variable_nested_test/01: RuntimeError
+type_variable_promotion_test: RuntimeError
 
 [ $runtime == vm && $compiler != dartk && $checked ]
 constructor_call_as_function_test/01: MissingCompileTimeError
@@ -918,7 +918,7 @@ recursive_mixin_test: Crash
 
 # The VM and does not implement the Dart 2.0 runtime checks yet unless
 # --checked is explicitly passed).
-[ $runtime == vm && $compiler != dartk && !$checked ]
+[ $runtime == vm && $compiler != dartk && !$checked && !$strong]
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 callable_test/none: RuntimeError
@@ -988,7 +988,7 @@ type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 typevariable_substitution2_test/02: RuntimeError
 
-[ $runtime == vm && !$checked && $compiler != dartk ]
+[ $runtime == vm && $compiler != dartk && !$checked && !$strong]
 getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError

@@ -657,8 +657,8 @@ class FlowGraphBuilder {
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
   Fragment CheckBooleanInCheckedMode();
-  Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
-                                        const String& dst_name);
+  Fragment CheckAssignable(const AbstractType& dst_type,
+                           const String& dst_name);
 
   Fragment AssertBool();
   Fragment AssertAssignable(TokenPosition position,

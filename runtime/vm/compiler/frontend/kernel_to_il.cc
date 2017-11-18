@@ -1504,8 +1504,10 @@ Fragment FlowGraphBuilder::StoreInstanceField(
   Fragment instructions;
 
   const AbstractType& dst_type = AbstractType::ZoneHandle(Z, field.type());
-  instructions += CheckAssignableInCheckedMode(
-      dst_type, String::ZoneHandle(Z, field.name()));
+  if (I->type_checks()) {
+    instructions +=
+        CheckAssignable(dst_type, String::ZoneHandle(Z, field.name()));
+  }
 
   Value* value = Pop();
   if (value->BindsToConstant()) {
@@ -2027,10 +2029,7 @@ Fragment FlowGraphBuilder::CheckVariableTypeInCheckedMode(
     const AbstractType& dst_type,
     const String& name_symbol) {
   if (I->type_checks()) {
-    if (dst_type.IsMalformed()) {
-      return ThrowTypeError();
-    }
-    return CheckAssignableInCheckedMode(dst_type, name_symbol);
+    return CheckAssignable(dst_type, name_symbol);
   }
   return Fragment();
 }
@@ -2078,7 +2077,7 @@ Fragment FlowGraphBuilder::CheckReturnTypeInCheckedMode() {
   if (I->type_checks()) {
     const AbstractType& return_type =
         AbstractType::Handle(Z, parsed_function_->function().result_type());
-    return CheckAssignableInCheckedMode(return_type, Symbols::FunctionResult());
+    return CheckAssignable(return_type, Symbols::FunctionResult());
   }
   return Fragment();
 }
@@ -2094,12 +2093,14 @@ Fragment FlowGraphBuilder::CheckBooleanInCheckedMode() {
   return instructions;
 }
 
-Fragment FlowGraphBuilder::CheckAssignableInCheckedMode(
-    const AbstractType& dst_type,
-    const String& dst_name) {
+Fragment FlowGraphBuilder::CheckAssignable(const AbstractType& dst_type,
+                                           const String& dst_name) {
   Fragment instructions;
-  if (I->type_checks() && !dst_type.IsDynamicType() &&
-      !dst_type.IsObjectType() && !dst_type.IsVoidType()) {
+  if (dst_type.IsMalformed()) {
+    return ThrowTypeError();
+  }
+  if (!dst_type.IsDynamicType() && !dst_type.IsObjectType() &&
+      !dst_type.IsVoidType()) {
     LocalVariable* top_of_stack = MakeTemporary();
     instructions += LoadLocal(top_of_stack);
     instructions +=

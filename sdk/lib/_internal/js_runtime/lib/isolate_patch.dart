@@ -233,7 +233,7 @@ class ReceivePort {
 @patch
 class RawReceivePort {
   @patch
-  factory RawReceivePort([void handler(event)]) {
+  factory RawReceivePort([Function handler]) {
     return new RawReceivePortImpl(handler);
   }
 }

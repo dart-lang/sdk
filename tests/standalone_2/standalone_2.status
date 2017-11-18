@@ -139,7 +139,7 @@ io/*: Skip # Issue 30618
 io/process_detached_test: Pass, Slow
 io/named_pipe_script_test: RuntimeError
 
-[ (($compiler == dartk) || ($compiler == dartkp)) ]
+[ (($compiler == dartk) || ($compiler == dartkp))  && !$strong]
 assert_test: RuntimeError
 io/http_client_connect_test: Skip # Flaky.
 io/http_content_length_test: Skip # Flaky.
@@ -166,6 +166,11 @@ package/package_test: CompileTimeError
 package/scenarios/invalid/invalid_utf8_test: CompileTimeError
 package/scenarios/invalid/non_existent_packages_file_test: CompileTimeError
 package/scenarios/invalid/same_package_twice_test: CompileTimeError
+
+[ (($compiler == dartk) || ($compiler == dartkp)) && $strong]
+assert_test: RuntimeError
+http_launch_test: RuntimeError
+io/*: Skip # Too many errors to triage, io not strong mode clean.
 
 [ ($compiler == dartkp) ]
 causal_async_stack_test: Skip # Flaky.

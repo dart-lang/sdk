@@ -3783,7 +3783,9 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  Heap::Space space) {
   // Use the thsi object as if it was the receiver of this method, but instead
   // of recursing reset it to the super class and loop.
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   Class& thsi = Class::Handle(zone, cls.raw());
   while (true) {
     // Check for DynamicType.
@@ -3802,8 +3804,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     // strong mode.
     // However, DynamicType is not more specific than any type.
     if (thsi.IsDynamicClass()) {
-      return !Isolate::Current()->strong() &&
-             (test_kind == Class::kIsSubtypeOf);
+      return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
     // (already checked above), is more specific than ObjectType/VoidType.
@@ -3835,8 +3836,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return !Isolate::Current()->strong() &&
-               (test_kind == Class::kIsSubtypeOf);
+        return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,

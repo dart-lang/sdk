@@ -692,7 +692,7 @@ abstract class RawReceivePort {
    * can not be paused. The data-handler must be set before the first
    * event is received.
    */
-  external factory RawReceivePort([void handler(event)]);
+  external factory RawReceivePort([Function handler]);
 
   /**
    * Sets the handler that is invoked for every incoming message.

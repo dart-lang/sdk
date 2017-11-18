@@ -19,36 +19,54 @@
 
 [ $compiler == dartk && $runtime == vm && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
+async/future_or_strong_test: RuntimeError
+async/timer_not_available_test: RuntimeError
+convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
+html/*: DartkCompileTimeError
 html/*: SkipByDesign # dart:html not supported on VM.
+isolate/compile_time_error_test/01: MissingCompileTimeError
+isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/message3_test/int32x4: Crash
+isolate/ping_pause_test: Pass, Timeout
+isolate/spawn_function_custom_class_test: Pass, Timeout
+isolate/spawn_uri_nested_vm_test: Pass, Timeout
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
-mirrors/deferred_type_test: CompileTimeError
-mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
-mirrors/generic_bounded_test/01: MissingCompileTimeError
-mirrors/generic_bounded_test/02: MissingCompileTimeError
-mirrors/generic_interface_test/01: MissingCompileTimeError
-mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
-mirrors/native_class_test: SkipByDesign # Imports dart:html
-mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
 mirrors/abstract_class_test: RuntimeError
 mirrors/class_declarations_test/01: RuntimeError
 mirrors/class_declarations_test/none: RuntimeError
 mirrors/class_mirror_location_test: RuntimeError
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
+mirrors/constructor_optional_args_test: CompileTimeError
 mirrors/constructor_optional_args_test: Crash # Issue 29201
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/dart2js_mirrors_test: Crash
+mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_metadata_test: RuntimeError
+mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_metatarget_test: RuntimeError
+mirrors/deferred_mirrors_test: Crash
+mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/deferred_mirrors_update_test: RuntimeError
+mirrors/deferred_type_test: CompileTimeError
 mirrors/deferred_type_test: RuntimeError
 mirrors/empty_test: Crash
+mirrors/empty_test: RuntimeError
 mirrors/enum_test: RuntimeError
 mirrors/equality_test: RuntimeError
-mirrors/deferred_mirrors_test: Crash
-mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/deferred_mirrors_update_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/function_type_mirror_test: RuntimeError
+mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
+mirrors/generic_bounded_test/01: MissingCompileTimeError
+mirrors/generic_bounded_test/02: MissingCompileTimeError
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
+mirrors/generic_function_typedef_test: RuntimeError
+mirrors/generic_interface_test/01: MissingCompileTimeError
+mirrors/generic_interface_test/01: RuntimeError
+mirrors/generic_interface_test/none: RuntimeError
 mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
@@ -62,81 +80,69 @@ mirrors/invocation_fuzz_test/string: Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/invoke_throws_test: Crash
+mirrors/invoke_throws_test: RuntimeError
 mirrors/library_declarations_test/none: RuntimeError
-mirrors/library_exports_hidden_test: RuntimeError
-mirrors/library_exports_hidden_test: RuntimeError
+mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_enumeration_deferred_loading_test: RuntimeError
+mirrors/library_exports_hidden_test: Crash
+mirrors/library_exports_hidden_test: RuntimeError, Crash
+mirrors/library_exports_shown_test: Crash
 mirrors/library_exports_shown_test: RuntimeError
-mirrors/library_exports_shown_test: RuntimeError
+mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
+mirrors/library_imports_bad_metadata_test/none: Crash
+mirrors/library_imports_deferred_test: Crash
 mirrors/library_imports_deferred_test: RuntimeError
+mirrors/library_imports_hidden_test: Crash
 mirrors/library_imports_hidden_test: RuntimeError
-mirrors/library_imports_hidden_test: RuntimeError
+mirrors/library_imports_metadata_test: Crash
 mirrors/library_imports_metadata_test: RuntimeError
-mirrors/library_imports_metadata_test: RuntimeError
+mirrors/library_imports_prefixed_show_hide_test: Crash
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError
-mirrors/library_imports_prefixed_show_hide_test: RuntimeError
-mirrors/library_imports_prefixed_show_hide_test: RuntimeError
+mirrors/library_imports_prefixed_test: Crash
 mirrors/library_imports_prefixed_test: RuntimeError
-mirrors/library_imports_prefixed_test: RuntimeError
-mirrors/library_imports_shown_test: RuntimeError
+mirrors/library_imports_shown_test: Crash
 mirrors/library_imports_shown_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
 mirrors/list_constructor_test/01: Crash
+mirrors/list_constructor_test/01: RuntimeError
 mirrors/list_constructor_test/none: Crash
+mirrors/list_constructor_test/none: RuntimeError
+mirrors/load_library_test: Crash
 mirrors/load_library_test: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/mirrors_test: Crash
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
 mirrors/metadata_constructed_constant_test: Crash
+mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/metadata_scope_test/none: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
-mirrors/mirrors_nsm_test/dart2js: RuntimeError
 mirrors/mirrors_nsm_mismatch_test: RuntimeError
+mirrors/mirrors_nsm_test/dart2js: RuntimeError
 mirrors/mirrors_reader_test: Crash
+mirrors/mirrors_test: Crash
+mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/mirrors_used_inheritance_test: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
 mirrors/mixin_application_test: RuntimeError
+mirrors/mixin_simple_test: RuntimeError
 mirrors/mixin_test: RuntimeError
-mirrors/mirrors_test: Crash
+mirrors/native_class_test: SkipByDesign # Imports dart:html
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
+mirrors/parameter_metadata_test: Crash
 mirrors/parameter_metadata_test: RuntimeError
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
 mirrors/private_class_field_test: RuntimeError
+mirrors/private_field_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
-mirrors/regress_26187_test: RuntimeError
-mirrors/relation_assignable_test: RuntimeError
-mirrors/relation_subclass_test: RuntimeError
-mirrors/relation_subtype_test: RuntimeError
-mirrors/repeated_private_anon_mixin_app_test: RuntimeError
-mirrors/static_members_easier_test: RuntimeError
-mirrors/static_members_test: RuntimeError
-mirrors/symbol_validation_test/01: RuntimeError
-mirrors/symbol_validation_test/none: RuntimeError
-mirrors/type_variable_is_static_test: RuntimeError
-mirrors/type_variable_owner_test/01: RuntimeError
-mirrors/typedef_in_signature_test: RuntimeError
-mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
-mirrors/typedef_library_test: RuntimeError
-mirrors/typedef_metadata_test: RuntimeError
-mirrors/typedef_reflected_type_test/01: RuntimeError
-mirrors/typedef_reflected_type_test/none: RuntimeError
-mirrors/typedef_test: RuntimeError
-mirrors/typevariable_mirror_metadata_test: RuntimeError
-mirrors/variable_is_const_test/01: MissingCompileTimeError
-async/future_or_strong_test: RuntimeError
-async/timer_not_available_test: RuntimeError
-isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
-mirrors/function_type_mirror_test: RuntimeError
-mirrors/generic_function_typedef_test: RuntimeError
-mirrors/generic_interface_test/01: RuntimeError
-mirrors/generic_interface_test/none: RuntimeError
 mirrors/private_types_test: RuntimeError
+mirrors/redirecting_factory_different_type_test/01: Crash
+mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
+mirrors/redirecting_factory_different_type_test/02: Crash
+mirrors/redirecting_factory_different_type_test/none: Crash
 mirrors/redirecting_factory_test/01: Crash
 mirrors/redirecting_factory_test/02: Crash
 mirrors/redirecting_factory_test/none: Crash
@@ -150,87 +156,107 @@ mirrors/reflected_type_generics_test/02: RuntimeError
 mirrors/reflected_type_test/01: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
-convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
-html/*: DartkCompileTimeError
-mirrors/class_mirror_location_test: RuntimeError
-mirrors/constructor_kinds_test/01: RuntimeError
-mirrors/constructor_kinds_test/none: RuntimeError
-mirrors/constructor_optional_args_test: CompileTimeError
-mirrors/constructor_private_name_test: RuntimeError
-mirrors/deferred_mirrors_metadata_test: RuntimeError
-mirrors/deferred_mirrors_metatarget_test: RuntimeError
-mirrors/deferred_mirrors_update_test: RuntimeError
-mirrors/empty_test: RuntimeError
-mirrors/empty_test: RuntimeError
-mirrors/equality_test: RuntimeError
-mirrors/generic_mixin_applications_test: RuntimeError
-mirrors/generic_mixin_test: RuntimeError
-mirrors/hot_get_field_test: RuntimeError
-mirrors/hot_set_field_test: RuntimeError
-mirrors/invocation_fuzz_test/emptyarray: Crash
-mirrors/invocation_fuzz_test/false: Crash
-mirrors/invocation_fuzz_test/none: Crash
-mirrors/invocation_fuzz_test/smi: Crash
-mirrors/invocation_fuzz_test/string: Crash
-mirrors/invoke_private_test: RuntimeError
-mirrors/invoke_private_wrong_library_test: RuntimeError
-mirrors/invoke_throws_test: RuntimeError
-mirrors/library_enumeration_deferred_loading_test: RuntimeError
-mirrors/library_metadata_test: RuntimeError
-mirrors/list_constructor_test/01: RuntimeError
-mirrors/list_constructor_test/none: RuntimeError
-mirrors/metadata_constructed_constant_test: RuntimeError
-mirrors/method_mirror_location_test: RuntimeError
-mirrors/method_mirror_source_line_ending_test: Crash
-mirrors/method_mirror_source_test: Crash
-mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
-mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
-mirrors/mixin_simple_test: RuntimeError
-mirrors/mixin_test: RuntimeError
-mirrors/other_declarations_location_test: RuntimeError
-mirrors/parameter_annotation_mirror_test: RuntimeError
-mirrors/parameter_metadata_test: Crash
-mirrors/private_class_field_test: RuntimeError
-mirrors/private_field_test: RuntimeError
-mirrors/private_types_test: RuntimeError
-mirrors/redirecting_factory_different_type_test/01: Crash
-mirrors/redirecting_factory_different_type_test/02: Crash
-mirrors/redirecting_factory_different_type_test/none: Crash
-mirrors/reflected_type_function_type_test: RuntimeError
-mirrors/reflected_type_typedefs_test: RuntimeError
-mirrors/reflected_type_typevars_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
+mirrors/relation_subclass_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
+mirrors/repeated_private_anon_mixin_app_test: RuntimeError
+mirrors/static_members_easier_test: RuntimeError
+mirrors/static_members_test: RuntimeError
 mirrors/symbol_validation_test/01: RuntimeError
 mirrors/symbol_validation_test/none: RuntimeError
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
+mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/typedef_deferred_library_test: RuntimeError
+mirrors/typedef_in_signature_test: RuntimeError
 mirrors/typedef_library_test: RuntimeError
 mirrors/typedef_metadata_test: RuntimeError
+mirrors/typedef_reflected_type_test/01: RuntimeError
+mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
-mirrors/generic_mixin_applications_test: RuntimeError
-mirrors/generic_mixin_test: RuntimeError
-isolate/compile_time_error_test/01: MissingCompileTimeError
-isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/message3_test/int32x4: Crash
-isolate/ping_pause_test: Pass, Timeout
-isolate/spawn_function_custom_class_test: Pass, Timeout
-isolate/spawn_uri_nested_vm_test: Pass, Timeout
+mirrors/variable_is_const_test/01: MissingCompileTimeError
+
+[ $compiler == dartk && $strong ]
+async/async_await_zones_test: RuntimeError
+async/catch_errors12_test: Timeout
+async/catch_errors13_test: Timeout
+async/catch_errors14_test: Timeout
+async/catch_errors15_test: Timeout
+async/catch_errors17_test: Timeout
+async/catch_errors18_test: Timeout
+async/catch_errors19_test: Timeout
+async/catch_errors20_test: Timeout
+async/catch_errors21_test: Timeout
+async/catch_errors22_test: RuntimeError
+async/catch_errors23_test: Timeout
+async/catch_errors24_test: Timeout
+async/catch_errors25_test: Timeout
+async/catch_errors26_test: Timeout
+async/catch_errors27_test: Timeout
+async/catch_errors28_test: Timeout
+async/catch_errors3_test: RuntimeError
+async/catch_errors7_test: Timeout
+async/catch_errors8_test: Timeout
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
+async/run_zoned7_test: RuntimeError
+async/run_zoned8_test: Timeout
+async/slow_consumer2_test: RuntimeError
+async/slow_consumer_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
+async/stream_distinct_test: RuntimeError
+async/stream_event_transformed_test: RuntimeError
+async/stream_first_where_test: RuntimeError
+async/stream_from_iterable_test: RuntimeError
+async/stream_iterator_test: RuntimeError
 async/stream_join_test: RuntimeError
+async/stream_last_where_test: RuntimeError
+async/stream_listen_zone_test: RuntimeError
+async/stream_periodic2_test: RuntimeError
+async/stream_periodic3_test: RuntimeError
+async/stream_periodic4_test: RuntimeError
+async/stream_periodic5_test: RuntimeError
+async/stream_periodic6_test: RuntimeError
+async/stream_periodic_test: RuntimeError
+async/stream_single_test: RuntimeError
+async/stream_single_to_multi_subscriber_test: RuntimeError
+async/stream_state_test: RuntimeError
+async/stream_subscription_as_future_test: RuntimeError
+async/stream_subscription_cancel_test: RuntimeError
+async/stream_timeout_test: RuntimeError
+async/stream_transform_test: RuntimeError
+async/stream_transformation_broadcast_test: RuntimeError
+async/stream_zones_test: Timeout
 async/timer_cancel2_test: RuntimeError
 async/timer_cancel_test: RuntimeError
 async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
+async/zone_create_periodic_timer_test: RuntimeError
+async/zone_debug_test: RuntimeError
+async/zone_empty_description2_test: RuntimeError
+async/zone_error_callback_test: RuntimeError
+async/zone_run_unary_test: RuntimeError
+convert/chunked_conversion_json_decode1_test: RuntimeError
+convert/json_chunk_test: RuntimeError
+convert/json_test: RuntimeError
+convert/json_toEncodable_reviver_test: CompileTimeError
+convert/json_utf8_chunk_test: RuntimeError
+convert/streamed_conversion_json_encode1_test: RuntimeError
+convert/streamed_conversion_json_utf8_encode_test: RuntimeError
+isolate/compile_time_error_test/none: RuntimeError
+isolate/count_test: Timeout
+isolate/cross_isolate_message_test: RuntimeError
+isolate/illegal_msg_function_test: RuntimeError
+isolate/illegal_msg_mirror_test: RuntimeError
+isolate/isolate_current_test: RuntimeError
 isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/issue_22778_test: Crash
 isolate/issue_24243_parent_isolate_test: RuntimeError
+isolate/kill_self_synchronously_test: RuntimeError
+isolate/kill_test: RuntimeError
+isolate/mandel_isolate_test: RuntimeError
 isolate/message2_test: RuntimeError
 isolate/message3_test/byteBuffer: RuntimeError
 isolate/message3_test/constInstance: RuntimeError
@@ -242,20 +268,78 @@ isolate/message3_test/int32x4: RuntimeError
 isolate/message3_test/none: RuntimeError
 isolate/message_test: RuntimeError
 isolate/mint_maker_test: RuntimeError
+isolate/nested_spawn2_test: RuntimeError
+isolate/nested_spawn_test: Timeout
+isolate/ondone_test: RuntimeError
+isolate/ping_pause_test: RuntimeError
+isolate/raw_port_test: RuntimeError
+isolate/request_reply_test: Timeout
+isolate/simple_message_test/none: RuntimeError
+isolate/spawn_function_test: Timeout
+isolate/spawn_uri_missing_from_isolate_test: RuntimeError
+isolate/spawn_uri_multi_test/none: RuntimeError
+isolate/spawn_uri_nested_vm_test: RuntimeError
+isolate/spawn_uri_test: RuntimeError
+isolate/spawn_uri_vm_test: RuntimeError
 isolate/stacktrace_message_test: RuntimeError
+isolate/start_paused_test: RuntimeError
+isolate/static_function_test: Timeout
+isolate/timer_isolate_test: RuntimeError
 isolate/typed_message_test: RuntimeError
+isolate/unresolved_ports_test: RuntimeError
+mirrors/class_mirror_type_variables_test: RuntimeError
+mirrors/closures_test: RuntimeError
+mirrors/constructors_test: RuntimeError
+mirrors/fake_function_with_call_test: RuntimeError
+mirrors/function_apply_test: RuntimeError
+mirrors/generic_bounded_by_type_parameter_test/none: RuntimeError
+mirrors/generic_bounded_test/none: RuntimeError
+mirrors/generic_class_declaration_test: RuntimeError
+mirrors/generic_f_bounded_test/01: RuntimeError
+mirrors/generic_f_bounded_test/none: RuntimeError
+mirrors/generic_local_function_test: RuntimeError
+mirrors/generic_superclass_test/01: RuntimeError
+mirrors/generic_superclass_test/none: RuntimeError
+mirrors/generic_type_mirror_test: RuntimeError
+mirrors/hierarchy_invariants_test: RuntimeError
+mirrors/immutable_collections_test: RuntimeError
+mirrors/initializing_formals_test/01: RuntimeError
+mirrors/initializing_formals_test/03: RuntimeError
+mirrors/initializing_formals_test/none: RuntimeError
+mirrors/instance_members_easier_test: RuntimeError
+mirrors/instance_members_test: RuntimeError
+mirrors/instance_members_unimplemented_interface_test: RuntimeError
+mirrors/instance_members_with_override_test: RuntimeError
+mirrors/instantiate_abstract_class_test: RuntimeError
+mirrors/intercepted_class_test: RuntimeError
+mirrors/invocation_fuzz_test/smi: Pass
+mirrors/invoke_closurization2_test: RuntimeError
+mirrors/invoke_named_test/none: RuntimeError
+mirrors/library_declarations_test/01: RuntimeError
+mirrors/library_imports_bad_metadata_test/none: RuntimeError
 mirrors/metadata_const_map_test: Crash
+mirrors/mixin_members_test: RuntimeError
+mirrors/null_test: RuntimeError
+mirrors/operator_test: RuntimeError
+mirrors/parameter_is_const_test/none: RuntimeError
+mirrors/parameter_test/01: RuntimeError
+mirrors/parameter_test/none: RuntimeError
 mirrors/reflect_class_test/01: MissingCompileTimeError
 mirrors/reflect_class_test/02: MissingCompileTimeError
+mirrors/reflect_model_test: RuntimeError
 mirrors/reflected_type_classes_test/01: MissingCompileTimeError
 mirrors/reflected_type_classes_test/02: MissingCompileTimeError
 mirrors/reflected_type_classes_test/03: MissingCompileTimeError
 mirrors/reflected_type_test/01: MissingCompileTimeError
 mirrors/reflected_type_test/02: MissingCompileTimeError
 mirrors/reflected_type_test/03: MissingCompileTimeError
-mirrors/regress_16321_test/01: Crash
 mirrors/regress_16321_test/none: Crash
+mirrors/regress_19731_test: RuntimeError
+mirrors/return_type_test: RuntimeError
+mirrors/spawn_function_root_library_test: RuntimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
+mirrors/type_argument_is_type_variable_test: RuntimeError
+mirrors/typearguments_mirror_test: RuntimeError
 typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
@@ -269,9 +353,6 @@ isolate/isolate_complex_messages_test: Crash
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 mirrors/variable_is_const_test/01: Crash
 
-[ $compiler == dartk && $runtime == vm && $strong && !$checked ]
-mirrors/inference_and_no_such_method_test: RuntimeError
-
 [ $compiler == dartk && $runtime == vm && $strong && $checked ]
 mirrors/invocation_fuzz_test/smi: Crash
 mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
@@ -284,6 +365,7 @@ mirrors/reflected_type_generics_test/02: Pass
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
 async/timer_not_available_test: RuntimeError
+convert/json_toEncodable_reviver_test: CompileTimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: Crash
 isolate/compile_time_error_test/01: MissingCompileTimeError

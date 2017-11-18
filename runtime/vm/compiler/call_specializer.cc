@@ -902,7 +902,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                               const ICData& unary_ic_data) {
   ASSERT(!unary_ic_data.NumberOfChecksIs(0) &&
          (unary_ic_data.NumArgsTested() == 1));
-  if (I->type_checks()) {
+  if (I->argument_type_checks()) {
     // Checked mode setters are inlined like normal methods by conventional
     // inlining.
     return false;

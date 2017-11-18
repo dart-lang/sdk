@@ -2339,7 +2339,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                        call->GetBlock()->try_index(), Thread::kNoDeoptId);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->type_checks()) {
+  if (flow_graph->isolate()->argument_type_checks()) {
     // Only type check for the value. A type check for the index is not
     // needed here because we insert a deoptimizing smi-check for the case
     // the index is not a smi.

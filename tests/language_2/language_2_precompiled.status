@@ -52,7 +52,6 @@ async_return_types_test/wrongReturnType: MissingCompileTimeError
 async_return_types_test/wrongTypeParameter: MissingCompileTimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
-async_star_regression_2238_test: CompileTimeError, RuntimeError
 async_star_test/01: CompileTimeError # Issue 2238.
 async_star_test/02: RuntimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
@@ -170,17 +169,9 @@ conditional_property_increment_decrement_test/39: MissingCompileTimeError
 conditional_property_increment_decrement_test/40: MissingCompileTimeError
 const_constructor2_test/05: MissingCompileTimeError
 const_constructor2_test/06: MissingCompileTimeError
-const_constructor2_test/13: MissingCompileTimeError
-const_constructor2_test/14: MissingCompileTimeError
-const_constructor2_test/15: MissingCompileTimeError
-const_constructor2_test/16: MissingCompileTimeError
-const_constructor2_test/17: MissingCompileTimeError
-const_constructor2_test/18: MissingCompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
-const_constructor3_test/02: MissingCompileTimeError
-const_constructor3_test/04: MissingCompileTimeError
 const_dynamic_type_literal_test/02: MissingCompileTimeError
 const_evaluation_test: SkipByDesign
 const_init2_test/02: MissingCompileTimeError
@@ -197,13 +188,7 @@ const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constructor_call_as_function_test/01: MissingCompileTimeError
 covariant_override/runtime_check_test: RuntimeError
-covariant_subtyping_tearoff1_test: RuntimeError
-covariant_subtyping_tearoff2_test: RuntimeError
-covariant_subtyping_tearoff3_test: RuntimeError
 covariant_subtyping_test: CompileTimeError
-covariant_subtyping_unsafe_call1_test: RuntimeError
-covariant_subtyping_unsafe_call2_test: RuntimeError
-covariant_subtyping_unsafe_call3_test: RuntimeError
 covariant_subtyping_with_substitution_test: RuntimeError
 covariant_tear_off_type_test: RuntimeError
 create_unresolved_type_test/01: MissingCompileTimeError
@@ -315,18 +300,11 @@ function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
 function_subtype_cast1_test: RuntimeError
-function_subtype_checked0_test: RuntimeError
-function_subtype_closure0_test: RuntimeError
-function_subtype_closure1_test: RuntimeError
-function_subtype_factory1_test: RuntimeError
-function_subtype_inline1_test: RuntimeError
-function_subtype_inline2_test: RuntimeError
 function_subtype_named1_test: RuntimeError
 function_subtype_named2_test: RuntimeError
 function_subtype_not1_test: RuntimeError
 function_subtype_optional1_test: RuntimeError
 function_subtype_optional2_test: RuntimeError
-function_subtype_regression_ddc_588_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 function_subtype_typearg2_test: RuntimeError
 function_subtype_typearg3_test: RuntimeError
@@ -357,9 +335,7 @@ generic_list_checked_test: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
-generic_methods_dynamic_test/02: MissingRuntimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError
-generic_methods_dynamic_test/04: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_named_parameters_test: RuntimeError
 generic_methods_optional_parameters_test: RuntimeError
@@ -418,7 +394,6 @@ implicit_this_test/04: MissingCompileTimeError
 import_combinators2_test/00: MissingCompileTimeError
 import_self_test/01: MissingCompileTimeError
 inferrer_constructor5_test/01: MissingCompileTimeError
-inferrer_synthesized_constructor_test: RuntimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 instance_creation_in_function_annotation_test: SkipByDesign
@@ -535,7 +510,6 @@ malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: SkipByDesign
-map_literal8_test: RuntimeError
 method_override2_test/*: MissingCompileTimeError
 method_override2_test/none: Pass
 method_override2_test/none: Pass
@@ -738,7 +712,6 @@ private_access_test/04: MissingCompileTimeError
 private_access_test/05: MissingCompileTimeError
 private_access_test/06: MissingCompileTimeError
 recursive_generic_test: RuntimeError
-recursive_mixin_test: RuntimeError
 redirecting_factory_reflection_test: SkipByDesign
 regress_12561_test: MissingCompileTimeError
 regress_13462_0_test: SkipByDesign
@@ -905,12 +878,10 @@ type_variable_scope2_test: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
 type_variable_scope_test/02: MissingCompileTimeError
-type_variable_scope_test/03: MissingCompileTimeError
 type_variable_scope_test/04: MissingCompileTimeError
 type_variable_scope_test/05: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
 typed_selector2_test: MissingCompileTimeError
-typevariable_substitution2_test/02: RuntimeError
 unbound_getter_test: MissingCompileTimeError
 unicode_bom_test: Fail # Issue 16067
 unresolved_default_constructor_test/01: MissingCompileTimeError
@@ -948,6 +919,7 @@ super_test: Fail, OK
 vm/regress_29145_test: Skip # Issue 29145
 
 [ $compiler == precompiler && $runtime == dart_precompiled ]
+async_star_regression_2238_test: CompileTimeError, RuntimeError
 deferred_load_constants_test/02: Fail
 deferred_load_constants_test/03: Fail
 deferred_load_constants_test/05: Fail
@@ -962,6 +934,7 @@ if_null_assignment_static_test/35: MissingCompileTimeError
 if_null_assignment_static_test/42: MissingCompileTimeError
 list_literal4_test/03: MissingCompileTimeError
 local_function_test/04: MissingCompileTimeError
+map_literal8_test: RuntimeError
 regress_19728_test: MissingCompileTimeError
 regress_21912_test/01: MissingCompileTimeError
 regress_21912_test/02: MissingCompileTimeError
@@ -992,7 +965,7 @@ generic_methods_new_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
-[ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
+[ $compiler == precompiler && $runtime == dart_precompiled && !$checked && !$strong]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 callable_test/none: RuntimeError

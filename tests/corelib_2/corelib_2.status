@@ -19,13 +19,13 @@ string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 
-[ !$checked && $compiler != dartdevc && $runtime != none ]
+[ !$checked && !$strong && $compiler != dartdevc && $runtime != none ]
 null_nosuchmethod_test: RuntimeError # needs Dart 2 or checked mode
 
 [ $compiler != dartdevc && $runtime != none && $compiler != dartk && $compiler != dartkp ]
 map_keys2_test: RuntimeError # needs Dart 2 is checks
 
-[ (!$checked && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
+[ (!$checked && !$strong && $runtime == vm) || (!$checked && $compiler == dart2js) || $compiler == precompiler ]
 int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 
 [ ($compiler == dart2analyzer && $strong) || $compiler == dartdevc ]
@@ -557,7 +557,9 @@ from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 int_parse_radix_bad_handler_test: MissingCompileTimeError
-int_parse_radix_test/badTypes: RuntimeError
+iterable_fold_test/02: RuntimeError
+iterable_reduce_test/none: RuntimeError
+iterable_reduce_test/01: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 list_concurrent_modify_test: RuntimeError
@@ -577,11 +579,30 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 unicode_test: RuntimeError
+
+[ $compiler == dartk && $strong ]
+hash_set_test/01: RuntimeError
+hash_set_test/none: RuntimeError
+iterable_empty_test: RuntimeError
+iterable_mapping_test/none: RuntimeError
+json_map_test: RuntimeError
+list_replace_range_test: RuntimeError
+list_set_all_test: RuntimeError
+set_test: RuntimeError
+splay_tree_from_iterable_test: RuntimeError
+splay_tree_test/none: RuntimeError
+
+[ $compiler == dartkp && $strong ]
+iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
+iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+map_keys2_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+regexp/stack-overflow_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $strong && $mode == debug ]
 list_test/01: Crash
@@ -621,16 +642,9 @@ from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 int_parse_radix_bad_handler_test: MissingCompileTimeError
-int_parse_radix_test/badTypes: RuntimeError
-iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
-iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-list_concurrent_modify_test: RuntimeError
-list_insert_all_test: RuntimeError
-map_keys2_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-regexp/stack-overflow_test: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
+iterable_fold_test/02: RuntimeError
+iterable_reduce_test/none: RuntimeError
+iterable_reduce_test/01: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
@@ -645,7 +659,6 @@ symbol_reserved_word_test/07: MissingCompileTimeError
 symbol_reserved_word_test/09: RuntimeError
 symbol_reserved_word_test/10: MissingCompileTimeError
 symbol_reserved_word_test/12: RuntimeError
-symbol_test/01: MissingCompileTimeError
 symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError

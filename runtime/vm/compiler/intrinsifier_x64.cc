@@ -53,7 +53,7 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
 }
 
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     return;
   }
 
@@ -117,7 +117,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+2), value (+1), return-address (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
-  if (Isolate::Current()->type_checks()) return;
+  if (Isolate::Current()->argument_type_checks()) return;
   Label fall_through;
   __ movq(RAX, Address(RSP, +2 * kWordSize));  // Array.
   __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
