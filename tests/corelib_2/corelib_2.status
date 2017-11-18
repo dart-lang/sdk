@@ -647,6 +647,7 @@ iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
 iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
 list_concurrent_modify_test: RuntimeError
+list_insert_all_test: RuntimeError
 map_keys2_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
 regexp/stack-overflow_test: RuntimeError
 string_case_test/01: RuntimeError
