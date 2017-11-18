@@ -966,7 +966,7 @@ class Parser {
   Token parseFormalParametersOpt(Token token, MemberKind kind) {
     Token next = token.next;
     if (optional('(', next)) {
-      return parseFormalParameters(token.next, kind);
+      return parseFormalParameters(token, kind);
     } else {
       listener.handleNoFormalParameters(next, kind);
       return token;
@@ -974,9 +974,9 @@ class Parser {
   }
 
   Token skipFormalParameters(Token token, MemberKind kind) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(ahe): Shouldn't this be `beginFormalParameters`?
+    token = token.next;
     assert(optional('(', token));
+    // TODO(ahe): Shouldn't this be `beginFormalParameters`?
     listener.beginOptionalFormalParameters(token);
     Token closeBrace = closeBraceTokenFor(token);
     listener.endFormalParameters(0, token, closeBrace, kind);
@@ -996,7 +996,7 @@ class Parser {
           new SyntheticToken(TokenType.CLOSE_PAREN, next.charOffset));
       rewriter.insertToken(replacement, next);
     }
-    return parseFormalParameters(token.next, kind);
+    return parseFormalParameters(token, kind);
   }
 
   /// Parses the formal parameter list of a function given that the left
@@ -1005,9 +1005,8 @@ class Parser {
   /// If `kind == MemberKind.GeneralizedFunctionType`, then names may be
   /// omitted (except for named arguments). Otherwise, types may be omitted.
   Token parseFormalParameters(Token token, MemberKind kind) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    Token begin = token = token.next;
     assert(optional('(', token));
-    Token begin = token;
     listener.beginFormalParameters(begin, kind);
     int parameterCount = 0;
     do {
@@ -2751,6 +2750,10 @@ class Parser {
     // In addition, the loop below will include things that can't be
     // identifiers. This may be desirable (for error recovery), or
     // not. Regardless, this method probably needs an overhaul.
+
+    // TODO(brianwilkerson) Return the tokens before the tokens that are
+    // currently being returned so that they can be passed in where the last
+    // consumed token is required.
     Link<Token> identifiers = const Link<Token>();
 
     // `true` if 'get' has been seen.
@@ -2996,7 +2999,7 @@ class Parser {
           new SyntheticStringToken(TokenType.STRING, '""', token.charOffset, 0);
       rewriteAndRecover(token.next, message, newToken);
     }
-    return parseLiteralString(token.next);
+    return parseLiteralString(token);
   }
 
   /// If the given [token] is a semi-colon, return it. Otherwise, report an
@@ -3039,7 +3042,7 @@ class Parser {
     // of `ensureParseLiteralString`.
     Token next = token.next;
     if (identical(next.kind, STRING_TOKEN)) {
-      return parseLiteralString(token.next);
+      return parseLiteralString(token);
     } else if (next is ErrorToken) {
       // TODO(brianwilkerson): Remove the invocation of `previous` when
       // `reportErrorToken` returns the last consumed token.
@@ -3132,7 +3135,7 @@ class Parser {
     bool hasName = false;
     if (token.next.kind == STRING_TOKEN) {
       hasName = true;
-      token = parseLiteralString(token.next);
+      token = parseLiteralString(token);
     }
     listener.handleNativeClause(nativeToken, hasName);
     reportRecoverableError(
@@ -4368,7 +4371,7 @@ class Parser {
     } else if (kind == DOUBLE_TOKEN) {
       return parseLiteralDouble(token).next;
     } else if (kind == STRING_TOKEN) {
-      return parseLiteralString(token.next).next;
+      return parseLiteralString(token).next;
     } else if (kind == HASH_TOKEN) {
       return parseLiteralSymbol(token).next;
     } else if (kind == KEYWORD_TOKEN) {
@@ -4769,7 +4772,7 @@ class Parser {
   /// ;
   /// ```
   Token parseLiteralString(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    token = token.next;
     assert(identical(token.kind, STRING_TOKEN));
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
@@ -5015,7 +5018,7 @@ class Parser {
   }
 
   Token parseVariablesDeclarationRest(Token token) {
-    return parseVariablesDeclarationMaybeSemicolonRest(token.next, true);
+    return parseVariablesDeclarationMaybeSemicolonRest(token, true);
   }
 
   Token parseVariablesDeclarationNoSemicolon(Token token) {
@@ -5025,7 +5028,7 @@ class Parser {
 
   Token parseVariablesDeclarationNoSemicolonRest(Token token) {
     // Only called when parsing a for loop, so this is for parsing locals.
-    return parseVariablesDeclarationMaybeSemicolonRest(token.next, false);
+    return parseVariablesDeclarationMaybeSemicolonRest(token, false);
   }
 
   Token parseVariablesDeclarationMaybeSemicolon(
@@ -5046,13 +5049,12 @@ class Parser {
     }
 
     token = parseModifiers(token, MemberKind.Local, isVarAllowed: true);
-    return parseVariablesDeclarationMaybeSemicolonRest(
-        token.next, endWithSemicolon);
+    return parseVariablesDeclarationMaybeSemicolonRest(token, endWithSemicolon);
   }
 
   Token parseVariablesDeclarationMaybeSemicolonRest(
       Token token, bool endWithSemicolon) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    token = token.next;
     int count = 1;
     listener.beginVariablesDeclaration(token);
     token = parseOptionallyInitializedIdentifier(token);
