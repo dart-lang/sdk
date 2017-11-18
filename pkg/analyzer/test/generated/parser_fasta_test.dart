@@ -1295,30 +1295,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingMethodParameters_void_block() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3594:5                       ParserProxy._run
-    super.test_missingMethodParameters_void_block();
-  }
-
-  @override
-  @failingTest
-  void test_missingMethodParameters_void_expression() {
-    // TODO(brianwilkerson) Does not recover.
-    //   Expected: true
-    //   Actual: <false>
-    //
-    //   package:test                                                       expect
-    //   test/generated/parser_fasta_test.dart 3594:5                       ParserProxy._run
-    super.test_missingMethodParameters_void_expression();
-  }
-
-  @override
-  @failingTest
   void test_missingNameInLibraryDirective() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE, found 0
@@ -2122,13 +2098,14 @@ class FastaParserTestCase extends Object
   }
 
   @override
-  void createParser(String content) {
+  void createParser(String content, {int expectedEndOffset}) {
     var scanner = new StringScanner(content, includeComments: true);
     scanner.scanGenericMethodComments = enableGenericMethodComments;
     _fastaTokens = scanner.tokenize();
     _parserProxy = new ParserProxy(_fastaTokens,
         allowNativeClause: allowNativeClause,
-        enableGenericMethodComments: enableGenericMethodComments);
+        enableGenericMethodComments: enableGenericMethodComments,
+        expectedEndOffset: expectedEndOffset);
   }
 
   @override
@@ -2615,13 +2592,16 @@ class ParserProxy extends analyzer.ParserAdapter {
 
   ForwardingTestListener _eventListener;
 
+  final int expectedEndOffset;
+
   /**
    * Creates a [ParserProxy] which is prepared to begin parsing at the given
    * Fasta token.
    */
   factory ParserProxy(analyzer.Token firstToken,
       {bool allowNativeClause: false,
-      bool enableGenericMethodComments: false}) {
+      bool enableGenericMethodComments: false,
+      int expectedEndOffset}) {
     var library = new KernelLibraryBuilderProxy();
     var member = new BuilderProxy();
     var scope = new ScopeProxy();
@@ -2631,7 +2611,8 @@ class ParserProxy extends analyzer.ParserAdapter {
     return new ParserProxy._(
         firstToken, errorReporter, library, member, scope, errorListener,
         allowNativeClause: allowNativeClause,
-        enableGenericMethodComments: enableGenericMethodComments);
+        enableGenericMethodComments: enableGenericMethodComments,
+        expectedEndOffset: expectedEndOffset);
   }
 
   ParserProxy._(
@@ -2642,7 +2623,8 @@ class ParserProxy extends analyzer.ParserAdapter {
       Scope scope,
       this._errorListener,
       {bool allowNativeClause: false,
-      bool enableGenericMethodComments: false})
+      bool enableGenericMethodComments: false,
+      this.expectedEndOffset})
       : super(firstToken, errorReporter, library, member, scope,
             allowNativeClause: allowNativeClause,
             enableGenericMethodComments: enableGenericMethodComments) {
@@ -2776,7 +2758,12 @@ class ParserProxy extends analyzer.ParserAdapter {
     _eventListener.begin(enclosingEvent);
     var result = f();
     _eventListener.end(enclosingEvent);
-    expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
+    if (expectedEndOffset == null) {
+      expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
+    } else {
+      expect(currentToken.offset, expectedEndOffset,
+          reason: currentToken.lexeme);
+    }
     expect(astBuilder.stack, hasLength(0));
     expect(astBuilder.directives, hasLength(0));
     expect(astBuilder.declarations, hasLength(0));

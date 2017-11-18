@@ -300,6 +300,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);
         return;
+      case "MISSING_FUNCTION_BODY":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);
+        return;
       case "MISSING_FUNCTION_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_FUNCTION_PARAMETERS, offset, length);
@@ -308,6 +312,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_HEX_DIGIT, offset, length);
         return;
+      case "MISSING_IDENTIFIER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_IDENTIFIER, offset, length);
+        return;
       case "MISSING_KEYWORD_OPERATOR":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_KEYWORD_OPERATOR, offset, length);
@@ -315,6 +323,10 @@ class FastaErrorReporter {
       case "MISSING_METHOD_PARAMETERS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MISSING_METHOD_PARAMETERS, offset, length);
+        return;
+      case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, offset, length);
         return;
       case "MISSING_STAR_AFTER_SYNC":
         errorReporter?.reportErrorForOffset(
@@ -339,22 +351,6 @@ class FastaErrorReporter {
       case "MULTIPLE_WITH_CLAUSES":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.MULTIPLE_WITH_CLAUSES, offset, length);
-        return;
-      case "MISSING_FUNCTION_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_FUNCTION_BODY, offset, length);
-        return;
-      case "MISSING_FUNCTION_PARAMETERS":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_FUNCTION_PARAMETERS, offset, length);
-        return;
-      case "MISSING_IDENTIFIER":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_IDENTIFIER, offset, length);
-        return;
-      case "MISSING_PREFIX_IN_DEFERRED_IMPORT":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT, offset, length);
         return;
       case "MULTIPLE_PART_OF_DIRECTIVES":
         errorReporter?.reportErrorForOffset(

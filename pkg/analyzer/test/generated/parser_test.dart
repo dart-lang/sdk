@@ -97,8 +97,16 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   /**
    * Prepares to parse using tokens scanned from the given [content] string.
+   *
+   * [expectedEndOffset] is the expected offset of the next token to be parsed
+   * after the parser has finished parsing,
+   * or `null` (the default) if EOF is expected.
+   * In general, the analyzer tests do not assert that the last token is EOF,
+   * but the fasta parser adapter tests do assert this.
+   * For any analyzer test where the last token is not EOF, set this value.
+   * It is ignored when not using the fasta parser.
    */
-  void createParser(String content);
+  void createParser(String content, {int expectedEndOffset});
 
   ExpectedError expectedError(ErrorCode code, int offset, int length);
 
@@ -4062,22 +4070,26 @@ class Wrong<T> {
   }
 
   void test_missingMethodParameters_void_block() {
-    createParser('void m {} }');
+    createParser('void m {} }', expectedEndOffset: 10);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 7, 1)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS,
+          usingFastaParser ? 5 : 7, 1)
+    ]);
     expect(member, new isInstanceOf<MethodDeclaration>());
     MethodDeclaration method = member;
     expect(method.parameters, hasLength(0));
   }
 
   void test_missingMethodParameters_void_expression() {
-    createParser('void m => null; }');
+    createParser('void m => null; }', expectedEndOffset: 16);
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 7, 1)]);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS,
+          usingFastaParser ? 5 : 7, 1)
+    ]);
   }
 
   void test_missingNameForNamedParameter_colon() {
@@ -8929,7 +8941,7 @@ class ParserTestCase extends EngineTestCase
    * Create the [parser] and [listener] used by a test. The [parser] will be
    * prepared to parse the tokens scanned from the given [content].
    */
-  void createParser(String content) {
+  void createParser(String content, {int expectedEndOffset}) {
     listener = new GatheringErrorListener();
     //
     // Scan the source.

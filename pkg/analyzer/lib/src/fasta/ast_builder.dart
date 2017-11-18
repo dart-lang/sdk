@@ -16,7 +16,8 @@ import 'package:front_end/src/fasta/parser.dart'
         optional,
         Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
-import 'package:front_end/src/fasta/scanner/token.dart' show CommentToken;
+import 'package:front_end/src/scanner/token.dart'
+    show SyntheticBeginToken, SyntheticToken, CommentToken;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
@@ -2012,6 +2013,31 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
+
+    if (parameters == null && (getOrSet == null || optional('set', getOrSet))) {
+      Token previous = typeParameters?.endToken;
+      if (previous == null) {
+        if (name is AstNode) {
+          previous = name.endToken;
+        } else if (name is _OperatorName) {
+          previous = name.name.endToken;
+        } else {
+          throw new UnimplementedError();
+        }
+      }
+      Token leftParen =
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, previous.end);
+      Token rightParen =
+          new SyntheticToken(TokenType.CLOSE_PAREN, leftParen.offset);
+      rightParen.next = previous.next;
+      leftParen.next = rightParen;
+      previous.next = leftParen;
+      leftParen.previous = previous;
+      rightParen.previous = leftParen;
+      rightParen.next.previous = rightParen;
+      parameters = ast.formalParameterList(
+          leftParen, <FormalParameter>[], null, null, rightParen);
+    }
 
     void constructor(
         SimpleIdentifier returnType, Token period, SimpleIdentifier name) {

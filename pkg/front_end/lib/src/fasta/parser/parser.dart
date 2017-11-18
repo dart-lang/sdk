@@ -1044,8 +1044,7 @@ class Parser {
     if (kind == MemberKind.FunctionTypeAlias) {
       return fasta.messageMissingTypedefParameters;
     } else if (kind == MemberKind.NonStaticMethod ||
-        kind == MemberKind.StaticMethod ||
-        kind == MemberKind.TopLevelMethod) {
+        kind == MemberKind.StaticMethod) {
       return fasta.messageMissingMethodParameters;
     }
     return fasta.messageMissingFunctionParameters;
@@ -2695,7 +2694,7 @@ class Parser {
       token = name;
       listener.handleNoTypeVariables(token.next);
     }
-    checkFormals(isGetter, name, token.next);
+    checkFormals(isGetter, name, token.next, MemberKind.TopLevelMethod);
     token = parseFormalParametersOpt(token, MemberKind.TopLevelMethod);
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
@@ -2709,13 +2708,13 @@ class Parser {
     return token;
   }
 
-  void checkFormals(bool isGetter, Token name, Token token) {
+  void checkFormals(bool isGetter, Token name, Token token, MemberKind kind) {
     if (optional("(", token)) {
       if (isGetter) {
         reportRecoverableError(token, fasta.messageGetterWithFormals);
       }
     } else if (!isGetter) {
-      reportRecoverableErrorWithToken(name, fasta.templateNoFormals);
+      reportRecoverableError(name, missingParameterMessage(kind));
     }
   }
 
@@ -3411,12 +3410,11 @@ class Parser {
       isGetter = optional("get", getOrSet);
       listener.handleNoTypeVariables(token.next);
     }
-    checkFormals(isGetter, name, token.next);
-    token = parseFormalParametersOpt(
-        token,
-        staticModifier != null
-            ? MemberKind.StaticMethod
-            : MemberKind.NonStaticMethod);
+    MemberKind kind = staticModifier != null
+        ? MemberKind.StaticMethod
+        : MemberKind.NonStaticMethod;
+    checkFormals(isGetter, name, token.next, kind);
+    token = parseFormalParametersOpt(token, kind);
     token = parseInitializersOpt(token);
 
     bool allowAbstract = staticModifier == null;
