@@ -127,7 +127,8 @@ class TestCase extends UniqueObject {
     if (info.hasCompileErrorIfChecked) {
       _expectations |= HAS_COMPILE_ERROR_IF_CHECKED;
     }
-    if (info.hasCompileError || info.hasSyntaxError ||
+    if (info.hasCompileError ||
+        info.hasSyntaxError ||
         (configuration.isChecked && info.hasCompileErrorIfChecked)) {
       _expectations |= EXPECT_COMPILE_ERROR;
     }
@@ -1518,8 +1519,10 @@ class ProcessQueue {
 
         for (TestCase testCase in testCases) {
           eventFinishedTestCase(testCase);
+          var outcomes = testCase.expectedOutcomes.map((o) => '$o').toList()
+            ..sort();
           print("${testCase.displayName}   "
-              "Expectations: ${testCase.expectedOutcomes.join(', ')}   "
+              "Expectations: ${outcomes.join(', ')}   "
               "Configuration: '${testCase.configurationString}'");
         }
         eventAllTestsKnown();
