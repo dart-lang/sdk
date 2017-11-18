@@ -645,6 +645,7 @@ int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_fold_test/02: RuntimeError
 iterable_reduce_test/none: RuntimeError
 iterable_reduce_test/01: RuntimeError
+list_concurrent_modify_test: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
