@@ -33,9 +33,9 @@ static method main() → void {
     core::Map<core::int, dynamic> l4 = <core::int, dynamic>{3: "hello", "hello": 3};
   }
   {
-    core::Map<core::int, core::String> l0 = <core::num, dynamic>{};
-    core::Map<core::int, core::String> l1 = <core::num, dynamic>{3: "hello"};
-    core::Map<core::int, core::String> l3 = <core::num, dynamic>{3: 3};
+    core::Map<core::int, core::String> l0 = <core::num, dynamic>{} as{TypeError} core::Map<core::int, core::String>;
+    core::Map<core::int, core::String> l1 = <core::num, dynamic>{3: "hello"} as{TypeError} core::Map<core::int, core::String>;
+    core::Map<core::int, core::String> l3 = <core::num, dynamic>{3: 3} as{TypeError} core::Map<core::int, core::String>;
   }
   {
     const core::Map<core::int, core::String> l0 = const <core::int, core::String>{};

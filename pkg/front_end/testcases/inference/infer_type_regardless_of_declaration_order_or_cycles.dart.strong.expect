@@ -19,7 +19,7 @@ class A extends core::Object {
 }
 static method foo() → dynamic {
   core::int y = new self::C::•().{self::C::x};
-  core::String z = new self::C::•().{self::C::x};
+  core::String z = new self::C::•().{self::C::x} as{TypeError} core::String;
 }
 static method main() → dynamic {
   self::foo();

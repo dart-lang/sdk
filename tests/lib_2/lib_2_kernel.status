@@ -24,6 +24,7 @@
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
 async/timer_not_available_test: RuntimeError
+async/zone_run_unary_test: RuntimeError # Issue 31402 (Variable declaration)
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: DartkCompileTimeError
@@ -47,6 +48,7 @@ mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_optional_args_test: CompileTimeError
 mirrors/constructor_optional_args_test: Crash # Issue 29201
 mirrors/constructor_private_name_test: RuntimeError
+mirrors/constructors_test: RuntimeError # Issue 31402 (Variable declaration)
 mirrors/dart2js_mirrors_test: Crash
 mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_metadata_test: RuntimeError

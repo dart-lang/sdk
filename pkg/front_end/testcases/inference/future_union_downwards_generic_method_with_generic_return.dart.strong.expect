@@ -7,6 +7,6 @@ static method id<T extends core::Object>(self::id::T x) → self::id::T
   return x;
 static method test() → dynamic async {
   asy::Future<core::String> f;
-  core::String s = await self::id<asy::FutureOr<core::String>>(f);
+  core::String s = await self::id<asy::FutureOr<core::String>>(f) as{TypeError} core::String;
 }
 static method main() → dynamic {}

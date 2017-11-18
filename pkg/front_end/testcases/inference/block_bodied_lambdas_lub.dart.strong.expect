@@ -14,6 +14,6 @@ static method test2() → dynamic {
     }
   });
   core::Iterable<core::num> w = y;
-  core::Iterable<core::int> z = y;
+  core::Iterable<core::int> z = y as{TypeError} core::Iterable<core::int>;
 }
 static method main() → dynamic {}

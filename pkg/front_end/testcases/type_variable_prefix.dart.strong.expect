@@ -10,6 +10,6 @@ class C<T extends core::Object> extends core::Object {
     return "Hello, World!";
 }
 static method main() → dynamic {
-  core::String s = new self::C::•<dynamic>().{self::C::method}();
+  core::String s = new self::C::•<dynamic>().{self::C::method}() as{TypeError} core::String;
   core::print(s);
 }

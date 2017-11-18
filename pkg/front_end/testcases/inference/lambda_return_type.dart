@@ -7,7 +7,7 @@ library test;
 
 typedef num FunctionReturningNum();
 
-main() {
+test() {
   int i = 1;
   Object o = 1;
   FunctionReturningNum a = /*@returnType=int*/ () => i;
@@ -19,3 +19,5 @@ main() {
     return o;
   };
 }
+
+main() {}

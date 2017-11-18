@@ -24,7 +24,7 @@ class B<E extends core::Object> extends self::A<self::B::E> implements self::M {
   method m(dynamic a, (dynamic, core::int) → dynamic f) → self::A<self::B::E> {}
 }
 static method foo() → dynamic {
-  core::int y = new self::B::•<core::String>().{self::B::m}(null, null).{self::A::value};
+  core::int y = new self::B::•<core::String>().{self::B::m}(null, null).{self::A::value} as{TypeError} core::int;
   core::String z = new self::B::•<core::String>().{self::B::m}(null, null).{self::A::value};
 }
 static method main() → dynamic {}

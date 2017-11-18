@@ -17,10 +17,10 @@ static method main() → void {
     core::List<dynamic> l3 = <dynamic>["hello", 3];
   }
   {
-    core::List<core::int> l0 = <core::num>[];
-    core::List<core::int> l1 = <core::num>[3];
-    core::List<core::int> l2 = <core::num>["hello"];
-    core::List<core::int> l3 = <core::num>["hello", 3];
+    core::List<core::int> l0 = <core::num>[] as{TypeError} core::List<core::int>;
+    core::List<core::int> l1 = <core::num>[3] as{TypeError} core::List<core::int>;
+    core::List<core::int> l2 = <core::num>["hello"] as{TypeError} core::List<core::int>;
+    core::List<core::int> l3 = <core::num>["hello", 3] as{TypeError} core::List<core::int>;
   }
   {
     core::Iterable<core::int> i0 = <core::int>[];

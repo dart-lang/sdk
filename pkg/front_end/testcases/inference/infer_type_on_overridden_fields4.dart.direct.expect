@@ -19,6 +19,4 @@ static method foo() → dynamic {
   core::String y = new self::B::•().x;
   core::int z = new self::B::•().x;
 }
-static method main() → dynamic {
-  self::foo();
-}
+static method main() → dynamic {}

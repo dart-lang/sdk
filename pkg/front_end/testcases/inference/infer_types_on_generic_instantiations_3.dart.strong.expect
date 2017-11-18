@@ -19,7 +19,7 @@ class B extends core::Object implements self::A<core::int> {
     return "hello";
 }
 static method foo() → dynamic {
-  core::String y = new self::B::•().{self::B::x};
+  core::String y = new self::B::•().{self::B::x} as{TypeError} core::String;
   core::int z = new self::B::•().{self::B::x};
 }
 static method main() → dynamic {

@@ -18,6 +18,6 @@ static method test2() → dynamic {
   x.{core::Map::[]=}(3, 42 as{TypeError} core::Pattern);
   core::Pattern p = null;
   x.{core::Map::[]=}(2, p);
-  core::Map<core::int, core::String> y = x;
+  core::Map<core::int, core::String> y = x as{TypeError} core::Map<core::int, core::String>;
 }
 static method main() → dynamic {}

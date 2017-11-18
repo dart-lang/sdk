@@ -22,11 +22,14 @@
 
 [ $compiler == dartk && $runtime == vm && $strong ]
 io/compile_all_test: Crash
+io/file_blocking_lock_test: RuntimeError # Issue 31402 (Variable declaration)
+io/file_lock_test: RuntimeError # Issue 31402 (Variable declaration)
 io/http_client_connect_test: Skip # Flaky.
 io/http_client_request_test: Pass, Timeout
 io/http_compression_test: RuntimeError
 io/http_content_length_test: Skip # Flaky.
 io/http_cookie_test: Skip # Flaky
+io/http_cross_process_test: RuntimeError # Issue 31402 (Variable declaration)
 io/http_proxy_advanced_test: Skip # Flaky
 io/http_proxy_test: Skip # Flaky.
 io/http_response_deadline_test: Skip # Flaky.
@@ -36,10 +39,12 @@ io/http_shutdown_test: Skip # Flaky.
 io/raw_datagram_socket_test: Skip # Flaky.
 io/raw_secure_server_closing_test: Skip # Flaky
 io/raw_secure_server_closing_test: Skip # Flaky.
+io/raw_socket_cross_process_test: RuntimeError # Issue 31402 (Variable declaration)
 io/secure_builtin_roots_test: Timeout
 io/secure_multiple_client_server_test: Skip # Flaky.
 io/secure_server_closing_test: Skip # Flaky.
 io/secure_server_socket_test: Skip # Flaky.
+io/socket_cross_process_test: RuntimeError # Issue 31402 (Variable declaration)
 io/socket_finalizer_test: Pass, Timeout
 io/socket_many_connections_test: Skip # Flaky
 io/web_socket_error_test: Skip # Flaky

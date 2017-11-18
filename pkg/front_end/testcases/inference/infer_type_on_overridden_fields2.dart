@@ -18,6 +18,4 @@ foo() {
   int z = new B(). /*@target=B::x*/ x;
 }
 
-main() {
-  foo();
-}
+main() {}

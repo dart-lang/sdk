@@ -3,7 +3,7 @@ import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 
-static method main() → dynamic {
+static method test() → dynamic {
   dynamic f = () → asy::Stream<dynamic> async* {
     yield 1;
     asy::Stream<core::double> s;
@@ -12,3 +12,4 @@ static method main() → dynamic {
   asy::Stream<core::num> g = f.call();
   asy::Stream<core::int> h = f.call();
 }
+static method main() → dynamic {}

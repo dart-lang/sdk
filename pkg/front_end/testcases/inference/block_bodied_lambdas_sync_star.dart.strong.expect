@@ -2,11 +2,12 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method main() → dynamic {
+static method test() → dynamic {
   () → core::Iterable<core::num> f = () → core::Iterable<core::num> sync* {
     yield 1;
     yield*<core::num>[3, 4.0];
   };
   core::Iterable<core::num> g = f.call();
-  core::Iterable<core::int> h = f.call();
+  core::Iterable<core::int> h = f.call() as{TypeError} core::Iterable<core::int>;
 }
+static method main() → dynamic {}

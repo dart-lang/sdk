@@ -21,6 +21,6 @@ class D extends self::C {
     return x;
 }
 static method main() → dynamic {
-  core::int y = (new self::D::•() as self::C).{self::C::m}(42);
+  core::int y = (new self::D::•() as self::C).{self::C::m}(42) as{TypeError} core::int;
   core::print(y);
 }

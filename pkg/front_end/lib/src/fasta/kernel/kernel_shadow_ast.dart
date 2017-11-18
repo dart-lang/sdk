@@ -2226,9 +2226,11 @@ class ShadowVariableDeclaration extends VariableDeclaration
     inferrer.listener.variableDeclarationEnter(this);
     var declaredType = _implicitlyTyped ? null : type;
     DartType inferredType;
+    DartType initializerType;
     if (initializer != null) {
-      inferredType = inferrer.inferDeclarationType(inferrer.inferExpression(
-          initializer, declaredType, _implicitlyTyped));
+      initializerType = inferrer.inferExpression(
+          initializer, declaredType, !inferrer.isTopLevel || _implicitlyTyped);
+      inferredType = inferrer.inferDeclarationType(initializerType);
     } else {
       inferredType = const DynamicType();
     }
@@ -2236,6 +2238,13 @@ class ShadowVariableDeclaration extends VariableDeclaration
       inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
           'type', new InstrumentationValueForType(inferredType));
       type = inferredType;
+    }
+    if (initializer != null && !inferrer.isTopLevel) {
+      var replacedInitializer = inferrer.checkAssignability(
+          type, initializerType, initializer, fileOffset);
+      if (replacedInitializer != null) {
+        initializer = replacedInitializer;
+      }
     }
     inferrer.listener.variableDeclarationExit(this);
   }

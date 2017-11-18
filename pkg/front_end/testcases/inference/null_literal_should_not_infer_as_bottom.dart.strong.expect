@@ -6,7 +6,7 @@ static field dynamic h = null;
 static method foo((core::Object) → core::int f) → void {}
 static method test() → dynamic {
   (core::Object) → dynamic f = (core::Object x) → dynamic => null;
-  core::String y = f.call(42);
+  core::String y = f.call(42) as{TypeError} core::String;
   f = (core::Object x) → core::String => "hello";
   dynamic g = null;
   g = "hello";

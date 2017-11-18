@@ -10,7 +10,7 @@ class A<T> {
   void set y(List<T> value) {}
 }
 
-main() {
+test() {
   A<int> a_int = new A<int>();
   A<Object> a_object = new A<Object>();
   A<dynamic> a_dynamic = new A<dynamic>();
@@ -47,3 +47,5 @@ main() {
   List<int> y_dynamic_downward =
       a_dynamic. /*@target=A::y*/ y = /*@typeArgs=dynamic*/ [0];
 }
+
+main() {}

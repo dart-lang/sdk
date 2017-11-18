@@ -40,7 +40,6 @@ assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
 assign_static_type_test/03: MissingCompileTimeError
 assign_static_type_test/04: MissingCompileTimeError
-assign_static_type_test/05: MissingCompileTimeError
 assign_static_type_test/06: MissingCompileTimeError
 assign_to_type_test/01: MissingCompileTimeError
 assign_to_type_test/02: MissingCompileTimeError
@@ -55,11 +54,6 @@ async_await_syntax_test/d10a: MissingCompileTimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
-async_congruence_local_test/01: MissingCompileTimeError
-async_congruence_local_test/02: MissingCompileTimeError
-async_congruence_method_test/01: MissingCompileTimeError
-async_congruence_unnamed_test/01: MissingCompileTimeError
-async_congruence_unnamed_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
@@ -129,8 +123,7 @@ call_nonexistent_static_test/10: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
-callable_test/00: MissingCompileTimeError
-callable_test/01: MissingCompileTimeError
+callable_test/none: CompileTimeError # Issue 31402 (Variable declaration)
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -199,7 +192,6 @@ closure_internals_test/02: MissingCompileTimeError
 closure_internals_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
-closure_type_test: RuntimeError
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -240,46 +232,21 @@ conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loadin
 conditional_import_string_test: DartkCompileTimeError
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_test: DartkCompileTimeError
-conditional_method_invocation_test/05: MissingCompileTimeError
-conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
 conditional_method_invocation_test/08: MissingCompileTimeError
 conditional_method_invocation_test/12: MissingCompileTimeError
 conditional_method_invocation_test/13: MissingCompileTimeError
-conditional_method_invocation_test/18: MissingCompileTimeError
-conditional_method_invocation_test/19: MissingCompileTimeError
-conditional_property_access_test/04: MissingCompileTimeError
 conditional_property_access_test/05: MissingCompileTimeError
 conditional_property_access_test/06: MissingCompileTimeError
 conditional_property_access_test/10: MissingCompileTimeError
 conditional_property_access_test/11: MissingCompileTimeError
-conditional_property_access_test/16: MissingCompileTimeError
-conditional_property_access_test/17: MissingCompileTimeError
-conditional_property_assignment_test/04: MissingCompileTimeError
 conditional_property_assignment_test/05: MissingCompileTimeError
 conditional_property_assignment_test/06: MissingCompileTimeError
 conditional_property_assignment_test/10: MissingCompileTimeError
 conditional_property_assignment_test/11: MissingCompileTimeError
 conditional_property_assignment_test/12: MissingCompileTimeError
-conditional_property_assignment_test/13: MissingCompileTimeError
-conditional_property_assignment_test/27: MissingCompileTimeError
-conditional_property_assignment_test/28: MissingCompileTimeError
 conditional_property_assignment_test/32: MissingCompileTimeError
 conditional_property_assignment_test/33: MissingCompileTimeError
-conditional_property_assignment_test/34: MissingCompileTimeError
-conditional_property_assignment_test/35: MissingCompileTimeError
-conditional_property_increment_decrement_test/04: MissingCompileTimeError
-conditional_property_increment_decrement_test/08: MissingCompileTimeError
-conditional_property_increment_decrement_test/12: MissingCompileTimeError
-conditional_property_increment_decrement_test/16: MissingCompileTimeError
-conditional_property_increment_decrement_test/21: MissingCompileTimeError
-conditional_property_increment_decrement_test/22: MissingCompileTimeError
-conditional_property_increment_decrement_test/27: MissingCompileTimeError
-conditional_property_increment_decrement_test/28: MissingCompileTimeError
-conditional_property_increment_decrement_test/33: MissingCompileTimeError
-conditional_property_increment_decrement_test/34: MissingCompileTimeError
-conditional_property_increment_decrement_test/39: MissingCompileTimeError
-conditional_property_increment_decrement_test/40: MissingCompileTimeError
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_constructor2_test/05: MissingCompileTimeError
@@ -457,6 +424,7 @@ dynamic_field_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
 dynamic_prefix_core_test/none: RuntimeError
+dynamic_test: CompileTimeError # Issue 31402 (Variable declaration)
 dynamic_test: RuntimeError
 empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
@@ -527,6 +495,7 @@ flatten_test/12: MissingRuntimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_malformed_result_type_test/00: MissingCompileTimeError
+function_propagation_test: CompileTimeError # Issue 31402 (Variable declaration)
 function_subtype3_test: RuntimeError
 function_subtype_bound_closure1_test: RuntimeError
 function_subtype_bound_closure2_test: RuntimeError
@@ -535,6 +504,7 @@ function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure5_test: RuntimeError
 function_subtype_bound_closure5a_test: RuntimeError
 function_subtype_bound_closure6_test: RuntimeError
+function_subtype_bound_closure7_test: CompileTimeError # Issue 31402 (Variable declaration)
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
@@ -658,13 +628,6 @@ function_type_alias3_test: RuntimeError
 function_type_alias4_test: RuntimeError
 function_type_alias6_test/none: RuntimeError
 function_type_alias_test: RuntimeError
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
-function_type_call_getter2_test/04: MissingCompileTimeError
-function_type_call_getter2_test/05: MissingCompileTimeError
-fuzzy_arrows_test/01: MissingCompileTimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_async_star_test: RuntimeError
 generic_closure_test: RuntimeError
@@ -682,6 +645,7 @@ generic_function_typedef2_test/04: MissingCompileTimeError
 generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_is_check_test: RuntimeError
+generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_method_types_test/02: RuntimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
@@ -690,8 +654,10 @@ generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_overriding_test/01: MissingCompileTimeError
 generic_methods_overriding_test/03: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
+generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
+generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: RuntimeError
 generic_tearoff_test: CompileTimeError
@@ -794,10 +760,6 @@ least_upper_bound_test/04: MissingCompileTimeError
 least_upper_bound_test/10: MissingCompileTimeError
 least_upper_bound_test/19: MissingCompileTimeError
 least_upper_bound_test/20: MissingCompileTimeError
-least_upper_bound_test/23: MissingCompileTimeError
-least_upper_bound_test/24: MissingCompileTimeError
-least_upper_bound_test/29: MissingCompileTimeError
-least_upper_bound_test/30: MissingCompileTimeError
 least_upper_bound_test/32: MissingCompileTimeError
 library_ambiguous_test/00: MissingCompileTimeError
 library_ambiguous_test/01: MissingCompileTimeError
@@ -812,7 +774,6 @@ list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
 list_literal4_test/04: MissingCompileTimeError
-list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
@@ -1129,18 +1090,21 @@ regress_21793_test/01: MissingCompileTimeError
 regress_22438_test: MissingCompileTimeError
 regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_22936_test: MissingCompileTimeError
+regress_22976_test/01: CompileTimeError # Issue 31402 (Variable declaration)
 regress_23089_test: MissingCompileTimeError
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_23408_test: RuntimeError
+regress_25550_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
-regress_30339_test: RuntimeError
+regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
 return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
@@ -1227,11 +1191,11 @@ try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 try_catch_syntax_test/08: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError
+type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_literal_test: RuntimeError
 type_parameter_test/01: MissingCompileTimeError
 type_parameter_test/02: MissingCompileTimeError
-type_parameter_test/03: MissingCompileTimeError
 type_parameter_test/04: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/06: MissingCompileTimeError
@@ -1257,6 +1221,15 @@ type_promotion_closure_test/14: MissingCompileTimeError
 type_promotion_closure_test/15: MissingCompileTimeError
 type_promotion_closure_test/16: MissingCompileTimeError
 type_promotion_functions_test/01: MissingCompileTimeError
+type_promotion_functions_test/02: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/03: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/04: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/09: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/11: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/12: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/13: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/14: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/none: RuntimeError # Issue 31402 (Variable declaration)
 type_promotion_local_test/01: MissingCompileTimeError
 type_promotion_local_test/02: MissingCompileTimeError
 type_promotion_local_test/03: MissingCompileTimeError
@@ -1302,8 +1275,6 @@ type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_logical_and_test/02: MissingCompileTimeError
 type_promotion_logical_and_test/03: MissingCompileTimeError
 type_promotion_more_specific_test/02: MissingCompileTimeError
-type_promotion_more_specific_test/06: MissingCompileTimeError
-type_promotion_more_specific_test/07: MissingCompileTimeError
 type_promotion_more_specific_test/09: MissingCompileTimeError
 type_promotion_multiple_test/01: MissingCompileTimeError
 type_promotion_multiple_test/02: MissingCompileTimeError
@@ -1407,7 +1378,6 @@ type_variable_identifier_expression_test: MissingCompileTimeError
 type_variable_scope2_test: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
-type_variable_scope_test/02: MissingCompileTimeError
 type_variable_scope_test/04: MissingCompileTimeError
 type_variable_scope_test/05: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
@@ -1421,15 +1391,13 @@ vm/causal_async_exception_stack_test: RuntimeError
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
-vm/optimized_guarded_field_isolates_test: RuntimeError
+vm/optimized_guarded_field_isolates_test: RuntimeError # Issue 31402 (Variable declaration)
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/01: MissingCompileTimeError
-vm/type_vm_test/02: MissingCompileTimeError
 vm/type_vm_test/03: MissingCompileTimeError
 vm/type_vm_test/04: MissingCompileTimeError
-vm/type_vm_test/06: MissingCompileTimeError
 vm/type_vm_test/08: MissingCompileTimeError
 vm/type_vm_test/09: MissingCompileTimeError
 vm/type_vm_test/10: MissingCompileTimeError
@@ -1439,10 +1407,6 @@ vm/type_vm_test/13: MissingCompileTimeError
 vm/type_vm_test/14: MissingCompileTimeError
 vm/type_vm_test/15: MissingCompileTimeError
 vm/type_vm_test/16: MissingCompileTimeError
-vm/type_vm_test/22: MissingCompileTimeError
-vm/type_vm_test/24: MissingCompileTimeError
-vm/type_vm_test/25: MissingCompileTimeError
-vm/type_vm_test/26: MissingCompileTimeError
 vm/type_vm_test/27: MissingCompileTimeError
 vm/type_vm_test/none: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
@@ -1540,8 +1504,6 @@ field_type_check2_test/01: MissingRuntimeError
 function_subtype_checked0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
-function_type_call_getter2_test/none: RuntimeError
-function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
@@ -1652,7 +1614,6 @@ assign_static_type_test/01: MissingCompileTimeError
 assign_static_type_test/02: MissingCompileTimeError
 assign_static_type_test/03: MissingCompileTimeError
 assign_static_type_test/04: MissingCompileTimeError
-assign_static_type_test/05: MissingCompileTimeError
 assign_static_type_test/06: MissingCompileTimeError
 assign_to_type_test/01: MissingCompileTimeError
 assign_to_type_test/02: MissingCompileTimeError
@@ -1669,14 +1630,9 @@ async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
 async_await_syntax_test/e1: MissingCompileTimeError
-async_congruence_local_test/01: MissingCompileTimeError
-async_congruence_local_test/02: MissingCompileTimeError
 async_congruence_local_test/none: RuntimeError
-async_congruence_method_test/01: MissingCompileTimeError
 async_congruence_method_test/none: RuntimeError
 async_congruence_top_level_test: RuntimeError
-async_congruence_unnamed_test/01: MissingCompileTimeError
-async_congruence_unnamed_test/02: MissingCompileTimeError
 async_congruence_unnamed_test/none: RuntimeError
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
@@ -1762,8 +1718,7 @@ call_nonexistent_static_test/10: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
-callable_test/00: MissingCompileTimeError
-callable_test/01: MissingCompileTimeError
+callable_test/none: CompileTimeError # Issue 31402 (Variable declaration)
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
 cha_deopt1_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -1837,7 +1792,6 @@ closure_internals_test/02: MissingCompileTimeError
 closure_internals_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
-closure_type_test: RuntimeError
 compile_time_constant_c_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -1879,46 +1833,21 @@ compile_time_constant_static_test/02: MissingCompileTimeError
 compile_time_constant_static_test/03: MissingCompileTimeError
 conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-conditional_method_invocation_test/05: MissingCompileTimeError
-conditional_method_invocation_test/06: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
 conditional_method_invocation_test/08: MissingCompileTimeError
 conditional_method_invocation_test/12: MissingCompileTimeError
 conditional_method_invocation_test/13: MissingCompileTimeError
-conditional_method_invocation_test/18: MissingCompileTimeError
-conditional_method_invocation_test/19: MissingCompileTimeError
-conditional_property_access_test/04: MissingCompileTimeError
 conditional_property_access_test/05: MissingCompileTimeError
 conditional_property_access_test/06: MissingCompileTimeError
 conditional_property_access_test/10: MissingCompileTimeError
 conditional_property_access_test/11: MissingCompileTimeError
-conditional_property_access_test/16: MissingCompileTimeError
-conditional_property_access_test/17: MissingCompileTimeError
-conditional_property_assignment_test/04: MissingCompileTimeError
 conditional_property_assignment_test/05: MissingCompileTimeError
 conditional_property_assignment_test/06: MissingCompileTimeError
 conditional_property_assignment_test/10: MissingCompileTimeError
 conditional_property_assignment_test/11: MissingCompileTimeError
 conditional_property_assignment_test/12: MissingCompileTimeError
-conditional_property_assignment_test/13: MissingCompileTimeError
-conditional_property_assignment_test/27: MissingCompileTimeError
-conditional_property_assignment_test/28: MissingCompileTimeError
 conditional_property_assignment_test/32: MissingCompileTimeError
 conditional_property_assignment_test/33: MissingCompileTimeError
-conditional_property_assignment_test/34: MissingCompileTimeError
-conditional_property_assignment_test/35: MissingCompileTimeError
-conditional_property_increment_decrement_test/04: MissingCompileTimeError
-conditional_property_increment_decrement_test/08: MissingCompileTimeError
-conditional_property_increment_decrement_test/12: MissingCompileTimeError
-conditional_property_increment_decrement_test/16: MissingCompileTimeError
-conditional_property_increment_decrement_test/21: MissingCompileTimeError
-conditional_property_increment_decrement_test/22: MissingCompileTimeError
-conditional_property_increment_decrement_test/27: MissingCompileTimeError
-conditional_property_increment_decrement_test/28: MissingCompileTimeError
-conditional_property_increment_decrement_test/33: MissingCompileTimeError
-conditional_property_increment_decrement_test/34: MissingCompileTimeError
-conditional_property_increment_decrement_test/39: MissingCompileTimeError
-conditional_property_increment_decrement_test/40: MissingCompileTimeError
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_constructor2_test/05: MissingCompileTimeError
@@ -2108,6 +2037,7 @@ dynamic_prefix_core_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
 dynamic_prefix_core_test/none: RuntimeError
+dynamic_test: CompileTimeError # Issue 31402 (Variable declaration)
 empty_block_case_test: MissingCompileTimeError
 enum_mirror_test: SkipByDesign
 enum_private_test/02: MissingCompileTimeError
@@ -2197,8 +2127,10 @@ flatten_test/12: MissingRuntimeError
 for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_malformed_result_type_test/00: MissingCompileTimeError
+function_propagation_test: CompileTimeError # Issue 31402 (Variable declaration)
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
+function_subtype_bound_closure7_test: CompileTimeError # Issue 31402 (Variable declaration)
 function_subtype_bound_closure7_test: RuntimeError
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
@@ -2331,13 +2263,6 @@ function_type2_test: RuntimeError
 function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
-function_type_call_getter2_test/00: MissingCompileTimeError
-function_type_call_getter2_test/01: MissingCompileTimeError
-function_type_call_getter2_test/02: MissingCompileTimeError
-function_type_call_getter2_test/03: MissingCompileTimeError
-function_type_call_getter2_test/04: MissingCompileTimeError
-function_type_call_getter2_test/05: MissingCompileTimeError
-fuzzy_arrows_test/01: MissingCompileTimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_closure_test: RuntimeError
@@ -2355,6 +2280,7 @@ generic_function_typedef2_test/04: MissingCompileTimeError
 generic_function_typedef_test/01: Pass
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
+generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_list_checked_test: RuntimeError
 generic_methods_bounds_test/01: Crash
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -2373,9 +2299,11 @@ generic_methods_recursive_bound_test/03: Crash, Pass
 generic_methods_recursive_bound_test/03: MissingRuntimeError
 generic_methods_recursive_bound_test/03: Pass
 generic_methods_reuse_type_variables_test: Pass
+generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_type_expression_test: Crash
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
+generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_unused_parameter_test: RuntimeError
 generic_tearoff_test: CompileTimeError
 generic_tearoff_test: RuntimeError
@@ -2509,10 +2437,6 @@ least_upper_bound_test/04: MissingCompileTimeError
 least_upper_bound_test/10: MissingCompileTimeError
 least_upper_bound_test/19: MissingCompileTimeError
 least_upper_bound_test/20: MissingCompileTimeError
-least_upper_bound_test/23: MissingCompileTimeError
-least_upper_bound_test/24: MissingCompileTimeError
-least_upper_bound_test/29: MissingCompileTimeError
-least_upper_bound_test/30: MissingCompileTimeError
 least_upper_bound_test/32: MissingCompileTimeError
 library_ambiguous_test/00: MissingCompileTimeError
 library_ambiguous_test/01: MissingCompileTimeError
@@ -2528,7 +2452,6 @@ list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
 list_literal4_test/04: MissingCompileTimeError
-list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
@@ -2888,9 +2811,11 @@ regress_21793_test/01: MissingCompileTimeError
 regress_22438_test: MissingCompileTimeError
 regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_22936_test: MissingCompileTimeError
+regress_22976_test/01: CompileTimeError # Issue 31402 (Variable declaration)
 regress_23089_test: MissingCompileTimeError
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_23408_test: RuntimeError
+regress_25550_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
@@ -2900,8 +2825,10 @@ regress_28255_test: SkipByDesign
 regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_28341_test: Pass
 regress_28341_test: RuntimeError
+regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
+regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
 return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
@@ -3024,11 +2951,11 @@ try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 try_catch_syntax_test/08: MissingCompileTimeError
 type_checks_in_factory_method_test/01: MissingCompileTimeError
+type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 type_literal_prefix_call_test/00: MissingCompileTimeError
 type_literal_test: RuntimeError
 type_parameter_test/01: MissingCompileTimeError
 type_parameter_test/02: MissingCompileTimeError
-type_parameter_test/03: MissingCompileTimeError
 type_parameter_test/04: MissingCompileTimeError
 type_parameter_test/05: MissingCompileTimeError
 type_parameter_test/06: MissingCompileTimeError
@@ -3110,8 +3037,6 @@ type_promotion_logical_and_test/02: MissingCompileTimeError
 type_promotion_logical_and_test/03: MissingCompileTimeError
 type_promotion_more_specific_test/02: MissingCompileTimeError
 type_promotion_more_specific_test/04: Pass
-type_promotion_more_specific_test/06: MissingCompileTimeError
-type_promotion_more_specific_test/07: MissingCompileTimeError
 type_promotion_more_specific_test/09: MissingCompileTimeError
 type_promotion_multiple_test/01: MissingCompileTimeError
 type_promotion_multiple_test/02: MissingCompileTimeError
@@ -3218,7 +3143,6 @@ type_variable_promotion_test: RuntimeError
 type_variable_scope2_test: MissingCompileTimeError
 type_variable_scope_test/00: MissingCompileTimeError
 type_variable_scope_test/01: MissingCompileTimeError
-type_variable_scope_test/02: MissingCompileTimeError
 type_variable_scope_test/03: MissingCompileTimeError
 type_variable_scope_test/03: Pass # Correctly passes.
 type_variable_scope_test/04: MissingCompileTimeError
@@ -3455,8 +3379,6 @@ covariant_override/runtime_check_test: RuntimeError
 deferred_constraints_type_annotation_test/type_annotation1: Crash # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # KernelVM bug: Deferred loading kernel issue 28335.
-function_type_call_getter2_test/none: RuntimeError
-function_type_test: RuntimeError
 generic_field_mixin6_test/none: RuntimeError
 generic_methods_dynamic_test/01: MissingCompileTimeError
 generic_methods_dynamic_test/03: MissingCompileTimeError

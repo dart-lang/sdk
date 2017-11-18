@@ -13,7 +13,7 @@ static method test2() → dynamic {
   core::List<core::num> x = <core::num>[1, 2.0, 3];
   x.{core::List::add}("hi");
   x.{core::List::add}(4.0);
-  core::List<core::int> y = x;
+  core::List<core::int> y = x as{TypeError} core::List<core::int>;
 }
 static method main() → dynamic {
   self::test1();
