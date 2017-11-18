@@ -518,6 +518,14 @@ error_stack_trace1_test: Skip  # Expects unobfuscated stack trace
 [ $compiler == dart2js && $runtime != none && $dart2js_with_kernel ]
 list_concurrent_modify_test: Crash # Issue 30559
 
+# Sections for dartk and dartkp.
+#
+# Note: these sections are normalized so we can update them with automated
+# tools. Please add any new status lines affecting those two compilers in the
+# existing sections, if possible keep the alphabetic ordering. If we are missing
+# a section you need, please reach out to sigmund@ to see the best way to add
+# them.
+
 # ===== Skip dartk and darkp in !$strong mode ====
 
 [ ($compiler == dartk || $compiler == dartkp) && !$strong ]
@@ -556,15 +564,24 @@ from_environment_const_type_undefined_test/12: MissingCompileTimeError
 from_environment_const_type_undefined_test/13: MissingCompileTimeError
 from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
+hash_set_test/01: RuntimeError
+hash_set_test/none: RuntimeError
 int_parse_radix_bad_handler_test: MissingCompileTimeError
+iterable_empty_test: RuntimeError
 iterable_fold_test/02: RuntimeError
-iterable_reduce_test/none: RuntimeError
+iterable_mapping_test/none: RuntimeError
 iterable_reduce_test/01: RuntimeError
+iterable_reduce_test/none: RuntimeError
 iterable_to_list_test/01: RuntimeError
 iterable_to_list_test/none: RuntimeError
+json_map_test: RuntimeError
 list_concurrent_modify_test: RuntimeError
 list_insert_all_test: RuntimeError
+list_replace_range_test: RuntimeError
+list_set_all_test: RuntimeError
+set_test: RuntimeError
 splay_tree_from_iterable_test: RuntimeError
+splay_tree_test/none: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
@@ -583,26 +600,6 @@ symbol_test/02: MissingCompileTimeError
 symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 unicode_test: RuntimeError
-
-[ $compiler == dartk && $strong ]
-hash_set_test/01: RuntimeError
-hash_set_test/none: RuntimeError
-iterable_empty_test: RuntimeError
-iterable_mapping_test/none: RuntimeError
-json_map_test: RuntimeError
-list_replace_range_test: RuntimeError
-list_set_all_test: RuntimeError
-set_test: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
-splay_tree_test/none: RuntimeError
-
-[ $compiler == dartkp && $strong ]
-iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-iterable_to_list_test/01: RuntimeError
-iterable_to_list_test/none: RuntimeError
-iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-map_keys2_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
-regexp/stack-overflow_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $strong && $mode == debug ]
 list_test/01: Crash
@@ -643,9 +640,15 @@ from_environment_const_type_undefined_test/14: MissingCompileTimeError
 from_environment_const_type_undefined_test/16: MissingCompileTimeError
 int_parse_radix_bad_handler_test: MissingCompileTimeError
 iterable_fold_test/02: RuntimeError
-iterable_reduce_test/none: RuntimeError
+iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
 iterable_reduce_test/01: RuntimeError
+iterable_reduce_test/none: RuntimeError
+iterable_to_list_test/01: RuntimeError
+iterable_to_list_test/none: RuntimeError
+iterable_to_set_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
 list_concurrent_modify_test: RuntimeError
+map_keys2_test: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
+regexp/stack-overflow_test: RuntimeError
 string_case_test/01: RuntimeError
 string_from_environment3_test/01: MissingCompileTimeError
 string_from_environment3_test/02: MissingCompileTimeError
@@ -671,6 +674,8 @@ integer_parsed_arith_vm_test/01: RuntimeError
 integer_parsed_arith_vm_test/02: RuntimeError
 list_test/01: Crash
 list_test/none: Crash
+
+# ===== end of dartkp + dart_precompiled status lines =====
 
 
 [ $compiler == dartdevk ]

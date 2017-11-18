@@ -5,8 +5,11 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 #
-# Note: these sections are processed by tools, keep sections alphabetized and do
-# not create new sections to share status lines.
+# Note: Sections in this file are normalized so we can update them with
+# automated tools. Please add any new status lines affecting those two compilers
+# in the existing sections, if possible keep the alphabetic ordering. If we are
+# missing a section you need, please reach out to sigmund@ to see the best way
+# to add them.
 
 # ===== Skip dartk and darkp in !$strong mode ====
 [ $compiler == dartk && !$strong ]
