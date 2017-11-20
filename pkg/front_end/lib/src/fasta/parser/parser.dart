@@ -4218,7 +4218,7 @@ class Parser {
       tokenLevel = type.precedence;
     }
     for (int level = tokenLevel; level >= precedence; --level) {
-      int lastBinaryExpressionLevel;
+      int lastBinaryExpressionLevel = -1;
       while (identical(tokenLevel, level)) {
         Token operator = token;
         if (identical(tokenLevel, CASCADE_PRECEDENCE)) {
@@ -4268,22 +4268,22 @@ class Parser {
         } else if (identical(type, TokenType.QUESTION)) {
           token = parseConditionalExpressionRest(token).next;
         } else {
-          if (lastBinaryExpressionLevel == level) {
+          if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
             // We don't allow (a == b == c) or (a < b < c).
-            // Report an error, then continue parsing as if it is legal.
-            reportRecoverableError(
-                token, fasta.messageEqualityCannotBeEqualityOperand);
+            if (lastBinaryExpressionLevel == level) {
+              // Report an error, then continue parsing as if it is legal.
+              reportRecoverableError(
+                  token, fasta.messageEqualityCannotBeEqualityOperand);
+            } else {
+              // Set a flag to catch subsequent binary expressions of this type.
+              lastBinaryExpressionLevel = level;
+            }
           }
           listener.beginBinaryExpression(token);
           // Left associative, so we recurse at the next higher
           // precedence level.
           token = parsePrecedenceExpression(token, level + 1, allowCascades);
           listener.endBinaryExpression(operator);
-          if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
-            // We don't allow (a == b == c) or (a < b < c).
-            // Set a flag to catch subsequent binary expressions of this type.
-            lastBinaryExpressionLevel = level;
-          }
         }
         type = token.type;
         tokenLevel = type.precedence;
