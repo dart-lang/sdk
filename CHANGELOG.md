@@ -16,6 +16,51 @@
 * `dart:async`
   * The `Zone` class was changed to be strong-mode clean. This required
     some breaking API changes. See https://goo.gl/y9mW2x for more information.
+  * Renamed `Zone.ROOT` to `Zone.root`.
+
+* `dart:core`
+  * The `Uri` class now correctly handles paths while running on Node.js on
+    Windows.
+  * Deprecated the `proxy` annotation.
+  * Renamed `double.INFINITY`, `double.NEGATIVE_INFINITY`, `double.NAN`,
+    `double.MAX_FINITE` and `double.MIN_POSITIVE`
+    to `double.infinity`, `double.negativeInfinity`, `double.nan`,
+    `double.maxFinite` and `double.minPositive`.
+  * Renamed the following constants in `DateTime` to lower case:
+    `MONDAY` through `SUNDAY`, `DAYS_PER_WEEK` (as `daysPerWeek`),
+    `JANUARY` through `DECEMBER` and `MONTHS_PER_YEAR` (as `monthsPerYear`).
+  * Renamed the following constants in `Duration` to lower case:
+    `MICROSECONDS_PER_MILLISECOND` to `microsecondsPerMillisecond`,
+    `MILLISECONDS_PER_SECOND` to `millisecondsPerSecond`,
+    `SECONDS_PER_MINUTE` to `secondsPerMinute`,
+    `MINUTES_PER_HOUR` to `minutesPerHour`,
+    `HOURS_PER_DAY` to `hoursPerDay`,
+    `MICROSECONDS_PER_SECOND` to `microsecondsPerSecond`,
+    `MICROSECONDS_PER_MINUTE` to `microsecondsPerMinute`,
+    `MICROSECONDS_PER_HOUR` to `microsecondsPerHour`,
+    `MICROSECONDS_PER_DAY` to `microsecondsPerDay`,
+    `MILLISECONDS_PER_MINUTE` to `millisecondsPerMinute`,
+    `MILLISECONDS_PER_HOUR` to `millisecondsPerHour`,
+    `MILLISECONDS_PER_DAY` to `millisecondsPerDay`,
+    `SECONDS_PER_HOUR` to `secondsPerHour`,
+    `SECONDS_PER_DAY` to `secondsPerDay`,
+    `MINUTES_PER_DAY` to `minutesPerDay`, and
+    `ZERO` to `zero`.
+
+* `dart:convert`
+  * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
+    some common cases for faster decoding.
+  * Renamed `ASCII`, `BASE64`, `BASE64URI`, `JSON`, `LATIN1` and `UTF8` to
+    `ascii`, `base64`, `base64Uri`, `json`, `latin1` and `utf8`.
+  * Renamed the `HtmlEscapeMode` constants `UNKNOWN`, `ATTRIBUTE`,
+    `SQ_ATTRIBUTE` and `ELEMENT` to `unknown`, `attribute`, `sqAttribute` and
+    `elements.
+
+* `dart:developer`
+  * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
+    parameter `flow` of type `Flow`. The `flow` parameter is used to generate
+    flow timeline events that are enclosed by the slice described by
+    `Timeline.{start,finish}Sync` and `Timeline.timeSync`.
 
 * `dart:io`
   * Unified backends for `SecureSocket`, `SecurityContext`, and
@@ -37,20 +82,17 @@
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
 
-* `dart:core`
-  * The `Uri` class now correctly handles paths while running on Node.js on
-    Windows.
-  * Deprecated the `proxy` annotation.
+* `dart.math`
+  * Renamed `E`, `LN10`, `LN`, `LOG2E`, `LOG10E`, `PI`, `SQRT1_2` and `SQRT2`
+    to `e`, `ln10`, `ln`, `log2e`, `log10e`, `pi`, `sqrt1_2` and `sqrt2`.
 
-* `dart:convert`
-  * `Utf8Decoder` when compiled with dart2js uses the browser's `TextDecoder` in
-    some common cases for faster decoding.
-
-* `dart:developer`
-  * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
-    parameter `flow` of type `Flow`. The `flow` parameter is used to generate
-    flow timeline events that are enclosed by the slice described by
-    `Timeline.{start,finish}Sync` and `Timeline.timeSync`.
+* `dart:typed_data`
+  * Renamed `BYTES_PER_ELEMENT` to `bytesPerElement` on all typed data lists.
+  * Renamed constants `XXXX` through `WWWW` on `Float32x4` and `Int32x4` to
+    lower-case `xxxx` through `wwww`.
+  * Renamed `Endinanness` to `Endian` and its constants from
+    `BIG_ENDIAN`, `LITTLE_ENDIAN` and `HOST_ENDIAN` to
+    `little`, `big` and `host`.
 
 ### Dart VM
 * Support for MIPS has been removed.
