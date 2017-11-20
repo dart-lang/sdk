@@ -598,18 +598,6 @@ class FunctionSerializationCluster : public SerializationCluster {
       s->Write<int16_t>(func->ptr()->num_fixed_parameters_);
       s->Write<int16_t>(func->ptr()->num_optional_parameters_);
       s->Write<uint32_t>(func->ptr()->kind_tag_);
-      if (kind == Snapshot::kFullAOT) {
-        // Omit fields used to support de/reoptimization.
-      } else if (!Snapshot::IncludesCode(kind)) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        bool is_optimized = Code::IsOptimized(func->ptr()->code_);
-        if (is_optimized) {
-          s->Write<int32_t>(FLAG_optimization_counter_threshold);
-        } else {
-          s->Write<int32_t>(0);
-        }
-#endif
-      }
     }
   }
 
@@ -650,6 +638,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       for (RawObject** p = to_snapshot + 1; p <= to; p++) {
         *p = Object::null();
       }
+
       if (kind == Snapshot::kFullAOT) {
         func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
       } else if (kind == Snapshot::kFullJIT) {
@@ -677,14 +666,11 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         // Omit fields used to support de/reoptimization.
       } else {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-        if (Snapshot::IncludesCode(kind)) {
-          func->ptr()->usage_counter_ = 0;
-        } else {
-          func->ptr()->usage_counter_ = d->Read<int32_t>();
-        }
-        func->ptr()->deoptimization_counter_ = 0;
+        func->ptr()->usage_counter_ = 0;
         func->ptr()->optimized_instruction_count_ = 0;
         func->ptr()->optimized_call_site_count_ = 0;
+        func->ptr()->deoptimization_counter_ = 0;
+        func->ptr()->state_bits_ = 0;
         func->ptr()->inlining_depth_ = 0;
 #endif
       }
@@ -711,20 +697,17 @@ class FunctionDeserializationCluster : public DeserializationCluster {
         func ^= refs.At(i);
         code ^= func.CurrentCode();
         if (func.HasCode() && !code.IsDisabled()) {
-          func.SetInstructions(code);
+          func.SetInstructions(code);  // Set entrypoint.
           func.SetWasCompiled(true);
         } else {
-          func.ClearCode();
-          func.SetWasCompiled(false);
+          func.ClearCode();  // Set code and entrypoint to lazy compile stub.
         }
       }
     } else {
       Function& func = Function::Handle(zone);
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
-        func.ClearICDataArray();
-        func.ClearCode();
-        func.SetWasCompiled(false);
+        func.ClearCode();  // Set code and entrypoint to lazy compile stub.
       }
     }
   }
