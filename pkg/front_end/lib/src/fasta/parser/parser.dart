@@ -377,21 +377,23 @@ class Parser {
     }
     Token next = token.next;
     if (next.isTopLevelKeyword) {
-      Token abstractToken;
+      Token beforeAbstractToken;
+      Token beforeModifier = start;
       Token modifier = start.next;
       while (modifier != next) {
         if (optional('abstract', modifier) &&
             optional('class', next) &&
-            abstractToken == null) {
-          abstractToken = modifier;
+            beforeAbstractToken == null) {
+          beforeAbstractToken = beforeModifier;
         } else {
           // Recovery
           reportTopLevelModifierError(modifier, next);
         }
+        beforeModifier = modifier;
         modifier = modifier.next;
       }
       return parseTopLevelKeywordDeclaration(
-          abstractToken, token, directiveState);
+          beforeAbstractToken, token, directiveState);
     } else if (next.isIdentifier || next.keyword != null) {
       // TODO(danrubel): improve parseTopLevelMember
       // so that we don't parse modifiers twice.
@@ -432,16 +434,14 @@ class Parser {
 
   /// Parse any top-level declaration that begins with a keyword.
   Token parseTopLevelKeywordDeclaration(
-      Token abstractToken, Token token, DirectiveContext directiveState) {
-    // TODO(brianwilkerson) Accept the token before `abstractToken` so that it
-    // can be passed to `parseClassOrNamedMixinApplication`.
+      Token beforeAbstractToken, Token token, DirectiveContext directiveState) {
     Token previous = token;
     token = token.next;
     assert(token.isTopLevelKeyword);
     final String value = token.stringValue;
     if (identical(value, 'class')) {
       directiveState?.checkDeclaration();
-      return parseClassOrNamedMixinApplication(abstractToken, previous);
+      return parseClassOrNamedMixinApplication(beforeAbstractToken, previous);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       return parseEnum(previous);
@@ -1379,14 +1379,13 @@ class Parser {
     return token;
   }
 
-  Token parseClassOrNamedMixinApplication(Token abstractToken, Token token) {
-    // TODO(brianwilkerson) Accept the token before `abstractToken` so that it
-    // can be passed to `parseModifier`.
+  Token parseClassOrNamedMixinApplication(
+      Token beforeAbstractToken, Token token) {
     token = token.next;
     listener.beginClassOrNamedMixinApplication(token);
-    Token begin = abstractToken ?? token;
-    if (abstractToken != null) {
-      token = parseModifier(abstractToken).next;
+    Token begin = beforeAbstractToken?.next ?? token;
+    if (beforeAbstractToken != null) {
+      token = parseModifier(beforeAbstractToken.next).next;
       listener.handleModifiers(1);
     } else {
       listener.handleModifiers(0);
@@ -1452,7 +1451,7 @@ class Parser {
     Token nativeToken;
     if (optional('native', token.next)) {
       nativeToken = token.next;
-      token = parseNativeClause(token.next);
+      token = parseNativeClause(token);
     }
     listener.handleClassHeader(begin, classKeyword, nativeToken);
     return token;
@@ -1595,7 +1594,7 @@ class Parser {
   }
 
   Token parseStringPart(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    token = token.next;
     if (token.kind != STRING_TOKEN) {
       token =
           reportUnrecoverableErrorWithToken(token, fasta.templateExpectedString)
@@ -3201,9 +3200,8 @@ class Parser {
   }
 
   Token parseNativeClause(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('native', token));
-    Token nativeToken = token;
+    Token nativeToken = token = token.next;
+    assert(optional('native', nativeToken));
     bool hasName = false;
     if (token.next.kind == STRING_TOKEN) {
       hasName = true;
@@ -3706,19 +3704,24 @@ class Parser {
   Token skipFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     // TODO(brianwilkerson) Return the last consumed token.
     assert(!isExpression);
-    token = skipAsyncModifier(token).next;
-    if (optional('native', token)) {
-      Token nativeToken = token;
+    token = skipAsyncModifier(token);
+    Token next = token.next;
+    if (optional('native', next)) {
+      Token nativeToken = next;
       // TODO(danrubel): skip the native clause rather than parsing it
       // or remove this code completely when we remove support
       // for the `native` clause.
-      token = parseNativeClause(token).next;
-      if (optional(';', token)) {
-        listener.handleNativeFunctionBodySkipped(nativeToken, token);
-        return token;
+      token = parseNativeClause(token);
+      next = token.next;
+      if (optional(';', next)) {
+        listener.handleNativeFunctionBodySkipped(nativeToken, next);
+        return token.next;
       }
+      token = next;
       listener.handleNativeFunctionBodyIgnored(nativeToken, token);
       // Fall through to recover and skip function body
+    } else {
+      token = next;
     }
     String value = token.stringValue;
     if (identical(value, ';')) {
@@ -3757,7 +3760,7 @@ class Parser {
     Token next = token.next;
     if (optional('native', next)) {
       Token nativeToken = next;
-      token = parseNativeClause(token.next);
+      token = parseNativeClause(token);
       next = token.next;
       if (optional(';', next)) {
         listener.handleNativeFunctionBody(nativeToken, next);
@@ -4830,14 +4833,13 @@ class Parser {
   /// ;
   /// ```
   Token parseLiteralString(Token token) {
-    token = token.next;
-    assert(identical(token.kind, STRING_TOKEN));
+    assert(identical(token.next.kind, STRING_TOKEN));
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
     token = parseSingleLiteralString(token);
     int count = 1;
     while (identical(token.next.kind, STRING_TOKEN)) {
-      token = parseSingleLiteralString(token.next);
+      token = parseSingleLiteralString(token);
       count++;
     }
     if (count > 1) {
@@ -4879,7 +4881,7 @@ class Parser {
   }
 
   Token parseSingleLiteralString(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    token = token.next;
     assert(identical(token.kind, STRING_TOKEN));
     listener.beginLiteralString(token);
     // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
@@ -4889,10 +4891,10 @@ class Parser {
       if (identical(kind, STRING_INTERPOLATION_TOKEN)) {
         // Parsing ${expression}.
         token = parseExpression(token.next.next).next;
-        token = expect('}', token);
+        expect('}', token);
       } else if (identical(kind, STRING_INTERPOLATION_IDENTIFIER_TOKEN)) {
         // Parsing $identifier.
-        token = parseIdentifierExpression(token.next).next;
+        token = parseIdentifierExpression(token.next);
       } else {
         break;
       }
@@ -5112,12 +5114,11 @@ class Parser {
 
   Token parseVariablesDeclarationMaybeSemicolonRest(
       Token token, bool endWithSemicolon) {
-    token = token.next;
     int count = 1;
-    listener.beginVariablesDeclaration(token);
+    listener.beginVariablesDeclaration(token.next);
     token = parseOptionallyInitializedIdentifier(token);
     while (optional(',', token.next)) {
-      token = parseOptionallyInitializedIdentifier(token.next.next);
+      token = parseOptionallyInitializedIdentifier(token.next);
       ++count;
     }
     if (endWithSemicolon) {
@@ -5131,9 +5132,8 @@ class Parser {
   }
 
   Token parseOptionallyInitializedIdentifier(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    Token nameToken =
-        ensureIdentifier(token, IdentifierContext.localVariableDeclaration);
+    Token nameToken = ensureIdentifier(
+        token.next, IdentifierContext.localVariableDeclaration);
     listener.beginInitializedIdentifier(nameToken);
     token = parseVariableInitializerOpt(nameToken);
     listener.endInitializedIdentifier(nameToken);

@@ -26,8 +26,10 @@ import 'parser_helper.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
-Node buildInitialization(String name) => parseBodyCode('$name = 1',
-    (parser, tokens) => parser.parseOptionallyInitializedIdentifier(tokens));
+Node buildInitialization(String name) => parseBodyCode(
+    '$name = 1',
+    (parser, tokens) => parser.parseOptionallyInitializedIdentifier(
+        parser.syntheticPreviousToken(tokens)));
 
 createLocals(List variables) {
   var locals = <Node>[];
