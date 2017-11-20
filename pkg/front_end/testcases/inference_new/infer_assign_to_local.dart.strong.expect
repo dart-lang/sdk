@@ -38,7 +38,7 @@ static method test() → void {
   local = local.{self::B::-}(1);
   self::B v1 = local = self::f<self::B>();
   self::B v2 = let final self::B #t1 = local in #t1.{core::Object::==}(null) ?{self::B} local = self::f<self::B>() : #t1;
-  self::B v3 = local = local.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+  self::A v3 = local = local.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
   self::B v4 = local = local.{self::B::*}(self::f<dynamic>());
   self::C v5 = local = local.{self::B::&}(self::f<dynamic>());
   self::B v6 = local = local.{self::B::-}(1);

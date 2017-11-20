@@ -9,11 +9,11 @@ class Test1 extends core::Object {
     ;
   static method test(self::Test1 t) → void {
     core::int v1 = let final self::Test1 #t1 = t in #t1.==(null) ?{core::int} null : #t1.{self::Test1::prop} = self::getInt();
-    core::int v2 = let final self::Test1 #t2 = t in #t2.==(null) ?{core::int} null : #t2.{self::Test1::prop} = self::getNum() as{TypeError} core::int;
+    core::num v2 = let final self::Test1 #t2 = t in #t2.==(null) ?{core::num} null : #t2.{self::Test1::prop} = self::getNum() as{TypeError} core::int;
     core::int v4 = let final self::Test1 #t3 = t in #t3.==(null) ?{core::int} null : let final core::int #t4 = #t3.{self::Test1::prop} in #t4.{core::num::==}(null) ?{core::int} #t3.{self::Test1::prop} = self::getInt() : #t4;
-    core::int v5 = let final self::Test1 #t5 = t in #t5.==(null) ?{core::int} null : let final core::int #t6 = #t5.{self::Test1::prop} in #t6.{core::num::==}(null) ?{core::int} #t5.{self::Test1::prop} = self::getNum() as{TypeError} core::int : #t6;
+    core::num v5 = let final self::Test1 #t5 = t in #t5.==(null) ?{core::num} null : let final core::int #t6 = #t5.{self::Test1::prop} in #t6.{core::num::==}(null) ?{core::num} #t5.{self::Test1::prop} = self::getNum() as{TypeError} core::int : #t6;
     core::int v7 = let final self::Test1 #t7 = t in #t7.==(null) ?{core::int} null : #t7.{self::Test1::prop} = #t7.{self::Test1::prop}.{core::num::+}(self::getInt());
-    core::int v8 = let final self::Test1 #t8 = t in #t8.==(null) ?{core::int} null : #t8.{self::Test1::prop} = #t8.{self::Test1::prop}.{core::num::+}(self::getNum()) as{TypeError} core::int;
+    core::num v8 = let final self::Test1 #t8 = t in #t8.==(null) ?{core::num} null : #t8.{self::Test1::prop} = #t8.{self::Test1::prop}.{core::num::+}(self::getNum()) as{TypeError} core::int;
     core::int v10 = let final self::Test1 #t9 = t in #t9.==(null) ?{core::int} null : #t9.{self::Test1::prop} = #t9.{self::Test1::prop}.{core::num::+}(1);
     core::int v11 = let final self::Test1 #t10 = t in #t10.==(null) ?{core::int} null : let final core::int #t11 = #t10.{self::Test1::prop} in let final core::int #t12 = #t10.{self::Test1::prop} = #t11.{core::num::+}(1) in #t11;
   }
@@ -43,9 +43,9 @@ class Test3 extends core::Object {
     : super core::Object::•()
     ;
   static method test3(self::Test3 t) → void {
-    core::double v2 = let final self::Test3 #t29 = t in #t29.==(null) ?{core::double} null : #t29.{self::Test3::prop} = self::getNum() as{TypeError} core::double;
+    core::num v2 = let final self::Test3 #t29 = t in #t29.==(null) ?{core::num} null : #t29.{self::Test3::prop} = self::getNum() as{TypeError} core::double;
     core::double v3 = let final self::Test3 #t30 = t in #t30.==(null) ?{core::double} null : #t30.{self::Test3::prop} = self::getDouble();
-    core::double v5 = let final self::Test3 #t31 = t in #t31.==(null) ?{core::double} null : let final core::double #t32 = #t31.{self::Test3::prop} in #t32.{core::num::==}(null) ?{core::double} #t31.{self::Test3::prop} = self::getNum() as{TypeError} core::double : #t32;
+    core::num v5 = let final self::Test3 #t31 = t in #t31.==(null) ?{core::num} null : let final core::double #t32 = #t31.{self::Test3::prop} in #t32.{core::num::==}(null) ?{core::num} #t31.{self::Test3::prop} = self::getNum() as{TypeError} core::double : #t32;
     core::double v6 = let final self::Test3 #t33 = t in #t33.==(null) ?{core::double} null : let final core::double #t34 = #t33.{self::Test3::prop} in #t34.{core::num::==}(null) ?{core::double} #t33.{self::Test3::prop} = self::getDouble() : #t34;
     core::double v7 = let final self::Test3 #t35 = t in #t35.==(null) ?{core::double} null : #t35.{self::Test3::prop} = #t35.{self::Test3::prop}.{core::double::+}(self::getInt());
     core::double v8 = let final self::Test3 #t36 = t in #t36.==(null) ?{core::double} null : #t36.{self::Test3::prop} = #t36.{self::Test3::prop}.{core::double::+}(self::getNum());

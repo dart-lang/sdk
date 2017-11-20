@@ -11,11 +11,11 @@ double getDouble() => 0.0;
 
 void test1(int t) {
   var /*@type=int*/ v1 = t = getInt();
-  var /*@type=int*/ v2 = t = getNum();
+  var /*@type=num*/ v2 = t = getNum();
   var /*@type=int*/ v4 = t ??= getInt();
-  var /*@type=int*/ v5 = t ??= getNum();
+  var /*@type=num*/ v5 = t ??= getNum();
   var /*@type=int*/ v7 = t += getInt();
-  var /*@type=int*/ v8 = t += getNum();
+  var /*@type=num*/ v8 = t += getNum();
   var /*@type=int*/ v10 = ++t;
   var /*@type=int*/ v11 = t++;
 }
@@ -35,9 +35,9 @@ void test2(num t) {
 }
 
 void test3(double t) {
-  var /*@type=double*/ v2 = t = getNum();
+  var /*@type=num*/ v2 = t = getNum();
   var /*@type=double*/ v3 = t = getDouble();
-  var /*@type=double*/ v5 = t ??= getNum();
+  var /*@type=num*/ v5 = t ??= getNum();
   var /*@type=double*/ v6 = t ??= getDouble();
   var /*@type=double*/ v7 = t += getInt();
   var /*@type=double*/ v8 = t += getNum();

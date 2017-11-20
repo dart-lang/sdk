@@ -339,6 +339,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// an implicit downcast if appropriate.
   Expression checkAssignability(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset) {
+    // We don't need to insert assignability checks when doing top level type
+    // inference since top level type inference only cares about the type that
+    // is inferred (the kernel code is discarded).
+    if (isTopLevel) return null;
+
     if (expectedType == null ||
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
       // Types are compatible.

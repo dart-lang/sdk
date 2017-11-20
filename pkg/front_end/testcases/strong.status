@@ -129,8 +129,13 @@ inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_vi
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail # Issue #25824
+inference_new/infer_assign_to_index_super_upwards: TypeCheckError # Issue #31417
+inference_new/infer_assign_to_index_this_upwards: TypeCheckError # Issue #31417
+inference_new/infer_assign_to_index_upwards: TypeCheckError # Issue #31417
+inference_new/infer_assign_to_property_custom: TypeCheckError # Issue #31417
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
+inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError # Issue #31417
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail

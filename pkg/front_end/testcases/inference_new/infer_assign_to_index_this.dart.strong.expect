@@ -47,7 +47,7 @@ class Test extends core::Object {
     let final dynamic #t10 = self::f<dynamic>() in this.{self::Test::[]=}(#t10, this.{self::Test::[]}(#t10).{self::B::-}(1));
     self::B v1 = let final dynamic #t11 = self::f<dynamic>() in let final self::B #t12 = self::f<self::B>() in let final void #t13 = this.{self::Test::[]=}(#t11, #t12) in #t12;
     self::B v2 = let final dynamic #t14 = self::f<dynamic>() in let final self::B #t15 = this.{self::Test::[]}(#t14) in #t15.{core::Object::==}(null) ?{self::B} let final self::B #t16 = self::f<self::B>() in let final void #t17 = this.{self::Test::[]=}(#t14, #t16) in #t16 : #t15;
-    self::B v3 = let final dynamic #t18 = self::f<dynamic>() in let final self::B #t19 = this.{self::Test::[]}(#t18).{self::B::+}(self::f<dynamic>()) as{TypeError} self::B in let final void #t20 = this.{self::Test::[]=}(#t18, #t19) in #t19;
+    self::A v3 = let final dynamic #t18 = self::f<dynamic>() in let final self::A #t19 = this.{self::Test::[]}(#t18).{self::B::+}(self::f<dynamic>()) as{TypeError} self::B in let final void #t20 = this.{self::Test::[]=}(#t18, #t19) in #t19;
     self::B v4 = let final dynamic #t21 = self::f<dynamic>() in let final self::B #t22 = this.{self::Test::[]}(#t21).{self::B::*}(self::f<dynamic>()) in let final void #t23 = this.{self::Test::[]=}(#t21, #t22) in #t22;
     self::C v5 = let final dynamic #t24 = self::f<dynamic>() in let final self::C #t25 = this.{self::Test::[]}(#t24).{self::B::&}(self::f<dynamic>()) in let final void #t26 = this.{self::Test::[]=}(#t24, #t25) in #t25;
     self::B v6 = let final dynamic #t27 = self::f<dynamic>() in let final self::B #t28 = this.{self::Test::[]}(#t27).{self::B::-}(1) in let final void #t29 = this.{self::Test::[]=}(#t27, #t28) in #t28;

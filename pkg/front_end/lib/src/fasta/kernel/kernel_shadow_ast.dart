@@ -451,7 +451,6 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       var replacedCombiner2 = inferrer.checkAssignability(
           writeContext, combinedType, replacedCombiner, writeOffset);
       if (replacedCombiner2 != null) {
-        combinedType = writeContext;
         replacedCombiner = replacedCombiner2;
       }
       _storeLetType(inferrer, replacedCombiner, combinedType);
@@ -459,9 +458,6 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
       var rhsType = inferrer.inferExpression(rhs, writeContext, true);
       var replacedRhs =
           inferrer.checkAssignability(writeContext, rhsType, rhs, writeOffset);
-      if (replacedRhs != null) {
-        rhsType = writeContext;
-      }
       _storeLetType(inferrer, replacedRhs ?? rhs, rhsType);
       if (nullAwareCombiner != null) {
         MethodInvocation equalsInvocation = nullAwareCombiner.condition;
@@ -541,10 +537,8 @@ class ShadowConditionalExpression extends ConditionalExpression
     var expectedType = inferrer.coreTypes.boolClass.rawType;
     var conditionType =
         inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
-    if (!inferrer.isTopLevel) {
-      inferrer.checkAssignability(
-          expectedType, conditionType, condition, condition.fileOffset);
-    }
+    inferrer.checkAssignability(
+        expectedType, conditionType, condition, condition.fileOffset);
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
     bool useLub = _forceLub || typeContext == null;
     DartType otherwiseType =
@@ -2244,7 +2238,7 @@ class ShadowVariableDeclaration extends VariableDeclaration
           'type', new InstrumentationValueForType(inferredType));
       type = inferredType;
     }
-    if (initializer != null && !inferrer.isTopLevel) {
+    if (initializer != null) {
       var replacedInitializer = inferrer.checkAssignability(
           type, initializerType, initializer, fileOffset);
       if (replacedInitializer != null) {

@@ -35,7 +35,7 @@ class Test extends Base {
         super. /*@target=Base::member*/ member = /*@typeArgs=B*/ f();
     var /*@type=B*/ v2 =
         super. /*@target=Base::member*/ member ??= /*@typeArgs=B*/ f();
-    var /*@type=B*/ v3 =
+    var /*@type=A*/ v3 =
         super. /*@target=Base::member*/ member += /*@typeArgs=dynamic*/ f();
     var /*@type=B*/ v4 =
         super. /*@target=Base::member*/ member *= /*@typeArgs=dynamic*/ f();

@@ -17,8 +17,8 @@ class B extends core::Object {
     : super core::Object::•()
     ;
 }
-static field self::A v_prefix_pp = let final self::B #t1 = new self::B::•() in #t1.{self::B::a} = #t1.{self::B::a}.{self::A::+}(1) as{TypeError} self::A;
-static field self::A v_prefix_mm = let final self::B #t2 = new self::B::•() in #t2.{self::B::a} = #t2.{self::B::a}.{self::A::-}(1) as{TypeError} self::A;
-static field self::A v_postfix_pp = let final self::B #t3 = new self::B::•() in let final self::A #t4 = #t3.{self::B::a} in let final self::A #t5 = #t3.{self::B::a} = #t4.{self::A::+}(1) as{TypeError} self::A in #t4;
-static field self::A v_postfix_mm = let final self::B #t6 = new self::B::•() in let final self::A #t7 = #t6.{self::B::a} in let final self::A #t8 = #t6.{self::B::a} = #t7.{self::A::-}(1) as{TypeError} self::A in #t7;
+static field core::int v_prefix_pp = let final self::B #t1 = new self::B::•() in #t1.{self::B::a} = #t1.{self::B::a}.{self::A::+}(1) as{TypeError} self::A;
+static field core::double v_prefix_mm = let final self::B #t2 = new self::B::•() in #t2.{self::B::a} = #t2.{self::B::a}.{self::A::-}(1) as{TypeError} self::A;
+static field self::A v_postfix_pp = let final self::B #t3 = new self::B::•() in let final self::A #t4 = #t3.{self::B::a} in let final core::int #t5 = #t3.{self::B::a} = #t4.{self::A::+}(1) as{TypeError} self::A in #t4;
+static field self::A v_postfix_mm = let final self::B #t6 = new self::B::•() in let final self::A #t7 = #t6.{self::B::a} in let final core::double #t8 = #t6.{self::B::a} = #t7.{self::A::-}(1) as{TypeError} self::A in #t7;
 static method main() → dynamic {}

@@ -33,7 +33,7 @@ class Test extends core::Object {
   static method test(self::Test t) → void {
     let final self::Test #t1 = t in #t1.==(null) ?{self::B} null : #t1.{self::Test::member} = self::f<self::B>();
     let final self::Test #t2 = t in #t2.==(null) ?{self::B} null : #t2.{self::Test::member}.{core::Object::==}(null) ?{self::B} #t2.{self::Test::member} = self::f<self::B>() : null;
-    let final self::Test #t3 = t in #t3.==(null) ?{self::B} null : #t3.{self::Test::member} = #t3.{self::Test::member}.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+    let final self::Test #t3 = t in #t3.==(null) ?{self::A} null : #t3.{self::Test::member} = #t3.{self::Test::member}.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
     let final self::Test #t4 = t in #t4.==(null) ?{self::B} null : #t4.{self::Test::member} = #t4.{self::Test::member}.{self::B::*}(self::f<dynamic>());
     let final self::Test #t5 = t in #t5.==(null) ?{self::C} null : #t5.{self::Test::member} = #t5.{self::Test::member}.{self::B::&}(self::f<dynamic>());
     let final self::Test #t6 = t in #t6.==(null) ?{self::B} null : #t6.{self::Test::member} = #t6.{self::Test::member}.{self::B::-}(1);

@@ -40,7 +40,7 @@ class Test extends core::Object {
     this.{self::Test::member} = this.{self::Test::member}.{self::B::-}(1);
     self::B v1 = this.{self::Test::member} = self::f<self::B>();
     self::B v2 = let final self::B #t1 = this.{self::Test::member} in #t1.{core::Object::==}(null) ?{self::B} this.{self::Test::member} = self::f<self::B>() : #t1;
-    self::B v3 = this.{self::Test::member} = this.{self::Test::member}.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
+    self::A v3 = this.{self::Test::member} = this.{self::Test::member}.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
     self::B v4 = this.{self::Test::member} = this.{self::Test::member}.{self::B::*}(self::f<dynamic>());
     self::C v5 = this.{self::Test::member} = this.{self::Test::member}.{self::B::&}(self::f<dynamic>());
     self::B v6 = this.{self::Test::member} = this.{self::Test::member}.{self::B::-}(1);

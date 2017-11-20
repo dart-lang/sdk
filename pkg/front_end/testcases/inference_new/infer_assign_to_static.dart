@@ -32,7 +32,7 @@ void test_topLevelVariable() {
   topLevelVariable--;
   var /*@type=B*/ v1 = topLevelVariable = /*@typeArgs=B*/ f();
   var /*@type=B*/ v2 = topLevelVariable ??= /*@typeArgs=B*/ f();
-  var /*@type=B*/ v3 = topLevelVariable += /*@typeArgs=dynamic*/ f();
+  var /*@type=A*/ v3 = topLevelVariable += /*@typeArgs=dynamic*/ f();
   var /*@type=B*/ v4 = topLevelVariable *= /*@typeArgs=dynamic*/ f();
   var /*@type=C*/ v5 = topLevelVariable &= /*@typeArgs=dynamic*/ f();
   var /*@type=B*/ v6 = --topLevelVariable;
@@ -49,7 +49,7 @@ void test_staticVariable() {
   B.staticVariable--;
   var /*@type=B*/ v1 = B.staticVariable = /*@typeArgs=B*/ f();
   var /*@type=B*/ v2 = B.staticVariable ??= /*@typeArgs=B*/ f();
-  var /*@type=B*/ v3 = B.staticVariable += /*@typeArgs=dynamic*/ f();
+  var /*@type=A*/ v3 = B.staticVariable += /*@typeArgs=dynamic*/ f();
   var /*@type=B*/ v4 = B.staticVariable *= /*@typeArgs=dynamic*/ f();
   var /*@type=C*/ v5 = B.staticVariable &= /*@typeArgs=dynamic*/ f();
   var /*@type=B*/ v6 = --B.staticVariable;

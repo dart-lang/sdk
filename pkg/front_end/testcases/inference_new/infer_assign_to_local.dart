@@ -29,7 +29,7 @@ void test() {
   local--;
   var /*@type=B*/ v1 = local = /*@typeArgs=B*/ f();
   var /*@type=B*/ v2 = local ??= /*@typeArgs=B*/ f();
-  var /*@type=B*/ v3 = local += /*@typeArgs=dynamic*/ f();
+  var /*@type=A*/ v3 = local += /*@typeArgs=dynamic*/ f();
   var /*@type=B*/ v4 = local *= /*@typeArgs=dynamic*/ f();
   var /*@type=C*/ v5 = local &= /*@typeArgs=dynamic*/ f();
   var /*@type=B*/ v6 = --local;
