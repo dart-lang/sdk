@@ -561,7 +561,7 @@ static method bar() → core::int {
           same(bLibrary.procedures[0].reference));
     }
 
-    // Update b.dart and b.dart, and recompile c.dart
+    // Update a.dart and b.dart, and recompile c.dart
     writeFile(aPath, r'''
 int foo() {
   return 3;
@@ -814,6 +814,106 @@ static method /* from org-dartlang-test:///test/lib/b.dart */ bar() → core::in
           same(aLibrary.procedures[0].reference));
       expect((cLibrary.fields[1].initializer as StaticGet).targetReference,
           same(aLibrary.procedures[1].reference));
+    }
+  }
+
+  test_computeDelta_updateBody_updateApi() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    Uri aUri = writeFile(aPath, r'''
+int foo() {
+  return 1;
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
+import 'a.dart';
+var f = foo;
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(bUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 1;
+}
+''');
+      // b.dart uses references to a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+    }
+
+    // Update a body in a.dart and compile it.
+    writeFile(aPath, r'''
+int foo() {
+  return 2;
+}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
+      _assertCompiledUris([aUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 2;
+}
+''');
+      // b.dart uses references to the new a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+    }
+
+    // Compile a.dart and b.dart
+    writeFile(aPath, r'''
+int foo() {
+  return 2;
+}
+int bar() {
+  return 3;
+}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
+      _assertCompiledUris([aUri, bUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 2;
+}
+static method bar() → core::int {
+  return 3;
+}
+''');
+      // b.dart uses references to the new a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
     }
   }
 
