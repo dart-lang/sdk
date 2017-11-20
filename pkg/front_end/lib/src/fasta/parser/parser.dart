@@ -3525,13 +3525,12 @@ class Parser {
   }
 
   Token parseFunctionExpression(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token beginToken = token.next;
     listener.beginFunctionExpression(beginToken);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Local);
     token = parseAsyncOptBody(token, true, false);
     listener.endFunctionExpression(beginToken, token.next);
-    return token.next;
+    return token;
   }
 
   /// Parses the rest of a named function declaration starting from its [name]
@@ -3624,7 +3623,7 @@ class Parser {
   Token skipFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     // TODO(brianwilkerson) Return the last consumed token.
     assert(!isExpression);
-    token = skipAsyncModifier(token);
+    token = skipAsyncModifier(token).next;
     if (optional('native', token)) {
       Token nativeToken = token;
       // TODO(danrubel): skip the native clause rather than parsing it
@@ -3748,7 +3747,6 @@ class Parser {
   }
 
   Token skipAsyncModifier(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     String value = token.next.stringValue;
     if (identical(value, 'async')) {
       token = token.next;
@@ -3765,7 +3763,7 @@ class Parser {
         token = token.next;
       }
     }
-    return token.next;
+    return token;
   }
 
   Token parseAsyncModifier(Token token) {
@@ -4368,7 +4366,7 @@ class Parser {
       } else if (identical(value, "new")) {
         return parseNewExpression(token).next;
       } else if (identical(value, "const")) {
-        return parseConstExpression(token);
+        return parseConstExpression(token).next;
       } else if (identical(value, "void")) {
         return parseSendOrFunctionLiteral(token, context).next;
       } else if (!inPlainSync &&
@@ -4382,7 +4380,7 @@ class Parser {
         // Fall through to the recovery code.
       }
     } else if (kind == OPEN_PAREN_TOKEN) {
-      return parseParenthesizedExpressionOrFunctionLiteral(token);
+      return parseParenthesizedExpressionOrFunctionLiteral(token).next;
     } else if (kind == OPEN_SQUARE_BRACKET_TOKEN ||
         optional('[]', token.next)) {
       listener.handleNoTypeArguments(token.next);
@@ -4391,7 +4389,7 @@ class Parser {
       listener.handleNoTypeArguments(token.next);
       return parseLiteralMapSuffix(token, null).next;
     } else if (kind == LT_TOKEN) {
-      return parseLiteralListOrMapOrFunction(token, null);
+      return parseLiteralListOrMapOrFunction(token, null).next;
     } else {
       // Fall through to the recovery code.
     }
@@ -4414,7 +4412,6 @@ class Parser {
   }
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token next = token.next;
     assert(optional('(', next));
     Token nextToken = closeBraceTokenFor(next).next;
@@ -4432,7 +4429,7 @@ class Parser {
       mayParseFunctionExpressions = true;
       token = parseParenthesizedExpression(token);
       mayParseFunctionExpressions = old;
-      return token.next;
+      return token;
     }
   }
 
@@ -4568,7 +4565,6 @@ class Parser {
   /// This is a suffix parser because it is assumed that type arguments have
   /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
   Token parseLiteralFunctionSuffix(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token next = token.next;
     assert(optional('(', next));
     Token closeBrace = closeBraceTokenFor(next);
@@ -4583,7 +4579,7 @@ class Parser {
       }
       // Fall through.
     }
-    return reportUnexpectedToken(next).next;
+    return reportUnexpectedToken(next);
   }
 
   /// genericListLiteral | genericMapLiteral | genericFunctionLiteral.
@@ -4596,7 +4592,6 @@ class Parser {
   ///       typeParameters formalParameterList functionBody
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
   Token parseLiteralListOrMapOrFunction(Token token, Token constKeyword) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token next = token.next;
     assert(optional('<', next));
     Token closeBrace = closeBraceTokenFor(next);
@@ -4609,11 +4604,11 @@ class Parser {
       token = parseTypeArgumentsOpt(token);
       Token next = token.next;
       if (optional('{', next)) {
-        return parseLiteralMapSuffix(token, constKeyword).next;
+        return parseLiteralMapSuffix(token, constKeyword);
       } else if ((optional('[', next)) || (optional('[]', next))) {
-        return parseLiteralListSuffix(token, constKeyword).next;
+        return parseLiteralListSuffix(token, constKeyword);
       }
-      return reportUnexpectedToken(token.next).next;
+      return reportUnexpectedToken(token.next);
     }
   }
 
@@ -4687,7 +4682,6 @@ class Parser {
   /// ;
   /// ```
   Token parseConstExpression(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token constKeyword = token.next;
     assert(optional('const', constKeyword));
     // TODO(brianwilkerson) Remove the invocation of `previous` when
@@ -4700,26 +4694,26 @@ class Parser {
       listener.handleNoTypeArguments(next);
       token = parseLiteralListSuffix(token, constKeyword);
       listener.endConstLiteral(token.next);
-      return token.next;
+      return token;
     }
     if (identical(value, '{')) {
       listener.beginConstLiteral(next);
       listener.handleNoTypeArguments(next);
       token = parseLiteralMapSuffix(token, constKeyword);
       listener.endConstLiteral(token.next);
-      return token.next;
+      return token;
     }
     if (identical(value, '<')) {
       listener.beginConstLiteral(next);
       token = parseLiteralListOrMapOrFunction(token, constKeyword);
-      listener.endConstLiteral(token);
+      listener.endConstLiteral(token.next);
       return token;
     }
     listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(token.next);
     token = parseRequiredArguments(token);
     listener.endConstExpression(constKeyword);
-    return token.next;
+    return token;
   }
 
   /// ```
