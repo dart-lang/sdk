@@ -34,7 +34,7 @@ export 'parser/util.dart' show closeBraceTokenFor, optional;
 
 List<ParserError> parse(Token tokens) {
   Listener listener = new Listener();
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener, false);
   parser.parseUnit(tokens);
   return listener.recoverableErrors;
 }

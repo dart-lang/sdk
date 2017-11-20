@@ -134,7 +134,10 @@ class SourceLoader<L> extends Loader<L> {
     }
 
     byteCount += bytes.length - 1;
-    ScannerResult result = scan(bytes, includeComments: includeComments);
+    bool enableGenericComments = target.strongMode;
+    ScannerResult result = scan(bytes,
+        includeComments: includeComments || enableGenericComments,
+        scanGenericMethodComments: enableGenericComments);
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
@@ -166,7 +169,7 @@ class SourceLoader<L> extends Loader<L> {
     Token tokens = await tokenize(library);
     if (tokens == null) return;
     OutlineBuilder listener = new OutlineBuilder(library);
-    new ClassMemberParser(listener).parseUnit(tokens);
+    new ClassMemberParser(listener, target.strongMode).parseUnit(tokens);
   }
 
   Future<Null> buildBody(LibraryBuilder library) async {
@@ -177,7 +180,7 @@ class SourceLoader<L> extends Loader<L> {
       Token tokens = await tokenize(library, suppressLexicalErrors: true);
       if (tokens == null) return;
       DietListener listener = createDietListener(library);
-      DietParser parser = new DietParser(listener);
+      DietParser parser = new DietParser(listener, target.strongMode);
       parser.parseUnit(tokens);
       for (SourceLibraryBuilder part in library.parts) {
         Token tokens = await tokenize(part);

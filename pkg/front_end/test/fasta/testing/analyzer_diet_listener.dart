@@ -177,7 +177,7 @@ class AnalyzerDietListener extends DietListener {
     // At this point the analyzer AST has been built, but it doesn't contain
     // resolution data or inferred types.  Run the body builder and gather
     // this information.
-    Parser parser = new Parser(_bodyBuilder);
+    Parser parser = new Parser(_bodyBuilder, library.loader.target.strongMode);
     List bodyBuilderMetadataConstants;
     if (metadata != null) {
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
@@ -216,7 +216,7 @@ class AnalyzerDietListener extends DietListener {
     // At this point the analyzer AST has been built, but it doesn't contain
     // resolution data or inferred types.  Run the body builder and gather
     // this information.
-    Parser parser = new Parser(_bodyBuilder);
+    Parser parser = new Parser(_bodyBuilder, library.loader.target.strongMode);
     if (isTopLevel) {
       // There's a slight asymmetry between [parseTopLevelMember] and
       // [parseMember] because the former doesn't call `parseMetadataStar`.

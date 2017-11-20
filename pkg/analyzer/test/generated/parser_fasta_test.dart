@@ -2099,8 +2099,9 @@ class FastaParserTestCase extends Object
 
   @override
   void createParser(String content, {int expectedEndOffset}) {
-    var scanner = new StringScanner(content, includeComments: true);
-    scanner.scanGenericMethodComments = enableGenericMethodComments;
+    var scanner = new StringScanner(content,
+        includeComments: true,
+        scanGenericMethodComments: enableGenericMethodComments);
     _fastaTokens = scanner.tokenize();
     _parserProxy = new ParserProxy(_fastaTokens,
         allowNativeClause: allowNativeClause,

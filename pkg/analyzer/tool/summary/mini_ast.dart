@@ -484,7 +484,7 @@ class MiniAstBuilder extends StackListener {
 
 /// Parser intended for use with [MiniAstBuilder].
 class MiniAstParser extends Parser {
-  MiniAstParser(MiniAstBuilder listener) : super(listener);
+  MiniAstParser(MiniAstBuilder listener) : super(listener, false);
 
   Token parseArgumentsOpt(Token token) {
     MiniAstBuilder listener = this.listener;

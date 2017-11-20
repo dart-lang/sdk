@@ -46,7 +46,7 @@ abstract class AbstractScanner implements Scanner {
    * A flag indicating whether to parse generic method comments, of the form
    * `/*=T*/` and `/*<T>*/`.  The flag [includeComments] must be set to `true`.
    */
-  bool scanGenericMethodComments = false;
+  final bool scanGenericMethodComments;
 
   /**
    * The string offset for the next token that will be created.

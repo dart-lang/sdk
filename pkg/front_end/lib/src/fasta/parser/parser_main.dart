@@ -47,6 +47,6 @@ mainEntryPoint(List<String> arguments) async {
 }
 
 void outLine(Uri uri) {
-  new TopLevelParser(new DebugListener())
+  new TopLevelParser(new DebugListener(), false)
       .parseUnit(scan(readBytesFromFileSync(uri)).tokens);
 }

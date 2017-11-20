@@ -106,7 +106,7 @@ class _WalkerNode extends Node<_WalkerNode> {
     var scannerResults = scanString(contents);
     // TODO(paulberry): report errors.
     var listener = new DirectiveListener();
-    new TopLevelParser(listener).parseUnit(scannerResults.tokens);
+    new TopLevelParser(listener, false).parseUnit(scannerResults.tokens);
     bool coreUriFound = false;
     void handleDependency(Uri referencedUri) {
       _WalkerNode dependencyNode = walker.nodeForUri(referencedUri);

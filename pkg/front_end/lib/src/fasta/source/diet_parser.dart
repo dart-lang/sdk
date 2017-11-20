@@ -13,7 +13,8 @@ import '../parser.dart'
 
 // TODO(ahe): Move this to parser package.
 class DietParser extends ClassMemberParser {
-  DietParser(Listener listener) : super(listener);
+  DietParser(Listener listener, bool parseGenericMethodComments)
+      : super(listener, parseGenericMethodComments);
 
   Token parseFormalParameters(Token token, MemberKind kind) {
     return skipFormals(token, kind);

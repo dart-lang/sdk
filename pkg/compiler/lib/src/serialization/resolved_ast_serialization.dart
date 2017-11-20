@@ -405,7 +405,7 @@ class ResolvedAstDeserializer {
               parsing.getScannerOptionsFor(element), reporter, null);
           listener.memberErrors = listener.memberErrors.prepend(false);
           try {
-            Parser parser = new Parser(listener);
+            Parser parser = new Parser(listener, false);
             parse(parser);
           } on ParserError catch (e) {
             reporter.internalError(element, '$e');

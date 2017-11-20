@@ -4,6 +4,9 @@
 
 library fasta.parser.parser;
 
+import 'package:front_end/src/fasta/scanner/string_scanner.dart'
+    show SubStringScanner;
+
 import '../fasta_codes.dart' show Message, Template;
 
 import '../fasta_codes.dart' as fasta;
@@ -17,6 +20,7 @@ import '../../scanner/token.dart'
         ASSIGNMENT_PRECEDENCE,
         BeginToken,
         CASCADE_PRECEDENCE,
+        CommentToken,
         EQUALITY_PRECEDENCE,
         Keyword,
         POSTFIX_PRECEDENCE,
@@ -244,6 +248,8 @@ import 'util.dart' show closeBraceTokenFor, optional;
 /// would handle such errors in later phases. We hope that these cases will go
 /// away as Fasta matures.
 class Parser {
+  final bool parseGenericMethodComments;
+
   Listener listener;
 
   Uri get uri => listener.uri;
@@ -264,7 +270,7 @@ class Parser {
     return cachedRewriter;
   }
 
-  Parser(this.listener);
+  Parser(this.listener, this.parseGenericMethodComments);
 
   bool get inGenerator {
     return asyncState == AsyncModifier.AsyncStar ||
@@ -849,6 +855,60 @@ class Parser {
     return token;
   }
 
+  /// Scans the given [code], and returns the tokens, otherwise returns `null`.
+  Token _scanGenericMethodComment(String code, int offset) {
+    var scanner = new SubStringScanner(offset, code);
+    Token firstToken = scanner.tokenize();
+    if (scanner.hasErrors) {
+      return null;
+    }
+    return firstToken;
+  }
+
+  void _injectTokenList(Token beforeToken, Token firstToken) {
+    // Scanner creates a cyclic EOF token.
+    Token lastToken = firstToken;
+    while (lastToken.next.type != TokenType.EOF) {
+      lastToken = lastToken.next;
+    }
+    // Inject these new tokens into the stream.
+    Token previous = beforeToken.previous;
+    lastToken.setNext(beforeToken);
+    previous.setNext(firstToken);
+    beforeToken = firstToken;
+  }
+
+  /// Check if the given [token] has a comment token with the given [type],
+  /// which should be either [TokenType.GENERIC_METHOD_TYPE_ASSIGN] or
+  /// [TokenType.GENERIC_METHOD_TYPE_LIST].  If found, parse the comment
+  /// into tokens and inject into the token stream before the [token].
+  Token _injectGenericComment(Token token, TokenType type, int prefixLen) {
+    if (parseGenericMethodComments) {
+      CommentToken t = token.precedingComments;
+      for (; t != null; t = t.next) {
+        if (t.type == type) {
+          String code = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
+          Token tokens = _scanGenericMethodComment(code, t.offset + prefixLen);
+          if (tokens != null) {
+            // Remove the token from the comment stream.
+            t.remove();
+            // Insert the tokens into the stream.
+            _injectTokenList(token, tokens);
+            return tokens;
+          }
+        }
+      }
+    }
+    return token;
+  }
+
+  /// Matches a generic comment type substitution and injects it into the token
+  /// stream before the given [token].
+  Token _injectGenericCommentTypeAssign(Token token) {
+    return _injectGenericComment(
+        token, TokenType.GENERIC_METHOD_TYPE_ASSIGN, 3);
+  }
+
   /// ```
   /// metadata:
   ///   annotation*
@@ -856,11 +916,11 @@ class Parser {
   /// ```
   Token parseMetadataStar(Token token) {
     // TODO(brianwilkerson): Either remove the invocation of `previous` by
-    // making `injectGenericCommentTypeAssign` accept and return the last
+    // making `_injectGenericCommentTypeAssign` accept and return the last
     // consumed token, or remove the invocation of
-    // `injectGenericCommentTypeAssign` by invoking it outside this method where
+    // `_injectGenericCommentTypeAssign` by invoking it outside this method where
     // invoking it is necessary.
-    token = listener.injectGenericCommentTypeAssign(token.next).previous;
+    token = _injectGenericCommentTypeAssign(token.next).previous;
     listener.beginMetadataStar(token.next);
     int count = 0;
     while (optional('@', token.next)) {
@@ -1872,6 +1932,29 @@ class Parser {
         (optional('<', token.next) || optional('(', token.next));
   }
 
+  /// Matches a generic comment type variables or type arguments and injects
+  /// them into the token stream before the given [token].
+  Token _injectGenericCommentTypeList(Token token) {
+    return _injectGenericComment(token, TokenType.GENERIC_METHOD_TYPE_LIST, 2);
+  }
+
+  /// If the [tokenWithComment] has a type substitution comment /*=T*/, then
+  /// the comment should be scanned into new tokens, and these tokens inserted
+  /// instead of tokens from the [tokenToStartReplacing] to the
+  /// [tokenWithComment]. Returns the first newly inserted token, or the
+  /// original [tokenWithComment].
+  Token _replaceTokenWithGenericCommentTypeAssign(
+      Token tokenToStartReplacing, Token tokenWithComment) {
+    Token injected = _injectGenericCommentTypeAssign(tokenWithComment);
+    if (!identical(injected, tokenWithComment)) {
+      Token prev = tokenToStartReplacing.previous;
+      prev.setNextWithoutSettingPrevious(injected);
+      tokenToStartReplacing = injected;
+      tokenToStartReplacing.previous = prev;
+    }
+    return tokenToStartReplacing;
+  }
+
   /// Parse a type, if it is appropriate to do so.
   ///
   /// If this method can parse a type, it will return the next (non-null) token
@@ -1922,11 +2005,11 @@ class Parser {
         // analyze the tokens following the const keyword.
         assert(optional("const", token));
         begin = token;
-        token = listener.injectGenericCommentTypeAssign(token.next);
+        token = _injectGenericCommentTypeAssign(token.next);
         assert(begin.next == token);
       } else {
         // Modify [begin] in case generic type are injected from a comment.
-        begin = token = listener.injectGenericCommentTypeAssign(token);
+        begin = token = _injectGenericCommentTypeAssign(token);
       }
 
       if (optional("void", token)) {
@@ -2016,7 +2099,7 @@ class Parser {
 
       {
         Token newBegin =
-            listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
+            _replaceTokenWithGenericCommentTypeAssign(begin, token);
         if (!identical(newBegin, begin)) {
           listener.discardTypeReplacedWithCommentTypeAssign();
           return parseType(newBegin);
@@ -2368,8 +2451,8 @@ class Parser {
         }
 
         // TODO(brianwilkerson): Remove the invocation of `previous` when
-        // `injectGenericCommentTypeList` returns the last consumed token.
-        Token previous = listener.injectGenericCommentTypeList(token).previous;
+        // `_injectGenericCommentTypeList` returns the last consumed token.
+        Token previous = _injectGenericCommentTypeList(token).previous;
         token = previous.next;
 
         Token inlineFunctionTypeStart;
@@ -2482,8 +2565,8 @@ class Parser {
       Function endStuff, Function handleNoStuff) {
     // TODO(brianwilkerson): Rename to `parseStuffOpt`?
     // TODO(brianwilkerson): Remove the invocation of `previous` when
-    // `injectGenericCommentTypeList` returns the last consumed token.
-    token = listener.injectGenericCommentTypeList(token.next).previous;
+    // `_injectGenericCommentTypeList` returns the last consumed token.
+    token = _injectGenericCommentTypeList(token.next).previous;
     Token next = token.next;
     if (optional('<', next)) {
       token = next;
@@ -2785,7 +2868,7 @@ class Parser {
       } else if (isGetter) {
         hasName = true;
       }
-      token = listener.injectGenericCommentTypeAssign(token);
+      token = _injectGenericCommentTypeAssign(token);
       identifiers = identifiers.prepend(token);
 
       if (!isGeneralizedFunctionType(token)) {
@@ -2815,8 +2898,8 @@ class Parser {
           // /*=T*/, then the previous type tokens and the reference to them
           // from the link should be replaced.
           {
-            Token newType = listener.replaceTokenWithGenericCommentTypeAssign(
-                type, token.next);
+            Token newType =
+                _replaceTokenWithGenericCommentTypeAssign(type, token.next);
             if (!identical(newType, type)) {
               identifiers = identifiers.tail;
               token = newType;
@@ -4318,10 +4401,10 @@ class Parser {
         token = token.next;
       } else if (optional('(', token)) {
         if (typeArguments == null) {
-          token = listener.injectGenericCommentTypeList(token);
+          token = _injectGenericCommentTypeList(token);
           if (isValidMethodTypeArguments(token)) {
             // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // `injectGenericCommentTypeList` (invoked above) returns the last
+            // `_injectGenericCommentTypeList` (invoked above) returns the last
             // consumed token.
             token = parseTypeArgumentsOpt(token.previous).next;
           } else {
@@ -4340,8 +4423,8 @@ class Parser {
 
   Token parsePrimary(Token token, IdentifierContext context) {
     // TODO(brianwilkerson): Remove the invocation of `previous` when
-    // `injectGenericCommentTypeList` returns the last consumed token.
-    token = listener.injectGenericCommentTypeList(token.next).previous;
+    // `_injectGenericCommentTypeList` returns the last consumed token.
+    token = _injectGenericCommentTypeList(token.next).previous;
     final kind = token.next.kind;
     if (kind == IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token, context);
@@ -4685,8 +4768,8 @@ class Parser {
     Token constKeyword = token.next;
     assert(optional('const', constKeyword));
     // TODO(brianwilkerson) Remove the invocation of `previous` when
-    // `injectGenericCommentTypeList` returns the last consumed token.
-    token = listener.injectGenericCommentTypeList(constKeyword.next).previous;
+    // `_injectGenericCommentTypeList` returns the last consumed token.
+    token = _injectGenericCommentTypeList(constKeyword.next).previous;
     Token next = token.next;
     final String value = next.stringValue;
     if ((identical(value, '[')) || (identical(value, '[]'))) {
@@ -4861,8 +4944,8 @@ class Parser {
     // TODO(brianwilkerson) Accept the last consumed token.
     Token beginToken = ensureIdentifier(token, context);
     // TODO(brianwilkerson): Remove the invocation of `previous` when
-    // `injectGenericCommentTypeList` returns the last consumed token.
-    token = listener.injectGenericCommentTypeList(beginToken.next).previous;
+    // `_injectGenericCommentTypeList` returns the last consumed token.
+    token = _injectGenericCommentTypeList(beginToken.next).previous;
     if (isValidMethodTypeArguments(token.next)) {
       token = parseTypeArgumentsOpt(token);
     } else {
@@ -5016,11 +5099,11 @@ class Parser {
     // something other than `var`, such as in `Object /*=T*/ v;`?
     if (optional('var', token.next)) {
       // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `replaceTokenWithGenericCommentTypeAssign` returns the last consumed
+      // `_replaceTokenWithGenericCommentTypeAssign` returns the last consumed
       // token.
-      token = listener
-          .replaceTokenWithGenericCommentTypeAssign(token.next, token.next.next)
-          .previous;
+      token =
+          _replaceTokenWithGenericCommentTypeAssign(token.next, token.next.next)
+              .previous;
     }
 
     token = parseModifiers(token, MemberKind.Local, isVarAllowed: true);

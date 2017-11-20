@@ -42,7 +42,7 @@ abstract class ParserAdapter implements Parser {
   ParserAdapter(this.currentToken, ErrorReporter errorReporter,
       KernelLibraryBuilder library, Builder member, Scope scope,
       {bool allowNativeClause: false, bool enableGenericMethodComments: false})
-      : fastaParser = new fasta.Parser(null),
+      : fastaParser = new fasta.Parser(null, enableGenericMethodComments),
         astBuilder =
             new AstBuilder(errorReporter, library, member, scope, true) {
     fastaParser.listener = astBuilder;

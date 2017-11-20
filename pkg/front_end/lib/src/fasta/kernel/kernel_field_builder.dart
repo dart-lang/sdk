@@ -110,7 +110,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
             isInstanceMember,
             library.fileUri,
             typeInferrer);
-        Parser parser = new Parser(bodyBuilder);
+        Parser parser =
+            new Parser(bodyBuilder, library.loader.target.strongMode);
         Token token = parser.parseExpression(initializerTokenForInference).next;
         Expression expression = bodyBuilder.popForValue();
         bodyBuilder.checkEmpty(token.charOffset);
