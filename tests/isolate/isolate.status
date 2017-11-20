@@ -21,9 +21,6 @@ kill3_test: Pass, Fail    # Bad test: expects total message order
 
 message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
 
-[ $runtime == vm && $compiler == app_jit && $mode == debug ]
-compile_time_error_test/none: Crash # Issue 31376
-
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 compile_time_error_test/none: Pass, Slow
 

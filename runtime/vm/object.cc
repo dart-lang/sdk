@@ -17292,7 +17292,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
 
 #if defined(DEBUG)
 bool Type::CheckIsCanonical(Thread* thread) const {
-  if (IsMalformed()) {
+  if (IsMalformed() || IsRecursive()) {
     return true;
   }
   if (type_class() == Object::dynamic_class()) {

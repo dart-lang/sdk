@@ -12,7 +12,6 @@
 #include "vm/pages.h"
 #include "vm/scavenger.h"
 #include "vm/spaces.h"
-#include "vm/verifier.h"
 #include "vm/weak_table.h"
 
 namespace dart {

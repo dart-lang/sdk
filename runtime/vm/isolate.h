@@ -22,6 +22,7 @@
 #include "vm/thread.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
+#include "vm/verifier.h"
 
 namespace dart {
 
@@ -183,9 +184,14 @@ class Isolate : public BaseIsolate {
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
   void RegisterClassAt(intptr_t index, const Class& cls);
+#if defined(DEBUG)
   void ValidateClassTable();
+#endif
 
   void RehashConstants();
+#if defined(DEBUG)
+  void ValidateConstants();
+#endif
 
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor);

@@ -176,9 +176,11 @@ void Isolate::RegisterClassAt(intptr_t index, const Class& cls) {
   class_table()->RegisterAt(index, cls);
 }
 
+#if defined(DEBUG)
 void Isolate::ValidateClassTable() {
   class_table()->Validate();
 }
+#endif  // DEBUG
 
 void Isolate::RehashConstants() {
   StackZone stack_zone(Thread::Current());
@@ -200,6 +202,26 @@ void Isolate::RehashConstants() {
     cls.RehashConstants(zone);
   }
 }
+
+#if defined(DEBUG)
+void Isolate::ValidateConstants() {
+  if (FLAG_precompiled_mode) {
+    // TODO(27003)
+    return;
+  }
+  if (HasAttemptedReload()) {
+    return;
+  }
+  // Verify that all canonical instances are correctly setup in the
+  // corresponding canonical tables.
+  StopBackgroundCompiler();
+  heap()->CollectAllGarbage();
+  Thread* thread = Thread::Current();
+  HeapIterationScope iteration(thread);
+  VerifyCanonicalVisitor check_canonical(thread);
+  iteration.IterateObjects(&check_canonical);
+}
+#endif  // DEBUG
 
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   const Array& msg = Array::Handle(Array::New(3));
@@ -1560,18 +1582,9 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
-// TODO(27003): Enable for precompiled.
-#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
-    if (!isolate->HasAttemptedReload()) {
-      // For this verification we need to stop the background compiler earlier.
-      // This would otherwise happen in Dart::ShowdownIsolate.
-      isolate->StopBackgroundCompiler();
-      isolate->heap()->CollectAllGarbage();
-      HeapIterationScope iteration(thread);
-      VerifyCanonicalVisitor check_canonical(thread);
-      iteration.IterateObjects(&check_canonical);
-    }
-#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DEBUG)
+    isolate->ValidateConstants();
+#endif  // defined(DEBUG)
     const Error& error = Error::Handle(thread->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());

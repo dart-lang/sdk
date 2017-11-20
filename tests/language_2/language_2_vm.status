@@ -1065,9 +1065,6 @@ vm/causal_async_exception_stack_test: RuntimeError
 vm/causal_async_exception_stack2_test: RuntimeError
 vm/math_vm_test: Crash
 
-[ $runtime == vm && $compiler == app_jit && $mode == debug ]
-issue23244_test: Crash # Issue 31376
-
 [ $runtime == vm && $compiler == app_jit ]
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK

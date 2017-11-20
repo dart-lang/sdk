@@ -5633,9 +5633,9 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
   ASSERT(object_store != NULL);
 
 #if defined(DEBUG)
-  // Ensure the class table is valid.
   isolate()->ValidateClassTable();
-#endif
+  isolate()->ValidateConstants();
+#endif  // DEBUG
   // Can't have any mutation happening while we're serializing.
   ASSERT(isolate()->background_compiler() == NULL);
 
