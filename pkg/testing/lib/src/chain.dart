@@ -181,7 +181,7 @@ abstract class ChainContext {
         } else {
           future = new Future.value(null);
         }
-        future = future.then((_currentResult) {
+        future = future.then((_currentResult) async {
           Result currentResult = _currentResult;
           if (currentResult != null) {
             logStepComplete(completed, unexpectedResults.length,
@@ -192,6 +192,7 @@ abstract class ChainContext {
               return doStep(result.output);
             }
           }
+          await cleanUp(description, result);
           result =
               processTestResult(description, result, lastStep == lastStepRun);
           if (!expectedOutcomes.contains(result.outcome) &&
@@ -286,6 +287,8 @@ abstract class ChainContext {
     }
     return result.copyWithOutcome(outcome);
   }
+
+  void cleanUp(TestDescription description, Result result) {}
 }
 
 abstract class Step<I, O, C extends ChainContext> {
