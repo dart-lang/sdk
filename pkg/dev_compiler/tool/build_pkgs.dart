@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:front_end/compilation_message.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/summary_generator.dart';
@@ -12,6 +13,14 @@ import 'package:dev_compiler/src/kernel/target.dart';
 
 final String scriptDirectory = p.dirname(p.fromUri(Platform.script));
 
+final String repoDirectory = p.normalize(p.join(scriptDirectory, "../../../"));
+
+/// Path to the SDK analyzer summary file, "ddc_sdk.sum".
+String analyzerSummary;
+
+/// Path to the SDK kernel summary file, "ddc_sdk.dill".
+String kernelSummary;
+
 /// The directory that output is written to.
 ///
 /// The DDC kernel SDK should be directly in this directory. The resulting
@@ -21,24 +30,46 @@ String outputDirectory;
 String get pkgDirectory => p.join(outputDirectory, "pkg");
 
 /// Compiles the packages that the DDC tests use to JS into the given output
-/// directory. Usage:
+/// directory.
 ///
-///     dart build_pkgs.dart <output_dir> [travis]
-///
-/// If "travis" is passed, builds the all of the modules tested on Travis.
+/// If "--travis" is passed, builds the all of the modules tested on Travis.
 /// Otherwise, only builds the modules needed by the tests.
+///
+/// If "--analyzer-sdk" is provided, uses that summary file and compiles the
+/// packages to JS and analyzer summaries against that SDK summary. Otherwise,
+/// it skips generating analyzer summaries and compiling to JS.
+///
+/// If "--kernel-sdk" is provided, uses that summary file and generates kernel
+/// summaries for the test packages against that SDK summary. Otherwise, skips
+/// generating kernel summaries.
 Future main(List<String> arguments) async {
-  var isTravis = arguments.isNotEmpty && arguments.last == "travis";
-  if (isTravis) {
-    arguments = arguments.sublist(0, arguments.length - 1);
+  var argParser = new ArgParser();
+  argParser.addOption("analyzer-sdk",
+      help: "Path to SDK analyzer summary '.sum' file");
+  argParser.addOption("kernel-sdk",
+      help: "Path to SDK Kernel summary '.dill' file");
+  argParser.addOption("output",
+      abbr: "o", help: "Directory to write output to.");
+  argParser.addFlag("travis",
+      help: "Build the additional packages tested on Travis.");
+
+  ArgResults argResults;
+  try {
+    argResults = argParser.parse(arguments);
+  } on ArgParserException catch (ex) {
+    _usageError(argParser, ex.message);
   }
 
-  if (arguments.length != 1) {
-    print("Usage: dart build_pkgs.dart <output_dir> [travis]");
-    exit(1);
+  if (argResults.rest.isNotEmpty) {
+    _usageError(
+        argParser, 'Unexpected arguments "${argResults.rest.join(' ')}".');
   }
 
-  outputDirectory = arguments[0];
+  var isTravis = argResults["travis"];
+  analyzerSummary = argResults["analyzer-sdk"];
+  kernelSummary = argResults["kernel-sdk"];
+  outputDirectory = argResults["output"];
+
   new Directory(pkgDirectory).createSync(recursive: true);
 
   // Build leaf packages. These have no other package dependencies.
@@ -89,18 +120,32 @@ Future main(List<String> arguments) async {
   }
 }
 
+void _usageError(ArgParser parser, [String message]) {
+  if (message != null) {
+    stderr.writeln(message);
+    stderr.writeln();
+  }
+
+  stderr.writeln("Usage: dart build_pkgs.dart ...");
+  stderr.writeln();
+  stderr.writeln(parser.usage);
+  exit(1);
+}
+
 /// Compiles a [module] with a single matching ".dart" library and additional
 /// [libs] and [deps] on other modules.
 Future compileModule(String module,
     {List<String> libs, List<String> deps}) async {
-  compileModuleUsingAnalyzer(module, libs, deps);
-  await compileKernelSummary(module, libs, deps);
+  if (analyzerSummary != null) compileModuleUsingAnalyzer(module, libs, deps);
+  if (kernelSummary != null) await compileKernelSummary(module, libs, deps);
 }
 
 void compileModuleUsingAnalyzer(
     String module, List<String> libraries, List<String> dependencies) {
-  var sdkSummary = p.join(scriptDirectory, "../lib/sdk/ddc_sdk.sum");
-  var args = ['--dart-sdk-summary=$sdkSummary', '-o${pkgDirectory}/$module.js'];
+  var args = [
+    '--dart-sdk-summary=$analyzerSummary',
+    '-o${pkgDirectory}/$module.js'
+  ];
 
   // There is always a library that matches the module.
   args.add('package:$module/$module.dart');
@@ -140,10 +185,8 @@ Future compileKernelSummary(
     if (error.severity == Severity.error) succeeded = false;
   }
 
-  var sdk = p.toUri(p.join(outputDirectory, "ddc_sdk.dill"));
-  print(sdk);
   var options = new CompilerOptions()
-    ..sdkSummary = sdk
+    ..sdkSummary = p.toUri(kernelSummary)
     ..packagesFileUri = _uriInRepo(".packages")
     ..strongMode = true
     ..debugDump = true

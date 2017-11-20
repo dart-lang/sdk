@@ -27,7 +27,15 @@ if [ -d gen/codegen_output ]; then
   rm -r gen/codegen_output || fail
 fi
 
-./tool/build_pkgs.dart gen/codegen_output/pkg
+# Build the SDK summary in a place where the tests can find it if it's not
+# already there.
+if [ ! -e gen/sdk/ddc_sdk.sum ]; then
+  ./tool/build_sdk.sh
+fi
+
+./tool/build_pkgs.dart \
+    --analyzer-sdk=gen/sdk/ddc_sdk.sum \
+    --output=gen/codegen_output/pkg
 
 # Make sure we don't run tests in code coverage mode.
 # this will cause us to generate files that are not part of the baseline

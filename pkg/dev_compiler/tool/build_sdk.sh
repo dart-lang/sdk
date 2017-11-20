@@ -19,18 +19,18 @@ echo "*** Compiling SDK to JavaScript"
   dart -c tool/build_sdk.dart \
       --dart-sdk gen/patched_sdk \
       --dart-sdk-summary=build \
-      --summary-out lib/sdk/ddc_sdk.sum \
+      --summary-out gen/sdk/ddc_sdk.sum \
       --source-map \
       --source-map-comment \
       --inline-source-map \
       --modules=amd \
-      -o lib/js/amd/dart_sdk.js \
+      -o gen/sdk/amd/dart_sdk.js \
       --modules=es6 \
-      -o lib/js/es6/dart_sdk.js \
+      -o gen/sdk/es6/dart_sdk.js \
       --modules=common \
-      -o lib/js/common/dart_sdk.js \
+      -o gen/sdk/common/dart_sdk.js \
       --modules=legacy \
-      -o lib/js/legacy/dart_sdk.js \
+      -o gen/sdk/legacy/dart_sdk.js \
       "$@" > tool/sdk_expected_errors.txt
 } || { # Catch
   # Show errors if the sdk didn't compile.

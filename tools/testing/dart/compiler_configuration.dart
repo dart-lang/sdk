@@ -402,11 +402,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var moduleRoot =
         new Path(outputFile).directoryPath.directoryPath.toNativePath();
 
+    var sdkSummary = new Path(_configuration.buildDirectory)
+        .append("/gen/utils/dartdevc/ddc_sdk.sum")
+        .absolute
+        .toNativePath();
+
     var args = _useSdk
         ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
-        // TODO(jmesserly): once we can build DDC's SDK summary+JS as part of
-        // the main build, change this to reflect that output path.
-        : ["--dart-sdk-summary", "pkg/dev_compiler/lib/sdk/ddc_sdk.sum"];
+        : ["--dart-sdk-summary", sdkSummary];
 
     args.addAll(sharedOptions);
     args.addAll([

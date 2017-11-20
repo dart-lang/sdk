@@ -69,7 +69,7 @@ String dartdevcHtml(String testName, String testJSDir, String buildDir) {
 var require = {
   baseUrl: "/root_dart/$testJSDir",
   paths: {
-    "dart_sdk": "/root_dart/pkg/dev_compiler/lib/js/amd/dart_sdk",
+    "dart_sdk": "/root_build/gen/utils/dartdevc/js/amd/dart_sdk",
 $packagePaths
   },
   waitSeconds: 30,

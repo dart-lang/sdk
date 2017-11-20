@@ -2,16 +2,21 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/prebuilt_dart_sdk.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
+patched_sdk_dir = "$target_gen_dir/patched_sdk"
+sdk_summary = "$target_gen_dir/ddc_sdk.sum"
+
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
+
   training_args = [
     "--dart-sdk",
     rebase_path("../../sdk"),
     "--dart-sdk-summary",
-    rebase_path("../../pkg/dev_compiler/lib/sdk/ddc_sdk.sum"),
+    rebase_path(sdk_summary),
     "--library-root",
     rebase_path("../../pkg/dev_compiler"),
     "-o",
@@ -19,12 +24,18 @@ application_snapshot("dartdevc") {
     "--unsafe-force-compile",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
   ]
+
+  deps = [
+    ":dartdevc_sdk",
+  ]
+
   inputs = exec_script("../../tools/list_dart_files.py",
                        [
                          "absolute",
                          rebase_path("../../pkg/dev_compiler/bin"),
                        ],
                        "list lines")
+  inputs += [ sdk_summary ]
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -87,10 +98,158 @@ dart2js_compile("stack_trace_mapper") {
   out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
 }
 
+# Apply dev_compiler's patch files to create the Dart version of the dartdevc
+# SDK.
+action("dartdevc_patch_sdk") {
+  # TODO(rnystrom): Unfork DDC's patch_sdk.dart script with the
+  # tools/patch_sdk.dart and then change this to use generate_patch_sdk().
+  deps = [
+    ":dartdevc_files_stamp",
+
+    # The patch script uses several packages, including analyzer, so consider
+    # it dirty if any of those change.
+    "../../pkg:pkg_files_stamp",
+  ]
+
+  if (!prebuilt_dart_exe_works) {
+    deps += [ "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
+  }
+
+  script = "../../tools/patch_sdk.py"
+
+  # We list the `patch_sdk.dart` tool here because the [script] (which is
+  # implicitly an input) will call it.
+  inputs = [
+    "../../pkg/dev_compiler/tool/patch_sdk.dart",
+  ]
+
+  # The main SDK library sources.
+  inputs += sdk_lib_files
+
+  # dev_compiler's additional sources and patch files.
+  inputs += exec_script("../../tools/list_dart_files.py",
+                        [
+                          "absolute",
+                          rebase_path("../../pkg/dev_compiler/tool/input_sdk"),
+                        ],
+                        "list lines")
+
+  # Arbitrarily use the version file as a token file to check against to see if
+  # the sources have changed.
+  # TODO(rnystrom): List the outputs more precisely?
+  outputs = [
+    "$patched_sdk_dir/version",
+  ]
+
+  args = []
+  if (!prebuilt_dart_exe_works) {
+    dart_out_dir = get_label_info(
+            "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
+            "root_out_dir")
+    dart_bootstrap =
+        rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
+    args += [
+      "--dart-executable",
+      dart_bootstrap,
+    ]
+  }
+
+  args += [
+  "--script",
+    rebase_path("../../pkg/dev_compiler/tool/patch_sdk.dart"),
+    rebase_path("../../"),
+    rebase_path("../../pkg/dev_compiler/tool/input_sdk"),
+    rebase_path(patched_sdk_dir),
+  ]
+}
+
+# Compiles the Dart core libraries and DDC runtime to an analyzer summary and
+# JS.
+action("dartdevc_sdk") {
+  deps = [
+    ":dartdevc_files_stamp",
+    ":dartdevc_patch_sdk",
+    "../../pkg:pkg_files_stamp",
+  ]
+
+  if (!prebuilt_dart_exe_works) {
+    deps += [ "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
+  }
+
+  script = "../../tools/run_dart.py"
+
+  args = []
+  if (!prebuilt_dart_exe_works) {
+    dart_out_dir = get_label_info(
+            "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
+            "root_out_dir")
+    dart_bootstrap =
+        rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
+    args += [
+      "--dart",
+      dart_bootstrap,
+    ]
+  }
+
+  args = [
+    rebase_path("../../pkg/dev_compiler/tool/build_sdk.dart"),
+    "--dart-sdk",
+    rebase_path(patched_sdk_dir),
+    "--dart-sdk-summary=build",
+    "--summary-out",
+    rebase_path(sdk_summary),
+    "--source-map",
+    "--source-map-comment",
+    "--inline-source-map",
+    "--modules=amd",
+    "-o",
+    rebase_path("$target_gen_dir/js/amd/dart_sdk.js"),
+    "--modules=es6",
+    "-o",
+    rebase_path("$target_gen_dir/js/es6/dart_sdk.js"),
+    "--modules=common",
+    "-o",
+    rebase_path("$target_gen_dir/js/common/dart_sdk.js"),
+    "--modules=legacy",
+    "-o",
+    rebase_path("$target_gen_dir/js/legacy/dart_sdk.js"),
+  ]
+
+  inputs = [
+    "../../pkg/dev_compiler/tool/build_sdk.dart",
+
+    # Since the entire patched SDK is built in one step, if any file changes,
+    # they all will. Instead of listing them all as outputs of
+    # dartdevc_patch_sdk (which would require something like a depfile), just
+    # use version as the token file whose timestamp we track.
+    # TODO(rnystrom): Do something better?
+    "$patched_sdk_dir/version",
+
+    # If dev_compiler itself changes, it can affect the generated SDK.
+    "$target_gen_dir/dartdevc_files.stamp",
+
+    # Likewise, the packages dev_compiler depends on may affect its output.
+    "$root_gen_dir/pkg_files.stamp",
+  ]
+
+  outputs = [
+    sdk_summary,
+    "$target_gen_dir/js/amd/dart_sdk.js",
+    "$target_gen_dir/js/amd/dart_sdk.js.map",
+    "$target_gen_dir/js/common/dart_sdk.js",
+    "$target_gen_dir/js/common/dart_sdk.js.map",
+    "$target_gen_dir/js/es6/dart_sdk.js",
+    "$target_gen_dir/js/es6/dart_sdk.js.map",
+    "$target_gen_dir/js/legacy/dart_sdk.js",
+    "$target_gen_dir/js/legacy/dart_sdk.js.map",
+  ]
+}
+
 # Builds everything needed to run dartdevc and dartdevk tests using test.dart.
 group("dartdevc_test") {
   deps = [
     ":dartdevc",
+    ":dartdevc_sdk",
     ":dartdevc_sdk_kernel_summary",
     ":dartdevc_test_pkg",
     "../../sdk:create_sdk",
@@ -108,13 +267,15 @@ compiled_action("dartdevc_test_pkg") {
   tool = "../../runtime/bin:dart"
 
   deps = [
-    ":dartdevc_sdk_kernel_summary",
     ":dartdevc_files_stamp",
-    "../../pkg:pkg_files_stamp"
+    ":dartdevc_sdk",
+    ":dartdevc_sdk_kernel_summary",
+    "../../pkg:pkg_files_stamp",
   ]
 
   inputs = [
     "$target_gen_dir/ddc_sdk.dill",
+    sdk_summary,
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
   ]
@@ -154,6 +315,11 @@ compiled_action("dartdevc_test_pkg") {
 
   args = [
     rebase_path("../../pkg/dev_compiler/tool/build_pkgs.dart"),
+    "--analyzer-sdk",
+    rebase_path(sdk_summary),
+    "--kernel-sdk",
+    rebase_path("$target_gen_dir/ddc_sdk.dill"),
+    "--output",
     rebase_path("$target_gen_dir"),
   ]
 }

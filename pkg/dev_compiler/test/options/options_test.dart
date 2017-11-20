@@ -18,7 +18,7 @@ import '../testing.dart' show repoDirectory, testDirectory;
 final optionsDir = path.join(testDirectory, 'options');
 
 /// Summary file for testing.
-final sdkSummaryFile = path.join(repoDirectory, 'lib', 'sdk', 'ddc_sdk.sum');
+final sdkSummaryFile = path.join(repoDirectory, 'gen', 'sdk', 'ddc_sdk.sum');
 
 final sdkSummaryArgs = ['--$sdkSummaryPathOption', sdkSummaryFile];
 

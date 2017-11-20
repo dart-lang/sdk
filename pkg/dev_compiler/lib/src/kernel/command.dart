@@ -45,7 +45,7 @@ Future<bool> compile(List<String> args) async {
       (argResults['summary'] as List<String>).map(Uri.parse).toList();
 
   var sdkSummaryPath = argResults['dart-sdk-summary'] ??
-      path.absolute(ddcPath, 'lib', 'sdk', 'ddc_sdk.dill');
+      path.absolute(ddcPath, 'gen', 'sdk', 'ddc_sdk.dill');
 
   var succeeded = true;
   void errorHandler(CompilationMessage error) {

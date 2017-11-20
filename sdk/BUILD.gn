@@ -253,19 +253,6 @@ copy_tree_specs += [ {
       ignore_patterns = "{}"
     } ]
 
-# This rule copies js needed by ddc to lib/dev_compiler
-copy_tree_specs += [ {
-      target = "copy_dev_compiler_js"
-      visibility = [
-        ":copy_dev_compiler_sdk",
-        ":copy_dev_compiler_require_js",
-        ":copy_dev_compiler_tools",
-      ]
-      source = "../pkg/dev_compiler/lib/js"
-      dest = "$root_out_dir/dart-sdk/lib/dev_compiler"
-      ignore_patterns = "{}"
-    } ]
-
 # This rule copies pub assets to lib/_internal/pub/asset
 copy_tree_specs += [ {
       target = "copy_pub_assets"
@@ -525,11 +512,11 @@ copy("copy_dill_files") {
     "../utils/compiler:compile_dart2js_platform",
   ]
   sources = [
+    "$root_out_dir/dart2js_platform.dill",
     "$root_out_dir/vm_outline.dill",
     "$root_out_dir/vm_outline_strong.dill",
     "$root_out_dir/vm_platform.dill",
     "$root_out_dir/vm_platform_strong.dill",
-    "$root_out_dir/dart2js_platform.dill",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
@@ -541,26 +528,90 @@ copy("copy_dev_compiler_summary") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
+    "../utils/dartdevc:dartdevc_sdk",
   ]
   sources = [
-    "../pkg/dev_compiler/lib/sdk/ddc_sdk.sum",
+    "$root_out_dir/gen/utils/dartdevc/ddc_sdk.sum",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
   ]
 }
 
-# This rule copies require.js to lib/dev_compiler/amd
-copy("copy_dev_compiler_require_js") {
-  visibility = [ ":copy_dev_compiler_sdk" ]
+# This rule copies DDC's JS SDK and require.js to lib/dev_compiler/amd.
+copy("copy_dev_compiler_js_amd") {
+  visibility = [ ":copy_dev_compiler_js" ]
   deps = [
-    ":copy_dev_compiler_js",
+    "../utils/dartdevc:dartdevc_sdk",
   ]
   sources = [
+    "$root_gen_dir/utils/dartdevc/js/amd/dart_sdk.js",
+    "$root_gen_dir/utils/dartdevc/js/amd/dart_sdk.js.map",
     "../third_party/requirejs/require.js",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/dev_compiler/amd/{{source_file_part}}",
+  ]
+}
+
+# This rule copies DDC's JS SDK and run.js to lib/dev_compiler/common.
+copy("copy_dev_compiler_js_common") {
+  visibility = [ ":copy_dev_compiler_js" ]
+  deps = [
+    "../utils/dartdevc:dartdevc_sdk",
+  ]
+  sources = [
+    "$root_gen_dir/utils/dartdevc/js/common/dart_sdk.js",
+    "$root_gen_dir/utils/dartdevc/js/common/dart_sdk.js.map",
+    "../pkg/dev_compiler/lib/js/common/run.js",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/dev_compiler/common/{{source_file_part}}",
+  ]
+}
+
+# This rule copies DDC's JS SDK to lib/dev_compiler/es6.
+copy("copy_dev_compiler_js_es6") {
+  visibility = [ ":copy_dev_compiler_js" ]
+  deps = [
+    "../utils/dartdevc:dartdevc_sdk",
+  ]
+  sources = [
+    "$root_gen_dir/utils/dartdevc/js/es6/dart_sdk.js",
+    "$root_gen_dir/utils/dartdevc/js/es6/dart_sdk.js.map",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/dev_compiler/es6/{{source_file_part}}",
+  ]
+}
+
+# This rule copies DDC's JS SDK and dart_library.js to lib/dev_compiler/legacy.
+copy("copy_dev_compiler_js_legacy") {
+  visibility = [ ":copy_dev_compiler_js" ]
+  deps = [
+    "../utils/dartdevc:dartdevc_sdk",
+  ]
+  sources = [
+    "$root_gen_dir/utils/dartdevc/js/legacy/dart_sdk.js",
+    "$root_gen_dir/utils/dartdevc/js/legacy/dart_sdk.js.map",
+    "../pkg/dev_compiler/lib/js/legacy/dart_library.js",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/dev_compiler/legacy/{{source_file_part}}",
+  ]
+}
+
+# Copies all of the JS artifacts needed by DDC.
+group("copy_dev_compiler_js") {
+  visibility = [
+    ":copy_dev_compiler_sdk",
+    ":copy_dev_compiler_tools",
+  ]
+  deps = [
+    ":copy_dev_compiler_js_amd",
+    ":copy_dev_compiler_js_common",
+    ":copy_dev_compiler_js_es6",
+    ":copy_dev_compiler_js_legacy",
   ]
 }
 
@@ -587,7 +638,6 @@ group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
   deps = [
     ":copy_dev_compiler_js",
-    ":copy_dev_compiler_require_js",
     ":copy_dev_compiler_summary",
     ":copy_dev_compiler_tools",
   ]
@@ -659,7 +709,9 @@ group("copy_libraries") {
 # This rule writes the version file.
 action("write_version_file") {
   visibility = [ ":create_common_sdk" ]
-  inputs = [ "../tools/VERSION" ]
+  inputs = [
+    "../tools/VERSION",
+  ]
   output = "$root_out_dir/dart-sdk/version"
   outputs = [
     output,
@@ -747,13 +799,13 @@ group("create_common_sdk") {
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdoc_files",
+    ":copy_dill_files",
     ":copy_headers",
     ":copy_libraries_dart",
     ":copy_license",
     ":copy_platform_files",
     ":copy_pub_assets",
     ":copy_readme",
-    ":copy_dill_files",
     ":write_revision_file",
     ":write_version_file",
   ]

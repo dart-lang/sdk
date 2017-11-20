@@ -32,6 +32,9 @@ def BuildArguments():
   result.add_argument("--dart-executable",
                       help="dart executable",
                       default=None)
+  result.add_argument("--script",
+                      help="patch script to run",
+                      default=None)
   return result
 
 def main():
@@ -47,7 +50,12 @@ def main():
   else:
     print >> sys.stderr, 'ERROR: cannot locate dart executable'
     return -1
-  dart_file = os.path.join(os.path.dirname(__file__), 'patch_sdk.dart')
+
+  if options.script is not None:
+    dart_file = options.script
+  else:
+    dart_file = os.path.join(os.path.dirname(__file__), 'patch_sdk.dart')
+
   subprocess.check_call([options.dart_executable, dart_file] + args)
   return 0
 

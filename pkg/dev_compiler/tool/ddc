@@ -6,25 +6,35 @@
 #
 # Saves the output in the same directory as the sources for convenient
 # inspection, modification or rerunning the code.
-#
 set -e
+
 DDC_PATH=$( cd $( dirname "${BASH_SOURCE[0]}" )/.. && pwd )
+
 KERNEL=false
 if [ "$1" = "-k" ]; then
   KERNEL=true
   shift
 fi
+
 BASENAME=$( basename "${1%.*}")
 LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
+
 export NODE_PATH=$DDC_PATH/lib/js/common:$LIBROOT:$NODE_PATH
+
+# Build the SDK in a place where we can find it if it's not already there.
+if [ ! -e gen/sdk/ddc_sdk.sum ]; then
+  ./tool/build_sdk.sh
+fi
+
 if [ "$KERNEL" = true ]; then
   dart -c $DDC_PATH/bin/dartdevk.dart \
       -o $BASENAME.js $*
 else
   dart -c $DDC_PATH/bin/dartdevc.dart --modules=node --library-root=$LIBROOT \
-      --dart-sdk-summary=$DDC_PATH/lib/sdk/ddc_sdk.sum \
+      --dart-sdk-summary=$DDC_PATH/gen/sdk/ddc_sdk.sum \
       -o $LIBROOT/$BASENAME.js $*
 fi
+
 pushd $LIBROOT > /dev/null
 # TODO(jmesserly): we could have this output the same content as the devtool
 # script, so you could debug the output without recompiling?
