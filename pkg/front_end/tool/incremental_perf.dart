@@ -279,8 +279,8 @@ ArgParser argParser = new ArgParser()
       allowed: ['legacy', 'strong'])
   ..addOption('implementation',
       help: 'incremental compiler implementation to use',
-      defaultsTo: 'driver',
-      allowed: ['driver', 'minimal'])
+      defaultsTo: 'default',
+      allowed: ['default', 'minimal'])
   ..addOption('sdk-summary', help: 'Location of the sdk outline.dill file')
   ..addOption('sdk-library-specification',
       help: 'Location of the '

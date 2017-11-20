@@ -41,7 +41,7 @@ main() async {
     '--sdk-summary',
     '$sdkOutline',
     '--mode=legacy',
-    '--implementation=driver',
+    '--implementation=default',
     '$dart2jsEntry',
     '$dart2jsEdits'
   ]);
