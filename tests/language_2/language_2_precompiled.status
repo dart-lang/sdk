@@ -1028,7 +1028,10 @@ tearoff_dynamic_test: RuntimeError
 type_argument_in_super_type_test: RuntimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
 
-[ $compiler == precompiler && $runtime == dart_precompiled && ($arch != arm && $arch != simarm64)]
+[ $compiler == precompiler && $runtime == dart_precompiled && $arch != arm && $arch != simarm64 && $arch != x64 ]
+built_in_identifier_type_annotation_test/15: Crash
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $arch == x64 && $mode == debug ]
 built_in_identifier_type_annotation_test/15: Crash
 
 [ $runtime == dart_precompiled && $arch == arm64 ]
