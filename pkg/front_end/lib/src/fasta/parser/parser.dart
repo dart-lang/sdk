@@ -1092,8 +1092,9 @@ class Parser {
         token = next;
         break;
       }
-      var type = FormalParameterKind.optionalPositional;
-      token = parseFormalParameter(token, type, kind).next;
+      token = parseFormalParameter(
+              token, FormalParameterKind.optionalPositional, kind)
+          .next;
       ++parameterCount;
     } while (optional(',', token));
     if (parameterCount == 0) {
@@ -1121,8 +1122,9 @@ class Parser {
         token = next;
         break;
       }
-      var type = FormalParameterKind.optionalNamed;
-      token = parseFormalParameter(token, type, kind).next;
+      token =
+          parseFormalParameter(token, FormalParameterKind.optionalNamed, kind)
+              .next;
       ++parameterCount;
     } while (optional(',', token));
     if (parameterCount == 0) {
@@ -1547,8 +1549,9 @@ class Parser {
   /// message based on the given [context]. Return the synthetic identifier that
   /// was inserted.
   Token insertSyntheticIdentifier(Token token, IdentifierContext context,
-      [String stringValue = '']) {
+      [String stringValue]) {
     // TODO(brianwilkerson) Accept the last consumed token.
+    stringValue ??= '';
     Message message = context.recoveryTemplate.withArguments(token);
     Token identifier = new SyntheticStringToken(
         TokenType.IDENTIFIER, stringValue, token.charOffset, 0);
@@ -1597,7 +1600,7 @@ class Parser {
           // Supply a non-empty method name so that it does not accidently
           // match the default constructor.
           token = insertSyntheticIdentifier(
-              token, context, '\$_synthetic_method_name_${token.offset}');
+              token, context, '#synthetic_method_name_${token.offset}');
         } else if (context == IdentifierContext.topLevelVariableDeclaration ||
             context == IdentifierContext.fieldDeclaration) {
           // Since the token is not a keyword or identifier,
@@ -1606,7 +1609,7 @@ class Parser {
           // Supply a non-empty method name so that it does not accidently
           // match the default constructor.
           token = insertSyntheticIdentifier(
-              token, context, '\$_synthetic_field_name_${token.offset}');
+              token, context, '#synthetic_field_name_${token.offset}');
         }
       }
     } else if (token.type.isBuiltIn && !context.isBuiltInIdentifierAllowed) {
