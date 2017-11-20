@@ -110,6 +110,7 @@ const Map<String, String> TEST_FILES = const <String, String>{
   'invokes': 'tests/compiler/dart2js/sourcemaps/data/invokes_test_file.dart',
   'operators':
       'tests/compiler/dart2js/sourcemaps/data/operators_test_file.dart',
+  'others': 'tests/compiler/dart2js/sourcemaps/data/others.dart',
 };
 
 Future<TestResult> runTests(

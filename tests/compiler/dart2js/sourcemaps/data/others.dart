@@ -2,16 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
+// Test file for testing source mappings of various expression and statements.
 
 main() {
-  // ignore: UNUSED_LOCAL_VARIABLE
-  var c = new /*1:main*/ Class();
-}
-
-class Class {
-  @NoInline()
-  /*2:Class*/ Class() {
-    /*3:Class*/ throw '>ExceptionMarker<';
-  }
+  throw 'foo';
 }

@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 
 main() {
-  /*1:main*/ Class.test();
+  Class. /*1:main*/ test();
 }
 
 class Class {

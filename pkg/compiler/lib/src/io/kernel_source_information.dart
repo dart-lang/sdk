@@ -28,6 +28,43 @@ class KernelSourceInformationStrategy
   }
 }
 
+/// Compute the source map name for kernel based [member].
+///
+/// [elementMap] is used to compute names for closure call methods.
+// TODO(johnniwinther): Make the closure call names available to
+// `sourcemap_helper.dart`.
+String computeKernelElementNameForSourceMaps(
+    KernelToElementMapForBuilding elementMap, MemberEntity member) {
+  MemberDefinition definition = elementMap.getMemberDefinition(member);
+  switch (definition.kind) {
+    case MemberKind.closureCall:
+      ir.TreeNode node = definition.node;
+      String name;
+      while (node is! ir.Member) {
+        if (node is ir.FunctionDeclaration) {
+          if (name != null) {
+            name = '${node.variable.name}.$name';
+          } else {
+            name = node.variable.name;
+          }
+        } else if (node is ir.FunctionExpression) {
+          if (name != null) {
+            name = '<anonymous function>.$name';
+          } else {
+            name = '<anonymous function>';
+          }
+        }
+        node = node.parent;
+      }
+      MemberEntity enclosingMember = elementMap.getMember(node);
+      String enclosingMemberName =
+          computeElementNameForSourceMaps(enclosingMember);
+      return '$enclosingMemberName.$name';
+    default:
+      return computeElementNameForSourceMaps(member);
+  }
+}
+
 /// [SourceInformationBuilder] that generates [PositionSourceInformation] from
 /// Kernel nodes.
 class KernelSourceInformationBuilder
@@ -37,7 +74,8 @@ class KernelSourceInformationBuilder
   final String _name;
 
   KernelSourceInformationBuilder(this._elementMap, this._member)
-      : this._name = computeElementNameForSourceMaps(_member);
+      : this._name =
+            computeKernelElementNameForSourceMaps(_elementMap, _member);
 
   /// Returns the [SourceLocation] for the [offset] within [node].
   ///
@@ -180,7 +218,9 @@ class KernelSourceInformationBuilder
   }
 
   @override
-  SourceInformation buildThrow(ir.Node node) => null;
+  SourceInformation buildThrow(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildNew(ir.Node node) {

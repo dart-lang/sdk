@@ -11,7 +11,7 @@ main() {
 
 test() async {
   // ignore: UNUSED_LOCAL_VARIABLE
-  var c = /*1:test*/ new Class();
+  var c = new /*1:test*/ Class();
 }
 
 class Class {

@@ -13,7 +13,8 @@ main() {
   confuse([]).length;
   confuse(new MyType()).length;
   // TODO(johnniwinther): Intercepted access should point to 'length':
-  /*1:main*/ confuse(null).length; // called through the interceptor
+  /*ast.1:main*/ confuse(null)
+      . /*kernel.1:main*/ length; // called through the interceptor
 }
 
 @NoInline()

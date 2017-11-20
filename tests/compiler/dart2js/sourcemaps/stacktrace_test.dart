@@ -22,36 +22,81 @@ const String INPUT_FILE_NAME = 'in.dart';
 
 class Test {
   final String code;
+  final Expectations fromAst;
+  final Expectations fromKernel;
+
+  Test(this.code, this.fromAst, this.fromKernel);
+}
+
+class Expectations {
   final List<StackTraceLine> expectedLines;
   final List<StackTraceLine> unexpectedLines;
 
-  Test(this.code, this.expectedLines, this.unexpectedLines);
+  Expectations(this.expectedLines, this.unexpectedLines);
 }
 
+const String astMarker = 'ast.';
+const String kernelMarker = 'kernel.';
+
 Test processTestCode(String code) {
-  Map<int, StackTraceLine> stackTraceMap = <int, StackTraceLine>{};
-  List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
+  List<Map<int, StackTraceLine>> stackTraceMaps = <Map<int, StackTraceLine>>[
+    <int, StackTraceLine>{},
+    <int, StackTraceLine>{}
+  ];
+  List<List<StackTraceLine>> unexpectedLines = <List<StackTraceLine>>[
+    <StackTraceLine>[],
+    <StackTraceLine>[]
+  ];
   AnnotatedCode annotatedCode =
       new AnnotatedCode.fromText(code, commentStart, commentEnd);
+
   for (Annotation annotation in annotatedCode.annotations) {
-    int colonIndex = annotation.text.indexOf(':');
-    String indexText = annotation.text.substring(0, colonIndex);
-    String methodName = annotation.text.substring(colonIndex + 1);
+    String text = annotation.text;
+    List<Map<int, StackTraceLine>> activeMaps = stackTraceMaps;
+    List<List<StackTraceLine>> activeLines = unexpectedLines;
+    if (text.startsWith(astMarker)) {
+      text = text.substring(astMarker.length);
+      activeMaps = [stackTraceMaps[0]];
+      activeLines = [unexpectedLines[0]];
+    } else if (text.startsWith(kernelMarker)) {
+      text = text.substring(kernelMarker.length);
+      activeMaps = [stackTraceMaps[1]];
+      activeLines = [unexpectedLines[0]];
+    }
+    int colonIndex = text.indexOf(':');
+    String indexText = text.substring(0, colonIndex);
+    String methodName = text.substring(colonIndex + 1);
     StackTraceLine stackTraceLine = new StackTraceLine(
         methodName, INPUT_FILE_NAME, annotation.lineNo, annotation.columnNo);
     if (indexText == '') {
-      unexpectedLines.add(stackTraceLine);
+      for (List<StackTraceLine> unexpected in activeLines) {
+        unexpected.add(stackTraceLine);
+      }
     } else {
       int stackTraceIndex = int.parse(indexText);
-      assert(!stackTraceMap.containsKey(stackTraceIndex));
-      stackTraceMap[stackTraceIndex] = stackTraceLine;
+      for (Map<int, StackTraceLine> stackTraceMap in activeMaps) {
+        assert(!stackTraceMap.containsKey(stackTraceIndex));
+        stackTraceMap[stackTraceIndex] = stackTraceLine;
+      }
     }
   }
-  List<StackTraceLine> expectedLines = <StackTraceLine>[];
-  for (int stackTraceIndex in (stackTraceMap.keys.toList()..sort()).reversed) {
-    expectedLines.add(stackTraceMap[stackTraceIndex]);
+
+  List<StackTraceLine> createExpectedLines(
+      Map<int, StackTraceLine> stackTraceMap) {
+    List<StackTraceLine> expectedLines = <StackTraceLine>[];
+    for (int stackTraceIndex
+        in (stackTraceMap.keys.toList()..sort()).reversed) {
+      expectedLines.add(stackTraceMap[stackTraceIndex]);
+    }
+    return expectedLines;
   }
-  return new Test(annotatedCode.sourceCode, expectedLines, unexpectedLines);
+
+  return new Test(
+      annotatedCode.sourceCode,
+      new Expectations(
+          createExpectedLines(stackTraceMaps[0]), unexpectedLines[0]),
+      new Expectations(
+          createExpectedLines(stackTraceMaps[1]), unexpectedLines[1]));
 }
 
 void main(List<String> args) {
@@ -59,13 +104,17 @@ void main(List<String> args) {
   argParser.addFlag('write-js', defaultsTo: false);
   argParser.addFlag('print-js', defaultsTo: false);
   argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
+  argParser.addFlag('continued', abbr: 'c', defaultsTo: false);
   ArgResults argResults = argParser.parse(args);
   Directory dataDir =
       new Directory.fromUri(Platform.script.resolve('stacktrace'));
   asyncTest(() async {
+    bool continuing = false;
     await for (FileSystemEntity entity in dataDir.list()) {
       String name = entity.uri.pathSegments.last;
-      if (argResults.rest.isNotEmpty && !argResults.rest.contains(name)) {
+      if (argResults.rest.isNotEmpty &&
+          !argResults.rest.contains(name) &&
+          !continuing) {
         continue;
       }
       print('----------------------------------------------------------------');
@@ -76,6 +125,9 @@ void main(List<String> args) {
           verbose: argResults['verbose'],
           printJs: argResults['print-js'],
           writeJs: argResults['write-js']);
+      if (argResults['continued']) {
+        continuing = true;
+      }
     }
   });
 }
@@ -83,13 +135,19 @@ void main(List<String> args) {
 Future testAnnotatedCode(String code,
     {bool printJs: false, bool writeJs: false, bool verbose: false}) async {
   Test test = processTestCode(code);
+  print(test.code);
+  print('---from ast---------------------------------------------------------');
   await runTest(test, printJs: printJs, writeJs: writeJs, verbose: verbose);
+  print('---from kernel------------------------------------------------------');
+  await runTest(test,
+      printJs: printJs, writeJs: writeJs, verbose: verbose, useKernel: true);
 }
 
 Future runTest(Test test,
     {bool printJs: false,
     bool writeJs: false,
     bool verbose: false,
+    bool useKernel: false,
     List<String> options: const <String>[]}) async {
   Directory tmpDir = await createTempDir();
   String input = '${tmpDir.path}/$INPUT_FILE_NAME';
@@ -102,7 +160,10 @@ Future runTest(Test test,
     Flags.useNewSourceInfo,
     input,
   ]..addAll(options);
-  print("Compiling dart2js ${arguments.join(' ')}\n${test.code}");
+  if (useKernel) {
+    arguments.add(Flags.useKernel);
+  }
+  print("Compiling dart2js ${arguments.join(' ')}");
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess,
       "Unsuccessful compilation of test:\n${test.code}");
@@ -157,14 +218,20 @@ Future runTest(Test test,
     }
   }
 
+  List<StackTraceLine> testExpectedLines =
+      useKernel ? test.fromKernel.expectedLines : test.fromAst.expectedLines;
+  List<StackTraceLine> testUnexpectedLines = useKernel
+      ? test.fromKernel.unexpectedLines
+      : test.fromAst.unexpectedLines;
+
   int expectedIndex = 0;
   List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
   List<StackTraceLine> unexpectedBeforeLines = <StackTraceLine>[];
   List<StackTraceLine> unexpectedAfterLines = <StackTraceLine>[];
   for (StackTraceLine line in dartStackTrace) {
     bool found = false;
-    if (expectedIndex < test.expectedLines.length) {
-      StackTraceLine expectedLine = test.expectedLines[expectedIndex];
+    if (expectedIndex < testExpectedLines.length) {
+      StackTraceLine expectedLine = testExpectedLines[expectedIndex];
       if (line.methodName == expectedLine.methodName &&
           line.lineNo == expectedLine.lineNo &&
           line.columnNo == expectedLine.columnNo) {
@@ -172,7 +239,7 @@ Future runTest(Test test,
         expectedIndex++;
       }
     }
-    for (StackTraceLine unexpectedLine in test.unexpectedLines) {
+    for (StackTraceLine unexpectedLine in testUnexpectedLines) {
       if (line.methodName == unexpectedLine.methodName &&
           line.lineNo == unexpectedLine.lineNo &&
           line.columnNo == unexpectedLine.columnNo) {
@@ -183,8 +250,13 @@ Future runTest(Test test,
       List<LineException> exceptions =
           expectedIndex == 0 ? beforeExceptions : afterExceptions;
       for (LineException exception in exceptions) {
+        String fileName = exception.fileName;
+        if (useKernel && fileName == 'async_patch.dart') {
+          // TODO(johnniwinther): Remove this when fasta uses patching.
+          fileName = 'async.dart';
+        }
         if (line.methodName == exception.methodName &&
-            line.fileName.endsWith(exception.fileName)) {
+            line.fileName.endsWith(fileName)) {
           found = true;
         }
       }
@@ -205,15 +277,15 @@ Future runTest(Test test,
   }
   Expect.equals(
       expectedIndex,
-      test.expectedLines.length,
+      testExpectedLines.length,
       "Missing stack trace lines for test:\n${test.code}\n"
       "Actual:\n${dartStackTrace.join('\n')}\n"
-      "Expected:\n${test.expectedLines.join('\n')}\n");
+      "Expected:\n${testExpectedLines.join('\n')}\n");
   Expect.isTrue(
       unexpectedLines.isEmpty,
       "Unexpected stack trace lines for test:\n${test.code}\n"
       "Actual:\n${dartStackTrace.join('\n')}\n"
-      "Unexpected:\n${test.unexpectedLines.join('\n')}\n");
+      "Unexpected:\n${testUnexpectedLines.join('\n')}\n");
   Expect.isTrue(
       unexpectedBeforeLines.isEmpty && unexpectedAfterLines.isEmpty,
       "Unexpected stack trace lines:\n${test.code}\n"

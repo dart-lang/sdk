@@ -1056,19 +1056,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitEmptyStatement(ir.EmptyStatement statement) {
+  void visitEmptyStatement(ir.EmptyStatement node) {
     // Empty statement adds no instructions to current block.
   }
 
   @override
-  void visitExpressionStatement(ir.ExpressionStatement exprStatement) {
+  void visitExpressionStatement(ir.ExpressionStatement node) {
     if (!isReachable) return;
-    ir.Expression expression = exprStatement.expression;
+    ir.Expression expression = node.expression;
     if (expression is ir.Throw) {
       // TODO(sra): Prevent generating a statement when inlining.
       _visitThrowExpression(expression.expression);
       handleInTryStatement();
-      closeAndGotoExit(new HThrow(pop(), null));
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildThrow(node.expression);
+      closeAndGotoExit(new HThrow(pop(), sourceInformation));
     } else {
       expression.accept(this);
       pop();
@@ -3815,11 +3817,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitThrow(ir.Throw throwNode) {
-    _visitThrowExpression(throwNode.expression);
+  void visitThrow(ir.Throw node) {
+    _visitThrowExpression(node.expression);
     if (isReachable) {
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildThrow(node);
       handleInTryStatement();
-      push(new HThrowExpression(pop(), null));
+      push(new HThrowExpression(pop(), sourceInformation));
       isReachable = false;
     }
   }
@@ -3848,16 +3852,16 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitRethrow(ir.Rethrow rethrowNode) {
+  void visitRethrow(ir.Rethrow node) {
     HInstruction exception = rethrowableException;
     if (exception == null) {
       exception = graph.addConstantNull(closedWorld);
-      reporter.internalError(
-          _elementMap.getSpannable(targetElement, rethrowNode),
+      reporter.internalError(_elementMap.getSpannable(targetElement, node),
           'rethrowableException should not be null.');
     }
     handleInTryStatement();
-    SourceInformation sourceInformation = null;
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildThrow(node);
     closeAndGotoExit(new HThrow(exception, sourceInformation, isRethrow: true));
     // ir.Rethrow is an expression so we need to push a value - a constant with
     // no type.

@@ -2191,7 +2191,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void generateStaticFieldGet(ast.Send node, FieldElement field) {
     ConstantExpression constant = field.constant;
     SourceInformation sourceInformation =
-        sourceInformationBuilder.buildGet(node);
+        sourceInformationBuilder.buildGet(node.selector);
     if (constant != null) {
       if (!field.isAssignable) {
         // A static final or const. Get its constant value and inline it if
@@ -2218,7 +2218,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   /// Generate a getter invocation of the static or top level [getter].
   void generateStaticGetterGet(ast.Send node, MethodElement getter) {
     SourceInformation sourceInformation =
-        sourceInformationBuilder.buildGet(node);
+        sourceInformationBuilder.buildGet(node.selector);
     if (getter.isDeferredLoaderGetter) {
       generateDeferredLoaderGet(node, getter, sourceInformation);
     } else {
@@ -2240,7 +2240,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     SourceInformation sourceInformation =
-        sourceInformationBuilder.buildGet(node);
+        sourceInformationBuilder.buildGet(node.selector);
     push(new HStatic(method, commonMasks.nonNullType)
       ..sourceInformation = sourceInformation);
   }
@@ -3148,7 +3148,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void handleSuperGet(ast.Send node, Element element) {
     Selector selector = elements.getSelector(node);
     SourceInformation sourceInformation =
-        sourceInformationBuilder.buildGet(node);
+        sourceInformationBuilder.buildGet(node.selector);
     push(buildInvokeSuper(
         selector, element, const <HInstruction>[], sourceInformation));
   }
@@ -3156,17 +3156,23 @@ class SsaAstGraphBuilder extends ast.Visitor
   /// Invoke .call on the value retrieved from the super [element].
   void handleSuperCallInvoke(ast.Send node, Element element) {
     Selector selector = elements.getSelector(node);
-    HInstruction target = buildInvokeSuper(selector, element,
-        const <HInstruction>[], sourceInformationBuilder.buildGet(node));
+    HInstruction target = buildInvokeSuper(
+        selector,
+        element,
+        const <HInstruction>[],
+        sourceInformationBuilder.buildGet(node.selector));
     add(target);
-    generateCallInvoke(node, target,
-        sourceInformationBuilder.buildCall(node, node.argumentsNode));
+    generateCallInvoke(
+        node,
+        target,
+        sourceInformationBuilder.buildCall(
+            node.argumentsNode, node.argumentsNode));
   }
 
   /// Invoke super [method].
   void handleSuperMethodInvoke(ast.Send node, MethodElement method) {
-    generateSuperInvoke(
-        node, method, sourceInformationBuilder.buildCall(node, node.selector));
+    generateSuperInvoke(node, method,
+        sourceInformationBuilder.buildCall(node.selector, node.selector));
   }
 
   /// Access an unresolved super property.
@@ -3647,10 +3653,9 @@ class SsaAstGraphBuilder extends ast.Visitor
       ast.Send node, MethodElement function, CallStructure callStructure) {
     List<HInstruction> inputs =
         makeStaticArgumentList(callStructure, node.arguments, function);
-
     pushInvokeStatic(node, function, inputs,
         sourceInformation:
-            sourceInformationBuilder.buildCall(node, node.selector));
+            sourceInformationBuilder.buildCall(node.selector, node.selector));
   }
 
   /// Generate an invocation to a static or top level function with the wrong
@@ -3664,8 +3669,11 @@ class SsaAstGraphBuilder extends ast.Visitor
   void visitStaticFieldInvoke(ast.Send node, FieldElement field,
       ast.NodeList arguments, CallStructure callStructure, _) {
     generateStaticFieldGet(node, field);
-    generateCallInvoke(node, pop(),
-        sourceInformationBuilder.buildCall(node, node.argumentsNode));
+    generateCallInvoke(
+        node,
+        pop(),
+        sourceInformationBuilder.buildCall(
+            node.argumentsNode, node.argumentsNode));
   }
 
   @override
@@ -4216,7 +4224,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       instruction.sideEffects = closedWorld.getSideEffectsOfElement(element);
     }
-    if (location == null) {
+    if (sourceInformation != null || location == null) {
       push(instruction);
     } else {
       pushWithPosition(instruction, location);
