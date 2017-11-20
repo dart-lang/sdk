@@ -95,7 +95,6 @@ inference/future_union_downwards: TypeCheckError
 inference/future_union_downwards_2: TypeCheckError
 inference/future_union_downwards_3: TypeCheckError
 inference/future_union_downwards_4: TypeCheckError
-inference/future_union_downwards_generic_method_with_generic_returnRuntimeError
 inference/generic_functions_return_typedef: Fail # Issue #29798
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_dart_math_min_max: TypeCheckError
