@@ -2357,6 +2357,7 @@ implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 implicit_downcast_during_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
+implicit_downcast_during_variable_declaration_test: Pass # Correctly passes.
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
@@ -3384,6 +3385,7 @@ generic_methods_dynamic_test/03: MissingCompileTimeError
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
+implicit_downcast_during_variable_declaration_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101

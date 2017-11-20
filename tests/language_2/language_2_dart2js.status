@@ -1063,6 +1063,7 @@ if_null_precedence_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
+implicit_downcast_during_variable_declaration_test: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 malformed2_test/00: MissingCompileTimeError
 mixin_mixin2_test: RuntimeError
@@ -3126,6 +3127,7 @@ assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
+implicit_downcast_during_variable_declaration_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
 known_identifier_usage_error_test/none: RuntimeError # Issue 28815
