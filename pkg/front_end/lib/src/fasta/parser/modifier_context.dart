@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show SyntheticStringToken, Token, TokenType;
 import '../messages.dart' as fasta;
 import 'formal_parameter_kind.dart' show FormalParameterKind;
 import 'forwarding_listener.dart' show ForwardingListener;
@@ -723,13 +723,14 @@ class FactoryModifierContext {
 
 class TopLevelMethodModifierContext {
   final Parser parser;
+  Token name;
   Token externalToken;
 
   /// If recovery finds the beginning of a new declaration,
   /// then this is set to the last token in the prior declaration.
   Token endInvalidTopLevelDeclarationToken;
 
-  TopLevelMethodModifierContext(this.parser);
+  TopLevelMethodModifierContext(this.parser, this.name);
 
   /// Parse modifiers from the token following [token] up to but not including
   /// [afterModifiers]. If a new declaration start is found in the sequence of
@@ -738,6 +739,7 @@ class TopLevelMethodModifierContext {
   /// new declaration.
   Token parseRecovery(Token token, Token afterModifiers) {
     assert(token != afterModifiers && token.next != afterModifiers);
+
     while (token.next != afterModifiers) {
       token = token.next;
       if (optional('external', token)) {
@@ -752,9 +754,28 @@ class TopLevelMethodModifierContext {
         // If the next token is a top level keyword, then
         // Indicate to the caller that the next token should be
         // parsed as a new top level declaration.
-        if (token.next.isTopLevelKeyword) {
+        Token next = token.next;
+        if (next.isTopLevelKeyword) {
           endInvalidTopLevelDeclarationToken = token;
           return token;
+        }
+        if (next.isOperator) {
+          // If the operator is not one of the modifiers, then skip it,
+          // and insert a synthetic modifier
+          // to be interpreted as the top level function's identifier.
+          if (identical(next, afterModifiers)) {
+            name = parser.rewriter.insertToken(
+                new SyntheticStringToken(
+                    TokenType.IDENTIFIER,
+                    '#synthetic_function_${next.charOffset}',
+                    token.charOffset,
+                    0),
+                next.next);
+            return name;
+          }
+          // If the next token is an operator, then skip it
+          // because the error message above says it all.
+          token = token.next;
         }
       } else if (optional('factory', token)) {
         parser.reportRecoverableError(

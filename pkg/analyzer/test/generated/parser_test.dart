@@ -4679,9 +4679,8 @@ m() {
     expectNotNullIfNoErrors(member);
     if (usingFastaParser) {
       listener.assertErrors([
-        expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 0),
-        expectedError(ParserErrorCode.TOP_LEVEL_OPERATOR, 5, 8),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 0)
+        expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 4),
+        expectedError(ParserErrorCode.TOP_LEVEL_OPERATOR, 5, 8)
       ]);
     } else {
       listener.assertErrorsWithCodes([ParserErrorCode.TOP_LEVEL_OPERATOR]);
