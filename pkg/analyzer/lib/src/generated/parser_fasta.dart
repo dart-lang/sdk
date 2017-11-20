@@ -227,9 +227,10 @@ abstract class ParserAdapter implements Parser {
 
   @override
   Expression parsePrimaryExpression() {
-    currentToken = fastaParser.parsePrimary(
-        fastaParser.syntheticPreviousToken(currentToken),
-        fasta.IdentifierContext.expression);
+    currentToken = fastaParser
+        .parsePrimary(fastaParser.syntheticPreviousToken(currentToken),
+            fasta.IdentifierContext.expression)
+        .next;
     return astBuilder.pop();
   }
 

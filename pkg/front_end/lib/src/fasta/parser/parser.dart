@@ -4154,7 +4154,8 @@ class Parser {
             // unary expression isn't legal after a period, so we call
             // [parsePrimary] instead.
             token =
-                parsePrimary(token, IdentifierContext.expressionContinuation);
+                parsePrimary(token, IdentifierContext.expressionContinuation)
+                    .next;
             listener.endBinaryExpression(operator);
           } else if ((identical(type, TokenType.OPEN_PAREN)) ||
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
@@ -4257,7 +4258,7 @@ class Parser {
     // Prefix:
     if (identical(value, 'await')) {
       if (inPlainSync) {
-        return parsePrimary(token, IdentifierContext.expression);
+        return parsePrimary(token, IdentifierContext.expression).next;
       } else {
         return parseAwaitExpression(token, allowCascades);
       }
@@ -4285,7 +4286,7 @@ class Parser {
       listener.handleUnaryPrefixAssignmentExpression(operator);
       return token;
     } else {
-      return parsePrimary(token, IdentifierContext.expression);
+      return parsePrimary(token, IdentifierContext.expression).next;
     }
   }
 
@@ -4338,58 +4339,57 @@ class Parser {
   }
 
   Token parsePrimary(Token token, IdentifierContext context) {
-    // TODO(brianwilkerson) Return the last consumed token.
     // TODO(brianwilkerson): Remove the invocation of `previous` when
     // `injectGenericCommentTypeList` returns the last consumed token.
     token = listener.injectGenericCommentTypeList(token.next).previous;
     final kind = token.next.kind;
     if (kind == IDENTIFIER_TOKEN) {
-      return parseSendOrFunctionLiteral(token, context).next;
+      return parseSendOrFunctionLiteral(token, context);
     } else if (kind == INT_TOKEN || kind == HEXADECIMAL_TOKEN) {
-      return parseLiteralInt(token).next;
+      return parseLiteralInt(token);
     } else if (kind == DOUBLE_TOKEN) {
-      return parseLiteralDouble(token).next;
+      return parseLiteralDouble(token);
     } else if (kind == STRING_TOKEN) {
-      return parseLiteralString(token).next;
+      return parseLiteralString(token);
     } else if (kind == HASH_TOKEN) {
-      return parseLiteralSymbol(token).next;
+      return parseLiteralSymbol(token);
     } else if (kind == KEYWORD_TOKEN) {
       final String value = token.next.stringValue;
       if (identical(value, "true") || identical(value, "false")) {
-        return parseLiteralBool(token).next;
+        return parseLiteralBool(token);
       } else if (identical(value, "null")) {
-        return parseLiteralNull(token).next;
+        return parseLiteralNull(token);
       } else if (identical(value, "this")) {
-        return parseThisExpression(token, context).next;
+        return parseThisExpression(token, context);
       } else if (identical(value, "super")) {
-        return parseSuperExpression(token, context).next;
+        return parseSuperExpression(token, context);
       } else if (identical(value, "new")) {
-        return parseNewExpression(token).next;
+        return parseNewExpression(token);
       } else if (identical(value, "const")) {
-        return parseConstExpression(token).next;
+        return parseConstExpression(token);
       } else if (identical(value, "void")) {
-        return parseSendOrFunctionLiteral(token, context).next;
+        return parseSendOrFunctionLiteral(token, context);
       } else if (!inPlainSync &&
           (identical(value, "yield") || identical(value, "async"))) {
         // Fall through to the recovery code.
       } else if (identical(value, "assert")) {
-        return parseAssert(token, Assert.Expression).next;
+        return parseAssert(token, Assert.Expression);
       } else if (token.next.isIdentifier) {
-        return parseSendOrFunctionLiteral(token, context).next;
+        return parseSendOrFunctionLiteral(token, context);
       } else {
         // Fall through to the recovery code.
       }
     } else if (kind == OPEN_PAREN_TOKEN) {
-      return parseParenthesizedExpressionOrFunctionLiteral(token).next;
+      return parseParenthesizedExpressionOrFunctionLiteral(token);
     } else if (kind == OPEN_SQUARE_BRACKET_TOKEN ||
         optional('[]', token.next)) {
       listener.handleNoTypeArguments(token.next);
-      return parseLiteralListSuffix(token, null).next;
+      return parseLiteralListSuffix(token, null);
     } else if (kind == OPEN_CURLY_BRACKET_TOKEN) {
       listener.handleNoTypeArguments(token.next);
-      return parseLiteralMapSuffix(token, null).next;
+      return parseLiteralMapSuffix(token, null);
     } else if (kind == LT_TOKEN) {
-      return parseLiteralListOrMapOrFunction(token, null).next;
+      return parseLiteralListOrMapOrFunction(token, null);
     } else {
       // Fall through to the recovery code.
     }
@@ -4407,7 +4407,7 @@ class Parser {
       } while (token is ErrorToken);
       return parsePrimary(previous, context);
     } else {
-      return parseSend(token.next, context).next;
+      return parseSend(token.next, context);
     }
   }
 
