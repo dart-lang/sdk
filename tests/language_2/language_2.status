@@ -200,8 +200,10 @@ compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
 issue_25671a_test/01: CompileTimeError
 issue_25671b_test/01: CompileTimeError
-type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
+
+[ $strong && $compiler != dartk && $compiler != dartkp && $compiler != dartdevc && $compiler != dartdevk]
+type_promotion_functions_test: CompileTimeError # Issue 30895: This test requires a complete rewrite for 2.0.
 
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
