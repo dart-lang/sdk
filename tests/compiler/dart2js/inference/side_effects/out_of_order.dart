@@ -2,25 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// None of these methods have any side effects, but using [Selector] count to
-// order side-effects computation will make [_callNoSideEffectsManyTimes] be
-// computed last and thus make [callCallNoSideEffectsManyTimes] and with it
-// [main] assume all side-effects from the call to
-// [_callNoSideEffectsManyTimes].
+// Test the capability of the side effects computation based on
+// [SideEffectsBuilder].
 //
-// The methods are deliberately put in order of increasing [Selector] count to
-// make the [InferrerEngineImpl.useSorterForTesting] flag mimmick the order in
-// the old inference.
+// None of these methods have any side effects, but the old side effects
+// computation, based on [Selector] count, computed
+// [_callNoSideEffectsManyTimes] last and thus made
+// [callCallNoSideEffectsManyTimes] and with it [main] assume all side-effects
+// from the call to [_callNoSideEffectsManyTimes].
+//
+// The new computation, based on [SideEffectsBuilder], computes the precise
+// result regardless of computation order.
 
 /*element: _noSideEffects:Depends on nothing, Changes nothing.*/
 _noSideEffects() {}
 
-/*element: callCallNoSideEffectsManyTimes:Depends on [] field store static store, Changes [] field static.*/
+/*element: callCallNoSideEffectsManyTimes:Depends on nothing, Changes nothing.*/
 callCallNoSideEffectsManyTimes() {
   _callNoSideEffectsManyTimes();
 }
 
-/*element: main:Depends on [] field store static store, Changes [] field static.*/
+/*element: main:Depends on nothing, Changes nothing.*/
 main() {
   callCallNoSideEffectsManyTimes();
   callCallNoSideEffectsManyTimes();

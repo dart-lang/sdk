@@ -142,8 +142,8 @@ abstract class InferrerEngine<T> {
 
   /// Registers that [caller] calls [closure] with [arguments].
   ///
-  /// [sideEffects] will be updated to incorporate the potential callees' side
-  /// effects.
+  /// [sideEffectsBuilder] will be updated to incorporate the potential callees'
+  /// side effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledClosure(
@@ -153,14 +153,15 @@ abstract class InferrerEngine<T> {
       TypeInformation closure,
       MemberEntity caller,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
-      bool inLoop);
+      SideEffectsBuilder sideEffectsBuilder,
+      {bool inLoop});
 
   /// Registers that [caller] calls [callee] at location [node], with
   /// [selector], and [arguments]. Note that [selector] is null for forwarding
   /// constructors.
   ///
-  /// [sideEffects] will be updated to incorporate [callee]'s side effects.
+  /// [sideEffectsBuilder] will be updated to incorporate [callee]'s side
+  /// effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledMember(
@@ -170,14 +171,14 @@ abstract class InferrerEngine<T> {
       MemberEntity caller,
       MemberEntity callee,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
+      SideEffectsBuilder sideEffectsBuilder,
       bool inLoop);
 
   /// Registers that [caller] calls [selector] with [receiverType] as receiver,
   /// and [arguments].
   ///
-  /// [sideEffects] will be updated to incorporate the potential callees' side
-  /// effects.
+  /// [sideEffectsBuilder] will be updated to incorporate the potential callees'
+  /// side effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledSelector(
@@ -188,7 +189,7 @@ abstract class InferrerEngine<T> {
       TypeInformation receiverType,
       MemberEntity caller,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
+      SideEffectsBuilder sideEffectsBuilder,
       {bool inLoop,
       bool isConditional});
 
@@ -327,34 +328,32 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
    * Update [sideEffects] with the side effects of [callee] being
    * called with [selector].
    */
-  void updateSideEffects(
-      SideEffects sideEffects, Selector selector, MemberEntity callee) {
+  void updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
+      Selector selector, MemberEntity callee) {
     assert(!(callee is MemberElement && !callee.isDeclaration));
     if (callee.isField) {
       if (callee.isInstanceMember) {
         if (selector.isSetter) {
-          sideEffects.setChangesInstanceProperty();
+          sideEffectsBuilder.setChangesInstanceProperty();
         } else if (selector.isGetter) {
-          sideEffects.setDependsOnInstancePropertyStore();
+          sideEffectsBuilder.setDependsOnInstancePropertyStore();
         } else {
-          sideEffects.setAllSideEffects();
-          sideEffects.setDependsOnSomething();
+          sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
         }
       } else {
         if (selector.isSetter) {
-          sideEffects.setChangesStaticProperty();
+          sideEffectsBuilder.setChangesStaticProperty();
         } else if (selector.isGetter) {
-          sideEffects.setDependsOnStaticPropertyStore();
+          sideEffectsBuilder.setDependsOnStaticPropertyStore();
         } else {
-          sideEffects.setAllSideEffects();
-          sideEffects.setDependsOnSomething();
+          sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
         }
       }
     } else if (callee.isGetter && !selector.isGetter) {
-      sideEffects.setAllSideEffects();
-      sideEffects.setDependsOnSomething();
+      sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     } else {
-      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(callee));
+      sideEffectsBuilder
+          .addInput(closedWorldRefiner.getSideEffectsBuilder(callee));
     }
   }
 
@@ -985,7 +984,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       MemberEntity caller,
       MemberEntity callee,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
+      SideEffectsBuilder sideEffectsBuilder,
       bool inLoop) {
     CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
         types.currentMember,
@@ -1012,7 +1011,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     }
     info.addToGraph(this);
     types.allocatedCalls.add(info);
-    updateSideEffects(sideEffects, selector, callee);
+    updateSideEffects(sideEffectsBuilder, selector, callee);
     return info;
   }
 
@@ -1024,16 +1023,17 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       TypeInformation receiverType,
       MemberEntity caller,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
+      SideEffectsBuilder sideEffectsBuilder,
       {bool inLoop,
       bool isConditional}) {
     if (selector.isClosureCall) {
       return registerCalledClosure(node, selector, mask, receiverType, caller,
-          arguments, sideEffects, inLoop);
+          arguments, sideEffectsBuilder,
+          inLoop: inLoop);
     }
 
     closedWorld.locateMembers(selector, mask).forEach((callee) {
-      updateSideEffects(sideEffects, selector, callee);
+      updateSideEffects(sideEffectsBuilder, selector, callee);
     });
 
     CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
@@ -1076,10 +1076,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       TypeInformation closure,
       MemberEntity caller,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
-      bool inLoop) {
-    sideEffects.setDependsOnSomething();
-    sideEffects.setAllSideEffects();
+      SideEffectsBuilder sideEffectsBuilder,
+      {bool inLoop}) {
+    sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     CallSiteTypeInformation info = new ClosureCallSiteTypeInformation(
         types.currentMember,
         node,

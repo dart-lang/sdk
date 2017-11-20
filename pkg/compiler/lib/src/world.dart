@@ -30,7 +30,7 @@ import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
-import 'universe/side_effects.dart' show SideEffects;
+import 'universe/side_effects.dart' show SideEffects, SideEffectsBuilder;
 import 'universe/world_builder.dart';
 import 'util/util.dart' show Link;
 
@@ -354,14 +354,14 @@ abstract class ClosedWorldRefiner {
   /// The closed world being refined.
   ClosedWorld get closedWorld;
 
-  /// Registers the side [effects] of executing [element].
-  void registerSideEffects(FunctionEntity element, SideEffects effects);
-
   /// Registers the executing of [element] as without side effects.
   void registerSideEffectsFree(FunctionEntity element);
 
-  /// Returns the currently known side effects of executing [element].
-  SideEffects getCurrentlyKnownSideEffects(FunctionEntity element);
+  /// Returns the [SideEffectBuilder] associated with [element].
+  SideEffectsBuilder getSideEffectsBuilder(FunctionEntity member);
+
+  /// Compute [SideEffects] for all registered [SideEffectBuilder]s.
+  void computeSideEffects();
 
   /// Registers that [element] might be passed to `Function.apply`.
   // TODO(johnniwinther): Is this 'passed invocation target` or
@@ -434,8 +434,11 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       <ClassEntity, Map<ClassEntity, bool>>{};
 
   final Set<MemberEntity> _functionsCalledInLoop = new Set<MemberEntity>();
-  final Map<FunctionEntity, SideEffects> _sideEffects =
-      new Map<FunctionEntity, SideEffects>();
+  Map<FunctionEntity, SideEffects> _sideEffects;
+  Map<MemberEntity, SideEffectsBuilder> _sideEffectsBuilders =
+      <MemberEntity, SideEffectsBuilder>{};
+  final Set<FunctionEntity> prematureSideEffectAccesses =
+      new Set<FunctionEntity>();
 
   final Set<FunctionEntity> _sideEffectsFreeElements =
       new Set<FunctionEntity>();
@@ -1113,26 +1116,56 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   SideEffects getSideEffectsOfElement(FunctionEntity element) {
     assert(checkEntity(element));
+    assert(_sideEffects != null,
+        failedAt(element, "Side effects have not been computed yet."));
+    // TODO(johnniwinther): Check that [_makeSideEffects] is only called if
+    // type inference has been disabled (explicitly or because of compile time
+    // errors).
     return _sideEffects.putIfAbsent(element, _makeSideEffects);
   }
 
   static SideEffects _makeSideEffects() => new SideEffects();
 
   @override
-  SideEffects getCurrentlyKnownSideEffects(FunctionEntity element) {
-    return getSideEffectsOfElement(element);
-  }
-
-  void registerSideEffects(FunctionEntity element, SideEffects effects) {
-    assert(checkEntity(element));
-    if (_sideEffectsFreeElements.contains(element)) return;
-    _sideEffects[element] = effects;
+  SideEffectsBuilder getSideEffectsBuilder(MemberEntity member) {
+    return _sideEffectsBuilders.putIfAbsent(
+        member, () => new SideEffectsBuilder(member));
   }
 
   void registerSideEffectsFree(FunctionEntity element) {
     assert(checkEntity(element));
-    _sideEffects[element] = new SideEffects.empty();
     _sideEffectsFreeElements.add(element);
+    assert(!_sideEffectsBuilders.containsKey(element));
+    _sideEffectsBuilders[element] = new SideEffectsBuilder.free(element);
+  }
+
+  void computeSideEffects() {
+    assert(
+        _sideEffects == null, "Side effects have already been computed yet.");
+    _sideEffects = <FunctionEntity, SideEffects>{};
+    Iterable<SideEffectsBuilder> sideEffectsBuilders =
+        _sideEffectsBuilders.values;
+    emptyWorkList(sideEffectsBuilders);
+    for (SideEffectsBuilder sideEffectsBuilder in sideEffectsBuilders) {
+      _sideEffects[sideEffectsBuilder.member] = sideEffectsBuilder.sideEffects;
+    }
+    _sideEffectsBuilders = null;
+  }
+
+  static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
+    // TODO(johnniwinther): Optimize this algorithm, possibly by using
+    // `pkg/front_end/lib/src/dependency_walker.dart`.
+    Set<SideEffectsBuilder> workList =
+        new Set<SideEffectsBuilder>.from(sideEffectsBuilders);
+    while (workList.isNotEmpty) {
+      SideEffectsBuilder sideEffectsBuilder = workList.first;
+      workList.remove(sideEffectsBuilder);
+      for (SideEffectsBuilder dependent in sideEffectsBuilder.depending) {
+        if (dependent.add(sideEffectsBuilder.sideEffects)) {
+          workList.add(dependent);
+        }
+      }
+    }
   }
 
   void addFunctionCalledInLoop(MemberEntity element) {

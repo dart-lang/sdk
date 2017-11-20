@@ -48,7 +48,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   final bool _inGenerativeConstructor;
 
   LocalsHandler _locals;
-  SideEffects _sideEffects = new SideEffects.empty();
+  final SideEffectsBuilder _sideEffectsBuilder;
   final Map<JumpTarget, List<LocalsHandler>> _breaksFor =
       <JumpTarget, List<LocalsHandler>>{};
   final Map<JumpTarget, List<LocalsHandler>> _continuesFor =
@@ -78,6 +78,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       [this._locals])
       : this._types = _inferrer.types,
         this._memberData = _inferrer.dataOfMember(_analyzedMember),
+        // TODO(johnniwinther): Should side effects also be tracked for field
+        // initializers?
+        this._sideEffectsBuilder = _analyzedMember is FunctionEntity
+            ? _inferrer.closedWorldRefiner
+                .getSideEffectsBuilder(_analyzedMember)
+            : new SideEffectsBuilder.free(_analyzedMember),
         this._inGenerativeConstructor = _analyzedNode is ir.Constructor {
     if (_locals != null) return;
 
@@ -264,8 +270,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     } else {
       _returnType = _types.nonNullExact(cls);
     }
-    _inferrer.closedWorldRefiner
-        .registerSideEffects(_analyzedMember, _sideEffects);
     assert(_breaksFor.isEmpty);
     assert(_continuesFor.isEmpty);
     return _returnType;
@@ -371,8 +375,6 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             _analyzedMember, "Unexpected async marker: ${node.asyncMarker}");
         break;
     }
-    _inferrer.closedWorldRefiner
-        .registerSideEffects(_analyzedMember, _sideEffects);
     assert(_breaksFor.isEmpty);
     assert(_continuesFor.isEmpty);
     return _returnType;
@@ -625,7 +627,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     // code in the toString methods for intercepted primitive types is assumed
     // to have all effects.  Effect annotations on JS code would be needed to
     // get the benefit.
-    _sideEffects.setAllSideEffects();
+    _sideEffectsBuilder.setAllSideEffects();
 
     node.visitChildren(this);
     return _types.stringType;
@@ -788,7 +790,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     }
 
     return _inferrer.registerCalledSelector(callType, node, selector, mask,
-        receiverType, _analyzedMember, arguments, _sideEffects,
+        receiverType, _analyzedMember, arguments, _sideEffectsBuilder,
         inLoop: inLoop, isConditional: false);
   }
 
@@ -1069,7 +1071,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
   TypeInformation handleStaticInvoke(ir.Node node, Selector selector,
       TypeMask mask, MemberEntity element, ArgumentsTypes arguments) {
     return _inferrer.registerCalledMember(node, selector, mask, _analyzedMember,
-        element, arguments, _sideEffects, inLoop);
+        element, arguments, _sideEffectsBuilder, inLoop);
   }
 
   TypeInformation handleClosureCall(ir.Node node, Selector selector,
@@ -1081,8 +1083,8 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
         _inferrer.typeOfMember(member),
         _analyzedMember,
         arguments,
-        _sideEffects,
-        inLoop);
+        _sideEffectsBuilder,
+        inLoop: inLoop);
   }
 
   TypeInformation handleForeignInvoke(
@@ -1096,22 +1098,22 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (name == JavaScriptBackend.JS) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsCall(node);
-      _sideEffects.add(nativeBehavior.sideEffects);
+      _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == JavaScriptBackend.JS_EMBEDDED_GLOBAL) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsEmbeddedGlobalCall(node);
-      _sideEffects.add(nativeBehavior.sideEffects);
+      _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == JavaScriptBackend.JS_BUILTIN) {
       NativeBehavior nativeBehavior =
           _elementMap.getNativeBehaviorForJsBuiltinCall(node);
-      _sideEffects.add(nativeBehavior.sideEffects);
+      _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == JavaScriptBackend.JS_STRING_CONCAT) {
       return _types.stringType;
     } else {
-      _sideEffects.setAllSideEffects();
+      _sideEffectsBuilder.setAllSideEffects();
       return _types.dynamicType;
     }
   }

@@ -616,6 +616,7 @@ abstract class Compiler {
         reporter.log('Inferring types...');
         globalInference.runGlobalTypeInference(
             mainFunction, closedWorld, closedWorldRefiner);
+        closedWorldRefiner.computeSideEffects();
 
         if (stopAfterTypeInference) return;
 
