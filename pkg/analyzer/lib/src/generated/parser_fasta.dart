@@ -198,6 +198,9 @@ abstract class ParserAdapter implements Parser {
         .parseAsyncModifier(fastaParser.syntheticPreviousToken(currentToken));
     currentToken =
         fastaParser.parseFunctionBody(currentToken, inExpression, mayBeEmpty);
+    if (inExpression) {
+      currentToken = currentToken.next;
+    }
     return astBuilder.pop();
   }
 

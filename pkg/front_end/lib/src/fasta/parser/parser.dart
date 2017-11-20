@@ -2158,10 +2158,7 @@ class Parser {
               } else {
                 commitType();
               }
-              // TODO(brianwilkerson): Remove the invocation of `previous` when
-              // `parseNamedFunctionRest` returns the last consumed token.
-              return parseNamedFunctionRest(begin, token, beforeFormals, false)
-                  .previous;
+              return parseNamedFunctionRest(begin, token, beforeFormals, false);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
@@ -2180,11 +2177,8 @@ class Parser {
                 } else {
                   commitType();
                 }
-                // TODO(brianwilkerson): Remove the invocation of `previous` when
-                // `parseNamedFunctionRest` returns the last consumed token.
                 return parseNamedFunctionRest(
-                        begin, token, beforeFormals, false)
-                    .previous;
+                    begin, token, beforeFormals, false);
               }
             }
           }
@@ -2205,10 +2199,7 @@ class Parser {
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
               listener.handleNoType(token);
-              // TODO(brianwilkerson): Remove the invocation of `previous` when
-              // `parseNamedFunctionRest` returns the last consumed token.
-              return parseNamedFunctionRest(begin, token, formals, false)
-                  .previous;
+              return parseNamedFunctionRest(begin, token, formals, false);
             }
           } else if (optional('<', token.next)) {
             Token gt = closeBraceTokenFor(token.next);
@@ -2220,9 +2211,7 @@ class Parser {
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
                 listener.handleNoType(token);
-                // TODO(brianwilkerson): Remove the invocation of `previous` when
-                // `parseNamedFunctionRest` returns the last consumed token.
-                return parseNamedFunctionRest(begin, token, gt, false).previous;
+                return parseNamedFunctionRest(begin, token, gt, false);
               }
             }
             // Fall through to expression statement.
@@ -2282,10 +2271,7 @@ class Parser {
         } else {
           listener.handleNoType(begin);
         }
-
-        // TODO(brianwilkerson): Remove the invocation of `previous` when
-        // `parseNamedFunctionRest` returns the last consumed token.
-        return parseNamedFunctionRest(begin, name, formals, true).previous;
+        return parseNamedFunctionRest(begin, name, formals, true);
 
       case TypeContinuation.VariablesDeclarationOrExpression:
         if (looksLikeType &&
@@ -3541,8 +3527,8 @@ class Parser {
     listener.beginFunctionExpression(beginToken);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Local);
     token = parseAsyncOptBody(token, true, false);
-    listener.endFunctionExpression(beginToken, token);
-    return token;
+    listener.endFunctionExpression(beginToken, token.next);
+    return token.next;
   }
 
   /// Parses the rest of a named function declaration starting from its [name]
@@ -3565,7 +3551,6 @@ class Parser {
   Token parseNamedFunctionRest(
       Token begin, Token name, Token formals, bool isFunctionExpression) {
     // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     Token token = name;
     listener.beginFunctionName(token);
     token = ensureIdentifier(token, IdentifierContext.localFunctionDeclaration)
@@ -3579,11 +3564,10 @@ class Parser {
     token = parseAsyncOptBody(token, isFunctionExpression, false);
     if (isFunctionExpression) {
       listener.endNamedFunctionExpression(token);
-      return token;
     } else {
       listener.endLocalFunctionDeclaration(token);
-      return token.next;
     }
+    return token;
   }
 
   /// Parses a function body optionally preceded by an async modifier (see
@@ -3595,7 +3579,6 @@ class Parser {
   /// It's an error if there's no function body unless [allowAbstract] is true.
   Token parseAsyncOptBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
-    // TODO(brianwilkerson) Return the last consumed token.
     AsyncModifier savedAsyncModifier = asyncState;
     token = parseAsyncModifier(token);
     token = parseFunctionBody(token, ofFunctionExpression, allowAbstract);
@@ -3686,7 +3669,6 @@ class Parser {
   /// It's an error if there's no function body unless [allowAbstract] is true.
   Token parseFunctionBody(
       Token token, bool ofFunctionExpression, bool allowAbstract) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token next = token.next;
     if (optional('native', next)) {
       Token nativeToken = next;
@@ -3694,7 +3676,7 @@ class Parser {
       next = token.next;
       if (optional(';', next)) {
         listener.handleNativeFunctionBody(nativeToken, next);
-        return token.next;
+        return next;
       }
       reportRecoverableError(next, fasta.messageExternalMethodWithBody);
       listener.handleNativeFunctionBodyIgnored(nativeToken, next);
@@ -3705,7 +3687,7 @@ class Parser {
         reportRecoverableError(next, fasta.messageExpectedBody);
       }
       listener.handleEmptyFunctionBody(next);
-      return token.next;
+      return next;
     } else if (optional('=>', next)) {
       Token begin = next;
       token = parseExpression(next.next);
@@ -3713,12 +3695,11 @@ class Parser {
         token = ensureSemicolon(token);
         listener.handleExpressionFunctionBody(begin, token);
       } else {
-        token = token.next;
         listener.handleExpressionFunctionBody(begin, null);
       }
       if (inGenerator) {
         listener.handleInvalidStatement(
-            token, fasta.messageGeneratorReturnsValue);
+            begin, fasta.messageGeneratorReturnsValue);
       }
       return token;
     } else if (optional('=', next)) {
@@ -3730,7 +3711,6 @@ class Parser {
         token = ensureSemicolon(token);
         listener.handleExpressionFunctionBody(begin, token);
       } else {
-        token = token.next;
         listener.handleExpressionFunctionBody(begin, null);
       }
       return token;
@@ -3741,7 +3721,7 @@ class Parser {
       token = reportUnrecoverableErrorWithToken(
           next, fasta.templateExpectedFunctionBody);
       listener.handleInvalidFunctionBody(token.next);
-      return token.next;
+      return token;
     }
 
     listener.beginBlockFunctionBody(begin);
@@ -3761,7 +3741,7 @@ class Parser {
     token = token.next;
     listener.endBlockFunctionBody(statementCount, begin, token);
     expect('}', token);
-    return ofFunctionExpression ? token.next : token;
+    return token;
   }
 
   Token skipAsyncModifier(Token token) {
@@ -4099,8 +4079,7 @@ class Parser {
       return reportUnrecoverableError(token.next, fasta.messageStackOverflow);
     }
     // TODO(brianwilkerson) Remove the invocation of `previous` when
-    // `parseThrowExpression` and `parsePrecedenceExpression` return the last
-    // consumed token.
+    // `parsePrecedenceExpression` return the last consumed token.
     Token result = optional('throw', token.next)
         ? parseThrowExpression(token, true)
         : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true)
@@ -4111,8 +4090,7 @@ class Parser {
 
   Token parseExpressionWithoutCascade(Token token) {
     // TODO(brianwilkerson) Remove the invocation of `previous` when
-    // `parseThrowExpression` and `parsePrecedenceExpression` return the last
-    // consumed token.
+    // `parsePrecedenceExpression` return the last consumed token.
     Token result = optional('throw', token.next)
         ? parseThrowExpression(token, false)
         : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false)
