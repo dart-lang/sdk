@@ -642,6 +642,8 @@ final Node _setterSentinel = const InvalidType();
 
 /// Searches the AST for static references and dynamically dispatched names.
 class _TreeShakerVisitor extends RecursiveVisitor {
+  final Set<Constant> visitedConstants = new Set<Constant>();
+
   final TreeShaker shaker;
   final CoreTypes coreTypes;
   final TypeEnvironment types;
@@ -903,6 +905,77 @@ class _TreeShakerVisitor extends RecursiveVisitor {
   visitTypeLiteral(TypeLiteral node) {
     shaker._addInstantiatedExternalSubclass(coreTypes.typeClass);
     node.visitChildren(this);
+  }
+
+  @override
+  visitConstantExpression(ConstantExpression node) {
+    if (visitedConstants.add(node.constant)) {
+      node.constant.accept(this);
+    }
+  }
+
+  @override
+  defaultConstant(Constant node) {
+    // This will visit all members of the [Constant], including any
+    // [DartType]s and [Reference]s to other constants.
+    node.visitChildren(this);
+  }
+
+  @override
+  visitNullConstant(NullConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.nullClass);
+  }
+
+  @override
+  visitBoolConstant(BoolConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.boolClass);
+  }
+
+  @override
+  visitIntConstant(IntConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.intClass);
+  }
+
+  @override
+  visitDoubleConstant(DoubleConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.doubleClass);
+  }
+
+  @override
+  visitStringConstant(StringConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.stringClass);
+  }
+
+  @override
+  visitMapConstant(MapConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.mapClass);
+    super.visitMapConstant(node);
+  }
+
+  @override
+  visitListConstant(ListConstant node) {
+    shaker._addInstantiatedExternalSubclass(shaker.coreTypes.listClass);
+    super.visitListConstant(node);
+  }
+
+  @override
+  visitInstanceConstant(InstanceConstant node) {
+    shaker._addInstantiatedClass(node.klass);
+    super.visitInstanceConstant(node);
+  }
+
+  @override
+  visitTearOffConstant(TearOffConstant node) {
+    addStaticUse(node.procedure);
+    super.visitTearOffConstant(node);
+  }
+
+  @override
+  defaultConstantReference(Constant node) {
+    // Recurse into referenced constants.
+    if (visitedConstants.add(node)) {
+      node.accept(this);
+    }
   }
 
   @override
