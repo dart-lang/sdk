@@ -538,8 +538,13 @@ class ShadowConditionalExpression extends ConditionalExpression
     typeNeeded =
         inferrer.listener.conditionalExpressionEnter(this, typeContext) ||
             typeNeeded;
-    inferrer.inferExpression(
-        condition, inferrer.coreTypes.boolClass.rawType, false);
+    var expectedType = inferrer.coreTypes.boolClass.rawType;
+    var conditionType =
+        inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
+    if (!inferrer.isTopLevel) {
+      inferrer.checkAssignability(
+          expectedType, conditionType, condition, condition.fileOffset);
+    }
     DartType thenType = inferrer.inferExpression(then, typeContext, true);
     bool useLub = _forceLub || typeContext == null;
     DartType otherwiseType =
