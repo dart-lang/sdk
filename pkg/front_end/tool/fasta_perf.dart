@@ -21,6 +21,7 @@ import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
+import 'perf_common.dart';
 
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
@@ -86,19 +87,15 @@ Uri _computeRoot() {
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
 UriTranslator uriResolver;
 
-void onErrorHandler(CompilationMessage m) {
-  if (m.severity == Severity.internalProblem || m.severity == Severity.error) {
-    exitCode = 1;
-  }
-}
-
 /// Preliminary set up to be able to correctly resolve URIs on the given
 /// program.
 Future setup(Uri entryUri) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..reportMessages = true
-    ..onError = onErrorHandler
+    // Because this is only used to create a uriResolver, we don't allow any
+    // whitelisting of error messages in the error handler.
+    ..onError = onErrorHandler(false)
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.packages');
   uriResolver = await new ProcessedOptions(options).getUriTranslator();
@@ -235,7 +232,7 @@ generateKernel(Uri entryUri,
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..reportMessages = true
-    ..onError = onErrorHandler
+    ..onError = onErrorHandler(strongMode)
     ..strongMode = strongMode
     ..target = (strongMode ? new VmTarget(flags) : new LegacyVmTarget(flags))
     ..chaseDependencies = true

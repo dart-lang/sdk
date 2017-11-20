@@ -60,6 +60,8 @@ import 'package:kernel/target/flutter.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/target/vm.dart';
 
+import 'perf_common.dart';
+
 main(List<String> args) async {
   var options = argParser.parse(args);
   if (options.rest.length != 2) {
@@ -79,7 +81,7 @@ main(List<String> args) async {
     ..fileSystem = overlayFs
     ..strongMode = (options['mode'] == 'strong')
     ..reportMessages = true
-    ..onError = onErrorHandler
+    ..onError = onErrorHandler(options['mode'] == 'strong')
     ..target = options['target'] == 'flutter'
         ? new FlutterTarget(targetFlags)
         : new VmTarget(targetFlags);
@@ -232,12 +234,6 @@ ByteStore createByteStore(String cachePolicy, String path) {
           64 * 1024 * 1024 /* 64M */);
     default:
       throw new UnsupportedError('Unknown cache policy: $cachePolicy');
-  }
-}
-
-void onErrorHandler(CompilationMessage m) {
-  if (m.severity == Severity.internalProblem || m.severity == Severity.error) {
-    exitCode = 1;
   }
 }
 

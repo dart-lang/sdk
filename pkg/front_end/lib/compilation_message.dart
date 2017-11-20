@@ -28,6 +28,9 @@ abstract class CompilationMessage {
   /// The severity level of the error.
   Severity get severity;
 
+  /// Front-end error code name.
+  String get code;
+
   /// The corresponding analyzer error code, or null if there is no
   /// corresponding message in analyzer.
   String get analyzerCode;

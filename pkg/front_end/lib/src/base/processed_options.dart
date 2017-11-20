@@ -614,6 +614,8 @@ class _CompilationMessage implements CompilationMessage {
 
   String get tip => _original.tip;
 
+  String get code => _original.code.name;
+
   String get analyzerCode => _original.code.analyzerCode;
 
   String get dart2jsCode => _original.code.dart2jsCode;
