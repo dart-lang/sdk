@@ -237,9 +237,6 @@ html/webgl_extensions_test: Skip # webgl does not work properly on DRT, which is
 [ $runtime != vm || $mode == product || $compiler == app_jit ]
 isolate/checked_test: Skip # Unsupported.
 
-[$compiler == app_jit && $runtime == vm && $mode == debug]
-isolate/compile_time_error_test/none: Crash # Issue 31376
-
 [ $csp ]
 isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
