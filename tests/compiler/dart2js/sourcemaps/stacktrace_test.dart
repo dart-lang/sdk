@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -19,186 +20,6 @@ import '../source_map_validator_helper.dart';
 const String EXCEPTION_MARKER = '>ExceptionMarker<';
 const String INPUT_FILE_NAME = 'in.dart';
 
-const List<String> TESTS = const <String>[
-  '''
-main() {
-  @{1:main}throw '$EXCEPTION_MARKER';
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  @{1:main}test();
-}
-@NoInline()
-test() {
-  @{2:test}throw '$EXCEPTION_MARKER';
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  @{1:main}Class.test();
-}
-class Class {
-  @NoInline()
-  static test() {
-    @{2:Class.test}throw '$EXCEPTION_MARKER';
-  }
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  var c = new Class();
-  c.@{1:main}test();
-}
-class Class {
-  @NoInline()
-  test() {
-    @{2:Class.test}throw '$EXCEPTION_MARKER';
-  }
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  var c = @{1:main}new Class();
-}
-class Class {
-  @NoInline()
-  @{2:Class}Class() {
-    @{3:Class}throw '$EXCEPTION_MARKER';
-  }
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  @{1:main}test();
-}
-@NoInline()
-test() {
-  try {
-    @{2:test}throw '$EXCEPTION_MARKER';
-  } finally {
-  }
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  @{1:main}test();
-}
-@NoInline()
-test() {
-  try {
-    @{2:test}throw '$EXCEPTION_MARKER';
-  } on Error catch (e) {
-  }
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  @{1:main}test();
-}
-@NoInline()
-test() {
-  try {
-    @{2:test}throw '$EXCEPTION_MARKER';
-  } on String catch (e) {
-    rethrow;
-  }
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  @{1:main}test(new Class());
-}
-@NoInline()
-test(c) {
-  @{2:test}c.field.method();
-}
-class Class {
-  var field;
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-class MyType {
-  get length => 3; // ensures we build an interceptor for `.length`
-}
-
-main() {
-  confuse('').trim(); // includes some code above the interceptors
-  confuse([]).length;
-  confuse(new MyType()).length;
-  // TODO(johnniwinther): Intercepted access should point to 'length':
-  @{1:main}confuse(null).length; // called through the interceptor
-}
-
-@NoInline()
-confuse(x) => x;''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  // This call is no longer on the stack when the error is thrown.
-  @{:main}test();
-}
-@NoInline()
-test() async {
-  @{1:test}throw '$EXCEPTION_MARKER';
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  test1();
-}
-@NoInline()
-test1() async {
-  // This call is no longer on the stack when the error is thrown.
-  await @{:test1}test2();
-}
-@NoInline()
-test2() async {
-  @{1:test2}throw '$EXCEPTION_MARKER';
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  test1();
-}
-@NoInline()
-test1() async {
-  @{1:test1}test2();
-}
-@NoInline()
-test2() {
-  @{2:test2}throw '$EXCEPTION_MARKER';
-}
-''',
-  '''
-import 'package:expect/expect.dart';
-main() {
-  // This call is no longer on the stack when the error is thrown.
-  @{:main}test();
-}
-test() async {
-  var c = @{1:test}new Class();
-}
-class Class {
-  @NoInline()
-  @{2:Class}Class() {
-    @{3:Class}throw '$EXCEPTION_MARKER';
-  }
-}
-''',
-];
-
 class Test {
   final String code;
   final List<StackTraceLine> expectedLines;
@@ -210,7 +31,8 @@ class Test {
 Test processTestCode(String code) {
   Map<int, StackTraceLine> stackTraceMap = <int, StackTraceLine>{};
   List<StackTraceLine> unexpectedLines = <StackTraceLine>[];
-  AnnotatedCode annotatedCode = new AnnotatedCode.fromText(code);
+  AnnotatedCode annotatedCode =
+      new AnnotatedCode.fromText(code, commentStart, commentEnd);
   for (Annotation annotation in annotatedCode.annotations) {
     int colonIndex = annotation.text.indexOf(':');
     String indexText = annotation.text.substring(0, colonIndex);
@@ -232,44 +54,41 @@ Test processTestCode(String code) {
   return new Test(annotatedCode.sourceCode, expectedLines, unexpectedLines);
 }
 
-void main(List<String> arguments) {
-  bool verbose = false;
-  bool printJs = false;
-  bool writeJs = false;
-  List<int> indices;
-  for (String arg in arguments) {
-    if (arg == '-v') {
-      verbose = true;
-    } else if (arg == '--print-js') {
-      printJs = true;
-    } else if (arg == '--write-js') {
-      writeJs = true;
-    } else {
-      int index = int.parse(arg, onError: (_) => null);
-      if (index != null) {
-        indices ??= <int>[];
-        if (index < 0 || index >= TESTS.length) {
-          print('Index $index out of bounds: [0;${TESTS.length - 1}]');
-        } else {
-          indices.add(index);
-        }
-      }
-    }
-  }
-  if (indices == null) {
-    indices = new List<int>.generate(TESTS.length, (i) => i);
-  }
+void main(List<String> args) {
+  ArgParser argParser = new ArgParser(allowTrailingOptions: true);
+  argParser.addFlag('write-js', defaultsTo: false);
+  argParser.addFlag('print-js', defaultsTo: false);
+  argParser.addFlag('verbose', abbr: 'v', defaultsTo: false);
+  ArgResults argResults = argParser.parse(args);
+  Directory dataDir =
+      new Directory.fromUri(Platform.script.resolve('stacktrace'));
   asyncTest(() async {
-    for (int index in indices) {
-      await runTest(index, processTestCode(TESTS[index]),
-          printJs: printJs, writeJs: writeJs, verbose: verbose);
+    await for (FileSystemEntity entity in dataDir.list()) {
+      String name = entity.uri.pathSegments.last;
+      if (argResults.rest.isNotEmpty && !argResults.rest.contains(name)) {
+        continue;
+      }
+      print('----------------------------------------------------------------');
+      print('Checking ${entity.uri}');
+      print('----------------------------------------------------------------');
+      String annotatedCode = await new File.fromUri(entity.uri).readAsString();
+      await testAnnotatedCode(annotatedCode,
+          verbose: argResults['verbose'],
+          printJs: argResults['print-js'],
+          writeJs: argResults['write-js']);
     }
   });
 }
 
-Future runTest(int index, Test test,
+Future testAnnotatedCode(String code,
+    {bool printJs: false, bool writeJs: false, bool verbose: false}) async {
+  Test test = processTestCode(code);
+  await runTest(test, printJs: printJs, writeJs: writeJs, verbose: verbose);
+}
+
+Future runTest(Test test,
     {bool printJs: false,
-    bool writeJs,
+    bool writeJs: false,
     bool verbose: false,
     List<String> options: const <String>[]}) async {
   Directory tmpDir = await createTempDir();
@@ -283,7 +102,6 @@ Future runTest(int index, Test test,
     Flags.useNewSourceInfo,
     input,
   ]..addAll(options);
-  print("--$index------------------------------------------------------------");
   print("Compiling dart2js ${arguments.join(' ')}\n${test.code}");
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess,
