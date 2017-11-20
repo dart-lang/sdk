@@ -214,6 +214,8 @@ EOF
     LD_LIBRARY_PATH=third_party/firefox_jsshell/linux/jsshell/ third_party/firefox_jsshell/linux/jsshell/js -f sdk/lib/_internal/js_runtime/lib/preambles/jsshell.js -f out.js
     out/ReleaseIA32/dart-sdk/bin/dart2js --trust-type-annotations --trust-primitives --fast-startup --packages=.packages --out=out.js -m hello.dart
     third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
+    out/ReleaseIA32/dart-sdk/bin/dart2js --use-kernel --packages=.packages --out=out.js -m hello.dart
+    third_party/d8/linux/ia32/d8 --stack_size=1024 sdk/lib/_internal/js_runtime/lib/preambles/d8.js out.js
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart parse hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/perf.dart scan hello.dart
     out/ReleaseIA32/dart pkg/front_end/tool/fasta_perf.dart --legacy kernel_gen_e2e hello.dart
