@@ -2251,7 +2251,7 @@ class ShadowVariableDeclaration extends VariableDeclaration
         initializer = replacedInitializer;
       }
     }
-    inferrer.listener.variableDeclarationExit(this);
+    inferrer.listener.variableDeclarationExit(this, inferredType);
   }
 
   /// Determine whether the given [ShadowVariableDeclaration] had an implicit

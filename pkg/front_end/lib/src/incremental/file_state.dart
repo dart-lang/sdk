@@ -16,7 +16,6 @@ import 'package:front_end/src/dependency_walker.dart' as graph;
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/format.dart';
 import 'package:front_end/src/incremental/unlinked_unit.dart';
-import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/target/targets.dart';
 
 /// This function is called for each newly discovered file, and the returned
@@ -485,25 +484,6 @@ class LibraryCycle {
 
   /// The cycles that directly import or export this cycle.
   final List<LibraryCycle> directUsers = <LibraryCycle>[];
-
-  /// The signature of the [outline].
-  ///
-  /// It is computed as MD5 of the bytes of the [outline] bytes.
-  List<int> outlineSignature;
-
-  /// The outlines of declarations of libraries of this cycle, and the
-  /// transitive set of referenced declarations in dependencies.
-  kernel.Program outline;
-
-  /// The signature of [kernelBytes].
-  ///
-  /// It depends on [outlineSignature]s of [directDependencies] and content
-  /// of [libraries] files.
-  List<int> signature;
-
-  /// Serialized full kernel for the cycle libraries, and shaken outlines for
-  /// referenced external libraries.
-  List<int> kernelBytes;
 
   bool get _isForVm {
     return libraries.any((l) => l.uri.toString().endsWith('dart:_vmservice'));

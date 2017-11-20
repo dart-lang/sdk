@@ -363,6 +363,7 @@ class AnalysisServer {
         new PluginWatcher(resourceProvider, pluginManager);
 
     defaultContextOptions.generateImplicitErrors = false;
+    defaultContextOptions.useFastaParser = options.previewDart2;
 
     {
       String name = options.newAnalysisDriverLog;

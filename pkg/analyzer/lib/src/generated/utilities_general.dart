@@ -4,6 +4,7 @@
 
 library analyzer.src.generated.utilities_general;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' show UserTag;
 
@@ -131,6 +132,12 @@ abstract class PerformanceTag {
   E makeCurrentWhile<E>(E f());
 
   /**
+   * Make this the current tag for the isolate, run [f], and restore the
+   * previous tag. Returns the result of invoking [f].
+   */
+  Future<E> makeCurrentWhileAsync<E>(Future<E> f());
+
+  /**
    * Reset the total time tracked by all [PerformanceTag]s to zero.
    */
   static void reset() {
@@ -198,6 +205,16 @@ class _PerformanceTagImpl implements PerformanceTag {
     PerformanceTag prevTag = makeCurrent();
     try {
       return f();
+    } finally {
+      prevTag.makeCurrent();
+    }
+  }
+
+  @override
+  Future<E> makeCurrentWhileAsync<E>(Future<E> f()) async {
+    PerformanceTag prevTag = makeCurrent();
+    try {
+      return await f();
     } finally {
       prevTag.makeCurrent();
     }

@@ -425,7 +425,8 @@ class TypeInferenceListener
   void variableDeclarationEnter(VariableDeclaration statement) =>
       genericStatementEnter('variableDeclaration', statement);
 
-  void variableDeclarationExit(VariableDeclaration statement) =>
+  void variableDeclarationExit(
+          VariableDeclaration statement, DartType inferredType) =>
       genericStatementExit('variableDeclaration', statement);
 
   bool variableGetEnter(VariableGet expression, DartType typeContext) =>

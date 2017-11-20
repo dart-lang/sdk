@@ -63,10 +63,28 @@ class KernelResynthesizer implements ElementResynthesizer {
   @override
   Element getElement(ElementLocation location) {
     List<String> components = location.components;
-    if (components.length != 1) {
-      throw new ArgumentError('Only library access is implemented.');
+
+    LibraryElementImpl library = getLibrary(components[0]);
+    if (components.length == 1) {
+      return library;
     }
-    return getLibrary(components[0]);
+
+    CompilationUnitElement unit;
+    for (var libraryUnit in library.units) {
+      if (libraryUnit.source.uri.toString() == components[1]) {
+        unit = libraryUnit;
+        break;
+      }
+    }
+    if (unit == null) {
+      throw new ArgumentError('Unable to find unit: $location');
+    }
+    if (components.length == 2) {
+      return unit;
+    }
+
+    // TODO(scheglov) Implement unit members.
+    throw new ArgumentError('Only library and unit access is implemented.');
   }
 
   /**
@@ -109,6 +127,37 @@ class KernelResynthesizer implements ElementResynthesizer {
 
       return libraryElement;
     });
+  }
+
+  DartType getType(ElementImpl context, kernel.DartType kernelType) {
+    if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
+    if (kernelType is kernel.InvalidType) return UndefinedTypeImpl.instance;
+    if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
+    if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
+
+    if (kernelType is kernel.InterfaceType) {
+      var name = kernelType.className.canonicalName;
+      if (!strongMode &&
+          name.name == 'FutureOr' &&
+          name.parent.name == 'dart:async') {
+        return DynamicTypeImpl.instance;
+      }
+      return _getInterfaceType(context, name, kernelType.typeArguments);
+    }
+
+    if (kernelType is kernel.TypeParameterType) {
+      kernel.TypeParameter kTypeParameter = kernelType.parameter;
+      return _getTypeParameter(context, kTypeParameter).type;
+    }
+
+    if (kernelType is kernel.FunctionType) {
+      var typeElement =
+          new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
+      return typeElement.type;
+    }
+
+    // TODO(scheglov) Support other kernel types.
+    throw new UnimplementedError('For ${kernelType.runtimeType}');
   }
 
   void _buildTypeProvider() {
@@ -202,12 +251,48 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
   }
 
+  InterfaceType _getInterfaceType(ElementImpl context,
+      kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
+    var libraryName = className.parent;
+    var libraryElement = getLibrary(libraryName.name);
+    ClassElement classElement = libraryElement.getType(className.name);
+    classElement ??= libraryElement.getEnum(className.name);
+
+    if (kernelArguments.isEmpty) {
+      return classElement.type;
+    }
+
+    return new InterfaceTypeImpl.elementWithNameAndArgs(
+        classElement, classElement.name, () {
+      List<DartType> arguments = kernelArguments
+          .map((kernel.DartType k) => getType(context, k))
+          .toList(growable: false);
+      return arguments;
+    });
+  }
+
   /**
    * Get the [Source] object for the given [uri].
    */
   Source _getSource(String uri) {
     return _sources.putIfAbsent(
         uri, () => _analysisContext.sourceFactory.forUri(uri));
+  }
+
+  /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
+  TypeParameterElement _getTypeParameter(
+      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
+    String name = kernelTypeParameter.name;
+    for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
+      if (ctx is TypeParameterizedElementMixin) {
+        for (var typeParameter in ctx.typeParameters) {
+          if (typeParameter.name == name) {
+            return typeParameter;
+          }
+        }
+      }
+    }
+    throw new StateError('Not found $kernelTypeParameter in $context');
   }
 
   LibraryElementImpl _newSyntheticLibrary(String uriStr) {
@@ -958,7 +1043,7 @@ class _KernelUnitResynthesizerContextImpl
     if (kernelType.classNode.isEnum) {
       return null;
     }
-    return _getInterfaceType(
+    return libraryContext.resynthesizer._getInterfaceType(
         context, kernelType.className.canonicalName, kernelType.typeArguments);
   }
 
@@ -1001,35 +1086,9 @@ class _KernelUnitResynthesizerContextImpl
     return null;
   }
 
-  DartType getType(ElementImpl context, kernel.DartType kernelType) {
-    if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
-    if (kernelType is kernel.InvalidType) return UndefinedTypeImpl.instance;
-    if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
-    if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
-
-    if (kernelType is kernel.InterfaceType) {
-      var name = kernelType.className.canonicalName;
-      if (!libraryContext.resynthesizer.strongMode &&
-          name.name == 'FutureOr' &&
-          name.parent.name == 'dart:async') {
-        return DynamicTypeImpl.instance;
-      }
-      return _getInterfaceType(context, name, kernelType.typeArguments);
-    }
-
-    if (kernelType is kernel.TypeParameterType) {
-      kernel.TypeParameter kTypeParameter = kernelType.parameter;
-      return _getTypeParameter(context, kTypeParameter).type;
-    }
-
-    if (kernelType is kernel.FunctionType) {
-      var typeElement =
-          new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
-      return typeElement.type;
-    }
-
-    // TODO(scheglov) Support other kernel types.
-    throw new UnimplementedError('For ${kernelType.runtimeType}');
+  @override
+  DartType getType(ElementImpl context, kernel.DartType type) {
+    return libraryContext.resynthesizer.getType(context, type);
   }
 
   ElementAnnotationImpl _buildAnnotation(
@@ -1051,42 +1110,6 @@ class _KernelUnitResynthesizerContextImpl
           'Unexpected annotation type: ${constExpr.runtimeType}');
     }
     return elementAnnotation;
-  }
-
-  InterfaceType _getInterfaceType(ElementImpl context,
-      kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
-    var libraryName = className.parent;
-    var libraryElement = libraryContext.getLibrary(libraryName.name);
-    ClassElement classElement = libraryElement.getType(className.name);
-    classElement ??= libraryElement.getEnum(className.name);
-
-    if (kernelArguments.isEmpty) {
-      return classElement.type;
-    }
-
-    return new InterfaceTypeImpl.elementWithNameAndArgs(
-        classElement, classElement.name, () {
-      List<DartType> arguments = kernelArguments
-          .map((kernel.DartType k) => getType(context, k))
-          .toList(growable: false);
-      return arguments;
-    });
-  }
-
-  /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
-  TypeParameterElement _getTypeParameter(
-      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
-    String name = kernelTypeParameter.name;
-    for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
-      if (ctx is TypeParameterizedElementMixin) {
-        for (var typeParameter in ctx.typeParameters) {
-          if (typeParameter.name == name) {
-            return typeParameter;
-          }
-        }
-      }
-    }
-    throw new StateError('Not found $kernelTypeParameter in $context');
   }
 
   /// Fasta converts `native 'name'` clauses to `@ExternalName('name')`

@@ -25,6 +25,14 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
     _typeOffsets.add(offset);
     return super._recordType(type, offset);
   }
+
+  @override
+  void _replaceType(DartType type, int offset) {
+    if (_debug) {
+      print('Replacing type $type for offset $offset');
+    }
+    super._replaceType(type, offset);
+  }
 }
 
 /// Type inference listener that records inferred types for later use by
@@ -112,20 +120,31 @@ class ResolutionStorer extends TypeInferenceListener {
     // TODO(paulberry): get the actual callee function type from the inference
     // engine
     var calleeType = const DynamicType();
-    _types[_deferredTypeSlots.removeLast()] = calleeType;
+    _replaceType(calleeType, expression.fileOffset);
     _recordType(inferredType, expression.arguments.fileOffset);
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
   @override
   void variableDeclarationEnter(VariableDeclaration statement) {
-    _recordType(statement.type, statement.fileOffset);
+    _deferredTypeSlots.add(_recordType(null, statement.fileOffset));
     super.variableDeclarationEnter(statement);
+  }
+
+  @override
+  void variableDeclarationExit(
+      VariableDeclaration statement, DartType inferredType) {
+    _replaceType(inferredType, statement.fileOffset);
+    super.variableDeclarationExit(statement, inferredType);
   }
 
   int _recordType(DartType type, int offset) {
     int slot = _types.length;
     _types.add(type);
     return slot;
+  }
+
+  void _replaceType(DartType type, int offset) {
+    _types[_deferredTypeSlots.removeLast()] = type;
   }
 }

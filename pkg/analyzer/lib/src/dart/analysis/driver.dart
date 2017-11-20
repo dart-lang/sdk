@@ -1103,6 +1103,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   void removeFile(String path) {
     _throwIfNotAbsolutePath(path);
     _throwIfChangesAreNotAllowed();
+    _kernelDriverInvalidate(path);
     _fileTracker.removeFile(path);
     _priorityResults.clear();
   }
@@ -1111,6 +1112,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
    * Implementation for [changeFile].
    */
   void _changeFile(String path) {
+    _kernelDriverInvalidate(path);
     _fileTracker.changeFile(path);
     _priorityResults.clear();
   }
@@ -1187,14 +1189,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
           LibraryAnalyzer analyzer;
           if (enableKernelDriver) {
-            kernelContext = await KernelContext.forSingleLibrary(
-                library,
-                _logger,
-                _analysisOptions,
-                declaredVariables,
-                _sourceFactory,
-                fsState,
-                _kernelDriver);
+            kernelContext = await _createKernelContext(library);
             analyzer = new LibraryAnalyzer(
                 analysisOptions,
                 declaredVariables,
@@ -1203,7 +1198,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 kernelContext.analysisContext,
                 kernelContext.resynthesizer,
                 library,
-                enableKernelDriver: true);
+                enableKernelDriver: true,
+                previewDart2: _analysisOptions.useFastaParser,
+                kernelDriver: _kernelDriver);
           } else {
             libraryContext = await _createLibraryContext(library);
             analyzer = new LibraryAnalyzer(
@@ -1216,7 +1213,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
                 library);
           }
 
-          Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
+          Map<FileState, UnitAnalysisResult> results = await analyzer.analyze();
 
           List<int> bytes;
           CompilationUnit resolvedUnit;
@@ -1281,18 +1278,28 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    // Create the AnalysisContext to resynthesize elements in.
-    LibraryContext libraryContext = await _createLibraryContext(library);
-
-    // Resynthesize the CompilationUnitElement in the context.
-    try {
-      CompilationUnitElement element =
-          libraryContext.computeUnitElement(library.source, file.source);
-      String signature = library.transitiveSignature;
-      return new UnitElementResult(
-          currentSession, path, file.uri, signature, element);
-    } finally {
-      libraryContext.dispose();
+    if (enableKernelDriver) {
+      var kernelContext = await _createKernelContext(library);
+      try {
+        CompilationUnitElement element =
+            kernelContext.computeUnitElement(library.source, file.source);
+        String signature = library.transitiveSignature;
+        return new UnitElementResult(
+            currentSession, path, file.uri, signature, element);
+      } finally {
+        kernelContext.dispose();
+      }
+    } else {
+      LibraryContext libraryContext = await _createLibraryContext(library);
+      try {
+        CompilationUnitElement element =
+            libraryContext.computeUnitElement(library.source, file.source);
+        String signature = library.transitiveSignature;
+        return new UnitElementResult(
+            currentSession, path, file.uri, signature, element);
+      } finally {
+        libraryContext.dispose();
+      }
     }
   }
 
@@ -1326,6 +1333,17 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         externalSummaries: _externalSummaries,
         parseExceptionHandler: _storeExceptionContextDuringParsing);
     _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
+  }
+
+  Future<KernelContext> _createKernelContext(FileState library) async {
+    return await KernelContext.forSingleLibrary(
+        library,
+        _logger,
+        _analysisOptions,
+        declaredVariables,
+        _sourceFactory,
+        fsState,
+        _kernelDriver);
   }
 
   /**
@@ -1446,6 +1464,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     signature.addString(library.transitiveSignature);
     signature.addString(file.contentHash);
     return signature.toHex();
+  }
+
+  /**
+   * Invalidate the file with the given [path] in the KernelDriver.
+   */
+  void _kernelDriverInvalidate(String path) {
+    if (_kernelDriver != null) {
+      var uri = _resourceProvider.pathContext.toUri(path);
+      _kernelDriver.invalidate(uri);
+    }
   }
 
   /**

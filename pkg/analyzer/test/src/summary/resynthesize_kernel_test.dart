@@ -6,6 +6,7 @@ library analyzer.test.src.summary.resynthesize_kernel_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/kernel_metadata.dart';
@@ -27,6 +28,7 @@ import 'package:kernel/text/ast_to_text.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:test/src/frontend/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context/mock_sdk.dart';
@@ -88,45 +90,7 @@ class ResynthesizeKernelStrongTest extends ResynthesizeTest {
     Uri testUri = testFile.toUri();
     String testUriStr = testUri.toString();
 
-    Map<String, LibraryInfo> dartLibraries = {};
-    MockSdk.FULL_URI_MAP.forEach((dartUri, path) {
-      var name = Uri.parse(dartUri).path;
-      dartLibraries[name] =
-          new LibraryInfo(name, Uri.parse('file://$path'), const []);
-    });
-
-    var uriTranslator = new UriTranslatorImpl(
-        new TargetLibrariesSpecification('none', dartLibraries),
-        Packages.noPackages);
-    var options = new ProcessedOptions(new CompilerOptions()
-      ..target = new NoneTarget(new TargetFlags(strongMode: isStrongMode))
-      ..reportMessages = false
-      ..logger = new PerformanceLog(null)
-      ..fileSystem = new _FileSystemAdaptor(resourceProvider)
-      ..byteStore = new MemoryByteStore());
-    var driver = new KernelDriver(options, uriTranslator,
-        metadataFactory: new AnalyzerMetadataFactory());
-
-    KernelResult kernelResult = await driver.getKernel(testUri);
-    var libraryMap = <String, kernel.Library>{};
-    var libraryExistMap = <String, bool>{};
-
-    void addLibrary(kernel.Library library) {
-      String uriStr = library.importUri.toString();
-      libraryMap[uriStr] = library;
-      libraryExistMap[uriStr] = true;
-    }
-
-    kernelResult.dependencies.forEach(addLibrary);
-    addLibrary(kernelResult.library);
-
-    if (DEBUG) {
-      var library = libraryMap[testUriStr];
-      print(_getLibraryText(library));
-    }
-
-    var resynthesizer = new KernelResynthesizer(
-        context, kernelResult.types, libraryMap, libraryExistMap);
+    KernelResynthesizer resynthesizer = await _createResynthesizer(testUri);
     return resynthesizer.getLibrary(testUriStr);
   }
 
@@ -196,23 +160,9 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
-  @override
-  test_constructor_redirected_factory_named() async {
-    await super.test_constructor_redirected_factory_named();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_generic() async {
     await super.test_constructor_redirected_factory_named_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
-  @override
-  test_constructor_redirected_factory_named_imported() async {
-    await super.test_constructor_redirected_factory_named_imported();
   }
 
   @failingTest
@@ -222,23 +172,9 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
-  @override
-  test_constructor_redirected_factory_named_prefixed() async {
-    await super.test_constructor_redirected_factory_named_prefixed();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_named_prefixed_generic() async {
     await super.test_constructor_redirected_factory_named_prefixed_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
-  @override
-  test_constructor_redirected_factory_unnamed() async {
-    await super.test_constructor_redirected_factory_unnamed();
   }
 
   @failingTest
@@ -248,23 +184,9 @@ class C {
   }
 
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
-  @override
-  test_constructor_redirected_factory_unnamed_imported() async {
-    await super.test_constructor_redirected_factory_unnamed_imported();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30258')
   test_constructor_redirected_factory_unnamed_imported_generic() async {
     await super.test_constructor_redirected_factory_unnamed_imported_generic();
-  }
-
-  @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/28421')
-  @override
-  test_constructor_redirected_factory_unnamed_prefixed() async {
-    await super.test_constructor_redirected_factory_unnamed_prefixed();
   }
 
   @failingTest
@@ -301,6 +223,23 @@ class C {
   @notForDart2
   test_exportImport_configurations_useFirst() async {
     await super.test_exportImport_configurations_useFirst();
+  }
+
+  test_getElement_unit() async {
+    String text = 'class C {}';
+    Source source = addLibrarySource('/test.dart', text);
+
+    new MockSdk(resourceProvider: resourceProvider);
+    var resynthesizer = await _createResynthesizer(source.uri);
+
+    CompilationUnitElement unitElement = resynthesizer.getElement(
+        new ElementLocationImpl.con3(
+            [source.uri.toString(), source.uri.toString()]));
+    expect(unitElement.librarySource, source);
+    expect(unitElement.source, source);
+
+    // TODO(scheglov) Add some more checks?
+    // TODO(scheglov) Add tests for other elements
   }
 
   @failingTest
@@ -385,13 +324,6 @@ class C {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30725')
   test_invalidUri_part_emptyUri() async {
     await super.test_invalidUri_part_emptyUri();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_invalidUris() async {
-    await super.test_invalidUris();
   }
 
   @failingTest
@@ -485,6 +417,51 @@ class C {
   @failingTest
   test_unresolved_annotation_simpleIdentifier() {
     return super.test_unresolved_annotation_simpleIdentifier();
+  }
+
+  Future<KernelResynthesizer> _createResynthesizer(Uri testUri) async {
+    Map<String, LibraryInfo> dartLibraries = {};
+    MockSdk.FULL_URI_MAP.forEach((dartUri, path) {
+      var name = Uri.parse(dartUri).path;
+      dartLibraries[name] =
+          new LibraryInfo(name, Uri.parse('file://$path'), const []);
+    });
+
+    var uriTranslator = new UriTranslatorImpl(
+        new TargetLibrariesSpecification('none', dartLibraries),
+        Packages.noPackages);
+    var options = new ProcessedOptions(new CompilerOptions()
+      ..target = new NoneTarget(new TargetFlags(strongMode: isStrongMode))
+      ..reportMessages = false
+      ..logger = new PerformanceLog(null)
+      ..fileSystem = new _FileSystemAdaptor(resourceProvider)
+      ..byteStore = new MemoryByteStore());
+    var driver = new KernelDriver(options, uriTranslator,
+        metadataFactory: new AnalyzerMetadataFactory());
+
+    KernelResult kernelResult = await driver.getKernel(testUri);
+
+    var libraryMap = <String, kernel.Library>{};
+    var libraryExistMap = <String, bool>{};
+
+    void addLibrary(kernel.Library library) {
+      String uriStr = library.importUri.toString();
+      libraryMap[uriStr] = library;
+      libraryExistMap[uriStr] = true;
+    }
+
+    kernelResult.dependencies.forEach(addLibrary);
+    addLibrary(kernelResult.library);
+
+    if (DEBUG) {
+      String testUriStr = testUri.toString();
+      var library = libraryMap[testUriStr];
+      print(_getLibraryText(library));
+    }
+
+    var resynthesizer = new KernelResynthesizer(
+        context, kernelResult.types, libraryMap, libraryExistMap);
+    return resynthesizer;
   }
 
   String _getLibraryText(kernel.Library library) {

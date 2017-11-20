@@ -2,14 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/frontend_resolution.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -18,15 +22,18 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
+import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:front_end/src/dependency_walker.dart';
+import 'package:front_end/src/incremental/kernel_driver.dart';
 
 /**
  * Analyzer of a single library.
@@ -38,6 +45,9 @@ class LibraryAnalyzer {
   final FileState _library;
 
   final bool _enableKernelDriver;
+  final bool _previewDart2;
+  final KernelDriver _kernelDriver;
+
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContextImpl _context;
   final ElementResynthesizer _resynthesizer;
@@ -63,16 +73,24 @@ class LibraryAnalyzer {
       this._context,
       this._resynthesizer,
       this._library,
-      {bool enableKernelDriver: false})
+      {bool enableKernelDriver: false,
+      bool previewDart2: false,
+      KernelDriver kernelDriver})
       : _typeProvider = _context.typeProvider,
-        _enableKernelDriver = enableKernelDriver;
+        _enableKernelDriver = enableKernelDriver,
+        _previewDart2 = previewDart2,
+        _kernelDriver = kernelDriver;
 
   /**
    * Compute analysis results for all units of the library.
    */
-  Map<FileState, UnitAnalysisResult> analyze() {
-    return PerformanceStatistics.analysis.makeCurrentWhile(() {
-      return _analyze();
+  Future<Map<FileState, UnitAnalysisResult>> analyze() async {
+    return PerformanceStatistics.analysis.makeCurrentWhileAsync(() async {
+      if (_previewDart2) {
+        return await _analyze2();
+      } else {
+        return _analyze();
+      }
     });
   }
 
@@ -129,6 +147,145 @@ class LibraryAnalyzer {
           });
         });
       }
+
+      if (_analysisOptions.lint) {
+        PerformanceStatistics.lints.makeCurrentWhile(() {
+          units.forEach((file, unit) {
+            _computeLints(file, unit);
+          });
+        });
+      }
+    } finally {
+      _context.dispose();
+    }
+
+    // Return full results.
+    Map<FileState, UnitAnalysisResult> results = {};
+    units.forEach((file, unit) {
+      List<AnalysisError> errors = _getErrorListener(file).errors;
+      errors = _filterIgnoredErrors(file, errors);
+      results[file] = new UnitAnalysisResult(file, unit, errors);
+    });
+    return results;
+  }
+
+  Future<Map<FileState, UnitAnalysisResult>> _analyze2() async {
+    Map<FileState, CompilationUnit> units = {};
+
+    // Parse all files.
+    units[_library] = _parse(_library);
+    for (FileState part in _library.partedFiles) {
+      units[part] = _parse(part);
+    }
+
+    // Resolve URIs in directives to corresponding sources.
+    units.forEach((file, unit) {
+      _resolveUriBasedDirectives(file, unit);
+    });
+
+    try {
+      _libraryElement = _resynthesizer
+          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+
+      _resolveDirectives(units);
+
+      // TODO(scheglov) Improve.
+      {
+        AnalyzerTarget analyzerTarget;
+        await _kernelDriver.compileLibrary(
+            (fileSystem, bool includeComments, dillTarget, uriTranslator,
+                    {metadataCollector}) =>
+                analyzerTarget ??= new AnalyzerTarget(fileSystem, dillTarget,
+                    uriTranslator, _analysisOptions.strongMode),
+            _library.uri);
+
+        // TODO(scheglov) Types depend on enclosing elements?
+        var astTypes = <DartType>[];
+        KernelResynthesizer resynthesizer = _resynthesizer;
+        for (var kernelType in analyzerTarget.kernelTypes) {
+          DartType astType = resynthesizer.getType(null, kernelType);
+          astTypes.add(astType);
+        }
+
+        if (units.length != 1) {
+          // TODO(scheglov) Handle this case.
+          throw new UnimplementedError('Multiple units in a library');
+        }
+
+        var unit = units.values.single;
+        var applier = new ValidatingResolutionApplier(
+            astTypes, analyzerTarget.typeOffsets);
+        for (var declaration in unit.declarations) {
+          if (declaration is ClassDeclaration) {
+            for (var member in declaration.members) {
+              if (member is ConstructorDeclaration) {
+                member.body.accept(applier);
+              } else if (member is FieldDeclaration) {
+                if (member.fields.variables.length != 1) {
+                  // TODO(scheglov) Handle this case.
+                  throw new UnimplementedError('Multiple field');
+                }
+                member.fields.variables[0].initializer?.accept(applier);
+              } else if (member is MethodDeclaration) {
+                member.body.accept(applier);
+              } else {
+                // TODO(scheglov) Handle more cases.
+                throw new UnimplementedError('${member.runtimeType}');
+              }
+            }
+          } else if (declaration is FunctionDeclaration) {
+            declaration.functionExpression.body.accept(applier);
+          } else if (declaration is TopLevelVariableDeclaration) {
+            if (declaration.variables.variables.length != 1) {
+              // TODO(scheglov) Handle this case.
+              throw new UnimplementedError('Multiple variables');
+            }
+            declaration.variables.variables[0].initializer?.accept(applier);
+          } else {
+            // TODO(scheglov) Handle more cases.
+            throw new UnimplementedError('${declaration.runtimeType}');
+          }
+        }
+      }
+
+      units.forEach((file, unit) {
+        CompilationUnitElement unitElement = unit.element;
+        new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
+            .resolve(unit, unitElement);
+//        _resolveFile(file, unit);
+//        _computePendingMissingRequiredParameters(file, unit);
+      });
+
+      _computeConstants();
+
+      // TODO(scheglov) Restore.
+//      PerformanceStatistics.errors.makeCurrentWhile(() {
+//        units.forEach((file, unit) {
+//          _computeVerifyErrors(file, unit);
+//        });
+//      });
+
+      // TODO(scheglov) Restore.
+//      if (_analysisOptions.hint) {
+//        PerformanceStatistics.hints.makeCurrentWhile(() {
+//          units.forEach((file, unit) {
+//            {
+//              var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
+//              unit.accept(visitor);
+//              _usedLocalElementsList.add(visitor.usedElements);
+//            }
+//            {
+//              var visitor =
+//              new GatherUsedImportedElementsVisitor(_libraryElement);
+//              unit.accept(visitor);
+//              _usedImportedElementsList.add(visitor.usedElements);
+//            }
+//          });
+//          units.forEach((file, unit) {
+//            _computeHints(file, unit);
+//          });
+//        });
+//      }
 
       if (_analysisOptions.lint) {
         PerformanceStatistics.lints.makeCurrentWhile(() {

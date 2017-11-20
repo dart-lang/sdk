@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'defined_names_test.dart' as defined_names_test;
+import 'driver_kernel_test.dart' as driver_kernel;
 import 'driver_test.dart' as driver;
 import 'file_state_test.dart' as file_state;
 import 'index_test.dart' as index;
@@ -16,6 +17,7 @@ import 'session_test.dart' as session_test;
 main() {
   defineReflectiveSuite(() {
     defined_names_test.main();
+    driver_kernel.main();
     driver.main();
     file_state.main();
     index.main();
