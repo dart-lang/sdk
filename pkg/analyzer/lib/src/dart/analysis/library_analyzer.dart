@@ -178,6 +178,11 @@ class LibraryAnalyzer {
       units[part] = _parse(part);
     }
 
+    if (units.length != 1) {
+      // TODO(scheglov) Handle this case.
+      throw new UnimplementedError('Multiple units in a library');
+    }
+
     // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {
       _resolveUriBasedDirectives(file, unit);
@@ -188,6 +193,14 @@ class LibraryAnalyzer {
           .getElement(new ElementLocationImpl.con3([_library.uriStr]));
 
       _resolveDirectives(units);
+
+      units.forEach((file, unit) {
+        CompilationUnitElement unitElement = unit.element;
+        new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
+            .resolve(unit, unitElement);
+//        _resolveFile(file, unit);
+//        _computePendingMissingRequiredParameters(file, unit);
+      });
 
       // TODO(scheglov) Improve.
       {
@@ -205,11 +218,6 @@ class LibraryAnalyzer {
         for (var kernelType in analyzerTarget.kernelTypes) {
           DartType astType = resynthesizer.getType(null, kernelType);
           astTypes.add(astType);
-        }
-
-        if (units.length != 1) {
-          // TODO(scheglov) Handle this case.
-          throw new UnimplementedError('Multiple units in a library');
         }
 
         var unit = units.values.single;
@@ -249,11 +257,23 @@ class LibraryAnalyzer {
       }
 
       units.forEach((file, unit) {
-        CompilationUnitElement unitElement = unit.element;
-        new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
-            .resolve(unit, unitElement);
-//        _resolveFile(file, unit);
-//        _computePendingMissingRequiredParameters(file, unit);
+        //
+        // Find constants to compute.
+        //
+        {
+          ConstantFinder constantFinder = new ConstantFinder();
+          unit.accept(constantFinder);
+          _constants.addAll(constantFinder.constantsToCompute);
+        }
+
+        //
+        // Find constant dependencies to compute.
+        //
+        {
+          var finder = new ConstantExpressionsDependenciesFinder();
+          unit.accept(finder);
+          _constants.addAll(finder.dependencies);
+        }
       });
 
       _computeConstants();

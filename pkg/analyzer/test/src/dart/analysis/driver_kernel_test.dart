@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -118,22 +119,8 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_const_annotation_notConstConstructor() async {
-    await super.test_const_annotation_notConstConstructor();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_const_annotation_withArgs() async {
     await super.test_const_annotation_withArgs();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_const_annotation_withoutArgs() async {
-    await super.test_const_annotation_withoutArgs();
   }
 
   @failingTest
@@ -162,13 +149,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_const_implicitSuperConstructorInvocation() async {
     await super.test_const_implicitSuperConstructorInvocation();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_const_simple_topLevelVariable() async {
-    await super.test_const_simple_topLevelVariable();
   }
 
   @failingTest
@@ -221,13 +201,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_getResult() async {
-    await super.test_getResult();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_getResult_constants_defaultParameterValue_localFunction() async {
     await super.test_getResult_constants_defaultParameterValue_localFunction();
   }
@@ -241,7 +214,7 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
 
   test_getResult_hasResolution_localVariable() async {
     String content = r'''
-main() {
+void main() {
   var v = 42;
 }
 ''';
@@ -252,13 +225,20 @@ main() {
     expect(result.errors, isEmpty);
 
     FunctionDeclaration main = result.unit.declarations[0];
+    expect(main.element, isNotNull);
+    expect(main.name.staticElement, isNotNull);
+    expect(main.name.staticType.toString(), '() → void');
+
     BlockFunctionBody body = main.functionExpression.body;
     VariableDeclarationStatement statement = body.block.statements[0];
     VariableDeclaration vNode = statement.variables.variables[0];
     expect(vNode.name.staticType.toString(), 'int');
     expect(vNode.initializer.staticType.toString(), 'int');
 
-    // TODO(scheglov) Check for more resolution.
+    VariableElement vElement = vNode.name.staticElement;
+    expect(vElement, isNotNull);
+    expect(vElement.type, isNotNull);
+    expect(vElement.type.toString(), 'int');
   }
 
   @failingTest
@@ -442,13 +422,6 @@ main() {
   @override
   test_results_order() async {
     await super.test_results_order();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_results_priority() async {
-    await super.test_results_priority();
   }
 }
 

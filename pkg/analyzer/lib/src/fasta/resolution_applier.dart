@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST.
@@ -65,6 +66,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       // Don't visit the name; resolution for it will come from the outline.
     } else {
       node.name.accept(this);
+      VariableElementImpl element = node.name.staticElement;
+      element?.type = node.name.staticType;
     }
     node.initializer?.accept(this);
   }

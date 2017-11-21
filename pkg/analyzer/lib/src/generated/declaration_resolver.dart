@@ -243,6 +243,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: functionName.name + '=');
       }
     }
+    if (_enableKernelDriver) {
+      node.name.staticType = element.type;
+    }
     _setGenericFunctionType(node.returnType, element.returnType);
     node.functionExpression.element = element;
     _walker._elementHolder?.addFunction(element);
