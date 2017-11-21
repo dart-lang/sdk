@@ -10,7 +10,7 @@ class C extends core::Object {
   method m<T extends core::num>(self::C::m::T x, self::C::m::T y) → self::C::m::T
     return null;
 }
-static method main() → dynamic {
+static method test() → dynamic {
   self::takeIII(math::max);
   self::takeDDD(math::max);
   self::takeNNN(math::max);
@@ -68,3 +68,4 @@ static method takeOOO((core::Object, core::Object) → core::num fn) → void {}
 static method takeOOI((core::Object, core::Object) → core::int fn) → void {}
 static method takeIIO((core::int, core::int) → core::Object fn) → void {}
 static method takeDDO((core::double, core::double) → core::Object fn) → void {}
+static method main() → dynamic {}

@@ -5,7 +5,7 @@ import "dart:core" as core;
 static field core::int intValue = 0;
 static field core::num numValue = 0;
 static field core::double doubleValue = 0.0;
-static field dynamic a = () → core::num => self::intValue.{core::num::+}(self::b);
+static field dynamic a = () → core::num => self::intValue.{core::num::+}(self::b as{TypeError} core::num);
 static field dynamic b = self::a.call();
 static field () → core::num c = () → core::num => self::numValue.{core::num::+}(self::d);
 static field core::num d = self::c.call();

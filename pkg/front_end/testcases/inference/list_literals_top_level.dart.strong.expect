@@ -5,17 +5,14 @@ import "dart:core" as core;
 static field core::List<core::int> x1 = <core::int>[1, 2, 3];
 static field core::List<core::num> x2 = <core::num>[1, 2.0, 3];
 static method test1() → dynamic {
-  self::x1.{core::List::add}("hi");
-  self::x1.{core::List::add}(4.0);
+  self::x1.{core::List::add}("hi" as{TypeError} core::int);
+  self::x1.{core::List::add}(4.0 as{TypeError} core::int);
   self::x1.{core::List::add}(4);
   core::List<core::num> y = self::x1;
 }
 static method test2() → dynamic {
-  self::x2.{core::List::add}("hi");
+  self::x2.{core::List::add}("hi" as{TypeError} core::num);
   self::x2.{core::List::add}(4.0);
   core::List<core::int> y = self::x2 as{TypeError} core::List<core::int>;
 }
-static method main() → dynamic {
-  self::test1();
-  self::test2();
-}
+static method main() → dynamic {}

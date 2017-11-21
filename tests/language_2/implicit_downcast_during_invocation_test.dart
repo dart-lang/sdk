@@ -2,12 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
-library test;
+import "package:expect/expect.dart";
 
-test1() {
-  var /*@type=List<Null>*/ x = /*@typeArgs=Null*/ [null];
-  x. /*@target=List::add*/ add(/*error:INVALID_CAST_LITERAL*/ 42);
+class A {}
+
+class B extends A {}
+
+void f(B b) {}
+
+main() {
+  A a1 = new B();
+  A a2 = new A();
+  f(a1); // No error
+  Expect.throwsTypeError(() {
+    f(a2);
+  });
 }
-
-main() {}

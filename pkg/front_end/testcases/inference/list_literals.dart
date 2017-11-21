@@ -20,7 +20,4 @@ test2() {
   List<int> y = /*info:ASSIGNMENT_CAST*/ x;
 }
 
-main() {
-  test1();
-  test2();
-}
+main() {}

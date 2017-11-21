@@ -91,21 +91,16 @@ inference/future_then_conditional_2: TypeCheckError
 inference/future_then_conditional_4: TypeCheckError
 inference/future_then_conditional_5: TypeCheckError
 inference/future_then_explicit_future: Fail # Issue #30040
-inference/future_union_downwards: TypeCheckError
 inference/future_union_downwards_2: TypeCheckError
-inference/future_union_downwards_3: TypeCheckError
 inference/future_union_downwards_4: TypeCheckError
 inference/generic_functions_return_typedef: Fail # Issue #29798
 inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
-inference/generic_methods_dart_math_min_max: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_downwards_inference_affects_arguments: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
-inference/generic_methods_infer_generic_instantiation: TypeCheckError
 inference/generic_methods_infer_js_builtin: Fail # Issue #30029
-inference/generic_methods_inference_error: TypeCheckError
 inference/generic_methods_iterable_and_future: TypeCheckError
-inference/generic_methods_nested_generic_instantiation: TypeCheckError
+inference/generic_methods_nested_generic_instantiation: RuntimeError # Issue 31034
 inference/generic_methods_uses_greatest_lower_bound: RuntimeError
 inference/infer_field_override_multiple: TypeCheckError
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TypeCheckError
@@ -116,9 +111,6 @@ inference/infer_types_on_generic_instantiations_infer: TypeCheckError
 inference/infer_types_on_loop_indices_for_each_loop: TypeCheckError
 inference/inferred_initializing_formal_checks_default_value: TypeCheckError
 inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
-inference/list_literals: TypeCheckError
-inference/list_literals_can_infer_null_bottom: RuntimeError
-inference/list_literals_top_level: TypeCheckError
 inference/local_return_and_yield: TypeCheckError
 inference/map_literals: TypeCheckError
 inference/map_literals_top_level: TypeCheckError
@@ -235,7 +227,6 @@ regress/issue_31187: TypeCheckError
 regress/issue_31192: TypeCheckError
 regress/issue_31198: TypeCheckError
 
-runtime_checks/covariant_generic_method_type_parameter: TypeCheckError
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
 runtime_checks_new/contravariant_getter_return_compound_assign: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError

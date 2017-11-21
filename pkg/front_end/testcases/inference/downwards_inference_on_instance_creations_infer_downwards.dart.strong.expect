@@ -60,8 +60,8 @@ static method main() → void {
     self::A<core::int, core::String> a5 = new self::A::named<dynamic, dynamic>(3, "hello") as{TypeError} self::A<core::int, core::String>;
   }
   {
-    self::A<core::int, core::String> a0 = new self::A::•<core::int, core::String>("hello", 3);
-    self::A<core::int, core::String> a1 = new self::A::named<core::int, core::String>("hello", 3);
+    self::A<core::int, core::String> a0 = new self::A::•<core::int, core::String>("hello" as{TypeError} core::int, 3 as{TypeError} core::String);
+    self::A<core::int, core::String> a1 = new self::A::named<core::int, core::String>("hello" as{TypeError} core::int, 3 as{TypeError} core::String);
   }
   {
     self::A<core::int, core::String> a0 = new self::B::•<core::String, core::int>("hello", 3);
@@ -72,8 +72,8 @@ static method main() → void {
     self::A<core::int, core::String> a5 = new self::B::named<dynamic, dynamic>("hello", 3) as{TypeError} self::A<core::int, core::String>;
   }
   {
-    self::A<core::int, core::String> a0 = new self::B::•<core::String, core::int>(3, "hello");
-    self::A<core::int, core::String> a1 = new self::B::named<core::String, core::int>(3, "hello");
+    self::A<core::int, core::String> a0 = new self::B::•<core::String, core::int>(3 as{TypeError} core::String, "hello" as{TypeError} core::int);
+    self::A<core::int, core::String> a1 = new self::B::named<core::String, core::int>(3 as{TypeError} core::String, "hello" as{TypeError} core::int);
   }
   {
     self::A<core::int, core::int> a0 = new self::C::•<core::int>(3);
@@ -84,8 +84,8 @@ static method main() → void {
     self::A<core::int, core::int> a5 = new self::C::named<dynamic>(3) as{TypeError} self::A<core::int, core::int>;
   }
   {
-    self::A<core::int, core::int> a0 = new self::C::•<core::int>("hello");
-    self::A<core::int, core::int> a1 = new self::C::named<core::int>("hello");
+    self::A<core::int, core::int> a0 = new self::C::•<core::int>("hello" as{TypeError} core::int);
+    self::A<core::int, core::int> a1 = new self::C::named<core::int>("hello" as{TypeError} core::int);
   }
   {
     self::A<core::int, core::String> a0 = new self::D::•<dynamic, core::String>("hello");
@@ -96,8 +96,8 @@ static method main() → void {
     self::A<core::int, core::String> a5 = new self::D::named<dynamic, dynamic>("hello") as{TypeError} self::A<core::int, core::String>;
   }
   {
-    self::A<core::int, core::String> a0 = new self::D::•<dynamic, core::String>(3);
-    self::A<core::int, core::String> a1 = new self::D::named<dynamic, core::String>(3);
+    self::A<core::int, core::String> a0 = new self::D::•<dynamic, core::String>(3 as{TypeError} core::String);
+    self::A<core::int, core::String> a1 = new self::D::named<dynamic, core::String>(3 as{TypeError} core::String);
   }
   {
     self::A<self::C<core::int>, core::String> a0 = new self::E::•<core::int, core::String>("hello");
@@ -107,7 +107,7 @@ static method main() → void {
     self::A<core::int, core::String> a1 = new self::F::•<core::int, core::String>(3, "hello", a: <core::int>["hello"], b: <core::String>[3]);
     self::A<core::int, core::String> a2 = new self::F::named<core::int, core::String>(3, "hello", 3, "hello");
     self::A<core::int, core::String> a3 = new self::F::named<core::int, core::String>(3, "hello");
-    self::A<core::int, core::String> a4 = new self::F::named<core::int, core::String>(3, "hello", "hello", 3);
-    self::A<core::int, core::String> a5 = new self::F::named<core::int, core::String>(3, "hello", "hello");
+    self::A<core::int, core::String> a4 = new self::F::named<core::int, core::String>(3, "hello", "hello" as{TypeError} core::int, 3 as{TypeError} core::String);
+    self::A<core::int, core::String> a5 = new self::F::named<core::int, core::String>(3, "hello", "hello" as{TypeError} core::int);
   }
 }

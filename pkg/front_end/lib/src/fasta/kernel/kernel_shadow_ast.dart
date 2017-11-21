@@ -480,7 +480,7 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     } else {
       _storeLetType(inferrer, write, combinedType);
     }
-    return isPostIncDec ? readType : combinedType;
+    return isPostIncDec ? (readType ?? const DynamicType()) : combinedType;
   }
 }
 

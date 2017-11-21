@@ -15,7 +15,4 @@ static method test2() → dynamic {
   x.add(4.0);
   core::List<core::int> y = x;
 }
-static method main() → dynamic {
-  self::test1();
-  self::test2();
-}
+static method main() → dynamic {}

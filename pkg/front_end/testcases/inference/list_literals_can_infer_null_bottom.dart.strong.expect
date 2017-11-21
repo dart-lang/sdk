@@ -4,8 +4,6 @@ import "dart:core" as core;
 
 static method test1() → dynamic {
   core::List<core::Null> x = <core::Null>[null];
-  x.{core::List::add}(42);
+  x.{core::List::add}(42 as{TypeError} core::Null);
 }
-static method main() → dynamic {
-  self::test1();
-}
+static method main() → dynamic {}

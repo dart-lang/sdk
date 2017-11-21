@@ -8,7 +8,7 @@ class C<T extends core::Object> extends core::Object {
     ;
   method f<generic-covariant-impl generic-covariant-interface U extends self::C::T>(self::C::f::U x) → void {}
   method g1<generic-covariant-impl generic-covariant-interface U extends self::C::T>() → void {
-    this.{self::C::f}<self::C::g1::U>(1.5);
+    this.{self::C::f}<self::C::g1::U>(1.5 as{TypeError} self::C::g1::U);
   }
 }
 static method g2(self::C<core::Object> c) → void {

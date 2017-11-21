@@ -766,10 +766,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         explicitTypeArguments == null &&
         strongMode &&
         calleeTypeParameters.isNotEmpty;
+    bool typeChecksNeeded = !isTopLevel;
     List<DartType> inferredTypes;
     Substitution substitution;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
+    List<Expression> expressions;
+    if (inferenceNeeded || typeChecksNeeded) {
+      formalTypes = [];
+      actualTypes = [];
+      expressions = [];
+    }
     if (inferenceNeeded) {
       if (isConst && typeContext != null) {
         typeContext =
@@ -781,8 +788,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           calleeTypeParameters, null, null, typeContext, inferredTypes);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
-      formalTypes = [];
-      actualTypes = [];
     } else if (explicitTypeArguments != null &&
         calleeTypeParameters.length == explicitTypeArguments.length) {
       substitution =
@@ -803,11 +808,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       DartType inferredFormalType = substitution != null
           ? substitution.substituteType(formalType)
           : formalType;
-      var expressionType = inferExpression(expression, inferredFormalType,
-          inferenceNeeded || isOverloadedArithmeticOperator);
-      if (inferenceNeeded) {
+      var expressionType = inferExpression(
+          expression,
+          inferredFormalType,
+          inferenceNeeded ||
+              isOverloadedArithmeticOperator ||
+              typeChecksNeeded);
+      if (inferenceNeeded || typeChecksNeeded) {
         formalTypes.add(formalType);
         actualTypes.add(expressionType);
+        expressions.add(expression);
       }
       if (isOverloadedArithmeticOperator) {
         returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
@@ -828,6 +838,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           new InstrumentationValueForTypeArgs(inferredTypes));
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
+    }
+    if (typeChecksNeeded) {
+      for (int i = 0; i < formalTypes.length; i++) {
+        var formalType = formalTypes[i];
+        var expectedType = substitution != null
+            ? substitution.substituteType(formalType)
+            : formalType;
+        var actualType = actualTypes[i];
+        var expression = expressions[i];
+        checkAssignability(
+            expectedType, actualType, expression, expression.fileOffset);
+      }
     }
     DartType inferredType;
     if (typeNeeded) {

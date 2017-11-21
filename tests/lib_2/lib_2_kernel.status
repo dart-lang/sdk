@@ -23,32 +23,96 @@
 [ $compiler == dartk && $runtime == vm && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
+async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/slow_consumer3_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/slow_consumer_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_controller_async_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_first_where_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_from_iterable_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_iterator_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_join_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_last_where_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic3_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic4_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic5_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic6_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_single_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_single_to_multi_subscriber_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_state_nonzero_timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_state_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_subscription_as_future_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_subscription_cancel_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_timeout_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_transform_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_transformation_broadcast_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_cancel1_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_cancel2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_cancel_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_isActive_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_not_available_test: RuntimeError
+async/timer_repeat_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/zone_run_unary_test: RuntimeError # Issue 31402 (Variable declaration)
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
+convert/streamed_conversion_utf8_encode_test: RuntimeError # Issue 31402 (Invocation arguments)
 html/*: DartkCompileTimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: MissingCompileTimeError
+isolate/count_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/cross_isolate_message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/handle_error2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/handle_error3_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/illegal_msg_function_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/illegal_msg_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/isolate_current_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
-isolate/message3_test/int32x4: Crash
+isolate/kill_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/mandel_isolate_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/byteBuffer: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/constInstance: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/constList: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/constList_identical: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/constMap: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/fun: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/int32x4: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/mint_maker_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/nested_spawn2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/nested_spawn_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/ping_pause_test: Pass, Timeout
-isolate/spawn_function_custom_class_test: Pass, Timeout
-isolate/spawn_uri_nested_vm_test: Pass, Timeout
+isolate/raw_port_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/request_reply_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/spawn_function_custom_class_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/spawn_function_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/spawn_uri_multi_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/spawn_uri_nested_vm_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/spawn_uri_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/spawn_uri_vm_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/static_function_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/timer_isolate_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/unresolved_ports_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
 mirrors/abstract_class_test: RuntimeError
-mirrors/class_declarations_test/01: RuntimeError
-mirrors/class_declarations_test/none: RuntimeError
+mirrors/abstract_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/class_declarations_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/class_declarations_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/class_mirror_location_test: RuntimeError
+mirrors/closures_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/constructor_kinds_test/01: RuntimeError
 mirrors/constructor_kinds_test/none: RuntimeError
 mirrors/constructor_optional_args_test: CompileTimeError
 mirrors/constructor_optional_args_test: Crash # Issue 29201
 mirrors/constructor_private_name_test: RuntimeError
-mirrors/constructors_test: RuntimeError # Issue 31402 (Variable declaration)
+mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/dart2js_mirrors_test: Crash
 mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_metadata_test: RuntimeError
@@ -61,12 +125,13 @@ mirrors/deferred_type_test: CompileTimeError
 mirrors/deferred_type_test: RuntimeError
 mirrors/empty_test: Crash
 mirrors/empty_test: RuntimeError
-mirrors/enum_test: RuntimeError
+mirrors/enum_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/equality_test: RuntimeError
 mirrors/function_type_mirror_test: RuntimeError
 mirrors/generic_bounded_by_type_parameter_test/02: MissingCompileTimeError
 mirrors/generic_bounded_test/01: MissingCompileTimeError
 mirrors/generic_bounded_test/02: MissingCompileTimeError
+mirrors/generic_class_declaration_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/generic_f_bounded_mixin_application_test: RuntimeError
 mirrors/generic_function_typedef_test: RuntimeError
 mirrors/generic_interface_test/01: MissingCompileTimeError
@@ -76,7 +141,9 @@ mirrors/generic_mixin_applications_test: RuntimeError
 mirrors/generic_mixin_test: RuntimeError
 mirrors/hot_get_field_test: RuntimeError
 mirrors/hot_set_field_test: RuntimeError
-mirrors/intercepted_object_test: RuntimeError
+mirrors/inherit_field_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/intercepted_class_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/intercepted_object_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/invocation_fuzz_test/emptyarray: Crash
 mirrors/invocation_fuzz_test/false: Crash
 mirrors/invocation_fuzz_test/none: Crash
@@ -86,28 +153,32 @@ mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
 mirrors/invoke_throws_test: Crash
 mirrors/invoke_throws_test: RuntimeError
-mirrors/library_declarations_test/none: RuntimeError
+mirrors/lazy_static_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/library_declarations_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/library_declarations_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_enumeration_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_enumeration_deferred_loading_test: RuntimeError
-mirrors/library_exports_hidden_test: Crash
+mirrors/library_exports_hidden_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_hidden_test: RuntimeError, Crash
-mirrors/library_exports_shown_test: Crash
+mirrors/library_exports_shown_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_exports_shown_test: RuntimeError
 mirrors/library_import_deferred_loading_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/library_imports_bad_metadata_test/none: Crash
-mirrors/library_imports_deferred_test: Crash
+mirrors/library_imports_deferred_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_deferred_test: RuntimeError
-mirrors/library_imports_hidden_test: Crash
+mirrors/library_imports_hidden_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_hidden_test: RuntimeError
-mirrors/library_imports_metadata_test: Crash
+mirrors/library_imports_metadata_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_metadata_test: RuntimeError
-mirrors/library_imports_prefixed_show_hide_test: Crash
+mirrors/library_imports_prefixed_show_hide_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError
-mirrors/library_imports_prefixed_test: Crash
+mirrors/library_imports_prefixed_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_prefixed_test: RuntimeError
-mirrors/library_imports_shown_test: Crash
+mirrors/library_imports_shown_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_imports_shown_test: RuntimeError
 mirrors/library_metadata_test: RuntimeError
+mirrors/library_uri_io_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/library_uri_package_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/list_constructor_test/01: Crash
 mirrors/list_constructor_test/01: RuntimeError
 mirrors/list_constructor_test/none: Crash
@@ -121,6 +192,7 @@ mirrors/metadata_constructed_constant_test: Crash
 mirrors/metadata_constructed_constant_test: RuntimeError
 mirrors/metadata_scope_test/none: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
+mirrors/method_mirror_name_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
 mirrors/mirrors_nsm_mismatch_test: RuntimeError
@@ -131,15 +203,20 @@ mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a
 mirrors/mirrors_used_inheritance_test: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/none: RuntimeError
-mirrors/mixin_application_test: RuntimeError
+mirrors/mixin_application_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/mixin_members_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/mixin_simple_test: RuntimeError
 mirrors/mixin_test: RuntimeError
 mirrors/native_class_test: SkipByDesign # Imports dart:html
+mirrors/no_metadata_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/operator_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/other_declarations_location_test: RuntimeError
 mirrors/parameter_annotation_mirror_test: RuntimeError
 mirrors/parameter_metadata_test: Crash
 mirrors/parameter_metadata_test: RuntimeError
-mirrors/parameter_of_mixin_app_constructor_test: RuntimeError
+mirrors/parameter_of_mixin_app_constructor_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/parameter_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/parameter_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/private_class_field_test: RuntimeError
 mirrors/private_field_test: RuntimeError
 mirrors/private_symbol_test: RuntimeError
@@ -151,9 +228,8 @@ mirrors/redirecting_factory_different_type_test/none: Crash
 mirrors/redirecting_factory_test/01: Crash
 mirrors/redirecting_factory_test/02: Crash
 mirrors/redirecting_factory_test/none: Crash
-mirrors/reflect_class_test/01: RuntimeError
-mirrors/reflect_class_test/02: RuntimeError
 mirrors/reflect_class_test/none: RuntimeError
+mirrors/reflect_model_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/reflected_type_classes_test/01: RuntimeError
 mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_generics_test/01: RuntimeError
@@ -166,12 +242,16 @@ mirrors/relation_assignable_test: RuntimeError
 mirrors/relation_subclass_test: RuntimeError
 mirrors/relation_subtype_test: RuntimeError
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError
-mirrors/static_members_easier_test: RuntimeError
-mirrors/static_members_test: RuntimeError
+mirrors/return_type_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/static_members_easier_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/static_members_test: CompileTimeError # Issue 31402 (Invocation arguments)
+mirrors/static_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/symbol_validation_test/01: RuntimeError
 mirrors/symbol_validation_test/none: RuntimeError
+mirrors/synthetic_accessor_properties_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
+mirrors/typearguments_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/typedef_deferred_library_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/typedef_deferred_library_test: RuntimeError
 mirrors/typedef_in_signature_test: RuntimeError
@@ -182,6 +262,9 @@ mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
 mirrors/variable_is_const_test/01: MissingCompileTimeError
+typed_data/float32x4_static_test: Pass # Issue 31402 (Invocation arguments)
+typed_data/int32x4_static_test/01: Pass # Issue 31402 (Invocation arguments)
+typed_data/int32x4_static_test/02: Pass # Issue 31402 (Invocation arguments)
 
 [ $compiler == dartk && $strong ]
 async/async_await_zones_test: RuntimeError
@@ -329,8 +412,6 @@ mirrors/operator_test: RuntimeError
 mirrors/parameter_is_const_test/none: RuntimeError
 mirrors/parameter_test/01: RuntimeError
 mirrors/parameter_test/none: RuntimeError
-mirrors/reflect_class_test/01: MissingCompileTimeError
-mirrors/reflect_class_test/02: MissingCompileTimeError
 mirrors/reflect_model_test: RuntimeError
 mirrors/reflected_type_classes_test/01: MissingCompileTimeError
 mirrors/reflected_type_classes_test/02: MissingCompileTimeError
@@ -369,34 +450,67 @@ mirrors/reflected_type_generics_test/02: Pass
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
+async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/slow_consumer3_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/slow_consumer_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_controller_async_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_first_where_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_from_iterable_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_iterator_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_join_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_last_where_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic3_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic4_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic5_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic6_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_periodic_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_single_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_single_to_multi_subscriber_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_state_nonzero_timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_state_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_subscription_as_future_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_subscription_cancel_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_timeout_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_transform_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_transformation_broadcast_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_cancel1_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_cancel2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_cancel_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_isActive_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_not_available_test: RuntimeError
+async/timer_repeat_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 convert/json_toEncodable_reviver_test: CompileTimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: Crash
 isolate/compile_time_error_test/01: MissingCompileTimeError
 isolate/deferred_in_isolate2_test: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/deferred_in_isolate_test: Skip # Times out. Deferred loading kernel issue 28335.
+isolate/handle_error2_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/handle_error3_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/isolate_current_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_22778_test: Crash
-isolate/message3_test/byteBuffer: RuntimeError
-isolate/message3_test/constInstance: RuntimeError
-isolate/message3_test/constList: RuntimeError
-isolate/message3_test/constList_identical: RuntimeError
-isolate/message3_test/constMap: RuntimeError
-isolate/message3_test/fun: RuntimeError
-isolate/message3_test/int32x4: Crash
-isolate/message3_test/none: RuntimeError
+isolate/kill_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/byteBuffer: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/constInstance: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/constList: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/constList_identical: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/constMap: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/fun: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/int32x4: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/message3_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/ping_pause_test: Crash
 isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_function_custom_class_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
+isolate/timer_isolate_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
-typed_data/float32x4_static_test: MissingCompileTimeError
-typed_data/int32x4_static_test/01: MissingCompileTimeError
-typed_data/int32x4_static_test/02: MissingCompileTimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug]
 isolate/isolate_complex_messages_test: Crash

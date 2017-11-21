@@ -10,49 +10,49 @@ class C extends core::Object {
   method m<T extends core::num>(self::C::m::T x, self::C::m::T y) → self::C::m::T
     return null;
 }
-static method main() → dynamic {
-  self::takeIII(math::max);
-  self::takeDDD(math::max);
-  self::takeNNN(math::max);
-  self::takeIDN(math::max);
-  self::takeDIN(math::max);
-  self::takeIIN(math::max);
-  self::takeDDN(math::max);
-  self::takeIIO(math::max);
-  self::takeDDO(math::max);
-  self::takeOOI(math::max);
-  self::takeIDI(math::max);
-  self::takeDID(math::max);
-  self::takeOON(math::max);
-  self::takeOOO(math::max);
-  self::takeIII(math::min);
-  self::takeDDD(math::min);
-  self::takeNNN(math::min);
-  self::takeIDN(math::min);
-  self::takeDIN(math::min);
-  self::takeIIN(math::min);
-  self::takeDDN(math::min);
-  self::takeIIO(math::min);
-  self::takeDDO(math::min);
-  self::takeOOI(math::min);
-  self::takeIDI(math::min);
-  self::takeDID(math::min);
-  self::takeOON(math::min);
-  self::takeOOO(math::min);
-  self::takeIII(new self::C::•().{self::C::m});
-  self::takeDDD(new self::C::•().{self::C::m});
-  self::takeNNN(new self::C::•().{self::C::m});
-  self::takeIDN(new self::C::•().{self::C::m});
-  self::takeDIN(new self::C::•().{self::C::m});
-  self::takeIIN(new self::C::•().{self::C::m});
-  self::takeDDN(new self::C::•().{self::C::m});
-  self::takeIIO(new self::C::•().{self::C::m});
-  self::takeDDO(new self::C::•().{self::C::m});
-  self::takeOON(new self::C::•().{self::C::m});
-  self::takeOOO(new self::C::•().{self::C::m});
-  self::takeOOI(new self::C::•().{self::C::m});
-  self::takeIDI(new self::C::•().{self::C::m});
-  self::takeDID(new self::C::•().{self::C::m});
+static method test() → dynamic {
+  self::takeIII(math::max as{TypeError} (core::int, core::int) → core::int);
+  self::takeDDD(math::max as{TypeError} (core::double, core::double) → core::double);
+  self::takeNNN(math::max as{TypeError} (core::num, core::num) → core::num);
+  self::takeIDN(math::max as{TypeError} (core::double, core::int) → core::num);
+  self::takeDIN(math::max as{TypeError} (core::int, core::double) → core::num);
+  self::takeIIN(math::max as{TypeError} (core::int, core::int) → core::num);
+  self::takeDDN(math::max as{TypeError} (core::double, core::double) → core::num);
+  self::takeIIO(math::max as{TypeError} (core::int, core::int) → core::Object);
+  self::takeDDO(math::max as{TypeError} (core::double, core::double) → core::Object);
+  self::takeOOI(math::max as{TypeError} (core::Object, core::Object) → core::int);
+  self::takeIDI(math::max as{TypeError} (core::double, core::int) → core::int);
+  self::takeDID(math::max as{TypeError} (core::int, core::double) → core::double);
+  self::takeOON(math::max as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeOOO(math::max as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeIII(math::min as{TypeError} (core::int, core::int) → core::int);
+  self::takeDDD(math::min as{TypeError} (core::double, core::double) → core::double);
+  self::takeNNN(math::min as{TypeError} (core::num, core::num) → core::num);
+  self::takeIDN(math::min as{TypeError} (core::double, core::int) → core::num);
+  self::takeDIN(math::min as{TypeError} (core::int, core::double) → core::num);
+  self::takeIIN(math::min as{TypeError} (core::int, core::int) → core::num);
+  self::takeDDN(math::min as{TypeError} (core::double, core::double) → core::num);
+  self::takeIIO(math::min as{TypeError} (core::int, core::int) → core::Object);
+  self::takeDDO(math::min as{TypeError} (core::double, core::double) → core::Object);
+  self::takeOOI(math::min as{TypeError} (core::Object, core::Object) → core::int);
+  self::takeIDI(math::min as{TypeError} (core::double, core::int) → core::int);
+  self::takeDID(math::min as{TypeError} (core::int, core::double) → core::double);
+  self::takeOON(math::min as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeOOO(math::min as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeIII(new self::C::•().{self::C::m} as{TypeError} (core::int, core::int) → core::int);
+  self::takeDDD(new self::C::•().{self::C::m} as{TypeError} (core::double, core::double) → core::double);
+  self::takeNNN(new self::C::•().{self::C::m} as{TypeError} (core::num, core::num) → core::num);
+  self::takeIDN(new self::C::•().{self::C::m} as{TypeError} (core::double, core::int) → core::num);
+  self::takeDIN(new self::C::•().{self::C::m} as{TypeError} (core::int, core::double) → core::num);
+  self::takeIIN(new self::C::•().{self::C::m} as{TypeError} (core::int, core::int) → core::num);
+  self::takeDDN(new self::C::•().{self::C::m} as{TypeError} (core::double, core::double) → core::num);
+  self::takeIIO(new self::C::•().{self::C::m} as{TypeError} (core::int, core::int) → core::Object);
+  self::takeDDO(new self::C::•().{self::C::m} as{TypeError} (core::double, core::double) → core::Object);
+  self::takeOON(new self::C::•().{self::C::m} as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeOOO(new self::C::•().{self::C::m} as{TypeError} (core::Object, core::Object) → core::num);
+  self::takeOOI(new self::C::•().{self::C::m} as{TypeError} (core::Object, core::Object) → core::int);
+  self::takeIDI(new self::C::•().{self::C::m} as{TypeError} (core::double, core::int) → core::int);
+  self::takeDID(new self::C::•().{self::C::m} as{TypeError} (core::int, core::double) → core::double);
 }
 static method takeIII((core::int, core::int) → core::int fn) → void {}
 static method takeDDD((core::double, core::double) → core::double fn) → void {}
@@ -68,3 +68,4 @@ static method takeOOO((core::Object, core::Object) → core::num fn) → void {}
 static method takeOOI((core::Object, core::Object) → core::int fn) → void {}
 static method takeIIO((core::int, core::int) → core::Object fn) → void {}
 static method takeDDO((core::double, core::double) → core::Object fn) → void {}
+static method main() → dynamic {}
