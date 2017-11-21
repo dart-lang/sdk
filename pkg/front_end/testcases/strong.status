@@ -228,7 +228,6 @@ regress/issue_31192: TypeCheckError
 regress/issue_31198: TypeCheckError
 
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
-runtime_checks_new/contravariant_getter_return_compound_assign: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError

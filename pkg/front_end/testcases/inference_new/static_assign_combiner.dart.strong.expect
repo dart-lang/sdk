@@ -46,8 +46,8 @@ static get target() → self::A
   return null;
 static set target(self::B value) → void {}
 static method test1() → void {
-  self::target = self::target.{self::A::*}(self::f<dynamic>());
-  self::C x = self::target = self::target.{self::A::*}(self::f<dynamic>());
+  self::target = self::target.{self::A::*}(self::f<dynamic>() as{TypeError} self::D);
+  self::C x = self::target = self::target.{self::A::*}(self::f<dynamic>() as{TypeError} self::D);
 }
 static method test2() → void {
   self::target = self::target.{self::A::+}(1);

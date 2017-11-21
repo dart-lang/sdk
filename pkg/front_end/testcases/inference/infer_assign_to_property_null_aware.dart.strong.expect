@@ -33,15 +33,15 @@ class Test extends core::Object {
   static method test(self::Test t) → void {
     let final self::Test #t1 = t in #t1.==(null) ?{self::B} null : #t1.{self::Test::member} = self::f<self::B>();
     let final self::Test #t2 = t in #t2.==(null) ?{self::B} null : #t2.{self::Test::member}.{core::Object::==}(null) ?{self::B} #t2.{self::Test::member} = self::f<self::B>() : null;
-    let final self::Test #t3 = t in #t3.==(null) ?{self::A} null : #t3.{self::Test::member} = #t3.{self::Test::member}.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
-    let final self::Test #t4 = t in #t4.==(null) ?{self::B} null : #t4.{self::Test::member} = #t4.{self::Test::member}.{self::B::*}(self::f<dynamic>());
-    let final self::Test #t5 = t in #t5.==(null) ?{self::C} null : #t5.{self::Test::member} = #t5.{self::Test::member}.{self::B::&}(self::f<dynamic>());
+    let final self::Test #t3 = t in #t3.==(null) ?{self::A} null : #t3.{self::Test::member} = #t3.{self::Test::member}.{self::B::+}(self::f<dynamic>() as{TypeError} self::C) as{TypeError} self::B;
+    let final self::Test #t4 = t in #t4.==(null) ?{self::B} null : #t4.{self::Test::member} = #t4.{self::Test::member}.{self::B::*}(self::f<dynamic>() as{TypeError} self::B);
+    let final self::Test #t5 = t in #t5.==(null) ?{self::C} null : #t5.{self::Test::member} = #t5.{self::Test::member}.{self::B::&}(self::f<dynamic>() as{TypeError} self::A);
     let final self::Test #t6 = t in #t6.==(null) ?{self::B} null : #t6.{self::Test::member} = #t6.{self::Test::member}.{self::B::-}(1);
     let final self::Test #t7 = t in #t7.==(null) ?{self::B} null : #t7.{self::Test::member} = #t7.{self::Test::member}.{self::B::-}(1);
     self::B v1 = let final self::Test #t8 = t in #t8.==(null) ?{self::B} null : #t8.{self::Test::member} = self::f<self::B>();
     self::B v2 = let final self::Test #t9 = t in #t9.==(null) ?{self::B} null : let final self::B #t10 = #t9.{self::Test::member} in #t10.{core::Object::==}(null) ?{self::B} #t9.{self::Test::member} = self::f<self::B>() : #t10;
-    self::B v4 = let final self::Test #t11 = t in #t11.==(null) ?{self::B} null : #t11.{self::Test::member} = #t11.{self::Test::member}.{self::B::*}(self::f<dynamic>());
-    self::C v5 = let final self::Test #t12 = t in #t12.==(null) ?{self::C} null : #t12.{self::Test::member} = #t12.{self::Test::member}.{self::B::&}(self::f<dynamic>());
+    self::B v4 = let final self::Test #t11 = t in #t11.==(null) ?{self::B} null : #t11.{self::Test::member} = #t11.{self::Test::member}.{self::B::*}(self::f<dynamic>() as{TypeError} self::B);
+    self::C v5 = let final self::Test #t12 = t in #t12.==(null) ?{self::C} null : #t12.{self::Test::member} = #t12.{self::Test::member}.{self::B::&}(self::f<dynamic>() as{TypeError} self::A);
     self::B v6 = let final self::Test #t13 = t in #t13.==(null) ?{self::B} null : #t13.{self::Test::member} = #t13.{self::Test::member}.{self::B::-}(1);
     self::B v7 = let final self::Test #t14 = t in #t14.==(null) ?{self::B} null : let final self::B #t15 = #t14.{self::Test::member} in let final self::B #t16 = #t14.{self::Test::member} = #t15.{self::B::-}(1) in #t15;
   }

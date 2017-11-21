@@ -430,7 +430,13 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
         // Analyzer uses a null context for the RHS here.
         // TODO(paulberry): improve on this.
         rhsType = inferrer.inferExpression(rhs, null, true);
-        _storeLetType(inferrer, rhs, rhsType);
+        // It's not necessary to call _storeLetType for [rhs] because the RHS
+        // is always passed directly to the combiner; it's never stored in a
+        // temporary variable first.
+        assert(identical(combiner.arguments.positional[0], rhs));
+        var expectedType = getPositionalParameterType(combinerType, 0);
+        inferrer.checkAssignability(
+            expectedType, rhsType, rhs, combiner.fileOffset);
       }
       if (isOverloadedArithmeticOperator) {
         combinedType = inferrer.typeSchemaEnvironment

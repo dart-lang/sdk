@@ -51,8 +51,8 @@ class G extends core::Object {
 static method f<T extends core::Object>() → self::f::T
   return null;
 static method test1(self::G g) → void {
-  let final self::G #t1 = g in #t1.{self::G::target} = #t1.{self::G::target}.{self::A::*}(self::f<dynamic>());
-  self::C x = let final self::G #t2 = g in #t2.{self::G::target} = #t2.{self::G::target}.{self::A::*}(self::f<dynamic>());
+  let final self::G #t1 = g in #t1.{self::G::target} = #t1.{self::G::target}.{self::A::*}(self::f<dynamic>() as{TypeError} self::D);
+  self::C x = let final self::G #t2 = g in #t2.{self::G::target} = #t2.{self::G::target}.{self::A::*}(self::f<dynamic>() as{TypeError} self::D);
 }
 static method test2(self::G g) → void {
   let final self::G #t3 = g in #t3.{self::G::target} = #t3.{self::G::target}.{self::A::+}(1);

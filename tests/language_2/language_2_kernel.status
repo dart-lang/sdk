@@ -245,9 +245,6 @@ conditional_property_assignment_test/05: MissingCompileTimeError
 conditional_property_assignment_test/06: MissingCompileTimeError
 conditional_property_assignment_test/10: MissingCompileTimeError
 conditional_property_assignment_test/11: MissingCompileTimeError
-conditional_property_assignment_test/12: MissingCompileTimeError
-conditional_property_assignment_test/32: MissingCompileTimeError
-conditional_property_assignment_test/33: MissingCompileTimeError
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_constructor2_test/11: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -1833,9 +1830,6 @@ conditional_property_assignment_test/05: MissingCompileTimeError
 conditional_property_assignment_test/06: MissingCompileTimeError
 conditional_property_assignment_test/10: MissingCompileTimeError
 conditional_property_assignment_test/11: MissingCompileTimeError
-conditional_property_assignment_test/12: MissingCompileTimeError
-conditional_property_assignment_test/32: MissingCompileTimeError
-conditional_property_assignment_test/33: MissingCompileTimeError
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_constructor2_test/11: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -2331,6 +2325,7 @@ if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 implicit_downcast_during_assignment_test: Pass # Correctly passes.
+implicit_downcast_during_combiner_test: Pass # Correctly passes.
 implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_conditional_expression_test: Pass # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
@@ -3350,6 +3345,7 @@ deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # Kern
 deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # KernelVM bug: Deferred loading kernel issue 28335.
 generic_field_mixin6_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
+implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError

@@ -31,16 +31,16 @@ static method test() → void {
   self::B local;
   local = self::f<self::B>();
   local.{core::Object::==}(null) ?{self::B} local = self::f<self::B>() : null;
-  local = local.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
-  local = local.{self::B::*}(self::f<dynamic>());
-  local = local.{self::B::&}(self::f<dynamic>());
+  local = local.{self::B::+}(self::f<dynamic>() as{TypeError} self::C) as{TypeError} self::B;
+  local = local.{self::B::*}(self::f<dynamic>() as{TypeError} self::B);
+  local = local.{self::B::&}(self::f<dynamic>() as{TypeError} self::A);
   local = local.{self::B::-}(1);
   local = local.{self::B::-}(1);
   self::B v1 = local = self::f<self::B>();
   self::B v2 = let final self::B #t1 = local in #t1.{core::Object::==}(null) ?{self::B} local = self::f<self::B>() : #t1;
-  self::A v3 = local = local.{self::B::+}(self::f<dynamic>()) as{TypeError} self::B;
-  self::B v4 = local = local.{self::B::*}(self::f<dynamic>());
-  self::C v5 = local = local.{self::B::&}(self::f<dynamic>());
+  self::A v3 = local = local.{self::B::+}(self::f<dynamic>() as{TypeError} self::C) as{TypeError} self::B;
+  self::B v4 = local = local.{self::B::*}(self::f<dynamic>() as{TypeError} self::B);
+  self::C v5 = local = local.{self::B::&}(self::f<dynamic>() as{TypeError} self::A);
   self::B v6 = local = local.{self::B::-}(1);
   self::B v7 = let final self::B #t2 = local in let final self::B #t3 = local = #t2.{self::B::-}(1) in #t2;
 }
