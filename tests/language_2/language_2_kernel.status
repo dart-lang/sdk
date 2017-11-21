@@ -2629,8 +2629,6 @@ named_parameters_test/09: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
 named_parameters_type_test/01: Crash
 named_parameters_type_test/01: MissingCompileTimeError
-named_parameters_type_test/02: MissingCompileTimeError
-named_parameters_type_test/03: MissingCompileTimeError
 nested_generic_closure_test: Crash
 nested_generic_closure_test: RuntimeError
 new_expression_type_args_test/00: MissingCompileTimeError
@@ -3350,8 +3348,6 @@ deferred_constraints_type_annotation_test/type_annotation1: Crash # KernelVM bug
 deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # KernelVM bug: Deferred loading kernel issue 28335.
 generic_field_mixin6_test/none: RuntimeError
-generic_methods_dynamic_test/01: MissingCompileTimeError
-generic_methods_dynamic_test/03: MissingCompileTimeError
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
