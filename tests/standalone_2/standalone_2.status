@@ -119,6 +119,7 @@ io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
 io/test_runner_test: Pass, Slow # Slow.
 io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 io/addlatexhash_test: Pass, Crash # Issue 31252
+fragmentation_test: Pass, Crash # Issue 31421
 
 [ $builder_tag == no_ipv6 ]
 io/socket_source_address_test: SkipByDesign
