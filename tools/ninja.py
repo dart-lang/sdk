@@ -47,6 +47,10 @@ def BuildOptions():
       help='Ninja -j option for Goma builds.',
       metavar=1000,
       default=1000)
+  result.add_option("--no-start-goma",
+      help="Don't try to start goma",
+      default=False,
+      action='store_true')
   return result
 
 
@@ -230,7 +234,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch):
   if options.verbose:
     command += ['-v']
   if UseGoma(out_dir):
-    if EnsureGomaStarted(out_dir):
+    if options.no_start_goma or EnsureGomaStarted(out_dir):
       using_goma = True
       command += [('-j%s' % str(options.j))]
     else:
