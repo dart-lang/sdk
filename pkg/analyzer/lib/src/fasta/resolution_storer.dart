@@ -12,9 +12,18 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   static const bool _debug = false;
 
   final List<int> _typeOffsets;
+  final List<int> _deferredOffsets = [];
 
   InstrumentedResolutionStorer(List<DartType> types, this._typeOffsets)
       : super(types);
+
+  @override
+  void _deferType(int offset) {
+    super._deferType(offset);
+    if (_debug) {
+      _deferredOffsets.add(offset);
+    }
+  }
 
   @override
   int _recordType(DartType type, int offset) {
@@ -27,11 +36,12 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   }
 
   @override
-  void _replaceType(DartType type, int offset) {
+  void _replaceType(DartType type) {
     if (_debug) {
+      int offset = _deferredOffsets.removeLast();
       print('Replacing type $type for offset $offset');
     }
-    super._replaceType(type, offset);
+    super._replaceType(type);
   }
 }
 
@@ -78,7 +88,7 @@ class ResolutionStorer extends TypeInferenceListener {
       //
       // So we add a `null` to our list of types; we'll update it with the
       // actual type later.
-      _deferredTypeSlots.add(_recordType(null, expression.fileOffset));
+      _deferType(expression.fileOffset);
     }
     super.methodInvocationBeforeArgs(expression, isImplicitCall);
   }
@@ -90,7 +100,7 @@ class ResolutionStorer extends TypeInferenceListener {
       // TODO(paulberry): get the actual callee function type from the inference
       // engine
       var calleeType = const DynamicType();
-      _types[_deferredTypeSlots.removeLast()] = calleeType;
+      _replaceType(calleeType);
     }
     _recordType(inferredType, arguments.fileOffset);
     super.genericExpressionExit("methodInvocation", expression, inferredType);
@@ -110,7 +120,7 @@ class ResolutionStorer extends TypeInferenceListener {
     //
     // So we add a `null` to our list of types; we'll update it with the actual
     // type later.
-    _deferredTypeSlots.add(_recordType(null, expression.fileOffset));
+    _deferType(expression.fileOffset);
     return super.staticInvocationEnter(expression, typeContext);
   }
 
@@ -120,22 +130,29 @@ class ResolutionStorer extends TypeInferenceListener {
     // TODO(paulberry): get the actual callee function type from the inference
     // engine
     var calleeType = const DynamicType();
-    _replaceType(calleeType, expression.fileOffset);
+    _replaceType(calleeType);
     _recordType(inferredType, expression.arguments.fileOffset);
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
   @override
   void variableDeclarationEnter(VariableDeclaration statement) {
-    _deferredTypeSlots.add(_recordType(null, statement.fileOffset));
+    _deferType(statement.fileOffset);
     super.variableDeclarationEnter(statement);
   }
 
   @override
   void variableDeclarationExit(
       VariableDeclaration statement, DartType inferredType) {
-    _replaceType(inferredType, statement.fileOffset);
+    _replaceType(inferredType);
     super.variableDeclarationExit(statement, inferredType);
+  }
+
+  /// Record `null` as the type at the given [offset], and put the current
+  /// slot into the [_deferredTypeSlots] stack.
+  void _deferType(int offset) {
+    int slot = _recordType(null, offset);
+    _deferredTypeSlots.add(slot);
   }
 
   int _recordType(DartType type, int offset) {
@@ -144,7 +161,8 @@ class ResolutionStorer extends TypeInferenceListener {
     return slot;
   }
 
-  void _replaceType(DartType type, int offset) {
-    _types[_deferredTypeSlots.removeLast()] = type;
+  void _replaceType(DartType type) {
+    int slot = _deferredTypeSlots.removeLast();
+    _types[slot] = type;
   }
 }
