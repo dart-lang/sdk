@@ -468,6 +468,10 @@ fuzzy_arrows_test/01: MissingCompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/85: Crash # Issue 28813
 
+[ $compiler == dart2analyzer && !$strong ]
+constructor13_test/01: MissingCompileTimeError
+constructor13_test/02: MissingCompileTimeError
+
 [ $compiler == dart2analyzer && $checked ]
 assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_error2_test/*: MissingCompileTimeError # Issue #
