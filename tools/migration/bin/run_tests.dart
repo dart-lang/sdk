@@ -31,6 +31,7 @@ const jsshell = "--runtime=jsshell";
 
 const checked = "--checked";
 const dart2jsBatch = "--dart2js-batch";
+const dart2jsWithKernel = "--dart2js-with-kernel";
 const fastStartup = "--fast-startup";
 const useSdk = "--use-sdk";
 const releaseMode = "--mode=release";
@@ -68,6 +69,21 @@ final allConfigs = {
     d8,
     checked,
     fastStartup,
+    useSdk,
+    dart2jsBatch
+  ],
+  "dart2js-d8-withkernel": [
+    dart2js,
+    d8,
+    dart2jsWithKernel,
+    useSdk,
+    dart2jsBatch
+  ],
+  "dart2js-d8-withkernel-checked": [
+    dart2js,
+    d8,
+    dart2jsWithKernel,
+    checked,
     useSdk,
     dart2jsBatch
   ],
