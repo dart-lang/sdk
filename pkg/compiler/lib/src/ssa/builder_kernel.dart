@@ -249,18 +249,34 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void buildField(ir.Field field) {
     openFunction();
-    if (field.initializer != null) {
-      field.initializer.accept(this);
-      HInstruction fieldValue = pop();
-      HInstruction checkInstruction = typeBuilder.potentiallyCheckOrTrustType(
-          fieldValue, _getDartTypeIfValid(field.type));
-      stack.add(checkInstruction);
+    if (field.isInstanceMember && options.enableTypeAssertions) {
+      HInstruction thisInstruction = localsHandler.readThis();
+      // Use dynamic type because the type computed by the inferrer is
+      // narrowed to the type annotation.
+      FieldEntity fieldEntity = _elementMap.getMember(field);
+      HInstruction parameter =
+          new HParameterValue(fieldEntity, commonMasks.dynamicType);
+      // Add the parameter as the last instruction of the entry block.
+      // If the method is intercepted, we want the actual receiver
+      // to be the first parameter.
+      graph.entry.addBefore(graph.entry.last, parameter);
+      HInstruction value = typeBuilder.potentiallyCheckOrTrustType(
+          parameter, _getDartTypeIfValid(field.type));
+      add(new HFieldSet(fieldEntity, thisInstruction, value));
     } else {
-      stack.add(graph.addConstantNull(closedWorld));
+      if (field.initializer != null) {
+        field.initializer.accept(this);
+        HInstruction fieldValue = pop();
+        HInstruction checkInstruction = typeBuilder.potentiallyCheckOrTrustType(
+            fieldValue, _getDartTypeIfValid(field.type));
+        stack.add(checkInstruction);
+      } else {
+        stack.add(graph.addConstantNull(closedWorld));
+      }
+      HInstruction value = pop();
+      closeAndGotoExit(
+          new HReturn(value, _sourceInformationBuilder.buildReturn(field)));
     }
-    HInstruction value = pop();
-    closeAndGotoExit(
-        new HReturn(value, _sourceInformationBuilder.buildReturn(field)));
     closeFunction();
   }
 

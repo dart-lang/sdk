@@ -1024,7 +1024,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
     if (_options.enableTypeAssertions) {
-      // TODO(redemption): Support field entities.
       DartType type = _closedWorld.elementEnvironment.getFieldType(field);
       if (!type.treatAsRaw ||
           type.isTypeVariable ||

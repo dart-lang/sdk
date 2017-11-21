@@ -2488,56 +2488,18 @@ assert_message_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-#async_and_or_test: RuntimeError
-async_await_catch_regression_test: RuntimeError
 async_await_foreign_test: RuntimeError
-async_await_syntax_test/a01a: RuntimeError
-async_await_syntax_test/a02a: RuntimeError
-async_await_syntax_test/a03a: RuntimeError
-async_await_syntax_test/a03b: RuntimeError
-async_await_syntax_test/a05a: RuntimeError
-async_await_syntax_test/a05b: RuntimeError
 async_await_syntax_test/a06a: RuntimeError
-async_await_syntax_test/a09a: RuntimeError
-async_await_syntax_test/a11c: RuntimeError
-async_await_syntax_test/a11d: RuntimeError
-async_await_syntax_test/a12g: RuntimeError
-async_await_syntax_test/b01a: RuntimeError
-async_await_syntax_test/b02a: RuntimeError
-async_await_syntax_test/b03a: RuntimeError
-async_await_syntax_test/b05a: RuntimeError
 async_await_syntax_test/b06a: RuntimeError
-async_await_syntax_test/b09a: RuntimeError
-async_await_syntax_test/b11c: RuntimeError
-async_await_syntax_test/b11d: RuntimeError
-async_await_syntax_test/b12g: RuntimeError
-async_await_syntax_test/c01a: RuntimeError
-async_await_syntax_test/c02a: RuntimeError
-async_await_syntax_test/c03a: RuntimeError
-async_await_syntax_test/c05a: RuntimeError
 async_await_syntax_test/c06a: RuntimeError
-async_await_syntax_test/c09a: RuntimeError
-async_await_syntax_test/d01a: RuntimeError
-async_await_syntax_test/d02a: RuntimeError
-async_await_syntax_test/d03a: RuntimeError
-async_await_syntax_test/d05a: RuntimeError
 async_await_syntax_test/d06a: RuntimeError
-async_await_syntax_test/d09a: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
 async_break_in_finally_test: RuntimeError
-async_call_test: RuntimeError
 async_cascade_test: RuntimeError
-async_continue_label_test/await_in_body: RuntimeError
-async_continue_label_test/await_in_condition: RuntimeError
-async_continue_label_test/await_in_init: RuntimeError
-async_continue_label_test/await_in_update: RuntimeError
-async_continue_label_test/none: RuntimeError
 async_control_structures_test: RuntimeError
-async_finally_rethrow_test: RuntimeError
 async_regression_23058_test: RuntimeError
-async_rethrow_test: RuntimeError
 async_return_types_test/none: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
@@ -2559,7 +2521,6 @@ async_star_test/none: RuntimeError
 async_switch_test/none: RuntimeError
 async_switch_test/withDefault: RuntimeError
 async_test: RuntimeError
-async_this_bound_test: RuntimeError
 async_throw_in_catch_test/forceAwait: RuntimeError
 async_throw_in_catch_test/none: RuntimeError
 asyncstar_concat_test: RuntimeError
@@ -2567,7 +2528,6 @@ asyncstar_throw_in_catch_test: RuntimeError
 asyncstar_yield_test: RuntimeError
 asyncstar_yieldstar_test: RuntimeError
 await_and_ifnull_test: RuntimeError
-await_backwards_compatibility_test/none: RuntimeError
 await_exceptions_test: RuntimeError
 await_for_cancel_test: RuntimeError
 await_for_test: RuntimeError
@@ -2576,32 +2536,22 @@ await_future_test: RuntimeError
 await_in_cascade_test: RuntimeError
 await_nonfuture_test: RuntimeError
 await_not_started_immediately_test: RuntimeError
-await_null_aware_test: RuntimeError
 await_postfix_expr_test: RuntimeError
 await_regression_test: RuntimeError
-await_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bit_operations_test/03: RuntimeError
+bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
-bound_closure_equality_test: RuntimeError
 branch_canonicalization_test: RuntimeError
 call_function_apply_test: RuntimeError
-call_with_no_such_method_test: RuntimeError
 canonical_const2_test: RuntimeError
-cha_deopt1_test: RuntimeError
-cha_deopt2_test: RuntimeError
-cha_deopt3_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
-checked_setter_test: Pass
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-classes_static_method_clash_test: RuntimeError
-closure_cycles_test: RuntimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
-compile_time_constant_a_test: RuntimeError
-compile_time_constant_b_test: RuntimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_import_string_test: RuntimeError
@@ -2700,24 +2650,17 @@ covariance_type_parameter_test/02: Crash # NoSuchMethodError: The method 'hasSub
 covariance_type_parameter_test/03: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariance_type_parameter_test/none: Crash # NoSuchMethodError: The method 'hasSubclass' was called on null.
 covariant_override/runtime_check_test: RuntimeError
-custom_await_stack_trace_test: RuntimeError
 cyclic_constructor_test/01: Crash # Stack Overflow
-cyclic_default_values_test: RuntimeError
 deferred_closurize_load_library_test: RuntimeError
-deferred_constant_list_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/reference_after_load: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new: RuntimeError
 deferred_constraints_type_annotation_test/new_before_load: MissingCompileTimeError
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError
 deferred_constraints_type_annotation_test/new_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/new_generic3: MissingCompileTimeError
-deferred_constraints_type_annotation_test/none: RuntimeError
-deferred_constraints_type_annotation_test/static_method: RuntimeError
 deferred_constraints_type_annotation_test/type_annotation1: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
@@ -2726,32 +2669,16 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
-deferred_function_type_test: RuntimeError
-deferred_global_test: RuntimeError
 deferred_import_core_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
-deferred_inlined_test: RuntimeError
 deferred_load_constants_test/none: RuntimeError
-deferred_load_inval_code_test: RuntimeError
 deferred_load_library_wrong_args_test/none: RuntimeError
-deferred_mixin_test: RuntimeError
-deferred_no_such_method_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError
-deferred_only_constant_test: RuntimeError
-deferred_optimized_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
-deferred_regression_22995_test: RuntimeError
-deferred_regression_28678_test: RuntimeError
-deferred_shadow_load_library_test: RuntimeError
 deferred_shared_and_unshared_classes_test: RuntimeError
-deferred_static_seperate_test: RuntimeError
-deferred_super_dependency_test/none: RuntimeError
-deferred_type_dependency_test/as: RuntimeError
-deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: RuntimeError
-deferred_type_dependency_test/type_annotation: RuntimeError
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -2772,63 +2699,19 @@ field_override3_test/01: MissingCompileTimeError
 field_override3_test/02: MissingCompileTimeError
 field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
-field_type_check2_test/01: MissingRuntimeError
-field_wierd_name_test: RuntimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
-flatten_test/02: RuntimeError
-flatten_test/03: RuntimeError
-flatten_test/06: RuntimeError
-flatten_test/07: RuntimeError
-flatten_test/10: RuntimeError
-flatten_test/11: RuntimeError
-flatten_test/none: RuntimeError
-for_in2_test: RuntimeError
 function_subtype_closure0_test: RuntimeError
 function_subtype_closure1_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
-function_subtype_setter0_test: RuntimeError
-function_type/function_type11_test: RuntimeError
-function_type/function_type23_test: RuntimeError
-function_type/function_type35_test: RuntimeError
-function_type/function_type37_test: RuntimeError
-function_type/function_type38_test: RuntimeError
-function_type/function_type39_test: RuntimeError
-function_type/function_type40_test: RuntimeError
-function_type/function_type41_test: RuntimeError
-function_type/function_type42_test: RuntimeError
-function_type/function_type43_test: RuntimeError
-function_type/function_type55_test: RuntimeError
-function_type/function_type67_test: RuntimeError
-function_type/function_type68_test: RuntimeError
-function_type/function_type69_test: RuntimeError
-function_type/function_type70_test: RuntimeError
-function_type/function_type71_test: RuntimeError
-function_type/function_type72_test: RuntimeError
-function_type/function_type73_test: RuntimeError
-function_type/function_type74_test: RuntimeError
-function_type/function_type75_test: RuntimeError
-function_type/function_type76_test: RuntimeError
-function_type/function_type77_test: RuntimeError
-function_type/function_type78_test: RuntimeError
-function_type/function_type79_test: RuntimeError
-function_type/function_type91_test: RuntimeError
-function_type/function_type92_test: RuntimeError
-function_type/function_type93_test: RuntimeError
-function_type/function_type94_test: RuntimeError
-function_type/function_type95_test: RuntimeError
-function_type/function_type97_test: RuntimeError
-function_type/function_type98_test: RuntimeError
-function_type/function_type99_test: RuntimeError
-function_type_alias10_test: RuntimeError
 function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
 generic_async_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
-generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in (Instance of 'ThisLocal') for j:field(M.field).
-generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in (Instance of 'ThisLocal') for j:field(M.field).
+generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
+generic_field_mixin5_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
 generic_field_mixin6_test/none: RuntimeError
 generic_field_mixin_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
 generic_function_bounds_test: Crash # Unsupported operation: Unsupported type parameter type node T.
@@ -2845,7 +2728,6 @@ getter_override2_test/02: MissingCompileTimeError
 getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
-getter_setter_interceptor_test: RuntimeError
 identical_closure2_test: RuntimeError
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
@@ -2854,12 +2736,8 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 integer_division_by_zero_test: RuntimeError
-interceptor2_test: RuntimeError
 internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' has no instance getter 'mixinApplicationClasses'.
 invocation_mirror2_test: RuntimeError
-invocation_mirror_test: RuntimeError
-issue1363_test/none: RuntimeError
-issue14242_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 issue_1751477_test: RuntimeError
@@ -2873,25 +2751,10 @@ list_literal4_test/05: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
-main_test/01: RuntimeError
-main_test/02: RuntimeError
-main_test/04: RuntimeError
-main_test/05: RuntimeError
-main_test/20: RuntimeError
-main_test/21: RuntimeError
-main_test/22: RuntimeError
-main_test/41: RuntimeError
-main_test/42: RuntimeError
-main_test/43: RuntimeError
-main_test/44: RuntimeError
-main_test/45: RuntimeError
 malformed2_test/00: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
-many_named_arguments_test: RuntimeError
-map_literal10_test: RuntimeError
 map_literal1_test/01: MissingCompileTimeError
 map_literal8_test: RuntimeError
-map_test: RuntimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
@@ -2992,7 +2855,6 @@ nan_identical_test: RuntimeError
 nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
 nested_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 no_main_test/01: CompileTimeError
-no_such_method_dispatcher_test: RuntimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
 not_enough_positional_arguments_test/02: MissingCompileTimeError
@@ -3004,11 +2866,8 @@ null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
 null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
-nullaware_opt_test: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
-optimized_setter_test: RuntimeError
-ordered_maps_test: RuntimeError
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -3021,7 +2880,6 @@ override_inheritance_mixed_test/04: MissingCompileTimeError
 override_inheritance_mixed_test/08: MissingCompileTimeError
 override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
-parameter_initializer_test: RuntimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 private_super_constructor_test/01: MissingCompileTimeError
@@ -3029,39 +2887,22 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_long_test: RuntimeError
 redirecting_factory_reflection_test: RuntimeError
-reg_exp_test: RuntimeError
-regress_18535_test: RuntimeError
 regress_20394_test/01: MissingCompileTimeError
-regress_22443_test: RuntimeError
-regress_22445_test: RuntimeError
-regress_22579_test: RuntimeError
-regress_22719_test: RuntimeError
-regress_22728_test: RuntimeError
-regress_22777_test: RuntimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
-regress_23498_test: RuntimeError
-regress_23500_test/01: RuntimeError
-regress_23500_test/02: RuntimeError
-regress_23500_test/none: RuntimeError
 regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError
 regress_24935_test/none: RuntimeError
 regress_26175_test: RuntimeError
-regress_26668_test: RuntimeError
-regress_26948_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
-regress_27659_test: RuntimeError
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
-regress_28278_test: RuntimeError
 regress_28341_test: RuntimeError
 regress_29405_test: RuntimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
-regress_30339_test: RuntimeError
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 savannah_test: RuntimeError
 setter_override_test/00: MissingCompileTimeError
@@ -3069,7 +2910,6 @@ setter_override_test/03: MissingCompileTimeError
 shadow_parameter_and_local_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
 stacktrace_test: RuntimeError
-string_interpolation_newline_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 super_in_async1_test: RuntimeError
 super_in_async2_test: RuntimeError
@@ -3083,10 +2923,6 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
-sync_generator1_test/none: RuntimeError
-sync_generator2_test/none: RuntimeError
-sync_generator3_test/test1: RuntimeError
-syncstar_yieldstar_test: RuntimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -3100,8 +2936,6 @@ type_check_const_function_typedef2_test: MissingCompileTimeError
 type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
 type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
 type_parameter_test/09: Crash # Internal Error: Unexpected type variable in static context.
-type_variable_field_initializer_closure2_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (Instance of 'ThisLocal') for j:field(A.c).
-type_variable_field_initializer_closure_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(A.T) in (Instance of 'ThisLocal') for j:field(A.c).
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
 typevariable_substitution2_test/02: RuntimeError
 unused_overridden_async_test: RuntimeError
