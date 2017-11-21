@@ -13,8 +13,7 @@ import 'class_member_parser.dart' show ClassMemberParser;
 /// Parser which only parses top-level elements, but ignores their bodies.
 /// Use [Parser] to parse everything.
 class TopLevelParser extends ClassMemberParser {
-  TopLevelParser(Listener listener, bool parseGenericMethodComments)
-      : super(listener, parseGenericMethodComments);
+  TopLevelParser(Listener listener) : super(listener);
 
   Token parseClassBody(Token token, Token beforeBody) => skipClassBody(token);
 }

@@ -1281,6 +1281,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  Token injectGenericCommentTypeAssign(Token token) {
+    return listener?.injectGenericCommentTypeAssign(token);
+  }
+
+  @override
+  Token injectGenericCommentTypeList(Token token) {
+    return listener?.injectGenericCommentTypeList(token);
+  }
+
+  @override
   void logEvent(String name) {
     listener?.logEvent(name);
   }
@@ -1292,6 +1302,13 @@ class ForwardingListener implements Listener {
 
   @override
   List<ParserError> get recoverableErrors => listener?.recoverableErrors;
+
+  @override
+  Token replaceTokenWithGenericCommentTypeAssign(
+      Token tokenToStartReplacing, Token tokenWithComment) {
+    return listener?.replaceTokenWithGenericCommentTypeAssign(
+        tokenToStartReplacing, tokenWithComment);
+  }
 
   @override
   set suppressParseErrors(bool value) {

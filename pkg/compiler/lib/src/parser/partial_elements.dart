@@ -40,7 +40,7 @@ import 'member_listener.dart' show MemberListener;
 import 'node_listener.dart' show NodeListener;
 
 class ClassElementParser extends ClassMemberParser {
-  ClassElementParser(Listener listener) : super(listener, false);
+  ClassElementParser(Listener listener) : super(listener);
 
   Token parseFormalParameters(Token token, MemberKind kind) {
     return skipFormalParameters(token, kind);
@@ -454,7 +454,7 @@ Node parse(ParsingContext parsing, ElementX element, PartialElement partial,
         if (partial.hasParseError) {
           listener.suppressParseErrors = true;
         }
-        doParse(new Parser(listener, false));
+        doParse(new Parser(listener));
       } on ParserError catch (e) {
         partial.hasParseError = true;
         return new ErrorNode(element.position, e.message);

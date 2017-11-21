@@ -17,8 +17,7 @@ import 'parser.dart' show Parser;
 /// Parser similar to [TopLevelParser] but also parses class members (excluding
 /// their bodies).
 class ClassMemberParser extends Parser {
-  ClassMemberParser(Listener listener, bool parseGenericMethodComments)
-      : super(listener, parseGenericMethodComments);
+  ClassMemberParser(Listener listener) : super(listener);
 
   @override
   Token parseExpression(Token token) {

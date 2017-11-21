@@ -31,7 +31,7 @@ class ParserTask extends CompilerTask {
     return measure(() {
       NodeListener listener =
           new NodeListener(const ScannerOptions(), compiler.reporter, null);
-      Parser parser = new Parser(listener, false);
+      Parser parser = new Parser(listener);
       try {
         parser.parseUnit(token);
       } on ParserError catch (_) {

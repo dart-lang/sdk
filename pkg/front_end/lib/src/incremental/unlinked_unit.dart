@@ -15,18 +15,17 @@ import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/incremental/format.dart';
 
 /// Compute the [UnlinkedUnitBuilder] for the [content].
-UnlinkedUnitBuilder computeUnlinkedUnit(
-    List<int> salt, List<int> content, bool parseGenericMethodComments) {
+UnlinkedUnitBuilder computeUnlinkedUnit(List<int> salt, List<int> content) {
   // Scan the content.
   ScannerResult scanResult = _scan(content);
   Token token = scanResult.tokens;
 
   // Parse directives.
   var listener = new DirectiveListener();
-  new TopLevelParser(listener, parseGenericMethodComments).parseUnit(token);
+  new TopLevelParser(listener).parseUnit(token);
 
   // Parse to record function bodies.
-  var parser = new _BodySkippingParser(parseGenericMethodComments);
+  var parser = new _BodySkippingParser();
   parser.parseUnit(token);
 
   ApiSignature apiSignature = new ApiSignature();
@@ -108,8 +107,7 @@ class _BodySkippingParser extends Parser {
   bool hasMixin = false;
   final List<_BodyRange> bodyRanges = [];
 
-  _BodySkippingParser(bool parseGenericMethodComments)
-      : super(new Listener(), parseGenericMethodComments);
+  _BodySkippingParser() : super(new Listener());
 
   @override
   Token parseFunctionBody(

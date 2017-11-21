@@ -682,7 +682,7 @@ class DietListener extends StackListener {
       Token metadata, MemberKind kind) {
     Token token = startToken;
     try {
-      Parser parser = new Parser(listener, library.loader.target.strongMode);
+      Parser parser = new Parser(listener);
       List metadataConstants;
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
@@ -712,7 +712,7 @@ class DietListener extends StackListener {
   void parseFields(StackListener listener, Token startToken, Token metadata,
       bool isTopLevel) {
     Token token = startToken;
-    Parser parser = new Parser(listener, library.loader.target.strongMode);
+    Parser parser = new Parser(listener);
     if (isTopLevel) {
       // There's a slight asymmetry between [parseTopLevelMember] and
       // [parseMember] because the former doesn't call `parseMetadataStar`.
@@ -800,7 +800,7 @@ class DietListener extends StackListener {
   List<Expression> parseMetadata(ModifierBuilder builder, Token metadata) {
     if (metadata != null) {
       var listener = createListener(builder, memberScope, false);
-      var parser = new Parser(listener, library.loader.target.strongMode);
+      var parser = new Parser(listener);
       parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
       return listener.finishMetadata();
     }

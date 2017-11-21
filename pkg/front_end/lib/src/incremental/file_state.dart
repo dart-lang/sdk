@@ -205,8 +205,7 @@ class FileState {
       String unlinkedKey = hex.encode(_contentHash) + '.unlinked';
       unlinkedBytes = _fsState._byteStore.get(unlinkedKey);
       if (unlinkedBytes == null) {
-        var builder = computeUnlinkedUnit(
-            _fsState._salt, _content, _fsState.target.strongMode);
+        var builder = computeUnlinkedUnit(_fsState._salt, _content);
         unlinkedBytes = builder.toBytes();
         _fsState._byteStore.put(unlinkedKey, unlinkedBytes);
       }

@@ -613,11 +613,6 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void discardTypeReplacedWithCommentTypeAssign() {
-    pop();
-  }
-
-  @override
   void handleType(Token beginToken, Token endToken) {
     debugEvent("Type");
     List<TypeBuilder> arguments = pop();

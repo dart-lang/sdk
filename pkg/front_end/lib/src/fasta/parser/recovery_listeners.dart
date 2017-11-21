@@ -26,12 +26,26 @@ class RecoveryListener extends ForwardingListener {
   RecoveryListener(this._primaryListener);
 
   @override
+  Token injectGenericCommentTypeAssign(Token token) =>
+      _primaryListener.injectGenericCommentTypeAssign(token);
+
+  @override
+  Token injectGenericCommentTypeList(Token token) =>
+      _primaryListener.injectGenericCommentTypeList(token);
+
+  @override
   Token handleUnrecoverableError(Token token, Message message) =>
       _primaryListener.handleUnrecoverableError(token, message);
 
   @override
   Token newSyntheticToken(Token next) =>
       _primaryListener.newSyntheticToken(next);
+
+  @override
+  Token replaceTokenWithGenericCommentTypeAssign(
+          Token tokenToStartReplacing, Token tokenWithComment) =>
+      _primaryListener.replaceTokenWithGenericCommentTypeAssign(
+          tokenToStartReplacing, tokenWithComment);
 }
 
 class ClassHeaderRecoveryListener extends RecoveryListener {

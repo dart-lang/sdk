@@ -175,7 +175,7 @@ Future<Null> collectSources(Uri start, Map<Uri, List<int>> files) async {
 /// import, export, and part directives.
 Set<String> extractDirectiveUris(List<int> contents) {
   var listener = new DirectiveListenerWithNative();
-  new TopLevelParser(listener, false).parseUnit(tokenize(contents));
+  new TopLevelParser(listener).parseUnit(tokenize(contents));
   return new Set<String>()
     ..addAll(listener.imports.map((directive) => directive.uri))
     ..addAll(listener.exports.map((directive) => directive.uri))
@@ -206,7 +206,7 @@ void parseFiles(Map<Uri, List<int>> files) {
 /// Parse the full body of [source].
 parseFull(Uri uri, List<int> source) {
   var tokens = tokenize(source);
-  Parser parser = new Parser(new _PartialAstBuilder(uri), false);
+  Parser parser = new Parser(new _PartialAstBuilder(uri));
   parser.parseUnit(tokens);
 }
 
