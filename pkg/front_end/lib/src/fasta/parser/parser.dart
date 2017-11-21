@@ -398,6 +398,18 @@ class Parser {
       // Handle the edge case where a modifier is being used as an identifier
       return parseTopLevelMember(start);
     }
+    // Recovery
+    if (next.isOperator && optional('(', next.next)) {
+      // This appears to be a top level operator declaration, which is invalid.
+      reportRecoverableError(next, fasta.messageTopLevelOperator);
+      // Insert a synthetic identifer
+      // and continue parsing as a top level function.
+      rewriter.insertToken(
+          new SyntheticStringToken(TokenType.IDENTIFIER,
+              '#synthetic_function_${next.charOffset}', token.charOffset, 0),
+          next.next);
+      return parseTopLevelMember(next);
+    }
     // Ignore any preceding modifiers and just report the unexpected token
     reportRecoverableErrorWithToken(next, fasta.templateExpectedDeclaration);
     listener.handleInvalidTopLevelDeclaration(next);

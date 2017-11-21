@@ -1745,12 +1745,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_topLevelOperator_withoutOperator() {
-    super.test_topLevelOperator_withoutOperator();
-  }
-
-  @override
-  @failingTest
   void test_topLevelOperator_withoutType() {
     super.test_topLevelOperator_withoutType();
   }
