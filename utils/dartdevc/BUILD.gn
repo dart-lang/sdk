@@ -8,6 +8,7 @@ import("../create_timestamp.gni")
 
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
+dart_root = rebase_path("../..")
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
@@ -112,7 +113,7 @@ action("dartdevc_patch_sdk") {
   ]
 
   if (!prebuilt_dart_exe_works) {
-    deps += [ "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
+    deps += [ "$dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
   }
 
   script = "../../tools/patch_sdk.py"
@@ -144,7 +145,7 @@ action("dartdevc_patch_sdk") {
   args = []
   if (!prebuilt_dart_exe_works) {
     dart_out_dir = get_label_info(
-            "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
+            "$dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
             "root_out_dir")
     dart_bootstrap =
         rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
@@ -173,7 +174,7 @@ action("dartdevc_sdk") {
   ]
 
   if (!prebuilt_dart_exe_works) {
-    deps += [ "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
+    deps += [ "$dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)" ]
   }
 
   script = "../../tools/run_dart.py"
@@ -181,7 +182,7 @@ action("dartdevc_sdk") {
   args = []
   if (!prebuilt_dart_exe_works) {
     dart_out_dir = get_label_info(
-            "$_dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
+            "$dart_root/runtime/bin:dart_bootstrap($dart_host_toolchain)",
             "root_out_dir")
     dart_bootstrap =
         rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
