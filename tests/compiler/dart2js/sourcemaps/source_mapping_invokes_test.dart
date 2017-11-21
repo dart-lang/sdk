@@ -5,5 +5,5 @@
 import 'source_mapping_tester.dart';
 
 void main() {
-  test(['invokes']);
+  test(['invokes.dart']);
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -30,25 +31,17 @@ void test(List<String> arguments,
     {WhiteListFunction whiteListFunction: emptyWhiteListFunction}) {
   Set<String> configurations = new Set<String>();
   Set<String> files = new Set<String>();
-  for (String argument in arguments) {
-    if (!parseArgument(argument, configurations, files)) {
-      return;
-    }
-  }
-
-  if (configurations.isEmpty) {
-    configurations.addAll(TEST_CONFIGURATIONS.keys);
-    configurations.remove('old');
-  }
-  if (files.isEmpty) {
-    files.addAll(TEST_FILES.keys);
+  if (!parseArguments(arguments, configurations, files)) {
+    return;
   }
 
   asyncTest(() async {
     bool errorsFound = false;
-    for (String config in configurations) {
-      List<String> options = TEST_CONFIGURATIONS[config];
-      for (String file in files) {
+    for (String file in files) {
+      print('==$file=========================================================');
+      for (String config in configurations) {
+        List<String> options = TEST_CONFIGURATIONS[config];
+        print('---$config----------------------------------------------------');
         String filename = TEST_FILES[file];
         TestResult result = await runTests(config, filename, options);
         if (result.missingCodePointsMap.isNotEmpty) {
@@ -75,6 +68,33 @@ void test(List<String> arguments,
   });
 }
 
+bool parseArguments(
+    List<String> arguments, Set<String> configurations, Set<String> files,
+    {bool measure: false}) {
+  for (String argument in arguments) {
+    if (!parseArgument(argument, configurations, files)) {
+      return false;
+    }
+  }
+
+  if (configurations.isEmpty) {
+    configurations.addAll(TEST_CONFIGURATIONS.keys);
+    if (!measure) {
+      configurations.remove('old');
+    }
+  }
+  if (files.isEmpty) {
+    files.addAll(TEST_FILES.keys);
+  }
+  if (arguments.contains('--exclude')) {
+    List<String> filesToRemove = new List<String>.from(files);
+    files.clear();
+    files.addAll(TEST_FILES.keys);
+    files.removeAll(filesToRemove);
+  }
+  return true;
+}
+
 /// Parse [argument] for a valid configuration or test-file option.
 ///
 /// On success, the configuration name is added to [configurations] or the
@@ -83,7 +103,10 @@ void test(List<String> arguments,
 ///
 bool parseArgument(
     String argument, Set<String> configurations, Set<String> files) {
-  if (TEST_CONFIGURATIONS.containsKey(argument)) {
+  if (argument.startsWith('-')) {
+    // Skip options.
+    return true;
+  } else if (TEST_CONFIGURATIONS.containsKey(argument)) {
     configurations.add(argument);
   } else if (TEST_FILES.containsKey(argument)) {
     files.add(argument);
@@ -106,12 +129,17 @@ const Map<String, List<String>> TEST_CONFIGURATIONS = const {
   'old': const [],
 };
 
-const Map<String, String> TEST_FILES = const <String, String>{
-  'invokes': 'tests/compiler/dart2js/sourcemaps/data/invokes_test_file.dart',
-  'operators':
-      'tests/compiler/dart2js/sourcemaps/data/operators_test_file.dart',
-  'others': 'tests/compiler/dart2js/sourcemaps/data/others.dart',
-};
+final Map<String, String> TEST_FILES = _computeTestFiles();
+
+Map<String, String> _computeTestFiles() {
+  Map<String, String> map = <String, String>{};
+  Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+  for (File file in dataDir.listSync()) {
+    Uri uri = file.uri;
+    map[uri.pathSegments.last] = uri.path;
+  }
+  return map;
+}
 
 Future<TestResult> runTests(
     String config, String filename, List<String> options,

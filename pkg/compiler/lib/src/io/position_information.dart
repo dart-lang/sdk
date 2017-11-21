@@ -224,13 +224,11 @@ class PositionSourceInformationBuilder
   // [buildIndex], etc.
   @override
   SourceInformation buildCall(Node receiver, Node call) {
-    var r = new PositionSourceInformation(
+    return new PositionSourceInformation(
         new OffsetSourceLocation(
             sourceFile, receiver.getBeginToken().charOffset, name),
         new OffsetSourceLocation(
             sourceFile, call.getBeginToken().charOffset, name));
-    if ('$call'.contains('staticFunction')) print('info=$r');
-    return r;
   }
 
   @override

@@ -5,5 +5,7 @@
 import 'source_mapping_tester.dart';
 
 void main() {
-  test(['operators.dart']);
+  // 'operators.dart' and 'invokes.dart' are tested individually to avoid
+  // test timeout.
+  test(['--exclude', 'operators.dart', 'invokes.dart']);
 }

@@ -36,21 +36,11 @@ main(List<String> arguments) async {
         print("Unknown option '$argument'.");
         return;
       }
-    } else {
-      if (!parseArgument(argument, configurations, files)) {
-        return;
-      }
     }
   }
 
-  if (configurations.isEmpty) {
-    configurations.addAll(TEST_CONFIGURATIONS.keys);
-    if (!measure) {
-      configurations.remove('old');
-    }
-  }
-  if (files.isEmpty) {
-    files.addAll(TEST_FILES.keys);
+  if (!parseArguments(arguments, configurations, files, measure: measure)) {
+    return;
   }
 
   OutputConfigurations outputConfigurations =
@@ -74,8 +64,8 @@ main(List<String> arguments) async {
 
   List<Measurement> measurements = <Measurement>[];
   for (String config in configurations) {
-    List<String> options = TEST_CONFIGURATIONS[config];
     for (String file in files) {
+      List<String> options = TEST_CONFIGURATIONS[config];
       Measurement measurement = await runTest(config, TEST_FILES[file], options,
           outputUri: outputConfigurations.getUri(config, file),
           verbose: !measure);
