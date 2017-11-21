@@ -455,24 +455,21 @@ const String kernelMarker = 'kernel.';
 /// Most nodes have the same and expectations should match this by using
 /// annotations without prefixes.
 List<Map<Id, IdValue>> computeExpectedMap(AnnotatedCode code) {
-  List<Map<Id, IdValue>> maps = [<Id, IdValue>{}, <Id, IdValue>{}];
-  for (Annotation annotation in code.annotations) {
-    List<Map<Id, IdValue>> activeMaps = maps;
-    String text = annotation.text;
-    if (text.startsWith(astMarker)) {
-      text = text.substring(astMarker.length);
-      activeMaps = [maps[0]];
-    } else if (text.startsWith(kernelMarker)) {
-      text = text.substring(kernelMarker.length);
-      activeMaps = [maps[1]];
-    }
-    IdValue idValue = IdValue.decode(annotation.offset, text);
-    for (Map<Id, IdValue> map in activeMaps) {
+  Map<String, AnnotatedCode> split =
+      splitByPrefixes(code, [astMarker, kernelMarker]);
+
+  List<Map<Id, IdValue>> maps = [];
+  split.forEach((String marker, AnnotatedCode code) {
+    Map<Id, IdValue> map = <Id, IdValue>{};
+    for (Annotation annotation in code.annotations) {
+      String text = annotation.text;
+      IdValue idValue = IdValue.decode(annotation.offset, text);
       Expect.isFalse(map.containsKey(idValue.id),
           "Duplicate annotations for ${idValue.id}.");
       map[idValue.id] = idValue;
     }
-  }
+    maps.add(map);
+  });
   return maps;
 }
 

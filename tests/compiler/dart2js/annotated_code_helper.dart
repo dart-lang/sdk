@@ -167,3 +167,38 @@ class AnnotatedCode {
     return sb.toString();
   }
 }
+
+/// Split the annotations in [annotatedCode] by [prefixes].
+///
+/// Returns a map containing an [AnnotatedCode] object for each prefix,
+/// containing only the annotations whose text started with the given prefix.
+/// If no prefix match the annotation text, the annotation is added to all
+/// [AnnotatedCode] objects.
+///
+/// The prefixes are removed from the annotation texts in the returned
+/// [AnnotatedCode] objects.
+Map<String, AnnotatedCode> splitByPrefixes(
+    AnnotatedCode annotatedCode, Iterable<String> prefixes) {
+  Map<String, List<Annotation>> map = <String, List<Annotation>>{};
+  for (String prefix in prefixes) {
+    map[prefix] = <Annotation>[];
+  }
+  outer:
+  for (Annotation annotation in annotatedCode.annotations) {
+    for (String prefix in prefixes) {
+      if (annotation.text.startsWith(prefix)) {
+        map[prefix].add(new Annotation(annotation.lineNo, annotation.columnNo,
+            annotation.offset, annotation.text.substring(prefix.length)));
+        continue outer;
+      }
+    }
+    for (String prefix in prefixes) {
+      map[prefix].add(annotation);
+    }
+  }
+  Map<String, AnnotatedCode> split = <String, AnnotatedCode>{};
+  map.forEach((String prefix, List<Annotation> annotations) {
+    split[prefix] = new AnnotatedCode(annotatedCode.sourceCode, annotations);
+  });
+  return split;
+}
