@@ -2911,6 +2911,18 @@ class MemorySet {
       HBasicBlock block, int predecessorIndex) {
     if (first == null || second == null) return null;
     if (first == second) return first;
+    if (second is HGetLength) {
+      // Don't create phis for HGetLength. The phi confuses array bounds check
+      // elimination and the resulting variable-heavy code probably is confusing
+      // for JavaScript VMs. In practice, this mostly affects for-in loops on
+      // Arrays.
+      //
+      // TODO(sra): Figure out a better way ensure 'nice' loop code.
+      // TODO(22407): The phi would not be so bad if it did not confuse bounds
+      // check elimination.
+      // TODO(25437): We could add a phi if we undid the harmful cases.
+      return null;
+    }
     TypeMask phiType =
         second.instructionType.union(first.instructionType, closedWorld);
     if (first is HPhi && first.block == block) {
