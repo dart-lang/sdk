@@ -1001,6 +1001,7 @@ getters_setters2_test/01: RuntimeError
 getters_setters2_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
+implicit_downcast_during_conditional_expression_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 

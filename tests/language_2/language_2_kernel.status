@@ -2332,6 +2332,7 @@ if_null_precedence_test/none: RuntimeError
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 implicit_downcast_during_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.
+implicit_downcast_during_conditional_expression_test: Pass # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_variable_declaration_test: Pass # Correctly passes.
 implicit_this_test/01: MissingCompileTimeError
@@ -3350,6 +3351,7 @@ deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # Kern
 generic_field_mixin6_test/none: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
+implicit_downcast_during_conditional_expression_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
