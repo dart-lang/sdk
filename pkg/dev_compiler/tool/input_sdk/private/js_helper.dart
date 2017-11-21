@@ -758,7 +758,7 @@ class TypeErrorImplementation extends Error implements TypeError {
       bool strongModeError)
       : message = "Type '${actualType}' is not a subtype "
             "of type '${expectedType}'" +
-            (strongModeError ? "" : " in strong mode");
+            (strongModeError ? " in strong mode" : "");
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -778,7 +778,7 @@ class CastErrorImplementation extends Error implements CastError {
       bool strongModeError)
       : message = "CastError: Casting value of type '$actualType' to"
             " type '$expectedType' which is incompatible" +
-            (strongModeError ? "" : " in strong mode");
+            (strongModeError ? " in strong mode": "");
 
   String toString() => message;
 }
