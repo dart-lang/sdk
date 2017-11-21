@@ -444,7 +444,7 @@ Variables are storage locations in memory.
 \end{grammar}
 
 \LMHash{}
-A variable that has not been initialized has the initial value \NULL{} (\ref{null}).
+A variable that has not been initialized has the null object (\ref{null}) as its initial value.
 
 \LMHash{}
 A variable declared at the top-level of a library is referred to as either a {\em library variable} or simply a top-level variable.
@@ -594,7 +594,7 @@ whose execution sets the value of $v$ to the incoming argument $x$.
 Let $d$ be the declaration of a static or instance variable $v$.  If $d$ is an instance variable, then the invocation of the implicit getter  of $v$ evaluates to the value stored in $v$.
 If $d$ is a static or library variable then the implicit getter method of $v$ executes as follows:
 \begin{itemize}
-\item {\bf Non-constant variable declaration with initializer}. If $d$ is of one of the forms \code{\VAR{} $v$ = $e$;} ,  \code{$T$ $v$ = $e$;} ,   \code{\FINAL{} $v$ = $e$;} ,  \code{\FINAL{} $T$ $v$ = $e$;}, \code{\STATIC{} $v$ = $e$; }, \code{\STATIC{} $T$ $v$ = $e$; }, \code{\STATIC{} \FINAL{} $v$ = $e$; } or \code{\STATIC{} \FINAL{} $T$ $v$ = $e$;} and no value has yet been stored into $v$ then the initializer expression $e$ is evaluated. If, during the evaluation of $e$, the getter for $v$ is invoked, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r = o$, otherwise let $r = \NULL{}$. In any case, $r$ is stored into $v$. The result of executing the getter is $r$.
+\item {\bf Non-constant variable declaration with initializer}. If $d$ is of one of the forms \code{\VAR{} $v$ = $e$;} ,  \code{$T$ $v$ = $e$;} ,   \code{\FINAL{} $v$ = $e$;} ,  \code{\FINAL{} $T$ $v$ = $e$;}, \code{\STATIC{} $v$ = $e$; }, \code{\STATIC{} $T$ $v$ = $e$; }, \code{\STATIC{} \FINAL{} $v$ = $e$; } or \code{\STATIC{} \FINAL{} $T$ $v$ = $e$;} and no value has yet been stored into $v$ then the initializer expression $e$ is evaluated. If, during the evaluation of $e$, the getter for $v$ is invoked, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r$ be $o$, otherwise let $r$ be the null object (\ref{null}). In any case, $r$ is stored into $v$. The result of executing the getter is $r$.
 \item  {\bf Constant variable declaration}. If $d$ is of one of the forms \code{\CONST{} $v$ = $e$; } ,  \code{\CONST{} $T$  $v$ = $e$; },  \code{\STATIC{} \CONST{} $v$ = $e$; }  or \code{\STATIC{} \CONST{} $T$ $v$ = $e$;} the result of the getter is the value of the compile-time constant $e$. \commentary{Note that a compile-time constant cannot depend on itself, so no cyclic references can occur.}
 Otherwise
 \item {\bf Variable declaration without initializer}. The result of executing the getter method is the value stored in $v$.
@@ -639,7 +639,7 @@ All functions have a signature and a body. The signature describes the formal pa
 \item A block statement (\ref{blocks}) containing the statements (\ref{statements}) executed by the function, optionally marked with one of the modifiers: \ASYNC, \ASYNC* or \SYNC*.
 
 \commentary{
-Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression. Therefore, every function must return a value. A function body that ends without doing a throw or return will cause the function to return \NULL{}, as will a \RETURN{} without an expression. For generator functions, the situation is more subtle. See further discussion in section \ref{return}.
+Because Dart is optionally typed, we cannot guarantee that a function that does not return a value will not be used in the context of an expression. Therefore, every function must return a value. A function body that ends without doing a throw or return will cause the function to return the null object (\ref{null}), as will a \RETURN{} without an expression. For generator functions, the situation is more subtle. See further discussion in section \ref{return}.
 }
 
 OR
@@ -1528,7 +1528,7 @@ in the order they appear in the program.
 \LMHash{}
 Then if any instance variable of $i$ declared by the immediately enclosing class
 is not yet bound to a value,
-all such variables are initialized with the \NULL{} value.
+all such variables are initialized with the null object (\ref{null}).
 
 \LMHash{}
 Then, unless the enclosing class is \code{Object}, the explicitly specified or
@@ -1561,7 +1561,7 @@ proceeds as follows:
 \LMHash{}
 First, the expression $e$ is evaluated to an object $o$.
 Then, the instance variable $v$ of $i$ is bound to $o$.
-In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of the instance variable $v$.
+In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{null}) and the interface of the class of $o$ is not a subtype of the actual type of the instance variable $v$.
 
 \LMHash{}
 An initializer of the form \code{$v$ = $e$} is equivalent to an initializer of the form \code{\THIS{}.$v$ = $e$}.
@@ -1621,7 +1621,7 @@ It is a compile-time error if $M$ is not the name of the immediately enclosing c
 \LMHash{}
 In checked mode, it is a dynamic type error if a factory returns a non-null object whose type is not a subtype of its actual (\ref{actualTypeOfADeclaration}) return type.
 
-\rationale{It seems useless to allow a factory to return null. But it is more uniform to allow it, as the rules currently do.}
+\rationale{It seems useless to allow a factory to return the null object (\ref{null}). But it is more uniform to allow it, as the rules currently do.}
 
 \rationale{Factories address classic weaknesses associated with constructors in other languages.
 Factories can produce instances that are not freshly allocated: they can come from a cache. Likewise, factories can return instances of different classes.
@@ -1882,7 +1882,7 @@ It is a static warning if a class $C$ declares a static method named $n$ and has
 
 %Let $d$ be the declaration of a static variable $v$. The implicit getter method of $v$ executes as follows:
 %\begin{itemize}
-%\item If $d$ is of one of the forms \code{\STATIC{} \VAR{} $v$ = $e$;} , \code{\STATIC{} $T$ $v$ = $e$; }, \code{\STATIC{} \FINAL{} $v$ = $e$; } or \code{\STATIC{} \FINAL{} $T$ $v$ = $e$;} and no value has yet been stored into $v$ then the initializer expression $e$ is evaluated. If, during the evaluation of $e$, the getter for $v$ is referenced, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r = o$, otherwise let $r = \NULL{}$. In any case, $r$ is stored into $v$. The result of executing the getter is $r$.
+%\item If $d$ is of one of the forms \code{\STATIC{} \VAR{} $v$ = $e$;} , \code{\STATIC{} $T$ $v$ = $e$; }, \code{\STATIC{} \FINAL{} $v$ = $e$; } or \code{\STATIC{} \FINAL{} $T$ $v$ = $e$;} and no value has yet been stored into $v$ then the initializer expression $e$ is evaluated. If, during the evaluation of $e$, the getter for $v$ is referenced, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r$ be $o$, otherwise let $r$ be the null object (\ref{null}). In any case, $r$ is stored into $v$. The result of executing the getter is $r$.
 %\item  If $d$ is of one of the forms \code{\STATIC{} \CONST{} $v$ = $e$; } or \code{\STATIC{} \CONST{} $T$ $v$ = $e$;} the result of the getter is the value of the compile-time constant $e$.
 %Otherwise
 %\item The result of executing the getter method is the value stored in $v$.
@@ -2588,7 +2588,7 @@ Sadly, it may have an effect on the surrounding expression. Given a class $C$ wi
 \LMHash{}
 The predefined Dart function \cd{identical()} is defined such that \code{identical($c_1$, $c_2$)} iff:
  \begin{itemize}
- \item $c_1$  evaluates to either \NULL{} or  an instance of \code{bool} and \code{$c_1$ == $c_2$}, OR
+ \item $c_1$  evaluates to either the null object (\ref{null}) or an instance of \code{bool} and \code{$c_1$ == $c_2$}, OR
  \item $c_1$ and $c_2$ are instances of \code{int} and \code{$c_1$ == $c_2$}, OR
  \item $c_1$ and $c_2$ are constant strings and \code{$c_1$ == $c_2$}, OR
  \item $c_1$  and $c_2$  are instances of \cd{double} and  one of the following holds:
@@ -2629,7 +2629,7 @@ A constant expression is one of the following:
 \begin{itemize}
 \item A literal number (\ref{numbers}).
 \item A literal boolean (\ref{booleans}).
-\item A literal string (\ref{strings}) where any interpolated expression  (\ref{stringInterpolation}) is a compile-time constant that evaluates to a numeric, string or boolean value or to \NULL{}.
+\item A literal string (\ref{strings}) where any interpolated expression  (\ref{stringInterpolation}) is a compile-time constant that evaluates to a numeric, string or boolean value or to the null object (\ref{null}).
 \rationale{It would be tempting to allow string interpolation where the interpolated value is any compile-time constant.  However, this would require running the \code{toString()} method for constant objects, which could contain arbitrary code.}
 \item A literal symbol (\ref{symbols}).
 \item \NULL{} (\ref{null}).
@@ -2646,11 +2646,11 @@ A constant expression is one of the following:
 \item A simple or qualified identifier denoting a top-level function (\ref{functions}) or a static method (\ref{staticMethods}) that is not qualified by a deferred prefix.
 \item A parenthesized expression \code{($e$)} where $e$ is a constant expression.
 \item An expression of the form \code{identical($e_1$, $e_2$)} where $e_1$ and $e_2$ are constant expressions  and \code{identical()} is statically bound to the predefined dart function   \code{identical()} discussed above (\ref{objectIdentity}).
-\item An expression of one of the forms  \code{$e_1$ == $e_2$} or  \code{$e_1$ != $e_2$} where $e_1$ and $e_2$ are constant expressions, and either both evaluate to a numeric, string or boolean value, or at least one of $e_1$ or $e_2$ evaluates to \NULL{}.
+\item An expression of one of the forms  \code{$e_1$ == $e_2$} or  \code{$e_1$ != $e_2$} where $e_1$ and $e_2$ are constant expressions, and either both evaluate to a numeric, string or boolean value, or at least one of $e_1$ or $e_2$ evaluates to the null object (\ref{null}).
 \item An expression of one of the forms \code{!$e$}, \code{$e_1$ \&\& $e_2$} or \code{$e_1 || e_2$}, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
-\item An expression of one of the forms \~{}$e$, $e_1$ \^{} $e_2$, \code{$e_1$ \& $e_2$}, $e_1 | e_2$, $e_1 << e_2$, $e_1 >> e_2$ or $e_1 >>> e_2$, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value or to \NULL{}.
-\item An expression of the form \code{$e_1 + e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to \NULL{}.
-\item An expression of one of the forms \code{$-e$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$},  \code{$e_1  >  e_2$}, \code{$e_1  <  e_2$}, \code{$e_1$ >= $e_2$}, \code{$e_1$ <= $e_2$} or \code{$e_1$ \% $e_2$},  where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value  or to \NULL{}.
+\item An expression of one of the forms \~{}$e$, $e_1$ \^{} $e_2$, \code{$e_1$ \& $e_2$}, $e_1 | e_2$, $e_1 << e_2$, $e_1 >> e_2$ or $e_1 >>> e_2$, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value or to the null object (\ref{null}).
+\item An expression of the form \code{$e_1 + e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to the null object (\ref{null}).
+\item An expression of one of the forms \code{$-e$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$},  \code{$e_1  >  e_2$}, \code{$e_1  <  e_2$}, \code{$e_1$ >= $e_2$}, \code{$e_1$ <= $e_2$} or \code{$e_1$ \% $e_2$},  where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value or to the null object (\ref{null}).
 \item An expression of the form \code{$e_1$?$e_2$:$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
 \item An expression of the form \code{$e_1 ?? e_2$} where $e_1$ and $e_2$ are constant expressions.
 \item An expression of the form \code{$e$.length} where $e$ is a constant expression that evaluates to a string value.
@@ -2697,7 +2697,7 @@ The situation with respect to an invocation \code{m2} is different. Because \cod
 }
 
 \rationale{
-The treatment of \NULL{} merits some discussion. Consider \code{\NULL{} + 2}.  This expression always causes an error. We could have chosen not to treat it as a constant expression (and in general, not to allow \NULL{} as a subexpression of numeric or boolean constant expressions).  There are two arguments for including it:
+The treatment of \code{\NULL{}} merits some discussion. Consider \code{\NULL{} + 2}.  This expression always causes an error. We could have chosen not to treat it as a constant expression (and in general, not to allow \code{\NULL{}} as a subexpression of numeric or boolean constant expressions).  There are two arguments for including it:
 \begin{enumerate}
 \item It is constant. We can evaluate it at compile time.
 \item It seems more useful to give the error stemming from the evaluation explicitly.
@@ -3281,7 +3281,7 @@ There is no requirement that the expression $e$ must evaluate to any special kin
 }
 
 \LMHash{}
-If $v$ is the null value (\ref{null}), then a \code{NullThrownError} is thrown.
+If $v$ is the null object (\ref{null}), then a \code{NullThrownError} is thrown.
 Otherwise let $t$ be a stack trace corresponding to the current execution state,
 and the \THROW{} statement throws with $v$ as exception object
 and $t$ as stack trace (\ref{evaluation}).
@@ -3592,7 +3592,7 @@ Otherwise, the body of $q$ is executed with respect to the bindings that resulte
 If this execution returns a value (\ref{completion}),
 then $e$ evaluates to the returned value.
 Otherwise, if the execution completes normally or returns with no value,
-then $e$ evaluates to \NULL.
+then $e$ evaluates to the null object (\ref{null}).
 Otherwise the execution throws an exception $x$ and stack trace $t$,
 and then evaluation of $e$ also throws $x$ and $t$ (\ref{evaluation}).
 
@@ -3770,13 +3770,13 @@ Execution a body of the form \code{\ASYNC{} => $e$} is equivalent to executing a
 \LMHash{}
 If $f$ is synchronous and is not a generator (\ref{functions}) then execution of the body of $f$ begins immediately.
 If the execution of the body of $f$ returns a value, $v$, (\ref{completion}), the invocation evaluates to $v$.
-If the execution completes normally or it returns without a value, the invocation evaluates to \NULL (\ref{null}).
+If the execution completes normally or it returns without a value, the invocation evaluates to the null object (\ref{null}).
 If the execution throws an exception object and stack trace, the invocation throws the same exception object and stack trace (\ref{evaluation}).
 
 \commentary{
 A complete function body can never break or contine (\ref{completion})
 because a \BREAK{} or \CONTINUE{} statement must always occur inside the statement that is the target of the \BREAK{} or \CONTINUE{}.
-This means that a function body can only either complete normally, throw, or return. Completing normally or returning without a value is treated the same as returning \NULL, so the result of executing a function body can always be used as the result of evaluating an expression, either by evaluating to a value or by the evaluation throwing.
+This means that a function body can only either complete normally, throw, or return. Completing normally or returning without a value is treated the same as returning the null object (\ref{null}), so the result of executing a function body can always be used as the result of evaluating an expression, either by evaluating to a value or by the evaluation throwing.
 }
 
 
@@ -3797,8 +3797,8 @@ The contract explicitly mentions a number of situations where certain iterables 
 \LMHash{}
 When iteration over the iterable is started, by getting an iterator $j$ from the iterable and calling \code{moveNext()}, execution of the body of $f$ will begin. When execution of the body of $f$ completes (\ref{completion},
 \begin{itemize}
-\item If it returns without a value or it completes normally (\ref{completion}), $j$ is positioned after its last element, so that its current value is \code{null} and the current call to \code{moveNext()} on $j$ returns false, as must all further calls.
-\item If it throws an exception object $e$ and stack trace $t$ then the current value of $j$ is \NULL and the current call to \code{moveNext()} throws $e$ and $t$ as well. Further calls to \code{moveNext()} must return false.
+\item If it returns without a value or it completes normally (\ref{completion}), $j$ is positioned after its last element, so that its current value is the null object (\ref{null}) and the current call to \code{moveNext()} on $j$ returns false, as must all further calls.
+\item If it throws an exception object $e$ and stack trace $t$ then the current value of $j$ is the null object (\ref{null}) and the current call to \code{moveNext()} throws $e$ and $t$ as well. Further calls to \code{moveNext()} must return false.
 \end{itemize}
 
 Each iterator starts a separate computation. If the \SYNC* function is impure, the sequence of values yielded by each iterator may differ.
@@ -3825,7 +3825,7 @@ Then the body of $f$ is executed until it either suspends or completes, at which
 The future $o$ is completed when execution of the body of $f$ completes (\ref{completion}).
 If execution of the body returns a value, $o$ is completed with that value,
 if it completes normally or returns without a value,
-$o$ is completed with the \NULL{} value,
+$o$ is completed with the null object (\ref{null}),
 and if it throws an exception $e$ and stack trace $t$,
 $o$ is completed with the error $e$ and stack trace $t$.
 If execution of the body throws before the body suspends the first time,
@@ -3837,7 +3837,7 @@ so the future is not completed with an error {\em before} it has been returned.}
 If $f$ is marked \ASYNC* (\ref{functions}), then a fresh instance $s$ implementing the built-in class \code{Stream} is associated with the invocation and immediately returned. When $s$ is listened to, execution of the body of $f$ will begin.
 When execution of the body of $f$ completes:
 \begin{itemize}
-\item If it completes normally or returns with no value (\ref{completion}), then if $s$ has been canceled then its cancellation future is completed with \NULL{} (\ref{null}).
+\item If it completes normally or returns with no value (\ref{completion}), then if $s$ has been canceled then its cancellation future is completed with the null object (\ref{null}).
 \item If it throws an exception object $e$ and stack trace $t$:
   \begin{itemize}
   \item If $s$ has been canceled then its cancellation future is completed with error $e$ and stack trace $t$.
@@ -3919,7 +3919,7 @@ If  $m < h$, or $m > n$, a \cd{NoSuchMethodError} is thrown. Furthermore, each $
 \commentary{All of these remaining parameters are necessarily optional and thus have default values.}
 
 \LMHash{}
-In checked mode, it is a dynamic type error if  $o_i$ is not \NULL{} and the actual type  (\ref{actualTypeOfADeclaration}) of $p_i$ is not a supertype of the type of $o_i, i \in 1.. m$. In checked mode, it is a dynamic type error if  $o_{m+j}$ is not \NULL{} and the actual type  (\ref{actualTypeOfADeclaration}) of $q_j$ is not a supertype of the type of $o_{m+j}, j \in 1.. l$.
+In checked mode, it is a dynamic type error if  $o_i$ is not the null object (\ref{null}) and the actual type  (\ref{actualTypeOfADeclaration}) of $p_i$ is not a supertype of the type of $o_i, i \in 1.. m$. In checked mode, it is a dynamic type error if  $o_{m+j}$ is not the null object and the actual type  (\ref{actualTypeOfADeclaration}) of $q_j$ is not a supertype of the type of $o_{m+j}, j \in 1.. l$.
 
 \LMHash{}
 It is a compile-time error if $q_i = q_j$ for any $i \ne j$.
@@ -4092,7 +4092,7 @@ If $e$ is a type literal, $i$ is equivalent to \code{$e$.$m$($a_1$, \ldots , $a_
 
 \LMHash{}
 Otherwise, evaluate $e$ to an object $o$.
-If $o$ is the null value, $i$ evaluates to the null value.
+If $o$ is the null object, $i$ evaluates to the null object (\ref{null}).
 Otherwise let $v$ be a fresh variable bound to $o$ and evaluate
 \code{$v$.$m$($a_1$, $\ldots$ , $a_n$, $x_{n+1}$: $a_{n+1}$, $\ldots$ , $x_{n+k}$: $a_{n+k}$))} to a value $r$, and then $e$ evaluates to $r$.
 
@@ -4194,7 +4194,7 @@ Evaluate \code{$t$.\metavar{suffix}} to an object.
 Then $e$ evaluates to $o$.
 
 \rationale{
-With the introduction of null-aware conditional assignable expressions (\ref{assignableExpressions}), it would make sense to extend cascades with a null-aware conditional form as well. One might define \code{$e$?..\metavar{suffix}} to be equivalent to the expression \code{$t$ == null ? null : $t$.\metavar{suffix}} where $t$ is a fresh variable bound to the value of $e$.
+With the introduction of null-aware conditional assignable expressions (\ref{assignableExpressions}), it would make sense to extend cascades with a null-aware conditional form as well. One might define \code{$e$?..\metavar{suffix}} to be equivalent to the expression \code{$t$ == \NULL{} ? \NULL{} : $t$.\metavar{suffix}} where $t$ is a fresh variable bound to the value of $e$.
 
 The present specification has not added such a construct, in the interests of simplicity and rapid language evolution. However, Dart implementations may experiment with such constructs, as noted in section \ref{ecmaConformance}.
 }
@@ -4281,7 +4281,7 @@ If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$m$}.
 
 \LMHash{}
 Otherwise evaluate $e_1$ to an object $o$.
-If $o$ is the null value, $e$ evaluates to the null value.
+If $o$ is the null object, $e$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $o$
 and evaluate \code{$x$.\metavar{id}} to a value $r$.
 Then $e$ evaluates to $r$.
@@ -4492,7 +4492,7 @@ Otherwise, If  $a$ occurs inside a top level or static function (be it function,
 Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type (\ref{actualTypeOfADeclaration}) of $v$.
+In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{null}) and the interface of the class of $o$ is not a subtype of the actual type (\ref{actualTypeOfADeclaration}) of $v$.
 
 \LMHash{}
 It is a static type warning if the static type of $e$ may not be assigned to the static type of $v$. The static type of the expression $v$ \code{=} $e$ is the static type of $e$.
@@ -4506,7 +4506,7 @@ If $e_1$ is a type literal, $a$ is equivalent to \code{$e_1$.$v$ = $e_2$}.
 
 \LMHash{}
 Otherwise evaluate $e_1$ to an object $o$.
-If $o$ is the null value, $a$ evaluates to the null value.
+If $o$ is the null object, $a$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $o$
 and evaluate \code{$x$.$v$ = $e_2$} to an object $r$.
 Then $a$ evaluates to $r$.
@@ -4536,7 +4536,7 @@ Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked  with ar
 The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o_2$ is not \NULL{} and the interface of the class of $o_2$ is not a subtype of the actual type of $e_1.v$.
+In checked mode, it is a dynamic type error if $o_2$ is not the null object (\ref{null}) and the interface of the class of $o_2$ is not a subtype of the actual type of $e_1.v$.
 
 \LMHash{}
 Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not have an accessible instance setter named $v=$ unless $T$ is \code{Type}, $e_1$ is a constant type literal and the class corresponding to $e_1$ has a static setter named $v=$.
@@ -4568,7 +4568,7 @@ Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked 
 The value of the assignment expression is $o$ irrespective of whether setter lookup has failed or succeeded.
 
 \LMHash{}
-In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the actual type of $S.v$.
+In checked mode, it is a dynamic type error if $o$ is not the null object (\ref{null}) and the interface of the class of $o$ is not a subtype of the actual type of $S.v$.
 
 \LMHash{}
 Let $S_{static}$ be the superclass of the immediately enclosing class. It is a static type warning if $S_{static}$ does not have an accessible instance setter named $v=$ unless $S_{static}$.
@@ -4611,7 +4611,7 @@ proceeds as follows:
 
 \LMHash{}
 Evaluate $v$ to an object $o$.
-If $o$ is not the null value, $a$ evaluates to $o$.
+If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
 Otherwise evaluate \code{$v$ = $e$} to a value $r$,
 and then $a$ evaluates to $r$.
 
@@ -4620,7 +4620,7 @@ Evaluation of a compound assignment, $a$ of the form \code{$C$.$v$ ??= $e$}, whe
 
 \LMHash{}
 Evaluate \code{$C$.$v$} to an object $o$.
-If $o$ is not the null value, $a$ evaluates to $o$.
+If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
 Otherwise evaluate \code{$C$.$v$ = $e$} to a value $r$,
 and then $a$ evaluates to $r$.
 
@@ -4636,7 +4636,7 @@ proceeds as follows:
 Evaluate $e_1$ to an object $u$.
 Let $x$ be a fresh variable bound to $u$.
 Evaluate \code{$x$.$v$} to an object $o$.
-If $o$ is not the null value, $a$ evaluates to $o$.
+If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
 Otherwise evaluate \code{$x$.$v$ = $e_2$} to an object $r$,
 and then $a$ evaluates to $r$.
 
@@ -4647,7 +4647,7 @@ proceeds as follows:
 \LMHash{}
 Evaluate $e_1$ to an object $u$ and then evaluate $e_2$ to an object $i$.
 Call the \code{[]} method on $u$ with argument $i$, and let $o$ be the returned value.
-If $o$ is not the null value, $a$ evaluates to $o$.
+If $o$ is not the null object (\ref{null}), $a$ evaluates to $o$.
 Otherwise evaluate $e_3$ to an object $v$
 and then call the \code{[]=} method on $u$ with $i$ as first argument and $v$ as second argument.
 Then $a$ evaluates to $v$.
@@ -4658,7 +4658,7 @@ proceeds as follows:
 
 \LMHash{}
 Evaluate \code{\SUPER.$v$} to an object $o$.
-If $o$ is not the null value then $a$ evaluates to $o$.
+If $o$ is not the null object (\ref{null}) then $a$ evaluates to $o$.
 Otherwise evaluate \code{\SUPER.$v$ = $e$} to an object $r$,
 and then $a$ evaluates to $r$.
 
@@ -4669,7 +4669,7 @@ proceeds as follows:
 \LMHash{}
 Evaluate $e_1$ to an object $u$ and let $x$ be a fresh variable bound to $u$.
 Evaluate \code{$x$.$v$} to an object $o$.
-If $o$ is not the null value then $a$ evaluates to $o$.
+If $o$ is not the null object (\ref{null}) then $a$ evaluates to $o$.
 Otherwise evaluate \code{$x$.$v$ = $e_2$} to an object $r$,
 and then $a$ evaluates to $r$.
 
@@ -4714,7 +4714,7 @@ Evaluation of a compound assignment $a$ of the form \code{$e_1$?.$v$ $op$ = $e_2
 
 \LMHash{}
 Evaluate $e_1$ to an object $u$.
-If $u$ is the null value, then $a$ evaluates to the null value.
+If $u$ is the null object, then $a$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $u$.
 Evaluate \code{$x$.$v$ $op$= $e_2$} to an object $r$.
 Then $a$ evaluates to $r$.
@@ -4774,14 +4774,14 @@ then the type of $v$ is known to be $T$ in $e_2$.
 
 
 \LMHash{}
- It is a static type warning if the static type of $e_1$ may not be assigned to \code{bool}.  The static type of $c$ is the least upper bound (\ref{leastUpperBounds}) of the static type of $e_2$ and the static type of $e_3$.
+It is a static type warning if the static type of $e_1$ may not be assigned to \code{bool}.  The static type of $c$ is the least upper bound (\ref{leastUpperBounds}) of the static type of $e_2$ and the static type of $e_3$.
 
 
- \subsection{If-null Expressions}
- \label{ifNull}
+\subsection{If-null Expressions}
+\label{ifNull}
 
- \LMHash{}
- An {\em if-null expression} evaluates an expression and if the result is \NULL, evaluates another.
+\LMHash{}
+An {\em if-null expression} evaluates an expression and if the result is the null object (\ref{null}), evaluates another.
 
 \begin{grammar}
 {\bf ifNullExpression:}
@@ -4794,7 +4794,7 @@ proceeds as follows:
 
 \LMHash{}
 Evaluate $e_1$ to an object $o$.
-If $o$ is not the null value, then $e$ evaluates to $o$.
+If $o$ is not the null object (\ref{null}), then $e$ evaluates to $o$.
 Otherwise evaluate $e_2$ to an object $r$,
 and then $e$ evaluates to $r$.
 
@@ -4876,7 +4876,7 @@ Evaluation of an equality expression $ee$ of the form \code{$e_1$ == $e_2$} proc
 \begin{itemize}
 \item The expression $e_1$ is evaluated to an object $o_1$.
 \item The expression $e_2$ is evaluated to an object $o_2$.
-\item If either $o_1$ or $o_2$ is \NULL{}, then $ee$ evaluates to \TRUE{} if both $o_1$ and $o_2$ are \NULL{} and to \FALSE{} otherwise.  Otherwise,
+\item If either $o_1$ or $o_2$ is the null object (\ref{null}), then $ee$ evaluates to \TRUE{} if both $o_1$ and $o_2$ are the null object and to \FALSE{} otherwise.  Otherwise,
 \item evaluation of $ee$ is equivalent to the method invocation \code{$o_1$.==($o_2$)}.
 \end{itemize}
 
@@ -4885,7 +4885,7 @@ Evaluation of an equality expression $ee$ of the form \code{$e_1$ == $e_2$} proc
 Evaluation of an equality expression $ee$ of the form \code{\SUPER{} == $e$} proceeds as follows:
 \begin{itemize}
 \item The expression $e$ is evaluated to an object $o$.
-\item If either \THIS{} or $o$ is \NULL{}, then $ee$ evaluates to evaluates to \TRUE{} if both \THIS{} and $o$ are \NULL{} and to \FALSE{} otherwise. Otherwise,
+\item If either \THIS{} or $o$ is the null object (\ref{null}), then $ee$ evaluates to evaluates to \TRUE{} if both \THIS{} and $o$ are the null object and to \FALSE{} otherwise. Otherwise,
 \item evaluation of $ee$ is equivalent to the method invocation \code{\SUPER{}.==($o$)}.
 \end{itemize}
 
@@ -5305,7 +5305,7 @@ evaluation of \code{$e_1$.$v$++}.
 
 \LMHash{}
 Otherwise evaluate $e_1$ to an object $u$.
-if $u$ is the null value, $e$ evaluates to the null value.
+if $u$ is the null object, $e$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $u$.
 Evaluate \code{$x$.$v$++} to an object $o$.
 Then $e$ evaluates to $o$.
@@ -5321,7 +5321,7 @@ If $e_1$ is a type literal, evaluation of $e$ is equivalent to
 evaluation of \code{$e_1$.$v$-{}-}.
 
 Otherwise evaluate $e_1$ to an object $u$.
-If $u$ is the null value, $e$ evaluates to the null value.
+If $u$ is the null object, $e$ evaluates to the null object (\ref{null}).
 Otherwise let $x$ be a fresh variable bound to $u$.
 Evaluate \code{$x$.$v$-{}-} to an object $o$.
 Then $e$ evaluates to $o$.
@@ -5480,7 +5480,7 @@ Let $d$ be the innermost declaration in the enclosing lexical scope whose name i
 %\commentary{ We are assured that \THIS{} is well defined, because if we were in a static member the reference to $T$ is a compile-time error (\ref{generics}.)}
 %\item If $d$ is a library variable then:
 %  \begin{itemize}
-%  \item If $d$ is of one of the forms \code{\VAR{} $v$ = $e_i$;} , \code{$T$ $v$ = $e_i$;} , \code{\FINAL{} $v$ = $e_i$;}  or \code{\FINAL{} $T$ $v$ = $e_i$;} and no value has yet been stored into $v$ then the initializer expression $e_i$ is evaluated. If, during the evaluation of $e_i$, the getter for $v$ is referenced, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r = o$, otherwise let $r = \NULL{}$. In any case, $r$ is stored into $v$. The value of $e$ is $r$.
+%  \item If $d$ is of one of the forms \code{\VAR{} $v$ = $e_i$;} , \code{$T$ $v$ = $e_i$;} , \code{\FINAL{} $v$ = $e_i$;}  or \code{\FINAL{} $T$ $v$ = $e_i$;} and no value has yet been stored into $v$ then the initializer expression $e_i$ is evaluated. If, during the evaluation of $e_i$, the getter for $v$ is referenced, a \code{CyclicInitializationError} is thrown. If the evaluation succeeded yielding an object $o$, let $r$ be $o$, otherwise let $r$ be the null object (\ref{null}). In any case, $r$ is stored into $v$. The value of $e$ is $r$.
  \item  If $d$ is a constant variable of one of the forms  \code{\CONST{} $v$ = $e$;} or \code{\CONST{} $T$ $v$ = $e$;} then the value $id$ is the value of the compile-time constant $e$.
 %  Otherwise
 %  \item $e$ evaluates to the current binding of $id$.
@@ -5542,7 +5542,7 @@ The expression $e$ is evaluated to a value $v$. Then, if $T$ is a malformed or d
 
 \commentary{It follows that \code{$e$ \IS{} Object} is always true. This makes sense in a language where everything is an object.
 
-Also note that \code{\NULL{} \IS{} $T$} is false unless $T = \code{Object}$, $T = \code{\DYNAMIC{}}$ or $T = \code{Null}$.  The former two are useless, as is anything of the form \code{$e$ \IS{} Object} or \code{$e$ \IS{} \DYNAMIC{}}.  Users should test for a null value directly rather than via type tests.
+Also note that \code{\NULL{} \IS{} $T$} is false unless $T = \code{Object}$, $T = \code{\DYNAMIC{}}$ or $T = \code{Null}$.  The former two are useless, as is anything of the form \code{$e$ \IS{} Object} or \code{$e$ \IS{} \DYNAMIC{}}.  Users should test for the null object (\ref{null}) directly rather than via type tests.
 }
 
 \LMHash{}
@@ -5594,7 +5594,7 @@ The {\em cast expression} ensures that an object is a member of a type.
  Evaluation of the cast expression \code{$e$ \AS{} $T$} proceeds as follows:
 
 \LMHash{}
-The expression $e$ is evaluated to a value $v$. Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the cast expression evaluates to $v$. Otherwise, if $v$ is \NULL{}, the cast expression evaluates to $v$.
+The expression $e$ is evaluated to a value $v$. Then, if $T$ is a malformed or deferred type (\ref{staticTypes}), a dynamic error occurs. Otherwise, if the interface of the class of $v$ is a subtype of $T$, the cast expression evaluates to $v$. Otherwise, if $v$ is the null object (\ref{null}), the cast expression evaluates to $v$.
 In all other cases,  a \code{CastError} is thrown.
 
 \LMHash{}
@@ -5723,7 +5723,7 @@ The expression $e$ is evaluated to an object $o$. Then, the variable $v$ is set 
 A variable declaration statement of the form \code{\VAR{} $v$;} is equivalent to \code{\VAR{} $v$ = \NULL{};}. A variable declaration statement of the form \code{$T$ $v$;} is equivalent to \code{$T$ $v$ = \NULL{};}.
 
 \commentary{
-This holds regardless of the type $T$. For example, \code{int i;} does not cause \code{i} to be initialized to zero. Instead, \code{i} is initialized to \NULL{}, just as if we had written \VAR{} \code{i;} or \code{Object i;} or \code{Collection<String> i;}.
+This holds regardless of the type $T$. For example, \code{int i;} does not cause \code{i} to be initialized to zero. Instead, \code{i} is initialized to the null object (\ref{null}), just as if we had written \VAR{} \code{i;} or \code{Object i;} or \code{Collection<String> i;}.
 }
 
 \rationale{
@@ -6491,14 +6491,14 @@ It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \
 Let $S$ be the run-time type of $o$. In checked mode:
 \begin{itemize}
 \item  If the body of $f$ is marked \ASYNC{} (\ref{functions})
-it is a dynamic type error if $o$ is not \NULL{} (\ref{null}),
+it is a dynamic type error if $o$ is not the null object (\ref{null}),
 the actual return type (\ref{actualTypeOfADeclaration}) of $f$ is not \VOID,
 and \code{Future<$flatten$(S)>} is not a subtype of the actual return type of $f$.
 % TODO(lrn): The "void foo() async { return e }" case is somewhat speculative.
 % When we disallow "return e" in a void function, we might also want to revisit
 % this rule. Currently it also covers the "void foo() async => e;" case, which
 % we might want to allow.
-\item Otherwise, it is a dynamic type error if $o$ is not \NULL{},
+\item Otherwise, it is a dynamic type error if $o$ is not the null object (\ref{null}),
 the actual return type of $f$ is not \VOID{},
 and the run-time type of $o$ is not a subtype of the actual return type of $f$.
 \end{itemize}
@@ -6530,7 +6530,11 @@ Hence, a static warning will not be issued if $f$ has no declared return type, s
 }
 \rationale{This helps catch situations where users forget to return a value in a return statement.}
 
-\rationale{ An asynchronous non-generator always returns a future of some sort. If no expression is given, the future will be completed with \NULL{} and this motivates the requirement above.} \commentary{Leaving the return type of a function marked \ASYNC{}  blank will be interpreted as \DYNAMIC{} as always, and cause no type error. Using \code{Future} or \code{Future<Object>} is acceptable as well, but any other type will cause a warning, since \NULL{} has no subtypes.}
+\rationale{ An asynchronous non-generator always returns a future of some sort. If no expression is given, the future will be completed with the null object (\ref{null}) and this motivates the requirement above.}
+
+\commentary{
+Leaving the return type of a function marked \ASYNC{} blank will be interpreted as \DYNAMIC{} as always, and cause no type error.
+}
 
 \LMHash{}
 Executing a return statement with no expression, \code{\RETURN;} returns with no value (\ref{completion}).
@@ -6772,7 +6776,7 @@ An assertion with a trailing comma is equivalent to one with that
 comma removed.
 
 \LMHash{}
-An assertion of the form \code{\ASSERT($e$))} is equivalent to an assertion of the form \code{\ASSERT($e$, null)}.
+An assertion of the form \code{\ASSERT($e$))} is equivalent to an assertion of the form \code{\ASSERT($e$, \NULL{})}.
 
 \LMHash{}
 Execution of an assert statement executes the assertion as described below
@@ -7257,7 +7261,7 @@ it is invoked with the following two actual arguments:
 \item An object whose run-time type implements \code{List<String>}.
 \item An object specified when the current isolate $i$ was created,
 for example through the invocation of \code{Isolate.spawnUri} that spawned $i$,
-or \NULL{} if no such object was supplied.
+or the null object (\ref{null}) if no such object was supplied.
 \end{enumerate}
 If \code{main} cannot be called with two positional arguments,
 but it can be called with one positional argument,
@@ -7597,7 +7601,7 @@ Although $<:$ is not a partial order on types, it does contain a partial order, 
 The \code{Null} type is more specific than all non-$\bot$ types, even though
 it doesn't actually extend or implement those types.
 The other types are effectively treated as if they are {\em nullable},
-which makes \NULL{} assignable to them.
+which makes the null object (\ref{null}) assignable to them.
 }
 
 \LMHash{}
@@ -7821,9 +7825,9 @@ $\VOID{} <:   \DYNAMIC{}$ (as \DYNAMIC{} is a supertype of all types)
 
 The analogous rules also hold for the $<<$ relation for  similar reasons.
 
-Hence, the static checker will issue warnings if one attempts to access a member of the result of a void method invocation (even for members of \NULL{}, such as \code{==}).  Likewise, passing the result of a void method as a parameter or assigning it to a variable will cause a warning unless the variable/formal parameter has type dynamic.
+Hence, the static checker will issue warnings if one attempts to access a member of the result of a void method invocation (even for members of the null object (\ref{null}), such as \code{==}).  Likewise, passing the result of a void method as a parameter or assigning it to a variable will cause a warning unless the variable/formal parameter has type dynamic.
 
-On the other hand, it is possible to return the result of a void method from within a void method. One can also return \NULL{}; or a value of type \DYNAMIC{}. Returning any other result will cause a type warning. In checked mode, a dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
+On the other hand, it is possible to return the result of a void method from within a void method. One can also return the null object (\ref{null}); or a value of type \DYNAMIC{}. Returning any other result will cause a type warning. In checked mode, a dynamic type error would arise if a non-null object was returned from a void method (since no object has run-time type \DYNAMIC{}).
 }
 
 \commentary {The name \VOID{} does not denote a \cd{Type} object.}
