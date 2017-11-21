@@ -2284,7 +2284,7 @@ class ProgramCompiler
 
   JS.Statement _emitLibraryFunction(Procedure p) {
     var body = <JS.Statement>[];
-    var fn = _emitFunction(p.function, p.name.name);
+    var fn = _emitFunction(p.function, p.name.name)..sourceInformation = p;
 
     if (_currentLibrary.importUri.scheme == 'dart' &&
         _isInlineJSFunction(p.function.body)) {
@@ -2866,9 +2866,10 @@ class ProgramCompiler
   }
 
   JS.Statement _visitStatement(Statement s) {
-    // TODO(jmesserly): attach source mapping to statements
     var result = s?.accept(this);
     if (result != null) {
+      result.sourceInformation = s;
+
       // The statement might be the target of a break or continue with a label.
       var name = _labelNames[s];
       if (name != null) result = new JS.LabeledStatement(name, result);
@@ -2919,12 +2920,14 @@ class ProgramCompiler
   }
 
   JS.Expression _visitExpression(e) {
-    return e?.accept(this);
+    JS.Expression result = e?.accept(this);
+    return result;
   }
 
   JS.Expression _visitAndMarkExpression(Expression e) {
-    // TODO(jmesserly): attach source mapping to expressions if needed
-    return e?.accept(this);
+    JS.Expression result = e?.accept(this);
+    if (result != null) result.sourceInformation = e;
+    return result;
   }
 
   @override
@@ -2935,7 +2938,7 @@ class ProgramCompiler
 
   @override
   visitExpressionStatement(ExpressionStatement node) =>
-      _visitExpression(node.expression).toStatement();
+      _visitAndMarkExpression(node.expression).toStatement();
 
   @override
   visitBlock(Block node) =>
@@ -3244,7 +3247,7 @@ class ProgramCompiler
   JS.Statement visitReturnStatement(ReturnStatement node) {
     var e = node.expression;
     if (e == null) return new JS.Return();
-    return _visitExpression(e).toReturn();
+    return _visitAndMarkExpression(e).toReturn();
   }
 
   @override
@@ -4015,7 +4018,7 @@ class ProgramCompiler
         args.add(new JS.RestParameter(
             _visitExpression(arg.arguments.positional[0])));
       } else {
-        args.add(_visitExpression(arg));
+        args.add(_visitAndMarkExpression(arg));
       }
     }
     var named = <JS.Property>[];

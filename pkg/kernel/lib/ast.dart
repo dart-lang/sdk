@@ -173,6 +173,11 @@ abstract class NamedNode extends TreeNode {
   CanonicalName get canonicalName => reference?.canonicalName;
 }
 
+abstract class FileUriNode extends TreeNode {
+  /// The uri of the source file this node was loaded from.
+  String get fileUri;
+}
+
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
@@ -248,7 +253,7 @@ class Reference {
 // ------------------------------------------------------------------------
 
 @coq
-class Library extends NamedNode implements Comparable<Library> {
+class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -504,7 +509,7 @@ class LibraryDependency extends TreeNode {
 ///     part <url>;
 ///
 /// optionally with metadata.
-class LibraryPart extends TreeNode {
+class LibraryPart extends TreeNode implements FileUriNode {
   final List<Expression> annotations;
   final String fileUri;
 
@@ -555,7 +560,7 @@ class Combinator extends TreeNode {
 }
 
 /// Declaration of a type alias.
-class Typedef extends NamedNode {
+class Typedef extends NamedNode implements FileUriNode {
   /// The uri of the source file that contains the declaration of this typedef.
   String fileUri;
   List<Expression> annotations = const <Expression>[];
@@ -653,7 +658,7 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 @coq
-class Class extends NamedNode {
+class Class extends NamedNode implements FileUriNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
@@ -995,7 +1000,7 @@ abstract class Member extends NamedNode {
 ///
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
-class Field extends Member {
+class Field extends Member implements FileUriNode {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   int flags2 = 0;
@@ -1276,7 +1281,7 @@ class Constructor extends Member {
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
 @coq
-class Procedure extends Member {
+class Procedure extends Member implements FileUriNode {
   ProcedureKind kind;
   int flags = 0;
   // function is null if and only if abstract, external,
