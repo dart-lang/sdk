@@ -504,19 +504,31 @@ copy("copy_analysis_summaries") {
 }
 
 # This rule copies dill files to lib/_internal.
-copy("copy_dill_files") {
+copy("copy_vm_dill_files") {
   visibility = [ ":create_common_sdk" ]
   deps = [
     ":copy_libraries",
     "../runtime/vm:kernel_platform_files",
-    "../utils/compiler:compile_dart2js_platform",
   ]
   sources = [
-    "$root_out_dir/dart2js_platform.dill",
     "$root_out_dir/vm_outline.dill",
     "$root_out_dir/vm_outline_strong.dill",
     "$root_out_dir/vm_platform.dill",
     "$root_out_dir/vm_platform_strong.dill",
+  ]
+  outputs = [
+    "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
+  ]
+}
+
+copy("copy_dart2js_dill_files") {
+  visibility = [ ":create_full_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/compiler:compile_dart2js_platform",
+  ]
+  sources = [
+    "$root_out_dir/dart2js_platform.dill",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
@@ -530,8 +542,9 @@ copy("copy_dev_compiler_summary") {
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_sdk",
   ]
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
-    "$root_out_dir/gen/utils/dartdevc/ddc_sdk.sum",
+    "$gen_dir/ddc_sdk.sum",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/_internal/{{source_file_part}}",
@@ -544,9 +557,10 @@ copy("copy_dev_compiler_js_amd") {
   deps = [
     "../utils/dartdevc:dartdevc_sdk",
   ]
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
-    "$root_gen_dir/utils/dartdevc/js/amd/dart_sdk.js",
-    "$root_gen_dir/utils/dartdevc/js/amd/dart_sdk.js.map",
+    "$gen_dir/js/amd/dart_sdk.js",
+    "$gen_dir/js/amd/dart_sdk.js.map",
     "../third_party/requirejs/require.js",
   ]
   outputs = [
@@ -560,9 +574,10 @@ copy("copy_dev_compiler_js_common") {
   deps = [
     "../utils/dartdevc:dartdevc_sdk",
   ]
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
-    "$root_gen_dir/utils/dartdevc/js/common/dart_sdk.js",
-    "$root_gen_dir/utils/dartdevc/js/common/dart_sdk.js.map",
+    "$gen_dir/js/common/dart_sdk.js",
+    "$gen_dir/js/common/dart_sdk.js.map",
     "../pkg/dev_compiler/lib/js/common/run.js",
   ]
   outputs = [
@@ -576,9 +591,10 @@ copy("copy_dev_compiler_js_es6") {
   deps = [
     "../utils/dartdevc:dartdevc_sdk",
   ]
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
-    "$root_gen_dir/utils/dartdevc/js/es6/dart_sdk.js",
-    "$root_gen_dir/utils/dartdevc/js/es6/dart_sdk.js.map",
+    "$gen_dir/js/es6/dart_sdk.js",
+    "$gen_dir/js/es6/dart_sdk.js.map",
   ]
   outputs = [
     "$root_out_dir/dart-sdk/lib/dev_compiler/es6/{{source_file_part}}",
@@ -591,9 +607,10 @@ copy("copy_dev_compiler_js_legacy") {
   deps = [
     "../utils/dartdevc:dartdevc_sdk",
   ]
+  gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [
-    "$root_gen_dir/utils/dartdevc/js/legacy/dart_sdk.js",
-    "$root_gen_dir/utils/dartdevc/js/legacy/dart_sdk.js.map",
+    "$gen_dir/js/legacy/dart_sdk.js",
+    "$gen_dir/js/legacy/dart_sdk.js.map",
     "../pkg/dev_compiler/lib/js/legacy/dart_library.js",
   ]
   outputs = [
@@ -799,7 +816,7 @@ group("create_common_sdk") {
     ":copy_api_readme",
     ":copy_dart",
     ":copy_dartdoc_files",
-    ":copy_dill_files",
+    ":copy_vm_dill_files",
     ":copy_headers",
     ":copy_libraries_dart",
     ":copy_license",
@@ -832,6 +849,7 @@ group("create_full_sdk") {
   visibility = [ ":create_sdk" ]
 
   deps = [
+    ":copy_dart2js_dill_files",
     ":copy_dev_compiler_sdk",
     ":copy_full_sdk_libraries",
     ":copy_full_sdk_scripts",
