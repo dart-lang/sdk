@@ -2962,6 +2962,7 @@ built_in_identifier_type_annotation_test/65: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28815
+implicit_downcast_during_invocation_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
 assertion_initializer_const_error2_test/none: Pass
