@@ -12,6 +12,8 @@ main() {
   forInLoop([1, 2]);
   forInLoopEmpty([]);
   forInLoopNull(null);
+  stringInterpolation(0);
+  stringInterpolation(null);
 }
 
 throwStatement() {
@@ -46,4 +48,9 @@ forInLoopNull(local) {
   for (var e in local) {
     print(e);
   }
+}
+
+stringInterpolation(a) {
+  // TODO(johnniwinther): Handle interpolation of `a` itself.
+  print('${a()}');
 }

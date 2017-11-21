@@ -11,7 +11,6 @@ import 'package:compiler/src/apiimpl.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/code_output.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/io/source_information.dart';
@@ -296,9 +295,9 @@ class SourceMapProcessor {
   /// The [SourceFileManager] created for the processing.
   SourceFileManager sourceFileManager;
 
-  /// Creates a processor for the Dart file [filename].
-  SourceMapProcessor(String filename, {this.outputToFile: false}) {
-    inputUri = Uri.base.resolve(nativeToUriPath(filename));
+  /// Creates a processor for the Dart file [uri].
+  SourceMapProcessor(Uri uri, {this.outputToFile: false}) {
+    inputUri = Uri.base.resolveUri(uri);
     jsPath = 'out.js';
     targetUri = Uri.base.resolve(jsPath);
     sourceMapFileUri = Uri.base.resolve('${jsPath}.map');

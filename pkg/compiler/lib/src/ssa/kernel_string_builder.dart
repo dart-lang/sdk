@@ -64,7 +64,8 @@ class KernelStringBuilder extends ir.Visitor {
 
   HInstruction stringify(HInstruction expression) {
     HInstruction instruction =
-        new HStringify(expression, builder.commonMasks.stringType);
+        new HStringify(expression, builder.commonMasks.stringType)
+          ..sourceInformation = expression.sourceInformation;
     builder.add(instruction);
     return instruction;
   }

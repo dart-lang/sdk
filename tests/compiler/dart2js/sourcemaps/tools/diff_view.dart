@@ -12,6 +12,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/position_information.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/io/source_file.dart';
@@ -88,7 +89,8 @@ main(List<String> args) async {
       output = AnnotatedOutput.loadOutput(loadFrom[i]);
     } else {
       print('Compiling ${options[i].join(' ')} $filename');
-      CodeLinesResult result = await computeCodeLines(options[i], filename);
+      CodeLinesResult result = await computeCodeLines(
+          options[i], filename, Uri.base.resolve(nativeToUriPath(filename)));
       OutputStructure structure = OutputStructure.parse(result.codeLines);
       computeEntityCodeSources(result, structure);
       output = new AnnotatedOutput(
@@ -701,8 +703,8 @@ class CodeSources {
 
 /// Compute [CodeLine]s and [Coverage] for [filename] using the given [options].
 Future<CodeLinesResult> computeCodeLines(
-    List<String> options, String filename) async {
-  SourceMapProcessor processor = new SourceMapProcessor(filename);
+    List<String> options, String filename, Uri uri) async {
+  SourceMapProcessor processor = new SourceMapProcessor(uri);
   SourceMaps sourceMaps =
       await processor.process(options, perElement: true, forMain: true);
 

@@ -190,5 +190,7 @@ void generateHtml(String jsFileName, String jsMapFileName) {
     state = state.continuedState;
   }
   output.write('</pre></body></html>');
-  new File('out.js.map.html').writeAsStringSync(output.toString());
+  File outputFile = new File('out.js.map.html');
+  outputFile.writeAsStringSync(output.toString());
+  print('Output written to: ${outputFile.absolute.uri}');
 }
