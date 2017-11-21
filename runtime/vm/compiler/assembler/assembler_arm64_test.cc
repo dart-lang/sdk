@@ -391,6 +391,7 @@ ASSEMBLER_TEST_GENERATE(LoadStoreLargeOffset, assembler) {
   __ movz(R0, Immediate(43), 0);
   __ movz(R1, Immediate(42), 0);
   __ sub(SP, SP, Operand(512 * kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   __ str(R1, Address(SP, 512 * kWordSize, Address::Offset));
   __ add(SP, SP, Operand(512 * kWordSize));
   __ ldr(R0, Address(SP));
@@ -413,6 +414,7 @@ ASSEMBLER_TEST_GENERATE(LoadStoreExtReg, assembler) {
   // i.e. SP - kWordSize.
   __ str(R1, Address(SP, R2, SXTW));
   __ sub(SP, SP, Operand(kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   __ ldr(R0, Address(SP));
   __ add(SP, SP, Operand(kWordSize));
   __ RestoreCSP();
@@ -430,6 +432,7 @@ ASSEMBLER_TEST_GENERATE(LoadStoreScaledReg, assembler) {
   __ movz(R1, Immediate(42), 0);
   __ movz(R2, Immediate(10), 0);
   __ sub(SP, SP, Operand(10 * kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   // Store R1 into SP + R2 * kWordSize.
   __ str(R1, Address(SP, R2, UXTX, Address::Scaled));
   __ ldr(R0, Address(SP, R2, UXTX, Address::Scaled));
@@ -479,6 +482,7 @@ ASSEMBLER_TEST_GENERATE(LoadStorePairOffset, assembler) {
   __ LoadImmediate(R2, 43);
   __ LoadImmediate(R3, 42);
   __ sub(SP, SP, Operand(4 * kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   __ stp(R2, R3, Address::Pair(SP, 2 * kWordSize));
   __ ldp(R0, R1, Address::Pair(SP, 2 * kWordSize));
   __ add(SP, SP, Operand(4 * kWordSize));
@@ -2352,6 +2356,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeOffset, assembler) {
   __ LoadDImmediate(V0, 43.0);
   __ LoadDImmediate(V1, 42.0);
   __ sub(SP, SP, Operand(512 * kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   __ fstrd(V1, Address(SP, 512 * kWordSize, Address::Offset));
   __ add(SP, SP, Operand(512 * kWordSize));
   __ fldrd(V0, Address(SP));
@@ -2374,6 +2379,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdExtReg, assembler) {
   // i.e. SP - kWordSize.
   __ fstrd(V1, Address(SP, R2, SXTW));
   __ sub(SP, SP, Operand(kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   __ fldrd(V0, Address(SP));
   __ add(SP, SP, Operand(kWordSize));
   __ RestoreCSP();
@@ -2391,6 +2397,7 @@ ASSEMBLER_TEST_GENERATE(FldrdFstrdScaledReg, assembler) {
   __ LoadDImmediate(V1, 42.0);
   __ movz(R2, Immediate(10), 0);
   __ sub(SP, SP, Operand(10 * kWordSize));
+  __ andi(CSP, SP, Immediate(~15));  // Must not access beyond CSP.
   // Store V1 into SP + R2 * kWordSize.
   __ fstrd(V1, Address(SP, R2, UXTX, Address::Scaled));
   __ fldrd(V0, Address(SP, R2, UXTX, Address::Scaled));
