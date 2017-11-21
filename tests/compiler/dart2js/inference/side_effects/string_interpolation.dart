@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: stringInterpolation:Depends on nothing, Changes [] field static.*/
+/*element: stringInterpolation:Reads nothing; writes anything.*/
 stringInterpolation() => '${null}';
 
-/*element: main:Depends on nothing, Changes [] field static.*/
+/*element: main:Reads nothing; writes anything.*/
 main() {
   stringInterpolation();
 }

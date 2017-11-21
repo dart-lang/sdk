@@ -182,16 +182,48 @@ class SideEffects {
 
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    buffer.write('Depends on');
-    if (dependsOnIndexStore()) buffer.write(' []');
-    if (dependsOnInstancePropertyStore()) buffer.write(' field store');
-    if (dependsOnStaticPropertyStore()) buffer.write(' static store');
-    if (!dependsOnSomething()) buffer.write(' nothing');
-    buffer.write(', Changes');
-    if (changesIndex()) buffer.write(' []');
-    if (changesInstanceProperty()) buffer.write(' field');
-    if (changesStaticProperty()) buffer.write(' static');
-    if (!hasSideEffects()) buffer.write(' nothing');
+    buffer.write('Reads');
+    if (!dependsOnSomething()) {
+      buffer.write(' nothing');
+    } else if (dependsOnIndexStore() &&
+        dependsOnInstancePropertyStore() &&
+        dependsOnStaticPropertyStore()) {
+      buffer.write(' anything');
+    } else {
+      String comma = '';
+      if (dependsOnIndexStore()) {
+        buffer.write(' index');
+        comma = ',';
+      }
+      if (dependsOnInstancePropertyStore()) {
+        buffer.write('$comma field');
+        comma = ',';
+      }
+      if (dependsOnStaticPropertyStore()) {
+        buffer.write('$comma static');
+      }
+    }
+    buffer.write('; writes');
+    if (!hasSideEffects()) {
+      buffer.write(' nothing');
+    } else if (changesIndex() &&
+        changesInstanceProperty() &&
+        changesStaticProperty()) {
+      buffer.write(' anything');
+    } else {
+      String comma = '';
+      if (changesIndex()) {
+        buffer.write(' index');
+        comma = ',';
+      }
+      if (changesInstanceProperty()) {
+        buffer.write('$comma field');
+        comma = ',';
+      }
+      if (changesStaticProperty()) {
+        buffer.write('$comma static');
+      }
+    }
     buffer.write('.');
     return buffer.toString();
   }

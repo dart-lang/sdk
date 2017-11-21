@@ -12,48 +12,48 @@ import 'dart:_js_embedded_names';
 /// ignore: UNUSED_IMPORT
 import 'dart:_interceptors';
 
-/*element: jsCallEmpty:Depends on nothing, Changes nothing.*/
+/*element: jsCallEmpty:Reads nothing; writes nothing.*/
 jsCallEmpty() => JS('', '#', 0);
 
-/*element: jsCallInt:Depends on nothing, Changes nothing.*/
+/*element: jsCallInt:Reads nothing; writes nothing.*/
 jsCallInt() => JS('int', '#', 0);
 
-/*element: jsCallEffectsAllDependsNoIndex:Depends on field store static store, Changes [] field static.*/
+/*element: jsCallEffectsAllDependsNoIndex:Reads field, static; writes anything.*/
 jsCallEffectsAllDependsNoIndex() => JS('effects:all;depends:no-index', '#', 0);
 
-/*element: jsCallEffectsNoInstanceDependsNoStatic:Depends on [] field store, Changes [] static.*/
+/*element: jsCallEffectsNoInstanceDependsNoStatic:Reads index, field; writes index, static.*/
 jsCallEffectsNoInstanceDependsNoStatic() =>
     JS('effects:no-instance;depends:no-static', '#', 0);
 
-/*element: jsBuiltin_createFunctionTypeRti:Depends on static store, Changes nothing.*/
+/*element: jsBuiltin_createFunctionTypeRti:Reads static; writes nothing.*/
 jsBuiltin_createFunctionTypeRti() {
   // TODO(johnniwinther): Why doesn't this have `Depends on nothing`?
   return JS_BUILTIN('returns:=Object;effects:none;depends:none',
       JsBuiltin.createFunctionTypeRti);
 }
 
-/*element: jsBuiltin_rawRtiToJsConstructorName:Depends on [] field store static store, Changes [] field static.*/
+/*element: jsBuiltin_rawRtiToJsConstructorName:Reads anything; writes anything.*/
 jsBuiltin_rawRtiToJsConstructorName() {
   return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, null);
 }
 
-/*element: jsEmbeddedGlobal_getTypeFromName:Depends on static store, Changes nothing.*/
+/*element: jsEmbeddedGlobal_getTypeFromName:Reads static; writes nothing.*/
 jsEmbeddedGlobal_getTypeFromName() {
   return JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
 }
 
-/*element: jsEmbeddedGlobal_libraries:Depends on static store, Changes nothing.*/
+/*element: jsEmbeddedGlobal_libraries:Reads static; writes nothing.*/
 jsEmbeddedGlobal_libraries() {
   return JS_EMBEDDED_GLOBAL('JSExtendableArray|Null', LIBRARIES);
 }
 
-/*element: jsStringConcat:Depends on nothing, Changes nothing.*/
+/*element: jsStringConcat:Reads nothing; writes nothing.*/
 jsStringConcat() => JS_STRING_CONCAT('a', 'b');
 
-/*element: jsGetStaticState:Depends on nothing, Changes [] field static.*/
+/*element: jsGetStaticState:Reads nothing; writes anything.*/
 jsGetStaticState() => JS_GET_STATIC_STATE();
 
-/*element: main:Depends on [] field store static store, Changes [] field static.*/
+/*element: main:Reads anything; writes anything.*/
 main() {
   jsCallInt();
   jsCallEmpty();

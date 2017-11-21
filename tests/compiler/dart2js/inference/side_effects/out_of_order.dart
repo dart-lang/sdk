@@ -14,21 +14,21 @@
 // The new computation, based on [SideEffectsBuilder], computes the precise
 // result regardless of computation order.
 
-/*element: _noSideEffects:Depends on nothing, Changes nothing.*/
+/*element: _noSideEffects:Reads nothing; writes nothing.*/
 _noSideEffects() {}
 
-/*element: callCallNoSideEffectsManyTimes:Depends on nothing, Changes nothing.*/
+/*element: callCallNoSideEffectsManyTimes:Reads nothing; writes nothing.*/
 callCallNoSideEffectsManyTimes() {
   _callNoSideEffectsManyTimes();
 }
 
-/*element: main:Depends on nothing, Changes nothing.*/
+/*element: main:Reads nothing; writes nothing.*/
 main() {
   callCallNoSideEffectsManyTimes();
   callCallNoSideEffectsManyTimes();
 }
 
-/*element: _callNoSideEffectsManyTimes:Depends on nothing, Changes nothing.*/
+/*element: _callNoSideEffectsManyTimes:Reads nothing; writes nothing.*/
 _callNoSideEffectsManyTimes() {
   _noSideEffects();
   _noSideEffects();

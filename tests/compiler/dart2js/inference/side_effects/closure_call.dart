@@ -2,33 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: callExpression:Depends on [] field store static store, Changes [] field static.*/
+/*element: callExpression:Reads anything; writes anything.*/
 callExpression() => (null)();
 
-/*element: Super.:Depends on nothing, Changes nothing.*/
+/*element: Super.:Reads nothing; writes nothing.*/
 class Super {
   var field;
 
-  /*element: Super.getter:Depends on nothing, Changes nothing.*/
+  /*element: Super.getter:Reads nothing; writes nothing.*/
   get getter => null;
 }
 
-/*element: Class.:Depends on nothing, Changes nothing.*/
+/*element: Class.:Reads nothing; writes nothing.*/
 class Class extends Super {
-  /*element: Class.callSuperField:Depends on [] field store static store, Changes [] field static.*/
+  /*element: Class.callSuperField:Reads anything; writes anything.*/
   callSuperField() => field();
 
-  /*element: Class.callSuperGetter:Depends on [] field store static store, Changes [] field static.*/
+  /*element: Class.callSuperGetter:Reads anything; writes anything.*/
   callSuperGetter() => getter();
 
-  /*element: Class.call:Depends on nothing, Changes nothing.*/
+  /*element: Class.call:Reads nothing; writes nothing.*/
   call() {}
 }
 
-/*element: callCall:Depends on [] field store static store, Changes [] field static.*/
+/*element: callCall:Reads anything; writes anything.*/
 callCall(c) => c.call();
 
-/*element: main:Depends on [] field store static store, Changes [] field static.*/
+/*element: main:Reads anything; writes anything.*/
 main() {
   var c = new Class();
   callExpression();
