@@ -34,6 +34,10 @@ implicit_this: Crash
 inference/abstract_class_instantiation: Crash
 inference/assert_initializer: Crash
 inference/assign_local: Crash
+inference/block_bodied_lambdas_async_all_returns_are_futures: Crash
+inference/block_bodied_lambdas_async_all_returns_are_values: Crash
+inference/block_bodied_lambdas_async_mix_of_values_and_futures: Crash
+inference/block_bodied_lambdas_async_star: Crash
 inference/block_bodied_lambdas_basic: Crash
 inference/block_bodied_lambdas_basic_void: Crash
 inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: Crash
@@ -45,6 +49,7 @@ inference/block_bodied_lambdas_lub: Crash
 inference/block_bodied_lambdas_nested_lambdas: Crash
 inference/block_bodied_lambdas_no_return: Crash
 inference/block_bodied_lambdas_returns: Crash
+inference/block_bodied_lambdas_sync_star: Crash
 inference/block_bodied_lambdas_void_context: Crash
 inference/bug30251: Crash
 inference/bug30620: Crash
@@ -58,8 +63,12 @@ inference/call_corner_cases: Crash
 inference/complex_predecrement: Crash
 inference/conditional_lub: Crash
 inference/conditional_upwards_inference: Crash
+inference/constructors_downwards_with_constraint: Crash
 inference/constructors_infer_from_arguments: Crash
+inference/constructors_infer_from_arguments_const_with_upper_bound: Crash
+inference/constructors_infer_from_arguments_downwards_from_constructor: Crash
 inference/constructors_infer_from_arguments_factory: Crash
+inference/constructors_infer_from_arguments_factory_calls_constructor: Crash
 inference/constructors_infer_from_arguments_named: Crash
 inference/constructors_infer_from_arguments_named_factory: Crash
 inference/constructors_infer_from_arguments_redirecting: Crash
@@ -106,6 +115,7 @@ inference/for_in_loop_promotion: Crash
 inference/for_loop_empty_condition: Crash
 inference/for_loop_initializer_expression: Crash
 inference/for_loop_promotion: Crash
+inference/future_or_subtyping: Crash
 inference/future_then: Crash
 inference/future_then_2: Crash
 inference/future_then_3: Crash
@@ -170,6 +180,7 @@ inference/infer_conditional: Crash
 inference/infer_consts_transitively_2: Crash
 inference/infer_consts_transitively_2_a: Crash
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
+inference/infer_field_override_with_substitution: Crash
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
 inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields2: Crash
 inference/infer_from_rhs_only_if_it_wont_conflict_with_overridden_fields: Crash
@@ -239,6 +250,10 @@ inference/inheritance_does_not_imply_circularity: Crash
 inference/lambda_does_not_have_propagated_type_hint: Crash
 inference/lambda_void_context: Crash
 inference/list_literal_typed: Crash
+inference/list_literals: Crash
+inference/list_literals_top_level: Crash
+inference/local_constructor_from_arguments: Crash
+inference/local_reference_upwards_local: Crash
 inference/local_return_and_yield: Crash
 inference/map_literals: Crash
 inference/map_literals_can_infer_null: Crash
@@ -267,6 +282,7 @@ inference/refine_binary_expression_type_type_parameter_t_int: Crash
 inference/refine_binary_expression_type_type_parameter_t_t: Crash
 inference/static_method_tear_off: Crash
 inference/string_literal: Crash
+inference/subexpressions_of_explicitly_typed_fields: Crash
 inference/super_index_set: Crash
 inference/super_index_set_substitution: Crash
 inference/super_initializer: Crash
@@ -312,6 +328,7 @@ inference/unsafe_block_closure_inference_method_call_explicit_type_param: Crash
 inference/unsafe_block_closure_inference_method_call_implicit_type_param: Crash
 inference/void_return_type_subtypes_dynamic: Crash
 inference_new/dependency_only_if_overloaded: Crash
+inference_new/downwards_inference_inside_top_level: Crash
 inference_new/field_inference_circularity: Crash
 inference_new/indexed_assign_combiner: Crash
 inference_new/infer_assign_to_implicit_this: Crash
@@ -420,6 +437,7 @@ regress/issue_29942: Crash
 regress/issue_29943: Crash
 regress/issue_29978: Crash
 regress/issue_29979: Crash
+regress/issue_29981: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
 regress/issue_31155: Crash # Issue 31155.
@@ -428,6 +446,7 @@ regress/issue_31180: Crash
 regress/issue_31184: Crash
 regress/issue_31186: Crash
 regress/issue_31187: Crash
+regress/issue_31190: Crash
 regress/issue_31198: Crash
 reorder_super: Crash
 runtime_checks/call_kinds: Crash

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// Visitor that applies resolution data from the front end (obtained via
@@ -37,6 +38,26 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitListLiteral(ListLiteral node) {
+    node.elements.accept(this);
+    DartType type = _getTypeFor(node);
+    node.staticType = type;
+    if (node.typeArguments != null) {
+      _applyTypeArgumentsToList(type, node.typeArguments.arguments);
+    }
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    node.entries.accept(this);
+    DartType type = _getTypeFor(node);
+    node.staticType = type;
+    if (node.typeArguments != null) {
+      _applyTypeArgumentsToList(type, node.typeArguments.arguments);
+    }
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
     node.methodName.staticType = _getTypeFor(node.methodName);
@@ -55,6 +76,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     node.visitChildren(this);
     node.staticType = node.expression.staticType;
+  }
+
+  @override
+  void visitTypeAnnotation(TypeAnnotation node) {
+    _applyToTypeAnnotation(_getTypeFor(node), node);
   }
 
   @override
@@ -92,8 +118,42 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
+  /// Apply the [type] to the [typeAnnotation] by setting the type of the
+  /// [typeAnnotation] to the [type] and recursively applying each of the type
+  /// arguments of the [type] to the corresponding type arguments of the
+  /// [typeAnnotation].
   void _applyToTypeAnnotation(DartType type, TypeAnnotation typeAnnotation) {
-    // TODO(paulberry): implement this.
+    if (typeAnnotation is GenericFunctionTypeImpl) {
+      typeAnnotation.type = type;
+    } else if (typeAnnotation is TypeNameImpl) {
+      typeAnnotation.type = type;
+    }
+    if (typeAnnotation is NamedType) {
+      TypeArgumentList typeArguments = typeAnnotation.typeArguments;
+      if (typeArguments != null) {
+        _applyTypeArgumentsToList(type, typeArguments.arguments);
+      }
+    }
+  }
+
+  /// Recursively apply each of the type arguments of the [type] to the
+  /// corresponding type arguments of the [typeAnnotation].
+  void _applyTypeArgumentsToList(
+      DartType type, NodeList<TypeAnnotation> typeArguments) {
+    if (type is InterfaceType) {
+      List<DartType> argumentTypes = type.typeArguments;
+      int argumentCount = argumentTypes.length;
+      if (argumentCount != typeArguments.length) {
+        throw new StateError('Found $argumentCount argument types '
+            'for ${typeArguments.length} type arguments');
+      }
+      for (int i = 0; i < argumentCount; i++) {
+        _applyToTypeAnnotation(argumentTypes[i], typeArguments[i]);
+      }
+    } else {
+      throw new StateError('Attempting to apply a non-interface type '
+          '(${type.runtimeType}) to type arguments');
+    }
   }
 
   DartType _getTypeFor(AstNode node) {
