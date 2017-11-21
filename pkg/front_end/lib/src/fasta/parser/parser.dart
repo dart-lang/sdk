@@ -1022,7 +1022,7 @@ class Parser {
     assert(optional('(', token));
     listener.beginFormalParameters(begin, kind);
     int parameterCount = 0;
-    do {
+    while (true) {
       Token next = token.next;
       if (optional(')', next)) {
         token = next;
@@ -1031,22 +1031,30 @@ class Parser {
       ++parameterCount;
       String value = next.stringValue;
       if (identical(value, '[')) {
-        token = parseOptionalPositionalParameters(token, kind).next;
+        token = parseOptionalPositionalParameters(token, kind);
+        token = ensureCloseParen(token, begin);
         break;
       } else if (identical(value, '{')) {
-        token = parseOptionalNamedParameters(token, kind).next;
+        token = parseOptionalNamedParameters(token, kind);
+        token = ensureCloseParen(token, begin);
         break;
       } else if (identical(value, '[]')) {
         --parameterCount;
         reportRecoverableError(next, fasta.messageEmptyOptionalParameterList);
-        token = next.next;
+        token = ensureCloseParen(next, begin);
         break;
       }
-      token =
-          parseFormalParameter(token, FormalParameterKind.mandatory, kind).next;
-    } while (optional(',', token));
+      token = parseFormalParameter(token, FormalParameterKind.mandatory, kind);
+      next = token.next;
+      if (optional(',', next)) {
+        token = next;
+        continue;
+      }
+      token = ensureCloseParen(token, begin);
+      break;
+    }
+    assert(optional(')', token));
     listener.endFormalParameters(parameterCount, begin, token, kind);
-    expect(')', token);
     return token;
   }
 
@@ -2985,6 +2993,25 @@ class Parser {
     }
     listener.endInitializer(token.next);
     return token;
+  }
+
+  /// If the next token is a closing parenthesis, return it.
+  /// Otherwise, report an error and return the closing parenthesis
+  /// associated with the specified open parenthesis.
+  Token ensureCloseParen(Token token, Token openParen) {
+    Token next = token.next;
+    if (optional(')', next)) {
+      return next;
+    }
+
+    // TODO(danrubel): Pass in context for better error message.
+    reportRecoverableError(
+        next, fasta.templateExpectedButGot.withArguments(')'));
+
+    // Scanner guarantees a closing parenthesis
+    // TODO(danrubel): Improve recovery by having callers parse tokens
+    // between `token` and `openParen.endGroup`.
+    return openParen.endGroup;
   }
 
   /// If the next token is a colon, return it. Otherwise, report an

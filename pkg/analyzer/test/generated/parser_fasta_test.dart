@@ -15,6 +15,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart'
     show LocatedMessage, Message;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
+import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -416,33 +417,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_extraCommaInParameterList() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0;
-    // 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_extraCommaInParameterList();
-  }
-
-  @override
-  @failingTest
-  void test_extraCommaTrailingNamedParameterGroup() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_extraCommaTrailingNamedParameterGroup();
-  }
-
-  @override
-  @failingTest
-  void test_extraCommaTrailingPositionalParameterGroup() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS, found 0;
-    // 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_extraCommaTrailingPositionalParameterGroup();
-  }
-
-  @override
-  @failingTest
   void test_factoryWithInitializers() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.
@@ -509,15 +483,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, found 0
     super.test_functionTypedParameter_var();
-  }
-
-  @override
-  @failingTest
-  void test_genericFunctionType_extraLessThan() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TOKEN, found 0;
-    // 0 errors of type ParserErrorCode.EXTRANEOUS_MODIFIER, found 1 (52)
-    super.test_genericFunctionType_extraLessThan();
   }
 
   @override
@@ -1193,14 +1158,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingClosingParenthesis() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ScannerErrorCode.EXPECTED_TOKEN, found 0
-    super.test_missingClosingParenthesis();
-  }
-
-  @override
-  @failingTest
   void test_missingEnumBody() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_ENUM_BODY, found 0
@@ -1383,42 +1340,10 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_mixedParameterGroups_namedPositional() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MIXED_PARAMETER_GROUPS, found 0
-    super.test_mixedParameterGroups_namedPositional();
-  }
-
-  @override
-  @failingTest
-  void test_mixedParameterGroups_positionalNamed() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MIXED_PARAMETER_GROUPS, found 0
-    super.test_mixedParameterGroups_positionalNamed();
-  }
-
-  @override
-  @failingTest
   void test_mixin_application_lacks_with_clause() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
     super.test_mixin_application_lacks_with_clause();
-  }
-
-  @override
-  @failingTest
-  void test_multipleNamedParameterGroups() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS, found 0
-    super.test_multipleNamedParameterGroups();
-  }
-
-  @override
-  @failingTest
-  void test_multiplePositionalParameterGroups() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS, found 0
-    super.test_multiplePositionalParameterGroups();
   }
 
   @override
@@ -1543,46 +1468,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     createParser('operator +=(int x) => x + 1;');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-  }
-
-  @override
-  @failingTest
-  void test_optionalAfterNormalParameters_named() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FormalParameterListImpl' is not a subtype of type 'TypeParameterList' of 'typeParameters' where
-    //   FormalParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeParameterList is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1122:40                AstBuilder.endTopLevelMethod
-    //   package:front_end/src/fasta/parser/parser.dart 1741:14             Parser.parseTopLevelMethod
-    //   package:front_end/src/fasta/parser/parser.dart 1646:11             Parser.parseTopLevelMember
-    //   package:front_end/src/fasta/parser/parser.dart 298:14              Parser._parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 263:13              Parser.parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 252:15              Parser.parseUnit
-    //   package:analyzer/src/generated/parser_fasta.dart 77:33             _Parser2.parseCompilationUnit2
-    //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
-    //   test/generated/parser_fasta_test.dart 3189:35                      FastaParserTestCase.parseCompilationUnit
-    super.test_optionalAfterNormalParameters_named();
-  }
-
-  @override
-  @failingTest
-  void test_optionalAfterNormalParameters_positional() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type 'FormalParameterListImpl' is not a subtype of type 'TypeParameterList' of 'typeParameters' where
-    //   FormalParameterListImpl is from package:analyzer/src/dart/ast/ast.dart
-    //   TypeParameterList is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1122:40                AstBuilder.endTopLevelMethod
-    //   package:front_end/src/fasta/parser/parser.dart 1741:14             Parser.parseTopLevelMethod
-    //   package:front_end/src/fasta/parser/parser.dart 1646:11             Parser.parseTopLevelMember
-    //   package:front_end/src/fasta/parser/parser.dart 298:14              Parser._parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 263:13              Parser.parseTopLevelDeclaration
-    //   package:front_end/src/fasta/parser/parser.dart 252:15              Parser.parseUnit
-    //   package:analyzer/src/generated/parser_fasta.dart 77:33             _Parser2.parseCompilationUnit2
-    //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
-    //   test/generated/parser_fasta_test.dart 3189:35                      FastaParserTestCase.parseCompilationUnit
-    super.test_optionalAfterNormalParameters_positional();
   }
 
   @override
@@ -1745,18 +1630,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_topLevelOperator_withoutType() {
-    super.test_topLevelOperator_withoutType();
-  }
-
-  @override
-  @failingTest
-  void test_topLevelOperator_withVoid() {
-    super.test_topLevelOperator_withVoid();
-  }
-
-  @override
-  @failingTest
   void test_topLevelVariable_withMetadata() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, found 0;
@@ -1793,14 +1666,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, found 0
     super.test_unexpectedTerminatorForParameterGroup_named();
-  }
-
-  @override
-  @failingTest
-  void test_unexpectedTerminatorForParameterGroup_optional() {
-    // TODO(brianwilkerson) Wrong errors:
-    //Expected 1 errors of type ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, found 0
-    super.test_unexpectedTerminatorForParameterGroup_optional();
   }
 
   @override
@@ -2746,11 +2611,13 @@ class ParserProxy extends analyzer.ParserAdapter {
     _eventListener.begin(enclosingEvent);
     var result = f();
     _eventListener.end(enclosingEvent);
+    String lexeme = currentToken is ErrorToken
+        ? currentToken.runtimeType.toString()
+        : currentToken.lexeme;
     if (expectedEndOffset == null) {
-      expect(currentToken.isEof, isTrue, reason: currentToken.lexeme);
+      expect(currentToken.isEof, isTrue, reason: lexeme);
     } else {
-      expect(currentToken.offset, expectedEndOffset,
-          reason: currentToken.lexeme);
+      expect(currentToken.offset, expectedEndOffset, reason: lexeme);
     }
     expect(astBuilder.stack, hasLength(0));
     expect(astBuilder.directives, hasLength(0));
