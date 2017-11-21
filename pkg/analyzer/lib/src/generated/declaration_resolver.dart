@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/resolver.dart';
  */
 class DeclarationResolver extends RecursiveAstVisitor<Object> {
   final bool _enableKernelDriver;
+  final bool _applyKernelTypes;
 
   /**
    * The compilation unit containing the AST nodes being visited.
@@ -34,13 +35,20 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   CompilationUnitElementImpl _enclosingUnit;
 
   /**
+   * The type provider used to access the known types.
+   */
+  TypeProvider _typeProvider;
+
+  /**
    * The [ElementWalker] we are using to keep track of progress through the
    * element model.
    */
   ElementWalker _walker;
 
-  DeclarationResolver({bool enableKernelDriver: false})
-      : _enableKernelDriver = enableKernelDriver;
+  DeclarationResolver(
+      {bool enableKernelDriver: false, bool applyKernelTypes: false})
+      : _enableKernelDriver = enableKernelDriver,
+        _applyKernelTypes = applyKernelTypes;
 
   /**
    * Resolve the declarations within the given compilation [unit] to the
@@ -49,6 +57,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    */
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
     _enclosingUnit = element;
+    _typeProvider = _enclosingUnit.context?.typeProvider;
     _walker = new ElementWalker.forCompilationUnit(element);
     unit.element = element;
     try {
@@ -91,6 +100,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = _match(node.name, _walker.getClass());
+    if (_applyKernelTypes) {
+      node.name.staticType = _typeProvider.typeType;
+    }
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassDeclaration(node);
     });
@@ -117,6 +129,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       super.visitConstructorDeclaration(node);
     });
     _resolveMetadata(node, node.metadata, element);
+    if (_applyKernelTypes) {
+      _applyTypeToIdentifier(node.returnType, element.returnType);
+      node.name?.staticType = element.type;
+    }
     return null;
   }
 
@@ -243,8 +259,15 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: functionName.name + '=');
       }
     }
-    if (_enableKernelDriver) {
-      node.name.staticType = element.type;
+    if (_applyKernelTypes) {
+      _applyTypeToTypeAnnotation(node.returnType, element.returnType);
+      if (node.isGetter) {
+        node.name.staticType = element.returnType;
+      } else if (node.isSetter) {
+        node.name.staticType = element.parameters[0].type;
+      } else {
+        node.name.staticType = element.type;
+      }
     }
     _setGenericFunctionType(node.returnType, element.returnType);
     node.functionExpression.element = element;
@@ -382,6 +405,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: nameOfMethod + '=');
       }
     }
+    if (_applyKernelTypes) {
+      _applyTypeToTypeAnnotation(node.returnType, element.returnType);
+      if (node.isGetter) {
+        node.name.staticType = element.returnType;
+      } else if (node.isSetter) {
+        node.name.staticType = element.parameters[0].type;
+      } else {
+        node.name.staticType = element.type;
+      }
+    }
     _setGenericFunctionType(node.returnType, element.returnType);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitMethodDeclaration(node);
@@ -419,6 +452,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
       (node as SimpleFormalParameterImpl).element = element;
+      if (_applyKernelTypes) {
+        _applyTypeToTypeAnnotation(node.type, element.type);
+        node.identifier?.staticType = element.type;
+      }
       _setGenericFunctionType(node.type, element.type);
       _walk(new ElementWalker.forParameter(element, false), () {
         super.visitSimpleFormalParameter(node);
@@ -496,6 +533,58 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         _resolveMetadata(node, node.metadata, firstVariable);
       }
       return null;
+    }
+  }
+
+  /// TODO(scheglov) Replace with the implementation from ResolutionApplier.
+  void _applyTypeToIdentifier(Identifier identifier, DartType type) {
+    if (type is InterfaceType) {
+      if (identifier is SimpleIdentifier) {
+        identifier.staticType = _typeProvider.typeType;
+        identifier.staticElement = type.element;
+      } else {
+        throw new UnimplementedError(
+            'Cannot apply type to ${identifier.runtimeType}');
+      }
+    } else {
+      throw new UnimplementedError('Cannot apply ${type.runtimeType}');
+    }
+  }
+
+  /// TODO(scheglov) Replace with the implementation from ResolutionApplier.
+  void _applyTypeToTypeAnnotation(
+      TypeAnnotation typeAnnotation, DartType type) {
+    // May be implicit type, without actual node.
+    if (typeAnnotation == null) {
+      return;
+    }
+    if (type is InterfaceType) {
+      if (typeAnnotation is TypeName) {
+        typeAnnotation.type = type;
+        Identifier name = typeAnnotation.name;
+        if (name is SimpleIdentifier) {
+          name.staticElement = type.element;
+          name.staticType = type;
+        } else {
+          throw new UnimplementedError(
+              'Cannot apply type to ${name.runtimeType}');
+        }
+      } else {
+        throw new UnimplementedError(
+            'Cannot apply type to ${typeAnnotation.runtimeType}');
+      }
+    } else if (type is DynamicTypeImpl || type is VoidType) {
+      if (typeAnnotation is TypeName) {
+        typeAnnotation.type = type;
+        SimpleIdentifier name = typeAnnotation.name;
+        name.staticElement = type.element;
+        name.staticType = type;
+      } else {
+        throw new UnimplementedError(
+            'Cannot apply type to ${typeAnnotation.runtimeType}');
+      }
+    } else {
+      throw new UnimplementedError('Cannot apply ${type.runtimeType}');
     }
   }
 

@@ -196,7 +196,9 @@ class LibraryAnalyzer {
 
       units.forEach((file, unit) {
         CompilationUnitElement unitElement = unit.element;
-        new DeclarationResolver(enableKernelDriver: _enableKernelDriver)
+        new DeclarationResolver(
+                enableKernelDriver: _enableKernelDriver,
+                applyKernelTypes: _enableKernelDriver)
             .resolve(unit, unitElement);
 //        _resolveFile(file, unit);
 //        _computePendingMissingRequiredParameters(file, unit);
