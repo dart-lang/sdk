@@ -401,7 +401,6 @@ const_init2_test/02: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
-const_optional_args_negative_test: Fail
 const_qq_test: Crash
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError

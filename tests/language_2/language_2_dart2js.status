@@ -123,6 +123,8 @@ class_literal_test/22: MissingCompileTimeError
 class_literal_test/23: MissingCompileTimeError
 class_literal_test/24: MissingCompileTimeError
 class_literal_test/25: MissingCompileTimeError
+constructor13_test/01: MissingCompileTimeError
+constructor13_test/02: MissingCompileTimeError
 constructor_call_as_function_test/01: MissingCompileTimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError

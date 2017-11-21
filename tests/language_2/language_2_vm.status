@@ -175,6 +175,8 @@ const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
+constructor13_test/01: MissingCompileTimeError
+constructor13_test/02: MissingCompileTimeError
 constructor_call_as_function_test/01: MissingCompileTimeError
 covariant_tear_off_type_test: RuntimeError
 create_unresolved_type_test/01: MissingCompileTimeError

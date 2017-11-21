@@ -271,7 +271,7 @@ const_map4_test: RuntimeError
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 const_native_factory_test: MissingCompileTimeError
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
-const_optional_args_negative_test: Fail # Fasta bug: Default parameter values must be const.
+const_optional_args_test/01: MissingCompileTimeError # Fasta bug: Default parameter values must be const.
 const_string_test: RuntimeError
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_syntax_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -287,6 +287,8 @@ const_types_test/35: MissingCompileTimeError
 const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constructor12_test: RuntimeError
+constructor13_test/01: MissingCompileTimeError
+constructor13_test/02: MissingCompileTimeError
 constructor3_test: Fail, OK, Pass
 constructor_call_as_function_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError
@@ -1859,7 +1861,7 @@ const_map4_test: RuntimeError
 const_native_factory_test/01: MissingCompileTimeError # Fasta bug: Issue 29763
 const_native_factory_test: MissingCompileTimeError
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
-const_optional_args_negative_test: Fail # Fasta bug: Default parameter values must be const.
+const_optional_args_test/01: MissingCompileTimeError # Fasta bug: Default parameter values must be const.
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_syntax_test/03: MissingCompileTimeError
 const_syntax_test/04: MissingCompileTimeError
@@ -1878,6 +1880,8 @@ const_types_test/39: MissingCompileTimeError
 const_types_test/40: MissingCompileTimeError
 constants_test/01: MissingCompileTimeError
 constants_test/02: MissingCompileTimeError
+constructor13_test/01: MissingCompileTimeError
+constructor13_test/02: MissingCompileTimeError
 constructor3_test: Fail, OK, Pass
 constructor_call_as_function_test/01: MissingCompileTimeError
 constructor_duplicate_final_test/01: MissingCompileTimeError

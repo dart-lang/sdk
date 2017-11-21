@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,10 +6,11 @@
 // number of args.
 
 class Klass {
-  Klass(var v) {}
+  Klass(v) {}
 }
 
 main() {
-  var k = new Klass();
-  var l = new Klass(1, 2);
+  new Klass(); //# 01: compile-time error
+  new Klass(1);
+  new Klass(1, 2); //# 02: compile-time error
 }

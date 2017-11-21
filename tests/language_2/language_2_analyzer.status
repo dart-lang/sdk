@@ -887,14 +887,9 @@ assertion_initializer_const_function_test/01: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
 bad_initializer2_negative_test: Fail # Issue 14880
-bad_named_constructor_negative_test: CompileTimeError # Issue 18693
 black_listed_test/none: Fail # Issue 14228
-body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 cascade_test/none: Fail # Issue 11577
-closure_call_wrong_argument_count_negative_test: skip
-const_optional_args_negative_test: CompileTimeError
-constructor3_negative_test: Fail # Issue 11585
 constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
@@ -1036,10 +1031,7 @@ test_negative_test: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
-const_counter_negative_test: CompileTimeError
-const_optional_args_negative_test: CompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
-constructor3_negative_test: fail # Issue 11585
 constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError

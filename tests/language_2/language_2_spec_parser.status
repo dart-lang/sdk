@@ -29,13 +29,6 @@ unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
 unhandled_exception_negative_test: Fail # Negative, defaults required parameter.
 
 # Negative tests with non-syntax compile-time errors.
-bad_initializer1_negative_test: Skip # Negative, not syntax.
-bad_initializer2_negative_test: Skip # Negative, not syntax.
-bad_named_constructor_negative_test: Skip # Negative, not syntax.
-body_less_constructor_wrong_arg_negative_test: Skip # Negative, not syntax.
-closure_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.
-const_optional_args_negative_test: Skip # Negative, not syntax.
-constructor3_negative_test: Skip # Negative, not syntax.
 constructor_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.
 constructor_redirect1_negative_test/01: Skip # Negative, not syntax.
 constructor_redirect1_negative_test/none: Skip # Negative, not syntax.
