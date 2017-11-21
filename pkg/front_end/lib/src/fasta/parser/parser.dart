@@ -4965,7 +4965,7 @@ class Parser {
     bool hasSeenNamedArgument = false;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    do {
+    while (true) {
       Token next = token.next;
       if (optional(')', next)) {
         token = next;
@@ -4982,13 +4982,20 @@ class Parser {
         // Positional argument after named argument.
         reportRecoverableError(next, fasta.messagePositionalAfterNamedArgument);
       }
-      token = parseExpression(token.next).next;
+      token = parseExpression(token.next);
+      next = token.next;
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
-    } while (optional(',', token));
+      if (optional(',', next)) {
+        token = next;
+        continue;
+      }
+      token = ensureCloseParen(token, begin);
+      break;
+    }
+    assert(optional(')', token));
     mayParseFunctionExpressions = old;
     listener.endArguments(argumentCount, begin, token);
-    expect(')', token);
     return token;
   }
 

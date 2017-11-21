@@ -359,14 +359,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_expectedToken_commaMissingInArgumentList() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0
-    super.test_expectedToken_commaMissingInArgumentList();
-  }
-
-  @override
-  @failingTest
   void test_expectedToken_parseStatement_afterVoid() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.EXPECTED_TOKEN, found 0;
@@ -2889,13 +2881,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_keywordInPlaceOfIdentifier() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_keywordInPlaceOfIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_missing_commaInArgumentList() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_missing_commaInArgumentList();
   }
 
   @override

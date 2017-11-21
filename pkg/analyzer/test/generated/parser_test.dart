@@ -2894,8 +2894,9 @@ class Foo {
     createParser('(x, y z)');
     ArgumentList list = parser.parseArgumentList();
     expectNotNullIfNoErrors(list);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 1)]
+        : [expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1)]);
   }
 
   void test_expectedToken_parseStatement_afterVoid() {
@@ -10527,7 +10528,10 @@ class C<K {
   }
 
   void test_missing_commaInArgumentList() {
-    parseExpression("f(x: 1 y: 2)", codes: [ParserErrorCode.EXPECTED_TOKEN]);
+    parseExpression("f(x: 1 y: 2)",
+        codes: usingFastaParser
+            ? [ParserErrorCode.UNEXPECTED_TOKEN]
+            : [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_missingComma_beforeNamedArgument() {
