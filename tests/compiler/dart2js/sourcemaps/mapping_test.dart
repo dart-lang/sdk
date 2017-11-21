@@ -10,8 +10,8 @@ import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
+import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
-import '../annotated_code_helper.dart';
 import '../memory_compiler.dart';
 
 const List<String> TESTS = const <String>[

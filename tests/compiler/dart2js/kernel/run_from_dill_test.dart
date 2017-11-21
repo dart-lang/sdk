@@ -13,9 +13,9 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:compiler/src/filenames.dart';
+import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 
 import 'compiler_helper.dart';
-import '../sourcemaps/helpers/stacktrace_helper.dart';
 import '../serialization/helper.dart';
 
 const SOURCE = const {

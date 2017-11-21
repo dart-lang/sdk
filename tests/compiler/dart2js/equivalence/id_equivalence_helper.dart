@@ -16,8 +16,8 @@ import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
+import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
-import '../annotated_code_helper.dart';
 import '../memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
 import '../kernel/test_helpers.dart';

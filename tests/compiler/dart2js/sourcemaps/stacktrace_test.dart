@@ -11,7 +11,7 @@ import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 
-import 'helpers/stacktrace_helper.dart';
+import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 
 void main(List<String> args) {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);

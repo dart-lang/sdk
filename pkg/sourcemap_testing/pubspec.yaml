@@ -1,0 +1,6 @@
+# Helper package for testing sourcemaps. Used by ddc and dart2js.
+name: sourcemap_testing
+#version: do-not-upload
+dependencies:
+  package_config: '>=0.1.1 <2.0.0'
+  pub_semver: ^1.2.1
