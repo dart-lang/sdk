@@ -8,8 +8,7 @@ library front_end.tool.perf_common;
 import 'dart:io';
 
 import 'package:front_end/front_end.dart';
-
-export 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/fasta_codes.dart';
 
 /// Error messages that we temporarily allow when compiling benchmarks in strong
 /// mode.
@@ -23,7 +22,7 @@ export 'package:front_end/src/fasta/fasta_codes.dart';
 /// from this set.
 final whitelistMessageCode = new Set<String>.from(<String>[
   // Code names in this list should match the key used in messages.yaml
-  'InvalidAssignment'
+  codeInvalidAssignment.name
 ]);
 
 onErrorHandler(bool isStrong) => (CompilationMessage m) {
