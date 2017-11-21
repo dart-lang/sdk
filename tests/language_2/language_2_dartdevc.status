@@ -266,12 +266,16 @@ built_in_identifier_type_annotation_test/65: MissingCompileTimeError
 built_in_identifier_type_annotation_test/66: MissingCompileTimeError
 built_in_identifier_type_annotation_test/67: MissingCompileTimeError
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError
+call_function_apply_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::A' can't be assigned to a variable of type 'dart.core::Function'.
+call_function_apply_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::A' can't be assigned to a variable of type 'dart.core::Function'.
 call_function_test: CompileTimeError
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
+call_with_no_such_method_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::F' can't be assigned to a variable of type 'dart.core::Function'.
+call_with_no_such_method_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::F' can't be assigned to a variable of type 'dart.core::Function'.
 callable_test/none: CompileTimeError
 cast_test/04: MissingCompileTimeError
 cast_test/05: MissingCompileTimeError
@@ -452,6 +456,8 @@ deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
+deferred_shared_and_unshared_classes_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::List<dynamic>' can't be assigned to a variable of type 'dart.core::Iterable<dart.async::Future<dynamic>>'.
+deferred_shared_and_unshared_classes_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::List<dynamic>' can't be assigned to a variable of type 'dart.core::Iterable<dart.async::Future<dynamic>>'.
 double_to_string_as_exponential2_test/01: MissingCompileTimeError
 double_to_string_as_exponential2_test/02: MissingCompileTimeError
 double_to_string_as_exponential2_test/03: MissingCompileTimeError
@@ -577,6 +583,8 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
+invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
+invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
@@ -848,6 +856,8 @@ regress_23089_test: MissingCompileTimeError
 regress_25550_test: CompileTimeError
 regress_26133_test: MissingCompileTimeError
 regress_29025_test: CompileTimeError
+regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
+regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: CompileTimeError
@@ -1082,7 +1092,6 @@ typed_selector2_test: MissingCompileTimeError
 void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
-
 
 # Runtime tests for dartdevc and dartdevk.  These contain expectations for tests
 # that fail at run time, so they should not include $runtime == none which
