@@ -28,6 +28,10 @@ def BuildArguments():
   result.add_argument("--dart",
                       help="dart executable",
                       default=None)
+  result.add_argument("-q", "--quiet",
+                      help="emit no output",
+                      default=False,
+                      action="store_true")
   return result
 
 def main():
@@ -43,8 +47,14 @@ def main():
     print >> sys.stderr, 'ERROR: cannot locate dart executable'
     return -1
 
-  subprocess.check_call([options.dart_executable] + args)
-  return 0
+  if options.quiet:
+    # Pipe output to /dev/null. See https://stackoverflow.com/a/14736249/9457.
+    out = open(os.devnull, 'w')
+  else:
+    out = None
+
+  return subprocess.call([options.dart_executable] + args,
+      stdout=out, stderr=out)
 
 if __name__ == '__main__':
   sys.exit(main())

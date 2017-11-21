@@ -193,6 +193,7 @@ action("dartdevc_sdk") {
   }
 
   args = [
+    "--quiet",
     rebase_path("../../pkg/dev_compiler/tool/build_sdk.dart"),
     "--dart-sdk",
     rebase_path(patched_sdk_dir),
