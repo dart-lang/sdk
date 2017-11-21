@@ -35,43 +35,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_analyze_resolveDirectives() async {
-    await super.test_analyze_resolveDirectives();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_analyze_resolveDirectives_error_missingLibraryDirective() async {
-    await super.test_analyze_resolveDirectives_error_missingLibraryDirective();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName() async {
-    await super
-        .test_analyze_resolveDirectives_error_partOfDifferentLibrary_byName();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri() async {
-    await super
-        .test_analyze_resolveDirectives_error_partOfDifferentLibrary_byUri();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_analyze_resolveDirectives_error_partOfNonPart() async {
-    await super.test_analyze_resolveDirectives_error_partOfNonPart();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_asyncChangesDuringAnalysis_getErrors() async {
     await super.test_asyncChangesDuringAnalysis_getErrors();
 //    @7: Expected a class body, but got ''.
@@ -312,59 +275,10 @@ void main() {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_hermetic_modifyLibraryFile_resolvePart() async {
-    await super.test_hermetic_modifyLibraryFile_resolvePart();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_hermetic_overlayOnly_part() async {
-    await super.test_hermetic_overlayOnly_part();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_part_getErrors_afterLibrary() async {
-    await super.test_part_getErrors_afterLibrary();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_part_getErrors_beforeLibrary() async {
-    await super.test_part_getErrors_beforeLibrary();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_part_getResult_afterLibrary() async {
-    await super.test_part_getResult_afterLibrary();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_part_getResult_beforeLibrary() async {
-    await super.test_part_getResult_beforeLibrary();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   @override
   test_part_getResult_noLibrary() async {
     await super.test_part_getResult_noLibrary();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_part_getUnitElement_afterLibrary() async {
-    await super.test_part_getUnitElement_afterLibrary();
   }
 
   @failingTest
@@ -376,13 +290,6 @@ void main() {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_part_getUnitElementSignature() async {
-    await super.test_part_getUnitElementSignature();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   @override
   test_part_results_afterLibrary() async {
@@ -390,24 +297,10 @@ void main() {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_part_results_beforeLibrary() async {
-    await super.test_part_results_beforeLibrary();
-  }
-
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30959')
   @override
   test_part_results_noLibrary() async {
     await super.test_part_results_noLibrary();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_part_results_priority_beforeLibrary() async {
-    await super.test_part_results_priority_beforeLibrary();
   }
 
   @failingTest

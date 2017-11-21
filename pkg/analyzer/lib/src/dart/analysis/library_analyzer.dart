@@ -178,11 +178,6 @@ class LibraryAnalyzer {
       units[part] = _parse(part);
     }
 
-    if (units.length != 1) {
-      // TODO(scheglov) Handle this case.
-      throw new UnimplementedError('Multiple units in a library');
-    }
-
     // Resolve URIs in directives to corresponding sources.
     units.forEach((file, unit) {
       _resolveUriBasedDirectives(file, unit);
@@ -194,17 +189,8 @@ class LibraryAnalyzer {
 
       _resolveDirectives(units);
 
-      units.forEach((file, unit) {
-        CompilationUnitElement unitElement = unit.element;
-        new DeclarationResolver(
-                enableKernelDriver: _enableKernelDriver,
-                applyKernelTypes: _enableKernelDriver)
-            .resolve(unit, unitElement);
-//        _resolveFile(file, unit);
-//        _computePendingMissingRequiredParameters(file, unit);
-      });
-
       // TODO(scheglov) Improve.
+      ValidatingResolutionApplier applier;
       {
         AnalyzerTarget analyzerTarget;
         await _kernelDriver.compileLibrary(
@@ -222,60 +208,14 @@ class LibraryAnalyzer {
           astTypes.add(astType);
         }
 
-        var unit = units.values.single;
-        var applier = new ValidatingResolutionApplier(
+        applier = new ValidatingResolutionApplier(
             astTypes, analyzerTarget.typeOffsets);
-        for (var declaration in unit.declarations) {
-          if (declaration is ClassDeclaration) {
-            for (var member in declaration.members) {
-              if (member is ConstructorDeclaration) {
-                member.body.accept(applier);
-              } else if (member is FieldDeclaration) {
-                if (member.fields.variables.length != 1) {
-                  // TODO(scheglov) Handle this case.
-                  throw new UnimplementedError('Multiple field');
-                }
-                member.fields.variables[0].initializer?.accept(applier);
-              } else if (member is MethodDeclaration) {
-                member.body.accept(applier);
-              } else {
-                // TODO(scheglov) Handle more cases.
-                throw new UnimplementedError('${member.runtimeType}');
-              }
-            }
-          } else if (declaration is FunctionDeclaration) {
-            declaration.functionExpression.body.accept(applier);
-          } else if (declaration is TopLevelVariableDeclaration) {
-            if (declaration.variables.variables.length != 1) {
-              // TODO(scheglov) Handle this case.
-              throw new UnimplementedError('Multiple variables');
-            }
-            declaration.variables.variables[0].initializer?.accept(applier);
-          } else {
-            // TODO(scheglov) Handle more cases.
-            throw new UnimplementedError('${declaration.runtimeType}');
-          }
-        }
       }
 
       units.forEach((file, unit) {
-        //
-        // Find constants to compute.
-        //
-        {
-          ConstantFinder constantFinder = new ConstantFinder();
-          unit.accept(constantFinder);
-          _constants.addAll(constantFinder.constantsToCompute);
-        }
-
-        //
-        // Find constant dependencies to compute.
-        //
-        {
-          var finder = new ConstantExpressionsDependenciesFinder();
-          unit.accept(finder);
-          _constants.addAll(finder.dependencies);
-        }
+        _resolveFile2(file, unit, applier);
+        // TODO(scheglov) Restore.
+//        _computePendingMissingRequiredParameters(file, unit);
       });
 
       _computeConstants();
@@ -748,6 +688,63 @@ class LibraryAnalyzer {
 
     unit.accept(new ResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener));
+
+    //
+    // Find constants to compute.
+    //
+    {
+      ConstantFinder constantFinder = new ConstantFinder();
+      unit.accept(constantFinder);
+      _constants.addAll(constantFinder.constantsToCompute);
+    }
+
+    //
+    // Find constant dependencies to compute.
+    //
+    {
+      var finder = new ConstantExpressionsDependenciesFinder();
+      unit.accept(finder);
+      _constants.addAll(finder.dependencies);
+    }
+  }
+
+  void _resolveFile2(FileState file, CompilationUnit unit,
+      ValidatingResolutionApplier applier) {
+    CompilationUnitElement unitElement = unit.element;
+    new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
+        .resolve(unit, unitElement);
+
+    for (var declaration in unit.declarations) {
+      if (declaration is ClassDeclaration) {
+        for (var member in declaration.members) {
+          if (member is ConstructorDeclaration) {
+            member.body.accept(applier);
+          } else if (member is FieldDeclaration) {
+            if (member.fields.variables.length != 1) {
+              // TODO(scheglov) Handle this case.
+              throw new UnimplementedError('Multiple field');
+            }
+            member.fields.variables[0].initializer?.accept(applier);
+          } else if (member is MethodDeclaration) {
+            member.body.accept(applier);
+          } else {
+            // TODO(scheglov) Handle more cases.
+            throw new UnimplementedError('${member.runtimeType}');
+          }
+        }
+      } else if (declaration is FunctionDeclaration) {
+        declaration.functionExpression.body.accept(applier);
+      } else if (declaration is TopLevelVariableDeclaration) {
+        if (declaration.variables.variables.length != 1) {
+          // TODO(scheglov) Handle this case.
+          throw new UnimplementedError('Multiple variables');
+        }
+        declaration.variables.variables[0].initializer?.accept(applier);
+      } else {
+        // TODO(scheglov) Handle more cases.
+        throw new UnimplementedError('${declaration.runtimeType}');
+      }
+    }
 
     //
     // Find constants to compute.
