@@ -31,57 +31,57 @@ class TypeInferenceBase {
 /// Mixin which can be applied to [TypeInferenceListener] to cause debug info to
 /// be printed.
 class TypeInferenceDebugging implements TypeInferenceBase {
-  int indentLevel = 0;
+  int _indentLevel = 0;
 
   bool genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
-    enter('genericExpressionEnter', '$expressionType($expression)',
+    _enter('genericExpressionEnter', '$expressionType($expression)',
         '(offset=${expression.fileOffset}, context=$typeContext)');
     return true;
   }
 
   void genericExpressionExit(
       String expressionType, Expression expression, DartType inferredType) {
-    exit('genericExpressionExit', '$expressionType($expression)',
+    _exit('genericExpressionExit', '$expressionType($expression)',
         '(offset=${expression.fileOffset}, type=$inferredType)');
   }
 
   void genericInitializerEnter(
       String initializerType, Initializer initializer) {
-    enter('genericInitializerEnter', '$initializerType($initializer)',
+    _enter('genericInitializerEnter', '$initializerType($initializer)',
         '(offset=${initializer.fileOffset})');
   }
 
   void genericInitializerExit(String initializerType, Initializer initializer) {
-    exit('genericInitializerExit', '$initializerType($initializer)',
+    _exit('genericInitializerExit', '$initializerType($initializer)',
         '(offset=${initializer.fileOffset})');
   }
 
   void genericStatementEnter(String statementType, Statement statement) {
-    enter('genericStatementEnter', '$statementType($statement)',
+    _enter('genericStatementEnter', '$statementType($statement)',
         '(offset=${statement.fileOffset})');
   }
 
   void genericStatementExit(String statementType, Statement statement) {
-    exit('genericStatementExit', '$statementType($statement)',
+    _exit('genericStatementExit', '$statementType($statement)',
         '(offset=${statement.fileOffset})');
   }
 
-  void enter(String methodName, String description, String details) {
-    print('$indent$methodName');
-    print('$indent|   $description');
-    print('$indent|   $details');
-    indentLevel++;
+  void _enter(String methodName, String description, String details) {
+    print('$_indent$methodName');
+    print('$_indent|   $description');
+    print('$_indent|   $details');
+    _indentLevel++;
   }
 
-  void exit(String methodName, String description, String details) {
-    indentLevel--;
-    print('$indent$methodName');
-    print('$indent    $description');
-    print('$indent    $details');
+  void _exit(String methodName, String description, String details) {
+    _indentLevel--;
+    print('$_indent$methodName');
+    print('$_indent    $description');
+    print('$_indent    $details');
   }
 
-  String get indent => '| ' * indentLevel;
+  String get _indent => '| ' * _indentLevel;
 }
 
 /// Callback interface used by [TypeInferrer] to report the results of type
