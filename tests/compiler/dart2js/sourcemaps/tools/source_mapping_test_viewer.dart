@@ -11,8 +11,8 @@ import 'dart:async';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/util/util.dart';
 import 'source_mapping_tester.dart';
-import 'sourcemap_html_helper.dart';
-import 'sourcemap_html_templates.dart';
+import '../helpers/sourcemap_html_helper.dart';
+import '../helpers/sourcemap_html_templates.dart';
 
 const String DEFAULT_OUTPUT_PATH = 'out.js.map.html';
 

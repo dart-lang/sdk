@@ -10,7 +10,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/js/js_debug.dart';
 import 'package:js_ast/js_ast.dart';
-import 'sourcemap_helper.dart';
+import '../helpers/sourcemap_helper.dart';
 
 typedef CodePointWhiteListFunction WhiteListFunction(
     String configuration, String file);
@@ -133,7 +133,8 @@ final Map<String, String> TEST_FILES = _computeTestFiles();
 
 Map<String, String> _computeTestFiles() {
   Map<String, String> map = <String, String>{};
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+  Directory dataDir = new Directory.fromUri(
+      Uri.base.resolve('tests/compiler/dart2js/sourcemaps/data/'));
   for (File file in dataDir.listSync()) {
     Uri uri = file.uri;
     map[uri.pathSegments.last] = uri.path;

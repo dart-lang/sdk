@@ -17,13 +17,13 @@ import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/js/js.dart' as js;
 
-import 'diff.dart';
-import 'html_parts.dart';
-import 'js_tracer.dart';
-import 'output_structure.dart';
-import 'sourcemap_helper.dart';
-import 'sourcemap_html_helper.dart';
-import 'trace_graph.dart';
+import '../helpers/diff.dart';
+import '../helpers/html_parts.dart';
+import '../helpers/js_tracer.dart';
+import '../helpers/output_structure.dart';
+import '../helpers/sourcemap_helper.dart';
+import '../helpers/sourcemap_html_helper.dart';
+import '../helpers/trace_graph.dart';
 
 main(List<String> args) async {
   DEBUG_MODE = true;

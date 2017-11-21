@@ -21,8 +21,8 @@ import 'package:compiler/src/js/js_debug.dart';
 import 'package:compiler/src/js/js_source_mapping.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/source_file_provider.dart';
-import '../memory_compiler.dart';
-import '../output_collector.dart';
+import '../../memory_compiler.dart';
+import '../../output_collector.dart';
 
 class SourceFileSink implements OutputSink {
   final String filename;

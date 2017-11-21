@@ -12,7 +12,7 @@ import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/js_emitter/full_emitter/emitter.dart' as full
     show Emitter;
 
-import 'mock_compiler.dart';
+import '../mock_compiler.dart';
 
 Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler.internal();

@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'package:source_maps/source_maps.dart';
 import 'package:unittest/unittest.dart';
-import 'load.dart';
-import 'save.dart';
+import 'tools/load.dart';
+import 'tools/save.dart';
 
 const String SOURCEMAP = '''
 {

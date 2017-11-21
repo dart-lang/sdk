@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'source_map_deferred_validator_test_lib.dart' deferred as def;
+import 'deferred_validator_test_lib.dart' deferred as def;
 
 void main() {
   def.loadLibrary().then((_) {

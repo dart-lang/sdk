@@ -9,7 +9,7 @@ library save;
 import 'dart:convert';
 import 'dart:io';
 import 'package:source_maps/source_maps.dart';
-import 'lax_json.dart' as lazon;
+import '../helpers/lax_json.dart' as lazon;
 
 void main(List<String> args) {
   if (args.isEmpty) {

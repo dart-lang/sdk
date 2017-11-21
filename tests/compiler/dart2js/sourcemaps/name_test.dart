@@ -9,7 +9,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/io/source_information.dart';
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 const String SOURCE = '''
 

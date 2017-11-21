@@ -14,8 +14,8 @@ import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_maps/src/utils.dart';
 
+import 'helpers/source_map_validator_helper.dart';
 import '../annotated_code_helper.dart';
-import '../source_map_validator_helper.dart';
 
 const String EXCEPTION_MARKER = '>ExceptionMarker<';
 const String INPUT_FILE_NAME = 'in.dart';

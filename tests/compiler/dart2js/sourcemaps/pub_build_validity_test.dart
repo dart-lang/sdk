@@ -7,20 +7,20 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'source_map_validator_helper.dart';
+import 'helpers/source_map_validator_helper.dart';
 
 void main() {
   asyncTest(() async {
     Directory tmpDir = await createTempDir();
     try {
       Directory sunflowerDir = new Directory.fromUri(
-          Platform.script.resolve('../../../third_party/sunflower'));
+          Platform.script.resolve('../../../../third_party/sunflower'));
 
       print("Copying '${sunflowerDir.path}' to '${tmpDir.path}'.");
       copyDirectory(sunflowerDir, tmpDir);
       String ext = Platform.isWindows ? '.bat' : '';
       String command = path.normalize(path.join(
-          path.fromUri(Platform.script), '../../../../sdk/bin/pub${ext}'));
+          path.fromUri(Platform.script), '../../../../../sdk/bin/pub${ext}'));
       String file = path.join(tmpDir.path, 'build/web/sunflower.dart.js');
 
       // sunflower/pubspec.yaml only depends on package:browser for Dartium, we
