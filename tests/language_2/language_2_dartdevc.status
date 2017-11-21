@@ -236,7 +236,7 @@ async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
-async_return_types_test/wrongReturnType: Crash
+async_return_types_test/wrongReturnType: Crash # Maltyped input from Fasta, issue 31414
 async_return_types_test/wrongTypeParameter: MissingCompileTimeError
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
@@ -249,7 +249,7 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
-built_in_identifier_type_annotation_test/22: Crash
+built_in_identifier_type_annotation_test/22: Crash # Crashes in Fasta, issue 31416
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError
 built_in_identifier_type_annotation_test/54: MissingCompileTimeError

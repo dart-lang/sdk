@@ -25,10 +25,30 @@ import 'compiler.dart';
 import 'native_types.dart';
 import 'source_map_printer.dart';
 
+const _binaryName = 'dartdevc';
+
 /// Invoke the compiler with [args].
 ///
 /// Returns `true` if the program compiled without any fatal errors.
 Future<bool> compile(List<String> args) async {
+  try {
+    return await _compile(args);
+  } catch (error) {
+    print('''
+We're sorry, you've found a bug in our compiler.
+You can report this bug at:
+    https://github.com/dart-lang/sdk/issues/labels/area-dev-compiler
+Please include the information below in your report, along with
+any other information that may help us track it down. Thanks!
+-------------------- %< --------------------
+    $_binaryName arguments: ${args.join(' ')}
+    dart --version: ${Platform.version}
+''');
+    rethrow;
+  }
+}
+
+Future<bool> _compile(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('dart-sdk-summary',
