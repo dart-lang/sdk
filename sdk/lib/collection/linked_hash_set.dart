@@ -106,8 +106,7 @@ abstract class LinkedHashSet<E> implements HashSet<E> {
   factory LinkedHashSet.from(Iterable elements) {
     LinkedHashSet<E> result = new LinkedHashSet<E>();
     for (final element in elements) {
-      E e = element as Object/*=E*/;
-      result.add(e);
+      result.add(element);
     }
     return result;
   }

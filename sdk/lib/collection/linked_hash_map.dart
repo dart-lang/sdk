@@ -91,7 +91,7 @@ abstract class LinkedHashMap<K, V> implements HashMap<K, V> {
   factory LinkedHashMap.from(Map other) {
     LinkedHashMap<K, V> result = new LinkedHashMap<K, V>();
     other.forEach((k, v) {
-      result[k as Object/*=K*/] = v as Object/*=V*/;
+      result[k] = v;
     });
     return result;
   }

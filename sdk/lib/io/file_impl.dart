@@ -726,7 +726,8 @@ class _RandomAccessFile implements RandomAccessFile {
         throw _exceptionFromResponse(response, "read failed", path);
       }
       _resourceInfo.addRead(response[1].length);
-      return response[1] as Object/*=List<int>*/;
+      List<int> result = response[1];
+      return result;
     });
   }
 
@@ -740,7 +741,7 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new FileSystemException("readSync failed", path, result);
     }
     _resourceInfo.addRead(result.length);
-    return result as Object/*=List<int>*/;
+    return result;
   }
 
   Future<int> readInto(List<int> buffer, [int start = 0, int end]) {
@@ -758,8 +759,8 @@ class _RandomAccessFile implements RandomAccessFile {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readInto failed", path);
       }
-      var read = response[1];
-      var data = response[2] as Object/*=List<int>*/;
+      int read = response[1];
+      List<int> data = response[2];
       buffer.setRange(start, start + read, data);
       _resourceInfo.addRead(read);
       return read;
