@@ -996,6 +996,74 @@ ASSEMBLER_TEST_RUN(CmpBranchIfNotZeroNotTaken, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
 }
 
+ASSEMBLER_TEST_GENERATE(TstBranchIfZero, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate((0 << 5) | 1), 0);
+
+  __ tbz(&l, R1, 5);
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZero, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfZeroNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate((1 << 5) | 1), 0);
+
+  __ tbz(&l, R1, 5);
+  __ movz(R0, Immediate(42), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfZeroNotTaken, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfNotZero, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(42), 0);
+  __ movz(R1, Immediate((1 << 5) | 1), 0);
+
+  __ tbnz(&l, R1, 5);
+  __ movz(R0, Immediate(0), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfNotZero, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
+ASSEMBLER_TEST_GENERATE(TstBranchIfNotZeroNotTaken, assembler) {
+  Label l;
+
+  __ movz(R0, Immediate(0), 0);
+  __ movz(R1, Immediate((0 << 5) | 1), 0);
+
+  __ tbnz(&l, R1, 5);
+  __ movz(R0, Immediate(42), 0);
+  __ Bind(&l);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(TstBranchIfNotZeroNotTaken, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+}
+
 ASSEMBLER_TEST_GENERATE(FcmpEqBranch, assembler) {
   Label l;
 

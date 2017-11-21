@@ -784,6 +784,7 @@ enum InstructionFields {
   kImm12ShiftBits = 2,
   kImm14Shift = 5,
   kImm14Bits = 14,
+  kImm14Mask = 0x3fff << kImm14Shift,
   kImm16Shift = 5,
   kImm16Bits = 16,
   kImm16Mask = 0xffff << kImm16Shift,
