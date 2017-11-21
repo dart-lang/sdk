@@ -441,6 +441,7 @@ class Parser {
   /// Parse any top-level declaration that begins with a keyword.
   Token parseTopLevelKeywordDeclaration(
       Token beforeAbstractToken, Token token, DirectiveContext directiveState) {
+    // TODO(brianwilkerson): Move `token` to be the first parameter.
     Token previous = token;
     token = token.next;
     assert(token.isTopLevelKeyword);
@@ -1333,6 +1334,7 @@ class Parser {
 
   Token parseClassOrNamedMixinApplication(
       Token beforeAbstractToken, Token token) {
+    // TODO(brianwilkerson): Move `token` to be the first parameter.
     token = token.next;
     listener.beginClassOrNamedMixinApplication(token);
     Token begin = beforeAbstractToken?.next ?? token;
@@ -1874,6 +1876,7 @@ class Parser {
   }
 
   bool notEofOrValue(String value, Token token) {
+    // TODO(brianwilkerson): Move `token` to be the first parameter.
     return !identical(token.kind, EOF_TOKEN) &&
         !identical(value, token.stringValue);
   }
@@ -2710,6 +2713,7 @@ class Parser {
   }
 
   void checkFormals(bool isGetter, Token name, Token token, MemberKind kind) {
+    // TODO(brianwilkerson): Move `token` to be the first parameter?
     if (optional("(", token)) {
       if (isGetter) {
         reportRecoverableError(token, fasta.messageGetterWithFormals);
@@ -3564,6 +3568,8 @@ class Parser {
   /// - Return type.
   Token parseNamedFunctionRest(
       Token begin, Token name, Token formals, bool isFunctionExpression) {
+    // TODO(brianwilkerson): Move `name` to be the first parameter (and consider
+    // renaming it to `token`).
     // TODO(brianwilkerson) Accept the last consumed token.
     Token token = name;
     listener.beginFunctionName(token);
