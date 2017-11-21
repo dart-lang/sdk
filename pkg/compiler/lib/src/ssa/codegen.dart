@@ -1912,11 +1912,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // more optimizations available to the loop.  This form is 50% faster on
       // some small loop, almost as fast as loops with no concurrent
       // modification check.
-      push(js.js('# || (0, #)(#)', [
-        arguments[0],
+
+      // Create [right] as a separate JS node to give the call a source
+      // location.
+      js.Expression right = js.js('(0, #)(#)', [
         _emitter.staticFunctionAccess(throwFunction),
         arguments[1]
-      ]));
+      ]).withSourceInformation(node.sourceInformation);
+      push(js.js('# || #', [arguments[0], right]).withSourceInformation(
+          node.sourceInformation));
     } else {
       CallStructure callStructure = new CallStructure.unnamed(arguments.length);
       _registry.registerStaticUse(element.isConstructor

@@ -1186,7 +1186,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         buildInitializer,
         buildCondition,
         buildUpdate,
-        buildBody);
+        buildBody,
+        _sourceInformationBuilder.buildLoop(node));
   }
 
   @override
@@ -1221,9 +1222,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     bool isFixed; // Set in buildInitializer.
     HInstruction originalLength = null; // Set for growable lists.
 
-    HInstruction buildGetLength() {
+    HInstruction buildGetLength(SourceInformation sourceInformation) {
       HGetLength result = new HGetLength(array, commonMasks.positiveIntType,
-          isAssignable: !isFixed);
+          isAssignable: !isFixed)
+        ..sourceInformation = sourceInformation;
       add(result);
       return result;
     }
@@ -1235,31 +1237,43 @@ class KernelSsaGraphBuilder extends ir.Visitor
       //
       //     array.length == _end || throwConcurrentModificationError(array)
       //
-      HInstruction length = buildGetLength();
-      push(new HIdentity(length, originalLength, null, commonMasks.boolType));
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildForInMoveNext(node);
+      HInstruction length = buildGetLength(sourceInformation);
+      push(new HIdentity(length, originalLength, null, commonMasks.boolType)
+        ..sourceInformation = sourceInformation);
       _pushStaticInvocation(
           _commonElements.checkConcurrentModificationError,
           [pop(), array],
           _typeInferenceMap.getReturnTypeOf(
-              _commonElements.checkConcurrentModificationError));
+              _commonElements.checkConcurrentModificationError),
+          sourceInformation: sourceInformation);
       pop();
     }
 
     void buildInitializer() {
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildForInIterator(node);
+
       node.iterable.accept(this);
       array = pop();
       isFixed =
           _typeInferenceMap.isFixedLength(array.instructionType, closedWorld);
       localsHandler.updateLocal(
-          indexVariable, graph.addConstantInt(0, closedWorld));
-      originalLength = buildGetLength();
+          indexVariable, graph.addConstantInt(0, closedWorld),
+          sourceInformation: sourceInformation);
+      originalLength = buildGetLength(sourceInformation);
     }
 
     HInstruction buildCondition() {
-      HInstruction index = localsHandler.readLocal(indexVariable);
-      HInstruction length = buildGetLength();
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildForInMoveNext(node);
+      HInstruction index = localsHandler.readLocal(indexVariable,
+          sourceInformation: sourceInformation);
+      HInstruction length = buildGetLength(sourceInformation);
       HInstruction compare =
-          new HLess(index, length, null, commonMasks.boolType);
+          new HLess(index, length, null, commonMasks.boolType)
+            ..sourceInformation = sourceInformation;
       add(compare);
       return compare;
     }
@@ -1277,12 +1291,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // TODO(sra): The element type of a container type mask might be better.
       TypeMask type = _typeInferenceMap.inferredIndexType(node);
 
-      HInstruction index = localsHandler.readLocal(indexVariable);
-      HInstruction value = new HIndex(array, index, null, type);
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildForInCurrent(node);
+      HInstruction index = localsHandler.readLocal(indexVariable,
+          sourceInformation: sourceInformation);
+      HInstruction value = new HIndex(array, index, null, type)
+        ..sourceInformation = sourceInformation;
       add(value);
 
       Local loopVariableLocal = localsMap.getLocalVariable(node.variable);
-      localsHandler.updateLocal(loopVariableLocal, value);
+      localsHandler.updateLocal(loopVariableLocal, value,
+          sourceInformation: sourceInformation);
       // Hint to name loop value after name of loop variable.
       if (loopVariableLocal is! SyntheticLocal) {
         value.sourceElement ??= loopVariableLocal;
@@ -1299,12 +1318,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // body (and that more closely follows what an inlined iterator would do)
       // but the code is horrible as `i+1` is carried around the loop in an
       // additional variable.
-      HInstruction index = localsHandler.readLocal(indexVariable);
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildForInSet(node);
+      HInstruction index = localsHandler.readLocal(indexVariable,
+          sourceInformation: sourceInformation);
       HInstruction one = graph.addConstantInt(1, closedWorld);
       HInstruction addInstruction =
-          new HAdd(index, one, null, commonMasks.positiveIntType);
+          new HAdd(index, one, null, commonMasks.positiveIntType)
+            ..sourceInformation = sourceInformation;
       add(addInstruction);
-      localsHandler.updateLocal(indexVariable, addInstruction);
+      localsHandler.updateLocal(indexVariable, addInstruction,
+          sourceInformation: sourceInformation);
     }
 
     loopHandler.handleLoop(
@@ -1314,7 +1338,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         buildInitializer,
         buildCondition,
         buildUpdate,
-        buildBody);
+        buildBody,
+        _sourceInformationBuilder.buildLoop(node));
   }
 
   _buildForInIterator(ir.ForInStatement node) {
@@ -1347,13 +1372,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     void buildBody() {
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildForInCurrent(node);
       TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(node);
-      _pushDynamicInvocation(node, mask, [iterator],
-          _sourceInformationBuilder.buildForInCurrent(node),
+      _pushDynamicInvocation(node, mask, [iterator], sourceInformation,
           selector: Selectors.current);
       Local loopVariableLocal = localsMap.getLocalVariable(node.variable);
       HInstruction value = pop();
-      localsHandler.updateLocal(loopVariableLocal, value);
+      localsHandler.updateLocal(loopVariableLocal, value,
+          sourceInformation: sourceInformation);
       // Hint to name loop value after name of loop variable.
       if (loopVariableLocal is! SyntheticLocal) {
         value.sourceElement ??= loopVariableLocal;
@@ -1368,7 +1395,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         buildInitializer,
         buildCondition,
         () {},
-        buildBody);
+        buildBody,
+        _sourceInformationBuilder.buildLoop(node));
   }
 
   void _buildAsyncForIn(ir.ForInStatement node) {
@@ -1417,7 +1445,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         buildInitializer,
         buildCondition,
         buildUpdate,
-        buildBody);
+        buildBody,
+        _sourceInformationBuilder.buildLoop(node));
 
     void finalizerFunction() {
       _pushDynamicInvocation(node, null, [streamIterator],
@@ -1470,7 +1499,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         buildCondition,
         () {}, () {
       node.body.accept(this);
-    });
+    }, _sourceInformationBuilder.buildLoop(node));
   }
 
   @override
@@ -2015,7 +2044,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           () {},
           buildCondition,
           () {},
-          buildSwitch);
+          buildSwitch,
+          _sourceInformationBuilder.buildLoop(switchStatement));
     }
 
     if (hasDefault) {

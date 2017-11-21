@@ -13,6 +13,7 @@ import '../io/code_output.dart' show CodeBuffer;
 import 'js_source_mapping.dart';
 
 export 'package:js_ast/js_ast.dart';
+export 'js_debug.dart';
 
 String prettyPrint(Node node, CompilerOptions compilerOptions,
     {bool allowVariableMinification: true,

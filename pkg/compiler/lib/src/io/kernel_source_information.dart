@@ -161,16 +161,24 @@ class KernelSourceInformationBuilder
   SourceInformation buildIndex(ir.Node node) => null;
 
   @override
-  SourceInformation buildForInSet(ir.Node node) => null;
+  SourceInformation buildForInSet(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
-  SourceInformation buildForInCurrent(ir.Node node) => null;
+  SourceInformation buildForInCurrent(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
-  SourceInformation buildForInMoveNext(ir.Node node) => null;
+  SourceInformation buildForInMoveNext(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
-  SourceInformation buildForInIterator(ir.Node node) => null;
+  SourceInformation buildForInIterator(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildStringInterpolation(ir.Node node) => null;
@@ -245,7 +253,9 @@ class KernelSourceInformationBuilder
   }
 
   @override
-  SourceInformation buildLoop(ir.Node node) => null;
+  SourceInformation buildLoop(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildImplicitReturn(MemberEntity element) => null;

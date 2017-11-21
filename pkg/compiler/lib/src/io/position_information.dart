@@ -396,7 +396,8 @@ SourceLocation getSourceLocation(SourceInformation sourceInformation,
     case SourcePositionKind.START:
       return sourceInformation.startPosition;
     case SourcePositionKind.INNER:
-      return sourceInformation.closingPosition;
+      return sourceInformation.closingPosition ??
+          sourceInformation.startPosition;
   }
 }
 

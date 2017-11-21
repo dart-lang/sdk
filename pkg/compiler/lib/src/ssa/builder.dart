@@ -1732,7 +1732,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         buildInitializer,
         buildCondition,
         buildUpdate,
-        buildBody);
+        buildBody,
+        sourceInformationBuilder.buildLoop(node));
   }
 
   visitWhile(ast.While node) {
@@ -1745,7 +1746,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     loopHandler.handleLoop(node, closureDataLookup.getCapturedLoopScope(node),
         elements.getTargetDefinition(node), () {}, buildCondition, () {}, () {
       visit(node.body);
-    });
+    }, sourceInformationBuilder.buildLoop(node));
   }
 
   visitDoWhile(ast.DoWhile node) {
@@ -5471,7 +5472,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           buildInitializer,
           buildCondition,
           buildUpdate,
-          buildBody);
+          buildBody,
+          sourceInformationBuilder.buildLoop(node));
     }, () {
       pushInvokeDynamic(node, Selectors.cancel, null, [streamIterator]);
       add(new HAwait(pop(),
@@ -5517,21 +5519,24 @@ class SsaAstGraphBuilder extends ast.Visitor
       TypeMask mask = elementInferenceResults.typeOfIterator(node);
       visit(node.expression);
       HInstruction receiver = pop();
-      pushInvokeDynamic(node, selector, mask, [receiver]);
+      pushInvokeDynamic(node, selector, mask, [receiver],
+          sourceInformation: sourceInformationBuilder.buildForInIterator(node));
       iterator = pop();
     }
 
     HInstruction buildCondition() {
       Selector selector = Selectors.moveNext;
       TypeMask mask = elementInferenceResults.typeOfIteratorMoveNext(node);
-      pushInvokeDynamic(node, selector, mask, [iterator]);
+      pushInvokeDynamic(node, selector, mask, [iterator],
+          sourceInformation: sourceInformationBuilder.buildForInMoveNext(node));
       return popBoolified();
     }
 
     void buildBody() {
       Selector call = Selectors.current;
       TypeMask mask = elementInferenceResults.typeOfIteratorCurrent(node);
-      pushInvokeDynamic(node, call, mask, [iterator]);
+      pushInvokeDynamic(node, call, mask, [iterator],
+          sourceInformation: sourceInformationBuilder.buildForInCurrent(node));
       buildAssignLoopVariable(node, pop());
       visit(node.body);
     }
@@ -5543,7 +5548,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         buildInitializer,
         buildCondition,
         () {},
-        buildBody);
+        buildBody,
+        sourceInformationBuilder.buildLoop(node));
   }
 
   buildAssignLoopVariable(ast.ForIn node, HInstruction value) {
@@ -5668,7 +5674,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         buildInitializer,
         buildCondition,
         buildUpdate,
-        buildBody);
+        buildBody,
+        sourceInformationBuilder.buildLoop(node));
   }
 
   visitLabel(ast.Label node) {
@@ -6018,8 +6025,15 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void buildLoop() {
-      loopHandler.handleLoop(node, closureDataLookup.getCapturedLoopScope(node),
-          switchTarget, () {}, buildCondition, () {}, buildSwitch);
+      loopHandler.handleLoop(
+          node,
+          closureDataLookup.getCapturedLoopScope(node),
+          switchTarget,
+          () {},
+          buildCondition,
+          () {},
+          buildSwitch,
+          sourceInformationBuilder.buildLoop(node));
     }
 
     if (hasDefault) {
