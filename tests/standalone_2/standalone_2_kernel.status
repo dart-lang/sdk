@@ -111,7 +111,6 @@ package/scenarios/invalid/same_package_twice_test: CompileTimeError
 regress_29350_test: MissingCompileTimeError
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug ]
-float_array_static_test: Pass # Issue 31375
 io/raw_socket_test: Crash
 io/skipping_dart2js_compilations_test: Crash
 io/socket_exception_test: Pass, Crash
