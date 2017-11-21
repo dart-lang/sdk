@@ -44,7 +44,7 @@ import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
  *       instances that have no corresponding Dart type (e.g. cross-frame
  *       documents), `=Object` can be used to describe these untyped' values.
  *
- *    + `var` (or empty string).  If the entire [typeDescription] is `var` (or
+ *    + `var` or empty string.  If the entire [typeDescription] is `var` (or
  *      empty string) then the type is `dynamic` but the code is known to not
  *      create any instances.
  *
@@ -131,6 +131,18 @@ import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
  *    is immediately evaluated and bound to `val` in the immediate call.
  *
  *
+ * Type argument.
+ *
+ * In Dart 2.0, the type argument additionally constrains the returned type.
+ * So, with type inference filling in the type argumemnt,
+ *
+ *     String s = JS('', 'JSON.stringify(#)', x);
+ *
+ * will be the same as the current meaning of
+ *
+ *     var s = JS('String|Null', 'JSON.stringify(#)', x);
+ *
+ *
  * Additional notes.
  *
  * In the future we may extend [typeDescription] to include other aspects of the
@@ -142,7 +154,7 @@ import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-external JS(String typeDescription, String codeTemplate,
+external T JS<T>(String typeDescription, String codeTemplate,
     [arg0,
     arg1,
     arg2,
