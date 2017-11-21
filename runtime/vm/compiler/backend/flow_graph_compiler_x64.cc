@@ -754,6 +754,13 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
 
   __ movq(RCX,
           FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
+
+  if (isolate()->strong()) {
+    __ andq(RCX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+  }
+
   // Check that min_num_pos_args <= num_pos_args.
   __ CompareImmediate(RCX, Immediate(Smi::RawValue(min_num_pos_args)));
   __ j(LESS, &wrong_num_arguments);
@@ -875,7 +882,15 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
     ASSERT(num_opt_pos_params > 0);
     __ movq(RCX,
             FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
+
     __ SmiUntag(RCX);
+
+    if (isolate()->strong()) {
+      __ andq(RCX,
+              Immediate(
+                  ArgumentsDescriptor::PositionalCountField::mask_in_place()));
+    }
+
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
       // Handle this optional positional parameter only if k or fewer positional
@@ -1039,8 +1054,20 @@ void FlowGraphCompiler::CompileGraph() {
       __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
       __ CompareImmediate(RAX, Immediate(Smi::RawValue(num_fixed_params)));
       __ j(NOT_EQUAL, &wrong_num_arguments, Assembler::kNearJump);
-      __ cmpq(RAX, FieldAddress(
-                       R10, ArgumentsDescriptor::positional_count_offset()));
+
+      if (isolate()->strong()) {
+        __ movq(RCX, FieldAddress(
+                         R10, ArgumentsDescriptor::positional_count_offset()));
+        __ andq(
+            RCX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+        __ cmpq(RAX, RCX);
+      } else {
+        __ cmpq(RAX, FieldAddress(
+                         R10, ArgumentsDescriptor::positional_count_offset()));
+      }
+
       __ j(EQUAL, &correct_num_arguments, Assembler::kNearJump);
 
       __ Bind(&wrong_num_arguments);

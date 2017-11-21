@@ -744,6 +744,13 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
   const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
   __ ldr(R6, FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
+
+  if (isolate()->strong()) {
+    __ and_(R6, R6,
+            Operand(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+  }
+
   // Check that min_num_pos_args <= num_pos_args.
   __ CompareImmediate(R6, Smi::RawValue(min_num_pos_args));
   __ b(&wrong_num_arguments, LT);
@@ -865,6 +872,11 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
     __ ldr(R6,
            FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(R6);
+    if (isolate()->strong()) {
+      __ and_(
+          R6, R6,
+          Operand(ArgumentsDescriptor::PositionalCountField::mask_in_place()));
+    }
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
       // Handle this optional positional parameter only if k or fewer positional
@@ -1038,6 +1050,12 @@ void FlowGraphCompiler::CompileGraph() {
       __ b(&wrong_num_arguments, NE);
       __ ldr(R1,
              FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
+      if (isolate()->strong()) {
+        __ and_(
+            R1, R1,
+            Operand(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+      }
       __ cmp(R0, Operand(R1));
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);

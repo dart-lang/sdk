@@ -95,11 +95,18 @@ class _InvocationMirror implements Invocation {
   static List<Type> _unpackTypeArguments(typeArguments)
       native "InvocationMirror_unpackTypeArguments";
 
+  // Extract the compressed representation of the number of positional arguments
+  // from the corresponding entry in the 'ArgumentsDescriptor'.
+  static int _decodePositionalCountEntry(positionalCountEntry)
+      native "InvocationMirror_decodePositionalCountEntry";
+
   List get positionalArguments {
     if (_positionalArguments == null) {
       // The argument descriptor counts the receiver, but not the type arguments
       // as positional arguments.
-      int numPositionalArguments = _argumentsDescriptor[_POSITIONAL_COUNT] - 1;
+      int numPositionalArguments =
+          _decodePositionalCountEntry(_argumentsDescriptor[_POSITIONAL_COUNT]) -
+              1;
       if (numPositionalArguments == 0) {
         return _positionalArguments = const [];
       }
@@ -114,7 +121,9 @@ class _InvocationMirror implements Invocation {
   Map<Symbol, dynamic> get namedArguments {
     if (_namedArguments == null) {
       int numArguments = _argumentsDescriptor[_COUNT] - 1; // Exclude receiver.
-      int numPositionalArguments = _argumentsDescriptor[_POSITIONAL_COUNT] - 1;
+      int numPositionalArguments =
+          _decodePositionalCountEntry(_argumentsDescriptor[_POSITIONAL_COUNT]) -
+              1;
       int numNamedArguments = numArguments - numPositionalArguments;
       if (numNamedArguments == 0) {
         return _namedArguments = const {};

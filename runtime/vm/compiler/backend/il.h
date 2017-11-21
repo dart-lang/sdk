@@ -2730,12 +2730,14 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
                    intptr_t type_args_len,
                    const Array& argument_names,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments,
-                   TokenPosition token_pos)
+                   TokenPosition token_pos,
+                   intptr_t argument_check_bits = 0)
       : TemplateDefinition<kInputCount, Throws>(deopt_id),
         type_args_len_(type_args_len),
         argument_names_(argument_names),
         arguments_(arguments),
-        token_pos_(token_pos) {
+        token_pos_(token_pos),
+        argument_check_bits_(argument_check_bits) {
     ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
   }
 
@@ -2753,15 +2755,23 @@ class TemplateDartCall : public TemplateDefinition<kInputCount, Throws> {
   const Array& argument_names() const { return argument_names_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
   RawArray* GetArgumentsDescriptor() const {
-    return ArgumentsDescriptor::New(
-        type_args_len(), ArgumentCountWithoutTypeArgs(), argument_names());
+    return ArgumentsDescriptor::New(type_args_len(),
+                                    ArgumentCountWithoutTypeArgs(),
+                                    argument_names(), argument_check_bits());
   }
+
+  intptr_t argument_check_bits() const { return argument_check_bits_; }
 
  private:
   intptr_t type_args_len_;
   const Array& argument_names_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   TokenPosition token_pos_;
+
+  // One bit per argument (up to word size) which helps the callee decide which
+  // arguments it needs to check. See the comments in ArgumentsDescriptor for
+  // more information on strong-mode checked calls.
+  intptr_t argument_check_bits_;
 
   DISALLOW_COPY_AND_ASSIGN(TemplateDartCall);
 };
@@ -2823,12 +2833,14 @@ class InstanceCallInstr : public TemplateDartCall<0> {
       intptr_t checked_argument_count,
       const ZoneGrowableArray<const ICData*>& ic_data_array,
       intptr_t deopt_id,
-      const Function& interface_target = Function::null_function())
+      const Function& interface_target = Function::null_function(),
+      intptr_t argument_check_bits = 0)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos),
+                         token_pos,
+                         argument_check_bits),
         ic_data_(NULL),
         function_name_(function_name),
         token_kind_(token_kind),
@@ -3254,12 +3266,14 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   const ZoneGrowableArray<const ICData*>& ic_data_array,
                   intptr_t deopt_id,
-                  ICData::RebindRule rebind_rule)
+                  ICData::RebindRule rebind_rule,
+                  intptr_t argument_check_bits = 0)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos),
+                         token_pos,
+                         argument_check_bits),
         ic_data_(NULL),
         call_count_(0),
         function_(function),
@@ -3279,12 +3293,14 @@ class StaticCallInstr : public TemplateDartCall<0> {
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                   intptr_t deopt_id,
                   intptr_t call_count,
-                  ICData::RebindRule rebind_rule)
+                  ICData::RebindRule rebind_rule,
+                  intptr_t argument_check_bits = 0)
       : TemplateDartCall(deopt_id,
                          type_args_len,
                          argument_names,
                          arguments,
-                         token_pos),
+                         token_pos,
+                         argument_check_bits),
         ic_data_(NULL),
         call_count_(call_count),
         function_(function),

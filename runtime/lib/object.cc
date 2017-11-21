@@ -361,6 +361,14 @@ DEFINE_NATIVE_ENTRY(InvocationMirror_unpackTypeArguments, 1) {
   return type_list.raw();
 }
 
+DEFINE_NATIVE_ENTRY(InvocationMirror_decodePositionalCountEntry, 1) {
+  const Smi& entry = Smi::CheckedHandle(zone, arguments->NativeArgAt(0));
+  intptr_t positional_count, _arg_bits_unused;
+  ArgumentsDescriptor::UnpackPositionalCount(entry.Value(), &_arg_bits_unused,
+                                             &positional_count);
+  return Smi::New(positional_count);
+}
+
 DEFINE_NATIVE_ENTRY(NoSuchMethodError_existingMethodSignature, 3) {
   const Instance& receiver = Instance::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, method_name, arguments->NativeArgAt(1));

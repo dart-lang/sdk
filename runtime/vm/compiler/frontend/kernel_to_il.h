@@ -293,6 +293,8 @@ class TranslationHelper {
 
   virtual ~TranslationHelper() {}
 
+  void Reset();
+
   void InitFromScript(const Script& script);
 
   void InitFromKernelProgramInfo(const KernelProgramInfo& info);
@@ -599,7 +601,8 @@ class FlowGraphBuilder {
                         intptr_t argument_count,
                         const Array& argument_names,
                         intptr_t checked_argument_count,
-                        const Function& interface_target);
+                        const Function& interface_target,
+                        intptr_t argument_bits = 0);
   Fragment ClosureCall(intptr_t type_args_len,
                        intptr_t argument_count,
                        const Array& argument_names);
@@ -630,7 +633,8 @@ class FlowGraphBuilder {
                       intptr_t argument_count,
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
-                      intptr_t type_args_len = 0);
+                      intptr_t type_args_len = 0,
+                      intptr_t argument_bits = 0);
   Fragment StoreIndexed(intptr_t class_id);
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      bool is_initialization_store);

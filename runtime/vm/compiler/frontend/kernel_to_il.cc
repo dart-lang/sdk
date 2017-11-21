@@ -156,6 +156,15 @@ TranslationHelper::TranslationHelper(Thread* thread)
       metadata_mappings_(TypedData::Handle(Z)),
       constants_(Array::Handle(Z)) {}
 
+void TranslationHelper::Reset() {
+  string_offsets_ = TypedData::null();
+  string_data_ = TypedData::null();
+  canonical_names_ = TypedData::null();
+  metadata_payloads_ = TypedData::null();
+  metadata_mappings_ = TypedData::null();
+  constants_ = Array::null();
+}
+
 void TranslationHelper::InitFromScript(const Script& script) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(Z, script.kernel_program_info());
@@ -1227,13 +1236,14 @@ Fragment FlowGraphBuilder::InstanceCall(TokenPosition position,
                                         intptr_t argument_count,
                                         const Array& argument_names,
                                         intptr_t checked_argument_count,
-                                        const Function& interface_target) {
+                                        const Function& interface_target,
+                                        intptr_t argument_bits) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z)
       InstanceCallInstr(position, name, kind, arguments, type_args_len,
                         argument_names, checked_argument_count, ic_data_array_,
-                        GetNextDeoptId(), interface_target);
+                        GetNextDeoptId(), interface_target, argument_bits);
   Push(call);
   return Fragment(call);
 }
@@ -1466,12 +1476,13 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       intptr_t argument_count,
                                       const Array& argument_names,
                                       ICData::RebindRule rebind_rule,
-                                      intptr_t type_args_count) {
+                                      intptr_t type_args_count,
+                                      intptr_t argument_bits) {
   const intptr_t total_count = argument_count + (type_args_count > 0 ? 1 : 0);
   ArgumentArray arguments = GetArguments(total_count);
-  StaticCallInstr* call = new (Z)
-      StaticCallInstr(position, target, type_args_count, argument_names,
-                      arguments, ic_data_array_, GetNextDeoptId(), rebind_rule);
+  StaticCallInstr* call = new (Z) StaticCallInstr(
+      position, target, type_args_count, argument_names, arguments,
+      ic_data_array_, GetNextDeoptId(), rebind_rule, argument_bits);
   const intptr_t list_cid =
       GetResultCidOfListFactory(Z, target, argument_count);
   if (list_cid != kDynamicCid) {

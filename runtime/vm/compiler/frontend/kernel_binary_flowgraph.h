@@ -99,6 +99,8 @@ class VariableDeclarationHelper {
   enum Flag {
     kFinal = 1 << 0,
     kConst = 1 << 1,
+    kIsGenericCovariantImpl = 1 << 5,
+    kIsGenericCovariantInterface = 1 << 6
   };
 
   explicit VariableDeclarationHelper(StreamingFlowGraphBuilder* builder) {
@@ -117,6 +119,13 @@ class VariableDeclarationHelper {
 
   bool IsConst() { return (flags_ & kConst) != 0; }
   bool IsFinal() { return (flags_ & kFinal) != 0; }
+
+  bool IsGenericCovariantInterface() {
+    return (flags_ & kIsGenericCovariantInterface) != 0;
+  }
+  bool IsGenericCovariantImpl() {
+    return (flags_ & kIsGenericCovariantImpl) != 0;
+  }
 
   TokenPosition position_;
   TokenPosition equals_position_;
@@ -902,6 +911,8 @@ class StreamingFlowGraphBuilder {
   RawTypedData* GetLineStartsFor(intptr_t index);
   void SetOffset(intptr_t offset);
 
+  enum DispatchCategory { Interface, ViaThis, Closure, DynamicDispatch };
+
  private:
   void LoadAndSetupTypeParameters(ActiveClass* active_class,
                                   const Object& set_on,
@@ -1046,7 +1057,8 @@ class StreamingFlowGraphBuilder {
                       intptr_t argument_count,
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
-                      intptr_t type_args_len = 0);
+                      intptr_t type_args_len = 0,
+                      intptr_t argument_check_bits = 0);
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,
@@ -1059,7 +1071,8 @@ class StreamingFlowGraphBuilder {
                         intptr_t argument_count,
                         const Array& argument_names,
                         intptr_t checked_argument_count,
-                        const Function& interface_target);
+                        const Function& interface_target,
+                        intptr_t argument_check_bits = 0);
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
@@ -1124,6 +1137,7 @@ class StreamingFlowGraphBuilder {
   const TypeArguments& BuildTypeArguments();
   Fragment BuildArguments(Array* argument_names,
                           intptr_t* argument_count,
+                          intptr_t* positional_argument_count,
                           bool skip_push_arguments = false,
                           bool do_drop = false);
   Fragment BuildArgumentsFromActualArguments(Array* argument_names,
@@ -1213,6 +1227,13 @@ class StreamingFlowGraphBuilder {
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);
 
+  intptr_t ArgumentCheckBitsForInvocation(
+      intptr_t argument_count,  // excluding receiver
+      intptr_t positional_argument_count,
+      const Array& argument_names,
+      const Function& interface_target,
+      DispatchCategory category);
+
   RawScript* Script();
 
   // Scan through metadata mappings section and cache offsets for recognized
@@ -1257,6 +1278,24 @@ class StreamingFlowGraphBuilder {
   friend class StreamingDartTypeTranslator;
   friend class StreamingScopeBuilder;
   friend class VariableDeclarationHelper;
+};
+
+class AlternativeScriptScope {
+ public:
+  AlternativeScriptScope(TranslationHelper* helper,
+                         const Script& new_script,
+                         const Script& old_script)
+      : helper_(helper), old_script_(old_script) {
+    helper_->Reset();
+    helper_->InitFromScript(new_script);
+  }
+  ~AlternativeScriptScope() {
+    helper_->Reset();
+    helper_->InitFromScript(old_script_);
+  }
+
+  TranslationHelper* helper_;
+  const Script& old_script_;
 };
 
 // A helper class that saves the current reader position, goes to another reader
