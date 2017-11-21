@@ -13,6 +13,9 @@ regress_29025_test: StaticWarning # Issue 29081
 regress_29405_test: StaticWarning # Issue 29421
 regress_29349_test: CompileTimeError # Issue 29744
 
+# Runtime negative test. No static errors or warnings.
+closure_call_wrong_argument_count_negative_test: skip
+
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
 
@@ -56,6 +59,7 @@ const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 
+bad_initializer2_negative_test: fail # Issue 14880
 field3a_negative_test: Fail # Issue 11124
 final_syntax_test/01: Fail # Issue 11124
 final_syntax_test/04: Fail # Issue 11124
@@ -73,6 +77,7 @@ factory_implementation_test/none: fail # Issue 11578
 malbounded_redirecting_factory_test/none: fail # Issue 11578
 malbounded_redirecting_factory2_test/none: fail # Issue 11578
 getter_no_setter_test/none: fail # Issue 11579
+constructor3_negative_test: fail # Issue 11585
 constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
 instance_call_wrong_argument_count_negative_test: fail # Issue 11585
 field_method4_negative_test: fail # Issue 11590
@@ -125,10 +130,15 @@ factory_redirection_test/none: StaticWarning # Issue 18230
 # The following tests are currently assumed to be failing because the test is wrong.
 #
 application_negative_test: CompileTimeError # Issue 14528
+bad_initializer1_negative_test: CompileTimeError # Issue 14529
+bad_named_constructor_negative_test: CompileTimeError # Issue 18693
+body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 empty_block_case_test: StaticWarning # Issue 18701
 error_stacktrace_test: StaticWarning # Issue 18702
 
 abstract_beats_arguments_test: StaticWarning
+const_counter_negative_test: CompileTimeError
+const_optional_args_negative_test: CompileTimeError
 constructor_redirect1_negative_test: CompileTimeError
 constructor_redirect2_negative_test: CompileTimeError
 constructor_setter_negative_test: CompileTimeError
