@@ -83,8 +83,94 @@ class KernelResynthesizer implements ElementResynthesizer {
       return unit;
     }
 
-    // TODO(scheglov) Implement unit members.
-    throw new ArgumentError('Only library and unit access is implemented.');
+    ElementImpl element = unit as ElementImpl;
+    for (int i = 2; i < components.length; i++) {
+      if (element == null) {
+        throw new ArgumentError('Unable to find element: $location');
+      }
+      element = element.getChild(components[i]);
+    }
+    return element;
+  }
+
+  /**
+   * Return the [ElementImpl] that corresponds to the given [name], or `null`
+   * if the corresponding element cannot be found.
+   */
+  ElementImpl getElementFromCanonicalName(kernel.CanonicalName name) {
+    if (name == null) return null;
+
+    var components = new List<String>(5);
+    var componentPtr = 0;
+    for (var namePart = name;
+        namePart != null && !namePart.isRoot;
+        namePart = namePart.parent) {
+      components[componentPtr++] = namePart.name;
+    }
+
+    String libraryUri = components[--componentPtr];
+    String topKindOrClassName = components[--componentPtr];
+
+    LibraryElementImpl library = getLibrary(libraryUri);
+    if (library == null) return null;
+
+    String takeElementName() {
+      String publicNameOrLibraryUri = components[--componentPtr];
+      if (publicNameOrLibraryUri == libraryUri) {
+        return components[--componentPtr];
+      } else {
+        return publicNameOrLibraryUri;
+      }
+    }
+
+    // Top-level element other than class.
+    if (topKindOrClassName == '@fields' ||
+        topKindOrClassName == '@methods' ||
+        topKindOrClassName == '@getters' ||
+        topKindOrClassName == '@setters' ||
+        topKindOrClassName == '@typedefs') {
+      String elementName = takeElementName();
+      for (CompilationUnitElement unit in library.units) {
+        CompilationUnitElementImpl unitImpl = unit;
+        ElementImpl child = unitImpl.getChild(elementName);
+        if (child != null) {
+          return child;
+        }
+      }
+      return null;
+    }
+
+    AbstractClassElementImpl classElement;
+    for (CompilationUnitElement unit in library.units) {
+      CompilationUnitElementImpl unitImpl = unit;
+      classElement = unitImpl.getChild(topKindOrClassName);
+      if (classElement != null) {
+        break;
+      }
+    }
+    if (classElement == null) return null;
+
+    // If no more component, the class is the element.
+    if (componentPtr == 0) return classElement;
+
+    String kind = components[--componentPtr];
+    String elementName = takeElementName();
+    if (kind == '@methods') {
+      return classElement.getMethod(elementName) as ElementImpl;
+    } else if (kind == '@getters') {
+      return classElement.getGetter(elementName) as ElementImpl;
+    } else if (kind == '@setters') {
+      return classElement.getSetter(elementName) as ElementImpl;
+    } else if (kind == '@fields') {
+      return classElement.getField(elementName) as ElementImpl;
+    } else if (kind == '@constructors') {
+      if (elementName.isEmpty) {
+        return classElement.unnamedConstructor as ElementImpl;
+      }
+      return classElement.getNamedConstructor(elementName) as ElementImpl;
+    } else {
+      throw new UnimplementedError('Internal error: $kind unexpected.');
+    }
   }
 
   /**
@@ -169,86 +255,6 @@ class KernelResynthesizer implements ElementResynthesizer {
     // Now, when TypeProvider is ready, we can finalize core/async.
     coreLibrary.createLoadLibraryFunction(_typeProvider);
     asyncLibrary.createLoadLibraryFunction(_typeProvider);
-  }
-
-  /**
-   * Return the [ElementImpl] that corresponds to the given [name], or `null`
-   * if the corresponding element cannot be found.
-   */
-  ElementImpl _getElement(kernel.CanonicalName name) {
-    if (name == null) return null;
-
-    var components = new List<String>(5);
-    var componentPtr = 0;
-    for (var namePart = name;
-        namePart != null && !namePart.isRoot;
-        namePart = namePart.parent) {
-      components[componentPtr++] = namePart.name;
-    }
-
-    String libraryUri = components[--componentPtr];
-    String topKindOrClassName = components[--componentPtr];
-
-    LibraryElementImpl library = getLibrary(libraryUri);
-    if (library == null) return null;
-
-    String takeElementName() {
-      String publicNameOrLibraryUri = components[--componentPtr];
-      if (publicNameOrLibraryUri == libraryUri) {
-        return components[--componentPtr];
-      } else {
-        return publicNameOrLibraryUri;
-      }
-    }
-
-    // Top-level element other than class.
-    if (topKindOrClassName == '@fields' ||
-        topKindOrClassName == '@methods' ||
-        topKindOrClassName == '@getters' ||
-        topKindOrClassName == '@setters' ||
-        topKindOrClassName == '@typedefs') {
-      String elementName = takeElementName();
-      for (CompilationUnitElement unit in library.units) {
-        CompilationUnitElementImpl unitImpl = unit;
-        ElementImpl child = unitImpl.getChild(elementName);
-        if (child != null) {
-          return child;
-        }
-      }
-      return null;
-    }
-
-    AbstractClassElementImpl classElement;
-    for (CompilationUnitElement unit in library.units) {
-      CompilationUnitElementImpl unitImpl = unit;
-      classElement = unitImpl.getChild(topKindOrClassName);
-      if (classElement != null) {
-        break;
-      }
-    }
-    if (classElement == null) return null;
-
-    // If no more component, the class is the element.
-    if (componentPtr == 0) return classElement;
-
-    String kind = components[--componentPtr];
-    String elementName = takeElementName();
-    if (kind == '@methods') {
-      return classElement.getMethod(elementName) as ElementImpl;
-    } else if (kind == '@getters') {
-      return classElement.getGetter(elementName) as ElementImpl;
-    } else if (kind == '@setters') {
-      return classElement.getSetter(elementName) as ElementImpl;
-    } else if (kind == '@fields') {
-      return classElement.getField(elementName) as ElementImpl;
-    } else if (kind == '@constructors') {
-      if (elementName.isEmpty) {
-        return classElement.unnamedConstructor as ElementImpl;
-      }
-      return classElement.getNamedConstructor(elementName) as ElementImpl;
-    } else {
-      throw new UnimplementedError('Internal error: $kind unexpected.');
-    }
   }
 
   InterfaceType _getInterfaceType(ElementImpl context,
@@ -674,7 +680,7 @@ class _ExprBuilder {
 
   ElementImpl _getElement(kernel.Reference reference) {
     return _context.libraryContext.resynthesizer
-        ._getElement(reference?.canonicalName);
+        .getElementFromCanonicalName(reference?.canonicalName);
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {
@@ -793,7 +799,8 @@ class _KernelLibraryResynthesizerContextImpl
 
     Map<String, Element> definedNames = publicNamespace.definedNames;
     for (kernel.Reference additionalExport in library.additionalExports) {
-      var element = resynthesizer._getElement(additionalExport.canonicalName);
+      var element = resynthesizer
+          .getElementFromCanonicalName(additionalExport.canonicalName);
       if (element != null) {
         definedNames[element.name] = element;
       }
@@ -1066,8 +1073,8 @@ class _KernelUnitResynthesizerContextImpl
     if (kernelConstructor != null) {
       for (var initializer in kernelConstructor.initializers) {
         if (initializer is kernel.RedirectingInitializer) {
-          return libraryContext.resynthesizer
-                  ._getElement(initializer.targetReference.canonicalName)
+          return libraryContext.resynthesizer.getElementFromCanonicalName(
+                  initializer.targetReference.canonicalName)
               as ConstructorElementImpl;
         }
       }
@@ -1078,7 +1085,7 @@ class _KernelUnitResynthesizerContextImpl
         kernel.Member target = body.target;
         if (target != null) {
           return libraryContext.resynthesizer
-                  ._getElement(target.reference.canonicalName)
+                  .getElementFromCanonicalName(target.reference.canonicalName)
               as ConstructorElementImpl;
         }
       }

@@ -225,6 +225,10 @@ class LibraryAnalyzer {
           if (referencedNode is kernel.VariableDeclaration) {
             element = declarationToElement[referencedNode];
             assert(element != null);
+          } else if (referencedNode is kernel.Procedure) {
+            element = (_resynthesizer as KernelResynthesizer)
+                .getElementFromCanonicalName(referencedNode.canonicalName);
+            assert(element != null);
           } else {
             // TODO(scheglov) Add more supported nodes.
             throw new UnimplementedError(
