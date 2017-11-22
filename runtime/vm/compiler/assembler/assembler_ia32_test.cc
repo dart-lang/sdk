@@ -1172,15 +1172,6 @@ ASSEMBLER_TEST_GENERATE(CallSimpleLeaf, assembler) {
 ASSEMBLER_TEST_RUN(CallSimpleLeaf, test) {
   typedef int (*CallSimpleLeafCode)();
   EXPECT_EQ(42 + 87, reinterpret_cast<CallSimpleLeafCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "sub esp,0xc\n"
-      "call 0x........\n"
-      "add esp,0xc\n"
-      "sub esp,0xc\n"
-      "mov [esp],eax\n"
-      "call 0x........\n"
-      "add esp,0xc\n"
-      "ret\n");
 }
 
 ASSEMBLER_TEST_GENERATE(JumpSimpleLeaf, assembler) {
@@ -1198,12 +1189,6 @@ ASSEMBLER_TEST_GENERATE(JumpSimpleLeaf, assembler) {
 ASSEMBLER_TEST_RUN(JumpSimpleLeaf, test) {
   typedef int (*JumpSimpleLeafCode)();
   EXPECT_EQ(42, reinterpret_cast<JumpSimpleLeafCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "sub esp,0xc\n"
-      "call 0x........\n"
-      "add esp,0xc\n"
-      "ret\n"
-      "jmp 0x........\n");
 }
 
 ASSEMBLER_TEST_GENERATE(JumpConditionalSimpleLeaf, assembler) {
@@ -1224,14 +1209,6 @@ ASSEMBLER_TEST_RUN(JumpConditionalSimpleLeaf, test) {
   typedef int (*JumpConditionalSimpleLeafCode)();
   EXPECT_EQ(42,
             reinterpret_cast<JumpConditionalSimpleLeafCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "sub esp,0xc\n"
-      "call 0x........\n"
-      "add esp,0xc\n"
-      "ret\n"
-      "cmp eax,eax\n"
-      "jz 0x........\n"
-      "int3\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SingleFPMoves, assembler) {
