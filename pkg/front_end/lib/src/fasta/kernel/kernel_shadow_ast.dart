@@ -1173,8 +1173,12 @@ class ShadowLogicalExpression extends LogicalExpression
     typeNeeded = inferrer.listener.logicalExpressionEnter(this, typeContext) ||
         typeNeeded;
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(left, boolType, false);
-    inferrer.inferExpression(right, boolType, false);
+    var leftType =
+        inferrer.inferExpression(left, boolType, !inferrer.isTopLevel);
+    var rightType =
+        inferrer.inferExpression(right, boolType, !inferrer.isTopLevel);
+    inferrer.checkAssignability(boolType, leftType, left, left.fileOffset);
+    inferrer.checkAssignability(boolType, rightType, right, right.fileOffset);
     var inferredType = typeNeeded ? boolType : null;
     inferrer.listener.logicalExpressionExit(this, inferredType);
     return inferredType;

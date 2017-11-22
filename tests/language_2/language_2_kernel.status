@@ -684,8 +684,6 @@ if_null_assignment_static_test/37: MissingCompileTimeError
 if_null_assignment_static_test/39: MissingCompileTimeError
 if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_evaluation_order_test: Pass
-if_null_precedence_test/06: MissingCompileTimeError
-if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
@@ -702,7 +700,6 @@ interface_test/00: MissingCompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 is_malformed_type_test/94: MissingCompileTimeError
 is_malformed_type_test/95: MissingCompileTimeError
-is_malformed_type_test/96: MissingCompileTimeError
 is_malformed_type_test/97: MissingCompileTimeError
 is_malformed_type_test/98: MissingCompileTimeError
 is_malformed_type_test/99: MissingCompileTimeError
@@ -1376,8 +1373,6 @@ vm/type_vm_test/10: MissingCompileTimeError
 vm/type_vm_test/11: MissingCompileTimeError
 vm/type_vm_test/12: MissingCompileTimeError
 vm/type_vm_test/14: MissingCompileTimeError
-vm/type_vm_test/15: MissingCompileTimeError
-vm/type_vm_test/16: MissingCompileTimeError
 vm/type_vm_test/27: MissingCompileTimeError
 vm/type_vm_test/none: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
@@ -2316,8 +2311,6 @@ if_null_assignment_static_test/34: MissingCompileTimeError
 if_null_assignment_static_test/37: MissingCompileTimeError
 if_null_assignment_static_test/39: MissingCompileTimeError
 if_null_assignment_static_test/41: MissingCompileTimeError
-if_null_precedence_test/06: MissingCompileTimeError
-if_null_precedence_test/07: MissingCompileTimeError
 if_null_precedence_test/none: RuntimeError
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 implicit_downcast_during_assignment_test: Pass # Correctly passes.
@@ -2326,6 +2319,7 @@ implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_conditional_expression_test: Pass # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_list_literal_test: Pass # Correctly passes.
+implicit_downcast_during_logical_expression_test: Pass # Correctly passes.
 implicit_downcast_during_map_literal_test: Pass # Correctly passes.
 implicit_downcast_during_variable_declaration_test: Pass # Correctly passes.
 implicit_this_test/01: MissingCompileTimeError
@@ -2351,7 +2345,6 @@ invocation_mirror_invoke_on_test: SkipByDesign
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 is_malformed_type_test/94: MissingCompileTimeError
 is_malformed_type_test/95: MissingCompileTimeError
-is_malformed_type_test/96: MissingCompileTimeError
 is_malformed_type_test/97: MissingCompileTimeError
 is_malformed_type_test/98: MissingCompileTimeError
 is_malformed_type_test/99: MissingCompileTimeError
@@ -3342,6 +3335,7 @@ implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 implicit_downcast_during_list_literal_test: RuntimeError
+implicit_downcast_during_logical_expression_test: RuntimeError
 implicit_downcast_during_map_literal_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
