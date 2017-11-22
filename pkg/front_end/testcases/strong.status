@@ -51,7 +51,7 @@ stringliteral: Fail
 super_rasta_copy: TypeCheckError
 top_level_accessors: Fail
 type_variable_as_super: Fail
-type_variable_prefix: TypeCheckError
+type_variable_prefix: RuntimeError
 typedef: Fail
 uninitialized_fields: Fail
 unused_methods: Fail
@@ -77,7 +77,6 @@ inference/downwards_inference_on_function_expressions: TypeCheckError
 inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
 inference/downwards_inference_on_generic_function_expressions: TypeCheckError
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/downwards_inference_yield_yield_star: TypeCheckError
 inference/future_then_2: TypeCheckError
 inference/future_then_4: TypeCheckError
 inference/future_then_5: TypeCheckError
@@ -93,22 +92,19 @@ inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeC
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/generic_methods_infer_js_builtin: Fail # Issue #30029
 inference/generic_methods_iterable_and_future: TypeCheckError
-inference/generic_methods_nested_generic_instantiation: RuntimeError # Issue 31034
+inference/generic_methods_nested_generic_instantiation: RuntimeError # Issue #31304
 inference/generic_methods_uses_greatest_lower_bound: RuntimeError
 inference/infer_field_override_multiple: TypeCheckError
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TypeCheckError
 inference/infer_local_function_referenced_before_declaration: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError
-inference/infer_types_on_generic_instantiations_3: TypeCheckError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
 inference/infer_types_on_loop_indices_for_each_loop: TypeCheckError
 inference/inferred_initializing_formal_checks_default_value: TypeCheckError
 inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
-inference/local_return_and_yield: TypeCheckError
 inference/map_literals: TypeCheckError
 inference/map_literals_top_level: TypeCheckError
 inference/property_set_bad_setter: TypeCheckError
-inference/top_level_return_and_yield: TypeCheckError
 inference/unresolved_super: TypeCheckError
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824

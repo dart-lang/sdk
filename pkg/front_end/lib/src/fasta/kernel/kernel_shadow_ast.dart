@@ -1588,7 +1588,8 @@ class ShadowReturnStatement extends ReturnStatement implements ShadowStatement {
     // inferred type of the closure.  TODO(paulberry): is this what we want
     // for Fasta?
     if (expression != null) {
-      closureContext.handleReturn(inferrer, inferredType);
+      closureContext.handleReturn(
+          inferrer, inferredType, expression, fileOffset);
     }
     inferrer.listener.returnStatementExit(this);
   }
@@ -2355,7 +2356,8 @@ class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
               : inferrer.coreTypes.iterableClass);
     }
     var inferredType = inferrer.inferExpression(expression, typeContext, true);
-    closureContext.handleYield(inferrer, isYieldStar, inferredType);
+    closureContext.handleYield(
+        inferrer, isYieldStar, inferredType, expression, fileOffset);
     inferrer.listener.yieldStatementExit(this);
   }
 }

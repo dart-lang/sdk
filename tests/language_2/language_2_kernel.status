@@ -46,8 +46,6 @@ assign_to_type_test/02: MissingCompileTimeError
 assign_to_type_test/03: MissingCompileTimeError
 assign_to_type_test/04: MissingCompileTimeError
 assign_top_method_test: MissingCompileTimeError
-async_await_syntax_test/a10a: MissingCompileTimeError
-async_await_syntax_test/b10a: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
@@ -60,7 +58,6 @@ async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
-async_return_types_test/wrongTypeParameter: MissingCompileTimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_regression_2238_test: RuntimeError
@@ -429,29 +426,12 @@ external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
-factory1_test/00: MissingCompileTimeError
-factory1_test/01: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
 factory2_test/none: MissingCompileTimeError
 factory3_test/none: MissingCompileTimeError
 factory4_test/00: MissingCompileTimeError
 factory5_test/00: MissingCompileTimeError
 factory6_test/00: MissingCompileTimeError
-factory_redirection_test/01: MissingCompileTimeError
-factory_redirection_test/02: MissingCompileTimeError
-factory_redirection_test/03: MissingCompileTimeError
-factory_redirection_test/05: MissingCompileTimeError
-factory_redirection_test/06: MissingCompileTimeError
-factory_redirection_test/07: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
-factory_redirection_test/08: MissingCompileTimeError
-factory_redirection_test/09: MissingCompileTimeError
-factory_redirection_test/10: MissingCompileTimeError
-factory_redirection_test/11: MissingCompileTimeError
-factory_redirection_test/12: MissingCompileTimeError
-factory_redirection_test/13: MissingCompileTimeError
-factory_redirection_test/14: MissingCompileTimeError
-factory_redirection_test/none: MissingCompileTimeError
-factory_return_type_checked_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
 field_initialization_order_test: Fail, OK
 field_method4_test: MissingCompileTimeError
@@ -685,6 +665,7 @@ if_null_assignment_static_test/39: MissingCompileTimeError
 if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_evaluation_order_test: Pass
 if_null_precedence_test/none: RuntimeError
+implicit_downcast_during_return_async_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
@@ -949,8 +930,6 @@ number_identifier_test/05: MissingCompileTimeError
 number_identifier_test/08: MissingCompileTimeError
 number_identifier_test/09: MissingCompileTimeError
 on_catch_malformed_type_test: MissingCompileTimeError
-operator5_test: MissingCompileTimeError
-operator_equals_test: MissingCompileTimeError
 optional_named_parameters_test/01: MissingCompileTimeError
 optional_named_parameters_test/02: MissingCompileTimeError
 optional_named_parameters_test/03: MissingCompileTimeError
@@ -1068,7 +1047,6 @@ regress_23089_test: MissingCompileTimeError
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_23408_test: RuntimeError
 regress_25550_test: CompileTimeError # Issue 31402 (Variable declaration)
-regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
@@ -1079,7 +1057,6 @@ regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
-return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError # Issue 14736
@@ -1100,6 +1077,7 @@ static_getter_no_setter1_test/01: MissingCompileTimeError
 static_getter_no_setter2_test/01: MissingCompileTimeError
 static_initializer_type_error_test: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
+string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yield statements)
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError
@@ -1148,7 +1126,6 @@ switch_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation
 switch_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_fallthru_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
-sync_generator1_test/01: MissingCompileTimeError
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -1366,8 +1343,6 @@ vm/optimized_guarded_field_isolates_test: RuntimeError # Issue 31402 (Variable d
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
-vm/type_vm_test/01: MissingCompileTimeError
-vm/type_vm_test/04: MissingCompileTimeError
 vm/type_vm_test/09: MissingCompileTimeError
 vm/type_vm_test/10: MissingCompileTimeError
 vm/type_vm_test/11: MissingCompileTimeError
@@ -1481,7 +1456,6 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError # Fasta bug:
 redirecting_factory_default_values_test/02: MissingCompileTimeError # Fasta bug: Default values are not allowed on redirecting factory constructors.
 redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to private constructor.
-type_argument_in_super_type_test: RuntimeError
 
 [ $compiler == dartk && $runtime == vm && $strong && $checked ]
 assert_initializer_test/31: MissingCompileTimeError # KernelVM bug: Constant evaluation.
@@ -1589,12 +1563,10 @@ assign_to_type_test/02: MissingCompileTimeError
 assign_to_type_test/03: MissingCompileTimeError
 assign_to_type_test/04: MissingCompileTimeError
 assign_top_method_test: MissingCompileTimeError
-async_await_syntax_test/a10a: MissingCompileTimeError
 async_await_syntax_test/a12b: MissingCompileTimeError
 async_await_syntax_test/a12d: MissingCompileTimeError
 async_await_syntax_test/a15b: MissingCompileTimeError
 async_await_syntax_test/a15d: MissingCompileTimeError
-async_await_syntax_test/b10a: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
@@ -1612,7 +1584,6 @@ async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: MissingCompileTimeError
-async_return_types_test/wrongTypeParameter: MissingCompileTimeError
 async_star_cancel_while_paused_test: RuntimeError
 async_star_pause_test: Fail, OK
 async_star_test/01: CompileTimeError # Issue 2238.
@@ -2026,8 +1997,6 @@ external_test/24: CompileTimeError
 external_test/25: MissingCompileTimeError
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
-factory1_test/00: MissingCompileTimeError
-factory1_test/01: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
 factory2_test/none: MissingCompileTimeError
 factory3_test/01: Pass
@@ -2036,21 +2005,6 @@ factory3_test: Crash
 factory4_test/00: MissingCompileTimeError
 factory5_test/00: MissingCompileTimeError
 factory6_test/00: MissingCompileTimeError
-factory_redirection_test/01: MissingCompileTimeError
-factory_redirection_test/02: MissingCompileTimeError
-factory_redirection_test/03: MissingCompileTimeError
-factory_redirection_test/05: MissingCompileTimeError
-factory_redirection_test/06: MissingCompileTimeError
-factory_redirection_test/07: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
-factory_redirection_test/08: MissingCompileTimeError
-factory_redirection_test/09: MissingCompileTimeError
-factory_redirection_test/10: MissingCompileTimeError
-factory_redirection_test/11: MissingCompileTimeError
-factory_redirection_test/12: MissingCompileTimeError
-factory_redirection_test/13: MissingCompileTimeError
-factory_redirection_test/14: MissingCompileTimeError
-factory_redirection_test/none: MissingCompileTimeError
-factory_return_type_checked_test/00: MissingCompileTimeError
 field3_test/01: MissingCompileTimeError
 field_increment_bailout_test: SkipByDesign
 field_initialization_order_test: Fail, OK
@@ -2321,7 +2275,11 @@ implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_list_literal_test: Pass # Correctly passes.
 implicit_downcast_during_logical_expression_test: Pass # Correctly passes.
 implicit_downcast_during_map_literal_test: Pass # Correctly passes.
+implicit_downcast_during_return_async_test: Pass # Correctly passes.
+implicit_downcast_during_return_test: Pass # Correctly passes.
 implicit_downcast_during_variable_declaration_test: Pass # Correctly passes.
+implicit_downcast_during_yield_star_test: Pass # Correctly passes.
+implicit_downcast_during_yield_test: Pass # Correctly passes.
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
@@ -2638,8 +2596,6 @@ number_identifier_test/09: MissingCompileTimeError
 on_catch_malformed_type_test: MissingCompileTimeError
 operator1_negative_test: Fail
 operator2_negative_test: Fail
-operator5_test: MissingCompileTimeError
-operator_equals_test: MissingCompileTimeError
 optional_named_parameters_test/01: MissingCompileTimeError
 optional_named_parameters_test/02: Crash
 optional_named_parameters_test/02: MissingCompileTimeError
@@ -2767,7 +2723,6 @@ regress_23089_test: MissingCompileTimeError
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 regress_23408_test: RuntimeError
 regress_25550_test: CompileTimeError # Issue 31402 (Variable declaration)
-regress_26133_test: MissingCompileTimeError
 regress_27572_test: MissingCompileTimeError
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
@@ -2781,7 +2736,6 @@ regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
-return_type_test: MissingCompileTimeError
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
 setter4_test: MissingCompileTimeError
@@ -2807,6 +2761,7 @@ static_initializer_type_error_test: MissingCompileTimeError
 static_setter_get_test/01: MissingCompileTimeError
 static_top_level_test/00: MissingCompileTimeError
 static_top_level_test/04: MissingCompileTimeError
+string_interpolation_and_buffer_test: RuntimeError # Issue 31402 (Return and yield statements)
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError
@@ -2845,7 +2800,6 @@ switch_case_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation
 switch_case_test/02: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 switch_fallthru_test/01: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
-sync_generator1_test/01: MissingCompileTimeError
 sync_generator2_test/41: MissingCompileTimeError
 sync_generator2_test/52: MissingCompileTimeError
 syntax_test/00: MissingCompileTimeError
@@ -3337,7 +3291,11 @@ implicit_downcast_during_if_null_assignment_test: RuntimeError
 implicit_downcast_during_list_literal_test: RuntimeError
 implicit_downcast_during_logical_expression_test: RuntimeError
 implicit_downcast_during_map_literal_test: RuntimeError
+implicit_downcast_during_return_async_test: RuntimeError
+implicit_downcast_during_return_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
+implicit_downcast_during_yield_star_test: RuntimeError
+implicit_downcast_during_yield_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
@@ -3347,7 +3305,6 @@ redirecting_factory_default_values_test/02: MissingCompileTimeError # Fasta bug:
 redirecting_factory_long_test: RuntimeError # Fasta bug: Bad compilation of type arguments for redirecting factory.
 regress_20394_test/01: MissingCompileTimeError # Fasta bug: Illegal access to private constructor.
 regress_30339_test: RuntimeError
-type_argument_in_super_type_test: RuntimeError
 vm/causal_async_exception_stack_test: RuntimeError
 
 [ $compiler == dartkp ]

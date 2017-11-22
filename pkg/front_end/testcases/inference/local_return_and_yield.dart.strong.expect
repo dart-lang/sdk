@@ -9,7 +9,7 @@ static method main() → dynamic {
     return (core::int x) → core::int => x;
   }
   function b() → asy::Future<(core::int) → core::int> async {
-    return (dynamic x) → dynamic => x;
+    return ((dynamic x) → dynamic => x) as{TypeError} asy::FutureOr<(core::int) → core::int>;
   }
   function c() → core::Iterable<(core::int) → core::int> sync* {
     yield(core::int x) → core::int => x;
