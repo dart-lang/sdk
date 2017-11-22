@@ -8432,5 +8432,8 @@ LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage 
 LayoutTests/fast/dom/XMLSerializer-attribute-entities_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/serialize-attribute_t01: RuntimeError # Please triage this failure
 
+[ $compiler == dart2js && $runtime == ie11 && $builder_tag == win7]
+LayoutTests/fast/files/file-reader-result-twice_t01: Pass, RuntimeError # Issue 31430
+
 [ $compiler == dart2js && $host_checked ]
 Language/Types/Function_Types/call_t01: Crash # Issue 28894
