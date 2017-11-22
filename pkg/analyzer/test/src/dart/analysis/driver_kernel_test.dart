@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,12 +10,19 @@ import 'driver_test.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverTest_Kernel);
+    defineReflectiveTests(AnalysisDriverResolutionTest_Kernel);
   });
 }
 
 /// Tests marked with this annotations fail because we either have not triaged
 /// them, or know that this is an analyzer problem.
 const potentialAnalyzerProblem = const Object();
+
+@reflectiveTest
+class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
+  @override
+  bool get previewDart2 => true;
+}
 
 @reflectiveTest
 class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
@@ -188,55 +191,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_getResult_errors() async {
     await super.test_getResult_errors();
-  }
-
-  test_getResult_hasResolution_localVariable() async {
-    String content = r'''
-void main() {
-  var v = 42;
-  v;
-//  v = 1;
-//  v += 2;
-}
-''';
-    addTestFile(content);
-
-    AnalysisResult result = await driver.getResult(testFile);
-    expect(result.path, testFile);
-    expect(result.errors, isEmpty);
-
-    var typeProvider = result.unit.element.context.typeProvider;
-    InterfaceType intType = typeProvider.intType;
-
-    FunctionDeclaration main = result.unit.declarations[0];
-    expect(main.element, isNotNull);
-    expect(main.name.staticElement, isNotNull);
-    expect(main.name.staticType.toString(), '() → void');
-
-    BlockFunctionBody body = main.functionExpression.body;
-    NodeList<Statement> statements = body.block.statements;
-
-    // var v = 42;
-    VariableElement vElement;
-    {
-      VariableDeclarationStatement statement = statements[0];
-      VariableDeclaration vNode = statement.variables.variables[0];
-      expect(vNode.name.staticType, intType);
-      expect(vNode.initializer.staticType, intType);
-
-      vElement = vNode.name.staticElement;
-      expect(vElement, isNotNull);
-      expect(vElement.type, isNotNull);
-      expect(vElement.type, intType);
-    }
-
-    // v;
-    {
-      ExpressionStatement statement = statements[1];
-      SimpleIdentifier identifier = statement.expression;
-      expect(identifier.staticElement, vElement);
-      expect(identifier.staticType, intType);
-    }
   }
 
   @failingTest

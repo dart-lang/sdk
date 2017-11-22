@@ -39,6 +39,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverSchedulerTest);
     defineReflectiveTests(AnalysisDriverTest);
+    defineReflectiveTests(AnalysisDriverResolutionTest);
     defineReflectiveTests(CacheAllAnalysisDriverTest);
   });
 }
@@ -55,6 +56,297 @@ Future pumpEventQueue([int times = 5000]) {
   // would therefore not wait for microtask callbacks that are scheduled after
   // invoking this method.
   return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
+}
+
+/**
+ * Integration tests for resolution.
+ */
+@reflectiveTest
+class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
+  test_local_variable() async {
+    String content = r'''
+void main() {
+  var v = 42;
+  v;
+//  v = 1;
+//  v += 2;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    expect(result.errors, isEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType intType = typeProvider.intType;
+
+    FunctionDeclaration main = result.unit.declarations[0];
+    expect(main.element, isNotNull);
+    expect(main.name.staticElement, isNotNull);
+    expect(main.name.staticType.toString(), '() → void');
+
+    BlockFunctionBody body = main.functionExpression.body;
+    NodeList<Statement> statements = body.block.statements;
+
+    // var v = 42;
+    VariableElement vElement;
+    {
+      VariableDeclarationStatement statement = statements[0];
+      VariableDeclaration vNode = statement.variables.variables[0];
+      expect(vNode.name.staticType, intType);
+      expect(vNode.initializer.staticType, intType);
+
+      vElement = vNode.name.staticElement;
+      expect(vElement, isNotNull);
+      expect(vElement.type, isNotNull);
+      expect(vElement.type, intType);
+    }
+
+    // v;
+    {
+      ExpressionStatement statement = statements[1];
+      SimpleIdentifier identifier = statement.expression;
+      expect(identifier.staticElement, vElement);
+      expect(identifier.staticType, intType);
+    }
+  }
+
+  test_top_executables_class() async {
+    String content = r'''
+class C {
+  C(int p);
+  C.named(int p);
+
+  int publicMethod(double p) => 0;
+  int get publicGetter => 0;
+  void set publicSetter(double p) {}
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType typeType = typeProvider.typeType;
+    InterfaceType doubleType = typeProvider.doubleType;
+    InterfaceType intType = typeProvider.intType;
+    ClassElement doubleElement = doubleType.element;
+    ClassElement intElement = intType.element;
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+    ClassElement cElement = cNode.element;
+
+    // The class name identifier.
+    expect(cNode.name.staticElement, same(cElement));
+    expect(cNode.name.staticType, typeType);
+
+    // unnamed constructor
+    {
+      ConstructorDeclaration node = cNode.members[0];
+      expect(node.element, isNotNull);
+      expect(node.element.type.toString(), '(int) → C');
+      expect(node.returnType.staticElement, same(cElement));
+      expect(node.returnType.staticType, typeType);
+      expect(node.name, isNull);
+    }
+
+    // named constructor
+    {
+      ConstructorDeclaration node = cNode.members[1];
+      expect(node.element, isNotNull);
+      expect(node.element.type.toString(), '(int) → C');
+      expect(node.returnType.staticElement, same(cElement));
+      expect(node.returnType.staticType, typeType);
+      expect(node.name.staticElement, same(node.element));
+      expect(node.name.staticType.toString(), '(int) → C');
+    }
+
+    // publicMethod()
+    {
+      MethodDeclaration node = cNode.members[2];
+      expect(node.element, isNotNull);
+      expect(node.element.type.toString(), '(double) → int');
+
+      // method return type
+      TypeName returnType = node.returnType;
+      SimpleIdentifier returnTypeName = returnType.name;
+      expect(returnType.type, intType);
+      expect(returnTypeName.staticElement, intElement);
+      expect(returnTypeName.staticType, intType);
+
+      // method name
+      expect(node.name.staticElement, same(node.element));
+      expect(node.name.staticType, same(node.element.type));
+
+      // method parameter
+      {
+        SimpleFormalParameter pNode = node.parameters.parameters[0];
+        expect(pNode.element, isNotNull);
+        expect(pNode.element.type, doubleType);
+
+        TypeName pType = pNode.type;
+        expect(pType.name.staticElement, doubleElement);
+        expect(pType.name.staticType, doubleType);
+
+        expect(pNode.identifier.staticElement, pNode.element);
+        expect(pNode.identifier.staticType, doubleType);
+      }
+    }
+
+    // publicGetter()
+    {
+      MethodDeclaration node = cNode.members[3];
+      expect(node.element, isNotNull);
+      expect(node.element.type.toString(), '() → int');
+
+      // getter return type
+      TypeName returnType = node.returnType;
+      SimpleIdentifier returnTypeName = returnType.name;
+      expect(returnType.type, intType);
+      expect(returnTypeName.staticElement, intElement);
+      expect(returnTypeName.staticType, intType);
+
+      // getter name
+      expect(node.name.staticElement, same(node.element));
+      expect(node.name.staticType, intType);
+    }
+
+    // publicSetter()
+    {
+      MethodDeclaration node = cNode.members[4];
+      expect(node.element, isNotNull);
+      expect(node.element.type.toString(), '(double) → void');
+
+      // setter return type
+      TypeName returnType = node.returnType;
+      SimpleIdentifier returnTypeName = returnType.name;
+      expect(returnType.type, VoidTypeImpl.instance);
+      expect(returnTypeName.staticElement, isNull);
+      expect(returnTypeName.staticType, VoidTypeImpl.instance);
+
+      // setter name
+      expect(node.name.staticElement, same(node.element));
+      expect(node.name.staticType, doubleType);
+
+      // setter parameter
+      {
+        SimpleFormalParameter pNode = node.parameters.parameters[0];
+        expect(pNode.element, isNotNull);
+        expect(pNode.element.type, doubleType);
+
+        TypeName pType = pNode.type;
+        expect(pType.name.staticElement, doubleElement);
+        expect(pType.name.staticType, doubleType);
+
+        expect(pNode.identifier.staticElement, pNode.element);
+        expect(pNode.identifier.staticType, doubleType);
+      }
+    }
+  }
+
+  test_top_executables_top() async {
+    String content = r'''
+int topFunction(double p) => 0;
+int get topGetter => 0;
+void set topSetter(double p) {}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType doubleType = typeProvider.doubleType;
+    InterfaceType intType = typeProvider.intType;
+    ClassElement doubleElement = doubleType.element;
+    ClassElement intElement = intType.element;
+
+    // topFunction()
+    {
+      FunctionDeclaration node = result.unit.declarations[0];
+      expect(node.element, isNotNull);
+      expect(node.element.type.toString(), '(double) → int');
+
+      // function return type
+      TypeName returnType = node.returnType;
+      SimpleIdentifier returnTypeName = returnType.name;
+      expect(returnType.type, intType);
+      expect(returnTypeName.staticElement, intElement);
+      expect(returnTypeName.staticType, intType);
+
+      // function name
+      expect(node.name.staticElement, same(node.element));
+      expect(node.name.staticType, same(node.element.type));
+
+      // function parameter
+      {
+        SimpleFormalParameter pNode =
+            node.functionExpression.parameters.parameters[0];
+        expect(pNode.element, isNotNull);
+        expect(pNode.element.type, doubleType);
+
+        TypeName pType = pNode.type;
+        expect(pType.name.staticElement, doubleElement);
+        expect(pType.name.staticType, doubleType);
+
+        expect(pNode.identifier.staticElement, pNode.element);
+        expect(pNode.identifier.staticType, doubleType);
+      }
+    }
+
+    // topGetter()
+    {
+      FunctionDeclaration node = result.unit.declarations[1];
+      expect(node.element, isNotNull);
+      expect(node.element.type.toString(), '() → int');
+
+      // getter return type
+      TypeName returnType = node.returnType;
+      SimpleIdentifier returnTypeName = returnType.name;
+      expect(returnType.type, intType);
+      expect(returnTypeName.staticElement, intElement);
+      expect(returnTypeName.staticType, intType);
+
+      // getter name
+      expect(node.name.staticElement, same(node.element));
+      expect(node.name.staticType, intType);
+    }
+
+    // topSetter()
+    {
+      FunctionDeclaration node = result.unit.declarations[2];
+      expect(node.element, isNotNull);
+      expect(node.element.type.toString(), '(double) → void');
+
+      // setter return type
+      TypeName returnType = node.returnType;
+      SimpleIdentifier returnTypeName = returnType.name;
+      expect(returnType.type, VoidTypeImpl.instance);
+      expect(returnTypeName.staticElement, isNull);
+      expect(returnTypeName.staticType, VoidTypeImpl.instance);
+
+      // setter name
+      expect(node.name.staticElement, same(node.element));
+      expect(node.name.staticType, doubleType);
+
+      // setter parameter
+      {
+        SimpleFormalParameter pNode =
+            node.functionExpression.parameters.parameters[0];
+        expect(pNode.element, isNotNull);
+        expect(pNode.element.type, doubleType);
+
+        TypeName pType = pNode.type;
+        expect(pType.name.staticElement, doubleElement);
+        expect(pType.name.staticType, doubleType);
+
+        expect(pNode.identifier.staticElement, pNode.element);
+        expect(pNode.identifier.staticType, doubleType);
+      }
+    }
+  }
 }
 
 @reflectiveTest
@@ -1443,242 +1735,6 @@ class C {
 
     var result = await driver.getResult(testFile);
     expect(result.errors, isEmpty);
-  }
-
-  test_getResult_hasResolution_topLevel_executables_class() async {
-    String content = r'''
-class C {
-  C(int p);
-  C.named(int p);
-
-  int publicMethod(double p) => 0;
-  int get publicGetter => 0;
-  void set publicSetter(double p) {}
-}
-''';
-    addTestFile(content);
-
-    AnalysisResult result = await driver.getResult(testFile);
-    expect(result.path, testFile);
-
-    var typeProvider = result.unit.element.context.typeProvider;
-    InterfaceType typeType = typeProvider.typeType;
-    InterfaceType doubleType = typeProvider.doubleType;
-    InterfaceType intType = typeProvider.intType;
-    ClassElement doubleElement = doubleType.element;
-    ClassElement intElement = intType.element;
-
-    ClassDeclaration cNode = result.unit.declarations[0];
-    ClassElement cElement = cNode.element;
-
-    // The class name identifier.
-    expect(cNode.name.staticElement, same(cElement));
-    expect(cNode.name.staticType, typeType);
-
-    // unnamed constructor
-    {
-      ConstructorDeclaration node = cNode.members[0];
-      expect(node.element, isNotNull);
-      expect(node.element.type.toString(), '(int) → C');
-      expect(node.returnType.staticElement, same(cElement));
-      expect(node.returnType.staticType, typeType);
-      expect(node.name, isNull);
-    }
-
-    // named constructor
-    {
-      ConstructorDeclaration node = cNode.members[1];
-      expect(node.element, isNotNull);
-      expect(node.element.type.toString(), '(int) → C');
-      expect(node.returnType.staticElement, same(cElement));
-      expect(node.returnType.staticType, typeType);
-      expect(node.name.staticElement, same(node.element));
-      expect(node.name.staticType.toString(), '(int) → C');
-    }
-
-    // publicMethod()
-    {
-      MethodDeclaration node = cNode.members[2];
-      expect(node.element, isNotNull);
-      expect(node.element.type.toString(), '(double) → int');
-
-      // method return type
-      TypeName returnType = node.returnType;
-      SimpleIdentifier returnTypeName = returnType.name;
-      expect(returnType.type, intType);
-      expect(returnTypeName.staticElement, intElement);
-      expect(returnTypeName.staticType, intType);
-
-      // method name
-      expect(node.name.staticElement, same(node.element));
-      expect(node.name.staticType, same(node.element.type));
-
-      // method parameter
-      {
-        SimpleFormalParameter pNode = node.parameters.parameters[0];
-        expect(pNode.element, isNotNull);
-        expect(pNode.element.type, doubleType);
-
-        TypeName pType = pNode.type;
-        expect(pType.name.staticElement, doubleElement);
-        expect(pType.name.staticType, doubleType);
-
-        expect(pNode.identifier.staticElement, pNode.element);
-        expect(pNode.identifier.staticType, doubleType);
-      }
-    }
-
-    // publicGetter()
-    {
-      MethodDeclaration node = cNode.members[3];
-      expect(node.element, isNotNull);
-      expect(node.element.type.toString(), '() → int');
-
-      // getter return type
-      TypeName returnType = node.returnType;
-      SimpleIdentifier returnTypeName = returnType.name;
-      expect(returnType.type, intType);
-      expect(returnTypeName.staticElement, intElement);
-      expect(returnTypeName.staticType, intType);
-
-      // getter name
-      expect(node.name.staticElement, same(node.element));
-      expect(node.name.staticType, intType);
-    }
-
-    // publicSetter()
-    {
-      MethodDeclaration node = cNode.members[4];
-      expect(node.element, isNotNull);
-      expect(node.element.type.toString(), '(double) → void');
-
-      // setter return type
-      TypeName returnType = node.returnType;
-      SimpleIdentifier returnTypeName = returnType.name;
-      expect(returnType.type, VoidTypeImpl.instance);
-      expect(returnTypeName.staticElement, isNull);
-      expect(returnTypeName.staticType, VoidTypeImpl.instance);
-
-      // setter name
-      expect(node.name.staticElement, same(node.element));
-      expect(node.name.staticType, doubleType);
-
-      // setter parameter
-      {
-        SimpleFormalParameter pNode = node.parameters.parameters[0];
-        expect(pNode.element, isNotNull);
-        expect(pNode.element.type, doubleType);
-
-        TypeName pType = pNode.type;
-        expect(pType.name.staticElement, doubleElement);
-        expect(pType.name.staticType, doubleType);
-
-        expect(pNode.identifier.staticElement, pNode.element);
-        expect(pNode.identifier.staticType, doubleType);
-      }
-    }
-  }
-
-  test_getResult_hasResolution_topLevel_executables_top() async {
-    String content = r'''
-int topFunction(double p) => 0;
-int get topGetter => 0;
-void set topSetter(double p) {}
-''';
-    addTestFile(content);
-
-    AnalysisResult result = await driver.getResult(testFile);
-    expect(result.path, testFile);
-
-    var typeProvider = result.unit.element.context.typeProvider;
-    InterfaceType doubleType = typeProvider.doubleType;
-    InterfaceType intType = typeProvider.intType;
-    ClassElement doubleElement = doubleType.element;
-    ClassElement intElement = intType.element;
-
-    // topFunction()
-    {
-      FunctionDeclaration node = result.unit.declarations[0];
-      expect(node.element, isNotNull);
-      expect(node.element.type.toString(), '(double) → int');
-
-      // function return type
-      TypeName returnType = node.returnType;
-      SimpleIdentifier returnTypeName = returnType.name;
-      expect(returnType.type, intType);
-      expect(returnTypeName.staticElement, intElement);
-      expect(returnTypeName.staticType, intType);
-
-      // function name
-      expect(node.name.staticElement, same(node.element));
-      expect(node.name.staticType, same(node.element.type));
-
-      // function parameter
-      {
-        SimpleFormalParameter pNode =
-            node.functionExpression.parameters.parameters[0];
-        expect(pNode.element, isNotNull);
-        expect(pNode.element.type, doubleType);
-
-        TypeName pType = pNode.type;
-        expect(pType.name.staticElement, doubleElement);
-        expect(pType.name.staticType, doubleType);
-
-        expect(pNode.identifier.staticElement, pNode.element);
-        expect(pNode.identifier.staticType, doubleType);
-      }
-    }
-
-    // topGetter()
-    {
-      FunctionDeclaration node = result.unit.declarations[1];
-      expect(node.element, isNotNull);
-      expect(node.element.type.toString(), '() → int');
-
-      // getter return type
-      TypeName returnType = node.returnType;
-      SimpleIdentifier returnTypeName = returnType.name;
-      expect(returnType.type, intType);
-      expect(returnTypeName.staticElement, intElement);
-      expect(returnTypeName.staticType, intType);
-
-      // getter name
-      expect(node.name.staticElement, same(node.element));
-      expect(node.name.staticType, intType);
-    }
-
-    // topSetter()
-    {
-      FunctionDeclaration node = result.unit.declarations[2];
-      expect(node.element, isNotNull);
-      expect(node.element.type.toString(), '(double) → void');
-
-      // setter return type
-      TypeName returnType = node.returnType;
-      SimpleIdentifier returnTypeName = returnType.name;
-      expect(returnType.type, VoidTypeImpl.instance);
-      expect(returnTypeName.staticElement, isNull);
-      expect(returnTypeName.staticType, VoidTypeImpl.instance);
-
-      // setter name
-      expect(node.name.staticElement, same(node.element));
-      expect(node.name.staticType, doubleType);
-
-      // setter parameter
-      {
-        SimpleFormalParameter pNode =
-            node.functionExpression.parameters.parameters[0];
-        expect(pNode.element, isNotNull);
-        expect(pNode.element.type, doubleType);
-
-        TypeName pType = pNode.type;
-        expect(pType.name.staticElement, doubleElement);
-        expect(pType.name.staticType, doubleType);
-
-        expect(pNode.identifier.staticElement, pNode.element);
-        expect(pNode.identifier.staticType, doubleType);
-      }
-    }
   }
 
   test_getResult_importLibrary_thenRemoveIt() async {
