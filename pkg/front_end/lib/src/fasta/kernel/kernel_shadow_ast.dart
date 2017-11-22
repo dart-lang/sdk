@@ -1209,6 +1209,11 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
     List<DartType> actualTypes;
     assert((_declaredKeyType == null) == (_declaredValueType == null));
     bool inferenceNeeded = _declaredKeyType == null && inferrer.strongMode;
+    bool typeChecksNeeded = !inferrer.isTopLevel;
+    if (inferenceNeeded || typeChecksNeeded) {
+      formalTypes = [];
+      actualTypes = [];
+    }
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType(), const UnknownType()];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(mapType,
@@ -1216,23 +1221,21 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
           isConst: isConst);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
-      formalTypes = [];
-      actualTypes = [];
     } else {
       inferredKeyType = _declaredKeyType ?? const DynamicType();
       inferredValueType = _declaredValueType ?? const DynamicType();
     }
-    if (inferenceNeeded || !inferrer.isTopLevel) {
+    if (inferenceNeeded || typeChecksNeeded) {
       for (var entry in entries) {
         var keyType = inferrer.inferExpression(
-            entry.key, inferredKeyType, inferenceNeeded);
-        var valueType = inferrer.inferExpression(
-            entry.value, inferredValueType, inferenceNeeded);
+            entry.key, inferredKeyType, inferenceNeeded || typeChecksNeeded);
+        var valueType = inferrer.inferExpression(entry.value, inferredValueType,
+            inferenceNeeded || typeChecksNeeded);
         if (inferenceNeeded) {
           formalTypes.addAll(mapType.typeArguments);
-          actualTypes.add(keyType);
-          actualTypes.add(valueType);
         }
+        actualTypes.add(keyType);
+        actualTypes.add(valueType);
       }
     }
     if (inferenceNeeded) {
@@ -1253,6 +1256,17 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
               [inferredKeyType, inferredValueType]));
       keyType = inferredKeyType;
       valueType = inferredValueType;
+    }
+    if (typeChecksNeeded) {
+      for (int i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        var key = entry.key;
+        inferrer.checkAssignability(
+            keyType, actualTypes[2 * i], key, key.fileOffset);
+        var value = entry.value;
+        inferrer.checkAssignability(
+            valueType, actualTypes[2 * i + 1], value, value.fileOffset);
+      }
     }
     var inferredType = typeNeeded
         ? new InterfaceType(mapClass, [inferredKeyType, inferredValueType])

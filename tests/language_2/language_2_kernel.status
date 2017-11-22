@@ -105,6 +105,7 @@ built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 288
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_function2_test: CompileTimeError # Issue 31402 (map literal)
 call_function_apply_test: CompileTimeError # Issue 31402 (Invocation arguments)
 call_function_test: CompileTimeError
 call_non_method_field_test/01: MissingCompileTimeError
@@ -834,15 +835,11 @@ malformed_test/23: MissingCompileTimeError
 malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
-map_literal1_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 map_literal3_test/04: MissingCompileTimeError
-map_literal4_test/01: MissingCompileTimeError
 map_literal4_test/02: MissingCompileTimeError
-map_literal4_test/03: MissingCompileTimeError
-map_literal4_test/04: MissingCompileTimeError
 map_literal4_test/06: MissingCompileTimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
@@ -1684,6 +1681,7 @@ built_in_identifier_type_annotation_test/74: MissingCompileTimeError # Issue 288
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
+call_function2_test: CompileTimeError # Issue 31402 (map literal)
 call_function_apply_test: CompileTimeError # Issue 31402 (Invocation arguments)
 call_function_test: CompileTimeError
 call_non_method_field_test/01: MissingCompileTimeError
@@ -2328,6 +2326,7 @@ implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_conditional_expression_test: Pass # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_list_literal_test: Pass # Correctly passes.
+implicit_downcast_during_map_literal_test: Pass # Correctly passes.
 implicit_downcast_during_variable_declaration_test: Pass # Correctly passes.
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
@@ -2500,15 +2499,11 @@ malformed_test/24: MissingCompileTimeError
 malformed_type_test: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 many_overridden_no_such_method_test: SkipByDesign
-map_literal1_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 map_literal3_test/04: MissingCompileTimeError
-map_literal4_test/01: MissingCompileTimeError
 map_literal4_test/02: MissingCompileTimeError
-map_literal4_test/03: MissingCompileTimeError
-map_literal4_test/04: MissingCompileTimeError
 map_literal4_test/06: MissingCompileTimeError
 map_literal8_test: Pass
 map_literal8_test: RuntimeError
@@ -3347,6 +3342,7 @@ implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 implicit_downcast_during_list_literal_test: RuntimeError
+implicit_downcast_during_map_literal_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101

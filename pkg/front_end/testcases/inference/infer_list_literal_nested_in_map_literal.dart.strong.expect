@@ -21,6 +21,6 @@ static method getResource(core::String str) → self::Resource
   return null;
 static method main() → dynamic {
   core::Map<core::String, core::List<self::Folder>> map = <core::String, core::List<self::Folder>>{"pkgA": <self::Folder>[self::getResource("/pkgA/lib/") as{TypeError} self::Folder], "pkgB": <self::Folder>[self::getResource("/pkgB/lib/") as{TypeError} self::Folder]};
-  core::List<core::Map<core::String, self::Folder>> list = <core::Map<core::String, self::Folder>>[<core::String, self::Folder>{"pkgA": self::getResource("/pkgA/lib/")}, <core::String, self::Folder>{"pkgB": self::getResource("/pkgB/lib/")}];
+  core::List<core::Map<core::String, self::Folder>> list = <core::Map<core::String, self::Folder>>[<core::String, self::Folder>{"pkgA": self::getResource("/pkgA/lib/") as{TypeError} self::Folder}, <core::String, self::Folder>{"pkgB": self::getResource("/pkgB/lib/") as{TypeError} self::Folder}];
   self::Foo<core::List<self::Folder>> foo = new self::Foo::•<core::List<self::Folder>>(<self::Folder>[self::getResource("/pkgA/lib/") as{TypeError} self::Folder]);
 }

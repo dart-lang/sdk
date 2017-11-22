@@ -2,14 +2,14 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method foo([core::Map<core::int, core::String> m1 = const <core::int, core::String>{1: "hello"}, core::Map<core::int, core::String> m2 = const <core::int, core::String>{"hello": "world"}]) → void {}
-static method main() → void {
+static method foo([core::Map<core::int, core::String> m1 = const <core::int, core::String>{1: "hello"}, core::Map<core::int, core::String> m2 = const <core::int, core::String>{"hello" as{TypeError} core::int: "world"}]) → void {}
+static method test() → void {
   {
     core::Map<core::int, core::String> l0 = <core::int, core::String>{};
     core::Map<core::int, core::String> l1 = <core::int, core::String>{3: "hello"};
-    core::Map<core::int, core::String> l2 = <core::int, core::String>{"hello": "hello"};
-    core::Map<core::int, core::String> l3 = <core::int, core::String>{3: 3};
-    core::Map<core::int, core::String> l4 = <core::int, core::String>{3: "hello", "hello": 3};
+    core::Map<core::int, core::String> l2 = <core::int, core::String>{"hello" as{TypeError} core::int: "hello"};
+    core::Map<core::int, core::String> l3 = <core::int, core::String>{3: 3 as{TypeError} core::String};
+    core::Map<core::int, core::String> l4 = <core::int, core::String>{3: "hello", "hello" as{TypeError} core::int: 3 as{TypeError} core::String};
   }
   {
     core::Map<dynamic, dynamic> l0 = <dynamic, dynamic>{};
@@ -22,15 +22,15 @@ static method main() → void {
     core::Map<dynamic, core::String> l0 = <dynamic, core::String>{};
     core::Map<dynamic, core::String> l1 = <dynamic, core::String>{3: "hello"};
     core::Map<dynamic, core::String> l2 = <dynamic, core::String>{"hello": "hello"};
-    core::Map<dynamic, core::String> l3 = <dynamic, core::String>{3: 3};
-    core::Map<dynamic, core::String> l4 = <dynamic, core::String>{3: "hello", "hello": 3};
+    core::Map<dynamic, core::String> l3 = <dynamic, core::String>{3: 3 as{TypeError} core::String};
+    core::Map<dynamic, core::String> l4 = <dynamic, core::String>{3: "hello", "hello": 3 as{TypeError} core::String};
   }
   {
     core::Map<core::int, dynamic> l0 = <core::int, dynamic>{};
     core::Map<core::int, dynamic> l1 = <core::int, dynamic>{3: "hello"};
-    core::Map<core::int, dynamic> l2 = <core::int, dynamic>{"hello": "hello"};
+    core::Map<core::int, dynamic> l2 = <core::int, dynamic>{"hello" as{TypeError} core::int: "hello"};
     core::Map<core::int, dynamic> l3 = <core::int, dynamic>{3: 3};
-    core::Map<core::int, dynamic> l4 = <core::int, dynamic>{3: "hello", "hello": 3};
+    core::Map<core::int, dynamic> l4 = <core::int, dynamic>{3: "hello", "hello" as{TypeError} core::int: 3};
   }
   {
     core::Map<core::int, core::String> l0 = <core::num, dynamic>{} as{TypeError} core::Map<core::int, core::String>;
@@ -40,8 +40,9 @@ static method main() → void {
   {
     const core::Map<core::int, core::String> l0 = const <core::int, core::String>{};
     const core::Map<core::int, core::String> l1 = const <core::int, core::String>{3: "hello"};
-    const core::Map<core::int, core::String> l2 = const <core::int, core::String>{"hello": "hello"};
-    const core::Map<core::int, core::String> l3 = const <core::int, core::String>{3: 3};
-    const core::Map<core::int, core::String> l4 = const <core::int, core::String>{3: "hello", "hello": 3};
+    const core::Map<core::int, core::String> l2 = const <core::int, core::String>{"hello" as{TypeError} core::int: "hello"};
+    const core::Map<core::int, core::String> l3 = const <core::int, core::String>{3: 3 as{TypeError} core::String};
+    const core::Map<core::int, core::String> l4 = const <core::int, core::String>{3: "hello", "hello" as{TypeError} core::int: 3 as{TypeError} core::String};
   }
 }
+static method main() → dynamic {}

@@ -77,7 +77,6 @@ inference/downwards_inference_on_function_expressions: TypeCheckError
 inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
 inference/downwards_inference_on_generic_function_expressions: TypeCheckError
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
-inference/downwards_inference_on_map_literals: TypeCheckError
 inference/downwards_inference_yield_yield_star: TypeCheckError
 inference/future_then_2: TypeCheckError
 inference/future_then_4: TypeCheckError
