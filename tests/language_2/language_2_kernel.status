@@ -1343,7 +1343,6 @@ vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading k
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/10: MissingCompileTimeError
-vm/type_vm_test/11: MissingCompileTimeError
 vm/type_vm_test/12: MissingCompileTimeError
 vm/type_vm_test/27: MissingCompileTimeError
 vm/type_vm_test/none: RuntimeError
@@ -2269,6 +2268,7 @@ implicit_downcast_during_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_combiner_test: Pass # Correctly passes.
 implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_conditional_expression_test: Pass # Correctly passes.
+implicit_downcast_during_do_test: Pass # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_if_statement_test: Pass # Correctly passes.
 implicit_downcast_during_list_literal_test: Pass # Correctly passes.
@@ -3285,6 +3285,7 @@ implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError
+implicit_downcast_during_do_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
 implicit_downcast_during_if_statement_test: RuntimeError
 implicit_downcast_during_list_literal_test: RuntimeError

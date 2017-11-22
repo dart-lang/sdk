@@ -614,8 +614,11 @@ class ShadowDoStatement extends DoStatement implements ShadowStatement {
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.doStatementEnter(this);
     inferrer.inferStatement(body);
-    inferrer.inferExpression(
-        condition, inferrer.coreTypes.boolClass.rawType, false);
+    var boolType = inferrer.coreTypes.boolClass.rawType;
+    var actualType =
+        inferrer.inferExpression(condition, boolType, !inferrer.isTopLevel);
+    inferrer.checkAssignability(
+        boolType, actualType, condition, condition.fileOffset);
     inferrer.listener.doStatementExit(this);
   }
 }

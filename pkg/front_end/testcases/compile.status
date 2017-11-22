@@ -94,6 +94,7 @@ regress/issue_29982: Fail # Issue 29982.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31155: Crash # Issue 31155.
 
+runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_if: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_not: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError # Test exercises strong mode semantics
