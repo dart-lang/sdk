@@ -269,6 +269,7 @@ built_in_identifier_type_annotation_test/68: MissingCompileTimeError
 call_function_apply_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::A' can't be assigned to a variable of type 'dart.core::Function'.
 call_function_apply_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::A' can't be assigned to a variable of type 'dart.core::Function'.
 call_function_test: CompileTimeError
+call_function2_test: CompileTimeError # Issue 31402; Error: A value of type '#lib1::Bar' can't be assigned to a variable of type '(dart.core::Object) → dart.core::Object'.
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
