@@ -338,6 +338,9 @@ ASSEMBLER_TEST_RUN(WordOverflow, test) {
 // Loads and Stores.
 ASSEMBLER_TEST_GENERATE(SimpleLoadStore, assembler) {
   __ SetupDartSP();
+
+  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+
   __ movz(R0, Immediate(43), 0);
   __ movz(R1, Immediate(42), 0);
   __ str(R1, Address(SP, -1 * kWordSize, Address::PreIndex));
@@ -369,6 +372,9 @@ ASSEMBLER_TEST_RUN(SimpleLoadStoreHeapTag, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadStoreLargeIndex, assembler) {
   __ SetupDartSP();
+
+  __ sub(CSP, CSP, Operand(32 * kWordSize));  // Must not access beyond CSP.
+
   __ movz(R0, Immediate(43), 0);
   __ movz(R1, Immediate(42), 0);
   // Largest negative offset that can fit in the signed 9-bit immediate field.
@@ -448,6 +454,9 @@ ASSEMBLER_TEST_RUN(LoadStoreScaledReg, test) {
 
 ASSEMBLER_TEST_GENERATE(LoadSigned32Bit, assembler) {
   __ SetupDartSP();
+
+  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+
   __ LoadImmediate(R1, 0xffffffff);
   __ str(R1, Address(SP, -4, Address::PreIndex, kWord), kWord);
   __ ldr(R0, Address(SP), kWord);
@@ -463,6 +472,9 @@ ASSEMBLER_TEST_RUN(LoadSigned32Bit, test) {
 
 ASSEMBLER_TEST_GENERATE(SimpleLoadStorePair, assembler) {
   __ SetupDartSP();
+
+  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+
   __ LoadImmediate(R2, 43);
   __ LoadImmediate(R3, 42);
   __ stp(R2, R3, Address(SP, -2 * kWordSize, Address::PairPreIndex));
@@ -2194,6 +2206,9 @@ ASSEMBLER_TEST_RUN(Fmovsr, test) {
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdPrePostIndex, assembler) {
   __ SetupDartSP();
+
+  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+
   __ LoadDImmediate(V1, 42.0);
   __ fstrd(V1, Address(SP, -1 * kWordSize, Address::PreIndex));
   __ fldrd(V0, Address(SP, 1 * kWordSize, Address::PostIndex));
@@ -2208,6 +2223,9 @@ ASSEMBLER_TEST_RUN(FldrdFstrdPrePostIndex, test) {
 
 ASSEMBLER_TEST_GENERATE(FldrsFstrsPrePostIndex, assembler) {
   __ SetupDartSP();
+
+  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+
   __ LoadDImmediate(V1, 42.0);
   __ fcvtsd(V2, V1);
   __ fstrs(V2, Address(SP, -1 * kWordSize, Address::PreIndex));
@@ -2224,6 +2242,9 @@ ASSEMBLER_TEST_RUN(FldrsFstrsPrePostIndex, test) {
 
 ASSEMBLER_TEST_GENERATE(FldrqFstrqPrePostIndex, assembler) {
   __ SetupDartSP();
+
+  __ sub(CSP, CSP, Operand(2 * kWordSize));  // Must not access beyond CSP.
+
   __ LoadDImmediate(V1, 21.0);
   __ LoadDImmediate(V2, 21.0);
   __ LoadImmediate(R1, 42);
@@ -2402,6 +2423,9 @@ ASSEMBLER_TEST_RUN(FldrdFstrdHeapTag, test) {
 
 ASSEMBLER_TEST_GENERATE(FldrdFstrdLargeIndex, assembler) {
   __ SetupDartSP();
+
+  __ sub(CSP, CSP, Operand(32 * kWordSize));  // Must not access beyond CSP.
+
   __ LoadDImmediate(V0, 43.0);
   __ LoadDImmediate(V1, 42.0);
   // Largest negative offset that can fit in the signed 9-bit immediate field.
@@ -2899,6 +2923,9 @@ ASSEMBLER_TEST_GENERATE(Vdupd, assembler) {
 
   const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
   const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+
+  __ sub(CSP, CSP, Operand(qword_bytes));  // Must not access beyond CSP.
+
   __ fstrq(V1, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
   __ fldrd(V2, Address(SP, 1 * dword_bytes, Address::PostIndex));
@@ -2922,6 +2949,9 @@ ASSEMBLER_TEST_GENERATE(Vdups, assembler) {
 
   const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
   const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+
+  __ sub(CSP, CSP, Operand(qword_bytes));  // Must not access beyond CSP.
+
   __ fstrq(V1, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
   __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
@@ -2953,6 +2983,9 @@ ASSEMBLER_TEST_GENERATE(Vinsd, assembler) {
 
   const int dword_bytes = 1 << Log2OperandSizeBytes(kDWord);
   const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+
+  __ sub(CSP, CSP, Operand(qword_bytes));  // Must not access beyond CSP.
+
   __ fstrq(V1, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
   __ fldrd(V2, Address(SP, 1 * dword_bytes, Address::PostIndex));
@@ -2970,13 +3003,23 @@ ASSEMBLER_TEST_RUN(Vinsd, test) {
 
 ASSEMBLER_TEST_GENERATE(Vinss, assembler) {
   __ SetupDartSP();
+  // Set V1 parts 1 and 3 to 21.0.
   __ LoadDImmediate(V0, 21.0);
   __ fcvtsd(V0, V0);
   __ vinss(V1, 3, V0, 0);
   __ vinss(V1, 1, V0, 0);
 
+  // Set V1 parts 0 and 2 to 0.0.
+  __ LoadDImmediate(V0, 0.0);
+  __ fcvtsd(V0, V0);
+  __ vinss(V1, 2, V0, 0);
+  __ vinss(V1, 0, V0, 0);
+
   const int sword_bytes = 1 << Log2OperandSizeBytes(kSWord);
   const int qword_bytes = 1 << Log2OperandSizeBytes(kQWord);
+
+  __ sub(CSP, CSP, Operand(qword_bytes));  // Must not access beyond CSP.
+
   __ fstrq(V1, Address(SP, -1 * qword_bytes, Address::PreIndex));
 
   __ fldrs(V3, Address(SP, 1 * sword_bytes, Address::PostIndex));
