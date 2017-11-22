@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
@@ -62,6 +63,25 @@ f(String s, int i) {
       typeProvider.intType,
       typeProvider.stringType
     ]);
+  }
+
+  void test_genericFunctionType() {
+    GenericFunctionTypeElementImpl element =
+        new GenericFunctionTypeElementImpl.forOffset(8);
+    element.enclosingElement = new FunctionElementImpl('f', 0);
+    element.typeParameters = <TypeParameterElement>[];
+    element.returnType = typeProvider.intType;
+    element.parameters = [
+      new ParameterElementImpl('', -1)..type = typeProvider.stringType,
+      new ParameterElementImpl('x', 34)..type = typeProvider.boolType,
+    ];
+    FunctionTypeImpl functionType = new FunctionTypeImpl(element);
+    element.type = functionType;
+    applyTypes(r'''
+f() {
+  int Function(String, bool x) foo;
+}
+''', [], [], <DartType>[functionType]);
   }
 
   void test_listLiteral_const_noAnnotation() {
@@ -178,5 +198,39 @@ get f => <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
       typeProvider.mapType
           .instantiate([typeProvider.stringType, typeProvider.intType])
     ]);
+  }
+
+  @failingTest
+  void test_typeAlias() {
+    TypeParameterElement B = _createTypeParameter('B', 42);
+    TypeParameterElement C = _createTypeParameter('C', 45);
+    GenericTypeAliasElementImpl element =
+        new GenericTypeAliasElementImpl('A', 40);
+    element.typeParameters = <TypeParameterElement>[B, C];
+    GenericFunctionTypeElementImpl functionElement =
+        element.function = new GenericFunctionTypeElementImpl.forOffset(-1);
+    functionElement.typeParameters = <TypeParameterElement>[];
+    functionElement.returnType = B.type;
+    functionElement.parameters = [
+      new ParameterElementImpl('x', 48)..type = C.type,
+    ];
+    FunctionTypeImpl functionType = new FunctionTypeImpl.forTypedef(element);
+    applyTypes(r'''
+f() {
+  A<int, String> foo;
+}
+//typedef B A<B, C>(C x);
+''', [], [], <DartType>[functionType]);
+  }
+
+  /// Return a newly created type parameter element with the given [name] and
+  /// [offset].
+  TypeParameterElement _createTypeParameter(String name, int offset) {
+    TypeParameterElementImpl typeParameter =
+        new TypeParameterElementImpl(name, offset);
+    TypeParameterTypeImpl typeParameterType =
+        new TypeParameterTypeImpl(typeParameter);
+    typeParameter.type = typeParameterType;
+    return typeParameter;
   }
 }

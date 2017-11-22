@@ -132,6 +132,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// [typeAnnotation].
   void _applyToTypeAnnotation(DartType type, TypeAnnotation typeAnnotation) {
     if (typeAnnotation is GenericFunctionTypeImpl) {
+      // TODO(brianwilkerson) Finish adding support for generic function types.
       typeAnnotation.type = type;
     } else if (typeAnnotation is TypeNameImpl) {
       typeAnnotation.type = type;
@@ -158,6 +159,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       for (int i = 0; i < argumentCount; i++) {
         _applyToTypeAnnotation(argumentTypes[i], typeArguments[i]);
       }
+    } else if (type is FunctionType) {
+      // TODO(brianwilkerson) Add support for function types.
+      throw new StateError('Support for function types is not yet implemented');
     } else {
       throw new StateError('Attempting to apply a non-interface type '
           '(${type.runtimeType}) to type arguments');
