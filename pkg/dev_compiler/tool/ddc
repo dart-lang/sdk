@@ -19,11 +19,13 @@ fi
 BASENAME=$( basename "${1%.*}")
 LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
 
-export NODE_PATH=$DDC_PATH/lib/js/common:$LIBROOT:$NODE_PATH
+# TODO(vsm): Change this to use the regular built version of the summaries
+# and the SDK.
+export NODE_PATH=$DDC_PATH/gen/sdk/common:$LIBROOT:$NODE_PATH
 
 # Build the SDK in a place where we can find it if it's not already there.
-if [ ! -e gen/sdk/ddc_sdk.sum ]; then
-  ./tool/build_sdk.sh
+if [ ! -e $DDC_PATH/gen/sdk/ddc_sdk.sum ]; then
+  $DDC_PATH/tool/build_sdk.sh
 fi
 
 if [ "$KERNEL" = true ]; then
