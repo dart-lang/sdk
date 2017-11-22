@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
 
@@ -11,18 +12,44 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   /// Indicates whether debug messages should be printed.
   static const bool _debug = false;
 
+  final List<int> _declarationOffsets;
+  final List<int> _referenceOffsets;
   final List<int> _typeOffsets;
-  final List<int> _deferredOffsets = [];
+  final List<int> _deferredTypeOffsets = [];
 
-  InstrumentedResolutionStorer(List<DartType> types, this._typeOffsets)
-      : super(types);
+  InstrumentedResolutionStorer(
+      List<Statement> declarations,
+      List<Node> references,
+      List<DartType> types,
+      this._declarationOffsets,
+      this._referenceOffsets,
+      this._typeOffsets)
+      : super(declarations, references, types);
 
   @override
   void _deferType(int offset) {
     super._deferType(offset);
     if (_debug) {
-      _deferredOffsets.add(offset);
+      _deferredTypeOffsets.add(offset);
     }
+  }
+
+  @override
+  void _recordDeclaration(Statement declaration, int offset) {
+    if (_debug) {
+      print('Recording declaration of $declaration for offset $offset');
+    }
+    _declarationOffsets.add(offset);
+    super._recordDeclaration(declaration, offset);
+  }
+
+  @override
+  void _recordReference(Node target, int offset) {
+    if (_debug) {
+      print('Recording reference to $target for offset $offset');
+    }
+    _referenceOffsets.add(offset);
+    super._recordReference(target, offset);
   }
 
   @override
@@ -38,7 +65,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   @override
   void _replaceType(DartType type) {
     if (_debug) {
-      int offset = _deferredOffsets.removeLast();
+      int offset = _deferredTypeOffsets.removeLast();
       print('Replacing type $type for offset $offset');
     }
     super._replaceType(type);
@@ -48,12 +75,14 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
 class ResolutionStorer extends TypeInferenceListener {
+  final List<Statement> _declarations;
+  final List<Node> _references;
   final List<DartType> _types;
 
   /// Indices into [_types] which need to be filled in later.
   final _deferredTypeSlots = <int>[];
 
-  ResolutionStorer(this._types);
+  ResolutionStorer(this._declarations, this._references, this._types);
 
   /// Verifies that all deferred work has been completed.
   void finished() {
@@ -93,17 +122,29 @@ class ResolutionStorer extends TypeInferenceListener {
     super.methodInvocationBeforeArgs(expression, isImplicitCall);
   }
 
+  void typeLiteralExit(TypeLiteral expression, DartType inferredType) {
+    _recordReference(expression.type, expression.fileOffset);
+    super.typeLiteralExit(expression, inferredType);
+  }
+
   @override
   void methodInvocationExit(Expression expression, Arguments arguments,
-      bool isImplicitCall, DartType inferredType) {
+      bool isImplicitCall, Object interfaceMember, DartType inferredType) {
     if (!isImplicitCall) {
       // TODO(paulberry): get the actual callee function type from the inference
       // engine
       var calleeType = const DynamicType();
       _replaceType(calleeType);
+      _recordReference(interfaceMember, expression.fileOffset);
     }
     _recordType(inferredType, arguments.fileOffset);
     super.genericExpressionExit("methodInvocation", expression, inferredType);
+  }
+
+  @override
+  void staticGetExit(StaticGet expression, DartType inferredType) {
+    _recordReference(expression.target, expression.fileOffset);
+    super.staticGetExit(expression, inferredType);
   }
 
   @override
@@ -132,6 +173,7 @@ class ResolutionStorer extends TypeInferenceListener {
     var calleeType = const DynamicType();
     _replaceType(calleeType);
     _recordType(inferredType, expression.arguments.fileOffset);
+    _recordReference(expression.target, expression.fileOffset);
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
@@ -144,8 +186,15 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   void variableDeclarationExit(
       VariableDeclaration statement, DartType inferredType) {
+    _recordDeclaration(statement, statement.fileOffset);
     _replaceType(inferredType);
     super.variableDeclarationExit(statement, inferredType);
+  }
+
+  @override
+  void variableGetExit(VariableGet expression, DartType inferredType) {
+    _recordReference(expression.variable, expression.fileOffset);
+    super.variableGetExit(expression, inferredType);
   }
 
   /// Record `null` as the type at the given [offset], and put the current
@@ -153,6 +202,14 @@ class ResolutionStorer extends TypeInferenceListener {
   void _deferType(int offset) {
     int slot = _recordType(null, offset);
     _deferredTypeSlots.add(slot);
+  }
+
+  void _recordDeclaration(Statement declaration, int offset) {
+    _declarations.add(declaration);
+  }
+
+  void _recordReference(Node target, int offset) {
+    _references.add(target);
   }
 
   int _recordType(DartType type, int offset) {

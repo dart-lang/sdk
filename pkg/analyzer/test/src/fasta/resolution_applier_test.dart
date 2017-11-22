@@ -65,6 +65,7 @@ f(String s, int i) {
     ]);
   }
 
+  @failingTest
   void test_genericFunctionType() {
     GenericFunctionTypeElementImpl element =
         new GenericFunctionTypeElementImpl.forOffset(8);

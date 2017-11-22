@@ -50,8 +50,26 @@ class AnalyzerLoader<L> extends SourceLoader<L> {
 }
 
 class AnalyzerTarget extends KernelTarget {
+  /// The list of local declarations stored by body builders while
+  /// compiling the library.
+  final List<kernel.Statement> kernelDeclarations = [];
+
+  /// The list of references to local or external stored by body builders
+  /// while compiling the library.
+  final List<kernel.TreeNode> kernelReferences = [];
+
   /// The list of types stored by body builders while compiling the library.
   final List<kernel.DartType> kernelTypes = [];
+
+  /// File offsets corresponding to the declarations in [kernelDeclarations].
+  ///
+  /// These are used strictly for validation purposes.
+  final List<int> declarationOffsets = [];
+
+  /// File offsets corresponding to the objects in [kernelReferences].
+  ///
+  /// These are used strictly for validation purposes.
+  final List<int> referenceOffsets = [];
 
   /// File offsets corresponding to the types in [kernelTypes].
   ///
@@ -64,7 +82,13 @@ class AnalyzerTarget extends KernelTarget {
 
   @override
   AnalyzerLoader<kernel.Library> createLoader() {
-    var storer = new InstrumentedResolutionStorer(kernelTypes, typeOffsets);
+    var storer = new InstrumentedResolutionStorer(
+        kernelDeclarations,
+        kernelReferences,
+        kernelTypes,
+        declarationOffsets,
+        referenceOffsets,
+        typeOffsets);
     return new AnalyzerLoader<kernel.Library>(fileSystem, this, storer);
   }
 }

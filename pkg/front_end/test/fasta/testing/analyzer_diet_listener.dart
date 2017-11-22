@@ -8,6 +8,8 @@ import 'package:analyzer/dart/ast/ast.dart' as ast show AstNode, ClassMember;
 
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' show astFactory;
 
+import 'package:analyzer/dart/element/element.dart' as ast;
+
 import 'package:analyzer/dart/element/type.dart' as ast show DartType;
 
 import 'package:analyzer/src/dart/element/type.dart';
@@ -52,7 +54,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/kernel.dart' as kernel show DartType;
+import 'package:kernel/kernel.dart' as kernel;
 
 class AnalyzerDietListener extends DietListener {
   /// The body builder for the method currently being compiled, or `null` if no
@@ -61,9 +63,29 @@ class AnalyzerDietListener extends DietListener {
   /// Needed because it performs resolution and type inference.
   BodyBuilder _bodyBuilder;
 
+  /// The list of local declarations in the body builder for the method
+  /// currently being compiled, or `null` if no method is currently being
+  /// compiled.
+  List<kernel.Statement> _kernelDeclarations;
+
+  /// The list of objects referenced by the body builder for the method
+  /// currently being compiled, or `null` if no method is currently being
+  /// compiled.
+  List<kernel.Node> _kernelReferences;
+
   /// The list of types inferred by the body builder for the method currently
   /// being compiled, or `null` if no method is currently being compiled.
   List<kernel.DartType> _kernelTypes;
+
+  /// File offsets corresponding to the items in [_kernelDeclarations].
+  ///
+  /// These are used strictly for validation purposes.
+  List<int> _declarationOffsets;
+
+  /// File offsets corresponding to the items in [_kernelReferences].
+  ///
+  /// These are used strictly for validation purposes.
+  List<int> _referenceOffsets;
 
   /// File offsets corresponding to the types in [_kernelTypes].
   ///
@@ -73,32 +95,6 @@ class AnalyzerDietListener extends DietListener {
   AnalyzerDietListener(SourceLibraryBuilder library, ClassHierarchy hierarchy,
       CoreTypes coreTypes, TypeInferenceEngine typeInferenceEngine)
       : super(library, hierarchy, coreTypes, typeInferenceEngine);
-
-  /// Calls the parser (via [parserCallback]) using a body builder initialized
-  /// to do type inference for the given [builder].
-  ///
-  /// When parsing methods, [formalParameterScope] should be set to the formal
-  /// parameter scope; otherwise it should be `null`.
-  void _withBodyBuilder(ModifierBuilder builder, Scope formalParameterScope,
-      void parserCallback()) {
-    // Create a body builder to do type inference, and a listener to record the
-    // types that are inferred.
-    _kernelTypes = <kernel.DartType>[];
-    _typeOffsets = <int>[];
-    var resolutionStorer =
-        new InstrumentedResolutionStorer(_kernelTypes, _typeOffsets);
-    _bodyBuilder = super.createListener(builder, memberScope,
-        builder.isInstanceMember, formalParameterScope, resolutionStorer);
-    // Run the parser callback; this will build the analyzer AST, run
-    // the body builder to do type inference, and then copy the inferred types
-    // over to the analyzer AST.
-    parserCallback();
-    resolutionStorer.finished();
-    // The inferred types and the body builder are no longer needed.
-    _bodyBuilder = null;
-    _kernelTypes = null;
-    _typeOffsets = null;
-  }
 
   @override
   void buildFields(int count, Token token, bool isTopLevel) {
@@ -162,6 +158,44 @@ class AnalyzerDietListener extends DietListener {
   AsyncMarker getAsyncMarker(StackListener listener) => null;
 
   @override
+  void listenerFinishFields(
+      StackListener listener, Token token, Token metadata, bool isTopLevel) {
+    // TODO(paulberry): this duplicates a lot of code from
+    // DietListener.parseFields.
+
+    // At this point the analyzer AST has been built, but it doesn't contain
+    // resolution data or inferred types.  Run the body builder and gather
+    // this information.
+    Parser parser = new Parser(_bodyBuilder);
+    if (isTopLevel) {
+      // There's a slight asymmetry between [parseTopLevelMember] and
+      // [parseMember] because the former doesn't call `parseMetadataStar`.
+      token = parser
+          .parseMetadataStar(parser.syntheticPreviousToken(metadata ?? token));
+      token = parser.parseTopLevelMember(token).next;
+    } else {
+      token = parser.parseMember(metadata ?? token).next;
+    }
+    _bodyBuilder.finishFields();
+    _bodyBuilder.checkEmpty(token.charOffset);
+
+    // Now apply the resolution data and inferred types to the analyzer AST.
+    var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
+    var translatedReferences = _translateReferences(_kernelReferences);
+    var translatedTypes = _translateTypes(_kernelTypes);
+    var resolutionApplier = new ValidatingResolutionApplier(
+        translatedDeclarations,
+        translatedReferences,
+        translatedTypes,
+        _declarationOffsets,
+        _referenceOffsets,
+        _typeOffsets);
+    ast.AstNode fields = listener.finishFields();
+    fields.accept(resolutionApplier);
+    resolutionApplier.checkDone();
+  }
+
+  @override
   void listenerFinishFunction(
       StackListener listener,
       Token token,
@@ -197,9 +231,16 @@ class AnalyzerDietListener extends DietListener {
         bodyBuilderFormals, asyncModifier, bodyBuilderBody);
 
     // Now apply the resolution data and inferred types to the analyzer AST.
+    var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
+    var translatedReferences = _translateReferences(_kernelReferences);
     var translatedTypes = _translateTypes(_kernelTypes);
-    var resolutionApplier =
-        new ValidatingResolutionApplier([], [], translatedTypes, _typeOffsets);
+    var resolutionApplier = new ValidatingResolutionApplier(
+        translatedDeclarations,
+        translatedReferences,
+        translatedTypes,
+        _declarationOffsets,
+        _referenceOffsets,
+        _typeOffsets);
     ast.AstNode bodyAsAstNode = body;
     bodyAsAstNode.accept(resolutionApplier);
     resolutionApplier.checkDone();
@@ -207,41 +248,63 @@ class AnalyzerDietListener extends DietListener {
     listener.finishFunction(metadataConstants, formals, asyncModifier, body);
   }
 
-  @override
-  void listenerFinishFields(
-      StackListener listener, Token token, Token metadata, bool isTopLevel) {
-    // TODO(paulberry): this duplicates a lot of code from
-    // DietListener.parseFields.
+  /// Calls the parser (via [parserCallback]) using a body builder initialized
+  /// to do type inference for the given [builder].
+  ///
+  /// When parsing methods, [formalParameterScope] should be set to the formal
+  /// parameter scope; otherwise it should be `null`.
+  void _withBodyBuilder(ModifierBuilder builder, Scope formalParameterScope,
+      void parserCallback()) {
+    // Create a body builder to do type inference, and a listener to record the
+    // types that are inferred.
+    _kernelDeclarations = <kernel.Statement>[];
+    _kernelReferences = <kernel.Node>[];
+    _kernelTypes = <kernel.DartType>[];
+    _declarationOffsets = <int>[];
+    _referenceOffsets = <int>[];
+    _typeOffsets = <int>[];
+    var resolutionStorer = new InstrumentedResolutionStorer(
+        _kernelDeclarations,
+        _kernelReferences,
+        _kernelTypes,
+        _declarationOffsets,
+        _referenceOffsets,
+        _typeOffsets);
+    _bodyBuilder = super.createListener(builder, memberScope,
+        builder.isInstanceMember, formalParameterScope, resolutionStorer);
+    // Run the parser callback; this will build the analyzer AST, run
+    // the body builder to do type inference, and then copy the inferred types
+    // over to the analyzer AST.
+    parserCallback();
+    resolutionStorer.finished();
+    // The inferred types and the body builder are no longer needed.
+    _bodyBuilder = null;
+    _kernelDeclarations = null;
+    _kernelReferences = null;
+    _kernelTypes = null;
+    _declarationOffsets = null;
+    _referenceOffsets = null;
+    _typeOffsets = null;
+  }
 
-    // At this point the analyzer AST has been built, but it doesn't contain
-    // resolution data or inferred types.  Run the body builder and gather
-    // this information.
-    Parser parser = new Parser(_bodyBuilder);
-    if (isTopLevel) {
-      // There's a slight asymmetry between [parseTopLevelMember] and
-      // [parseMember] because the former doesn't call `parseMetadataStar`.
-      token = parser
-          .parseMetadataStar(parser.syntheticPreviousToken(metadata ?? token));
-      token = parser.parseTopLevelMember(token).next;
-    } else {
-      token = parser.parseMember(metadata ?? token).next;
-    }
-    _bodyBuilder.finishFields();
-    _bodyBuilder.checkEmpty(token.charOffset);
+  /// Translates the given kernel declarations into analyzer elements.
+  static List<ast.Element> _translateDeclarations(
+      List<kernel.Statement> kernelDeclarations) {
+    // TODO(scheglov): implement proper translation of elements.
+    return new List<ast.Element>.filled(kernelDeclarations.length, null);
+  }
 
-    // Now apply the resolution data and inferred types to the analyzer AST.
-    var translatedTypes = _translateTypes(_kernelTypes);
-    var resolutionApplier =
-        new ValidatingResolutionApplier([], [], translatedTypes, _typeOffsets);
-    ast.AstNode fields = listener.finishFields();
-    fields.accept(resolutionApplier);
-    resolutionApplier.checkDone();
+  /// Translates the given kernel references into analyzer elements.
+  static List<ast.Element> _translateReferences(
+      List<kernel.Node> kernelDeclarations) {
+    // TODO(scheglov): implement proper translation of elements.
+    return new List<ast.Element>.filled(kernelDeclarations.length, null);
   }
 
   /// Translates the given kernel types into analyzer types.
   static List<ast.DartType> _translateTypes(List<kernel.DartType> kernelTypes) {
     // For now we just translate everything to `dynamic`.
-    // TODO(paulberry): implement propert translation of types.
+    // TODO(paulberry): implement proper translation of types.
     return new List<ast.DartType>.filled(
         kernelTypes.length, DynamicTypeImpl.instance);
   }

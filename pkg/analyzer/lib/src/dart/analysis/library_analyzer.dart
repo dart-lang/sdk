@@ -34,6 +34,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:front_end/src/dependency_walker.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
+import 'package:kernel/kernel.dart' as kernel;
 
 /**
  * Analyzer of a single library.
@@ -208,8 +209,37 @@ class LibraryAnalyzer {
           astTypes.add(astType);
         }
 
+        // Convert local declarations into elements.
+        List<Element> declaredElements = [];
+        Map<kernel.Statement, Element> declarationToElement = {};
+        for (var declaredNode in analyzerTarget.kernelDeclarations) {
+          var element = _translateKernelDeclaration(declaredNode);
+          declaredElements.add(element);
+          declarationToElement[declaredNode] = element;
+        }
+
+        // Convert referenced nodes into elements.
+        List<Element> referencedElements = [];
+        for (var referencedNode in analyzerTarget.kernelReferences) {
+          Element element;
+          if (referencedNode is kernel.VariableDeclaration) {
+            element = declarationToElement[referencedNode];
+            assert(element != null);
+          } else {
+            // TODO(scheglov) Add more supported nodes.
+            throw new UnimplementedError(
+                'Declaration: (${referencedNode.runtimeType}) $referencedNode');
+          }
+          referencedElements.add(element);
+        }
+
         applier = new ValidatingResolutionApplier(
-            [], [], astTypes, analyzerTarget.typeOffsets);
+            declaredElements,
+            referencedElements,
+            astTypes,
+            analyzerTarget.declarationOffsets,
+            analyzerTarget.referenceOffsets,
+            analyzerTarget.typeOffsets);
       }
 
       units.forEach((file, unit) {
@@ -733,6 +763,7 @@ class LibraryAnalyzer {
           }
         }
       } else if (declaration is FunctionDeclaration) {
+        applier.enclosingExecutable = declaration.element;
         declaration.functionExpression.body.accept(applier);
       } else if (declaration is TopLevelVariableDeclaration) {
         if (declaration.variables.variables.length != 1) {
@@ -804,6 +835,17 @@ class LibraryAnalyzer {
             file, directive is ImportDirective, uriLiteral, uriContent);
         directive.uriSource = defaultSource;
       }
+    }
+  }
+
+  /// Return the local [Element] for the given local kernel [declaration].
+  Element _translateKernelDeclaration(kernel.Statement declaration) {
+    if (declaration is kernel.VariableDeclaration) {
+      return new LocalVariableElementImpl(
+          declaration.name, declaration.fileOffset);
+    } else {
+      throw new UnimplementedError(
+          'Declaration: (${declaration.runtimeType}) $declaration');
     }
   }
 

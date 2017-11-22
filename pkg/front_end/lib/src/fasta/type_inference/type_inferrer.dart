@@ -1086,7 +1086,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, calleeType, fileOffset);
     listener.methodInvocationExit(
-        expression, arguments, isImplicitCall, inferredType);
+        expression, arguments, isImplicitCall, interfaceMember, inferredType);
     return inferredType;
   }
 
