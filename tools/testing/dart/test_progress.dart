@@ -660,7 +660,7 @@ List<String> _buildFailureOutput(TestCase test,
     commandOutput.describe(test.configuration.progress, output);
   }
 
-  if (test is BrowserTestCase && ranAllCommands) {
+  if (test.configuration.runtime.isBrowser && ranAllCommands) {
     // Additional command for rerunning the steps locally after the fact.
     output.section('To debug locally, run');
     output.write(test.configuration.servers.commandLine);

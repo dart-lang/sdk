@@ -213,28 +213,6 @@ class TestCase extends UniqueObject {
 }
 
 /**
- * BrowserTestCase has an extra compilation command that is run in a separate
- * process, before the regular test is run as in the base class [TestCase].
- * If the compilation command fails, then the rest of the test is not run.
- */
-class BrowserTestCase extends TestCase {
-  BrowserTestCase(
-      String displayName,
-      List<Command> commands,
-      Configuration configuration,
-      Set<Expectation> expectedOutcomes,
-      TestInformation info,
-      bool isNegative,
-      this._testingUrl)
-      : super(displayName, commands, configuration, expectedOutcomes,
-            isNegative: isNegative, info: info);
-
-  String _testingUrl;
-
-  String get testingUrl => _testingUrl;
-}
-
-/**
  * An OutputLog records the output from a test, but truncates it if
  * it is longer than MAX_HEAD characters, and just keeps the head and
  * the last TAIL_LENGTH characters of the output.

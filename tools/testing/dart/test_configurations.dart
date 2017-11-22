@@ -15,7 +15,6 @@ import 'test_progress.dart';
 import 'test_runner.dart';
 import 'test_suite.dart';
 import 'utils.dart';
-import 'vm_test_config.dart';
 
 /**
  * The directories that contain test suites which follow the conventions
