@@ -4986,12 +4986,11 @@ class Parser {
       next = token.next;
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
-      if (optional(',', next)) {
-        token = next;
-        continue;
+      if (!optional(',', next)) {
+        token = ensureCloseParen(token, begin);
+        break;
       }
-      token = ensureCloseParen(token, begin);
-      break;
+      token = next;
     }
     assert(optional(')', token));
     mayParseFunctionExpressions = old;
