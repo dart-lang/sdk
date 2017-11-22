@@ -4,6 +4,7 @@
 
 #include "vm/dart_entry.h"
 
+#include "platform/safe_stack.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
@@ -31,8 +32,16 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 
 class ScopedIsolateStackLimits : public ValueObject {
  public:
+  NO_SANITIZE_SAFE_STACK
   explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
-      : thread_(thread), saved_stack_limit_(0) {
+      : thread_(thread),
+#if defined(USING_SAFE_STACK)
+        saved_stack_limit_(0),
+        saved_safestack_limit_(0)
+#else
+        saved_stack_limit_(0)
+#endif
+  {
     ASSERT(thread != NULL);
     // Set the thread's stack_base based on the current
     // stack pointer, we keep refining this value as we
@@ -47,6 +56,11 @@ class ScopedIsolateStackLimits : public ValueObject {
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
     thread->SetStackLimitFromStackBase(os_thread->stack_base());
+
+#if defined(USING_SAFE_STACK)
+    saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();
+    thread->set_saved_safestack_limit(saved_safestack_limit_);
+#endif
   }
 
   ~ScopedIsolateStackLimits() {
@@ -55,11 +69,17 @@ class ScopedIsolateStackLimits : public ValueObject {
     // to a stack limit of 0 when all nested invocations are done and
     // we have bottomed out.
     thread_->SetStackLimit(saved_stack_limit_);
+#if defined(USING_SAFE_STACK)
+    thread_->set_saved_safestack_limit(saved_safestack_limit_);
+#endif
   }
 
  private:
   Thread* thread_;
   uword saved_stack_limit_;
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit_;
+#endif
 };
 
 // Clears/restores Thread::long_jump_base on construction/destruction.
@@ -80,6 +100,7 @@ class SuspendLongJumpScope : public StackResource {
   LongJumpScope* saved_long_jump_base_;
 };
 
+NO_SANITIZE_SAFE_STACK
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
                                      const Array& arguments_descriptor,

@@ -5,7 +5,9 @@
 #ifndef RUNTIME_VM_OS_THREAD_H_
 #define RUNTIME_VM_OS_THREAD_H_
 
+#include "platform/address_sanitizer.h"
 #include "platform/globals.h"
+#include "platform/safe_stack.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
@@ -107,6 +109,11 @@ class OSThread : public BaseThread {
 
   // May fail for the main thread on Linux and Android.
   static bool GetCurrentStackBounds(uword* lower, uword* upper);
+
+#if defined(USING_SAFE_STACK)
+  static uword GetCurrentSafestackPointer();
+  static void SetCurrentSafestackPointer(uword ssp);
+#endif
 
   // Used to temporarily disable or enable thread interrupts.
   void DisableThreadInterrupts();

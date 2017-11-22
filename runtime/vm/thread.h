@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/safe_stack.h"
 #include "vm/atomic.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
@@ -220,6 +221,13 @@ class Thread : public BaseThread {
 
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
+
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit() const { return saved_safestack_limit_; }
+  void set_saved_safestack_limit(uword limit) {
+    saved_safestack_limit_ = limit;
+  }
+#endif
 
 #if defined(TARGET_ARCH_DBC)
   // Access to the current stack limit for DBC interpreter.
@@ -800,6 +808,10 @@ class Thread : public BaseThread {
   class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
   uint32_t safepoint_state_;
   uint32_t execution_state_;
+
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit_;
+#endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
 

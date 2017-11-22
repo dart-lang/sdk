@@ -11,7 +11,9 @@
 
 #include <process.h>  // NOLINT
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/safe_stack.h"
 
 namespace dart {
 
@@ -189,6 +191,21 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
   *lower += 4 * 0x1000;
   return true;
 }
+
+#if defined(USING_SAFE_STACK)
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+uword OSThread::GetCurrentSafestackPointer() {
+#error "SAFE_STACK is unsupported on this platform"
+  return 0;
+}
+
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+void OSThread::SetCurrentSafestackPointer(uword ssp) {
+#error "SAFE_STACK is unsupported on this platform"
+}
+#endif
 
 void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);

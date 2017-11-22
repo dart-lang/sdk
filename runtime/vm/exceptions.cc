@@ -445,6 +445,7 @@ static void JumpToExceptionHandler(Thread* thread,
                           frame_pointer, false /* do not clear deopt */);
 }
 
+NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
 void Exceptions::JumpToFrame(Thread* thread,
                              uword program_counter,
                              uword stack_pointer,
@@ -480,6 +481,13 @@ void Exceptions::JumpToFrame(Thread* thread,
   uword current_sp = Thread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
                 stack_pointer - current_sp);
+
+  // We are jumping over C++ frames, so we have to set the safestack pointer
+  // back to what it was when we entered the runtime from Dart code.
+#if defined(USING_SAFE_STACK)
+  const uword saved_ssp = thread->saved_safestack_limit();
+  OSThread::SetCurrentSafestackPointer(saved_ssp);
+#endif
 
   func(program_counter, stack_pointer, frame_pointer, thread);
 #endif
