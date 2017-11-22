@@ -331,10 +331,20 @@ File getD8File() {
   return _cachedD8File ??= search();
 }
 
+File findInOutDir(String relative) {
+  var outerDir = getD8File().parent.parent.parent.parent.path;
+  for (var outDir in const ["out/ReleaseX64", "xcodebuild/ReleaseX64"]) {
+    var tryPath = path.join(outerDir, outDir, relative);
+    File file = new File(tryPath);
+    if (file.existsSync()) return file;
+  }
+  throw "Couldn't find $relative. Try building more targets.";
+}
+
 String get d8Executable {
   return getD8File().path;
 }
 
 String get dartExecutable {
-  return Platform.executable;
+  return Platform.resolvedExecutable;
 }

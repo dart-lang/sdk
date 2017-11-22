@@ -24,18 +24,20 @@ class RunDdc implements DdcRunner {
   ProcessResult runDDC(String ddcDir, String inputFile, String outputFile,
       String outWrapperPath) {
     var outDir = path.dirname(outWrapperPath);
-    var jsSdkPath = new File(path.relative(
-            path.join(ddcDir, "lib/js/es6/dart_sdk.js"),
-            from: outDir))
-        .uri;
     var outFileRelative = new File(path.relative(outputFile, from: outDir)).uri;
-    var ddcSdkSummary = path.join(ddcDir, "lib/sdk/ddc_sdk.sum");
-    var ddc = path.join(ddcDir, "bin/dartdevc.dart");
 
-    ProcessResult runResult = Process.runSync(dartExecutable, [
+    File sdkJsFile = findInOutDir("gen/utils/dartdevc/js/es6/dart_sdk.js");
+    var jsSdkPath = new File(path.relative(sdkJsFile.path, from: outDir)).uri;
+
+    File ddcSdkSummary = findInOutDir("gen/utils/dartdevc/ddc_sdk.sum");
+
+    var ddc = path.join(ddcDir, "bin/dartdevc.dart");
+    if (!new File(ddc).existsSync()) throw "Couldn't find 'bin/dartdevc.dart'";
+
+    var args = [
       ddc,
       "--modules=es6",
-      "--dart-sdk-summary=$ddcSdkSummary",
+      "--dart-sdk-summary=${ddcSdkSummary.path}",
       "--library-root",
       "$outDir",
       "--module-root",
@@ -43,11 +45,14 @@ class RunDdc implements DdcRunner {
       "-o",
       "$outputFile",
       "$inputFile"
-    ]);
+    ];
+    ProcessResult runResult = Process.runSync(dartExecutable, args);
     if (runResult.exitCode != 0) {
       print(runResult.stderr);
       print(runResult.stdout);
-      throw "Exit code: ${runResult.exitCode} from ddc";
+      throw "Exit code: ${runResult.exitCode} from ddc when running "
+          "$dartExecutable "
+          "${args.reduce((value, element) => '$value "$element"')}";
     }
 
     var jsContent = new File(outputFile).readAsStringSync();
