@@ -1360,7 +1360,9 @@ class ShadowNot extends Not implements ShadowExpression {
     typeNeeded = inferrer.listener.notEnter(this, typeContext) || typeNeeded;
     // First infer the receiver so we can look up the method that was invoked.
     var boolType = inferrer.coreTypes.boolClass.rawType;
-    inferrer.inferExpression(operand, boolType, false);
+    var actualType =
+        inferrer.inferExpression(operand, boolType, !inferrer.isTopLevel);
+    inferrer.checkAssignability(boolType, actualType, operand, fileOffset);
     DartType inferredType = typeNeeded ? boolType : null;
     inferrer.listener.notExit(this, inferredType);
     return inferredType;

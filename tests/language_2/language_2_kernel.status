@@ -243,6 +243,7 @@ conditional_property_assignment_test/05: MissingCompileTimeError
 conditional_property_assignment_test/06: MissingCompileTimeError
 conditional_property_assignment_test/10: MissingCompileTimeError
 conditional_property_assignment_test/11: MissingCompileTimeError
+conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_constructor2_test/11: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -1343,7 +1344,6 @@ vm/optimized_guarded_field_isolates_test: RuntimeError # Issue 31402 (Variable d
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
-vm/type_vm_test/09: MissingCompileTimeError
 vm/type_vm_test/10: MissingCompileTimeError
 vm/type_vm_test/11: MissingCompileTimeError
 vm/type_vm_test/12: MissingCompileTimeError
@@ -1792,6 +1792,7 @@ conditional_property_assignment_test/05: MissingCompileTimeError
 conditional_property_assignment_test/06: MissingCompileTimeError
 conditional_property_assignment_test/10: MissingCompileTimeError
 conditional_property_assignment_test/11: MissingCompileTimeError
+conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
 config_import_corelib_test: RuntimeError # KernelVM bug: Configurable imports.
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_constructor2_test/11: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -2275,6 +2276,7 @@ implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_list_literal_test: Pass # Correctly passes.
 implicit_downcast_during_logical_expression_test: Pass # Correctly passes.
 implicit_downcast_during_map_literal_test: Pass # Correctly passes.
+implicit_downcast_during_not_test: Pass # Correctly passes.
 implicit_downcast_during_return_async_test: Pass # Correctly passes.
 implicit_downcast_during_return_test: Pass # Correctly passes.
 implicit_downcast_during_variable_declaration_test: Pass # Correctly passes.
@@ -3291,6 +3293,7 @@ implicit_downcast_during_if_null_assignment_test: RuntimeError
 implicit_downcast_during_list_literal_test: RuntimeError
 implicit_downcast_during_logical_expression_test: RuntimeError
 implicit_downcast_during_map_literal_test: RuntimeError
+implicit_downcast_during_not_test: RuntimeError
 implicit_downcast_during_return_async_test: RuntimeError
 implicit_downcast_during_return_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
