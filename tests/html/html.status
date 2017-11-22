@@ -398,7 +398,6 @@ isolates_test: RuntimeError
 js_interop_1_test: Timeout
 js_test/JsObject.fromBrowserObject(): RuntimeError
 js_test/JsObject.jsify(): RuntimeError
-js_type_test/dynamic: RuntimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
 js_util_test/js_util.jsify(): RuntimeError

@@ -359,10 +359,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     openFunction(constructor.function);
     _addClassTypeVariablesIfNeeded(constructor);
+    _potentiallyAddFunctionParameterTypeChecks(constructor.function);
 
     // TODO(sra): Type parameter constraint checks.
-
-    // TODO(sra): Checked mode parameter checks.
 
     // [fieldValues] accumulates the field initializer values, which may be
     // overwritten by initializer-list initializers.
@@ -386,7 +385,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
             'No initializer value for field ${member}');
       } else {
         fields.add(member);
-        constructorArguments.add(value);
+        DartType type = _elementMap.elementEnvironment.getFieldType(member);
+        type = localsHandler.substInContext(type);
+        constructorArguments
+            .add(typeBuilder.potentiallyCheckOrTrustType(value, type));
       }
     });
 
@@ -802,7 +804,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void buildConstructorBody(ir.Constructor constructor) {
     openFunction(constructor.function);
     _addClassTypeVariablesIfNeeded(constructor);
-    _potentiallyAddFunctionParameterTypeChecks(constructor.function);
     constructor.function.body.accept(this);
     closeFunction();
   }
@@ -1377,8 +1378,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(node);
       _pushDynamicInvocation(node, mask, [iterator], sourceInformation,
           selector: Selectors.current);
+
       Local loopVariableLocal = localsMap.getLocalVariable(node.variable);
-      HInstruction value = pop();
+      HInstruction value = typeBuilder.potentiallyCheckOrTrustType(
+          pop(), _getDartTypeIfValid(node.variable.type));
       localsHandler.updateLocal(loopVariableLocal, value,
           sourceInformation: sourceInformation);
       // Hint to name loop value after name of loop variable.
