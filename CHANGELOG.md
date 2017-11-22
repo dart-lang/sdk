@@ -83,7 +83,7 @@
     decompression routines.
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
-  # Added `Stdin.hasTerminal`.
+  * Added `Stdin.hasTerminal`.
 
 * `dart.math`
   * Renamed `E`, `LN10`, `LN`, `LOG2E`, `LOG10E`, `PI`, `SQRT1_2` and `SQRT2`
