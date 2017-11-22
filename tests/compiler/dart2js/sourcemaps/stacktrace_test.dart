@@ -94,7 +94,8 @@ Future runTest(Test test, String config,
     CompilationResult compilationResult = await entry.internalMain(arguments);
     return compilationResult.isSuccess;
   },
-      jsPreambles: ['sdk/lib/_internal/js_runtime/lib/preambles/d8.js'],
+      jsPreambles: (input, output) =>
+          ['sdk/lib/_internal/js_runtime/lib/preambles/d8.js'],
       afterExceptions: testAfterExceptions,
       beforeExceptions: beforeExceptions);
 }

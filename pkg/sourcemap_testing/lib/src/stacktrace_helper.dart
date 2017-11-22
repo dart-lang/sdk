@@ -11,8 +11,7 @@ import 'package:source_maps/src/utils.dart';
 
 import 'annotated_code_helper.dart';
 
-const String EXCEPTION_MARKER = '>ExceptionMarker<';
-const String INPUT_FILE_NAME = 'in.dart';
+const String INPUT_FILE_NAME = 'input.dart';
 
 class Test {
   final String code;
@@ -73,6 +72,9 @@ Test processTestCode(String code, Iterable<String> configs) {
 /// function returns `true` if the compilation succeeded.
 typedef Future<bool> CompileFunc(String input, String output);
 
+List<String> emptyPreamble(input, output) => const <String>[];
+String identityConverter(String name) => name;
+
 /// Tests the stack trace of [test] using the expectations for [config].
 ///
 /// The [compile] function is called to compile the Dart code in [test] to
@@ -92,9 +94,12 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
     {bool printJs: false,
     bool writeJs: false,
     bool verbose: false,
-    List<String> jsPreambles: const <String>[],
+    List<String> Function(String input, String output) jsPreambles:
+        emptyPreamble,
     List<LineException> beforeExceptions: const <LineException>[],
-    List<LineException> afterExceptions: const <LineException>[]}) async {
+    List<LineException> afterExceptions: const <LineException>[],
+    bool useJsMethodNamesOnAbsence: false,
+    String Function(String name) jsNameConverter: identityConverter}) async {
   Expect.isTrue(test.expectationMap.keys.contains(config),
       "No expectations found for '$config' in ${test.expectationMap.keys}");
 
@@ -121,7 +126,7 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
   }
   print("Running d8 $output");
   List<String> d8Arguments = <String>[];
-  d8Arguments.addAll(jsPreambles);
+  d8Arguments.addAll(jsPreambles(input, output));
   d8Arguments.add(output);
   ProcessResult runResult = Process.runSync(d8executable, d8Arguments);
   String out = '${runResult.stderr}\n${runResult.stdout}';
@@ -139,14 +144,16 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
 
   List<StackTraceLine> dartStackTrace = <StackTraceLine>[];
   for (StackTraceLine line in jsStackTrace) {
-    TargetEntry targetEntry = _findColumn(line.lineNo - 1, line.columnNo - 1,
-        _findLine(sourceMap, line.lineNo - 1));
+    TargetEntry targetEntry = _findColumn(
+        line.lineNo - 1, line.columnNo - 1, _findLine(sourceMap, line));
     if (targetEntry == null || targetEntry.sourceUrlId == null) {
       dartStackTrace.add(line);
     } else {
       String methodName;
       if (targetEntry.sourceNameId != null) {
         methodName = sourceMap.names[targetEntry.sourceNameId];
+      } else if (useJsMethodNamesOnAbsence) {
+        methodName = jsNameConverter(line.methodName);
       }
       String fileName;
       if (targetEntry.sourceUrlId != null) {
@@ -321,7 +328,12 @@ class StackTraceLine {
 /// number is lower or equal to [line].
 ///
 /// Copied from [SingleMapping._findLine].
-TargetLineEntry _findLine(SingleMapping sourceMap, int line) {
+TargetLineEntry _findLine(SingleMapping sourceMap, StackTraceLine stLine) {
+  String filename = stLine.fileName
+      .substring(stLine.fileName.lastIndexOf(new RegExp("[\\\/]")) + 1);
+  if (sourceMap.targetUrl != filename) return null;
+
+  int line = stLine.lineNo - 1;
   int index = binarySearch(sourceMap.lines, (e) => e.line > line);
   return (index <= 0) ? null : sourceMap.lines[index - 1];
 }
