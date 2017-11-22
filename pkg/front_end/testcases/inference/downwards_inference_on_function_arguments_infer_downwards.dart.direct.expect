@@ -7,7 +7,7 @@ static method f1({core::List<core::int> a = null}) → void {}
 static method f2(core::Iterable<core::int> a) → void {}
 static method f3(core::Iterable<core::Iterable<core::int>> a) → void {}
 static method f4({core::Iterable<core::Iterable<core::int>> a = null}) → void {}
-static method main() → void {
+static method test() → void {
   self::f0(<dynamic>[]);
   self::f0(<dynamic>[3]);
   self::f0(<dynamic>["hello"]);
@@ -29,3 +29,4 @@ static method main() → void {
   self::f4(a: <dynamic>[<dynamic>["hello"]]);
   self::f4(a: <dynamic>[<dynamic>["hello"], <dynamic>[3]]);
 }
+static method main() → dynamic {}

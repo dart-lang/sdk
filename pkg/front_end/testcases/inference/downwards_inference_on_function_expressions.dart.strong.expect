@@ -28,9 +28,9 @@ static method main() → void {
     (core::int) → core::List<core::String> l0 = (core::int x) → core::List<core::String> => null;
     (core::int) → core::List<core::String> l1 = (core::int x) → core::List<core::String> => <core::String>["hello"];
     (core::int) → core::List<core::String> l2 = ((core::String x) → core::List<core::String> => <core::String>["hello"]) as{TypeError} (core::int) → core::List<core::String>;
-    (core::int) → core::List<core::String> l3 = (core::int x) → core::List<core::String> => <core::String>[3];
+    (core::int) → core::List<core::String> l3 = (core::int x) → core::List<core::String> => <core::String>[3 as{TypeError} core::String];
     (core::int) → core::List<core::String> l4 = (core::int x) → core::List<core::String> {
-      return <core::String>[3];
+      return <core::String>[3 as{TypeError} core::String];
     };
   }
   {

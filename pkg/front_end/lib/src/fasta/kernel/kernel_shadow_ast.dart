@@ -1107,25 +1107,28 @@ class ShadowListLiteral extends ListLiteral implements ShadowExpression {
     List<DartType> formalTypes;
     List<DartType> actualTypes;
     bool inferenceNeeded = _declaredTypeArgument == null && inferrer.strongMode;
+    bool typeChecksNeeded = !inferrer.isTopLevel;
+    if (inferenceNeeded || typeChecksNeeded) {
+      formalTypes = [];
+      actualTypes = [];
+    }
     if (inferenceNeeded) {
       inferredTypes = [const UnknownType()];
       inferrer.typeSchemaEnvironment.inferGenericFunctionOrType(listType,
           listClass.typeParameters, null, null, typeContext, inferredTypes,
           isConst: isConst);
       inferredTypeArgument = inferredTypes[0];
-      formalTypes = [];
-      actualTypes = [];
     } else {
       inferredTypeArgument = _declaredTypeArgument ?? const DynamicType();
     }
-    if (inferenceNeeded || !inferrer.isTopLevel) {
+    if (inferenceNeeded || typeChecksNeeded) {
       for (var expression in expressions) {
-        var expressionType = inferrer.inferExpression(
-            expression, inferredTypeArgument, inferenceNeeded);
+        var expressionType = inferrer.inferExpression(expression,
+            inferredTypeArgument, inferenceNeeded || typeChecksNeeded);
         if (inferenceNeeded) {
           formalTypes.add(listType.typeArguments[0]);
-          actualTypes.add(expressionType);
         }
+        actualTypes.add(expressionType);
       }
     }
     if (inferenceNeeded) {
@@ -1143,6 +1146,12 @@ class ShadowListLiteral extends ListLiteral implements ShadowExpression {
           'typeArgs',
           new InstrumentationValueForTypeArgs([inferredTypeArgument]));
       typeArgument = inferredTypeArgument;
+    }
+    if (typeChecksNeeded) {
+      for (int i = 0; i < expressions.length; i++) {
+        inferrer.checkAssignability(typeArgument, actualTypes[i],
+            expressions[i], expressions[i].fileOffset);
+      }
     }
     var inferredType = typeNeeded
         ? new InterfaceType(listClass, [inferredTypeArgument])

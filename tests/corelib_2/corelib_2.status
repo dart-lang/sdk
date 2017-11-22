@@ -6,10 +6,10 @@
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc ]
 splay_tree_test/01: MissingCompileTimeError
 splay_tree_test/02: MissingCompileTimeError
-string_base_vm_static_test: MissingCompileTimeError
 
 [ $strong && $compiler != dart2analyzer && $compiler != dartdevc && $compiler != dartk && $compiler != dartkp ]
 core_runtime_types_static_test: MissingCompileTimeError
+string_base_vm_static_test: MissingCompileTimeError
 string_replace_static_test: MissingCompileTimeError
 string_static_test: MissingCompileTimeError
 

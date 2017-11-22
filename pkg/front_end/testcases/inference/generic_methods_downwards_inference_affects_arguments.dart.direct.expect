@@ -4,7 +4,8 @@ import "dart:core" as core;
 
 static method f<T extends core::Object>(core::List<self::f::T> s) → self::f::T
   return null;
-static method main() → dynamic {
+static method test() → dynamic {
   core::String x = self::f<dynamic>(<dynamic>["hi"]);
   core::String y = self::f<dynamic>(<dynamic>[42]);
 }
+static method main() → dynamic {}

@@ -49,7 +49,7 @@ class F<S extends core::Object, T extends core::Object> extends self::A<self::F:
     : super self::A::•(a, b)
     ;
 }
-static method main() → void {
+static method test() → void {
   {
     self::A<core::int, core::String> a0 = new self::A::•<dynamic, dynamic>(3, "hello");
     self::A<core::int, core::String> a1 = new self::A::named<dynamic, dynamic>(3, "hello");
@@ -110,3 +110,4 @@ static method main() → void {
     self::A<core::int, core::String> a5 = new self::F::named<dynamic, dynamic>(3, "hello", "hello");
   }
 }
+static method main() → dynamic {}

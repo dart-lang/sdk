@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
-library test;
+import "package:expect/expect.dart";
 
-void test() {
-  List<int> l;
-  l = /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"];
-  l = (l = /*@typeArgs=int*/ [1]);
+class A {}
+
+class B extends A {}
+
+void main() {
+  A a1 = new B();
+  A a2 = new A();
+  <B>[a1]; // No error
+  Expect.throwsTypeError(() {
+    <B>[a2];
+  });
 }
-
-main() {}

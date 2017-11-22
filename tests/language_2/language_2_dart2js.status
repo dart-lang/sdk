@@ -1007,6 +1007,7 @@ generic_closure_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_typedef_test: RuntimeError
+implicit_downcast_during_list_literal_test: RuntimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
@@ -2965,6 +2966,7 @@ built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28815
 implicit_downcast_during_invocation_test: RuntimeError
+implicit_downcast_during_list_literal_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
 assertion_initializer_const_error2_test/none: Pass

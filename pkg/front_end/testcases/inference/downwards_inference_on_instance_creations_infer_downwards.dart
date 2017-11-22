@@ -36,7 +36,7 @@ class F<S, T> extends A<S, T> {
   F.named(S x, T y, [S a, T b]) : super(a, b);
 }
 
-void main() {
+void test() {
   {
     A<int, String> a0 = new /*@typeArgs=int, String*/ A(3, "hello");
     A<int, String> a1 = new /*@typeArgs=int, String*/ A.named(3, "hello");
@@ -134,3 +134,5 @@ void main() {
         /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ "hello");
   }
 }
+
+main() {}

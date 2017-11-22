@@ -50,7 +50,7 @@ class F<S extends core::Object, T extends core::Object> extends self::A<self::F:
     : super self::A::•(a, b)
     ;
 }
-static method main() → void {
+static method test() → void {
   {
     self::A<core::int, core::String> a0 = new self::A::•<core::int, core::String>(3, "hello");
     self::A<core::int, core::String> a1 = new self::A::named<core::int, core::String>(3, "hello");
@@ -104,10 +104,11 @@ static method main() → void {
   }
   {
     self::A<core::int, core::String> a0 = new self::F::•<core::int, core::String>(3, "hello", a: <core::int>[3], b: <core::String>["hello"]);
-    self::A<core::int, core::String> a1 = new self::F::•<core::int, core::String>(3, "hello", a: <core::int>["hello"], b: <core::String>[3]);
+    self::A<core::int, core::String> a1 = new self::F::•<core::int, core::String>(3, "hello", a: <core::int>["hello" as{TypeError} core::int], b: <core::String>[3 as{TypeError} core::String]);
     self::A<core::int, core::String> a2 = new self::F::named<core::int, core::String>(3, "hello", 3, "hello");
     self::A<core::int, core::String> a3 = new self::F::named<core::int, core::String>(3, "hello");
     self::A<core::int, core::String> a4 = new self::F::named<core::int, core::String>(3, "hello", "hello" as{TypeError} core::int, 3 as{TypeError} core::String);
     self::A<core::int, core::String> a5 = new self::F::named<core::int, core::String>(3, "hello", "hello" as{TypeError} core::int);
   }
 }
+static method main() → dynamic {}

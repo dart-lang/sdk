@@ -70,6 +70,7 @@ isolate/handle_error3_test: CompileTimeError # Issue 31402 (Invocation arguments
 isolate/illegal_msg_function_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/illegal_msg_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/isolate_current_test: CompileTimeError # Issue 31402 (Invocation arguments)
+isolate/issue_21398_parent_isolate1_test: RuntimeError # Issue 31402 (List literal)
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/kill_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/mandel_isolate_test: CompileTimeError # Issue 31402 (Invocation arguments)

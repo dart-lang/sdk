@@ -2,8 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method main() → void {
+static method test() → void {
   core::List<core::int> l;
-  l = <core::int>["hello"];
+  l = <core::int>["hello" as{TypeError} core::int];
   l = l = <core::int>[1];
 }
+static method main() → dynamic {}

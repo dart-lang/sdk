@@ -756,8 +756,6 @@ library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imp
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_mirror_support: RuntimeError
 list_is_test: RuntimeError
-list_literal1_test/01: MissingCompileTimeError
-list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
 list_literal4_test/04: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
@@ -2329,6 +2327,7 @@ implicit_downcast_during_combiner_test: Pass # Correctly passes.
 implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_conditional_expression_test: Pass # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
+implicit_downcast_during_list_literal_test: Pass # Correctly passes.
 implicit_downcast_during_variable_declaration_test: Pass # Correctly passes.
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
@@ -2421,8 +2420,6 @@ library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_io_support: RuntimeError, OK
-list_literal1_test/01: MissingCompileTimeError
-list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
 list_literal4_test/04: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
@@ -3349,6 +3346,7 @@ implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
+implicit_downcast_during_list_literal_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
