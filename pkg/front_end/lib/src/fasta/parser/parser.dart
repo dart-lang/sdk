@@ -4167,33 +4167,40 @@ class Parser {
     // TODO(brianwilkerson) Return the last consumed token.
     assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
-    token = parseUnaryExpression(token, allowCascades);
-    TokenType type = token.type;
+    // TODO(brianwilkerson): Remove the invocation of `previous` when
+    // `parseUnaryExpression` returns the last consumed token.
+    token = parseUnaryExpression(token, allowCascades).previous;
+    Token next = token.next;
+    TokenType type = next.type;
     int tokenLevel = type.precedence;
     Token typeArguments;
-    if (isValidMethodTypeArguments(token)) {
+    if (isValidMethodTypeArguments(next)) {
       // For example a(b)<T>(c), where token is '<'.
-      typeArguments = token;
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `parseUnaryExpression` (invoked above) returns the last consumed token.
-      token = parseTypeArgumentsOpt(token.previous).next;
-      assert(optional('(', token));
-      type = token.type;
+      typeArguments = next;
+      token = parseTypeArgumentsOpt(token);
+      next = token.next;
+      assert(optional('(', next));
+      type = next.type;
       tokenLevel = type.precedence;
     }
     for (int level = tokenLevel; level >= precedence; --level) {
       int lastBinaryExpressionLevel = -1;
       while (identical(tokenLevel, level)) {
-        Token operator = token;
+        Token operator = next;
         if (identical(tokenLevel, CASCADE_PRECEDENCE)) {
           if (!allowCascades) {
-            return token;
+            return token.next;
           }
-          token = parseCascadeExpression(token);
+          // TODO(brianwilkerson): Remove the invocation of `previous` when
+          // `parseCascadeExpression` returns the last consumed token.
+          token = parseCascadeExpression(token.next).previous;
         } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
           // Right associative, so we recurse at the same precedence
           // level.
-          token = parsePrecedenceExpression(token, level, allowCascades);
+          // TODO(brianwilkerson): Remove the invocation of `previous` when
+          // `parsePrecedenceExpression` returns the last consumed token.
+          token = parsePrecedenceExpression(token.next, level, allowCascades)
+              .previous;
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
           if (identical(type, TokenType.PERIOD) ||
@@ -4203,57 +4210,68 @@ class Parser {
             // should just call [parseUnaryExpression] directly. However, a
             // unary expression isn't legal after a period, so we call
             // [parsePrimary] instead.
-            token =
-                parsePrimary(token, IdentifierContext.expressionContinuation)
-                    .next;
+            token = parsePrimary(
+                token.next, IdentifierContext.expressionContinuation);
             listener.endBinaryExpression(operator);
           } else if ((identical(type, TokenType.OPEN_PAREN)) ||
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
-            token = parseArgumentOrIndexStar(token, typeArguments);
+            // TODO(brianwilkerson): Remove the invocation of `previous` when
+            // `parseArgumentOrIndexStar` returns the last consumed token.
+            token =
+                parseArgumentOrIndexStar(token.next, typeArguments).previous;
+            next = token.next;
           } else if ((identical(type, TokenType.PLUS_PLUS)) ||
               (identical(type, TokenType.MINUS_MINUS))) {
-            listener.handleUnaryPostfixAssignmentExpression(token);
-            token = token.next;
+            listener.handleUnaryPostfixAssignmentExpression(token.next);
+            token = next;
           } else if (identical(type, TokenType.INDEX)) {
             BeginToken replacement = link(
-                new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.charOffset,
-                    token.precedingComments),
-                new Token(
-                    TokenType.CLOSE_SQUARE_BRACKET, token.charOffset + 1));
-            token = rewriter.replaceToken(token, replacement);
-            token = parseArgumentOrIndexStar(token, null);
+                new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
+                    next.precedingComments),
+                new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
+            // TODO(brianwilkerson): Remove the invocation of `previous` when
+            // `replaceToken` returns the last consumed token.
+            token = rewriter.replaceToken(next, replacement).previous;
+            // TODO(brianwilkerson): Remove the invocation of `previous` when
+            // `parseArgumentOrIndexStar` returns the last consumed token.
+            token = parseArgumentOrIndexStar(token.next, null).previous;
           } else {
-            token = reportUnexpectedToken(token).next;
+            token = reportUnexpectedToken(token.next);
           }
         } else if (identical(type, TokenType.IS)) {
-          token = parseIsOperatorRest(token).next;
+          token = parseIsOperatorRest(token.next);
         } else if (identical(type, TokenType.AS)) {
-          token = parseAsOperatorRest(token).next;
+          token = parseAsOperatorRest(token.next);
         } else if (identical(type, TokenType.QUESTION)) {
-          token = parseConditionalExpressionRest(token).next;
+          token = parseConditionalExpressionRest(token.next);
         } else {
           if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
             // We don't allow (a == b == c) or (a < b < c).
             if (lastBinaryExpressionLevel == level) {
               // Report an error, then continue parsing as if it is legal.
               reportRecoverableError(
-                  token, fasta.messageEqualityCannotBeEqualityOperand);
+                  next, fasta.messageEqualityCannotBeEqualityOperand);
             } else {
               // Set a flag to catch subsequent binary expressions of this type.
               lastBinaryExpressionLevel = level;
             }
           }
-          listener.beginBinaryExpression(token);
+          listener.beginBinaryExpression(next);
           // Left associative, so we recurse at the next higher
           // precedence level.
-          token = parsePrecedenceExpression(token, level + 1, allowCascades);
+          // TODO(brianwilkerson): Remove the invocation of `previous` when
+          // `parsePrecedenceExpression` returns the last consumed token.
+          token =
+              parsePrecedenceExpression(token.next, level + 1, allowCascades)
+                  .previous;
           listener.endBinaryExpression(operator);
         }
-        type = token.type;
+        next = token.next;
+        type = next.type;
         tokenLevel = type.precedence;
       }
     }
-    return token;
+    return token.next;
   }
 
   Token parseCascadeExpression(Token token) {
