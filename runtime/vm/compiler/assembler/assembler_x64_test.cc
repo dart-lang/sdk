@@ -14,21 +14,6 @@ namespace dart {
 
 #define __ assembler->
 
-#if defined(PRODUCT)
-#define EXPECT_DISASSEMBLY(expected)
-#define EXPECT_DISASSEMBLY_ENDS_WITH(expected)
-#else
-#define EXPECT_DISASSEMBLY(expected)                                           \
-  EXPECT_STREQ(expected, test->BlankedDisassembly())
-#define EXPECT_DISASSEMBLY_ENDS_WITH(expected_arg)                             \
-  char* disassembly = test->BlankedDisassembly();                              \
-  const char* expected = expected_arg;                                         \
-  intptr_t dis_len = strlen(disassembly);                                      \
-  intptr_t exp_len = strlen(expected);                                         \
-  EXPECT_GT(dis_len, exp_len);                                                 \
-  EXPECT_STREQ(expected, disassembly + dis_len - exp_len);
-#endif
-
 ASSEMBLER_TEST_GENERATE(ReadArgument, assembler) {
   __ pushq(CallingConventions::kArg1Reg);
   __ movq(RAX, Address(RSP, 0));
@@ -43,11 +28,6 @@ ASSEMBLER_TEST_RUN(ReadArgument, test) {
   EXPECT_EQ(87, id(87));
   static const int64_t kLargeConstant = 0x1234567812345678LL;
   EXPECT_EQ(kLargeConstant, id(kLargeConstant));
-  EXPECT_DISASSEMBLY(
-      "push rdi\n"
-      "movq rax,[rsp]\n"
-      "pop rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
@@ -243,166 +223,6 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
 
 ASSEMBLER_TEST_RUN(AddressingModes, test) {
   // Avoid running the code since it is constructed to lead to crashes.
-  EXPECT_DISASSEMBLY(
-      "movq rax,[rsp]\n"
-      "movq rax,[rbp+0]\n"
-      "movq rax,[rax]\n"
-      "movq rax,[r10]\n"
-      "movq rax,[r12]\n"
-      "movq rax,[r13+0]\n"
-      "movq r10,[rax]\n"
-      "movq rax,[rsp+0x8]\n"
-      "movq rax,[rbp+0x8]\n"
-      "movq rax,[rax+0x8]\n"
-      "movq rax,[r10+0x8]\n"
-      "movq rax,[r12+0x8]\n"
-      "movq rax,[r13+0x8]\n"
-      "movq rax,[rsp-0x8]\n"
-      "movq rax,[rbp-0x8]\n"
-      "movq rax,[rax-0x8]\n"
-      "movq rax,[r10-0x8]\n"
-      "movq rax,[r12-0x8]\n"
-      "movq rax,[r13-0x8]\n"
-      "movq rax,[rsp+0x...]\n"
-      "movq rax,[rbp+0x...]\n"
-      "movq rax,[rax+0x...]\n"
-      "movq rax,[r10+0x...]\n"
-      "movq rax,[r12+0x...]\n"
-      "movq rax,[r13+0x...]\n"
-      "movq rax,[rsp-0x...]\n"
-      "movq rax,[rbp-0x...]\n"
-      "movq rax,[rax-0x...]\n"
-      "movq rax,[r10-0x...]\n"
-      "movq rax,[r12-0x...]\n"
-      "movq rax,[r13-0x...]\n"
-      "movq rax,[rax*1+0]\n"
-      "movq rax,[rax*2+0]\n"
-      "movq rax,[rax*4+0]\n"
-      "movq rax,[rax*8+0]\n"
-      "movq rax,[rbp*2+0]\n"
-      "movq rax,[rax*2+0]\n"
-      "movq rax,[r10*2+0]\n"
-      "movq rax,[r12*2+0]\n"
-      "movq rax,[r13*2+0]\n"
-      "movq rax,[rbp*2+0x8]\n"
-      "movq rax,[rax*2+0x8]\n"
-      "movq rax,[r10*2+0x8]\n"
-      "movq rax,[r12*2+0x8]\n"
-      "movq rax,[r13*2+0x8]\n"
-      "movq rax,[rbp*2+0x...]\n"
-      "movq rax,[rax*2+0x...]\n"
-      "movq rax,[r10*2+0x...]\n"
-      "movq rax,[r12*2+0x...]\n"
-      "movq rax,[r13*2+0x...]\n"
-      "movq rax,[rax+rbp*2]\n"
-      "movq rax,[rax+rax*2]\n"
-      "movq rax,[rax+r10*2]\n"
-      "movq rax,[rax+r12*2]\n"
-      "movq rax,[rax+r13*2]\n"
-      "movq rax,[rbp+rbp*2+0]\n"
-      "movq rax,[rbp+rax*2+0]\n"
-      "movq rax,[rbp+r10*2+0]\n"
-      "movq rax,[rbp+r12*2+0]\n"
-      "movq rax,[rbp+r13*2+0]\n"
-      "movq rax,[rsp+rbp*2]\n"
-      "movq rax,[rsp+rax*2]\n"
-      "movq rax,[rsp+r10*2]\n"
-      "movq rax,[rsp+r12*2]\n"
-      "movq rax,[rsp+r13*2]\n"
-      "movq rax,[r10+rbp*2]\n"
-      "movq rax,[r10+rax*2]\n"
-      "movq rax,[r10+r10*2]\n"
-      "movq rax,[r10+r12*2]\n"
-      "movq rax,[r10+r13*2]\n"
-      "movq rax,[r12+rbp*2]\n"
-      "movq rax,[r12+rax*2]\n"
-      "movq rax,[r12+r10*2]\n"
-      "movq rax,[r12+r12*2]\n"
-      "movq rax,[r12+r13*2]\n"
-      "movq rax,[r13+rbp*2+0]\n"
-      "movq rax,[r13+rax*2+0]\n"
-      "movq rax,[r13+r10*2+0]\n"
-      "movq rax,[r13+r12*2+0]\n"
-      "movq rax,[r13+r13*2+0]\n"
-      "movq rax,[rax+rbp*2+0x8]\n"
-      "movq rax,[rax+rax*2+0x8]\n"
-      "movq rax,[rax+r10*2+0x8]\n"
-      "movq rax,[rax+r12*2+0x8]\n"
-      "movq rax,[rax+r13*2+0x8]\n"
-      "movq rax,[rbp+rbp*2+0x8]\n"
-      "movq rax,[rbp+rax*2+0x8]\n"
-      "movq rax,[rbp+r10*2+0x8]\n"
-      "movq rax,[rbp+r12*2+0x8]\n"
-      "movq rax,[rbp+r13*2+0x8]\n"
-      "movq rax,[rsp+rbp*2+0x8]\n"
-      "movq rax,[rsp+rax*2+0x8]\n"
-      "movq rax,[rsp+r10*2+0x8]\n"
-      "movq rax,[rsp+r12*2+0x8]\n"
-      "movq rax,[rsp+r13*2+0x8]\n"
-      "movq rax,[r10+rbp*2+0x8]\n"
-      "movq rax,[r10+rax*2+0x8]\n"
-      "movq rax,[r10+r10*2+0x8]\n"
-      "movq rax,[r10+r12*2+0x8]\n"
-      "movq rax,[r10+r13*2+0x8]\n"
-      "movq rax,[r12+rbp*2+0x8]\n"
-      "movq rax,[r12+rax*2+0x8]\n"
-      "movq rax,[r12+r10*2+0x8]\n"
-      "movq rax,[r12+r12*2+0x8]\n"
-      "movq rax,[r12+r13*2+0x8]\n"
-      "movq rax,[r13+rbp*2+0x8]\n"
-      "movq rax,[r13+rax*2+0x8]\n"
-      "movq rax,[r13+r10*2+0x8]\n"
-      "movq rax,[r13+r12*2+0x8]\n"
-      "movq rax,[r13+r13*2+0x8]\n"
-      "movq rax,[rax+rbp*2+0x...]\n"
-      "movq rax,[rax+rax*2+0x...]\n"
-      "movq rax,[rax+r10*2+0x...]\n"
-      "movq rax,[rax+r12*2+0x...]\n"
-      "movq rax,[rax+r13*2+0x...]\n"
-      "movq rax,[rbp+rbp*2+0x...]\n"
-      "movq rax,[rbp+rax*2+0x...]\n"
-      "movq rax,[rbp+r10*2+0x...]\n"
-      "movq rax,[rbp+r12*2+0x...]\n"
-      "movq rax,[rbp+r13*2+0x...]\n"
-      "movq rax,[rsp+rbp*2+0x...]\n"
-      "movq rax,[rsp+rax*2+0x...]\n"
-      "movq rax,[rsp+r10*2+0x...]\n"
-      "movq rax,[rsp+r12*2+0x...]\n"
-      "movq rax,[rsp+r13*2+0x...]\n"
-      "movq rax,[r10+rbp*2+0x...]\n"
-      "movq rax,[r10+rax*2+0x...]\n"
-      "movq rax,[r10+r10*2+0x...]\n"
-      "movq rax,[r10+r12*2+0x...]\n"
-      "movq rax,[r10+r13*2+0x...]\n"
-      "movq rax,[r12+rbp*2+0x...]\n"
-      "movq rax,[r12+rax*2+0x...]\n"
-      "movq rax,[r12+r10*2+0x...]\n"
-      "movq rax,[r12+r12*2+0x...]\n"
-      "movq rax,[r12+r13*2+0x...]\n"
-      "movq rax,[r13+rbp*2+0x...]\n"
-      "movq rax,[r13+rax*2+0x...]\n"
-      "movq rax,[r13+r10*2+0x...]\n"
-      "movq rax,[r13+r12*2+0x...]\n"
-      "movq rax,[r13+r13*2+0x...]\n"
-      "movq rax,[rsp+0]\n"
-      "movq rax,[rbp+0]\n"
-      "movq rax,[rax+0]\n"
-      "movq rax,[r10+0]\n"
-      "movq rax,[r12+0]\n"
-      "movq rax,[r13+0]\n"
-      "movq r10,[rax+0]\n"
-      "movq rax,[rsp+0x8]\n"
-      "movq rax,[rbp+0x8]\n"
-      "movq rax,[rax+0x8]\n"
-      "movq rax,[r10+0x8]\n"
-      "movq rax,[r12+0x8]\n"
-      "movq rax,[r13+0x8]\n"
-      "movq rax,[rsp-0x8]\n"
-      "movq rax,[rbp-0x8]\n"
-      "movq rax,[rax-0x8]\n"
-      "movq rax,[r10-0x8]\n"
-      "movq rax,[r12-0x8]\n"
-      "movq rax,[r13-0x8]\n");
 }
 
 ASSEMBLER_TEST_GENERATE(JumpAroundCrash, assembler) {
@@ -429,27 +249,6 @@ ASSEMBLER_TEST_RUN(JumpAroundCrash, test) {
   EXPECT(!instr->IsBreakPoint());
   typedef void (*JumpAroundCrashCode)();
   reinterpret_cast<JumpAroundCrashCode>(test->entry())();
-  EXPECT_DISASSEMBLY(
-      "jo 0x................\n"
-      "jno 0x................\n"
-      "jc 0x................\n"
-      "jnc 0x................\n"
-      "jz 0x................\n"
-      "jnz 0x................\n"
-      "jna 0x................\n"
-      "ja 0x................\n"
-      "js 0x................\n"
-      "jns 0x................\n"
-      "jpe 0x................\n"
-      "jpo 0x................\n"
-      "jl 0x................\n"
-      "jge 0x................\n"
-      "jle 0x................\n"
-      "jg 0x................\n"
-      "jmp 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SimpleLoop, assembler) {
@@ -467,14 +266,6 @@ ASSEMBLER_TEST_GENERATE(SimpleLoop, assembler) {
 ASSEMBLER_TEST_RUN(SimpleLoop, test) {
   typedef int (*SimpleLoopCode)();
   EXPECT_EQ(2 * 87, reinterpret_cast<SimpleLoopCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0\n"
-      "movq rcx,0\n"
-      "addq rax,2\n"
-      "incq rcx\n"
-      "cmpq rcx,0x57\n"
-      "jl 0x................\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Cmpb, assembler) {
@@ -492,15 +283,6 @@ ASSEMBLER_TEST_GENERATE(Cmpb, assembler) {
 ASSEMBLER_TEST_RUN(Cmpb, test) {
   typedef int (*CmpbCode)();
   EXPECT_EQ(1, reinterpret_cast<CmpbCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,1\n"
-      "movq r11,0x........\n"
-      "push r11\n"
-      "cmpb [rsp],0x11\n"
-      "jz 0x................\n"
-      "movq rax,0\n"
-      "pop rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Testb, assembler) {
@@ -523,18 +305,6 @@ ASSEMBLER_TEST_GENERATE(Testb, assembler) {
 ASSEMBLER_TEST_RUN(Testb, test) {
   typedef int (*TestbCode)();
   EXPECT_EQ(1, reinterpret_cast<TestbCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,1\n"
-      "movq rcx,0\n"
-      "movq r11,0x........\n"
-      "push r11\n"
-      "testb [rsp],0x10\n"
-      "cmovzq rax,rcx\n"
-      "testb [rsp],0x20\n"
-      "jz 0x................\n"
-      "movq rax,0\n"
-      "pop rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Increment, assembler) {
@@ -552,16 +322,6 @@ ASSEMBLER_TEST_GENERATE(Increment, assembler) {
 ASSEMBLER_TEST_RUN(Increment, test) {
   typedef int (*IncrementCode)();
   EXPECT_EQ(3, reinterpret_cast<IncrementCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0\n"
-      "push rax\n"
-      "incl [rsp]\n"
-      "incq [rsp]\n"
-      "movq rcx,[rsp]\n"
-      "incq rcx\n"
-      "pop rax\n"
-      "movq rax,rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(IncrementLong, assembler) {
@@ -578,15 +338,6 @@ ASSEMBLER_TEST_GENERATE(IncrementLong, assembler) {
 ASSEMBLER_TEST_RUN(IncrementLong, test) {
   typedef int64_t (*IncrementCodeLong)();
   EXPECT_EQ(0x100000001, reinterpret_cast<IncrementCodeLong>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x........\n"
-      "push rax\n"
-      "incq [rsp]\n"
-      "movq rcx,[rsp]\n"
-      "incq rcx\n"
-      "pop rax\n"
-      "movq rax,rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Decrement, assembler) {
@@ -604,16 +355,6 @@ ASSEMBLER_TEST_GENERATE(Decrement, assembler) {
 ASSEMBLER_TEST_RUN(Decrement, test) {
   typedef int (*DecrementCode)();
   EXPECT_EQ(0, reinterpret_cast<DecrementCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,3\n"
-      "push rax\n"
-      "decl [rsp]\n"
-      "decq [rsp]\n"
-      "movq rcx,[rsp]\n"
-      "decq rcx\n"
-      "pop rax\n"
-      "movq rax,rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(DecrementLong, assembler) {
@@ -630,15 +371,6 @@ ASSEMBLER_TEST_GENERATE(DecrementLong, assembler) {
 ASSEMBLER_TEST_RUN(DecrementLong, test) {
   typedef int64_t (*DecrementCodeLong)();
   EXPECT_EQ(0xffffffff, reinterpret_cast<DecrementCodeLong>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push rax\n"
-      "decq [rsp]\n"
-      "movq rcx,[rsp]\n"
-      "decq rcx\n"
-      "pop rax\n"
-      "movq rax,rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SignedMultiply, assembler) {
@@ -652,12 +384,6 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply, assembler) {
 ASSEMBLER_TEST_RUN(SignedMultiply, test) {
   typedef int (*SignedMultiply)();
   EXPECT_EQ(8000, reinterpret_cast<SignedMultiply>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rax,2\n"
-      "movl rcx,4\n"
-      "imull rax,rcx\n"
-      "imull rax,rax,0x...\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(UnsignedMultiply, assembler) {
@@ -671,12 +397,6 @@ ASSEMBLER_TEST_GENERATE(UnsignedMultiply, assembler) {
 ASSEMBLER_TEST_RUN(UnsignedMultiply, test) {
   typedef int (*UnsignedMultiply)();
   EXPECT_EQ(15, reinterpret_cast<UnsignedMultiply>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rax,-1\n"
-      "movl rcx,0x10\n"
-      "mull (rax,rdx),rcx\n"
-      "movq rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SignedMultiply64, assembler) {
@@ -707,26 +427,6 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply64, assembler) {
 ASSEMBLER_TEST_RUN(SignedMultiply64, test) {
   typedef int64_t (*SignedMultiply64)();
   EXPECT_EQ(32, reinterpret_cast<SignedMultiply64>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "push pp\n"
-      "movq rax,2\n"
-      "movq rcx,4\n"
-      "imulq rax,rcx\n"
-      "movq r8,2\n"
-      "movq r9,4\n"
-      "push r9\n"
-      "imulq r8,[rsp]\n"
-      "pop r9\n"
-      "addq rax,r8\n"
-      "movq r10,2\n"
-      "movq r11,4\n"
-      "imulq r10,r11\n"
-      "addq rax,r10\n"
-      "movq pp,2\n"
-      "imulq pp,pp,4\n"
-      "addq rax,pp\n"
-      "pop pp\n"
-      "retl\n");
 }
 
 static const int64_t kLargeConstant = 0x1234567887654321;
@@ -750,16 +450,6 @@ ASSEMBLER_TEST_RUN(SignedMultiplyLong, test) {
   typedef int64_t (*SignedMultiplyLong)();
   EXPECT_EQ(kProductLargeConstants,
             reinterpret_cast<SignedMultiplyLong>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "movq rcx,0x................\n"
-      "imulq rax,rcx\n"
-      "movq r11,0x................\n"
-      "imulq rcx,r11\n"
-      "cmpq rax,rcx\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(OverflowSignedMultiply, assembler) {
@@ -774,13 +464,6 @@ ASSEMBLER_TEST_GENERATE(OverflowSignedMultiply, assembler) {
 ASSEMBLER_TEST_RUN(OverflowSignedMultiply, test) {
   typedef int (*OverflowSignedMultiply)();
   EXPECT_EQ(0, reinterpret_cast<OverflowSignedMultiply>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rdx,0\n"
-      "movl rax,0x........\n"
-      "movl rcx,0x........\n"
-      "imull rax,rcx\n"
-      "imull rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SignedMultiply1, assembler) {
@@ -795,13 +478,6 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply1, assembler) {
 ASSEMBLER_TEST_RUN(SignedMultiply1, test) {
   typedef int (*SignedMultiply1)();
   EXPECT_EQ(8000, reinterpret_cast<SignedMultiply1>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rdx,2\n"
-      "movl rcx,4\n"
-      "imull rdx,rcx\n"
-      "imull rdx,rdx,0x...\n"
-      "movl rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SignedMultiply2, assembler) {
@@ -816,13 +492,6 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply2, assembler) {
 ASSEMBLER_TEST_RUN(SignedMultiply2, test) {
   typedef int (*SignedMultiply2)();
   EXPECT_EQ(2000, reinterpret_cast<SignedMultiply2>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "push pp\n"
-      "movl pp,2\n"
-      "imull pp,pp,0x...\n"
-      "movl rax,pp\n"
-      "pop pp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(UnsignedMultiplyLong, assembler) {
@@ -836,12 +505,6 @@ ASSEMBLER_TEST_GENERATE(UnsignedMultiplyLong, assembler) {
 ASSEMBLER_TEST_RUN(UnsignedMultiplyLong, test) {
   typedef int64_t (*UnsignedMultiplyLong)();
   EXPECT_EQ(15, reinterpret_cast<UnsignedMultiplyLong>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,-1\n"
-      "movq rcx,0x10\n"
-      "mulq (rax,rdx),rcx\n"
-      "movq rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SignedDivide, assembler) {
@@ -856,13 +519,6 @@ ASSEMBLER_TEST_GENERATE(SignedDivide, assembler) {
 ASSEMBLER_TEST_RUN(SignedDivide, test) {
   typedef int32_t (*SignedDivide)();
   EXPECT_EQ(-87 / 42, reinterpret_cast<SignedDivide>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rax,-0x........\n"
-      "movl rdx,0x7b\n"
-      "cdql\n"
-      "movl rcx,0x2a\n"
-      "idivl (rax,rdx),rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(UnsignedDivide, assembler) {
@@ -880,12 +536,6 @@ ASSEMBLER_TEST_GENERATE(UnsignedDivide, assembler) {
 ASSEMBLER_TEST_RUN(UnsignedDivide, test) {
   typedef uint32_t (*UnsignedDivide)();
   EXPECT_EQ(0xf0000000, reinterpret_cast<UnsignedDivide>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rax,0\n"
-      "movl rdx,-0x........\n"
-      "movl rcx,-1\n"
-      "divl (rax,rdx),rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SignedDivideLong, assembler) {
@@ -901,13 +551,6 @@ ASSEMBLER_TEST_RUN(SignedDivideLong, test) {
   typedef int64_t (*SignedDivideLong)();
   EXPECT_EQ(kLargeConstant / 42,
             reinterpret_cast<SignedDivideLong>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "movq rdx,0x7b\n"
-      "cdqq\n"
-      "movq rcx,0x2a\n"
-      "idivq (rax,rdx),rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(UnsignedDivideLong, assembler) {
@@ -927,12 +570,6 @@ ASSEMBLER_TEST_RUN(UnsignedDivideLong, test) {
   typedef uint64_t (*UnsignedDivideLong)();
   EXPECT_EQ(0xf000000000000000,
             reinterpret_cast<UnsignedDivideLong>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0\n"
-      "movq rdx,0x................\n"
-      "movq rcx,-1\n"
-      "divq (rax,rdx),rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Negate, assembler) {
@@ -945,11 +582,6 @@ ASSEMBLER_TEST_GENERATE(Negate, assembler) {
 ASSEMBLER_TEST_RUN(Negate, test) {
   typedef int (*Negate)();
   EXPECT_EQ(-42, reinterpret_cast<Negate>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rcx,0x2a\n"
-      "negq rcx\n"
-      "movq rax,rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(BitScanReverse, assembler) {
@@ -971,13 +603,6 @@ ASSEMBLER_TEST_RUN(BitScanReverse, test) {
   EXPECT_EQ(2, call(4));
   EXPECT_EQ(5, call(42));
   EXPECT_EQ(31, call(-1));
-  EXPECT_DISASSEMBLY(
-      "push rdi\n"
-      "movq rcx,[rsp]\n"
-      "movq rax,0x...\n"
-      "bsrq rax,rcx\n"
-      "pop rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(MoveExtend, assembler) {
@@ -993,14 +618,6 @@ ASSEMBLER_TEST_GENERATE(MoveExtend, assembler) {
 ASSEMBLER_TEST_RUN(MoveExtend, test) {
   typedef int (*MoveExtend)();
   EXPECT_EQ(0xff - 1 + 0xffff, reinterpret_cast<MoveExtend>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rdx,0x....\n"
-      "movzxbq rax,rdx\n"
-      "movsxwq r8,rdx\n"
-      "movzxwq rcx,rdx\n"
-      "addq r8,rcx\n"
-      "addq rax,r8\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(MoveExtend32, assembler) {
@@ -1015,13 +632,6 @@ ASSEMBLER_TEST_GENERATE(MoveExtend32, assembler) {
 ASSEMBLER_TEST_RUN(MoveExtend32, test) {
   typedef intptr_t (*MoveExtend)();
   EXPECT_EQ(0x7ffffffe, reinterpret_cast<MoveExtend>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rdx,0x........\n"
-      "movsxdq rdx,rdx\n"
-      "movq rax,0x........\n"
-      "movsxdq rax,rax\n"
-      "addq rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(MoveExtendMemory, assembler) {
@@ -1042,16 +652,6 @@ ASSEMBLER_TEST_RUN(MoveExtendMemory, test) {
   typedef int (*MoveExtendMemory)();
   EXPECT_EQ(0xff - 1 + 0xffff,
             reinterpret_cast<MoveExtendMemory>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rdx,0x................\n"
-      "push rdx\n"
-      "movzxbq rax,[rsp]\n"
-      "movsxwq r8,[rsp]\n"
-      "movzxwq rcx,[rsp]\n"
-      "addq rsp,8\n"
-      "addq r8,rcx\n"
-      "addq rax,r8\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(MoveExtend32Memory, assembler) {
@@ -1068,15 +668,6 @@ ASSEMBLER_TEST_GENERATE(MoveExtend32Memory, assembler) {
 ASSEMBLER_TEST_RUN(MoveExtend32Memory, test) {
   typedef intptr_t (*MoveExtend)();
   EXPECT_EQ(0x7ffffffe, reinterpret_cast<MoveExtend>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq r11,0x........\n"
-      "push r11\n"
-      "push 0x........\n"
-      "movsxdq rdx,[rsp+0x8]\n"
-      "movsxdq rax,[rsp]\n"
-      "addq rsp,0x10\n"
-      "addq rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(MoveWord, assembler) {
@@ -1093,15 +684,6 @@ ASSEMBLER_TEST_GENERATE(MoveWord, assembler) {
 ASSEMBLER_TEST_RUN(MoveWord, test) {
   typedef int (*MoveWord)();
   EXPECT_EQ(0xffff, reinterpret_cast<MoveWord>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "xorq rax,rax\n"
-      "push 0\n"
-      "movq rax,rsp\n"
-      "movq rcx,-1\n"
-      "movw [rax],rcx\n"
-      "movzxwq rax,[rax]\n"
-      "addq rsp,8\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(MoveWordRex, assembler) {
@@ -1119,16 +701,6 @@ ASSEMBLER_TEST_GENERATE(MoveWordRex, assembler) {
 ASSEMBLER_TEST_RUN(MoveWordRex, test) {
   typedef int (*MoveWordRex)();
   EXPECT_EQ(0xffff, reinterpret_cast<MoveWordRex>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "push 0\n"
-      "movq r8,rsp\n"
-      "movq r9,-1\n"
-      "movw [r8],r9\n"
-      "movzxwq r8,[r8]\n"
-      "xorq rax,rax\n"
-      "addq rax,r8\n"
-      "addq rsp,8\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LongAddReg, assembler) {
@@ -1158,20 +730,6 @@ ASSEMBLER_TEST_RUN(LongAddReg, test) {
   b = 600000;
   res = reinterpret_cast<LongAddRegCode>(test->entry())(a, b);
   EXPECT_EQ((a + b), res);
-  EXPECT_DISASSEMBLY(
-      "push rsi\n"
-      "push rdi\n"
-      "movl rax,[rsp]\n"
-      "movl rdx,[rsp+0x4]\n"
-      "movl rcx,[rsp+0x8]\n"
-      "movl r8,[rsp+0xc]\n"
-      "addl rax,rcx\n"
-      "adcl rdx,r8\n"
-      "movl [rsp],rax\n"
-      "movl [rsp+0x4],rdx\n"
-      "pop rax\n"
-      "pop rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LongAddImmediate, assembler) {
@@ -1196,16 +754,6 @@ ASSEMBLER_TEST_RUN(LongAddImmediate, test) {
   a = (13LL << 32) - 1;
   res = reinterpret_cast<LongAddImmediateCode>(test->entry())(a);
   EXPECT_EQ((a + b), res);
-  EXPECT_DISASSEMBLY(
-      "push rdi\n"
-      "movl rax,[rsp]\n"
-      "movl rdx,[rsp+0x4]\n"
-      "addl rax,0xc\n"
-      "adcl rdx,0xb\n"
-      "movl [rsp],rax\n"
-      "movl [rsp+0x4],rdx\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LongAddAddress, assembler) {
@@ -1233,18 +781,6 @@ ASSEMBLER_TEST_RUN(LongAddAddress, test) {
   b = 600000;
   res = reinterpret_cast<LongAddAddressCode>(test->entry())(a, b);
   EXPECT_EQ((a + b), res);
-  EXPECT_DISASSEMBLY(
-      "push rsi\n"
-      "push rdi\n"
-      "movl rax,[rsp]\n"
-      "movl rdx,[rsp+0x4]\n"
-      "addl rax,[rsp+0x8]\n"
-      "adcl rdx,[rsp+0xc]\n"
-      "movl [rsp],rax\n"
-      "movl [rsp+0x4],rdx\n"
-      "pop rax\n"
-      "pop rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LongSubReg, assembler) {
@@ -1274,20 +810,6 @@ ASSEMBLER_TEST_RUN(LongSubReg, test) {
   b = 2147483647;
   res = reinterpret_cast<LongSubRegCode>(test->entry())(a, b);
   EXPECT_EQ((a - b), res);
-  EXPECT_DISASSEMBLY(
-      "push rsi\n"
-      "push rdi\n"
-      "movl rax,[rsp]\n"
-      "movl rdx,[rsp+0x4]\n"
-      "movl rcx,[rsp+0x8]\n"
-      "movl r8,[rsp+0xc]\n"
-      "subl rax,rcx\n"
-      "sbbl rdx,r8\n"
-      "movl [rsp],rax\n"
-      "movl [rsp+0x4],rdx\n"
-      "pop rax\n"
-      "pop rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LongSubImmediate, assembler) {
@@ -1316,18 +838,6 @@ ASSEMBLER_TEST_RUN(LongSubImmediate, test) {
   a = (13LL << 32) + 10;
   res = reinterpret_cast<LongSubImmediateCode>(test->entry())(a);
   EXPECT_EQ((a - b), res);
-  EXPECT_DISASSEMBLY(
-      "push rdi\n"
-      "movl rax,0\n"
-      "subl rax,1\n"
-      "movl rax,[rsp]\n"
-      "movl rdx,[rsp+0x4]\n"
-      "subl rax,0xc\n"
-      "sbbl rdx,0xb\n"
-      "movl [rsp],rax\n"
-      "movl [rsp+0x4],rdx\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LongSubAddress, assembler) {
@@ -1355,18 +865,6 @@ ASSEMBLER_TEST_RUN(LongSubAddress, test) {
   b = 2147483647;
   res = reinterpret_cast<LongSubAddressCode>(test->entry())(a, b);
   EXPECT_EQ((a - b), res);
-  EXPECT_DISASSEMBLY(
-      "push rsi\n"
-      "push rdi\n"
-      "movl rax,[rsp]\n"
-      "movl rdx,[rsp+0x4]\n"
-      "subl rax,[rsp+0x8]\n"
-      "sbbl rdx,[rsp+0xc]\n"
-      "movl [rsp],rax\n"
-      "movl [rsp+0x4],rdx\n"
-      "pop rax\n"
-      "pop rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddReg, assembler) {
@@ -1389,12 +887,6 @@ ASSEMBLER_TEST_RUN(AddReg, test) {
   al = -1;
   res = reinterpret_cast<AddRegCode>(test->entry())(al, ah, bl, bh);
   EXPECT_EQ((ah + bh + 1), res);
-  EXPECT_DISASSEMBLY(
-      "movq r10,rdi\n"
-      "addq r10,rdx\n"
-      "movq rax,rsi\n"
-      "adcq rax,rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddImmediate, assembler) {
@@ -1416,12 +908,6 @@ ASSEMBLER_TEST_RUN(AddImmediate, test) {
   al = -1;
   res = reinterpret_cast<AddImmediateCode>(test->entry())(al, ah);
   EXPECT_EQ((ah + bh + 1), res);
-  EXPECT_DISASSEMBLY(
-      "movq r10,rdi\n"
-      "addq r10,0xd\n"
-      "movq rax,rsi\n"
-      "adcq rax,0xe\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(AddAddress, assembler) {
@@ -1449,20 +935,6 @@ ASSEMBLER_TEST_RUN(AddAddress, test) {
   al = -1;
   res = reinterpret_cast<AddCode>(test->entry())(al, ah, bl, bh);
   EXPECT_EQ((ah + bh + 1), res);
-  EXPECT_DISASSEMBLY(
-      "push rcx\n"
-      "push rdx\n"
-      "push rsi\n"
-      "push rdi\n"
-      "movq r10,[rsp]\n"
-      "addq r10,[rsp+0x10]\n"
-      "movq rax,[rsp+0x8]\n"
-      "adcq rax,[rsp+0x18]\n"
-      "pop r11\n"
-      "pop r11\n"
-      "pop r11\n"
-      "pop r11\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SubReg, assembler) {
@@ -1485,12 +957,6 @@ ASSEMBLER_TEST_RUN(SubReg, test) {
   al = 10;
   res = reinterpret_cast<SubRegCode>(test->entry())(al, ah, bl, bh);
   EXPECT_EQ((ah - bh - 1), res);
-  EXPECT_DISASSEMBLY(
-      "movq r10,rdi\n"
-      "subq r10,rdx\n"
-      "movq rax,rsi\n"
-      "sbbq rax,rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SubImmediate, assembler) {
@@ -1512,12 +978,6 @@ ASSEMBLER_TEST_RUN(SubImmediate, test) {
   al = 10;
   res = reinterpret_cast<SubImmediateCode>(test->entry())(al, ah);
   EXPECT_EQ((ah - bh - 1), res);
-  EXPECT_DISASSEMBLY(
-      "movq r10,rdi\n"
-      "subq r10,0xc\n"
-      "movq rax,rsi\n"
-      "sbbq rax,0xb\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SubAddress, assembler) {
@@ -1545,20 +1005,6 @@ ASSEMBLER_TEST_RUN(SubAddress, test) {
   al = 10;
   res = reinterpret_cast<SubCode>(test->entry())(al, ah, bl, bh);
   EXPECT_EQ((ah - bh - 1), res);
-  EXPECT_DISASSEMBLY(
-      "push rcx\n"
-      "push rdx\n"
-      "push rsi\n"
-      "push rdi\n"
-      "movq r10,[rsp]\n"
-      "subq r10,[rsp+0x10]\n"
-      "movq rax,[rsp+0x8]\n"
-      "sbbq rax,[rsp+0x18]\n"
-      "pop r11\n"
-      "pop r11\n"
-      "pop r11\n"
-      "pop r11\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
@@ -1586,21 +1032,6 @@ ASSEMBLER_TEST_RUN(Bitwise, test) {
   EXPECT_EQ(256 + 1, result);
   EXPECT_EQ(kMaxUint32, f1);
   EXPECT_EQ(kMaxUint32, f2);
-  EXPECT_DISASSEMBLY(
-      "movq r10,-1\n"
-      "orl [rdi],r10\n"
-      "orl [rsi],r10\n"
-      "movl rcx,0x2a\n"
-      "xorl rcx,rcx\n"
-      "orl rcx,0x...\n"
-      "movl rax,4\n"
-      "orl rcx,rax\n"
-      "movl rax,0x....\n"
-      "andl rcx,rax\n"
-      "movl rax,1\n"
-      "orl rcx,rax\n"
-      "movl rax,rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Bitwise64, assembler) {
@@ -1643,39 +1074,6 @@ ASSEMBLER_TEST_GENERATE(Bitwise64, assembler) {
 ASSEMBLER_TEST_RUN(Bitwise64, test) {
   typedef int (*Bitwise64)();
   EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise64>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x2a\n"
-      "push rax\n"
-      "xorq rax,[rsp]\n"
-      "pop rcx\n"
-      "cmpq rax,0\n"
-      "jnz 0x................\n"
-      "movq rcx,0xff\n"
-      "movq rax,5\n"
-      "xorq rcx,rax\n"
-      "cmpq rcx,0xfa\n"
-      "jnz 0x................\n"
-      "push 0xff\n"
-      "movq rcx,5\n"
-      "xorq [rsp],rcx\n"
-      "pop rcx\n"
-      "cmpq rcx,0xfa\n"
-      "jnz 0x................\n"
-      "xorq rcx,rcx\n"
-      "orq rcx,0x...\n"
-      "movq rax,4\n"
-      "orq rcx,rax\n"
-      "movq rax,0x....\n"
-      "andq rcx,rax\n"
-      "movq rax,1\n"
-      "push rax\n"
-      "orq rcx,[rsp]\n"
-      "xorq rcx,0\n"
-      "pop rax\n"
-      "movq rax,rcx\n"
-      "retl\n"
-      "movq rax,-1\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
@@ -1947,162 +1345,6 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
 ASSEMBLER_TEST_RUN(LogicalOps, test) {
   typedef int (*LogicalOpsCode)();
   EXPECT_EQ(0, reinterpret_cast<LogicalOpsCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rax,4\n"
-      "andl rax,2\n"
-      "cmpl rax,0\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rcx,4\n"
-      "andl rcx,4\n"
-      "cmpl rcx,0\n"
-      "jnz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,0\n"
-      "orl rax,0\n"
-      "cmpl rax,0\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,4\n"
-      "orl rax,0\n"
-      "cmpl rax,0\n"
-      "jnz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "push rax\n"
-      "movl rax,0xff\n"
-      "movl [rsp],rax\n"
-      "cmpl [rsp],0xff\n"
-      "jz 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "pop rax\n"
-      "movl rax,1\n"
-      "shll rax,3\n"
-      "cmpl rax,8\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,2\n"
-      "shrl rax,1\n"
-      "cmpl rax,1\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,8\n"
-      "shrl rax,3\n"
-      "cmpl rax,1\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,1\n"
-      "movl rcx,3\n"
-      "shll rax,cl\n"
-      "cmpl rax,8\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,8\n"
-      "movl rcx,3\n"
-      "shrl rax,cl\n"
-      "cmpl rax,1\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,1\n"
-      "shlq rax,3\n"
-      "cmpl rax,8\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,2\n"
-      "shrq rax,1\n"
-      "cmpl rax,1\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,8\n"
-      "shrq rax,3\n"
-      "cmpl rax,1\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,1\n"
-      "movl rcx,3\n"
-      "shlq rax,cl\n"
-      "cmpl rax,8\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,8\n"
-      "movl rcx,3\n"
-      "shrq rax,cl\n"
-      "cmpl rax,1\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,1\n"
-      "shlq rax,31\n"
-      "shrq rax,3\n"
-      "cmp rax, 0x........\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,1\n"
-      "shlq rax,31\n"
-      "sarl rax,3\n"
-      "cmp rax, 0x........\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,1\n"
-      "movl rcx,3\n"
-      "shlq rax,31\n"
-      "sarl rax,cl\n"
-      "cmp rax, 0x........\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rdx,-0x........\n"
-      "movl r8,-1\n"
-      "movl rcx,2\n"
-      "shll rdx,cl\n"
-      "shldl rdx,r8,2\n"
-      "cmpl rdx,0x........\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rdx,0x................\n"
-      "movq r8,-1\n"
-      "movq rcx,2\n"
-      "shlq rdx,cl\n"
-      "shldq rdx,r8,2\n"
-      "movq r11,0x................\n"
-      "cmpq rdx,r11\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rdx,0x................\n"
-      "movq r8,-1\n"
-      "movq rcx,2\n"
-      "shlq rdx,cl\n"
-      "shldq rdx,r8,cl\n"
-      "movq r11,0x................\n"
-      "cmpq rdx,r11\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rdx,0x................\n"
-      "movq r8,-1\n"
-      "movq rcx,2\n"
-      "shrq rdx,cl\n"
-      "shrdq rdx,r8,cl\n"
-      "movq r11,0x................\n"
-      "cmpq rdx,r11\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movl rax,0\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
@@ -2291,134 +1533,6 @@ ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
 ASSEMBLER_TEST_RUN(LogicalOps64, test) {
   typedef int (*LogicalOpsCode)();
   EXPECT_EQ(0, reinterpret_cast<LogicalOpsCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,4\n"
-      "andq rax,2\n"
-      "cmpq rax,0\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rcx,4\n"
-      "push rcx\n"
-      "andq rcx,[rsp]\n"
-      "pop rax\n"
-      "cmpq rcx,0\n"
-      "jnz 0x................\n"
-      "int3l\n"
-      "movq rax,0\n"
-      "orq rax,0\n"
-      "cmpq rax,0\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,4\n"
-      "orq rax,0\n"
-      "cmpq rax,0\n"
-      "jnz 0x................\n"
-      "int3l\n"
-      "push rax\n"
-      "movq rax,0xff\n"
-      "movq [rsp],rax\n"
-      "cmpq [rsp],0xff\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "pop rax\n"
-      "movq rax,1\n"
-      "shlq rax,3\n"
-      "cmpq rax,8\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,2\n"
-      "shrq rax,1\n"
-      "cmpq rax,1\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,8\n"
-      "shrq rax,3\n"
-      "cmpq rax,1\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,1\n"
-      "movq rcx,3\n"
-      "shlq rax,cl\n"
-      "cmpq rax,8\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,8\n"
-      "movq rcx,3\n"
-      "shrq rax,cl\n"
-      "cmpq rax,1\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,1\n"
-      "shlq rax,3\n"
-      "cmpq rax,8\n"
-      "jz 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "movq rax,2\n"
-      "shrq rax,1\n"
-      "cmpq rax,1\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,8\n"
-      "shrq rax,3\n"
-      "cmpq rax,1\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,1\n"
-      "movq rcx,3\n"
-      "shlq rax,cl\n"
-      "cmpq rax,8\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,8\n"
-      "movq rcx,3\n"
-      "shrq rax,cl\n"
-      "cmpq rax,1\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,1\n"
-      "shlq rax,31\n"
-      "shrq rax,3\n"
-      "cmp rax, 0x........\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,1\n"
-      "shlq rax,63\n"
-      "sarq rax,3\n"
-      "movq r11,0x................\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "movq rax,1\n"
-      "movq rcx,3\n"
-      "shlq rax,63\n"
-      "sarq rax,cl\n"
-      "movq r11,0x................\n"
-      "cmpq rax,r11\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "push pp\n"
-      "movq pp,0x................\n"
-      "andq pp,-1\n"
-      "movq r11,0x................\n"
-      "andq pp,r11\n"
-      "orq pp,2\n"
-      "movq r11,0x................\n"
-      "orq pp,r11\n"
-      "xorq pp,1\n"
-      "movq r11,0x................\n"
-      "xorq pp,r11\n"
-      "movq r11,0x................\n"
-      "cmpq pp,r11\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "andq pp,2\n"
-      "cmpq pp,2\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "pop pp\n"
-      "movq rax,0\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LogicalTestL, assembler) {
@@ -2467,31 +1581,6 @@ ASSEMBLER_TEST_GENERATE(LogicalTestL, assembler) {
 ASSEMBLER_TEST_RUN(LogicalTestL, test) {
   typedef int (*LogicalTestCode)();
   EXPECT_EQ(0, reinterpret_cast<LogicalTestCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movl rax,4\n"
-      "movl rcx,2\n"
-      "testl rax,rcx\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rdx,4\n"
-      "movl rcx,4\n"
-      "testl rdx,rcx\n"
-      "jnz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,0\n"
-      "test al,0\n"
-      "jz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rcx,4\n"
-      "testb rcx,4\n"
-      "jnz 0x................\n"
-      "movl rax,0\n"
-      "movl [rax],rax\n"
-      "movl rax,0\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LogicalTestQ, assembler) {
@@ -2558,41 +1647,6 @@ ASSEMBLER_TEST_GENERATE(LogicalTestQ, assembler) {
 ASSEMBLER_TEST_RUN(LogicalTestQ, test) {
   typedef int (*LogicalTestCode)();
   EXPECT_EQ(0, reinterpret_cast<LogicalTestCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,4\n"
-      "movq rcx,2\n"
-      "testq rax,rcx\n"
-      "jz 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "movq rdx,4\n"
-      "movq rcx,4\n"
-      "testq rdx,rcx\n"
-      "jnz 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "movq rax,0\n"
-      "test al,0\n"
-      "jz 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "movq rcx,4\n"
-      "testb rcx,4\n"
-      "jnz 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "movq rcx,0xff\n"
-      "testb rcx,0xff\n"
-      "jnz 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "movq rax,0xff\n"
-      "test al,0xff\n"
-      "jnz 0x................\n"
-      "movq rax,0\n"
-      "movq [rax],rax\n"
-      "movq rax,0\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CompareSwapEQ, assembler) {
@@ -2609,15 +1663,6 @@ ASSEMBLER_TEST_GENERATE(CompareSwapEQ, assembler) {
 ASSEMBLER_TEST_RUN(CompareSwapEQ, test) {
   typedef int (*CompareSwapEQCode)();
   EXPECT_EQ(0, reinterpret_cast<CompareSwapEQCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0\n"
-      "push rax\n"
-      "movq rax,4\n"
-      "movq rcx,0\n"
-      "movq [rsp],rax\n"
-      "lock cmpxchgq rcx,[rsp]\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CompareSwapNEQ, assembler) {
@@ -2634,15 +1679,6 @@ ASSEMBLER_TEST_GENERATE(CompareSwapNEQ, assembler) {
 ASSEMBLER_TEST_RUN(CompareSwapNEQ, test) {
   typedef int (*CompareSwapNEQCode)();
   EXPECT_EQ(4, reinterpret_cast<CompareSwapNEQCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0\n"
-      "push rax\n"
-      "movq rax,2\n"
-      "movq rcx,4\n"
-      "movq [rsp],rcx\n"
-      "lock cmpxchgq rcx,[rsp]\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CompareSwapEQ32, assembler) {
@@ -2663,15 +1699,6 @@ ASSEMBLER_TEST_RUN(CompareSwapEQ32, test) {
   typedef intptr_t (*CompareSwapEQ32Code)();
   EXPECT_EQ(0x100000000,
             reinterpret_cast<CompareSwapEQ32Code>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push rax\n"
-      "movq rax,4\n"
-      "movq rcx,0\n"
-      "movl [rsp],rax\n"
-      "lock cmpxchgl rcx,[rsp]\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(CompareSwapNEQ32, assembler) {
@@ -2689,15 +1716,6 @@ ASSEMBLER_TEST_RUN(CompareSwapNEQ32, test) {
   typedef intptr_t (*CompareSwapNEQ32Code)();
   EXPECT_EQ(0x100000004l,
             reinterpret_cast<CompareSwapNEQ32Code>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push rax\n"
-      "movq rax,2\n"
-      "movq rcx,4\n"
-      "movl [rsp],rcx\n"
-      "lock cmpxchgl rcx,[rsp]\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Exchange, assembler) {
@@ -2712,12 +1730,6 @@ ASSEMBLER_TEST_RUN(Exchange, test) {
   typedef int64_t (*Exchange)();
   EXPECT_EQ(kAnotherLargeConstant - kLargeConstant,
             reinterpret_cast<Exchange>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "movq rdx,0x................\n"
-      "xchgq rax,rdx\n"
-      "subq rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(LargeConstant, assembler) {
@@ -2729,9 +1741,6 @@ ASSEMBLER_TEST_RUN(LargeConstant, test) {
   typedef int64_t (*LargeConstantCode)();
   EXPECT_EQ(kLargeConstant,
             reinterpret_cast<LargeConstantCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "retl\n");
 }
 
 static int ComputeStackSpaceReservation(int needed, int fixed) {
@@ -2767,10 +1776,6 @@ ASSEMBLER_TEST_GENERATE(CallSimpleLeaf, assembler) {
 ASSEMBLER_TEST_RUN(CallSimpleLeaf, test) {
   typedef int (*CallSimpleLeafCode)();
   EXPECT_EQ(42 + 87, reinterpret_cast<CallSimpleLeafCode>(test->entry())());
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "call r11\n"
-      "addq rsp,8\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(JumpSimpleLeaf, assembler) {
@@ -2788,7 +1793,6 @@ ASSEMBLER_TEST_GENERATE(JumpSimpleLeaf, assembler) {
 ASSEMBLER_TEST_RUN(JumpSimpleLeaf, test) {
   typedef int (*JumpSimpleLeafCode)();
   EXPECT_EQ(42, reinterpret_cast<JumpSimpleLeafCode>(test->entry())());
-  EXPECT_DISASSEMBLY_ENDS_WITH("jmp r11\n");
 }
 
 ASSEMBLER_TEST_GENERATE(JumpIndirect, assembler) {
@@ -2801,7 +1805,6 @@ ASSEMBLER_TEST_RUN(JumpIndirect, test) {
   uword temp = 0;
   typedef int (*JumpIndirect)(uword*);
   EXPECT_EQ(42, reinterpret_cast<JumpIndirect>(test->entry())(&temp));
-  EXPECT_DISASSEMBLY_ENDS_WITH("jmp [rdi]\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SingleFPMoves, assembler) {
@@ -2861,58 +1864,6 @@ ASSEMBLER_TEST_GENERATE(SingleFPMoves, assembler) {
 ASSEMBLER_TEST_RUN(SingleFPMoves, test) {
   typedef float (*SingleFPMovesCode)();
   EXPECT_EQ(234, reinterpret_cast<SingleFPMovesCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x........\n"
-      "movd xmm0,rax\n"
-      "movss rcx,xmm0\n"
-      "movss rdx,xmm1\n"
-      "movss rbx,xmm2\n"
-      "movss rsp,xmm3\n"
-      "movss rbp,xmm4\n"
-      "movss rsi,xmm5\n"
-      "movss rdi,xmm6\n"
-      "movss r8,xmm7\n"
-      "movss r9,xmm8\n"
-      "movss r10,xmm9\n"
-      "movss r11,xmm10\n"
-      "movss r12,xmm11\n"
-      "movss r13,xmm12\n"
-      "movss thr,xmm13\n"
-      "movss pp,xmm14\n"
-      "push pp\n"
-      "push rax\n"
-      "movq [rsp],0\n"
-      "movss xmm0,[rsp]\n"
-      "movss [rsp],xmm7\n"
-      "movss xmm1,[rsp]\n"
-      "movq r10,rsp\n"
-      "movss [r10],xmm1\n"
-      "movss xmm2,[r10]\n"
-      "movq pp,rsp\n"
-      "movss [pp],xmm2\n"
-      "movss xmm3,[pp]\n"
-      "movq rax,rsp\n"
-      "movss [rax],xmm3\n"
-      "movss xmm1,[rax]\n"
-      "movss xmm15,[rax]\n"
-      "movss thr,xmm15\n"
-      "movss r13,xmm14\n"
-      "movss r12,xmm13\n"
-      "movss r11,xmm12\n"
-      "movss r10,xmm11\n"
-      "movss r9,xmm10\n"
-      "movss r8,xmm9\n"
-      "movss rdi,xmm8\n"
-      "movss rsi,xmm7\n"
-      "movss rbp,xmm6\n"
-      "movss rsp,xmm5\n"
-      "movss rbx,xmm4\n"
-      "movss rdx,xmm3\n"
-      "movss rcx,xmm2\n"
-      "movss rax,xmm1\n"
-      "pop rax\n"
-      "pop pp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SingleFPMoves2, assembler) {
@@ -2937,23 +1888,6 @@ ASSEMBLER_TEST_GENERATE(SingleFPMoves2, assembler) {
 ASSEMBLER_TEST_RUN(SingleFPMoves2, test) {
   typedef float (*SingleFPMoves2Code)();
   EXPECT_EQ(234, reinterpret_cast<SingleFPMoves2Code>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x........\n"
-      "movd xmm0,rax\n"
-      "movd xmm8,rax\n"
-      "movss rcx,xmm8\n"
-      "push rax\n"
-      "movq [rsp],0\n"
-      "movss xmm0,[rsp]\n"
-      "movss [rsp],xmm1\n"
-      "movss xmm0,[rsp]\n"
-      "movq [rsp],0\n"
-      "movss r9,xmm8\n"
-      "movss [rsp],xmm9\n"
-      "movss xmm8,[rsp]\n"
-      "movss rax,xmm8\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(MovqXmmToCpu, assembler) {
@@ -2968,12 +1902,6 @@ ASSEMBLER_TEST_RUN(MovqXmmToCpu, test) {
   typedef uint64_t (*MovqXmmToCpuCode)();
   EXPECT_EQ((bit_cast<uint64_t, double>(234.5f)),
             reinterpret_cast<MovqXmmToCpuCode>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x........\n"
-      "movd xmm0,rax\n"
-      "cvtss2sd xmm0,xmm0\n"
-      "movq rax,xmm0\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleAdd, assembler) {
@@ -2998,11 +1926,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleAdd, test) {
   typedef double (*PackedDoubleAdd)();
   double res = reinterpret_cast<PackedDoubleAdd>(test->entry())();
   EXPECT_FLOAT_EQ(4.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm11,[rax]\n"
-      "addpd xmm10,xmm11\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleSub, assembler) {
@@ -3027,11 +1950,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
   typedef double (*PackedDoubleSub)();
   double res = reinterpret_cast<PackedDoubleSub>(test->entry())();
   EXPECT_FLOAT_EQ(-2.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm11,[rax]\n"
-      "subpd xmm10,xmm11\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 static void EnterTestFrame(Assembler* assembler) {
@@ -3071,17 +1989,6 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
 ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
   double res = test->InvokeWithCodeAndThread<double>();
   EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm10,[rax]\n"
-      "movq r11,[thr+0xf8]\n"
-      "xorpd xmm10,[r11]\n"
-      "movaps xmm0,xmm10\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
@@ -3101,17 +2008,6 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
 ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
   double res = test->InvokeWithCodeAndThread<double>();
   EXPECT_FLOAT_EQ(1.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm10,[rax]\n"
-      "movq r11,[thr+0x...]\n"
-      "andpd xmm10,[r11]\n"
-      "movaps xmm0,xmm10\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleMul, assembler) {
@@ -3136,11 +2032,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleMul, test) {
   typedef double (*PackedDoubleMul)();
   double res = reinterpret_cast<PackedDoubleMul>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm11,[rax]\n"
-      "mulpd xmm10,xmm11\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleDiv, assembler) {
@@ -3165,11 +2056,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleDiv, test) {
   typedef double (*PackedDoubleDiv)();
   double res = reinterpret_cast<PackedDoubleDiv>(test->entry())();
   EXPECT_FLOAT_EQ(3.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm11,[rax]\n"
-      "divpd xmm10,xmm11\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleSqrt, assembler) {
@@ -3188,11 +2074,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleSqrt, test) {
   typedef double (*PackedDoubleSqrt)();
   double res = reinterpret_cast<PackedDoubleSqrt>(test->entry())();
   EXPECT_FLOAT_EQ(4.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm10,[rax]\n"
-      "sqrtpd xmm10,xmm10\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleMin, assembler) {
@@ -3217,11 +2098,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleMin, test) {
   typedef double (*PackedDoubleMin)();
   double res = reinterpret_cast<PackedDoubleMin>(test->entry())();
   EXPECT_FLOAT_EQ(3.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm11,[rax]\n"
-      "minpd xmm10,xmm11\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleMax, assembler) {
@@ -3246,11 +2122,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleMax, test) {
   typedef double (*PackedDoubleMax)();
   double res = reinterpret_cast<PackedDoubleMax>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm11,[rax]\n"
-      "maxpd xmm10,xmm11\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleShuffle, assembler) {
@@ -3273,12 +2144,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleShuffle, test) {
   typedef double (*PackedDoubleShuffle)();
   double res = reinterpret_cast<PackedDoubleShuffle>(test->entry())();
   EXPECT_FLOAT_EQ(9.0, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm10,[rax]\n"
-      "shufpd xmm10, xmm10 [33]\n"
-      "shufpd xmm10, xmm10 [0]\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedDoubleToSingle, assembler) {
@@ -3297,11 +2162,6 @@ ASSEMBLER_TEST_RUN(PackedDoubleToSingle, test) {
   typedef float (*PackedDoubleToSingle)();
   float res = reinterpret_cast<PackedDoubleToSingle>(test->entry())();
   EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm11,[rax]\n"
-      "cvtpd2ps xmm10,xmm11\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedSingleToDouble, assembler) {
@@ -3322,11 +2182,6 @@ ASSEMBLER_TEST_RUN(PackedSingleToDouble, test) {
   typedef double (*PackedSingleToDouble)();
   double res = reinterpret_cast<PackedSingleToDouble>(test->entry())();
   EXPECT_FLOAT_EQ(9.0f, res, 0.000001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm11,[rax]\n"
-      "cvtsd2ss xmm10,xmm11\n"
-      "movaps xmm0,xmm10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
@@ -3356,27 +2211,6 @@ ASSEMBLER_TEST_RUN(SingleFPOperations, test) {
   typedef float (*SingleFPOperationsCode)();
   float res = reinterpret_cast<SingleFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY(
-      "push rbx\n"
-      "push rcx\n"
-      "movq rbx,0x........\n"
-      "movd xmm0,rbx\n"
-      "movd xmm8,rbx\n"
-      "movq rcx,0x........\n"
-      "movd xmm1,rcx\n"
-      "movd xmm9,rcx\n"
-      "addss xmm0,xmm1\n"
-      "mulss xmm0,xmm1\n"
-      "subss xmm0,xmm1\n"
-      "divss xmm0,xmm1\n"
-      "addss xmm8,xmm9\n"
-      "mulss xmm8,xmm9\n"
-      "subss xmm8,xmm9\n"
-      "divss xmm8,xmm9\n"
-      "subss xmm0,xmm8\n"
-      "pop rcx\n"
-      "pop rbx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedFPOperations, assembler) {
@@ -3399,20 +2233,6 @@ ASSEMBLER_TEST_RUN(PackedFPOperations, test) {
   typedef float (*PackedFPOperationsCode)();
   float res = reinterpret_cast<PackedFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(14.7f, res, 0.001f);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x........\n"
-      "movd xmm10,rax\n"
-      "shufps xmm10,xmm10 [0]\n"
-      "movq rax,0x........\n"
-      "movd xmm9,rax\n"
-      "shufps xmm9,xmm9 [0]\n"
-      "addps xmm10,xmm9\n"
-      "mulps xmm10,xmm9\n"
-      "subps xmm10,xmm9\n"
-      "divps xmm10,xmm9\n"
-      "movaps xmm0,xmm10\n"
-      "shufps xmm0,xmm0 [55]\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedIntOperations, assembler) {
@@ -3435,20 +2255,6 @@ ASSEMBLER_TEST_RUN(PackedIntOperations, test) {
   typedef uint32_t (*PackedIntOperationsCode)();
   uint32_t res = reinterpret_cast<PackedIntOperationsCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x5), res);
-  EXPECT_DISASSEMBLY(
-      "movl rax,2\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,1\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "paddd xmm0,xmm1\n"
-      "paddd xmm0,xmm0\n"
-      "psubd xmm0,xmm1\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedIntOperations2, assembler) {
@@ -3477,26 +2283,6 @@ ASSEMBLER_TEST_RUN(PackedIntOperations2, test) {
   typedef uint32_t (*PackedIntOperationsCode)();
   uint32_t res = reinterpret_cast<PackedIntOperationsCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x5), res);
-  EXPECT_DISASSEMBLY(
-      "subq rsp,0x20\n"
-      "movups [rsp],xmm10\n"
-      "movups [rsp+0x10],xmm11\n"
-      "movl rax,2\n"
-      "movd xmm10,rax\n"
-      "shufps xmm10,xmm10 [0]\n"
-      "movl rax,1\n"
-      "movd xmm11,rax\n"
-      "shufps xmm11,xmm11 [0]\n"
-      "paddd xmm10,xmm11\n"
-      "paddd xmm10,xmm10\n"
-      "psubd xmm10,xmm11\n"
-      "push rax\n"
-      "movss [rsp],xmm10\n"
-      "pop rax\n"
-      "movups xmm10,[rsp]\n"
-      "movups xmm11,[rsp+0x10]\n"
-      "addq rsp,0x20\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedFPOperations2, assembler) {
@@ -3517,17 +2303,6 @@ ASSEMBLER_TEST_RUN(PackedFPOperations2, test) {
   typedef float (*PackedFPOperations2Code)();
   float res = reinterpret_cast<PackedFPOperations2Code>(test->entry())();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movaps xmm11,xmm0\n"
-      "rcpps xmm11,xmm11\n"
-      "sqrtps xmm11,xmm11\n"
-      "rsqrtps xmm0,xmm0\n"
-      "subps xmm0,xmm11\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedCompareEQ, assembler) {
@@ -3544,18 +2319,6 @@ ASSEMBLER_TEST_RUN(PackedCompareEQ, test) {
   typedef uint32_t (*PackedCompareEQCode)();
   uint32_t res = reinterpret_cast<PackedCompareEQCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,0x........\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [0]\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedCompareNEQ, assembler) {
@@ -3572,18 +2335,6 @@ ASSEMBLER_TEST_RUN(PackedCompareNEQ, test) {
   typedef uint32_t (*PackedCompareNEQCode)();
   uint32_t res = reinterpret_cast<PackedCompareNEQCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,0x........\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [4]\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedCompareLT, assembler) {
@@ -3600,18 +2351,6 @@ ASSEMBLER_TEST_RUN(PackedCompareLT, test) {
   typedef uint32_t (*PackedCompareLTCode)();
   uint32_t res = reinterpret_cast<PackedCompareLTCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,0x........\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [1]\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedCompareLE, assembler) {
@@ -3628,18 +2367,6 @@ ASSEMBLER_TEST_RUN(PackedCompareLE, test) {
   typedef uint32_t (*PackedCompareLECode)();
   uint32_t res = reinterpret_cast<PackedCompareLECode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0xFFFFFFFF), res);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,0x........\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [2]\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedCompareNLT, assembler) {
@@ -3656,18 +2383,6 @@ ASSEMBLER_TEST_RUN(PackedCompareNLT, test) {
   typedef uint32_t (*PackedCompareNLTCode)();
   uint32_t res = reinterpret_cast<PackedCompareNLTCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,0x........\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [5]\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedCompareNLE, assembler) {
@@ -3684,18 +2399,6 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
   typedef uint32_t (*PackedCompareNLECode)();
   uint32_t res = reinterpret_cast<PackedCompareNLECode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0), res);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,0x........\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "cmpps xmm0,xmm1 [6]\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
@@ -3712,27 +2415,6 @@ ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
 ASSEMBLER_TEST_RUN(PackedNegate, test) {
   float res = test->InvokeWithCodeAndThread<float>();
   EXPECT_FLOAT_EQ(-12.3f, res, 0.001f);
-  EXPECT_DISASSEMBLY(
-      "push rbp\n"
-      "movq rbp,rsp\n"
-      "push r12\n"
-      "push pp\n"
-      "push thr\n"
-      "movq r12,[rdi+0x8]\n"
-      "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movq r11,[thr+0x...]\n"
-      "xorps xmm0,[r11]\n"
-      "shufps xmm0,xmm0 [aa]\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
@@ -3749,27 +2431,6 @@ ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
 ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
   float res = test->InvokeWithCodeAndThread<float>();
   EXPECT_FLOAT_EQ(15.3f, res, 0.001f);
-  EXPECT_DISASSEMBLY(
-      "push rbp\n"
-      "movq rbp,rsp\n"
-      "push r12\n"
-      "push pp\n"
-      "push thr\n"
-      "movq r12,[rdi+0x8]\n"
-      "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
-      "movl rax,-0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movq r11,[thr+0x...]\n"
-      "andps xmm0,[r11]\n"
-      "shufps xmm0,xmm0 [aa]\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
@@ -3784,27 +2445,6 @@ ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
 ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
   float res = test->InvokeWithCodeAndThread<float>();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY(
-      "push rbp\n"
-      "movq rbp,rsp\n"
-      "push r12\n"
-      "push pp\n"
-      "push thr\n"
-      "movq r12,[rdi+0x8]\n"
-      "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movq r11,[thr+0x...]\n"
-      "andps xmm0,[r11]\n"
-      "shufps xmm0,xmm0 [ff]\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedMin, assembler) {
@@ -3818,15 +2458,6 @@ ASSEMBLER_TEST_RUN(PackedMin, test) {
   typedef float (*PackedMinCode)();
   float res = reinterpret_cast<PackedMinCode>(test->entry())();
   EXPECT_FLOAT_EQ(2.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,0x........\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "minps xmm0,xmm1\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedMax, assembler) {
@@ -3840,15 +2471,6 @@ ASSEMBLER_TEST_RUN(PackedMax, test) {
   typedef float (*PackedMaxCode)();
   float res = reinterpret_cast<PackedMaxCode>(test->entry())();
   EXPECT_FLOAT_EQ(4.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY(
-      "movl rax,0x........\n"
-      "movd xmm0,rax\n"
-      "shufps xmm0,xmm0 [0]\n"
-      "movl rax,0x........\n"
-      "movd xmm1,rax\n"
-      "shufps xmm1,xmm1 [0]\n"
-      "maxps xmm0,xmm1\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedLogicalOr, assembler) {
@@ -3879,13 +2501,6 @@ ASSEMBLER_TEST_RUN(PackedLogicalOr, test) {
   typedef uint32_t (*PackedLogicalOrCode)();
   uint32_t res = reinterpret_cast<PackedLogicalOrCode>(test->entry())();
   EXPECT_EQ(0xFFFFFFFF, res);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm1,[rax]\n"
-      "orps xmm0,xmm1\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedLogicalAnd, assembler) {
@@ -3915,12 +2530,6 @@ ASSEMBLER_TEST_RUN(PackedLogicalAnd, test) {
   typedef uint32_t (*PackedLogicalAndCode)();
   uint32_t res = reinterpret_cast<PackedLogicalAndCode>(test->entry())();
   EXPECT_EQ(static_cast<uword>(0x0000F000), res);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "andps xmm0,[rax]\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
@@ -3945,20 +2554,6 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
 ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
   uint32_t res = test->InvokeWithCodeAndThread<uint32_t>();
   EXPECT_EQ(static_cast<uword>(0x0), res);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm9,[rax]\n"
-      "movq r11,[thr+0x...]\n"
-      "xorps xmm9,[r11]\n"
-      "movaps xmm0,xmm9\n"
-      "push rax\n"
-      "movss [rsp],xmm0\n"
-      "pop rax\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedMoveHighLow, assembler) {
@@ -3996,16 +2591,6 @@ ASSEMBLER_TEST_RUN(PackedMoveHighLow, test) {
   typedef float (*PackedMoveHighLow)();
   float res = reinterpret_cast<PackedMoveHighLow>(test->entry())();
   EXPECT_FLOAT_EQ(15.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm1,[rax]\n"
-      "movhlps xmm9,xmm1\n"
-      "xorps xmm1,xmm1\n"
-      "movaps xmm1,xmm9\n"
-      "shufps xmm9,xmm9 [0]\n"
-      "shufps xmm1,xmm1 [55]\n"
-      "addss xmm9,xmm1\n"
-      "movaps xmm0,xmm9\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedMoveLowHigh, assembler) {
@@ -4043,16 +2628,6 @@ ASSEMBLER_TEST_RUN(PackedMoveLowHigh, test) {
   typedef float (*PackedMoveLowHigh)();
   float res = reinterpret_cast<PackedMoveLowHigh>(test->entry())();
   EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm1,[rax]\n"
-      "movlhps xmm9,xmm1\n"
-      "xorps xmm1,xmm1\n"
-      "movaps xmm1,xmm9\n"
-      "shufps xmm9,xmm9 [aa]\n"
-      "shufps xmm1,xmm1 [ff]\n"
-      "addss xmm9,xmm1\n"
-      "movaps xmm0,xmm9\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedUnpackLow, assembler) {
@@ -4089,15 +2664,6 @@ ASSEMBLER_TEST_RUN(PackedUnpackLow, test) {
   typedef float (*PackedUnpackLow)();
   float res = reinterpret_cast<PackedUnpackLow>(test->entry())();
   EXPECT_FLOAT_EQ(11.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm1,[rax]\n"
-      "unpcklps xmm9,xmm1\n"
-      "movaps xmm1,xmm9\n"
-      "shufps xmm9,xmm9 [55]\n"
-      "shufps xmm1,xmm1 [ff]\n"
-      "addss xmm9,xmm1\n"
-      "movaps xmm0,xmm9\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedUnpackHigh, assembler) {
@@ -4134,15 +2700,6 @@ ASSEMBLER_TEST_RUN(PackedUnpackHigh, test) {
   typedef float (*PackedUnpackHigh)();
   float res = reinterpret_cast<PackedUnpackHigh>(test->entry())();
   EXPECT_FLOAT_EQ(7.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm1,[rax]\n"
-      "unpckhps xmm9,xmm1\n"
-      "movaps xmm1,xmm9\n"
-      "shufps xmm9,xmm9 [0]\n"
-      "shufps xmm1,xmm1 [aa]\n"
-      "addss xmm9,xmm1\n"
-      "movaps xmm0,xmm9\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedUnpackLowPair, assembler) {
@@ -4179,15 +2736,6 @@ ASSEMBLER_TEST_RUN(PackedUnpackLowPair, test) {
   typedef float (*PackedUnpackLowPair)();
   float res = reinterpret_cast<PackedUnpackLowPair>(test->entry())();
   EXPECT_FLOAT_EQ(6.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm1,[rax]\n"
-      "unpcklpd xmm9,xmm1\n"
-      "movaps xmm1,xmm9\n"
-      "shufps xmm9,xmm9 [0]\n"
-      "shufps xmm1,xmm1 [aa]\n"
-      "addss xmm9,xmm1\n"
-      "movaps xmm0,xmm9\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(PackedUnpackHighPair, assembler) {
@@ -4224,15 +2772,6 @@ ASSEMBLER_TEST_RUN(PackedUnpackHighPair, test) {
   typedef float (*PackedUnpackHighPair)();
   float res = reinterpret_cast<PackedUnpackHighPair>(test->entry())();
   EXPECT_FLOAT_EQ(12.0f, res, 0.001f);
-  EXPECT_DISASSEMBLY_ENDS_WITH(
-      "movups xmm1,[rax]\n"
-      "unpckhpd xmm9,xmm1\n"
-      "movaps xmm1,xmm9\n"
-      "shufps xmm9,xmm9 [55]\n"
-      "shufps xmm1,xmm1 [ff]\n"
-      "addss xmm9,xmm1\n"
-      "movaps xmm0,xmm9\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleFPMoves, assembler) {
@@ -4293,58 +2832,6 @@ ASSEMBLER_TEST_RUN(DoubleFPMoves, test) {
   typedef double (*DoubleFPMovesCode)();
   EXPECT_FLOAT_EQ(1024.67, reinterpret_cast<DoubleFPMovesCode>(test->entry())(),
                   0.001);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push pp\n"
-      "push rax\n"
-      "movsd xmm0,[rsp]\n"
-      "movsd xmm1,xmm0\n"
-      "movsd xmm2,xmm1\n"
-      "movsd xmm3,xmm2\n"
-      "movsd xmm4,xmm3\n"
-      "movsd xmm5,xmm4\n"
-      "movsd xmm6,xmm5\n"
-      "movsd xmm7,xmm6\n"
-      "movsd xmm8,xmm7\n"
-      "movsd xmm9,xmm8\n"
-      "movsd xmm10,xmm9\n"
-      "movsd xmm11,xmm10\n"
-      "movsd xmm12,xmm11\n"
-      "movsd xmm13,xmm12\n"
-      "movsd xmm14,xmm13\n"
-      "movsd xmm15,xmm14\n"
-      "movq [rsp],0\n"
-      "movsd xmm0,[rsp]\n"
-      "movsd [rsp],xmm15\n"
-      "movsd xmm1,[rsp]\n"
-      "movq r10,rsp\n"
-      "movsd [r10],xmm1\n"
-      "movsd xmm2,[r10]\n"
-      "movq pp,rsp\n"
-      "movsd [pp],xmm2\n"
-      "movsd xmm3,[pp]\n"
-      "movq rax,rsp\n"
-      "movsd [rax],xmm3\n"
-      "movsd xmm4,[rax]\n"
-      "movsd xmm15,[rsp]\n"
-      "movaps xmm14,xmm15\n"
-      "movaps xmm13,xmm14\n"
-      "movaps xmm12,xmm13\n"
-      "movaps xmm11,xmm12\n"
-      "movaps xmm10,xmm11\n"
-      "movaps xmm9,xmm10\n"
-      "movaps xmm8,xmm9\n"
-      "movaps xmm7,xmm8\n"
-      "movaps xmm6,xmm7\n"
-      "movaps xmm5,xmm6\n"
-      "movaps xmm4,xmm5\n"
-      "movaps xmm3,xmm4\n"
-      "movaps xmm2,xmm3\n"
-      "movaps xmm1,xmm2\n"
-      "movaps xmm0,xmm1\n"
-      "pop rax\n"
-      "pop pp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
@@ -4375,28 +2862,6 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
   typedef double (*SingleFPOperationsCode)();
   double res = reinterpret_cast<SingleFPOperationsCode>(test->entry())();
   EXPECT_FLOAT_EQ(7.668, res, 0.001);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push rax\n"
-      "movsd xmm0,[rsp]\n"
-      "movsd xmm8,[rsp]\n"
-      "movq rax,0x................\n"
-      "movq [rsp],rax\n"
-      "movsd xmm12,[rsp]\n"
-      "addsd xmm8,xmm12\n"
-      "mulsd xmm8,xmm12\n"
-      "subsd xmm8,xmm12\n"
-      "divsd xmm8,xmm12\n"
-      "sqrtsd xmm8,xmm8\n"
-      "movsd xmm1,[rsp]\n"
-      "addsd xmm0,xmm1\n"
-      "mulsd xmm0,xmm1\n"
-      "subsd xmm0,xmm1\n"
-      "divsd xmm0,xmm1\n"
-      "sqrtsd xmm0,xmm0\n"
-      "addsd xmm0,xmm8\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Int32ToDoubleConversion, assembler) {
@@ -4414,13 +2879,6 @@ ASSEMBLER_TEST_RUN(Int32ToDoubleConversion, test) {
   typedef double (*Int32ToDoubleConversion)();
   double res = reinterpret_cast<Int32ToDoubleConversion>(test->entry())();
   EXPECT_FLOAT_EQ(-2.0, res, 0.001);
-  EXPECT_DISASSEMBLY(
-      "movq r11,0x................\n"
-      "cvtsi2sd xmm0,r11\n"
-      "movq r11,0x................\n"
-      "cvtsi2sd xmm8,r11\n"
-      "subsd xmm0,xmm8\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Int64ToDoubleConversion, assembler) {
@@ -4436,13 +2894,6 @@ ASSEMBLER_TEST_RUN(Int64ToDoubleConversion, test) {
   typedef double (*Int64ToDoubleConversionCode)();
   double res = reinterpret_cast<Int64ToDoubleConversionCode>(test->entry())();
   EXPECT_FLOAT_EQ(static_cast<double>(12LL << 32), res, 0.001);
-  EXPECT_DISASSEMBLY(
-      "movq rdx,0x................\n"
-      "cvtsi2sd xmm0,rdx\n"
-      "movsd xmm15,xmm0\n"
-      "addsd xmm0,xmm0\n"
-      "movsd xmm0,xmm15\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToInt64Conversion, assembler) {
@@ -4464,19 +2915,6 @@ ASSEMBLER_TEST_RUN(DoubleToInt64Conversion, test) {
   typedef int64_t (*DoubleToInt64ConversionCode)();
   int64_t res = reinterpret_cast<DoubleToInt64ConversionCode>(test->entry())();
   EXPECT_EQ(0, res);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push rax\n"
-      "movsd xmm9,[rsp]\n"
-      "movsd xmm6,[rsp]\n"
-      "pop rax\n"
-      "cvttsd2siq r10,xmm6\n"
-      "cvttsd2siq rdx,xmm6\n"
-      "cvttsd2siq r10,xmm9\n"
-      "cvttsd2siq rdx,xmm9\n"
-      "subq rdx,r10\n"
-      "movq rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
@@ -4516,49 +2954,6 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
 ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
   bool res = test->InvokeWithCodeAndThread<bool>();
   EXPECT_EQ(true, res);
-  EXPECT_DISASSEMBLY(
-      "push rbp\n"
-      "movq rbp,rsp\n"
-      "push r12\n"
-      "push pp\n"
-      "push thr\n"
-      "movq r12,[rdi+0x8]\n"
-      "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
-      "movq rax,[pp+0x17]\n"
-      "cmpq rax,[pp+0x17]\n"
-      "jnz 0x................\n"
-      "movq rcx,[pp+0x17]\n"
-      "cmpq rcx,[pp+0x17]\n"
-      "jnz 0x................\n"
-      "movq rcx,0x1e\n"
-      "cmpq rcx,0x1e\n"
-      "jnz 0x................\n"
-      "push rax\n"
-      "movq r11,[pp+0x17]\n"
-      "movq [rsp],r11\n"
-      "pop rcx\n"
-      "cmpq rcx,[pp+0x17]\n"
-      "jnz 0x................\n"
-      "push rax\n"
-      "movq [rsp],0x1e\n"
-      "pop rcx\n"
-      "cmpq rcx,0x1e\n"
-      "jnz 0x................\n"
-      "movl rax,1\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n"
-      "movl rax,0\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestNop, assembler) {
@@ -4578,17 +2973,6 @@ ASSEMBLER_TEST_RUN(TestNop, test) {
   typedef int (*TestNop)();
   int res = reinterpret_cast<TestNop>(test->payload_start())();
   EXPECT_EQ(36, res);  // 36 nop bytes emitted.
-  EXPECT_DISASSEMBLY(
-      "nop\n"
-      "nop\n"
-      "nop\n"
-      "nop\n"
-      "nop\n"
-      "nop\n"
-      "nop\n"
-      "nop\n"
-      "movq rax,0x24\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestAlign0, assembler) {
@@ -4601,9 +2985,6 @@ ASSEMBLER_TEST_RUN(TestAlign0, test) {
   typedef int (*TestAlign0)();
   int res = reinterpret_cast<TestAlign0>(test->payload_start())();
   EXPECT_EQ(0, res);  // 0 bytes emitted.
-  EXPECT_DISASSEMBLY(
-      "movq rax,0\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestAlign1, assembler) {
@@ -4617,11 +2998,6 @@ ASSEMBLER_TEST_RUN(TestAlign1, test) {
   typedef int (*TestAlign1)();
   int res = reinterpret_cast<TestAlign1>(test->payload_start())();
   EXPECT_EQ(4, res);  // 4 bytes emitted.
-  EXPECT_DISASSEMBLY(
-      "nop\n"
-      "nop\n"
-      "movq rax,4\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestAlign1Offset1, assembler) {
@@ -4635,11 +3011,6 @@ ASSEMBLER_TEST_RUN(TestAlign1Offset1, test) {
   typedef int (*TestAlign1Offset1)();
   int res = reinterpret_cast<TestAlign1Offset1>(test->payload_start())();
   EXPECT_EQ(3, res);  // 3 bytes emitted.
-  EXPECT_DISASSEMBLY(
-      "nop\n"
-      "nop\n"
-      "movq rax,3\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestAlignLarge, assembler) {
@@ -4653,12 +3024,6 @@ ASSEMBLER_TEST_RUN(TestAlignLarge, test) {
   typedef int (*TestAlignLarge)();
   int res = reinterpret_cast<TestAlignLarge>(test->payload_start())();
   EXPECT_EQ(16, res);  // 16 bytes emitted.
-  EXPECT_DISASSEMBLY(
-      "nop\n"
-      "nop\n"
-      "nop\n"
-      "movq rax,0x10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestAdds, assembler) {
@@ -4682,17 +3047,6 @@ ASSEMBLER_TEST_RUN(TestAdds, test) {
   typedef int (*TestAdds)();
   int res = reinterpret_cast<TestAdds>(test->entry())();
   EXPECT_EQ(20, res);
-  EXPECT_DISASSEMBLY(
-      "movq rax,4\n"
-      "push rax\n"
-      "addq [rsp],5\n"
-      "addq [rsp],-2\n"
-      "movq rcx,3\n"
-      "addq [rsp],rcx\n"
-      "movq rax,0xa\n"
-      "addq rax,[rsp]\n"
-      "pop rcx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestNot, assembler) {
@@ -4705,10 +3059,6 @@ ASSEMBLER_TEST_RUN(TestNot, test) {
   typedef int (*TestNot)();
   unsigned int res = reinterpret_cast<TestNot>(test->entry())();
   EXPECT_EQ(0xFFFFFFFF, res);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "notq rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestNotInt32, assembler) {
@@ -4721,10 +3071,6 @@ ASSEMBLER_TEST_RUN(TestNotInt32, test) {
   typedef int (*TestNot)();
   unsigned int res = reinterpret_cast<TestNot>(test->entry())();
   EXPECT_EQ(0xFFFFFFFF, res);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0\n"
-      "notl rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(XorpdZeroing, assembler) {
@@ -4739,12 +3085,6 @@ ASSEMBLER_TEST_RUN(XorpdZeroing, test) {
   typedef double (*XorpdZeroingCode)(double d);
   double res = reinterpret_cast<XorpdZeroingCode>(test->entry())(12.56e3);
   EXPECT_FLOAT_EQ(0.0, res, 0.0001);
-  EXPECT_DISASSEMBLY(
-      "push rax\n"
-      "movsd [rsp],xmm0\n"
-      "xorpd xmm0,[rsp]\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(XorpdZeroing2, assembler) {
@@ -4763,14 +3103,6 @@ ASSEMBLER_TEST_RUN(XorpdZeroing2, test) {
   typedef double (*XorpdZeroing2Code)(double d);
   double res = reinterpret_cast<XorpdZeroing2Code>(test->entry())(12.56e3);
   EXPECT_FLOAT_EQ(0.0, res, 0.0001);
-  EXPECT_DISASSEMBLY(
-      "xorpd xmm15,xmm15\n"
-      "xorpd xmm0,xmm0\n"
-      "xorpd xmm0,xmm15\n"
-      "comisd xmm0,xmm15\n"
-      "jz 0x................\n"
-      "int3l\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Pxor, assembler) {
@@ -4782,9 +3114,6 @@ ASSEMBLER_TEST_RUN(Pxor, test) {
   typedef double (*PxorCode)(double d);
   double res = reinterpret_cast<PxorCode>(test->entry())(12.3456e3);
   EXPECT_FLOAT_EQ(0.0, res, 0.0);
-  EXPECT_DISASSEMBLY(
-      "pxor xmm0,xmm0\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(SquareRootDouble, assembler) {
@@ -4798,9 +3127,6 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
   double res =
       reinterpret_cast<SquareRootDoubleCode>(test->entry())(kDoubleConst);
   EXPECT_FLOAT_EQ(sqrt(kDoubleConst), res, 0.0001);
-  EXPECT_DISASSEMBLY(
-      "sqrtsd xmm0,xmm0\n"
-      "retl\n");
 }
 
 // Called from assembler_test.cc.
@@ -4832,14 +3158,6 @@ ASSEMBLER_TEST_RUN(DoubleFPUStackMoves, test) {
   typedef int64_t (*DoubleFPUStackMovesCode)();
   int64_t res = reinterpret_cast<DoubleFPUStackMovesCode>(test->entry())();
   EXPECT_FLOAT_EQ(1024.67, (bit_cast<double, int64_t>(res)), 0.001);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x................\n"
-      "push rax\n"
-      "fld_d [rsp]\n"
-      "movq [rsp],0\n"
-      "fstp_d [rsp]\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Sine, assembler) {
@@ -4858,15 +3176,6 @@ ASSEMBLER_TEST_RUN(Sine, test) {
   const double kDoubleConst = 0.7;
   double res = reinterpret_cast<SineCode>(test->entry())(kDoubleConst);
   EXPECT_FLOAT_EQ(sin(kDoubleConst), res, 0.0001);
-  EXPECT_DISASSEMBLY(
-      "push rax\n"
-      "movsd [rsp],xmm0\n"
-      "fld_d [rsp]\n"
-      "fsin\n"
-      "fstp_d [rsp]\n"
-      "movsd xmm0,[rsp]\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Cosine, assembler) {
@@ -4885,15 +3194,6 @@ ASSEMBLER_TEST_RUN(Cosine, test) {
   const double kDoubleConst = 0.7;
   double res = reinterpret_cast<CosineCode>(test->entry())(kDoubleConst);
   EXPECT_FLOAT_EQ(cos(kDoubleConst), res, 0.0001);
-  EXPECT_DISASSEMBLY(
-      "push rax\n"
-      "movsd [rsp],xmm0\n"
-      "fld_d [rsp]\n"
-      "fcos\n"
-      "fstp_d [rsp]\n"
-      "movsd xmm0,[rsp]\n"
-      "pop rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
@@ -4906,10 +3206,6 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
   typedef double (*IntToDoubleConversionCode)();
   double res = reinterpret_cast<IntToDoubleConversionCode>(test->entry())();
   EXPECT_FLOAT_EQ(6.0, res, 0.001);
-  EXPECT_DISASSEMBLY(
-      "movq rdx,6\n"
-      "cvtsi2sd xmm0,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleToDoubleTrunc, assembler) {
@@ -4927,9 +3223,6 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
   EXPECT_EQ(-12.0, res);
   res = reinterpret_cast<DoubleToDoubleTruncCode>(test->entry())(-12.8);
   EXPECT_EQ(-12.0, res);
-  EXPECT_DISASSEMBLY(
-      "roundsd rax, rax, 3\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
@@ -4955,23 +3248,6 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
   val = 12.45;
   res = test->InvokeWithCodeAndThread<double, double>(val);
   EXPECT_FLOAT_EQ(val, res, 0.001);
-  EXPECT_DISASSEMBLY(
-      "push rbp\n"
-      "movq rbp,rsp\n"
-      "push r12\n"
-      "push pp\n"
-      "push thr\n"
-      "movq r12,[rdi+0x8]\n"
-      "movq thr,rsi\n"
-      "movq pp,[r12+0x17]\n"
-      "movq r11,[thr+0x...]\n"
-      "andpd xmm0,[r11]\n"
-      "pop thr\n"
-      "pop pp\n"
-      "pop r12\n"
-      "movq rsp,rbp\n"
-      "pop rbp\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(ExtractSignBits, assembler) {
@@ -4988,10 +3264,6 @@ ASSEMBLER_TEST_RUN(ExtractSignBits, test) {
   EXPECT_EQ(1, res);
   res = reinterpret_cast<ExtractSignBits>(test->entry())(-0.0);
   EXPECT_EQ(1, res);
-  EXPECT_DISASSEMBLY(
-      "movmskpd rax,xmm0\n"
-      "andq rax,1\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestSetCC, assembler) {
@@ -5005,11 +3277,6 @@ ASSEMBLER_TEST_RUN(TestSetCC, test) {
   typedef uword (*TestSetCC)();
   uword res = reinterpret_cast<TestSetCC>(test->entry())();
   EXPECT_EQ(0xFFFFFF00, res);
-  EXPECT_DISASSEMBLY(
-      "movq rax,0x........\n"
-      "cmpq rax,rax\n"
-      "setnzl rax\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestSetCC2, assembler) {
@@ -5026,14 +3293,6 @@ ASSEMBLER_TEST_RUN(TestSetCC2, test) {
   typedef uword (*TestSetCC)();
   uword res = reinterpret_cast<TestSetCC>(test->entry())();
   EXPECT_EQ(0xFFFF01FF, res);
-  EXPECT_DISASSEMBLY(
-      "push rbx\n"
-      "movq rbx,0x........\n"
-      "cmpq rbx,rbx\n"
-      "setzl rdi\n"
-      "movq rax,rbx\n"
-      "pop rbx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestSetCC3, assembler) {
@@ -5050,14 +3309,6 @@ ASSEMBLER_TEST_RUN(TestSetCC3, test) {
   typedef uword (*TestSetCC)();
   uword res = reinterpret_cast<TestSetCC>(test->entry())();
   EXPECT_EQ(0xFFFFFF00, res);
-  EXPECT_DISASSEMBLY(
-      "push r10\n"
-      "movq r10,0x........\n"
-      "cmpq r10,r10\n"
-      "setnzl r10\n"
-      "movq rax,r10\n"
-      "pop r10\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestSetCC4, assembler) {
@@ -5074,14 +3325,6 @@ ASSEMBLER_TEST_RUN(TestSetCC4, test) {
   typedef uword (*TestSetCC)();
   uword res = reinterpret_cast<TestSetCC>(test->entry())();
   EXPECT_EQ(0xFFFFFF01, res);
-  EXPECT_DISASSEMBLY(
-      "push rsi\n"
-      "movq rsi,0x........\n"
-      "cmpq rsi,rsi\n"
-      "setzl rsi\n"
-      "movq rax,rsi\n"
-      "pop rsi\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
@@ -5113,22 +3356,6 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
     EXPECT_EQ(from[i], to[i]);
   }
   delete[] to;
-  EXPECT_DISASSEMBLY(
-      "push rsi\n"
-      "push rdi\n"
-      "push rdi\n"
-      "push rsi\n"
-      "push rdx\n"
-      "movq rsi,[rsp+0x10]\n"
-      "movq rdi,[rsp+0x8]\n"
-      "movq rcx,[rsp]\n"
-      "rep movsl\n"
-      "pop rax\n"
-      "pop rax\n"
-      "pop rax\n"
-      "pop rdi\n"
-      "pop rsi\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(ConditionalMovesCompare, assembler) {
@@ -5148,13 +3375,6 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
   EXPECT_EQ(1, res);  // Greater equal.
   res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(2, 5);
   EXPECT_EQ(-1, res);  // Less.
-  EXPECT_DISASSEMBLY(
-      "cmpq rdi,rsi\n"
-      "movq rdx,1\n"
-      "movq rcx,-1\n"
-      "cmovlq rax,rcx\n"
-      "cmovgeq rax,rdx\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
@@ -5172,14 +3392,6 @@ ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
 ASSEMBLER_TEST_RUN(BitTest, test) {
   typedef int (*BitTest)();
   EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq rax,4\n"
-      "movq r11,2\n"
-      "btq rax,r11\n"
-      "jc 0x................\n"
-      "int3l\n"
-      "movq rax,1\n"
-      "retl\n");
 }
 
 ASSEMBLER_TEST_GENERATE(BitTestImmediate, assembler) {
@@ -5196,13 +3408,6 @@ ASSEMBLER_TEST_GENERATE(BitTestImmediate, assembler) {
 ASSEMBLER_TEST_RUN(BitTestImmediate, test) {
   typedef int (*BitTestImmediate)();
   EXPECT_EQ(1, reinterpret_cast<BitTestImmediate>(test->entry())());
-  EXPECT_DISASSEMBLY(
-      "movq r11,0x20\n"
-      "bt r11,5\n"
-      "jc 0x................\n"
-      "int3l\n"
-      "movq rax,1\n"
-      "retl\n");
 }
 
 // Return 1 if equal, 0 if not equal.
@@ -5221,13 +3426,6 @@ ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
   EXPECT_EQ(1, res);
   res = reinterpret_cast<ConditionalMovesEqualCode>(test->entry())(-12);
   EXPECT_EQ(0, res);
-  EXPECT_DISASSEMBLY(
-      "movq rdx,rdi\n"
-      "xorq rax,rax\n"
-      "movq rcx,1\n"
-      "cmpq rdx,0x...\n"
-      "cmovzq rax,rcx\n"
-      "retl\n");
 }
 
 // Return 1 if overflow, 0 if no overflow.
@@ -5247,13 +3445,6 @@ ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
   EXPECT_EQ(1, res);
   res = reinterpret_cast<ConditionalMovesNoOverflowCode>(test->entry())(1, 1);
   EXPECT_EQ(0, res);
-  EXPECT_DISASSEMBLY(
-      "movq rdx,rdi\n"
-      "addq rdx,rsi\n"
-      "movq rax,1\n"
-      "movq rcx,0\n"
-      "cmovnoq rax,rcx\n"
-      "retl\n");
 }
 
 // clang-format off

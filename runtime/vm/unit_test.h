@@ -414,7 +414,6 @@ class AssemblerTest {
   const Code& code() const { return code_; }
 
   uword payload_start() const { return code_.PayloadStart(); }
-  uword payload_size() const { return assembler_->CodeSize(); }
   uword entry() const { return code_.UncheckedEntryPoint(); }
 
 // Invoke/InvokeWithCodeAndThread is used to call assembler test functions
@@ -525,15 +524,10 @@ class AssemblerTest {
   // Assemble test and set code_.
   void Assemble();
 
-  // Disassembly of the code with large constants blanked out.
-  char* BlankedDisassembly() { return disassembly_; }
-
  private:
   const char* name_;
   Assembler* assembler_;
   Code& code_;
-  static const intptr_t DISASSEMBLY_SIZE = 10240;
-  char disassembly_[DISASSEMBLY_SIZE];
 
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);
 };

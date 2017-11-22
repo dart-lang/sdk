@@ -550,12 +550,6 @@ char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
   return bin::CObject::BigintToHexValue(bigint);
 }
 
-#if !defined(PRODUCT)
-static bool IsHex(int c) {
-  return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f');
-}
-#endif
-
 void AssemblerTest::Assemble() {
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name_));
@@ -577,32 +571,13 @@ void AssemblerTest::Assemble() {
   code_.set_owner(function);
   code_.set_exception_handlers(Object::empty_exception_handlers());
 #ifndef PRODUCT
-  const Instructions& instructions = Instructions::Handle(code_.instructions());
-  uword start = instructions.PayloadStart();
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
+    const Instructions& instructions =
+        Instructions::Handle(code_.instructions());
     uword start = instructions.PayloadStart();
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
-  }
-  Disassembler::Disassemble(start, start + assembler_->CodeSize(), disassembly_,
-                            DISASSEMBLY_SIZE);
-  // Blank out big hex constants, since they are not stable from run to run.
-  bool in_hex_constant = false;
-  for (char* p = disassembly_; *p != '\0'; p++) {
-    if (in_hex_constant) {
-      if (IsHex(*p)) {
-        *p = '.';
-      } else {
-        in_hex_constant = false;
-      }
-    } else {
-      if (*p == '0' && *(p + 1) == 'x' && IsHex(*(p + 2)) && IsHex(*(p + 3)) &&
-          IsHex(*(p + 4))) {
-        p++;
-        in_hex_constant = true;
-      }
-    }
   }
 #endif  // !PRODUCT
 }
