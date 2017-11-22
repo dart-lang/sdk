@@ -199,7 +199,7 @@ class AnalyzerDietListener extends DietListener {
     // Now apply the resolution data and inferred types to the analyzer AST.
     var translatedTypes = _translateTypes(_kernelTypes);
     var resolutionApplier =
-        new ValidatingResolutionApplier(translatedTypes, _typeOffsets);
+        new ValidatingResolutionApplier([], [], translatedTypes, _typeOffsets);
     ast.AstNode bodyAsAstNode = body;
     bodyAsAstNode.accept(resolutionApplier);
     resolutionApplier.checkDone();
@@ -232,7 +232,7 @@ class AnalyzerDietListener extends DietListener {
     // Now apply the resolution data and inferred types to the analyzer AST.
     var translatedTypes = _translateTypes(_kernelTypes);
     var resolutionApplier =
-        new ValidatingResolutionApplier(translatedTypes, _typeOffsets);
+        new ValidatingResolutionApplier([], [], translatedTypes, _typeOffsets);
     ast.AstNode fields = listener.finishFields();
     fields.accept(resolutionApplier);
     resolutionApplier.checkDone();

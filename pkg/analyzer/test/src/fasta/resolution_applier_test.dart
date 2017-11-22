@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:test/test.dart';
@@ -26,13 +28,15 @@ class ResolutionApplierTest extends FastaParserTestCase {
 
   /// 1. Generate an AST structure from the given [content]. The AST is expected
   ///    to have a top-level function declaration as the first element.
-  /// 2. Use a [ResolutionApplier] to apply the [types] to the body of the
-  ///    function.
+  /// 2. Use a [ResolutionApplier] to apply the [declaredElements],
+  ///    [referencedElements], and [types] to the body of the function.
   /// 3. Verify that everything in the function body that should be resolved
   ///    _is_ resolved.
-  void applyTypes(String content, List<DartType> types) {
+  void applyTypes(String content, List<Element> declaredElements,
+      List<Element> referencedElements, List<DartType> types) {
     CompilationUnit unit = parseCompilationUnit(content);
-    ResolutionApplier applier = new ResolutionApplier(types);
+    ResolutionApplier applier =
+        new ResolutionApplier(declaredElements, referencedElements, types);
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
     FunctionDeclaration function = unit.declarations[0];
@@ -50,7 +54,10 @@ class ResolutionApplierTest extends FastaParserTestCase {
 f(String s, int i) {
   return s + i;
 }
-''', <DartType>[
+''', [], [
+      new ParameterElementImpl('s', 9),
+      new ParameterElementImpl('i', 16)
+    ], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType
@@ -60,7 +67,7 @@ f(String s, int i) {
   void test_listLiteral_const_noAnnotation() {
     applyTypes(r'''
 get f => const ['a', 'b', 'c'];
-''', <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.stringType,
@@ -71,7 +78,7 @@ get f => const ['a', 'b', 'c'];
   void test_listLiteral_const_typeAnnotation() {
     applyTypes(r'''
 get f => const <String>['a', 'b', 'c'];
-''', <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.stringType,
@@ -82,7 +89,7 @@ get f => const <String>['a', 'b', 'c'];
   void test_listLiteral_noAnnotation() {
     applyTypes(r'''
 get f => ['a', 'b', 'c'];
-''', <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.stringType,
@@ -93,7 +100,7 @@ get f => ['a', 'b', 'c'];
   void test_listLiteral_typeAnnotation() {
     applyTypes(r'''
 get f => <String>['a', 'b', 'c'];
-''', <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.stringType,
       typeProvider.stringType,
@@ -110,13 +117,13 @@ get f => <String>['a', 'b', 'c'];
 f() {
   Map<String, List<String>> m = {};
 }
-''', <DartType>[mapType, mapType]);
+''', [new LocalVariableElementImpl('m', 34)], [], <DartType>[mapType, mapType]);
   }
 
   void test_mapLiteral_const_noAnnotation() {
     applyTypes(r'''
 get f => const {'a' : 1, 'b' : 2, 'c' : 3};
-''', <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType,
@@ -131,7 +138,7 @@ get f => const {'a' : 1, 'b' : 2, 'c' : 3};
   void test_mapLiteral_const_typeAnnotation() {
     applyTypes(r'''
 get f => const <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
-''', <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType,
@@ -146,7 +153,7 @@ get f => const <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
   void test_mapLiteral_noAnnotation() {
     applyTypes(r'''
 get f => {'a' : 1, 'b' : 2, 'c' : 3};
-''', <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType,
@@ -161,7 +168,7 @@ get f => {'a' : 1, 'b' : 2, 'c' : 3};
   void test_mapLiteral_typeAnnotation() {
     applyTypes(r'''
 get f => <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
-''', <DartType>[
+''', [], [], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
       typeProvider.stringType,

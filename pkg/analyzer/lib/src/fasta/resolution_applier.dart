@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -11,10 +12,17 @@ import 'package:analyzer/src/dart/element/element.dart';
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST.
 class ResolutionApplier extends GeneralizingAstVisitor {
+  final List<Element> _declaredElements;
+  int _declaredElementIndex = 0;
+
+  final List<Element> _referencedElements;
+  int _referencedElementIndex = 0;
+
   final List<DartType> _types;
   int _typeIndex = 0;
 
-  ResolutionApplier(this._types);
+  ResolutionApplier(
+      this._declaredElements, this._referencedElements, this._types);
 
   /// Verifies that all types passed to the constructor have been applied.
   void checkDone() {
@@ -156,6 +164,19 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
+  /// Return the element associated with the declaration represented by the
+  /// given [node].
+  Element _getDeclarationFor(AstNode node) {
+    return _declaredElements[_declaredElementIndex++];
+  }
+
+  /// Return the element associated with the reference represented by the
+  /// given [node].
+  Element _getReferenceFor(AstNode node) {
+    return _referencedElements[_referencedElementIndex++];
+  }
+
+  /// Return the type associated with the given [node].
   DartType _getTypeFor(AstNode node) {
     return _types[_typeIndex++];
   }
@@ -170,8 +191,9 @@ class ValidatingResolutionApplier extends ResolutionApplier {
 
   final List<int> _typeOffsets;
 
-  ValidatingResolutionApplier(List<DartType> types, this._typeOffsets)
-      : super(types);
+  ValidatingResolutionApplier(List<Element> declaredElements,
+      List<Element> referencedElements, List<DartType> types, this._typeOffsets)
+      : super(declaredElements, referencedElements, types);
 
   @override
   void checkDone() {
@@ -182,12 +204,42 @@ class ValidatingResolutionApplier extends ResolutionApplier {
   }
 
   @override
+  Element _getDeclarationFor(AstNode node) {
+    if (_debug) {
+      print('Getting declaration element for $node');
+    }
+    int nodeOffset = node.offset;
+    int elementOffset = _declaredElements[_declaredElementIndex].nameOffset;
+    if (nodeOffset != elementOffset) {
+      throw new StateError(
+          'Expected a declared element for analyzer offset $nodeOffset; '
+          'got one for kernel offset $elementOffset');
+    }
+    return super._getDeclarationFor(node);
+  }
+
+  @override
+  Element _getReferenceFor(AstNode node) {
+    if (_debug) {
+      print('Getting reference element for $node');
+    }
+    int nodeOffset = node.offset;
+    int elementOffset = _referencedElements[_referencedElementIndex].nameOffset;
+    if (nodeOffset != elementOffset) {
+      throw new StateError(
+          'Expected a referenced element for analyzer offset $nodeOffset; '
+          'got one for kernel offset $elementOffset');
+    }
+    return super._getReferenceFor(node);
+  }
+
+  @override
   DartType _getTypeFor(AstNode node) {
     if (_debug) print('Getting type for $node');
     if (node.offset != _typeOffsets[_typeIndex]) {
       throw new StateError(
-          'Expected a type for analyzer offset ${node.offset}; got one for '
-          'kernel offset ${_typeOffsets[_typeIndex]}');
+          'Expected a type for analyzer offset ${node.offset}; '
+          'got one for kernel offset ${_typeOffsets[_typeIndex]}');
     }
     return super._getTypeFor(node);
   }

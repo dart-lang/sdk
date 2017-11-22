@@ -209,7 +209,7 @@ class LibraryAnalyzer {
         }
 
         applier = new ValidatingResolutionApplier(
-            astTypes, analyzerTarget.typeOffsets);
+            [], [], astTypes, analyzerTarget.typeOffsets);
       }
 
       units.forEach((file, unit) {
