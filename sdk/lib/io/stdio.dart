@@ -167,6 +167,20 @@ class Stdin extends _StdStream implements Stream<List<int>> {
    * If at end of file, -1 is returned.
    */
   external int readByteSync();
+
+  /**
+   * Returns true if there is a terminal attached to stdin.
+   */
+  bool get hasTerminal {
+    try {
+      return stdioType(this) == StdioType.TERMINAL;
+    } on FileSystemException catch (_) {
+      // If stdioType throws a FileSystemException, then it is not hooked up to
+      // a terminal, probably because it is closed, but let other exception
+      // types bubble up.
+      return false;
+    }
+  }
 }
 
 /**

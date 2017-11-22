@@ -54,7 +54,7 @@
     `ascii`, `base64`, `base64Uri`, `json`, `latin1` and `utf8`.
   * Renamed the `HtmlEscapeMode` constants `UNKNOWN`, `ATTRIBUTE`,
     `SQ_ATTRIBUTE` and `ELEMENT` to `unknown`, `attribute`, `sqAttribute` and
-    `elements.
+    `elements`.
 
 * `dart:developer`
   * `Timeline.startSync` and `Timeline.timeSync` now accept an optional
@@ -69,6 +69,8 @@
     methods are now supported on iOS and OSX.
   * Deprecated `SecurityContext.alpnSupported` as ALPN is now supported on all
     platforms.
+  * Added `withTrustedRoots` named optional parameter to `SecurityContext`
+    constructor, which defaults to false.
   * Added a `timeout` parameter to `Socket.connect`, `RawSocket.connect`,
     `SecureSocket.connect` and `RawSecureSocket.connect`. If a connection attempt
     takes longer than the duration specified in `timeout`, a `SocketException`
@@ -81,6 +83,7 @@
     decompression routines.
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
+  # Added `Stdin.hasTerminal`.
 
 * `dart.math`
   * Renamed `E`, `LN10`, `LN`, `LOG2E`, `LOG10E`, `PI`, `SQRT1_2` and `SQRT2`
