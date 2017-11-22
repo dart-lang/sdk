@@ -34,7 +34,7 @@ abstract class Converter<S, T> implements StreamTransformer<S, T> {
    * The returned sink serves as input for the long-running conversion. The
    * given [sink] serves as output.
    */
-  Sink/*<S>*/ startChunkedConversion(Sink/*<T>*/ sink) {
+  Sink<S> startChunkedConversion(Sink<T> sink) {
     throw new UnsupportedError(
         "This converter does not support chunked conversions: $this");
   }
@@ -58,7 +58,7 @@ class _FusedConverter<S, M, T> extends Converter<S, T> {
 
   T convert(S input) => _second.convert(_first.convert(input));
 
-  Sink/*<S>*/ startChunkedConversion(Sink/*<T>*/ sink) {
+  Sink<S> startChunkedConversion(Sink<T> sink) {
     return _first.startChunkedConversion(_second.startChunkedConversion(sink));
   }
 }
