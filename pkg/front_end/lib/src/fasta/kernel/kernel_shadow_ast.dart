@@ -909,8 +909,11 @@ class ShadowIfStatement extends IfStatement implements ShadowStatement {
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.ifStatementEnter(this);
-    inferrer.inferExpression(
-        condition, inferrer.coreTypes.boolClass.rawType, false);
+    var expectedType = inferrer.coreTypes.boolClass.rawType;
+    var conditionType =
+        inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
+    inferrer.checkAssignability(
+        expectedType, conditionType, condition, condition.fileOffset);
     inferrer.inferStatement(then);
     if (otherwise != null) inferrer.inferStatement(otherwise);
     inferrer.listener.ifStatementExit(this);

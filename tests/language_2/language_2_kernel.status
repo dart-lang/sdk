@@ -680,10 +680,8 @@ initializing_formal_type_test: MissingCompileTimeError
 instanceof2_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
-is_malformed_type_test/94: MissingCompileTimeError
 is_malformed_type_test/95: MissingCompileTimeError
 is_malformed_type_test/97: MissingCompileTimeError
-is_malformed_type_test/98: MissingCompileTimeError
 is_malformed_type_test/99: MissingCompileTimeError
 is_not_class2_test/01: MissingCompileTimeError
 isnot_malformed_type_test/01: MissingCompileTimeError
@@ -1347,7 +1345,6 @@ vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test/10: MissingCompileTimeError
 vm/type_vm_test/11: MissingCompileTimeError
 vm/type_vm_test/12: MissingCompileTimeError
-vm/type_vm_test/14: MissingCompileTimeError
 vm/type_vm_test/27: MissingCompileTimeError
 vm/type_vm_test/none: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
@@ -2273,6 +2270,7 @@ implicit_downcast_during_combiner_test: Pass # Correctly passes.
 implicit_downcast_during_compound_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_conditional_expression_test: Pass # Correctly passes.
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
+implicit_downcast_during_if_statement_test: Pass # Correctly passes.
 implicit_downcast_during_list_literal_test: Pass # Correctly passes.
 implicit_downcast_during_logical_expression_test: Pass # Correctly passes.
 implicit_downcast_during_map_literal_test: Pass # Correctly passes.
@@ -2303,10 +2301,8 @@ invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
-is_malformed_type_test/94: MissingCompileTimeError
 is_malformed_type_test/95: MissingCompileTimeError
 is_malformed_type_test/97: MissingCompileTimeError
-is_malformed_type_test/98: MissingCompileTimeError
 is_malformed_type_test/99: MissingCompileTimeError
 is_not_class2_test/01: MissingCompileTimeError
 isnot_malformed_type_test/01: MissingCompileTimeError
@@ -3290,6 +3286,7 @@ implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
+implicit_downcast_during_if_statement_test: RuntimeError
 implicit_downcast_during_list_literal_test: RuntimeError
 implicit_downcast_during_logical_expression_test: RuntimeError
 implicit_downcast_during_map_literal_test: RuntimeError

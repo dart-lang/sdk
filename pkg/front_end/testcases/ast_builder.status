@@ -465,6 +465,7 @@ runtime_checks/covariant_generic_parameter_tear_off: Crash
 runtime_checks/covariant_keyword: Crash
 runtime_checks/covariant_setter: Crash
 runtime_checks/forwarding_stub_with_default_values: Crash
+runtime_checks/implicit_downcast_if: Crash
 runtime_checks/implicit_downcast_not: Crash
 runtime_checks_new/call_through_this: Crash
 runtime_checks_new/contravariant_combiner: Crash
