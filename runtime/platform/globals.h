@@ -387,6 +387,10 @@ typedef simd128_value_t fpu_register_t;
 #define Pu PRIuPTR
 #define Px PRIxPTR
 #define PX PRIXPTR
+#define Pd32 PRId32
+#define Pu32 PRIu32
+#define Px32 PRIx32
+#define PX32 PRIX32
 #define Pd64 PRId64
 #define Pu64 PRIu64
 #define Px64 PRIx64

@@ -3117,6 +3117,8 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
   }
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
     "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
     "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
@@ -3125,8 +3127,6 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfXmmRegisters));
   return xmm_reg_names[reg];
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
     "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",

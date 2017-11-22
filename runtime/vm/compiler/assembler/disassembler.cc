@@ -97,6 +97,65 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   free(p);
 }
 
+#if !defined(PRODUCT)
+void DisassembleToMemory::ConsumeInstruction(const Code& code,
+                                             char* hex_buffer,
+                                             intptr_t hex_size,
+                                             char* human_buffer,
+                                             intptr_t human_size,
+                                             Object* object,
+                                             uword pc) {
+  if (overflowed_) {
+    return;
+  }
+  intptr_t len = strlen(human_buffer);
+  if (remaining_ < len + 100) {
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '\n';
+    *buffer_++ = '\0';
+    overflowed_ = true;
+    return;
+  }
+  memmove(buffer_, human_buffer, len);
+  buffer_ += len;
+  remaining_ -= len;
+  *buffer_++ = '\n';
+  remaining_--;
+  *buffer_ = '\0';
+}
+
+void DisassembleToMemory::Print(const char* format, ...) {
+  if (overflowed_) {
+    return;
+  }
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+  if (remaining_ < len + 100) {
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '\n';
+    *buffer_++ = '\0';
+    overflowed_ = true;
+    return;
+  }
+  va_start(args, format);
+  intptr_t len2 = OS::VSNPrint(buffer_, len, format, args);
+  va_end(args);
+  ASSERT(len == len2);
+  buffer_ += len;
+  remaining_ -= len;
+  *buffer_++ = '\n';
+  remaining_--;
+  *buffer_ = '\0';
+}
+
+#endif
+
 void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
