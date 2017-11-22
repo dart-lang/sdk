@@ -79,8 +79,20 @@ void WeakTable::Reset() {
   used_ = 0;
   count_ = 0;
   size_ = kMinSize;
-  data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
   free(old_data);
+  data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
+}
+
+void WeakTable::Forward(ObjectPointerVisitor* visitor) {
+  if (used_ == 0) return;
+
+  for (intptr_t i = 0; i < size_; i++) {
+    if (IsValidEntryAt(i)) {
+      visitor->VisitPointer(ObjectPointerAt(i));
+    }
+  }
+
+  Rehash();
 }
 
 void WeakTable::Rehash() {

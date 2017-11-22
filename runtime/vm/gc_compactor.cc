@@ -255,11 +255,6 @@ uword GCCompactor::SlideBlock(uword first_object,
         // Slide the object down.
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
-
-        // TODO(rmacnak): Most objects do not have weak table entries.
-        // For both compaction and become, it's probably faster to visit
-        // the weak tables once during forwarding instead of per-object.
-        heap_->ForwardWeakEntries(old_obj, new_obj);
       }
       new_obj->ClearMarkBit();
     } else {
@@ -414,6 +409,9 @@ void GCCompactor::ForwardPointersForSliding() {
 
   // Remembered set.
   isolate()->store_buffer()->VisitObjectPointers(this);
+
+  // Weak tables.
+  heap_->ForwardWeakTables(this);
 }
 
 // Moves live objects to fresh pages. Returns the number of bytes moved.
