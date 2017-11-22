@@ -1,7 +1,9 @@
 import 'dart:io';
-import 'package:testing/testing.dart';
+
 import 'package:path/path.dart' as path;
-import 'annotated_code_helper.dart';
+import 'package:sourcemap_testing/src/annotated_code_helper.dart';
+import 'package:testing/testing.dart';
+
 import 'common.dart';
 
 abstract class DdcRunner {

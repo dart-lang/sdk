@@ -1,9 +1,10 @@
 import 'dart:io';
-import 'package:testing/testing.dart';
-import 'package:path/path.dart' as path;
+
 import 'package:expect/minitest.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
-import 'annotated_code_helper.dart';
+import 'package:sourcemap_testing/src/annotated_code_helper.dart';
+import 'package:testing/testing.dart';
 
 class Data {
   Uri uri;
