@@ -18,7 +18,7 @@ class Heap;
 class HeapPage;
 class RawObject;
 
-// Implements an evacuating compactor and a sliding compactor.
+// Implements a sliding compactor.
 class GCCompactor : public ValueObject,
                     private HandleVisitor,
                     private ObjectPointerVisitor {
@@ -30,8 +30,6 @@ class GCCompactor : public ValueObject,
   ~GCCompactor() {}
 
   void CompactBySliding(HeapPage* pages, FreeList* freelist, Mutex* mutex);
-
-  intptr_t EvacuatePages(HeapPage* page);
 
  private:
   void SlidePage(HeapPage* page);

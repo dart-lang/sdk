@@ -389,8 +389,7 @@ class PageSpace {
 
   void BlockingSweep();
   void ConcurrentSweep(Isolate* isolate);
-  void EvacuatingCompact(Thread* thread);
-  void SlidingCompact(Thread* thread);
+  void Compact(Thread* thread);
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
