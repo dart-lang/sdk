@@ -975,9 +975,9 @@
       },
       "steps": [
         {
-          "name": "build dart x64",
+          "name": "build dart",
           "script": "tools/build.py",
-          "arguments": [ "create_sdk" ]
+          "arguments": ["--arch=ia32,x64", "create_sdk" ]
         },
         {
           "name": "trigger analyzer",
@@ -987,11 +987,6 @@
             "analyzer-analysis-server-linux"
           ],
           "fileset": "analyzer"
-        },
-        {
-          "name": "build dart ia32",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32","create_sdk"]
         },
         {
           "name": "generate API docs",
@@ -1007,14 +1002,9 @@
       },
       "steps": [
         {
-          "name": "build dart x64",
+          "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["create_sdk"]
-        },
-        {
-          "name": "build dart ia32",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32","create_sdk"]
+          "arguments": ["--arch=ia32,x64", "create_sdk" ]
         }
       ]
     },
@@ -1025,14 +1015,9 @@
       },
       "steps": [
         {
-          "name": "build dart x64",
+          "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["create_sdk"]
-        },
-        {
-          "name": "build dart ia32",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32","create_sdk"]
+          "arguments": ["--arch=ia32,x64", "create_sdk" ]
         }
       ]
     },
