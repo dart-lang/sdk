@@ -320,6 +320,7 @@ closure_internals_test/02: MissingCompileTimeError
 closure_internals_test/03: MissingCompileTimeError
 closure_invoked_through_interface_target_field_test: MissingCompileTimeError
 closure_invoked_through_interface_target_getter_test: MissingCompileTimeError
+closure_type_test: Pass # Issue 31402
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
@@ -1249,7 +1250,6 @@ truncdiv_test: RuntimeError # Issue 29920
 yieldstar_pause_test: Skip # Times out
 
 [ $compiler == dartdevk && $runtime != none ]
-arithmetic_test: RuntimeError # Expect.throws fails: Did not throw
 assertion_initializer_const_error2_test/cc01: RuntimeError # Assertion failed: is not true
 assertion_initializer_const_error2_test/cc02: RuntimeError # Assertion failed: is not true
 assertion_initializer_const_error2_test/cc03: RuntimeError # Assertion failed: is not true
@@ -1322,10 +1322,7 @@ function_subtype_cast2_test: RuntimeError # ReferenceError: TTovoid is not defin
 function_subtype_cast3_test: RuntimeError # ReferenceError: TTovoid is not defined
 function_subtype_checked0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_subtype_closure1_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_subtype_factory1_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_subtype_inline0_test: RuntimeError # ReferenceError: TAndStringToNull is not defined
-function_subtype_inline1_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_subtype_local1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
 function_subtype_local2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_local3_test: RuntimeError # ReferenceError: TAndStringTovoid is not defined
@@ -1335,7 +1332,6 @@ function_subtype_local6_test: RuntimeError # ReferenceError: TTovoid is not defi
 function_subtype_not0_test: RuntimeError # Expect.isFalse(true) fails.
 function_subtype_not2_test: RuntimeError # ReferenceError: TTovoid is not defined
 function_subtype_not3_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_regression_ddc_588_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_subtype_simple1_test: RuntimeError # Expect.isTrue(false) fails.
 function_subtype_top_level1_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_typearg5_test: RuntimeError # ReferenceError: JSArrayOfXAndXToX is not defined
@@ -1408,7 +1404,6 @@ regress_23408_test: RuntimeError # Expect.equals(expected: <K>, actual: <dynamic
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
-side_effect_throw_test: RuntimeError # Expect.throws fails: Did not throw
 skip_expression_test: RuntimeError # ReferenceError: OneArgOfA is not defined
 static_const_field_test: RuntimeError # RangeError: Maximum call stack size exceeded
 string_interpolate_test: RuntimeError # Uncaught Type 'PrivateSymbol' is not a subtype of type 'Symbol' in strong mode
@@ -1427,7 +1422,6 @@ type_promotion_functions_test/12: RuntimeError
 type_promotion_functions_test/13: RuntimeError
 type_promotion_functions_test/14: RuntimeError
 type_promotion_functions_test/none: RuntimeError
-type_propagation_in_for_update_test: RuntimeError # Expect.throws fails: Did not throw
 type_variable_bounds4_test/none: RuntimeError # ReferenceError: AOfT is not defined
 type_variable_closure2_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
 type_variable_closure3_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
@@ -1443,5 +1437,4 @@ type_variable_nested_test/01: RuntimeError # ReferenceError: ListOfAOfT is not d
 type_variable_nested_test/none: RuntimeError # ReferenceError: ListOfAOfT is not defined
 type_variable_promotion_test: RuntimeError # ReferenceError: JSArrayOfT is not defined
 type_variable_typedef_test: RuntimeError # ReferenceError: BOfTTodynamic is not defined
-typevariable_substitution2_test/02: RuntimeError
 yieldstar_pause_test: Timeout
