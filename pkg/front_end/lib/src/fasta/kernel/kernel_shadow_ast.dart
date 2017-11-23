@@ -799,8 +799,11 @@ class ShadowForStatement extends ForStatement implements ShadowStatement {
     inferrer.listener.forStatementEnter(this);
     variables.forEach(inferrer.inferStatement);
     if (condition != null) {
-      inferrer.inferExpression(
-          condition, inferrer.coreTypes.boolClass.rawType, false);
+      var expectedType = inferrer.coreTypes.boolClass.rawType;
+      var conditionType = inferrer.inferExpression(
+          condition, expectedType, !inferrer.isTopLevel);
+      inferrer.checkAssignability(
+          expectedType, conditionType, condition, condition.fileOffset);
     }
     for (var update in updates) {
       inferrer.inferExpression(update, null, false);

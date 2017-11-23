@@ -96,6 +96,7 @@ regress/issue_31155: Crash # Issue 31155.
 
 runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_for_condition: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_if: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_not: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError # Test exercises strong mode semantics
