@@ -63,6 +63,72 @@ Future pumpEventQueue([int times = 5000]) {
  */
 @reflectiveTest
 class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
+  test_local_function() async {
+    addTestFile(r'''
+void main() {
+  double f() {}
+  var v = f();
+}
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType doubleType = typeProvider.doubleType;
+
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionExpression fExpression = fNode.functionExpression;
+    FunctionElement fElement = fNode.element;
+    expect(fElement, isNotNull);
+    expect(fElement.type.toString(), '() → double');
+
+    expect(fNode.name.staticElement, same(fElement));
+    expect(fNode.name.staticType, fElement.type);
+
+    TypeName fReturnTypeNode = fNode.returnType;
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.type, doubleType);
+
+    expect(fExpression.element, same(fElement));
+
+    VariableDeclarationStatement vStatement = mainStatements[1];
+    VariableDeclaration vDeclaration = vStatement.variables.variables[0];
+    expect(vDeclaration.element.type, same(doubleType));
+
+    MethodInvocation fInvocation = vDeclaration.initializer;
+    expect(fInvocation.methodName.staticElement, same(fElement));
+    expect(fInvocation.methodName.staticType.toString(), '() → double');
+    expect(fInvocation.staticType, same(doubleType));
+    expect(fInvocation.staticInvokeType.toString(), '() → double');
+  }
+
+  test_local_function_noReturnType() async {
+    addTestFile(r'''
+void main() {
+  f() {}
+}
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionExpression fExpression = fNode.functionExpression;
+    FunctionElement fElement = fNode.element;
+
+    expect(fNode.returnType, isNull);
+    expect(fElement, isNotNull);
+    expect(fElement.type.toString(), '() → Null');
+
+    expect(fNode.name.staticElement, same(fElement));
+    expect(fNode.name.staticType, fElement.type);
+
+    expect(fExpression.element, same(fElement));
+  }
+
   test_local_variable() async {
     String content = r'''
 void main() {
@@ -346,6 +412,13 @@ void set topSetter(double p) {}
         expect(pNode.identifier.staticType, doubleType);
       }
     }
+  }
+
+  List<Statement> _getMainStatements(AnalysisResult result) {
+    FunctionDeclaration main = result.unit.declarations[0];
+    expect(main.name.name, 'main');
+    BlockFunctionBody body = main.functionExpression.body;
+    return body.block.statements;
   }
 }
 

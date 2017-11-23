@@ -43,6 +43,30 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    DartType returnType = _getTypeFor(node);
+    if (node.returnType != null) {
+      _applyToTypeAnnotation(returnType, node.returnType);
+    }
+
+    // Associate the element with the node.
+    FunctionElementImpl element = _getDeclarationFor(node);
+    if (element != null && enclosingExecutable != null) {
+      enclosingExecutable.encloseElement(element);
+
+      node.name.staticElement = element;
+      node.name.staticType = element.type;
+    }
+
+    // Visit components of the FunctionExpression.
+    FunctionExpression functionExpression = node.functionExpression;
+    functionExpression.element = element;
+    functionExpression.typeParameters?.accept(this);
+    functionExpression.parameters?.accept(this);
+    functionExpression.body?.accept(this);
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.argumentList?.accept(this);
     // TODO(paulberry): store resolution of node.constructorName.
@@ -72,7 +96,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
-    node.methodName.staticType = _getTypeFor(node.methodName);
+    DartType invokeType = _getTypeFor(node.methodName);
+    node.staticInvokeType = invokeType;
+    node.methodName.staticType = invokeType;
     // TODO(paulberry): store resolution of node.methodName.
     // TODO(paulberry): store resolution of node.typeArguments.
     node.argumentList.accept(this);
@@ -153,6 +179,15 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       typeAnnotation.type = type;
     } else if (typeAnnotation is TypeNameImpl) {
       typeAnnotation.type = type;
+      if (type is InterfaceType) {
+        // TODO(scheglov) Support other types, e.g. dynamic.
+        Identifier name = typeAnnotation.name;
+        if (name is SimpleIdentifier) {
+          name.staticElement = type.element;
+        } else {
+          throw new UnimplementedError('${name.runtimeType}');
+        }
+      }
     }
     if (typeAnnotation is NamedType) {
       TypeArgumentList typeArguments = typeAnnotation.typeArguments;
@@ -241,10 +276,10 @@ class ValidatingResolutionApplier extends ResolutionApplier {
 
   @override
   Element _getDeclarationFor(AstNode node) {
-    if (_debug) {
-      print('Getting declaration element for $node');
-    }
     int nodeOffset = node.offset;
+    if (_debug) {
+      print('Getting declaration element for $node at $nodeOffset');
+    }
     int elementOffset = _declaredElementOffsets[_declaredElementIndex];
     if (nodeOffset != elementOffset) {
       throw new StateError(
@@ -256,10 +291,10 @@ class ValidatingResolutionApplier extends ResolutionApplier {
 
   @override
   Element _getReferenceFor(AstNode node) {
-    if (_debug) {
-      print('Getting reference element for $node');
-    }
     int nodeOffset = node.offset;
+    if (_debug) {
+      print('Getting reference element for $node at $nodeOffset');
+    }
     int elementOffset = _referencedElementOffsets[_referencedElementIndex];
     if (nodeOffset != elementOffset) {
       throw new StateError(
@@ -271,10 +306,12 @@ class ValidatingResolutionApplier extends ResolutionApplier {
 
   @override
   DartType _getTypeFor(AstNode node) {
-    if (_debug) print('Getting type for $node');
-    if (node.offset != _typeOffsets[_typeIndex]) {
-      throw new StateError(
-          'Expected a type for analyzer offset ${node.offset}; '
+    var nodeOffset = node.offset;
+    if (_debug) {
+      print('Getting type for $node at $nodeOffset');
+    }
+    if (nodeOffset != _typeOffsets[_typeIndex]) {
+      throw new StateError('Expected a type for analyzer offset $nodeOffset; '
           'got one for kernel offset ${_typeOffsets[_typeIndex]}');
     }
     return super._getTypeFor(node);

@@ -6,6 +6,20 @@ import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
 
+class FunctionReferenceDartType implements DartType {
+  final FunctionDeclaration function;
+  final DartType type;
+
+  FunctionReferenceDartType(this.function, this.type);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '(${function.variable}, $type)';
+  }
+}
+
 /// Type inference listener that records inferred types and file offsets for
 /// later use by [ValidatingResolutionApplier].
 class InstrumentedResolutionStorer extends ResolutionStorer {
@@ -72,6 +86,20 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   }
 }
 
+class MemberReferenceDartType implements DartType {
+  final Member member;
+  final List<DartType> typeArguments;
+
+  MemberReferenceDartType(this.member, this.typeArguments);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '<${typeArguments.join(', ')}>$member';
+  }
+}
+
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
 class ResolutionStorer extends TypeInferenceListener {
@@ -87,6 +115,13 @@ class ResolutionStorer extends TypeInferenceListener {
   /// Verifies that all deferred work has been completed.
   void finished() {
     assert(_deferredTypeSlots.isEmpty);
+  }
+
+  @override
+  void functionDeclarationExit(FunctionDeclaration statement) {
+    _recordDeclaration(statement.variable, statement.fileOffset);
+    _recordType(statement.function.returnType, statement.fileOffset);
+    super.functionDeclarationExit(statement);
   }
 
   @override
@@ -122,19 +157,12 @@ class ResolutionStorer extends TypeInferenceListener {
     super.methodInvocationBeforeArgs(expression, isImplicitCall);
   }
 
-  void typeLiteralExit(TypeLiteral expression, DartType inferredType) {
-    _recordReference(expression.type, expression.fileOffset);
-    super.typeLiteralExit(expression, inferredType);
-  }
-
   @override
   void methodInvocationExit(Expression expression, Arguments arguments,
       bool isImplicitCall, Object interfaceMember, DartType inferredType) {
     if (!isImplicitCall) {
-      // TODO(paulberry): get the actual callee function type from the inference
-      // engine
-      var calleeType = const DynamicType();
-      _replaceType(calleeType);
+      _replaceType(new MemberReferenceDartType(
+          interfaceMember as Member, arguments.types));
       _recordReference(interfaceMember, expression.fileOffset);
     }
     _recordType(inferredType, arguments.fileOffset);
@@ -177,6 +205,11 @@ class ResolutionStorer extends TypeInferenceListener {
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
+  void typeLiteralExit(TypeLiteral expression, DartType inferredType) {
+    _recordReference(expression.type, expression.fileOffset);
+    super.typeLiteralExit(expression, inferredType);
+  }
+
   @override
   void variableDeclarationEnter(VariableDeclaration statement) {
     _deferType(statement.fileOffset);
@@ -193,8 +226,16 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void variableGetExit(VariableGet expression, DartType inferredType) {
-    _recordReference(expression.variable, expression.fileOffset);
-    super.variableGetExit(expression, inferredType);
+    VariableDeclaration variable = expression.variable;
+    _recordReference(variable, expression.fileOffset);
+
+    TreeNode function = variable.parent;
+    if (function is FunctionDeclaration) {
+      _recordType(new FunctionReferenceDartType(function, inferredType),
+          expression.fileOffset);
+    } else {
+      _recordType(inferredType, expression.fileOffset);
+    }
   }
 
   /// Record `null` as the type at the given [offset], and put the current

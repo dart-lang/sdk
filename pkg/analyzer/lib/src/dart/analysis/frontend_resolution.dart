@@ -17,39 +17,62 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' as kernel;
 
 class AnalyzerDietListener extends DietListener {
-  final InstrumentedResolutionStorer _resolutionStorer;
+  final List<CollectedResolution> _resolutions;
 
   AnalyzerDietListener(
       SourceLibraryBuilder library,
       ClassHierarchy hierarchy,
       CoreTypes coreTypes,
       TypeInferenceEngine typeInferenceEngine,
-      this._resolutionStorer)
+      this._resolutions)
       : super(library, hierarchy, coreTypes, typeInferenceEngine);
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
       [Scope formalParameterScope, TypeInferenceListener listener]) {
-    return super.createListener(builder, memberScope, isInstanceMember,
-        formalParameterScope, _resolutionStorer);
+    var resolution = new CollectedResolution();
+    _resolutions.add(resolution);
+    var storer = new InstrumentedResolutionStorer(
+        resolution.kernelDeclarations,
+        resolution.kernelReferences,
+        resolution.kernelTypes,
+        resolution.declarationOffsets,
+        resolution.referenceOffsets,
+        resolution.typeOffsets);
+    return super.createListener(
+        builder, memberScope, isInstanceMember, formalParameterScope, storer);
   }
 }
 
 class AnalyzerLoader<L> extends SourceLoader<L> {
-  final InstrumentedResolutionStorer _resolutionStorer;
+  final List<CollectedResolution> _resolutions;
 
-  AnalyzerLoader(FileSystem fileSystem, TargetImplementation target,
-      this._resolutionStorer)
+  AnalyzerLoader(
+      FileSystem fileSystem, TargetImplementation target, this._resolutions)
       : super(fileSystem, false, target);
 
   @override
   AnalyzerDietListener createDietListener(LibraryBuilder library) {
     return new AnalyzerDietListener(
-        library, hierarchy, coreTypes, typeInferenceEngine, _resolutionStorer);
+        library, hierarchy, coreTypes, typeInferenceEngine, _resolutions);
   }
 }
 
 class AnalyzerTarget extends KernelTarget {
+  final List<CollectedResolution> resolutions = [];
+
+  AnalyzerTarget(FileSystem fileSystem, DillTarget dillTarget,
+      UriTranslator uriTranslator, bool strongMode)
+      : super(fileSystem, false, dillTarget, uriTranslator);
+
+  @override
+  AnalyzerLoader<kernel.Library> createLoader() {
+    return new AnalyzerLoader<kernel.Library>(fileSystem, this, resolutions);
+  }
+}
+
+/// Resolution information in a single function body.
+class CollectedResolution {
   /// The list of local declarations stored by body builders while
   /// compiling the library.
   final List<kernel.Statement> kernelDeclarations = [];
@@ -75,20 +98,4 @@ class AnalyzerTarget extends KernelTarget {
   ///
   /// These are used strictly for validation purposes.
   final List<int> typeOffsets = [];
-
-  AnalyzerTarget(FileSystem fileSystem, DillTarget dillTarget,
-      UriTranslator uriTranslator, bool strongMode)
-      : super(fileSystem, false, dillTarget, uriTranslator);
-
-  @override
-  AnalyzerLoader<kernel.Library> createLoader() {
-    var storer = new InstrumentedResolutionStorer(
-        kernelDeclarations,
-        kernelReferences,
-        kernelTypes,
-        declarationOffsets,
-        referenceOffsets,
-        typeOffsets);
-    return new AnalyzerLoader<kernel.Library>(fileSystem, this, storer);
-  }
 }

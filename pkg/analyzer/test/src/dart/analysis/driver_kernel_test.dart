@@ -100,13 +100,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_const_annotation_withoutArgs() async {
-    await super.test_const_annotation_withoutArgs();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_const_circular_reference() async {
     await super.test_const_circular_reference();
   }
@@ -191,6 +184,13 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_getResult_errors() async {
     await super.test_getResult_errors();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  @override
+  test_getResult_genericFunctionType_parameter_named() async {
+    await super.test_getResult_genericFunctionType_parameter_named();
   }
 
   @failingTest

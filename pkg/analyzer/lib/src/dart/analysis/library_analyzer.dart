@@ -20,9 +20,12 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/fasta/resolution_applier.dart';
+import 'package:analyzer/src/fasta/resolution_storer.dart' as kernel
+    show FunctionReferenceDartType;
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -191,63 +194,17 @@ class LibraryAnalyzer {
       _resolveDirectives(units);
 
       // TODO(scheglov) Improve.
-      ValidatingResolutionApplier applier;
-      {
-        AnalyzerTarget analyzerTarget;
-        await _kernelDriver.compileLibrary(
-            (fileSystem, bool includeComments, dillTarget, uriTranslator,
-                    {metadataCollector}) =>
-                analyzerTarget ??= new AnalyzerTarget(fileSystem, dillTarget,
-                    uriTranslator, _analysisOptions.strongMode),
-            _library.uri);
+      AnalyzerTarget analyzerTarget;
+      await _kernelDriver.compileLibrary(
+          (fileSystem, bool includeComments, dillTarget, uriTranslator,
+                  {metadataCollector}) =>
+              analyzerTarget ??= new AnalyzerTarget(fileSystem, dillTarget,
+                  uriTranslator, _analysisOptions.strongMode),
+          _library.uri);
 
-        // TODO(scheglov) Types depend on enclosing elements?
-        var astTypes = <DartType>[];
-        KernelResynthesizer resynthesizer = _resynthesizer;
-        for (var kernelType in analyzerTarget.kernelTypes) {
-          DartType astType = resynthesizer.getType(null, kernelType);
-          astTypes.add(astType);
-        }
-
-        // Convert local declarations into elements.
-        List<Element> declaredElements = [];
-        Map<kernel.Statement, Element> declarationToElement = {};
-        for (var declaredNode in analyzerTarget.kernelDeclarations) {
-          var element = _translateKernelDeclaration(declaredNode);
-          declaredElements.add(element);
-          declarationToElement[declaredNode] = element;
-        }
-
-        // Convert referenced nodes into elements.
-        List<Element> referencedElements = [];
-        for (var referencedNode in analyzerTarget.kernelReferences) {
-          Element element;
-          if (referencedNode is kernel.VariableDeclaration) {
-            element = declarationToElement[referencedNode];
-            assert(element != null);
-          } else if (referencedNode is kernel.Procedure) {
-            element = (_resynthesizer as KernelResynthesizer)
-                .getElementFromCanonicalName(referencedNode.canonicalName);
-            assert(element != null);
-          } else {
-            // TODO(scheglov) Add more supported nodes.
-            throw new UnimplementedError(
-                'Declaration: (${referencedNode.runtimeType}) $referencedNode');
-          }
-          referencedElements.add(element);
-        }
-
-        applier = new ValidatingResolutionApplier(
-            declaredElements,
-            referencedElements,
-            astTypes,
-            analyzerTarget.declarationOffsets,
-            analyzerTarget.referenceOffsets,
-            analyzerTarget.typeOffsets);
-      }
-
+      var resolutions = new _ResolutionProvider(analyzerTarget.resolutions);
       units.forEach((file, unit) {
-        _resolveFile2(file, unit, applier);
+        _resolveFile2(file, unit, resolutions);
         // TODO(scheglov) Restore.
 //        _computePendingMissingRequiredParameters(file, unit);
       });
@@ -460,6 +417,63 @@ class LibraryAnalyzer {
         new InheritanceManager(_libraryElement),
         _analysisOptions.enableSuperMixins);
     unit.accept(errorVerifier);
+  }
+
+  /// Create a new [ResolutionApplier] for the given front-end [resolution].
+  /// The [context] element is used to associate synthetic elements and access
+  /// type parameters from the enclosing scopes.
+  ResolutionApplier _createResolutionApplier(
+      ElementImpl context, CollectedResolution resolution) {
+    // Convert local declarations into elements.
+    List<Element> declaredElements = [];
+    Map<kernel.Statement, Element> declarationToElement = {};
+    for (var declaredNode in resolution.kernelDeclarations) {
+      var element = _translateKernelDeclaration(context, declaredNode);
+      declaredElements.add(element);
+      declarationToElement[declaredNode] = element;
+    }
+
+    // TODO(scheglov) Add tests for using the context element.
+    var astTypes = <DartType>[];
+    KernelResynthesizer resynthesizer = _resynthesizer;
+    for (var kernelType in resolution.kernelTypes) {
+      DartType astType;
+      if (kernelType is kernel.FunctionReferenceDartType) {
+        kernel.VariableDeclaration variable = kernelType.function.variable;
+        FunctionElement element = declarationToElement[variable];
+        astType = element.type;
+      } else {
+        astType = resynthesizer.getType(context, kernelType);
+      }
+      astTypes.add(astType);
+    }
+
+    // Convert referenced nodes into elements.
+    List<Element> referencedElements = [];
+    for (var referencedNode in resolution.kernelReferences) {
+      Element element;
+      if (referencedNode is kernel.VariableDeclaration) {
+        element = declarationToElement[referencedNode];
+        assert(element != null);
+      } else if (referencedNode is kernel.Procedure) {
+        element = (_resynthesizer as KernelResynthesizer)
+            .getElementFromCanonicalName(referencedNode.canonicalName);
+        assert(element != null);
+      } else {
+        // TODO(scheglov) Add more supported nodes.
+        throw new UnimplementedError(
+            'Declaration: (${referencedNode.runtimeType}) $referencedNode');
+      }
+      referencedElements.add(element);
+    }
+
+    return new ValidatingResolutionApplier(
+        declaredElements,
+        referencedElements,
+        astTypes,
+        resolution.declarationOffsets,
+        resolution.referenceOffsets,
+        resolution.typeOffsets);
   }
 
   /**
@@ -742,8 +756,8 @@ class LibraryAnalyzer {
     }
   }
 
-  void _resolveFile2(FileState file, CompilationUnit unit,
-      ValidatingResolutionApplier applier) {
+  void _resolveFile2(
+      FileState file, CompilationUnit unit, _ResolutionProvider resolutions) {
     CompilationUnitElement unitElement = unit.element;
     new DeclarationResolver(enableKernelDriver: true, applyKernelTypes: true)
         .resolve(unit, unitElement);
@@ -752,29 +766,49 @@ class LibraryAnalyzer {
       if (declaration is ClassDeclaration) {
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
+            // TODO(scheglov) Pass in the actual context element.
+            var resolution = resolutions.next();
+            var applier = _createResolutionApplier(null, resolution);
             member.body.accept(applier);
+            applier.checkDone();
           } else if (member is FieldDeclaration) {
             if (member.fields.variables.length != 1) {
               // TODO(scheglov) Handle this case.
               throw new UnimplementedError('Multiple field');
             }
+            // TODO(scheglov) Pass in the actual context element.
+            var resolution = resolutions.next();
+            var applier = _createResolutionApplier(null, resolution);
             member.fields.variables[0].initializer?.accept(applier);
+            applier.checkDone();
           } else if (member is MethodDeclaration) {
+            // TODO(scheglov) Pass in the actual context element.
+            var resolution = resolutions.next();
+            var applier = _createResolutionApplier(null, resolution);
             member.body.accept(applier);
+            applier.checkDone();
           } else {
             // TODO(scheglov) Handle more cases.
             throw new UnimplementedError('${member.runtimeType}');
           }
         }
       } else if (declaration is FunctionDeclaration) {
-        applier.enclosingExecutable = declaration.element;
+        var context = declaration.element as ExecutableElementImpl;
+        var resolution = resolutions.next();
+        var applier = _createResolutionApplier(context, resolution);
+        applier.enclosingExecutable = context;
         declaration.functionExpression.body.accept(applier);
+        applier.checkDone();
       } else if (declaration is TopLevelVariableDeclaration) {
         if (declaration.variables.variables.length != 1) {
           // TODO(scheglov) Handle this case.
           throw new UnimplementedError('Multiple variables');
         }
+        // TODO(scheglov) Pass in the actual context element.
+        var resolution = resolutions.next();
+        var applier = _createResolutionApplier(null, resolution);
         declaration.variables.variables[0].initializer?.accept(applier);
+        applier.checkDone();
       } else {
         // TODO(scheglov) Handle more cases.
         throw new UnimplementedError('${declaration.runtimeType}');
@@ -843,10 +877,23 @@ class LibraryAnalyzer {
   }
 
   /// Return the local [Element] for the given local kernel [declaration].
-  Element _translateKernelDeclaration(kernel.Statement declaration) {
+  Element _translateKernelDeclaration(
+      ElementImpl context, kernel.Statement declaration) {
     if (declaration is kernel.VariableDeclaration) {
-      return new LocalVariableElementImpl(
-          declaration.name, declaration.fileOffset);
+      kernel.TreeNode functionDeclaration = declaration.parent;
+      if (functionDeclaration is kernel.FunctionDeclaration) {
+        var element =
+            new FunctionElementImpl(declaration.name, declaration.fileOffset);
+        kernel.FunctionType kernelType = declaration.type;
+        // TODO(scheglov) Cast one time.
+        element.returnType = (_resynthesizer as KernelResynthesizer)
+            .getType(context, kernelType.returnType);
+        element.type = new FunctionTypeImpl(element);
+        return element;
+      } else {
+        return new LocalVariableElementImpl(
+            declaration.name, declaration.fileOffset);
+      }
     } else {
       throw new UnimplementedError(
           'Declaration: (${declaration.runtimeType}) $declaration');
@@ -989,4 +1036,14 @@ class _NameOrSource {
   final String name;
   final Source source;
   _NameOrSource(this.name, this.source);
+}
+
+/// [Iterator] like object that provides [CollectedResolution]s.
+class _ResolutionProvider {
+  final List<CollectedResolution> resolutions;
+  int index = 0;
+
+  _ResolutionProvider(this.resolutions);
+
+  CollectedResolution next() => resolutions[index++];
 }

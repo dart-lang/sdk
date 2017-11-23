@@ -84,7 +84,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     if (_isBodyToCreateElementsFor(node)) {
       _walker.consumeLocalElements();
-      node.accept(_walker.elementBuilder);
+      // With kernel local elements are created in resolution applier.
+      if (!_applyKernelTypes) {
+        node.accept(_walker.elementBuilder);
+      }
       return null;
     } else {
       return super.visitBlockFunctionBody(node);
