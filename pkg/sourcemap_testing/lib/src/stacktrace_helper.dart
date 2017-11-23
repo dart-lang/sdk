@@ -90,6 +90,10 @@ String identityConverter(String name) => name;
 /// console. If [writeJs] is `true` the generated JavaScript code and the
 /// generated source map are saved in the current working directory (as 'out.js'
 /// and 'out.js.map', respectively).
+///
+/// If forcedTmpDir is given that directory is used as the out directory and
+/// will not be cleaned up. Note that if *not* giving a temporary directory and
+/// the test fails the directory will not be cleaned up.
 Future testStackTrace(Test test, String config, CompileFunc compile,
     {bool printJs: false,
     bool writeJs: false,
@@ -99,11 +103,13 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
     List<LineException> beforeExceptions: const <LineException>[],
     List<LineException> afterExceptions: const <LineException>[],
     bool useJsMethodNamesOnAbsence: false,
-    String Function(String name) jsNameConverter: identityConverter}) async {
+    String Function(String name) jsNameConverter: identityConverter,
+    Directory forcedTmpDir: null}) async {
   Expect.isTrue(test.expectationMap.keys.contains(config),
       "No expectations found for '$config' in ${test.expectationMap.keys}");
 
-  Directory tmpDir = await Directory.systemTemp.createTemp('stacktrace-test');
+  Directory tmpDir =
+      forcedTmpDir ?? await Directory.systemTemp.createTemp('stacktrace-test');
   String input = '${tmpDir.path}/$INPUT_FILE_NAME';
   new File(input).writeAsStringSync(test.code);
   String output = '${tmpDir.path}/out.js';
@@ -232,8 +238,10 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
       "Unexpected before:\n${unexpectedBeforeLines.join('\n')}\n"
       "Unexpected after:\n${unexpectedAfterLines.join('\n')}\n");
 
-  print("Deleting '${tmpDir.path}'.");
-  tmpDir.deleteSync(recursive: true);
+  if (forcedTmpDir == null) {
+    print("Deleting '${tmpDir.path}'.");
+    tmpDir.deleteSync(recursive: true);
+  }
 }
 
 class StackTraceLine {

@@ -58,6 +58,19 @@ class Setup extends Step<TestDescription, Data, ChainContext> {
   }
 }
 
+class SetCwdToSdkRoot extends Step<Data, Data, ChainContext> {
+  const SetCwdToSdkRoot();
+
+  String get name => "setCWD";
+
+  Future<Result<Data>> run(Data input, ChainContext context) async {
+    // stacktrace_helper assumes CWD is the sdk root dir.
+    var outerDir = getD8File().parent.parent.parent.parent;
+    Directory.current = outerDir;
+    return pass(input);
+  }
+}
+
 class StepWithD8 extends Step<Data, Data, ChainContext> {
   const StepWithD8();
 

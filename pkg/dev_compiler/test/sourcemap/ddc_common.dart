@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
+import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import 'package:testing/testing.dart';
 
 import 'common.dart';
@@ -39,6 +40,53 @@ class Compile extends Step<Data, Data, ChainContext> {
     ddcRunner.runDDC(getDdcDir().path, testFile, outputFile, outWrapperPath);
 
     return pass(data);
+  }
+}
+
+class TestStackTrace extends Step<Data, Data, ChainContext> {
+  final DdcRunner ddcRunner;
+  final String marker;
+
+  const TestStackTrace(this.ddcRunner, this.marker);
+
+  String get name => "TestStackTrace";
+
+  Future<Result<Data>> run(Data data, ChainContext context) async {
+    data.outDir = await Directory.systemTemp.createTemp("stacktrace-test");
+    String code = await new File.fromUri(data.uri).readAsString();
+    Test test = processTestCode(code, [marker]);
+    await testStackTrace(test, marker, _compile,
+        jsPreambles: _getPreambles,
+        useJsMethodNamesOnAbsence: true,
+        jsNameConverter: _convertName,
+        forcedTmpDir: data.outDir);
+    return pass(data);
+  }
+
+  Future<bool> _compile(String input, String output) async {
+    var outWrapperPath = _getWrapperPathFromDirectoryFile(input);
+    ddcRunner.runDDC(getDdcDir().path, input, output, outWrapperPath);
+    return true;
+  }
+
+  List<String> _getPreambles(input, output) {
+    return ['--module', _getWrapperPathFromDirectoryFile(input), '--'];
+  }
+
+  String _getWrapperPathFromDirectoryFile(input) {
+    return new File.fromUri(new File(input).uri.resolve("wrapper.js")).path;
+  }
+
+  String _convertName(String name) {
+    if (name == null) return null;
+    // Hack for DDC naming scheme.
+    String result = name;
+    if (result.startsWith("Object.")) result = result.substring(7);
+    String inputName =
+        INPUT_FILE_NAME.substring(0, INPUT_FILE_NAME.indexOf(".") + 1);
+    if (result.startsWith(inputName))
+      result = result.substring(inputName.length);
+    return result;
   }
 }
 
