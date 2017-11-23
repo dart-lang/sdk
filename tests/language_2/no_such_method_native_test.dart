@@ -25,8 +25,8 @@ expectNSME(Object d) {
 main() {
   dynamic c = new C() as dynamic;
   Expect.equals(42, c.foobar(123));
-  Expect.equals(invocation.memberName, #foobar);
-  Expect.listEquals(invocation.positionalArguments, [123]);
+  Expect.equals(#foobar, invocation.memberName);
+  Expect.listEquals([123], invocation.positionalArguments);
   expectNSME(null);
   expectNSME(777);
   expectNSME('hello');

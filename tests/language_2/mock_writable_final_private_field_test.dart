@@ -27,7 +27,7 @@ void main() {
     Bar b = new Bar();
     Expect.equals(b._x, 42);
     b._x = 123;
-    Expect.listEquals(values, [123]);
+    Expect.listEquals([123], values);
     values.clear();
   }
   {
@@ -35,7 +35,7 @@ void main() {
     Foo b = new Bar();
     Expect.equals(b._x, 42);
     b._x = 123;
-    Expect.listEquals(values, [123]);
+    Expect.listEquals([123], values);
     values.clear();
   }
 }

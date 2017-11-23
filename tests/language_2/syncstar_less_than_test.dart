@@ -14,5 +14,5 @@ Iterable<int> foo() sync* {
 }
 
 main() {
-  Expect.listEquals(foo().toList(), [2]);
+  Expect.listEquals([2], foo().toList());
 }

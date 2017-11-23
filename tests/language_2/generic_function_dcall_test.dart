@@ -31,7 +31,7 @@ void testGenericFnAsArg() {
   dynamic list = <Object>[1, 2, 3];
   Expect.throws(() => list.map(bar));
   int2int = bar;
-  Expect.listEquals(list.map(int2int).toList(), [1, 2, 3]);
+  Expect.listEquals([1, 2, 3], list.map(int2int).toList());
 }
 
 typedef T2T = T Function<T>(T t);
