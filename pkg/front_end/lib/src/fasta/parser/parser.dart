@@ -4129,23 +4129,17 @@ class Parser {
       // deep_nesting1_negative_test.
       return reportUnrecoverableError(token.next, fasta.messageStackOverflow);
     }
-    // TODO(brianwilkerson) Remove the invocation of `previous` when
-    // `parsePrecedenceExpression` return the last consumed token.
     Token result = optional('throw', token.next)
         ? parseThrowExpression(token, true)
-        : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true)
-            .previous;
+        : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true);
     expressionDepth--;
     return result;
   }
 
   Token parseExpressionWithoutCascade(Token token) {
-    // TODO(brianwilkerson) Remove the invocation of `previous` when
-    // `parsePrecedenceExpression` return the last consumed token.
     Token result = optional('throw', token.next)
         ? parseThrowExpression(token, false)
-        : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false)
-            .previous;
+        : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
     return result;
   }
 
@@ -4164,12 +4158,9 @@ class Parser {
 
   Token parsePrecedenceExpression(
       Token token, int precedence, bool allowCascades) {
-    // TODO(brianwilkerson) Return the last consumed token.
     assert(precedence >= 1);
     assert(precedence <= POSTFIX_PRECEDENCE);
-    // TODO(brianwilkerson): Remove the invocation of `previous` when
-    // `parseUnaryExpression` returns the last consumed token.
-    token = parseUnaryExpression(token, allowCascades).previous;
+    token = parseUnaryExpression(token, allowCascades);
     Token next = token.next;
     TokenType type = next.type;
     int tokenLevel = type.precedence;
@@ -4189,7 +4180,7 @@ class Parser {
         Token operator = next;
         if (identical(tokenLevel, CASCADE_PRECEDENCE)) {
           if (!allowCascades) {
-            return token.next;
+            return token;
           }
           // TODO(brianwilkerson): Remove the invocation of `previous` when
           // `parseCascadeExpression` returns the last consumed token.
@@ -4197,10 +4188,7 @@ class Parser {
         } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
           // Right associative, so we recurse at the same precedence
           // level.
-          // TODO(brianwilkerson): Remove the invocation of `previous` when
-          // `parsePrecedenceExpression` returns the last consumed token.
-          token = parsePrecedenceExpression(token.next, level, allowCascades)
-              .previous;
+          token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
           if (identical(type, TokenType.PERIOD) ||
@@ -4259,11 +4247,8 @@ class Parser {
           listener.beginBinaryExpression(next);
           // Left associative, so we recurse at the next higher
           // precedence level.
-          // TODO(brianwilkerson): Remove the invocation of `previous` when
-          // `parsePrecedenceExpression` returns the last consumed token.
           token =
-              parsePrecedenceExpression(token.next, level + 1, allowCascades)
-                  .previous;
+              parsePrecedenceExpression(token.next, level + 1, allowCascades);
           listener.endBinaryExpression(operator);
         }
         next = token.next;
@@ -4271,7 +4256,7 @@ class Parser {
         tokenLevel = type.precedence;
       }
     }
-    return token.next;
+    return token;
   }
 
   Token parseCascadeExpression(Token token) {
@@ -4321,12 +4306,11 @@ class Parser {
   }
 
   Token parseUnaryExpression(Token token, bool allowCascades) {
-    // TODO(brianwilkerson) Return the last consumed token.
     String value = token.next.stringValue;
     // Prefix:
     if (identical(value, 'await')) {
       if (inPlainSync) {
-        return parsePrimary(token, IdentifierContext.expression).next;
+        return parsePrimary(token, IdentifierContext.expression);
       } else {
         return parseAwaitExpression(token, allowCascades);
       }
@@ -4354,7 +4338,7 @@ class Parser {
       listener.handleUnaryPrefixAssignmentExpression(operator);
       return token;
     } else {
-      return parsePrimary(token, IdentifierContext.expression).next;
+      return parsePrimary(token, IdentifierContext.expression);
     }
   }
 
@@ -5348,7 +5332,6 @@ class Parser {
   /// ;
   /// ```
   Token parseAwaitExpression(Token token, bool allowCascades) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token awaitToken = token.next;
     assert(optional('await', awaitToken));
     listener.beginAwaitExpression(awaitToken);
@@ -5357,7 +5340,7 @@ class Parser {
     }
     token = parsePrecedenceExpression(
         awaitToken, POSTFIX_PRECEDENCE, allowCascades);
-    listener.endAwaitExpression(awaitToken, token);
+    listener.endAwaitExpression(awaitToken, token.next);
     return token;
   }
 
