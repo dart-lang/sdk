@@ -62,7 +62,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     FunctionExpression functionExpression = node.functionExpression;
     functionExpression.element = element;
     functionExpression.typeParameters?.accept(this);
-    functionExpression.parameters?.accept(this);
     functionExpression.body?.accept(this);
   }
 

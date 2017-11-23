@@ -6,6 +6,7 @@ import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
 
+/// TODO(scheglov) document
 class FunctionReferenceDartType implements DartType {
   final FunctionDeclaration function;
   final DartType type;
@@ -86,6 +87,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   }
 }
 
+/// TODO(scheglov) document
 class MemberReferenceDartType implements DartType {
   final Member member;
   final List<DartType> typeArguments;

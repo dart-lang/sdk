@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show ResolverErrorCode;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/byte_store.dart';
@@ -66,10 +67,11 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
   test_local_function() async {
     addTestFile(r'''
 void main() {
-  double f() {}
-  var v = f();
+  double f(int a, String b) {}
+  var v = f(1, '2');
 }
 ''');
+    String fTypeString = '(int, String) → double';
 
     AnalysisResult result = await driver.getResult(testFile);
     List<Statement> mainStatements = _getMainStatements(result);
@@ -82,7 +84,7 @@ void main() {
     FunctionExpression fExpression = fNode.functionExpression;
     FunctionElement fElement = fNode.element;
     expect(fElement, isNotNull);
-    expect(fElement.type.toString(), '() → double');
+    expect(fElement.type.toString(), fTypeString);
 
     expect(fNode.name.staticElement, same(fElement));
     expect(fNode.name.staticType, fElement.type);
@@ -93,15 +95,83 @@ void main() {
 
     expect(fExpression.element, same(fElement));
 
+    {
+      var parameters = fElement.parameters;
+      expect(parameters, hasLength(2));
+
+      expect(parameters[0].name, 'a');
+      expect(parameters[0].nameOffset, 29);
+      expect(parameters[0].parameterKind, ParameterKind.REQUIRED);
+      expect(parameters[0].type, typeProvider.intType);
+
+      expect(parameters[1].name, 'b');
+      expect(parameters[1].nameOffset, 39);
+      expect(parameters[1].parameterKind, ParameterKind.REQUIRED);
+      expect(parameters[1].type, typeProvider.stringType);
+    }
+
     VariableDeclarationStatement vStatement = mainStatements[1];
     VariableDeclaration vDeclaration = vStatement.variables.variables[0];
     expect(vDeclaration.element.type, same(doubleType));
 
     MethodInvocation fInvocation = vDeclaration.initializer;
     expect(fInvocation.methodName.staticElement, same(fElement));
-    expect(fInvocation.methodName.staticType.toString(), '() → double');
+    expect(fInvocation.methodName.staticType.toString(), fTypeString);
     expect(fInvocation.staticType, same(doubleType));
-    expect(fInvocation.staticInvokeType.toString(), '() → double');
+    expect(fInvocation.staticInvokeType.toString(), fTypeString);
+  }
+
+  test_local_function_namedParameters() async {
+    addTestFile(r'''
+void main() {
+  double f(int a, {String b, bool c}) {}
+}
+''');
+    String fTypeString = '(int, {b: String, c: bool}) → double';
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType doubleType = typeProvider.doubleType;
+
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionExpression fExpression = fNode.functionExpression;
+    FunctionElement fElement = fNode.element;
+    expect(fElement, isNotNull);
+    expect(fElement.type.toString(), fTypeString);
+
+    expect(fNode.name.staticElement, same(fElement));
+    expect(fNode.name.staticType, fElement.type);
+
+    TypeName fReturnTypeNode = fNode.returnType;
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.type, doubleType);
+
+    expect(fExpression.element, same(fElement));
+
+    {
+      var parameters = fElement.parameters;
+      expect(parameters, hasLength(3));
+
+      expect(parameters[0].name, 'a');
+      expect(parameters[0].nameOffset, 29);
+      expect(parameters[0].parameterKind, ParameterKind.REQUIRED);
+      expect(parameters[0].type, typeProvider.intType);
+
+      expect(parameters[1].name, 'b');
+      expect(parameters[1].nameOffset, 40);
+      expect(parameters[1].parameterKind, ParameterKind.NAMED);
+      expect(parameters[1].type, typeProvider.stringType);
+
+      expect(parameters[2].name, 'c');
+      expect(parameters[2].nameOffset, 48);
+      expect(parameters[2].parameterKind, ParameterKind.NAMED);
+      expect(parameters[2].type, typeProvider.boolType);
+    }
+
+    // TODO(scheglov) Add invocation test when we can resolve named parameters.
   }
 
   test_local_function_noReturnType() async {
@@ -127,6 +197,68 @@ void main() {
     expect(fNode.name.staticType, fElement.type);
 
     expect(fExpression.element, same(fElement));
+  }
+
+  test_local_function_optionalParameters() async {
+    addTestFile(r'''
+void main() {
+  double f(int a, [String b, bool c]) {}
+  var v = f(1, '2', true);
+}
+''');
+    String fTypeString = '(int, [String, bool]) → double';
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType doubleType = typeProvider.doubleType;
+
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionExpression fExpression = fNode.functionExpression;
+    FunctionElement fElement = fNode.element;
+    expect(fElement, isNotNull);
+    expect(fElement.type.toString(), fTypeString);
+
+    expect(fNode.name.staticElement, same(fElement));
+    expect(fNode.name.staticType, fElement.type);
+
+    TypeName fReturnTypeNode = fNode.returnType;
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.type, doubleType);
+
+    expect(fExpression.element, same(fElement));
+
+    {
+      var parameters = fElement.parameters;
+      expect(parameters, hasLength(3));
+
+      expect(parameters[0].name, 'a');
+      expect(parameters[0].nameOffset, 29);
+      expect(parameters[0].parameterKind, ParameterKind.REQUIRED);
+      expect(parameters[0].type, typeProvider.intType);
+
+      expect(parameters[1].name, 'b');
+      expect(parameters[1].nameOffset, 40);
+      expect(parameters[1].parameterKind, ParameterKind.POSITIONAL);
+      expect(parameters[1].type, typeProvider.stringType);
+
+      expect(parameters[2].name, 'c');
+      expect(parameters[2].nameOffset, 48);
+      expect(parameters[2].parameterKind, ParameterKind.POSITIONAL);
+      expect(parameters[2].type, typeProvider.boolType);
+    }
+
+    VariableDeclarationStatement vStatement = mainStatements[1];
+    VariableDeclaration vDeclaration = vStatement.variables.variables[0];
+    expect(vDeclaration.element.type, same(doubleType));
+
+    MethodInvocation fInvocation = vDeclaration.initializer;
+    expect(fInvocation.methodName.staticElement, same(fElement));
+    expect(fInvocation.methodName.staticType.toString(), fTypeString);
+    expect(fInvocation.staticType, same(doubleType));
+    expect(fInvocation.staticInvokeType.toString(), fTypeString);
   }
 
   test_local_variable() async {

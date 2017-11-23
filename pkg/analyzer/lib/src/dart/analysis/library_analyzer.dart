@@ -31,6 +31,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/kernel/resynthesize.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -51,6 +52,7 @@ class LibraryAnalyzer {
   final bool _enableKernelDriver;
   final bool _previewDart2;
   final KernelDriver _kernelDriver;
+  final KernelResynthesizer _kernelResynthesizer;
 
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContextImpl _context;
@@ -83,7 +85,9 @@ class LibraryAnalyzer {
       : _typeProvider = _context.typeProvider,
         _enableKernelDriver = enableKernelDriver,
         _previewDart2 = previewDart2,
-        _kernelDriver = kernelDriver;
+        _kernelDriver = kernelDriver,
+        _kernelResynthesizer =
+            (_resynthesizer is KernelResynthesizer) ? _resynthesizer : null;
 
   /**
    * Compute analysis results for all units of the library.
@@ -885,9 +889,42 @@ class LibraryAnalyzer {
         var element =
             new FunctionElementImpl(declaration.name, declaration.fileOffset);
         kernel.FunctionType kernelType = declaration.type;
-        // TODO(scheglov) Cast one time.
-        element.returnType = (_resynthesizer as KernelResynthesizer)
-            .getType(context, kernelType.returnType);
+
+        // Set formal parameters.
+        {
+          var astParameters = <ParameterElement>[];
+          var kernelFunction = functionDeclaration.function;
+
+          // Add positional parameters
+          var kernelPositionalParameters = kernelFunction.positionalParameters;
+          for (var i = 0; i < kernelPositionalParameters.length; i++) {
+            var kernelParameter = kernelPositionalParameters[i];
+            var astParameter = new ParameterElementImpl(
+                kernelParameter.name, kernelParameter.fileOffset);
+            astParameter.parameterKind =
+                i < kernelFunction.requiredParameterCount
+                    ? ParameterKind.REQUIRED
+                    : ParameterKind.POSITIONAL;
+            astParameter.type =
+                _kernelResynthesizer.getType(context, kernelParameter.type);
+            astParameters.add(astParameter);
+          }
+
+          // Add named parameters.
+          for (var kernelParameter in kernelFunction.namedParameters) {
+            var astParameter = new ParameterElementImpl(
+                kernelParameter.name, kernelParameter.fileOffset);
+            astParameter.parameterKind = ParameterKind.NAMED;
+            astParameter.type =
+                _kernelResynthesizer.getType(context, kernelParameter.type);
+            astParameters.add(astParameter);
+          }
+
+          element.parameters = astParameters;
+        }
+
+        element.returnType =
+            _kernelResynthesizer.getType(context, kernelType.returnType);
         element.type = new FunctionTypeImpl(element);
         return element;
       } else {
