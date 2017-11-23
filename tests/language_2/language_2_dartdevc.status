@@ -1033,12 +1033,7 @@ wrong_number_type_arguments_test/01: MissingCompileTimeError
 assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
-async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
-async_star_test/03: RuntimeError
-async_star_test/04: RuntimeError
-async_star_test/05: RuntimeError
-async_star_test/none: RuntimeError
 bit_operations_test: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
 branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
 call_closurization_test: RuntimeError # Issue 29920; TypeError: Cannot read property '0' of undefined
@@ -1091,7 +1086,6 @@ invocation_mirror_invoke_on_test: RuntimeError # UnimplementedError: JsInstanceM
 invocation_mirror_test: RuntimeError # Type 'NativeJavaScriptObject' is not a subtype of type 'int' in strong mode
 issue21159_test: RuntimeError # Issue 30701; TypeError: method.bind is not a function
 issue23244_test: RuntimeError # Issue 29920; Uncaught Unsupported operation: only top-level functions can be spawned.
-label_test: RuntimeError # Issue 30675; Expect.equals(expected: <111>, actual: <1>) fails.
 lazy_static3_test: RuntimeError # Issue 30852; Expect.equals(expected: <null>, actual: <499>) fails.
 lazy_static8_test: RuntimeError # Issue 30852; Expect.equals(expected: <42>, actual: <2>) fails.
 least_upper_bound_expansive_test/none: RuntimeError # 30908; Uncaught RangeError: Maximum call stack size exceeded
@@ -1132,6 +1126,11 @@ switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'Un
 truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
 
 [ $compiler == dartdevc && $runtime != none ]
+async_star_test/01: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
 asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
@@ -1152,6 +1151,7 @@ fuzzy_arrows_test/03: RuntimeError # Issue 29630
 generic_method_types_test/02: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 implicit_downcast_during_compound_assignment_test: RuntimeError
+label_test: RuntimeError
 lazy_static3_test: RuntimeError # Issue 30852
 lazy_static8_test: RuntimeError # Issue 30852
 left_shift_test: RuntimeError # Ints and doubles are unified.
@@ -1192,16 +1192,12 @@ assertion_initializer_const_error2_test/cc11: RuntimeError # Assertion failed: "
 async_throw_in_catch_test/forceAwait: RuntimeError # Uncaught Expect.equals(expected: <Error2>, actual: <Expect.equals(expected: <e>, actual: <c>) fails.>) fails.
 async_throw_in_catch_test/none: RuntimeError # Uncaught Expect.equals(expected: <Error2>, actual: <Expect.equals(expected: <e>, actual: <c>) fails.>) fails.
 asyncstar_throw_in_catch_test: RuntimeError # Uncaught Expect.equals(expected: <abcX>, actual: <abbcX>) fails.
-await_for_cancel_test: Timeout
-break_test: RuntimeError # Expect.equals(expected: <6>, actual: <10>) fails.
 built_in_identifier_type_annotation_test/05: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 built_in_identifier_type_annotation_test/39: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 built_in_identifier_type_annotation_test/56: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 built_in_identifier_type_annotation_test/73: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 checked_setter3_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-closure_break1_test: Timeout
-closure_break2_test: Timeout
 closure_in_constructor_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
 closure_type_variables_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
 closures_initializer_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
@@ -1339,7 +1335,6 @@ string_interpolate_test: RuntimeError # Uncaught Type 'PrivateSymbol' is not a s
 super_bound_closure_test/none: RuntimeError # TypeError: Cannot read property '0' of undefined
 switch_test: RuntimeError # RangeError: Maximum call stack size exceeded
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
-type_argument_in_super_type_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
 type_parameter_test/none: RuntimeError # ReferenceError: VoidToSetOfT is not defined
 type_promotion_functions_test/02: RuntimeError

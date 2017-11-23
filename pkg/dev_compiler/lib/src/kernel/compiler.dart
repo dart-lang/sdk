@@ -3065,70 +3065,86 @@ class ProgramCompiler
     return body;
   }
 
+  JS.Statement translateLoop(Statement node, JS.Statement action()) {
+    var savedBreakTargets;
+    if (_currentBreakTargets.isNotEmpty &&
+        _effectiveTargets[_currentBreakTargets.first] != node) {
+      // If breaking without a label targets some other (outer) loop, then
+      // this loop prevents breaking to that loop without a label.  This loop
+      // was not labeled for a break in Kernel, otherwise it would be the
+      // effective target of the current break targets, so it is not itself the
+      // target of a break.
+      savedBreakTargets = _currentBreakTargets;
+      _currentBreakTargets = <LabeledStatement>[];
+    }
+    var savedContinueTargets = _currentContinueTargets;
+    var result = action();
+    if (savedBreakTargets != null) _currentBreakTargets = savedBreakTargets;
+    _currentContinueTargets = savedContinueTargets;
+    return result;
+  }
+
   @override
   JS.While visitWhileStatement(WhileStatement node) {
-    var condition = _visitTest(node.condition);
-
-    var saved = _currentContinueTargets;
-    var body = _visitScope(effectiveBodyOf(node, node.body));
-    _currentContinueTargets = saved;
-
-    return new JS.While(condition, body);
+    return translateLoop(node, () {
+      var condition = _visitTest(node.condition);
+      var body = _visitScope(effectiveBodyOf(node, node.body));
+      return new JS.While(condition, body);
+    });
   }
 
   @override
   JS.Do visitDoStatement(DoStatement node) {
-    var saved = _currentContinueTargets;
-    var body = _visitScope(effectiveBodyOf(node, node.body));
-    _currentContinueTargets = saved;
-
-    return new JS.Do(body, _visitTest(node.condition));
+    return translateLoop(node, () {
+      var body = _visitScope(effectiveBodyOf(node, node.body));
+      var condition = _visitTest(node.condition);
+      return new JS.Do(body, condition);
+    });
   }
 
   @override
   JS.For visitForStatement(ForStatement node) {
-    emitForInitializer(VariableDeclaration v) => new JS.VariableInitialization(
-        _emitVariableRef(v)..sourceInformation = v,
-        _visitInitializer(v.initializer, v.annotations));
+    return translateLoop(node, () {
+      emitForInitializer(VariableDeclaration v) =>
+          new JS.VariableInitialization(
+              _emitVariableRef(v)..sourceInformation = v,
+              _visitInitializer(v.initializer, v.annotations));
 
-    var init = node.variables.map(emitForInitializer).toList();
-    var initList =
-        init.isEmpty ? null : new JS.VariableDeclarationList('let', init);
-    var updates = node.updates;
-    JS.Expression update;
-    if (updates.isNotEmpty) {
-      update = new JS.Expression.binary(
-              updates.map(_visitAndMarkExpression).toList(), ',')
-          .toVoidExpression();
-    }
-    var condition = _visitTest(node.condition);
+      var init = node.variables.map(emitForInitializer).toList();
+      var initList =
+          init.isEmpty ? null : new JS.VariableDeclarationList('let', init);
+      var updates = node.updates;
+      JS.Expression update;
+      if (updates.isNotEmpty) {
+        update = new JS.Expression.binary(
+                updates.map(_visitAndMarkExpression).toList(), ',')
+            .toVoidExpression();
+      }
+      var condition = _visitTest(node.condition);
+      var body = _visitScope(effectiveBodyOf(node, node.body));
 
-    var saved = _currentContinueTargets;
-    var body = _visitScope(effectiveBodyOf(node, node.body));
-    _currentContinueTargets = saved;
-
-    return new JS.For(initList, condition, update, body);
+      return new JS.For(initList, condition, update, body);
+    });
   }
 
   @override
   JS.Statement visitForInStatement(ForInStatement node) {
-    if (node.isAsync) {
-      return _emitAwaitFor(node);
-    }
+    return translateLoop(node, () {
+      if (node.isAsync) {
+        return _emitAwaitFor(node);
+      }
 
-    var iterable = _visitAndMarkExpression(node.iterable);
+      var iterable = _visitAndMarkExpression(node.iterable);
+      var body = _visitScope(effectiveBodyOf(node, node.body));
 
-    var saved = _currentContinueTargets;
-    var body = _visitScope(effectiveBodyOf(node, node.body));
-    _currentContinueTargets = saved;
+      var v = _emitVariableRef(node.variable);
+      var init = js.call('let #', v);
+      if (_annotatedNullCheck(node.variable.annotations)) {
+        body = new JS.Block([_nullParameterCheck(v), body]);
+      }
 
-    var v = _emitVariableRef(node.variable);
-    var init = js.call('let #', v);
-    if (_annotatedNullCheck(node.variable.annotations)) {
-      body = new JS.Block([_nullParameterCheck(v), body]);
-    }
-
-    return new JS.ForOf(init, iterable, body);
+      return new JS.ForOf(init, iterable, body);
+    });
   }
 
   JS.Statement _emitAwaitFor(ForInStatement node) {
