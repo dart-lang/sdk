@@ -3,8 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → void {
+  core::Object o = 1;
   try {
-    !(1 as{TypeError} core::bool);
+    !(o as{TypeError} core::bool);
     throw "no exception";
   }
   on core::TypeError catch(no-exception-var) {

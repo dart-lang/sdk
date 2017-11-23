@@ -6,8 +6,9 @@
 library test;
 
 void main() {
+  Object o = 1;
   try {
-    !1;
+    !o;
     throw 'no exception';
   } on TypeError {}
 }
