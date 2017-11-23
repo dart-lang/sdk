@@ -12,16 +12,25 @@ import 'ddc_common.dart';
 
 Future<ChainContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new SourceMapContext();
+  return new SourceMapContext(environment);
 }
 
 class SourceMapContext extends ChainContextWithCleanupHelper {
-  final List<Step> steps = <Step>[
-    const Setup(),
-    const Compile(const RunDdc()),
-    const StepWithD8(),
-    const CheckSteps(),
-  ];
+  final Map<String, String> environment;
+  SourceMapContext(this.environment);
+
+  List<Step> _steps;
+
+  List<Step> get steps {
+    return _steps ??= <Step>[
+      const Setup(),
+      const Compile(const RunDdc()),
+      const StepWithD8(),
+      new CheckSteps(environment.containsKey("debug")),
+    ];
+  }
+
+  bool debugging() => environment.containsKey("debug");
 }
 
 class RunDdc implements DdcRunner {

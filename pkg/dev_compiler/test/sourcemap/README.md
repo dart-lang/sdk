@@ -19,8 +19,10 @@ This is done with comments as in
 /*key*/
 ```
 where `key` can be on of the following:
+* **Debugger:stepOver**: Will step over breakpoints. Default (i.e. without this) is to step into.
 * **bl** (break line): insert a breakpoint on this line. This does not add any new expected breaks.
 * **s:{i}** (stop): adds an expected stop as the `i`th stop.
+* **sl:{i}** (stop at line): adds an expected stop as the `i`th stop. Only check the line number.
 * **bc:{i}** (break column): inserts a breakpoint at this line and column.
 * **nb** (no break): The debugger should never break on this line.
 * **nm** (no mapping): There's not allowed to be any mapping to this line.
@@ -40,6 +42,17 @@ the unannotated code.
 
 When the test confirms that the debugger broke at the expected locations it allows for additional
 breakpoints before, between and after the expected breakpoints.
+
+One can filter which tests are run by running (from the sourcemap folder):
+```
+dart sourcemaps_ddc_suite.dart -- sourcemaps_ddc//printing_class_fields
+```
+
+One can additionally get debug output for failing tests (i.e. tests with different outcome than
+expected), e.g.:
+```
+dart sourcemaps_ddc_suite.dart -Ddebug=true -- sourcemaps_ddc//printing_class_fields
+```
 
 Some of the logic comes from https://github.com/ChromeDevTools/devtools-frontend/, for instance see
 https://github.com/ChromeDevTools/devtools-frontend/blob/fa18d70a995f06cb73365b2e5b8ae974cf60bd3a/

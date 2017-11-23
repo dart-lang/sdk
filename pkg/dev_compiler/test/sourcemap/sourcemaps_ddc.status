@@ -3,3 +3,4 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 /hello_sane_column_on_print_return_value: Crash
+/printing_class_fields: Crash

@@ -22,10 +22,20 @@ class DartStackTraceDataEntry {
   final int line;
   final int column;
   final errorString;
+  final int jsLine;
+  final int jsColumn;
 
-  DartStackTraceDataEntry(this.file, this.line, this.column)
+  DartStackTraceDataEntry(
+      this.file, this.line, this.column, this.jsLine, this.jsColumn)
       : errorString = null;
   DartStackTraceDataEntry.error(this.errorString)
+      : file = null,
+        line = -1,
+        column = -1,
+        jsLine = -1,
+        jsColumn = -1;
+  DartStackTraceDataEntry.errorWithJsPosition(
+      this.errorString, this.jsLine, this.jsColumn)
       : file = null,
         line = -1,
         column = -1;
@@ -39,9 +49,16 @@ abstract class ChainContextWithCleanupHelper extends ChainContext {
   Map<TestDescription, Data> cleanupHelper = {};
 
   void cleanUp(TestDescription description, Result result) {
+    if (debugging() && result.outcome != Expectation.Pass) {
+      print("Not cleaning up: Running in debug-mode for non-passing test.");
+      return;
+    }
+
     Data data = cleanupHelper.remove(description);
     data?.outDir?.deleteSync(recursive: true);
   }
+
+  bool debugging() => false;
 }
 
 class Setup extends Step<TestDescription, Data, ChainContext> {
@@ -118,16 +135,23 @@ class StepWithD8 extends Step<Data, Data, ChainContext> {
         Platform.pathSeparator +
         "inspector.js";
     new File(inspectorPath).copySync(outInspectorPath);
+    String debugAction = "Debugger.stepInto";
+    if (data.code.annotations
+        .any((a) => a.text.trim() == "Debugger:stepOver")) {
+      debugAction = "Debugger.stepOver";
+    }
 
-    ProcessResult runResult = runD8(
-        outInspectorPath, outWrapperPath, "Debugger.stepInto", breakpoints);
+    ProcessResult runResult =
+        runD8(outInspectorPath, outWrapperPath, debugAction, breakpoints);
     data.d8Output = runResult.stdout.split("\n");
     return pass(data);
   }
 }
 
 class CheckSteps extends Step<Data, Data, ChainContext> {
-  const CheckSteps();
+  final bool debug;
+
+  CheckSteps(this.debug);
 
   String get name => "check";
 
@@ -144,6 +168,7 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
 
     List<DartStackTraceDataEntry> trace =
         result.map((entry) => entry.first).toList();
+    if (debug) debugPrint(trace, outputPath);
 
     List<String> recordStops = trace
         .where((entry) => !entry.isError)
@@ -158,12 +183,17 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
     List<String> expectedStops = [];
     for (Annotation annotation in data.code.annotations.where((annotation) =>
         annotation.text.trim().startsWith("s:") ||
+        annotation.text.trim().startsWith("sl:") ||
         annotation.text.trim().startsWith("bc:"))) {
       String text = annotation.text.trim();
       int stopNum = int.parse(text.substring(text.indexOf(":") + 1));
       if (expectedStops.length < stopNum) expectedStops.length = stopNum;
-      expectedStops[stopNum - 1] =
-          "test.dart:${annotation.lineNo}:${annotation.columnNo}";
+      if (text.startsWith("sl:")) {
+        expectedStops[stopNum - 1] = "test.dart:${annotation.lineNo}:";
+      } else {
+        expectedStops[stopNum - 1] =
+            "test.dart:${annotation.lineNo}:${annotation.columnNo}:";
+      }
     }
 
     checkRecordedStops(recordStops, expectedStops);
@@ -177,6 +207,57 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
     }
 
     return pass(data);
+  }
+
+  void debugPrint(List<DartStackTraceDataEntry> trace, String outputPath) {
+    StringBuffer sb = new StringBuffer();
+    var jsFile =
+        new File(path.join(outputPath, "js.js")).readAsStringSync().split("\n");
+    var dartFile = new File(path.join(outputPath, "test.dart"))
+        .readAsStringSync()
+        .split("\n");
+
+    List<String> getSnippet(List<String> data, int line, int column) {
+      List<String> result = new List<String>.filled(5, "");
+      if (line < 0 || column < 0) return result;
+
+      for (int i = 0; i < 5; ++i) {
+        int j = line - 2 + i;
+        if (j < 0 || j >= data.length) continue;
+        result[i] = data[j];
+      }
+      if (result[2].length >= column) {
+        result[2] = result[2].substring(0, column) +
+            "/*STOP*/" +
+            result[2].substring(column);
+      }
+      return result;
+    }
+
+    List<String> sideBySide(List<String> a, List<String> b, int columns) {
+      List<String> result = new List<String>(a.length);
+      for (int i = 0; i < a.length; ++i) {
+        String left = a[i].padRight(columns).substring(0, columns);
+        String right = b[i].padRight(columns).substring(0, columns);
+        result[i] = left + "  |  " + right;
+      }
+      return result;
+    }
+
+    for (int i = 0; i < trace.length; ++i) {
+      sb.write("\n\nStop #${i + 1}\n\n");
+      if (trace[i].isError && trace[i].jsLine < 0) {
+        sb.write("${trace[i].errorString}\n");
+        continue;
+      }
+      var jsSnippet = getSnippet(jsFile, trace[i].jsLine, trace[i].jsColumn);
+      var dartSnippet =
+          getSnippet(dartFile, trace[i].line - 1, trace[i].column - 1);
+      var view = sideBySide(jsSnippet, dartSnippet, 40);
+      sb.writeAll(view, "\n");
+    }
+
+    print(sb.toString());
   }
 }
 
@@ -285,13 +366,13 @@ List<DartStackTraceDataEntry> extractStackTrace(
     int c = int.parse(m.group(2));
     SourceMapSpan span = sourceMap.spanFor(l, c);
     if (span?.start == null) {
-      result.add(new DartStackTraceDataEntry.error(
-          "Source map not found for '$line'"));
+      result.add(new DartStackTraceDataEntry.errorWithJsPosition(
+          "Source map not found for '$line'", l, c));
       continue;
     }
     var file = span.sourceUrl?.pathSegments?.last ?? "(unknown file)";
     result.add(new DartStackTraceDataEntry(
-        file, span.start.line + 1, span.start.column + 1));
+        file, span.start.line + 1, span.start.column + 1, l, c));
   }
   return result;
 }
@@ -304,7 +385,7 @@ void checkRecordedStops(List<String> recordStops, List<String> expectedStops) {
   int expectedIndex = 0;
   for (String recorded in recordStops) {
     if (expectedIndex == expectedStops.length) break;
-    if (recorded == expectedStops[expectedIndex]) {
+    if ("$recorded:".contains(expectedStops[expectedIndex])) {
       ++expectedIndex;
     }
   }
