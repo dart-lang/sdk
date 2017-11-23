@@ -3792,7 +3792,7 @@ class Library : public Object {
     return -1;
 #endif
   }
-  void set_kernel_offset(intptr_t offset) {
+  void set_kernel_offset(intptr_t offset) const {
     NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
   }
 

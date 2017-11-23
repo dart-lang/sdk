@@ -186,7 +186,7 @@ class Serializer : public StackResource {
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.
-    stream_.set_current(stream_.buffer() + Snapshot::kHeaderSize);
+    stream_.SetPosition(Snapshot::kHeaderSize);
   }
 
   void FillHeader(Snapshot::Kind kind) {

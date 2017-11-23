@@ -425,6 +425,16 @@ def GetGitRevision():
     return None
   return output
 
+def GetGitTimestamp():
+  p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%cd'],
+                       stdout = subprocess.PIPE,
+                       stderr = subprocess.STDOUT, shell=IsWindows(),
+                       cwd = DART_DIR)
+  output, _ = p.communicate()
+  if p.wait() != 0:
+    return None
+  return output
+
 # To eliminate clashing with older archived builds on bleeding edge we add
 # a base number bigger the largest svn revision (this also gives us an easy
 # way of seeing if an archive comes from git based or svn based commits).
@@ -545,6 +555,7 @@ def Main():
   print "IsWindows() -> ", IsWindows()
   print "GuessVisualStudioPath() -> ", GuessVisualStudioPath()
   print "GetGitRevision() -> ", GetGitRevision()
+  print "GetGitTimestamp() -> ", GetGitTimestamp()
   print "GetVersionFileContent() -> ", GetVersionFileContent()
   print "GetGitNumber() -> ", GetGitNumber()
 

@@ -74,7 +74,6 @@ class ReadStream : public ValueObject {
   intptr_t ReadUnsigned() { return Read<intptr_t>(kEndUnsignedByteMarker); }
 
   intptr_t Position() const { return current_ - buffer_; }
-
   void SetPosition(intptr_t value) {
     ASSERT((end_ - buffer_) > value);
     current_ = buffer_ + value;
@@ -312,12 +311,14 @@ class WriteStream : public ValueObject {
   void set_buffer(uint8_t* value) { *buffer_ = value; }
   intptr_t bytes_written() const { return current_ - *buffer_; }
 
-  void set_current(uint8_t* value) { current_ = value; }
+  intptr_t Position() const { return current_ - *buffer_; }
+  void SetPosition(intptr_t value) { current_ = *buffer_ + value; }
 
   void Align(intptr_t alignment) {
-    intptr_t position = current_ - *buffer_;
-    position = Utils::RoundUp(position, alignment);
-    current_ = *buffer_ + position;
+    intptr_t position_before = Position();
+    intptr_t position_after = Utils::RoundUp(position_before, alignment);
+    memset(current_, 0, position_after - position_before);
+    SetPosition(position_after);
   }
 
   template <int N, typename T>

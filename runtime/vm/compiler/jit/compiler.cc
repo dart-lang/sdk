@@ -116,6 +116,7 @@ static void PrecompilationModeHandler(bool value) {
 #endif
 
     FLAG_background_compilation = false;
+    FLAG_collect_code = false;
     FLAG_enable_mirrors = false;
     FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
@@ -136,7 +137,6 @@ static void PrecompilationModeHandler(bool value) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_bootstrap.
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
-    FLAG_collect_code = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
     FLAG_load_deferred_eagerly = true;

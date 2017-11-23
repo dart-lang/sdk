@@ -53,11 +53,10 @@
   R(break_at_isolate_spawn, false, bool, false,                                \
     "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
-  C(collect_code, false, true, bool, true,                                     \
-    "Attempt to GC infrequently used code.")                                   \
+  P(collect_code, bool, true, "Attempt to GC infrequently used code.")         \
   P(collect_dynamic_function_names, bool, true,                                \
     "Collects all dynamic function names to identify unique targets")          \
-  R(concurrent_sweep, USING_MULTICORE, bool, USING_MULTICORE,                  \
+  P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")                            \
