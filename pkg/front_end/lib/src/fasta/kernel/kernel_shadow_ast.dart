@@ -724,7 +724,8 @@ class ShadowFieldInitializer extends FieldInitializer
   @override
   void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.fieldInitializerEnter(this);
-    inferrer.inferExpression(value, field.type, false);
+    var initializerType = inferrer.inferExpression(value, field.type, true);
+    inferrer.checkAssignability(field.type, initializerType, value, fileOffset);
     inferrer.listener.fieldInitializerExit(this);
   }
 }

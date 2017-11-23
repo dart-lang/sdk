@@ -30,6 +30,12 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_const_invalid_constructorFieldInitializer_fromLibrary() {
+    return super.test_const_invalid_constructorFieldInitializer_fromLibrary();
+  }
+
+  @override
+  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30857')
   test_duplicateConstructorName_named() async {
     return super.test_duplicateConstructorName_named();
