@@ -21,10 +21,16 @@ This is done with comments as in
 where `key` can be on of the following:
 * **Debugger:stepOver**: Will step over breakpoints. Default (i.e. without this) is to step into.
 * **bl** (break line): insert a breakpoint on this line. This does not add any new expected breaks.
-* **s:{i}** (stop): adds an expected stop as the `i`th stop.
-* **sl:{i}** (stop at line): adds an expected stop as the `i`th stop. Only check the line number.
-* **bc:{i}** (break column): inserts a breakpoint at this line and column.
+* **s:{i}** (stop): adds an expected stop as the `i`th stop (1-indexed).
+* **sl:{i}** (stop at line): adds an expected stop as the `i`th stop (1-indexed). Only check the
+line number.
+* **bc:{i}** (break column): inserts a breakpoint at this line and column and adds an expected stop
+as the `i`th stop (1-indexed).
 * **nb** (no break): The debugger should never break on this line.
+* **nbc** (no break column): The debugger should never break on this line and column.
+* **nbb:{i}:{j}** (no break between): The debugger should not break on this line between expectation
+`i` and `j` (1-indexed). From can also be the special value 0 meaning from the beginning.
+For example `nbb:0:1` means not before first expected stop.
 * **nm** (no mapping): There's not allowed to be any mapping to this line.
 This also adds an expected stop as the `i`th stop.
 Note that in an ideal world this would be unnecessary: Stopping at a line and stepping should
@@ -34,6 +40,7 @@ baz(foo(), bar())
 ```
 will stop at `baz`, go into `foo`, stop at `bar`, go into `bar` and stop at `baz`.
 From a Dart perspective we would instead expect it to stop at `foo`, go into `foo`, stop at `bar`,
+
 go into `bar` and stop a `baz`.
 Having **bc:{i}** allows us to force this behaviour as d8 can actually stop at `foo` too.
 

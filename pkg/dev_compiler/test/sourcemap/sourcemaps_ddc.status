@@ -8,3 +8,6 @@
 /stops_at_ending_brace: Crash
 /no_mapping_on_class_constructor_line: Crash
 /no_mapping_on_class_named_constructor_line: Crash
+/next_through_assign_call_test: Crash
+/hello_class_call: Crash
+/next_through_assign_call_test: Crash

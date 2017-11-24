@@ -2888,7 +2888,7 @@ class ProgramCompiler
 
   /// Visits [nodes] with [_visitExpression].
   List<JS.Expression> _visitExpressionList(Iterable<Expression> nodes) {
-    return nodes?.map(_visitExpression)?.toList();
+    return nodes?.map(_visitAndMarkExpression)?.toList();
   }
 
   /// Generates an expression for a boolean conversion context (if, while, &&,
@@ -3567,7 +3567,7 @@ class ProgramCompiler
       }
     }
 
-    var jsReceiver = _visitExpression(receiver);
+    var jsReceiver = _visitAndMarkExpression(receiver);
     var args = _emitArgumentList(arguments);
     var receiverType = receiver.getStaticType(types);
     var typeArgs = arguments.types;
@@ -3929,7 +3929,7 @@ class ProgramCompiler
             [_visitExpression(receiver), _visitExpressionList(args)]);
       } else {
         return _callHelper('dsend(#, #, #)', [
-          _visitExpression(receiver),
+          _visitAndMarkExpression(receiver),
           memberName,
           _visitExpressionList(args)
         ]);
@@ -4049,7 +4049,7 @@ class ProgramCompiler
     var named = <JS.Property>[];
     for (var arg in node.named) {
       named.add(new JS.Property(
-          _propertyName(arg.name), _visitExpression(arg.value)));
+          _propertyName(arg.name), _visitAndMarkExpression(arg.value)));
     }
     if (named.isNotEmpty) {
       args.add(new JS.ObjectInitializer(named));
@@ -4459,7 +4459,7 @@ class ProgramCompiler
     Expression fromExpr = node.operand;
     var from = fromExpr.getStaticType(types);
     var to = node.type;
-    var jsFrom = _visitExpression(fromExpr);
+    var jsFrom = _visitAndMarkExpression(fromExpr);
 
     // If the check was put here by static analysis to ensure soundness, we
     // can't skip it. For example, one could implement covariant generic caller

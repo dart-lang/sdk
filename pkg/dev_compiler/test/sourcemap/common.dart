@@ -179,6 +179,10 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
         .where((entry) => !entry.isError)
         .map((entry) => entry.line)
         .toSet();
+    Set<String> recordStopLineColumns = trace
+        .where((entry) => !entry.isError)
+        .map((entry) => "${entry.line}:${entry.column}")
+        .toSet();
 
     List<String> expectedStops = [];
     for (Annotation annotation in data.code.annotations.where((annotation) =>
@@ -196,13 +200,39 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
       }
     }
 
-    checkRecordedStops(recordStops, expectedStops);
+    List<List<String>> noBreaksStart = [];
+    List<List<String>> noBreaksEnd = [];
+    for (Annotation annotation in data.code.annotations
+        .where((annotation) => annotation.text.trim().startsWith("nbb:"))) {
+      String text = annotation.text.trim();
+      var split = text.split(":");
+      int stopNum1 = int.parse(split[1]);
+      int stopNum2 = int.parse(split[2]);
+      if (noBreaksStart.length <= stopNum1) noBreaksStart.length = stopNum1 + 1;
+      noBreaksStart[stopNum1] ??= [];
+      if (noBreaksEnd.length <= stopNum2) noBreaksEnd.length = stopNum2 + 1;
+      noBreaksEnd[stopNum2] ??= [];
+
+      noBreaksStart[stopNum1].add("test.dart:${annotation.lineNo}:");
+      noBreaksEnd[stopNum2].add("test.dart:${annotation.lineNo}:");
+    }
+
+    checkRecordedStops(recordStops, expectedStops, noBreaksStart, noBreaksEnd);
 
     for (Annotation annotation in data.code.annotations
-        .where((annotation) => annotation.text.trim().startsWith("nb"))) {
+        .where((annotation) => annotation.text.trim() == "nb")) {
       // Check that we didn't break where we're not allowed to.
       if (recordStopLines.contains(annotation.lineNo)) {
         fail("Was not allowed to stop on line ${annotation.lineNo}, but did!");
+      }
+    }
+    for (Annotation annotation in data.code.annotations
+        .where((annotation) => annotation.text.trim() == "nbc")) {
+      // Check that we didn't break where we're not allowed to.
+      if (recordStopLineColumns
+          .contains("${annotation.lineNo}:${annotation.columnNo}")) {
+        fail(
+            "Was not allowed to stop on line ${annotation.lineNo} column ${annotation.columnNo}, but did!");
       }
     }
 
@@ -377,16 +407,33 @@ List<DartStackTraceDataEntry> extractStackTrace(
   return result;
 }
 
-// Copied from observatory tests.
-void checkRecordedStops(List<String> recordStops, List<String> expectedStops) {
+void checkRecordedStops(List<String> recordStops, List<String> expectedStops,
+    List<List<String>> noBreaksStart, List<List<String>> noBreaksEnd) {
   // We want to find all expected lines in recorded lines in order, but allow
   // more in between in the recorded lines.
+  // noBreaksStart and noBreaksStart gives instructions on what's *NOT* allowed
+  // to be between those points though.
 
   int expectedIndex = 0;
+  Set<String> aliveNoBreaks = new Set<String>();
+  if (noBreaksStart.length > 0 && noBreaksStart[0] != null) {
+    aliveNoBreaks.addAll(noBreaksStart[0]);
+  }
   for (String recorded in recordStops) {
     if (expectedIndex == expectedStops.length) break;
     if ("$recorded:".contains(expectedStops[expectedIndex])) {
       ++expectedIndex;
+      if (noBreaksStart.length > expectedIndex &&
+          noBreaksStart[expectedIndex] != null) {
+        aliveNoBreaks.addAll(noBreaksStart[expectedIndex]);
+      }
+      if (noBreaksEnd.length > expectedIndex &&
+          noBreaksEnd[expectedIndex] != null) {
+        aliveNoBreaks.removeAll(noBreaksEnd[expectedIndex]);
+      }
+    } else if (aliveNoBreaks
+        .contains("${(recorded.split(":")..removeLast()).join(":")}:")) {
+      fail("Break '$recorded' was found when it wasn't allowed");
     }
   }
   if (expectedIndex != expectedStops.length) {

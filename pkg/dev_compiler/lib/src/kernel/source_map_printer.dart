@@ -54,7 +54,7 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
       if (srcInfo is FileUriNode) {
         parentsStack.add(srcInfo);
-        if (srcInfo is Procedure) mark = false;
+        if (srcInfo is Procedure || srcInfo is Class) mark = false;
       } else if (srcInfo is Constructor) {
         parentsStack.add(srcInfo.parent);
         mark = false;
@@ -80,6 +80,12 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
       offset = srcInfo.fileEndOffset;
     } else if (srcInfo is Class) {
       offset = srcInfo.fileEndOffset;
+    }
+    if (offset == -1 && srcInfo is Constructor) {
+      // Probably default constructor that the user didn't write. Point to the
+      // end brace on the class instead.
+      Class parent = srcInfo.parent;
+      offset = parent.fileEndOffset;
     }
 
     // Any ending brace or semicolon is already in the output.
