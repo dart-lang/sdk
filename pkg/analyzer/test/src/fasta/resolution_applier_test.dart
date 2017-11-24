@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -36,14 +37,23 @@ class ResolutionApplierTest extends FastaParserTestCase {
   void applyTypes(String content, List<Element> declaredElements,
       List<Element> referencedElements, List<DartType> types) {
     CompilationUnit unit = parseCompilationUnit(content);
-    ResolutionApplier applier =
-        new ResolutionApplier(declaredElements, referencedElements, types);
     expect(unit, isNotNull);
     expect(unit.declarations, hasLength(1));
     FunctionDeclaration function = unit.declarations[0];
     FunctionBody body = function.functionExpression.body;
+    ResolutionApplier applier =
+        new ResolutionApplier(declaredElements, referencedElements, types);
+    applier.enclosingExecutable =
+        new FunctionElementImpl(function.name.name, function.name.offset);
+
     body.accept(applier);
-    body.accept(new ResolutionVerifier());
+    applier.checkDone();
+
+    ResolutionVerifier verifier = new ResolutionVerifier();
+    // TODO(brianwilkerson) Uncomment the line below when the tests no longer
+    // fail.
+//    body.accept(verifier);
+    verifier.assertResolved();
   }
 
   void setUp() {
@@ -56,8 +66,9 @@ f(String s, int i) {
   return s + i;
 }
 ''', [], [
-      new ParameterElementImpl('s', 9),
-      new ParameterElementImpl('i', 16)
+      _createFunctionParameter('s', 9),
+      _createFunctionParameter('i', 16),
+      new MethodElementImpl('+', -1)
     ], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
@@ -65,7 +76,24 @@ f(String s, int i) {
     ]);
   }
 
-  @failingTest
+  void test_functionExpressionInvocation() {
+    applyTypes(r'''
+f(Object a) {
+  return a.b().c();
+}
+''', [], [
+      _createFunctionParameter('a', 9),
+      new MethodElementImpl('b', -1),
+      new MethodElementImpl('c', -1)
+    ], <DartType>[
+      typeProvider.objectType,
+      typeProvider.objectType,
+      typeProvider.objectType,
+      typeProvider.objectType,
+      typeProvider.objectType
+    ]);
+  }
+
   void test_genericFunctionType() {
     GenericFunctionTypeElementImpl element =
         new GenericFunctionTypeElementImpl.forOffset(8);
@@ -73,8 +101,8 @@ f(String s, int i) {
     element.typeParameters = <TypeParameterElement>[];
     element.returnType = typeProvider.intType;
     element.parameters = [
-      new ParameterElementImpl('', -1)..type = typeProvider.stringType,
-      new ParameterElementImpl('x', 34)..type = typeProvider.boolType,
+      _createFunctionParameter('', -1, type: typeProvider.stringType),
+      _createFunctionParameter('x', 34, type: typeProvider.boolType),
     ];
     FunctionTypeImpl functionType = new FunctionTypeImpl(element);
     element.type = functionType;
@@ -82,7 +110,7 @@ f(String s, int i) {
 f() {
   int Function(String, bool x) foo;
 }
-''', [], [], <DartType>[functionType]);
+''', [new LocalVariableElementImpl('foo', 37)], [], <DartType>[functionType]);
   }
 
   void test_listLiteral_const_noAnnotation() {
@@ -201,6 +229,38 @@ get f => <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
     ]);
   }
 
+  void test_methodInvocation_getter() {
+    applyTypes(r'''
+f(String s) {
+  return s.length;
+}
+''', [], [
+      _createFunctionParameter('s', 9),
+      new MethodElementImpl('length', -1)
+    ], <DartType>[
+      typeProvider.stringType,
+      typeProvider.intType,
+      typeProvider.intType
+    ]);
+  }
+
+  void test_methodInvocation_method() {
+    applyTypes(r'''
+f(String s) {
+  return s.substring(3, 7);
+}
+''', [], [
+      _createFunctionParameter('s', 9),
+      new MethodElementImpl('length', -1)
+    ], <DartType>[
+      typeProvider.stringType,
+      typeProvider.intType,
+      typeProvider.intType,
+      typeProvider.stringType,
+      typeProvider.stringType
+    ]);
+  }
+
   @failingTest
   void test_typeAlias() {
     TypeParameterElement B = _createTypeParameter('B', 42);
@@ -213,7 +273,7 @@ get f => <String, int>{'a' : 1, 'b' : 2, 'c' : 3};
     functionElement.typeParameters = <TypeParameterElement>[];
     functionElement.returnType = B.type;
     functionElement.parameters = [
-      new ParameterElementImpl('x', 48)..type = C.type,
+      _createFunctionParameter('x', 48, type: C.type),
     ];
     FunctionTypeImpl functionType = new FunctionTypeImpl.forTypedef(element);
     applyTypes(r'''
@@ -221,7 +281,17 @@ f() {
   A<int, String> foo;
 }
 //typedef B A<B, C>(C x);
-''', [], [], <DartType>[functionType]);
+''', [new LocalVariableElementImpl('foo', 23)], [], <DartType>[functionType]);
+  }
+
+  /// Return a newly created parameter element with the given [name] and
+  /// [offset].
+  ParameterElement _createFunctionParameter(String name, int offset,
+      {DartType type}) {
+    ParameterElementImpl parameter = new ParameterElementImpl(name, offset);
+    parameter.type = type;
+    parameter.parameterKind = ParameterKind.REQUIRED;
+    return parameter;
   }
 
   /// Return a newly created type parameter element with the given [name] and

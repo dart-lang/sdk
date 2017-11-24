@@ -31,10 +31,24 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   /// Verifies that all types passed to the constructor have been applied.
   void checkDone() {
+    if (_declaredElementIndex != _declaredElements.length) {
+      throw new StateError('Some declarations were not consumed, starting at '
+          '${_declaredElements[_declaredElementIndex]}');
+    }
+    if (_referencedElementIndex != _referencedElements.length) {
+      throw new StateError('Some references were not consumed, starting at '
+          '${_referencedElements[_referencedElementIndex]}');
+    }
     if (_typeIndex != _types.length) {
       throw new StateError(
           'Some types were not consumed, starting at ${_types[_typeIndex]}');
     }
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    visitExpression(node);
+    node.staticElement = _getReferenceFor(node);
   }
 
   @override
@@ -64,6 +78,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     functionExpression.element = element;
     functionExpression.typeParameters?.accept(this);
     functionExpression.body?.accept(this);
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    node.function.accept(this);
+    // TODO(brianwilkerson) Visit node.typeArguments.
+    node.argumentList.accept(this);
+    node.staticElement = _getReferenceFor(node);
   }
 
   @override
@@ -99,7 +121,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     DartType invokeType = _getTypeFor(node.methodName);
     node.staticInvokeType = invokeType;
     node.methodName.staticType = invokeType;
-    // TODO(paulberry): store resolution of node.methodName.
     // TODO(paulberry): store resolution of node.typeArguments.
 
     // Apply resolution to arguments.
@@ -199,7 +220,40 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       }
       node.variables.accept(this);
       if (node.type != null) {
-        _applyToTypeAnnotation(node.variables[0].name.staticType, node.type);
+        DartType type = node.variables[0].name.staticType;
+        // TODO(brianwilkerson) Understand why the type is sometimes `null`.
+        if (type != null) {
+          _applyToTypeAnnotation(type, node.type);
+        }
+      }
+    }
+  }
+
+  /// Apply the types of the [parameterElements] to the [parameters] that have
+  /// an explicit type annotation.
+  void _applyParameters(List<ParameterElement> parameterElements,
+      List<FormalParameter> parameters) {
+    int length = parameterElements.length;
+    if (parameters.length != length) {
+      throw new StateError('Parameter counts do not match');
+    }
+    for (int i = 0; i < length; i++) {
+      FormalParameter parameter = parameters[i];
+      NormalFormalParameter normalParameter;
+      if (parameter is NormalFormalParameter) {
+        normalParameter = parameter;
+      } else if (parameter is DefaultFormalParameter) {
+        normalParameter = parameter.parameter;
+      }
+      TypeAnnotation typeAnnotation = null;
+      if (normalParameter is SimpleFormalParameter) {
+        typeAnnotation = normalParameter.type;
+      }
+      if (typeAnnotation != null) {
+        _applyToTypeAnnotation(parameterElements[i].type, typeAnnotation);
+      }
+      if (normalParameter.identifier != null) {
+        normalParameter.identifier.staticElement = parameterElements[i];
       }
     }
   }
@@ -209,20 +263,31 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// arguments of the [type] to the corresponding type arguments of the
   /// [typeAnnotation].
   void _applyToTypeAnnotation(DartType type, TypeAnnotation typeAnnotation) {
+    SimpleIdentifier nameForElement(Identifier identifier) {
+      if (identifier is SimpleIdentifier) {
+        return identifier;
+      } else if (identifier is PrefixedIdentifier) {
+        return identifier.identifier;
+      } else {
+        throw new UnimplementedError(
+            'Unhandled class of identifier: ${identifier.runtimeType}');
+      }
+    }
+
     if (typeAnnotation is GenericFunctionTypeImpl) {
-      // TODO(brianwilkerson) Finish adding support for generic function types.
+      if (type is! FunctionType) {
+        throw new StateError('Non-function type ($type) '
+            'for generic function annotation ($typeAnnotation)');
+      }
+      FunctionType functionType = type;
       typeAnnotation.type = type;
+      _applyToTypeAnnotation(
+          functionType.returnType, typeAnnotation.returnType);
+      _applyParameters(
+          functionType.parameters, typeAnnotation.parameters.parameters);
     } else if (typeAnnotation is TypeNameImpl) {
       typeAnnotation.type = type;
-      if (type is InterfaceType) {
-        // TODO(scheglov) Support other types, e.g. dynamic.
-        Identifier name = typeAnnotation.name;
-        if (name is SimpleIdentifier) {
-          name.staticElement = type.element;
-        } else {
-          throw new UnimplementedError('${name.runtimeType}');
-        }
-      }
+      nameForElement(typeAnnotation.name).staticElement = type.element;
     }
     if (typeAnnotation is NamedType) {
       TypeArgumentList typeArguments = typeAnnotation.typeArguments;
@@ -315,6 +380,10 @@ class ValidatingResolutionApplier extends ResolutionApplier {
     if (_debug) {
       print('Getting declaration element for $node at $nodeOffset');
     }
+    if (_declaredElementIndex >= _declaredElements.length) {
+      throw new StateError(
+          'No declaration information for $node at $nodeOffset');
+    }
     int elementOffset = _declaredElementOffsets[_declaredElementIndex];
     if (nodeOffset != elementOffset) {
       throw new StateError(
@@ -329,6 +398,9 @@ class ValidatingResolutionApplier extends ResolutionApplier {
     int nodeOffset = node.offset;
     if (_debug) {
       print('Getting reference element for $node at $nodeOffset');
+    }
+    if (_referencedElementIndex >= _referencedElements.length) {
+      throw new StateError('No reference information for $node at $nodeOffset');
     }
     int elementOffset = _referencedElementOffsets[_referencedElementIndex];
     if (nodeOffset != elementOffset) {
@@ -345,8 +417,11 @@ class ValidatingResolutionApplier extends ResolutionApplier {
     if (_debug) {
       print('Getting type for $node at $nodeOffset');
     }
+    if (_typeIndex >= _types.length) {
+      throw new StateError('No type information for $node at $nodeOffset');
+    }
     if (nodeOffset != _typeOffsets[_typeIndex]) {
-      throw new StateError('Expected a type for analyzer offset $nodeOffset; '
+      throw new StateError('Expected a type for $node at $nodeOffset; '
           'got one for kernel offset ${_typeOffsets[_typeIndex]}');
     }
     return super._getTypeFor(node);
