@@ -41,7 +41,7 @@ void main() {
         isolate.resume(resume);
         pingPort.close();
       };
-      isolate.ping(pingPort.sendPort, priority: Isolate.BEFORE_NEXT_EVENT);
+      isolate.ping(pingPort.sendPort, priority: Isolate.beforeNextEvent);
       echoPort.send(2);
       echoPort.send(1);
     });

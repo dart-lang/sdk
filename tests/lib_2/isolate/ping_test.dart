@@ -50,9 +50,9 @@ void main() {
       }
 
       echoPort.send(3);
-      ping("alive", Isolate.IMMEDIATE);
+      ping("alive", Isolate.immediate);
       echoPort.send(2);
-      ping("control", Isolate.BEFORE_NEXT_EVENT);
+      ping("control", Isolate.beforeNextEvent);
       echoPort.send(1);
       echoPort.send(0);
     });

@@ -26,7 +26,7 @@ void main() {
       reply.handler = (v) {
         result.add(v);
         if (v == 2) {
-          isolate.kill(priority: Isolate.IMMEDIATE);
+          isolate.kill(priority: Isolate.immediate);
         }
         echoPort.send(v - 1);
       };

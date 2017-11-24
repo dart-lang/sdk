@@ -85,6 +85,10 @@
     mock varios `dart:io` objects.
   * Added `Stdin.hasTerminal`.
 
+* `dart:isolate`
+  * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
+    `beforeNextEvent`.
+
 * `dart.math`
   * Renamed `E`, `LN10`, `LN`, `LOG2E`, `LOG10E`, `PI`, `SQRT1_2` and `SQRT2`
     to `e`, `ln10`, `ln`, `log2e`, `log10e`, `pi`, `sqrt1_2` and `sqrt2`.

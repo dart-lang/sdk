@@ -8,7 +8,7 @@ import "dart:io";
 void main(List<String> args) {
   if (args.contains("--child")) {
     new RawReceivePort(); // Hang if not killed.
-    Isolate.current.kill(priority: Isolate.IMMEDIATE);
+    Isolate.current.kill(priority: Isolate.immediate);
     // No intervening call.
     throw "QQQ Should not be reached";
   } else {

@@ -399,8 +399,8 @@ class _IsolateContext implements IsolateContext {
   }
 
   void handlePing(SendPort responsePort, int pingType, Object response) {
-    if (pingType == Isolate.IMMEDIATE ||
-        (pingType == Isolate.BEFORE_NEXT_EVENT && !_isExecutingEvent)) {
+    if (pingType == Isolate.immediate ||
+        (pingType == Isolate.beforeNextEvent && !_isExecutingEvent)) {
       responsePort.send(response);
       return;
     }
@@ -408,7 +408,7 @@ class _IsolateContext implements IsolateContext {
       responsePort.send(response);
     }
 
-    assert(pingType == Isolate.BEFORE_NEXT_EVENT);
+    assert(pingType == Isolate.beforeNextEvent);
     if (_scheduledControlEvents == null) {
       _scheduledControlEvents = new Queue();
     }
@@ -417,12 +417,12 @@ class _IsolateContext implements IsolateContext {
 
   void handleKill(Capability authentification, int priority) {
     if (this.terminateCapability != authentification) return;
-    if (priority == Isolate.IMMEDIATE ||
-        (priority == Isolate.BEFORE_NEXT_EVENT && !_isExecutingEvent)) {
+    if (priority == Isolate.immediate ||
+        (priority == Isolate.beforeNextEvent && !_isExecutingEvent)) {
       kill();
       return;
     }
-    assert(priority == Isolate.BEFORE_NEXT_EVENT);
+    assert(priority == Isolate.beforeNextEvent);
     if (_scheduledControlEvents == null) {
       _scheduledControlEvents = new Queue();
     }
