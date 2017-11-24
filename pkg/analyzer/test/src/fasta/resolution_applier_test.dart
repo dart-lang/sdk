@@ -244,6 +244,7 @@ f(String s) {
     ]);
   }
 
+  @failingTest
   void test_methodInvocation_method() {
     applyTypes(r'''
 f(String s) {
