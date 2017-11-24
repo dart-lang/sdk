@@ -2239,6 +2239,12 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
+  bool IsImplicitGetterOrSetter() const {
+    return kind() == RawFunction::kImplicitGetter ||
+           kind() == RawFunction::kImplicitSetter ||
+           kind() == RawFunction::kImplicitStaticFinalGetter;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
