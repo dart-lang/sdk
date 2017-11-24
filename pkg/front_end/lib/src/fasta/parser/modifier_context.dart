@@ -648,32 +648,34 @@ class FactoryModifierContext {
       this.parser, this.modifierCount, this.externalToken, this.constToken);
 
   Token parseRecovery(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
+    Token next = token.next;
     while (true) {
-      final value = token.stringValue;
+      final value = next.stringValue;
       if (identical('const', value)) {
-        parseConst(token);
+        parseConst(next);
       } else if (identical('external', value)) {
-        parseExternal(token);
+        parseExternal(next);
       } else if (identical('factory', value)) {
-        parseFactory(token);
-      } else if (isModifier(token)) {
+        parseFactory(next);
+      } else if (isModifier(next)) {
         parser.reportRecoverableErrorWithToken(
-            token, fasta.templateExtraneousModifier);
+            next, fasta.templateExtraneousModifier);
       } else {
         break;
       }
-      token = token.next;
+      token = next;
+      next = token.next;
     }
-    while (isModifier(token)) {
-      final value = token.stringValue;
+    while (isModifier(next)) {
+      final value = next.stringValue;
       if (identical('const', value)) {
-        parseConst(token);
+        parseConst(next);
       } else {
         parser.reportRecoverableErrorWithToken(
-            token, fasta.templateExtraneousModifier);
+            next, fasta.templateExtraneousModifier);
       }
-      token = token.next;
+      token = next;
+      next = token.next;
     }
     return token;
   }
