@@ -236,6 +236,10 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
       }
     }
 
+    if (data.code.annotations.any((a) => a.text.trim() == "fail")) {
+      fail("Test contains 'fail' annotation.");
+    }
+
     return pass(data);
   }
 
@@ -283,12 +287,21 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
       var jsSnippet = getSnippet(jsFile, trace[i].jsLine, trace[i].jsColumn);
       var dartSnippet =
           getSnippet(dartFile, trace[i].line - 1, trace[i].column - 1);
-      var view = sideBySide(jsSnippet, dartSnippet, 50);
+      var view = sideBySide(jsSnippet, dartSnippet, 60);
       sb.writeAll(view, "\n");
     }
 
     print(sb.toString());
   }
+}
+
+class PointMapping {
+  final int fromLine;
+  final int fromColumn;
+  final int toLine;
+  final int toColumn;
+
+  PointMapping(this.fromLine, this.fromColumn, this.toLine, this.toColumn);
 }
 
 /**
@@ -299,24 +312,30 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
  * JavaScriptSourceFrame.js#L1520-L1523
  */
 String getJsBreakpointLine(SingleMapping sourceMap, int breakOnLine) {
-  String first;
-  String last;
+  List<PointMapping> mappingsOnLines = [];
   for (var line in sourceMap.lines) {
     for (var entry in line.entries) {
-      if (entry.sourceLine == breakOnLine && first == null) {
-        first = "${line.line}:${entry.column}";
-        last = first;
-      } else if (entry.sourceLine >= breakOnLine &&
+      if (entry.sourceLine >= breakOnLine &&
           entry.sourceLine < breakOnLine + 4) {
-        last = "${line.line}:${entry.column}";
-        if (first == null) first = last;
-      } else if (entry.sourceLine >= breakOnLine) {
-        break;
+        mappingsOnLines.add(new PointMapping(
+            entry.sourceLine, entry.sourceColumn, line.line, entry.column));
       }
     }
   }
-  if (first != null && last != null) return "$first:$last";
-  return null;
+
+  if (mappingsOnLines.isEmpty) return null;
+
+  mappingsOnLines.sort((a, b) {
+    if (a.fromLine != b.fromLine) return a.fromLine - b.fromLine;
+    if (a.fromColumn != b.fromColumn) return a.fromColumn - b.fromColumn;
+    if (a.toLine != b.toLine) return a.toLine - b.toLine;
+    return a.toColumn - b.toColumn;
+  });
+  PointMapping first = mappingsOnLines.first;
+  mappingsOnLines.retainWhere((p) => p.toLine >= first.toLine);
+
+  PointMapping last = mappingsOnLines.last;
+  return "${first.toLine}:${first.toColumn}:${last.toLine}:${first.toColumn}";
 }
 
 /**

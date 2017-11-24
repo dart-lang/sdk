@@ -3,18 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  foo(/*bc:1*/ bar(), baz: /*bc:2*/ baz());
-  /*nbb:0:4*/
+  /*bl*/
+  /*s:1*/ foo();
+/*s:2*/
 }
 
-foo(int bar, {int /*bc:3*/ baz}) {
-  /*bc:4*/ print("foo!");
-}
-
-int bar() {
-  return 42;
-}
-
-int baz() {
-  return 42;
+foo() async {
+  /*nbb:0:3*/ /*bc:3*/ print("hello from foo");
 }

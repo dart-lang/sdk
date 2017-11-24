@@ -6,4 +6,4 @@ main() {
   new Foo();
 }
 
-/*bl*/ class Foo { Foo() { /*s:1*/print('hi'); } }
+/*bl*/ class Foo { Foo() { /*s:1*/ print('hi'); } }

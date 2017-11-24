@@ -2699,7 +2699,8 @@ class ProgramCompiler
     var gen = emitGeneratorFn((_) => []);
     var returnType = _getExpectedReturnType(function, coreTypes.futureClass);
     return js.call('#.async(#, #)',
-        [emitLibraryName(coreTypes.asyncLibrary), _emitType(returnType), gen]);
+        [emitLibraryName(coreTypes.asyncLibrary), _emitType(returnType), gen])
+      ..sourceInformation = function;
   }
 
   // TODO(leafp): Various analyzer pieces computed similar things.
@@ -2798,14 +2799,16 @@ class ProgramCompiler
           namedArgumentTemp,
           paramName,
           defaultValue,
-        ]));
+        ])
+          ..sourceInformation = p);
       } else {
         body.add(js.statement('let # = # && #.#;', [
           jsParam,
           namedArgumentTemp,
           namedArgumentTemp,
           paramName,
-        ]));
+        ])
+          ..sourceInformation = p);
       }
       initParameter(p, jsParam);
     }

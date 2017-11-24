@@ -11,3 +11,5 @@
 /next_through_assign_call_test: Crash
 /hello_class_call: Crash
 /next_through_assign_call_test: Crash
+/method_call_with_named_parameters: Crash
+/method_call_with_named_parameters_no_given: Crash

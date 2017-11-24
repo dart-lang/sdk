@@ -118,8 +118,7 @@ String getWrapperContent(Uri jsSdkPath, String inputFileName, Uri outputFile) {
     let main = $inputFileName.main;
     dart.ignoreWhitelistedErrors(false);
     try {
-      _isolate_helper.startRootIsolate(() => {}, []);
-      main();
+      _isolate_helper.startRootIsolate(main, []);
     } catch(e) {
       console.error(e.toString(), dart.stackTrace(e).toString());
     }
