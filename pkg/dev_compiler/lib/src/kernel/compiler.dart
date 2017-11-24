@@ -3343,12 +3343,18 @@ class ProgramCompiler
   @override
   visitTryFinally(TryFinally node) {
     var body = _visitStatement(node.body);
-    var catchPart = body is JS.Try ? body.catchPart : null;
     var savedSuperAllowed = _superAllowed;
     _superAllowed = false;
-    var finallyBlock = _visitStatement(node.finalizer);
+    var finallyBlock = _visitStatement(node.finalizer).toBlock();
     _superAllowed = savedSuperAllowed;
-    return new JS.Try(body.toBlock(), catchPart, finallyBlock.toBlock());
+
+    if (body is JS.Try && (body as JS.Try).finallyPart == null) {
+      // Kernel represents Dart try/catch/finally as try/catch nested inside of
+      // try/finally.  Flatten that pattern in the output into JS try/catch/
+      // finally.
+      return new JS.Try(body.body, body.catchPart, finallyBlock);
+    }
+    return new JS.Try(body.toBlock(), null, finallyBlock);
   }
 
   @override

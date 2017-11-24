@@ -325,14 +325,10 @@ compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_p_test/01: Crash
-compile_time_constant_static2_test/01: MissingCompileTimeError
 compile_time_constant_static2_test/03: MissingCompileTimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
-compile_time_constant_static2_test/05: MissingCompileTimeError
-compile_time_constant_static3_test/01: MissingCompileTimeError
 compile_time_constant_static3_test/03: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
-compile_time_constant_static3_test/05: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
 compile_time_constant_static4_test/03: MissingCompileTimeError
 compile_time_constant_static5_test/03: MissingCompileTimeError
@@ -533,7 +529,6 @@ implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
-initializing_formal_type_test: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
@@ -1034,6 +1029,7 @@ assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual:
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
 async_star_test/02: RuntimeError
+asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.; Expect.equals(expected: <-25>, actual: <4294967271>) fails.
 branch_canonicalization_test: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <1>) fails.
 call_closurization_test: RuntimeError # Issue 29920; TypeError: Cannot read property '0' of undefined
@@ -1131,7 +1127,6 @@ async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
-asyncstar_throw_in_catch_test: Skip # Times out. Issue 29920
 await_future_test: Pass, Timeout # Issue 29920
 bit_operations_test: RuntimeError # No bigints on web.
 const_evaluation_test/01: RuntimeError # Issue 29920
@@ -1189,9 +1184,6 @@ assertion_initializer_const_error2_test/cc08: RuntimeError # Assertion failed: i
 assertion_initializer_const_error2_test/cc09: RuntimeError # Assertion failed: "2 < 1"
 assertion_initializer_const_error2_test/cc10: RuntimeError # Assertion failed: is not true
 assertion_initializer_const_error2_test/cc11: RuntimeError # Assertion failed: "2 < 1"
-async_throw_in_catch_test/forceAwait: RuntimeError # Uncaught Expect.equals(expected: <Error2>, actual: <Expect.equals(expected: <e>, actual: <c>) fails.>) fails.
-async_throw_in_catch_test/none: RuntimeError # Uncaught Expect.equals(expected: <Error2>, actual: <Expect.equals(expected: <e>, actual: <c>) fails.>) fails.
-asyncstar_throw_in_catch_test: RuntimeError # Uncaught Expect.equals(expected: <abcX>, actual: <abbcX>) fails.
 built_in_identifier_type_annotation_test/05: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 built_in_identifier_type_annotation_test/39: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 built_in_identifier_type_annotation_test/56: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
