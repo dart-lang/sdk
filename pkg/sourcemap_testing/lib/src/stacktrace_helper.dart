@@ -144,7 +144,10 @@ Future testStackTrace(Test test, String config, CompileFunc compile,
   List<StackTraceLine> jsStackTrace = <StackTraceLine>[];
   for (String line in lines) {
     if (line.startsWith('    at ')) {
-      jsStackTrace.add(new StackTraceLine.fromText(line));
+      StackTraceLine stackTraceLine = new StackTraceLine.fromText(line);
+      if (stackTraceLine.lineNo != null && stackTraceLine.columnNo != null) {
+        jsStackTrace.add(stackTraceLine);
+      }
     }
   }
 

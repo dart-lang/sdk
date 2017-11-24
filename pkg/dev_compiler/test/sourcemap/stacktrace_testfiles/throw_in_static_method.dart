@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*1:main*/ test();
+  /*ddc.1:main*/ Class. /*ddk.1:main*/ test();
 }
 
-test() {
-  /*2:test*/ throw 'throw me';
+class Class {
+  static test() {
+    /*2:Function.test*/ throw '>ExceptionMarker<';
+  }
 }

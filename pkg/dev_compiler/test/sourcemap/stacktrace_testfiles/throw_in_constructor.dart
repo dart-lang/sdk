@@ -3,9 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*1:main*/ test();
+  // ignore: UNUSED_LOCAL_VARIABLE
+  var c = new /*1:main*/ Class();
 }
 
-test() {
-  /*2:test*/ throw 'throw me';
+class Class {
+  Class() {
+    /*2:Class.new*/ throw '>ExceptionMarker<';
+  }
 }

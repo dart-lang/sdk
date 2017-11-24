@@ -3,9 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*1:main*/ test();
+  /*1:main*/ test(new Class());
 }
 
-test() {
-  /*2:test*/ throw 'throw me';
+test(c) {
+  /*ddc.2:test*/ c.field. /*ddk.2:test*/ method();
+}
+
+class Class {
+  var field;
 }

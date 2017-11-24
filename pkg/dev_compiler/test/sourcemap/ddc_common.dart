@@ -46,15 +46,16 @@ class Compile extends Step<Data, Data, ChainContext> {
 class TestStackTrace extends Step<Data, Data, ChainContext> {
   final DdcRunner ddcRunner;
   final String marker;
+  final List<String> knownMarkers;
 
-  const TestStackTrace(this.ddcRunner, this.marker);
+  const TestStackTrace(this.ddcRunner, this.marker, this.knownMarkers);
 
   String get name => "TestStackTrace";
 
   Future<Result<Data>> run(Data data, ChainContext context) async {
     data.outDir = await Directory.systemTemp.createTemp("stacktrace-test");
     String code = await new File.fromUri(data.uri).readAsString();
-    Test test = processTestCode(code, [marker]);
+    Test test = processTestCode(code, knownMarkers);
     await testStackTrace(test, marker, _compile,
         jsPreambles: _getPreambles,
         useJsMethodNamesOnAbsence: true,
@@ -81,6 +82,7 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     if (name == null) return null;
     // Hack for DDC naming scheme.
     String result = name;
+    if (result.startsWith("new ")) result = result.substring(4);
     if (result.startsWith("Object.")) result = result.substring(7);
     String inputName =
         INPUT_FILE_NAME.substring(0, INPUT_FILE_NAME.indexOf(".") + 1);

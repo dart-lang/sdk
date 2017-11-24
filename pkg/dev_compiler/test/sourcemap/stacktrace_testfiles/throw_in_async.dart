@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
-  /*1:main*/ test();
+  // This call is no longer on the stack when the error is thrown.
+  /*:main*/ test();
 }
 
-test() {
-  /*2:test*/ throw 'throw me';
+test() async {
+  /*1:test*/ throw '>ExceptionMarker<';
 }

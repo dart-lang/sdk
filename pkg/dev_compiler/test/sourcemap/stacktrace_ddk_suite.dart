@@ -13,7 +13,8 @@ class StackTraceContext extends ChainContextWithCleanupHelper {
   final List<Step> steps = <Step>[
     const Setup(),
     const SetCwdToSdkRoot(),
-    const TestStackTrace(const ddk.RunDdc(), "ddk."),
+    const TestStackTrace(
+        const ddk.RunDdc(false), "ddk.", const ["ddk.", "ddc."]),
   ];
 }
 

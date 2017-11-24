@@ -2,3 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+/throw_in_async: Crash # dartbug.com/31451
+/throw_in_awaited_async: Crash # dartbug.com/31451
+/throw_in_constructor_from_async: Crash # dartbug.com/31451
+/throw_in_top_level_method_from_async: Crash # dartbug.com/31451
