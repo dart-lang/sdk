@@ -1383,7 +1383,9 @@ class ProgramCompiler
     // We consider a class callable if it inherits from anything with a `call`
     // method. As a result, we can know the callable JS function was created
     // at the first constructor that was hit.
-    if (!isCallable) return new JS.Fun(params, body);
+    if (!isCallable)
+      return new JS.Fun(params, body)
+        ..sourceInformation = body.sourceInformation;
     return js.call(r'''function callableClass(#) {
           if (typeof this !== "function") {
             function self(...args) {
@@ -1415,13 +1417,15 @@ class ProgramCompiler
     }
 
     var body = <JS.Statement>[];
-    emitFieldInit(Field f, Expression initializer) {
+    emitFieldInit(Field f, Expression initializer,
+        [TreeNode sourceInfo = null]) {
       var access = _classProperties.virtualFields[f] ?? _declareMemberName(f);
       var jsInit = _visitInitializer(initializer, f.annotations);
       body.add(jsInit
-          .toAssignExpression(
-              js.call('this.#', [access])..sourceInformation = f)
-          .toStatement());
+          .toAssignExpression(js.call('this.#', [access])
+            ..sourceInformation = sourceInfo == null ? f : null)
+          .toStatement()
+            ..sourceInformation = sourceInfo);
     }
 
     for (var f in fields) {
@@ -1439,7 +1443,7 @@ class ProgramCompiler
     if (ctor != null) {
       for (var init in ctor.initializers) {
         if (init is FieldInitializer) {
-          emitFieldInit(init.field, init.value);
+          emitFieldInit(init.field, init.value, init);
         } else if (init is LocalInitializer) {
           body.add(visitVariableDeclaration(init.variable));
         }
@@ -1585,7 +1589,8 @@ class ProgramCompiler
     return new JS.Method(_declareMemberName(member), fn,
         isGetter: member.isGetter,
         isSetter: member.isSetter,
-        isStatic: member.isStatic);
+        isStatic: member.isStatic)
+      ..sourceInformation = member;
   }
 
   JS.Fun _emitNativeFunctionBody(Procedure node) {
@@ -1669,7 +1674,8 @@ class ProgramCompiler
         _constructorName(node.name.name),
         new JS.Fun(_emitFormalParameters(node.function),
             _emitFunctionBody(node.function)),
-        isStatic: true);
+        isStatic: true)
+      ..sourceInformation = node;
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
@@ -1779,7 +1785,8 @@ class ProgramCompiler
     var mocks = _classProperties.mockMembers;
     if (!mocks.containsKey(field.name.name)) {
       var getter = js.call('function() { return this[#]; }', [virtualField]);
-      result.add(new JS.Method(name, getter, isGetter: true));
+      result.add(new JS.Method(name, getter, isGetter: true)
+        ..sourceInformation = field);
     }
 
     if (!mocks.containsKey(field.name.name + '=')) {
@@ -1795,7 +1802,8 @@ class ProgramCompiler
         jsCode = 'function(value) { #[#] = value; }';
       }
 
-      result.add(new JS.Method(name, js.call(jsCode, args), isSetter: true));
+      result.add(new JS.Method(name, js.call(jsCode, args), isSetter: true)
+        ..sourceInformation = field);
     }
 
     return result;
@@ -2279,7 +2287,8 @@ class ProgramCompiler
     var name = node.name.name;
     return new JS.Method(
         _propertyName(name), _emitFunction(node.function, node.name.name),
-        isGetter: node.isGetter, isSetter: node.isSetter);
+        isGetter: node.isGetter, isSetter: node.isSetter)
+      ..sourceInformation = node;
   }
 
   JS.Statement _emitLibraryFunction(Procedure p) {
@@ -3494,7 +3503,7 @@ class ProgramCompiler
         type: receiver.getStaticType(types), member: member);
 
     var jsReceiver = _visitExpression(receiver);
-    var jsValue = _visitExpression(value);
+    var jsValue = _visitAndMarkExpression(value);
 
     if (member == null) {
       return _callHelper('#(#, #, #)',
@@ -4626,7 +4635,7 @@ class ProgramCompiler
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    JS.Fun fn = _emitFunction(node.function, null);
+    JS.Fun fn = _emitFunction(node.function, null)..sourceInformation = node;
     return _toArrowFunction(fn);
   }
 

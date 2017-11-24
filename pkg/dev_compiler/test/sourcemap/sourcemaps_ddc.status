@@ -4,3 +4,7 @@
 
 /hello_sane_column_on_print_return_value: Crash
 /printing_class_fields: Crash
+/printing_class_fields_step_into: Crash
+/stops_at_ending_brace: Crash
+/no_mapping_on_class_constructor_line: Crash
+/no_mapping_on_class_named_constructor_line: Crash

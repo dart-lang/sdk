@@ -253,7 +253,7 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
       var jsSnippet = getSnippet(jsFile, trace[i].jsLine, trace[i].jsColumn);
       var dartSnippet =
           getSnippet(dartFile, trace[i].line - 1, trace[i].column - 1);
-      var view = sideBySide(jsSnippet, dartSnippet, 40);
+      var view = sideBySide(jsSnippet, dartSnippet, 50);
       sb.writeAll(view, "\n");
     }
 

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*nm*/
 main() {
-  foo();
+  Foo foo = new Foo();
+  foo.foo();
 }
 
-foo() {
-  print("hello");
+class Foo {
+  /*nm*/ void foo() {
+    print("foo");
+  }
 }

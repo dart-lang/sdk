@@ -55,6 +55,9 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
       if (srcInfo is FileUriNode) {
         parentsStack.add(srcInfo);
         if (srcInfo is Procedure) mark = false;
+      } else if (srcInfo is Constructor) {
+        parentsStack.add(srcInfo.parent);
+        mark = false;
       }
       if (mark && srcInfo is Block) mark = false;
     } else {
@@ -63,7 +66,7 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
     if (offset == -1 || !mark) return;
 
-    _mark(offset);
+    _mark(offset, false);
   }
 
   void exitNode(JS.Node jsNode) {
@@ -78,18 +81,25 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     } else if (srcInfo is Class) {
       offset = srcInfo.fileEndOffset;
     }
-    if (offset != -1) _mark(offset);
+
+    // Any ending brace or semicolon is already in the output.
+    // Adjust column accordingly.
+    if (offset != -1) _mark(offset, true);
 
     if (srcInfo is FileUriNode) {
+      parentsStack.removeLast();
+    } else if (srcInfo is Constructor) {
       parentsStack.removeLast();
     }
   }
 
-  void _mark(int offset) {
-    if (_previousColumn == _column && _previousLine == _line) return;
+  void _mark(int offset, bool adjustColumn) {
+    int adjustedColumn = _column - (adjustColumn ? 1 : 0);
+    if ((_previousColumn == _column || _previousColumn == adjustedColumn) &&
+        _previousLine == _line) return;
 
     if (parentsStack.isEmpty) {
-      //  TODO(jensj): This for instance happens for top level fields.
+      // TODO(jensj)
       return;
     }
 
@@ -98,20 +108,13 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     String fileUri = fileParent.fileUri;
 
     var loc = p.getLocation(fileUri, offset);
-
-    // Chrome Devtools wants a mapping for the beginning of
-    // a line, so bump locations at the end of a line to the beginning of
-    // the next line.
-    var next = p.getLocation(fileUri, offset + 1);
-    if (next.line == loc.line + 1) {
-      loc = next;
-    }
     _previousLine = _line;
-    _previousColumn = _column;
+    _previousColumn = adjustedColumn;
     sourceMap.addLocation(
         new SourceLocation(offset,
             sourceUrl: fileUri, line: loc.line - 1, column: loc.column - 1),
-        new SourceLocation(buffer.length, line: _line, column: _column),
+        new SourceLocation(buffer.length - (adjustColumn ? 1 : 0),
+            line: _line, column: adjustedColumn),
         null);
   }
 }

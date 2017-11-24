@@ -11,7 +11,8 @@
       "path": "testfiles",
       "status": "sourcemaps_ddc.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.unformatteddart$"
       ],
       "exclude": [
       ]
@@ -23,7 +24,8 @@
       "path": "testfiles",
       "status": "sourcemaps_ddk.status",
       "pattern": [
-        "\\.dart$"
+        "\\.dart$",
+        "\\.unformatteddart$"
       ],
       "exclude": [
       ]
