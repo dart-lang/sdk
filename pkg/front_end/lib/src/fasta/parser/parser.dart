@@ -3686,12 +3686,10 @@ class Parser {
         listener.handleNativeFunctionBodySkipped(nativeToken, next);
         return token.next;
       }
-      token = next;
-      listener.handleNativeFunctionBodyIgnored(nativeToken, token);
+      listener.handleNativeFunctionBodyIgnored(nativeToken, next);
       // Fall through to recover and skip function body
-    } else {
-      token = next;
     }
+    token = next;
     String value = token.stringValue;
     if (identical(value, ';')) {
       if (!allowAbstract) {
@@ -4186,9 +4184,7 @@ class Parser {
           if (!allowCascades) {
             return token;
           }
-          // TODO(brianwilkerson): Remove the invocation of `previous` when
-          // `parseCascadeExpression` returns the last consumed token.
-          token = parseCascadeExpression(token).previous;
+          token = parseCascadeExpression(token);
         } else if (identical(tokenLevel, ASSIGNMENT_PRECEDENCE)) {
           // Right associative, so we recurse at the same precedence
           // level.
@@ -4207,10 +4203,7 @@ class Parser {
             listener.endBinaryExpression(operator);
           } else if ((identical(type, TokenType.OPEN_PAREN)) ||
               (identical(type, TokenType.OPEN_SQUARE_BRACKET))) {
-            // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // `parseArgumentOrIndexStar` returns the last consumed token.
-            token =
-                parseArgumentOrIndexStar(token.next, typeArguments).previous;
+            token = parseArgumentOrIndexStar(token, typeArguments);
             next = token.next;
           } else if ((identical(type, TokenType.PLUS_PLUS)) ||
               (identical(type, TokenType.MINUS_MINUS))) {
@@ -4224,9 +4217,7 @@ class Parser {
             // TODO(brianwilkerson): Remove the invocation of `previous` when
             // `replaceToken` returns the last consumed token.
             token = rewriter.replaceToken(next, replacement).previous;
-            // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // `parseArgumentOrIndexStar` returns the last consumed token.
-            token = parseArgumentOrIndexStar(token.next, null).previous;
+            token = parseArgumentOrIndexStar(token, null);
           } else {
             token = reportUnexpectedToken(token.next);
           }
@@ -4264,44 +4255,42 @@ class Parser {
   }
 
   Token parseCascadeExpression(Token token) {
-    // TODO(brianwilkerson) Return the last consumed token.
     Token cascadeOperator = token = token.next;
     assert(optional('..', cascadeOperator));
     listener.beginCascade(cascadeOperator);
     if (optional('[', token.next)) {
-      token = parseArgumentOrIndexStar(token.next, null);
+      token = parseArgumentOrIndexStar(token, null);
     } else if (token.next.isIdentifier) {
-      token =
-          parseSend(token.next, IdentifierContext.expressionContinuation).next;
+      token = parseSend(token.next, IdentifierContext.expressionContinuation);
       listener.endBinaryExpression(cascadeOperator);
     } else {
-      return reportUnexpectedToken(token.next).next;
+      return reportUnexpectedToken(token.next);
     }
+    Token next = token.next;
     Token mark;
     do {
       mark = token;
-      if (optional('.', token)) {
-        Token period = token;
-        token = parseSend(token.next, IdentifierContext.expressionContinuation)
-            .next;
+      if (optional('.', next)) {
+        Token period = next;
+        token = parseSend(next.next, IdentifierContext.expressionContinuation);
+        next = token.next;
         listener.endBinaryExpression(period);
       }
       Token typeArguments;
-      if (isValidMethodTypeArguments(token)) {
+      if (isValidMethodTypeArguments(next)) {
         // For example a(b)..<T>(c), where token is '<'.
-        typeArguments = token;
-        // TODO(brianwilkerson): Remove the invocation of `previous` when this
-        // method accepts the last consumed token and the methods invoked above
-        // that are assigned to `token` return the last consumed token.
-        token = parseTypeArgumentsOpt(token.previous).next;
-        assert(optional('(', token));
+        typeArguments = next;
+        token = parseTypeArgumentsOpt(token);
+        next = token.next;
+        assert(optional('(', next));
       }
       token = parseArgumentOrIndexStar(token, typeArguments);
+      next = token.next;
     } while (!identical(mark, token));
 
-    if (identical(token.type.precedence, ASSIGNMENT_PRECEDENCE)) {
-      Token assignment = token;
-      token = parseExpressionWithoutCascade(token).next;
+    if (identical(next.type.precedence, ASSIGNMENT_PRECEDENCE)) {
+      Token assignment = next;
+      token = parseExpressionWithoutCascade(next);
       listener.handleAssignmentExpression(assignment);
     }
     listener.endCascade();
@@ -4349,42 +4338,42 @@ class Parser {
     // TODO(danrubel): Accept the token before typeArguments
     // TODO(brianwilkerson): Consider replacing `typeArguments` with a boolean
     // flag, given that the only thing it's used for is to compare it with null.
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
-    Token beginToken = token;
+    Token next = token.next;
+    Token beginToken = next;
     while (true) {
-      if (optional('[', token)) {
+      if (optional('[', next)) {
         assert(typeArguments == null);
-        Token openSquareBracket = token;
+        Token openSquareBracket = next;
         bool old = mayParseFunctionExpressions;
         mayParseFunctionExpressions = true;
-        token = parseExpression(token.next);
-        Token next = token.next;
+        token = parseExpression(next.next);
+        next = token.next;
         mayParseFunctionExpressions = old;
         if (!optional(']', next)) {
           Message message = fasta.templateExpectedButGot.withArguments(']');
           Token newToken = new SyntheticToken(
               TokenType.CLOSE_SQUARE_BRACKET, next.charOffset);
-          token = rewriteAndRecover(token.next, message, newToken);
-        } else {
-          token = next;
+          next = rewriteAndRecover(token.next, message, newToken);
         }
-        listener.handleIndexedExpression(openSquareBracket, token);
-        token = token.next;
-      } else if (optional('(', token)) {
+        listener.handleIndexedExpression(openSquareBracket, next);
+        token = next;
+        next = token.next;
+      } else if (optional('(', next)) {
         if (typeArguments == null) {
-          token = listener.injectGenericCommentTypeList(token);
-          if (isValidMethodTypeArguments(token)) {
+          next = listener.injectGenericCommentTypeList(next);
+          if (isValidMethodTypeArguments(next)) {
             // TODO(brianwilkerson): Remove the invocation of `previous` when
             // `injectGenericCommentTypeList` (invoked above) returns the last
             // consumed token.
-            token = parseTypeArgumentsOpt(token.previous).next;
+            token = parseTypeArgumentsOpt(token);
+            next = token.next;
           } else {
-            listener.handleNoTypeArguments(token);
+            listener.handleNoTypeArguments(next);
           }
         }
-        token = parseArguments(token).next;
-        listener.handleSend(beginToken, token);
+        token = parseArguments(next);
+        next = token.next;
+        listener.handleSend(beginToken, next);
         typeArguments = null;
       } else {
         break;
