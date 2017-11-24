@@ -125,3 +125,45 @@ String getWrapperContent(Uri jsSdkPath, String inputFileName, Uri outputFile) {
     }
     """;
 }
+
+void createHtmlWrapper(String ddcDir, File sdkJsFile, String outputFile,
+    String jsContent, Uri outFileRelative, String outDir) {
+  // For debugging via HTML, Chrome and ./tools/testing/dart/http_server.dart.
+  String sdkPath = new File(ddcDir).parent.parent.path;
+  String jsRootDart =
+      "/root_dart/${new File(path.relative(sdkJsFile.path, from: sdkPath))
+      .uri}";
+  new File(outputFile + ".html.js").writeAsStringSync(
+      jsContent.replaceFirst("from 'dart_sdk'", "from '$jsRootDart'"));
+  new File(outputFile + ".html.html").writeAsStringSync(getWrapperHtmlContent(
+      jsRootDart, "/root_build/$outFileRelative.html.js"));
+
+  print("You should now be able to run\n\n"
+      "dart $sdkPath/tools/testing/dart/http_server.dart -p 39550 "
+      "--build-directory=$outDir"
+      "\n\nand go to\n\n"
+      "http://localhost:39550/root_build/$outFileRelative.html.html"
+      "\n\nto step through via the browser.");
+}
+
+String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
+  return """
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ddc test</title>
+    <script type="module">
+    import { dart, _isolate_helper } from '$jsRootDart';
+    import { test } from '$outFileRootBuild';
+    let main = test.main;
+    dart.ignoreWhitelistedErrors(false);
+    _isolate_helper.startRootIsolate(() => {}, []);
+    main();
+    </script>
+  </head>
+  <body>
+    <h1>ddc test</h1>
+  </body>
+</html>
+""";
+}

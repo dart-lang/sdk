@@ -24,7 +24,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
   List<Step> get steps {
     return _steps ??= <Step>[
       const Setup(),
-      const Compile(const RunDdc()),
+      new Compile(new RunDdc(environment.containsKey("debug"))),
       const StepWithD8(),
       new CheckSteps(environment.containsKey("debug")),
     ];
@@ -34,7 +34,9 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
 }
 
 class RunDdc implements DdcRunner {
-  const RunDdc();
+  final bool debugging;
+
+  const RunDdc([this.debugging = false]);
 
   ProcessResult runDDC(String ddcDir, String inputFile, String outputFile,
       String outWrapperPath) {
@@ -73,6 +75,11 @@ class RunDdc implements DdcRunner {
     var jsContent = new File(outputFile).readAsStringSync();
     new File(outputFile).writeAsStringSync(
         jsContent.replaceFirst("from 'dart_sdk'", "from '$jsSdkPath'"));
+
+    if (debugging) {
+      createHtmlWrapper(
+          ddcDir, sdkJsFile, outputFile, jsContent, outFileRelative, outDir);
+    }
 
     var inputFileName = path.basenameWithoutExtension(inputFile);
     new File(outWrapperPath).writeAsStringSync(
