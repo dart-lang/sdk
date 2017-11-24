@@ -3304,7 +3304,7 @@ class ProgramCompiler
 
     var catchVarDecl = _emitVariableRef(_catchParameter);
     _catchParameter = savedCatch;
-    return new JS.Catch(catchVarDecl, new JS.Block([catchBody]));
+    return new JS.Catch(catchVarDecl, catchBody.toBlock());
   }
 
   JS.Statement _catchClauseGuard(Catch node, JS.Statement otherwise) {
