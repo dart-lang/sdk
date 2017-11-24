@@ -1198,9 +1198,6 @@ built_in_identifier_type_annotation_test/56: RuntimeError # TypeError: Cannot re
 built_in_identifier_type_annotation_test/73: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 checked_setter3_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-closure_in_constructor_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
-closure_type_variables_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
-closures_initializer_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
 conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
 conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 constant_string_interpolation2_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
@@ -1224,18 +1221,8 @@ enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Un
 enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 execute_finally12_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx._equals)' of null
 f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
-factory_type_parameter_test: RuntimeError # ReferenceError: AOfT is not defined
 field_override_optimization_test: RuntimeError # Expect.fail('This should also be unreachable')
 first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
-fixed_type_variable2_test/01: RuntimeError # ReferenceError: BOfT is not defined
-fixed_type_variable2_test/02: RuntimeError # ReferenceError: BOfT is not defined
-fixed_type_variable2_test/05: RuntimeError # ReferenceError: BOfT is not defined
-fixed_type_variable2_test/06: RuntimeError # ReferenceError: BOfT is not defined
-fixed_type_variable_test/01: RuntimeError # ReferenceError: BOfT is not defined
-fixed_type_variable_test/02: RuntimeError # ReferenceError: BOfT is not defined
-fixed_type_variable_test/05: RuntimeError # ReferenceError: BOfT is not defined
-fixed_type_variable_test/06: RuntimeError # ReferenceError: BOfT is not defined
-function_subtype2_test: RuntimeError # ReferenceError: TAndSToNull is not defined
 function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
 function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
@@ -1247,58 +1234,31 @@ function_subtype_cast2_test: RuntimeError # ReferenceError: TTovoid is not defin
 function_subtype_cast3_test: RuntimeError # ReferenceError: TTovoid is not defined
 function_subtype_checked0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_subtype_inline0_test: RuntimeError # ReferenceError: TAndStringToNull is not defined
 function_subtype_local1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
 function_subtype_local2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_local3_test: RuntimeError # ReferenceError: TAndStringTovoid is not defined
-function_subtype_local4_test: RuntimeError # ReferenceError: TAndStringTovoid is not defined
 function_subtype_local5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_local6_test: RuntimeError # ReferenceError: TTovoid is not defined
 function_subtype_not0_test: RuntimeError # Expect.isFalse(true) fails.
 function_subtype_not2_test: RuntimeError # ReferenceError: TTovoid is not defined
 function_subtype_not3_test: RuntimeError # ReferenceError: TTovoid is not defined
 function_subtype_simple1_test: RuntimeError # Expect.isTrue(false) fails.
 function_subtype_top_level1_test: RuntimeError # ReferenceError: TAndStringToint is not defined
 function_subtype_typearg5_test: RuntimeError # ReferenceError: JSArrayOfXAndXToX is not defined
-function_type2_test: RuntimeError # ReferenceError: TToint is not defined
-function_type3_test: RuntimeError # ReferenceError: BOfT is not defined
 function_type_alias2_test: RuntimeError # Expect.isTrue(false) fails.
 function_type_alias3_test: RuntimeError # TypeError: library11.Library111$ is not a function
 function_type_alias4_test: RuntimeError # Expect.isTrue(false) fails.
 function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
 generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
-generic_creation_test: RuntimeError # ReferenceError: AOfZ$X$Y is not defined
-generic_deep_test: RuntimeError # ReferenceError: SOfSOfK is not defined
-generic_field_mixin3_test: RuntimeError # ReferenceError: AOfT is not defined
 generic_field_mixin6_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-generic_field_mixin_test: RuntimeError # ReferenceError: AOfT is not defined
-generic_functions_test: RuntimeError # ReferenceError: BinaryTreeOfK$V is not defined
-generic_instanceof4_test: RuntimeError # ReferenceError: AOfT is not defined
-generic_instanceof_test: RuntimeError # ReferenceError: ListOfT is not defined
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
 generic_method_types_test/02: RuntimeError
-generic_methods_test: RuntimeError # ReferenceError: BinaryTreeOfK$V is not defined
 generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
 generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_no_such_method_dispatcher_test: RuntimeError # NoSuchMethodError: method not found: '+'
-generic_syntax_test: RuntimeError # ReferenceError: AOfB$C$D$E$FTodynamic is not defined
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
-generic_typedef_test: RuntimeError # ReferenceError: YAndYToY is not defined
-generics3_test: RuntimeError # ReferenceError: C5OfC1OfT is not defined
-instanceof4_test/01: RuntimeError # ReferenceError: ListOfT is not defined
-instanceof4_test/none: RuntimeError # ReferenceError: ListOfT is not defined
-issue10747_test: RuntimeError # ReferenceError: BOfT is not defined
-issue14014_2_test: RuntimeError # ReferenceError: TToNull is not defined
-issue14014_3_test: RuntimeError # ReferenceError: TTodynamic is not defined
-issue14014_test: RuntimeError # ReferenceError: TToint is not defined
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-list_literal4_test/none: RuntimeError # ReferenceError: JSArrayOfT is not defined
-malbounded_redirecting_factory_test/01: RuntimeError # ReferenceError: AOfTd is not defined
-malbounded_redirecting_factory_test/none: RuntimeError # ReferenceError: AOfTd is not defined
-many_generic_instanceof_test: RuntimeError # ReferenceError: ListOfT is not defined
 method_override_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_bound_test: RuntimeError
 mixin_extends_field_test: RuntimeError # Expect.equals(expected: <M1-bar>, actual: <null>) fails.
@@ -1315,12 +1275,9 @@ mixin_regress_13688_test: RuntimeError
 mixin_type_parameter5_test: RuntimeError
 named_argument_in_const_creation_test: RuntimeError # RangeError: Maximum call stack size exceeded
 nested_generic_closure_test: RuntimeError # Expect.equals(at index 3: Expected <...(<F>(F) => F) => void>, Found: <...(<F extends Object>(F) => F) => void...>) fails.
-new_expression_type_args_test/none: RuntimeError # ReferenceError: AOfT is not defined
 no_such_method_mock_test: RuntimeError # Type 'bool' is not a subtype of type '(String) => bool' in strong mode
 no_such_method_subtype_test: RuntimeError # Type 'int' is not a subtype of type '() => dynamic' in strong mode
 nsm4_test: RuntimeError # Type 'int' is not a subtype of type '() => int' in strong mode
-null_test/none: RuntimeError # ReferenceError: GenericOfT is not defined
-osr_test: RuntimeError # ReferenceError: ListOfE is not defined
 recursive_generic_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 recursive_inheritance_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
@@ -1329,7 +1286,6 @@ regress_23408_test: RuntimeError # Expect.equals(expected: <K>, actual: <dynamic
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
-skip_expression_test: RuntimeError # ReferenceError: OneArgOfA is not defined
 static_const_field_test: RuntimeError # RangeError: Maximum call stack size exceeded
 string_interpolate_test: RuntimeError # Uncaught Type 'PrivateSymbol' is not a subtype of type 'Symbol' in strong mode
 super_bound_closure_test/none: RuntimeError # TypeError: Cannot read property '0' of undefined
@@ -1346,19 +1302,4 @@ type_promotion_functions_test/12: RuntimeError
 type_promotion_functions_test/13: RuntimeError
 type_promotion_functions_test/14: RuntimeError
 type_promotion_functions_test/none: RuntimeError
-type_variable_bounds4_test/none: RuntimeError # ReferenceError: AOfT is not defined
-type_variable_closure2_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
-type_variable_closure3_test: RuntimeError # ReferenceError: VoidToAOfT is not defined
-type_variable_closure4_test: RuntimeError # ReferenceError: VoidToMapOfT$T is not defined
-type_variable_closure_test: RuntimeError # ReferenceError: dynamicToT is not defined
-type_variable_field_initializer2_test: RuntimeError # ReferenceError: XOfT is not defined
-type_variable_field_initializer_closure2_test: RuntimeError # ReferenceError: VoidToXOfT is not defined
-type_variable_field_initializer_closure_test: RuntimeError # ReferenceError: VoidToListOfT is not defined
-type_variable_field_initializer_test: RuntimeError # ReferenceError: ListOfT is not defined
-type_variable_function_type_test: RuntimeError # ReferenceError: VoidToT is not defined
-type_variable_initializer_test: RuntimeError # ReferenceError: LinkedMapOfT$T is not defined
-type_variable_nested_test/01: RuntimeError # ReferenceError: ListOfAOfT is not defined
-type_variable_nested_test/none: RuntimeError # ReferenceError: ListOfAOfT is not defined
-type_variable_promotion_test: RuntimeError # ReferenceError: JSArrayOfT is not defined
-type_variable_typedef_test: RuntimeError # ReferenceError: BOfTTodynamic is not defined
 yieldstar_pause_test: Timeout

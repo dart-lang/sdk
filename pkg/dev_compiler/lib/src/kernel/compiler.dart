@@ -1196,7 +1196,7 @@ class ProgramCompiler
       for (var ctor in c.constructors) {
         var memberName = _constructorName(ctor.name.name);
         var type = _emitAnnotatedFunctionType(
-            ctor.function.functionType, ctor.annotations,
+            ctor.function.functionType.withoutTypeParameters, ctor.annotations,
             function: ctor.function, nameType: false, definite: true);
         constructors.add(new JS.Property(memberName, type));
       }
