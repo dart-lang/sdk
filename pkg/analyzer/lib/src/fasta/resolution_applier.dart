@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST.
@@ -100,9 +101,44 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.methodName.staticType = invokeType;
     // TODO(paulberry): store resolution of node.methodName.
     // TODO(paulberry): store resolution of node.typeArguments.
-    node.argumentList.accept(this);
-    node.methodName.staticElement = _getReferenceFor(node.methodName);
+
+    // Apply resolution to arguments.
+    // Skip names of named arguments.
+    List<Expression> arguments = node.argumentList.arguments;
+    for (var argument in arguments) {
+      if (argument is NamedExpression) {
+        argument.expression.accept(this);
+      } else {
+        argument.accept(this);
+      }
+    }
+
+    ExecutableElement calleeElement = _getReferenceFor(node.methodName);
+    node.methodName.staticElement = calleeElement;
     node.staticType = _getTypeFor(node.argumentList);
+
+    // Associate arguments with parameters.
+    if (calleeElement != null) {
+      var correspondingParameters =
+          new List<ParameterElement>(arguments.length);
+      for (int i = 0; i < arguments.length; i++) {
+        var argument = arguments[i];
+        if (argument is NamedExpression) {
+          for (var parameter in calleeElement.parameters) {
+            SimpleIdentifier label = argument.name.label;
+            if (parameter.parameterKind == ParameterKind.NAMED &&
+                parameter.name == label.name) {
+              label.staticElement = parameter;
+              correspondingParameters[i] = parameter;
+              break;
+            }
+          }
+        } else {
+          correspondingParameters[i] = calleeElement.parameters[i];
+        }
+      }
+      node.argumentList.correspondingStaticParameters = correspondingParameters;
+    }
   }
 
   @override

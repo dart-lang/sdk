@@ -125,6 +125,7 @@ void main() {
     addTestFile(r'''
 void main() {
   double f(int a, {String b, bool c}) {}
+  f(1, b: '2', c: true);
 }
 ''');
     String fTypeString = '(int, {b: String, c: bool}) → double';
@@ -171,7 +172,25 @@ void main() {
       expect(parameters[2].type, typeProvider.boolType);
     }
 
-    // TODO(scheglov) Add invocation test when we can resolve named parameters.
+    {
+      ExpressionStatement statement = mainStatements[1];
+      MethodInvocation invocation = statement.expression;
+      List<Expression> arguments = invocation.argumentList.arguments;
+
+      Expression aArgument = arguments[0];
+      ParameterElement aElement = fElement.parameters[0];
+      expect(aArgument.staticParameterElement, same(aElement));
+
+      NamedExpression bArgument = arguments[1];
+      ParameterElement bElement = fElement.parameters[1];
+      expect(bArgument.name.label.staticElement, same(bElement));
+      expect(bArgument.staticParameterElement, same(bElement));
+
+      NamedExpression cArgument = arguments[2];
+      ParameterElement cElement = fElement.parameters[2];
+      expect(cArgument.name.label.staticElement, same(cElement));
+      expect(cArgument.staticParameterElement, same(cElement));
+    }
   }
 
   test_local_function_noReturnType() async {
@@ -250,15 +269,31 @@ void main() {
       expect(parameters[2].type, typeProvider.boolType);
     }
 
-    VariableDeclarationStatement vStatement = mainStatements[1];
-    VariableDeclaration vDeclaration = vStatement.variables.variables[0];
-    expect(vDeclaration.element.type, same(doubleType));
+    {
+      VariableDeclarationStatement statement = mainStatements[1];
+      VariableDeclaration declaration = statement.variables.variables[0];
+      expect(declaration.element.type, same(doubleType));
 
-    MethodInvocation fInvocation = vDeclaration.initializer;
-    expect(fInvocation.methodName.staticElement, same(fElement));
-    expect(fInvocation.methodName.staticType.toString(), fTypeString);
-    expect(fInvocation.staticType, same(doubleType));
-    expect(fInvocation.staticInvokeType.toString(), fTypeString);
+      MethodInvocation invocation = declaration.initializer;
+      expect(invocation.methodName.staticElement, same(fElement));
+      expect(invocation.methodName.staticType.toString(), fTypeString);
+      expect(invocation.staticType, same(doubleType));
+      expect(invocation.staticInvokeType.toString(), fTypeString);
+
+      List<Expression> arguments = invocation.argumentList.arguments;
+
+      Expression aArgument = arguments[0];
+      ParameterElement aElement = fElement.parameters[0];
+      expect(aArgument.staticParameterElement, same(aElement));
+
+      Expression bArgument = arguments[1];
+      ParameterElement bElement = fElement.parameters[1];
+      expect(bArgument.staticParameterElement, same(bElement));
+
+      Expression cArgument = arguments[2];
+      ParameterElement cElement = fElement.parameters[2];
+      expect(cArgument.staticParameterElement, same(cElement));
+    }
   }
 
   test_local_variable() async {
@@ -308,6 +343,38 @@ void main() {
       expect(identifier.staticElement, vElement);
       expect(identifier.staticType, intType);
     }
+  }
+
+  test_namedArgument() async {
+    addTestFile(r'''
+void main() {
+  foo(1, b: true, c: 3.0);
+}
+void foo(int a, {bool b, double c}) {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    FunctionDeclaration foo = result.unit.declarations[1];
+    ExecutableElement fooElement = foo.element;
+
+    ExpressionStatement statement = mainStatements[0];
+    MethodInvocation invocation = statement.expression;
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression aArgument = arguments[0];
+    ParameterElement aElement = fooElement.parameters[0];
+    expect(aArgument.staticParameterElement, same(aElement));
+
+    NamedExpression bArgument = arguments[1];
+    ParameterElement bElement = fooElement.parameters[1];
+    expect(bArgument.name.label.staticElement, same(bElement));
+    expect(bArgument.staticParameterElement, same(bElement));
+
+    NamedExpression cArgument = arguments[2];
+    ParameterElement cElement = fooElement.parameters[2];
+    expect(cArgument.name.label.staticElement, same(cElement));
+    expect(cArgument.staticParameterElement, same(cElement));
   }
 
   test_top_executables_class() async {
