@@ -4141,8 +4141,8 @@ class Instructions : public Object {
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kCheckedEntryOffset = 16;
-  static const intptr_t kUncheckedEntryOffset = 38;
+  static const intptr_t kCheckedEntryOffset = 15;
+  static const intptr_t kUncheckedEntryOffset = 34;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kCheckedEntryOffset = 8;
   static const intptr_t kUncheckedEntryOffset = 32;

@@ -1156,6 +1156,8 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
         // TODO(srdjan): Should we enable printing of REX.W?
         // if (rex_w()) Print("REX.W ");
         Print("%s%s", idesc.mnem, operand_size_code());
+      } else if (current == 0xC3 || current == 0xCC) {
+        Print("%s", idesc.mnem);  // ret and int3 don't need a size specifier.
       } else {
         Print("%s%s", idesc.mnem, operand_size_code());
       }
@@ -1215,7 +1217,7 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
     }
 
     case SHORT_IMMEDIATE_INSTR: {
-      Print("%s %s, ", idesc.mnem, Rax());
+      Print("%s%s %s,", idesc.mnem, operand_size_code(), Rax());
       PrintImmediate(*data + 1, DOUBLEWORD_SIZE);
       (*data) += 5;
       break;
@@ -1901,27 +1903,10 @@ int DisassemblerX64::InstructionDecode(uword pc) {
         break;
 
       case 0xA9: {
-        int64_t value = 0;
-        bool check_for_stop = false;
-        switch (operand_size()) {
-          case WORD_SIZE:
-            value = *reinterpret_cast<uint16_t*>(data + 1);
-            data += 3;
-            break;
-          case DOUBLEWORD_SIZE:
-            value = *reinterpret_cast<uint32_t*>(data + 1);
-            data += 5;
-            check_for_stop = true;
-            break;
-          case QUADWORD_SIZE:
-            value = *reinterpret_cast<int32_t*>(data + 1);
-            data += 5;
-            break;
-          default:
-            UNREACHABLE();
-        }
+        data++;
+        bool check_for_stop = operand_size() == DOUBLEWORD_SIZE;
         Print("test%s %s,", operand_size_code(), Rax());
-        PrintImmediateValue(value);
+        data += PrintImmediate(data, operand_size());
         if (check_for_stop) {
           CheckPrintStop(data);
         }

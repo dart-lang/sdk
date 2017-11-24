@@ -199,7 +199,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
     __ jmp(&done, Assembler::kNearJump);                                       \
                                                                                \
     __ Bind(&size_tag_overflow);                                               \
-    __ movq(RDI, Immediate(0));                                                \
+    __ LoadImmediate(RDI, Immediate(0));                                       \
     __ Bind(&done);                                                            \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
@@ -1768,7 +1768,7 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
 
   __ SmiUntag(RBX);            // start
   __ SmiUntag(R9);             // other.length
-  __ movq(R11, Immediate(0));  // i = 0
+  __ LoadImmediate(R11, Immediate(0));  // i = 0
 
   // do
   Label loop;

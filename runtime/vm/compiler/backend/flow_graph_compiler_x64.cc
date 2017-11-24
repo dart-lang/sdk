@@ -1342,7 +1342,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
       (isolate()->reify_generic_functions() && function.IsGeneric())) {
     __ LoadObject(R10, arguments_descriptor);
   } else {
-    __ xorq(R10, R10);  // GC safe smi zero because of stub.
+    __ xorl(R10, R10);  // GC safe smi zero because of stub.
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
@@ -1532,7 +1532,7 @@ void ParallelMoveResolver::EmitMove(int index) {
     const Object& constant = source.constant();
     if (destination.IsRegister()) {
       if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
-        __ xorq(destination.reg(), destination.reg());
+        __ xorl(destination.reg(), destination.reg());
       } else if (constant.IsSmi() &&
                  (source.constant_instruction()->representation() ==
                   kUnboxedInt32)) {
