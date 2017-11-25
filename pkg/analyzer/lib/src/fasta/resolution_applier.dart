@@ -61,7 +61,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     DartType returnType = _getTypeFor(node);
     if (node.returnType != null) {
-      _applyToTypeAnnotation(returnType, node.returnType);
+      applyToTypeAnnotation(returnType, node.returnType);
     }
 
     // Associate the elements with the nodes.
@@ -184,7 +184,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitTypeAnnotation(TypeAnnotation node) {
-    _applyToTypeAnnotation(_getTypeFor(node), node);
+    applyToTypeAnnotation(_getTypeFor(node), node);
   }
 
   @override
@@ -226,15 +226,73 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         DartType type = node.variables[0].name.staticType;
         // TODO(brianwilkerson) Understand why the type is sometimes `null`.
         if (type != null) {
-          _applyToTypeAnnotation(type, node.type);
+          applyToTypeAnnotation(type, node.type);
         }
+      }
+    }
+  }
+
+  /// Return the element associated with the declaration represented by the
+  /// given [node].
+  Element _getDeclarationFor(AstNode node) {
+    return _declaredElements[_declaredElementIndex++];
+  }
+
+  /// Return the element associated with the reference represented by the
+  /// given [node].
+  Element _getReferenceFor(AstNode node) {
+    return _referencedElements[_referencedElementIndex++];
+  }
+
+  /// Return the type associated with the given [node].
+  DartType _getTypeFor(AstNode node) {
+    return _types[_typeIndex++];
+  }
+
+  /// Apply the [type] to the [typeAnnotation] by setting the type of the
+  /// [typeAnnotation] to the [type] and recursively applying each of the type
+  /// arguments of the [type] to the corresponding type arguments of the
+  /// [typeAnnotation].
+  static void applyToTypeAnnotation(
+      DartType type, TypeAnnotation typeAnnotation) {
+    SimpleIdentifier nameForElement(Identifier identifier) {
+      if (identifier is SimpleIdentifier) {
+        return identifier;
+      } else if (identifier is PrefixedIdentifier) {
+        return identifier.identifier;
+      } else {
+        throw new UnimplementedError(
+            'Unhandled class of identifier: ${identifier.runtimeType}');
+      }
+    }
+
+    if (typeAnnotation is GenericFunctionTypeImpl) {
+      if (type is! FunctionType) {
+        throw new StateError('Non-function type ($type) '
+            'for generic function annotation ($typeAnnotation)');
+      }
+      FunctionType functionType = type;
+      typeAnnotation.type = type;
+      applyToTypeAnnotation(functionType.returnType, typeAnnotation.returnType);
+      _applyParameters(
+          functionType.parameters, typeAnnotation.parameters.parameters);
+    } else if (typeAnnotation is TypeNameImpl) {
+      typeAnnotation.type = type;
+      SimpleIdentifier name = nameForElement(typeAnnotation.name);
+      name.staticElement = type.element;
+      name.staticType = type;
+    }
+    if (typeAnnotation is NamedType) {
+      TypeArgumentList typeArguments = typeAnnotation.typeArguments;
+      if (typeArguments != null) {
+        _applyTypeArgumentsToList(type, typeArguments.arguments);
       }
     }
   }
 
   /// Apply the types of the [parameterElements] to the [parameters] that have
   /// an explicit type annotation.
-  void _applyParameters(List<ParameterElement> parameterElements,
+  static void _applyParameters(List<ParameterElement> parameterElements,
       List<FormalParameter> parameters) {
     int length = parameterElements.length;
     if (parameters.length != length) {
@@ -256,7 +314,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         typeAnnotation = normalParameter.type;
       }
       if (typeAnnotation != null) {
-        _applyToTypeAnnotation(element.type, typeAnnotation);
+        applyToTypeAnnotation(element.type, typeAnnotation);
       }
 
       if (normalParameter is SimpleFormalParameterImpl) {
@@ -268,48 +326,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
-  /// Apply the [type] to the [typeAnnotation] by setting the type of the
-  /// [typeAnnotation] to the [type] and recursively applying each of the type
-  /// arguments of the [type] to the corresponding type arguments of the
-  /// [typeAnnotation].
-  void _applyToTypeAnnotation(DartType type, TypeAnnotation typeAnnotation) {
-    SimpleIdentifier nameForElement(Identifier identifier) {
-      if (identifier is SimpleIdentifier) {
-        return identifier;
-      } else if (identifier is PrefixedIdentifier) {
-        return identifier.identifier;
-      } else {
-        throw new UnimplementedError(
-            'Unhandled class of identifier: ${identifier.runtimeType}');
-      }
-    }
-
-    if (typeAnnotation is GenericFunctionTypeImpl) {
-      if (type is! FunctionType) {
-        throw new StateError('Non-function type ($type) '
-            'for generic function annotation ($typeAnnotation)');
-      }
-      FunctionType functionType = type;
-      typeAnnotation.type = type;
-      _applyToTypeAnnotation(
-          functionType.returnType, typeAnnotation.returnType);
-      _applyParameters(
-          functionType.parameters, typeAnnotation.parameters.parameters);
-    } else if (typeAnnotation is TypeNameImpl) {
-      typeAnnotation.type = type;
-      nameForElement(typeAnnotation.name).staticElement = type.element;
-    }
-    if (typeAnnotation is NamedType) {
-      TypeArgumentList typeArguments = typeAnnotation.typeArguments;
-      if (typeArguments != null) {
-        _applyTypeArgumentsToList(type, typeArguments.arguments);
-      }
-    }
-  }
-
   /// Recursively apply each of the type arguments of the [type] to the
   /// corresponding type arguments of the [typeAnnotation].
-  void _applyTypeArgumentsToList(
+  static void _applyTypeArgumentsToList(
       DartType type, NodeList<TypeAnnotation> typeArguments) {
     if (type is InterfaceType) {
       List<DartType> argumentTypes = type.typeArguments;
@@ -319,7 +338,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
             'for ${typeArguments.length} type arguments');
       }
       for (int i = 0; i < argumentCount; i++) {
-        _applyToTypeAnnotation(argumentTypes[i], typeArguments[i]);
+        applyToTypeAnnotation(argumentTypes[i], typeArguments[i]);
       }
     } else if (type is FunctionType) {
       // TODO(brianwilkerson) Add support for function types.
@@ -328,23 +347,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       throw new StateError('Attempting to apply a non-interface type '
           '(${type.runtimeType}) to type arguments');
     }
-  }
-
-  /// Return the element associated with the declaration represented by the
-  /// given [node].
-  Element _getDeclarationFor(AstNode node) {
-    return _declaredElements[_declaredElementIndex++];
-  }
-
-  /// Return the element associated with the reference represented by the
-  /// given [node].
-  Element _getReferenceFor(AstNode node) {
-    return _referencedElements[_referencedElementIndex++];
-  }
-
-  /// Return the type associated with the given [node].
-  DartType _getTypeFor(AstNode node) {
-    return _types[_typeIndex++];
   }
 }
 

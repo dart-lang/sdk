@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /**
@@ -263,7 +264,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       }
     }
     if (_applyKernelTypes) {
-      _applyTypeToTypeAnnotation(node.returnType, element.returnType);
+      if (node.returnType != null) {
+        ResolutionApplier.applyToTypeAnnotation(
+            element.returnType, node.returnType);
+      }
       if (node.isGetter) {
         node.name.staticType = element.returnType;
       } else if (node.isSetter) {
@@ -409,7 +413,10 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       }
     }
     if (_applyKernelTypes) {
-      _applyTypeToTypeAnnotation(node.returnType, element.returnType);
+      if (node.returnType != null) {
+        ResolutionApplier.applyToTypeAnnotation(
+            element.returnType, node.returnType);
+      }
       if (node.isGetter) {
         node.name.staticType = element.returnType;
       } else if (node.isSetter) {
@@ -456,7 +463,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
           _match(node.identifier, _walker.getParameter());
       (node as SimpleFormalParameterImpl).element = element;
       if (_applyKernelTypes) {
-        _applyTypeToTypeAnnotation(node.type, element.type);
+        if (node.type != null) {
+          ResolutionApplier.applyToTypeAnnotation(element.type, node.type);
+        }
         node.identifier?.staticType = element.type;
       }
       _setGenericFunctionType(node.type, element.type);
@@ -548,43 +557,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       } else {
         throw new UnimplementedError(
             'Cannot apply type to ${identifier.runtimeType}');
-      }
-    } else {
-      throw new UnimplementedError('Cannot apply ${type.runtimeType}');
-    }
-  }
-
-  /// TODO(scheglov) Replace with the implementation from ResolutionApplier.
-  void _applyTypeToTypeAnnotation(
-      TypeAnnotation typeAnnotation, DartType type) {
-    // May be implicit type, without actual node.
-    if (typeAnnotation == null) {
-      return;
-    }
-    if (type is InterfaceType) {
-      if (typeAnnotation is TypeName) {
-        typeAnnotation.type = type;
-        Identifier name = typeAnnotation.name;
-        if (name is SimpleIdentifier) {
-          name.staticElement = type.element;
-          name.staticType = type;
-        } else {
-          throw new UnimplementedError(
-              'Cannot apply type to ${name.runtimeType}');
-        }
-      } else {
-        throw new UnimplementedError(
-            'Cannot apply type to ${typeAnnotation.runtimeType}');
-      }
-    } else if (type is DynamicTypeImpl || type is VoidType) {
-      if (typeAnnotation is TypeName) {
-        typeAnnotation.type = type;
-        SimpleIdentifier name = typeAnnotation.name;
-        name.staticElement = type.element;
-        name.staticType = type;
-      } else {
-        throw new UnimplementedError(
-            'Cannot apply type to ${typeAnnotation.runtimeType}');
       }
     } else {
       throw new UnimplementedError('Cannot apply ${type.runtimeType}');
