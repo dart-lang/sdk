@@ -630,6 +630,58 @@ void set topSetter(double p) {}
     }
   }
 
+  test_top_field_class() async {
+    String content = r'''
+class C {
+  var a = 1;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    ClassDeclaration cNode = unit.declarations[0];
+    ClassElement cElement = cNode.element;
+    expect(cElement, same(unitElement.types[0]));
+
+    FieldDeclaration aDeclaration = cNode.members[0];
+    VariableDeclaration aNode = aDeclaration.fields.variables[0];
+    FieldElement aElement = aNode.element;
+    expect(aElement, cElement.fields[0]);
+    expect(aElement.type, typeProvider.intType);
+    expect(aNode.name.staticElement, same(aElement));
+    expect(aNode.name.staticType, same(aElement.type));
+
+    Expression aValue = aNode.initializer;
+    expect(aValue.staticType, typeProvider.intType);
+  }
+
+  test_top_field_top() async {
+    String content = r'''
+var a = 1;
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    TopLevelVariableDeclaration aDeclaration = unit.declarations[0];
+    VariableDeclaration aNode = aDeclaration.variables.variables[0];
+    TopLevelVariableElement aElement = aNode.element;
+    expect(aElement, same(unitElement.topLevelVariables[0]));
+    expect(aElement.type, typeProvider.intType);
+    expect(aNode.name.staticElement, same(aElement));
+    expect(aNode.name.staticType, same(aElement.type));
+
+    Expression aValue = aNode.initializer;
+    expect(aValue.staticType, typeProvider.intType);
+  }
+
   void _assertDefaultParameter(
       DefaultFormalParameter node, ParameterElement element,
       {String name, int offset, ParameterKind kind, DartType type}) {
