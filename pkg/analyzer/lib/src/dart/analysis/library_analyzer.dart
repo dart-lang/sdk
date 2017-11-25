@@ -439,7 +439,6 @@ class LibraryAnalyzer {
 
     // TODO(scheglov) Add tests for using the context element.
     var astTypes = <DartType>[];
-    KernelResynthesizer resynthesizer = _resynthesizer;
     for (var kernelType in resolution.kernelTypes) {
       DartType astType;
       if (kernelType is kernel.FunctionReferenceDartType) {
@@ -447,7 +446,7 @@ class LibraryAnalyzer {
         FunctionElement element = declarationToElement[variable];
         astType = element.type;
       } else {
-        astType = resynthesizer.getType(context, kernelType);
+        astType = _kernelResynthesizer.getType(context, kernelType);
       }
       astTypes.add(astType);
     }
@@ -459,8 +458,12 @@ class LibraryAnalyzer {
       if (referencedNode is kernel.VariableDeclaration) {
         element = declarationToElement[referencedNode];
         assert(element != null);
+      } else if (referencedNode is kernel.Field) {
+        element = _kernelResynthesizer
+            .getElementFromCanonicalName(referencedNode.canonicalName);
+        assert(element != null);
       } else if (referencedNode is kernel.Procedure) {
-        element = (_resynthesizer as KernelResynthesizer)
+        element = _kernelResynthesizer
             .getElementFromCanonicalName(referencedNode.canonicalName);
         assert(element != null);
       } else {

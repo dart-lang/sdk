@@ -79,13 +79,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_changeFile_implicitlyAnalyzed() async {
-    await super.test_changeFile_implicitlyAnalyzed();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_changeFile_selfConsistent() async {
     await super.test_changeFile_selfConsistent();
   }
@@ -290,13 +283,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_part_results_noLibrary() async {
     await super.test_part_results_noLibrary();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_removeFile_changeFile_implicitlyAnalyzed() async {
-    await super.test_removeFile_changeFile_implicitlyAnalyzed();
   }
 
   @failingTest
