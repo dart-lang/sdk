@@ -64,13 +64,16 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       _applyToTypeAnnotation(returnType, node.returnType);
     }
 
-    // Associate the element with the node.
+    // Associate the elements with the nodes.
     FunctionElementImpl element = _getDeclarationFor(node);
     if (element != null && enclosingExecutable != null) {
       enclosingExecutable.encloseElement(element);
 
       node.name.staticElement = element;
       node.name.staticType = element.type;
+
+      var parameterNodes = node.functionExpression.parameters.parameters;
+      _applyParameters(element.parameters, parameterNodes);
     }
 
     // Visit components of the FunctionExpression.
@@ -238,22 +241,29 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       throw new StateError('Parameter counts do not match');
     }
     for (int i = 0; i < length; i++) {
+      ParameterElement element = parameterElements[i];
       FormalParameter parameter = parameters[i];
+
       NormalFormalParameter normalParameter;
       if (parameter is NormalFormalParameter) {
         normalParameter = parameter;
       } else if (parameter is DefaultFormalParameter) {
         normalParameter = parameter.parameter;
       }
+
       TypeAnnotation typeAnnotation = null;
       if (normalParameter is SimpleFormalParameter) {
         typeAnnotation = normalParameter.type;
       }
       if (typeAnnotation != null) {
-        _applyToTypeAnnotation(parameterElements[i].type, typeAnnotation);
+        _applyToTypeAnnotation(element.type, typeAnnotation);
+      }
+
+      if (normalParameter is SimpleFormalParameterImpl) {
+        normalParameter.element = element;
       }
       if (normalParameter.identifier != null) {
-        normalParameter.identifier.staticElement = parameterElements[i];
+        normalParameter.identifier.staticElement = element;
       }
     }
   }

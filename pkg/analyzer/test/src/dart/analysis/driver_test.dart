@@ -96,18 +96,23 @@ void main() {
     expect(fExpression.element, same(fElement));
 
     {
-      var parameters = fElement.parameters;
-      expect(parameters, hasLength(2));
+      List<ParameterElement> elements = fElement.parameters;
+      expect(elements, hasLength(2));
 
-      expect(parameters[0].name, 'a');
-      expect(parameters[0].nameOffset, 29);
-      expect(parameters[0].parameterKind, ParameterKind.REQUIRED);
-      expect(parameters[0].type, typeProvider.intType);
+      List<FormalParameter> nodes = fExpression.parameters.parameters;
+      expect(nodes, hasLength(2));
 
-      expect(parameters[1].name, 'b');
-      expect(parameters[1].nameOffset, 39);
-      expect(parameters[1].parameterKind, ParameterKind.REQUIRED);
-      expect(parameters[1].type, typeProvider.stringType);
+      _assertSimpleParameter(nodes[0], elements[0],
+          name: 'a',
+          offset: 29,
+          kind: ParameterKind.REQUIRED,
+          type: typeProvider.intType);
+
+      _assertSimpleParameter(nodes[1], elements[1],
+          name: 'b',
+          offset: 39,
+          kind: ParameterKind.REQUIRED,
+          type: typeProvider.stringType);
     }
 
     VariableDeclarationStatement vStatement = mainStatements[1];
@@ -153,23 +158,29 @@ void main() {
     expect(fExpression.element, same(fElement));
 
     {
-      var parameters = fElement.parameters;
-      expect(parameters, hasLength(3));
+      List<ParameterElement> elements = fElement.parameters;
+      expect(elements, hasLength(3));
 
-      expect(parameters[0].name, 'a');
-      expect(parameters[0].nameOffset, 29);
-      expect(parameters[0].parameterKind, ParameterKind.REQUIRED);
-      expect(parameters[0].type, typeProvider.intType);
+      List<FormalParameter> nodes = fExpression.parameters.parameters;
+      expect(nodes, hasLength(3));
 
-      expect(parameters[1].name, 'b');
-      expect(parameters[1].nameOffset, 40);
-      expect(parameters[1].parameterKind, ParameterKind.NAMED);
-      expect(parameters[1].type, typeProvider.stringType);
+      _assertSimpleParameter(nodes[0], elements[0],
+          name: 'a',
+          offset: 29,
+          kind: ParameterKind.REQUIRED,
+          type: typeProvider.intType);
 
-      expect(parameters[2].name, 'c');
-      expect(parameters[2].nameOffset, 48);
-      expect(parameters[2].parameterKind, ParameterKind.NAMED);
-      expect(parameters[2].type, typeProvider.boolType);
+      _assertDefaultParameter(nodes[1], elements[1],
+          name: 'b',
+          offset: 40,
+          kind: ParameterKind.NAMED,
+          type: typeProvider.stringType);
+
+      _assertDefaultParameter(nodes[2], elements[2],
+          name: 'c',
+          offset: 48,
+          kind: ParameterKind.NAMED,
+          type: typeProvider.boolType);
     }
 
     {
@@ -250,23 +261,29 @@ void main() {
     expect(fExpression.element, same(fElement));
 
     {
-      var parameters = fElement.parameters;
-      expect(parameters, hasLength(3));
+      List<ParameterElement> elements = fElement.parameters;
+      expect(elements, hasLength(3));
 
-      expect(parameters[0].name, 'a');
-      expect(parameters[0].nameOffset, 29);
-      expect(parameters[0].parameterKind, ParameterKind.REQUIRED);
-      expect(parameters[0].type, typeProvider.intType);
+      List<FormalParameter> nodes = fExpression.parameters.parameters;
+      expect(nodes, hasLength(3));
 
-      expect(parameters[1].name, 'b');
-      expect(parameters[1].nameOffset, 40);
-      expect(parameters[1].parameterKind, ParameterKind.POSITIONAL);
-      expect(parameters[1].type, typeProvider.stringType);
+      _assertSimpleParameter(nodes[0], elements[0],
+          name: 'a',
+          offset: 29,
+          kind: ParameterKind.REQUIRED,
+          type: typeProvider.intType);
 
-      expect(parameters[2].name, 'c');
-      expect(parameters[2].nameOffset, 48);
-      expect(parameters[2].parameterKind, ParameterKind.POSITIONAL);
-      expect(parameters[2].type, typeProvider.boolType);
+      _assertDefaultParameter(nodes[1], elements[1],
+          name: 'b',
+          offset: 40,
+          kind: ParameterKind.POSITIONAL,
+          type: typeProvider.stringType);
+
+      _assertDefaultParameter(nodes[2], elements[2],
+          name: 'c',
+          offset: 48,
+          kind: ParameterKind.POSITIONAL,
+          type: typeProvider.boolType);
     }
 
     {
@@ -611,6 +628,43 @@ void set topSetter(double p) {}
         expect(pNode.identifier.staticType, doubleType);
       }
     }
+  }
+
+  void _assertDefaultParameter(
+      DefaultFormalParameter node, ParameterElement element,
+      {String name, int offset, ParameterKind kind, DartType type}) {
+    expect(node, isNotNull);
+    NormalFormalParameter normalNode = node.parameter;
+    _assertSimpleParameter(normalNode, element,
+        name: name, offset: offset, kind: kind, type: type);
+  }
+
+  void _assertParameterElement(ParameterElement element,
+      {String name, int offset, ParameterKind kind, DartType type}) {
+    expect(element, isNotNull);
+    expect(name, isNotNull);
+    expect(offset, isNotNull);
+    expect(kind, isNotNull);
+    expect(type, isNotNull);
+    expect(element.name, name);
+    expect(element.nameOffset, offset);
+    expect(element.parameterKind, kind);
+    expect(element.type, same(type));
+  }
+
+  void _assertSimpleParameter(
+      SimpleFormalParameter node, ParameterElement element,
+      {String name, int offset, ParameterKind kind, DartType type}) {
+    _assertParameterElement(element,
+        name: name, offset: offset, kind: kind, type: type);
+
+    expect(node, isNotNull);
+    expect(node.element, same(element));
+    expect(node.identifier.staticElement, same(element));
+
+    TypeName typeName = node.type;
+    expect(typeName.type, same(type));
+    expect(typeName.name.staticElement, same(type.element));
   }
 
   List<Statement> _getMainStatements(AnalysisResult result) {
