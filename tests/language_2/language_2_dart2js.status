@@ -1081,6 +1081,7 @@ implicit_downcast_during_constructor_initializer_test: RuntimeError
 implicit_downcast_during_constructor_invocation_test: RuntimeError
 implicit_downcast_during_do_test: RuntimeError
 implicit_downcast_during_factory_constructor_invocation_test: RuntimeError
+implicit_downcast_during_field_declaration_test: RuntimeError
 implicit_downcast_during_for_condition_test: RuntimeError
 implicit_downcast_during_for_initializer_expression_test: RuntimeError
 implicit_downcast_during_for_initializer_var_test: RuntimeError
@@ -2962,7 +2963,6 @@ yieldstar_pause_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel ]
 checked_setter_test: RuntimeError # Issue 31128
 checked_setter2_test: RuntimeError # Issue 31128
-checked_setter3_test: RuntimeError # Issue 31128
 built_in_identifier_type_annotation_test/22: Crash # Issue 28815
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError # Issue 28815
@@ -2992,6 +2992,7 @@ implicit_downcast_during_yield_test: RuntimeError
 [ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
 assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
+checked_setter3_test: RuntimeError # Issue 31128
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
@@ -2999,6 +3000,7 @@ implicit_downcast_during_conditional_expression_test: RuntimeError
 implicit_downcast_during_constructor_initializer_test: RuntimeError
 implicit_downcast_during_do_test: RuntimeError
 implicit_downcast_during_factory_constructor_invocation_test: RuntimeError
+implicit_downcast_during_field_declaration_test: RuntimeError
 implicit_downcast_during_for_condition_test: RuntimeError
 implicit_downcast_during_for_initializer_expression_test: RuntimeError
 implicit_downcast_during_for_initializer_var_test: RuntimeError

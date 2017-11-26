@@ -764,7 +764,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   @override
   void inferFieldInitializer(DartType declaredType, Expression initializer) {
     assert(closureContext == null);
-    inferExpression(initializer, declaredType, false);
+    var actualType =
+        inferExpression(initializer, declaredType, declaredType != null);
+    if (declaredType != null) {
+      checkAssignability(
+          declaredType, actualType, initializer, initializer.fileOffset);
+    }
   }
 
   /// Performs type inference on the given [field]'s initializer expression.
