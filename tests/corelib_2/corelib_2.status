@@ -544,6 +544,8 @@ collection_removes_test: RuntimeError
 compare_to2_test: RuntimeError
 hash_set_test/01: RuntimeError
 hash_set_test/none: RuntimeError
+int_modulo_arith_test/modPow: CompileTimeError # Issue 31402 (Assert statement)
+int_modulo_arith_test/none: CompileTimeError # Issue 31402 (Assert statement)
 iterable_empty_test: RuntimeError
 iterable_fold_test/02: RuntimeError
 iterable_mapping_test/none: RuntimeError
@@ -587,6 +589,8 @@ list_test/none: Crash
 bool_from_environment2_test/03: MissingCompileTimeError
 collection_removes_test: RuntimeError
 compare_to2_test: RuntimeError
+int_modulo_arith_test/modPow: CompileTimeError # Issue 31402 (Assert statement)
+int_modulo_arith_test/none: CompileTimeError # Issue 31402 (Assert statement)
 iterable_fold_test/02: RuntimeError
 iterable_generate_test/01: RuntimeError # Issue 31385 (--strong is not passed to the runtime)
 iterable_reduce_test/01: RuntimeError

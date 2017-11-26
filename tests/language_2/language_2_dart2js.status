@@ -1007,6 +1007,7 @@ generic_closure_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_typedef_test: RuntimeError
+implicit_downcast_during_assert_initializer_test: CompileTimeError
 implicit_downcast_during_list_literal_test: RuntimeError
 implicit_downcast_during_redirecting_initializer_test: RuntimeError
 implicit_downcast_during_return_async_test: RuntimeError

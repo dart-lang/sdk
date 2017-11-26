@@ -146,8 +146,11 @@ class ShadowAssertStatement extends AssertStatement implements ShadowStatement {
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.assertStatementEnter(this);
-    inferrer.inferExpression(
-        condition, inferrer.coreTypes.boolClass.rawType, false);
+    var expectedType = inferrer.coreTypes.boolClass.rawType;
+    var actualType =
+        inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
+    inferrer.checkAssignability(
+        expectedType, actualType, condition, condition.fileOffset);
     if (message != null) {
       inferrer.inferExpression(message, null, false);
     }

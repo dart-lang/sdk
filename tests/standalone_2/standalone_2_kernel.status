@@ -21,6 +21,7 @@
 # ===== dartk + vm status lines =====
 
 [ $compiler == dartk && $runtime == vm && $strong ]
+assert_test: CompileTimeError # Issue 31402 (Assert statement)
 io/compile_all_test: Crash
 io/file_blocking_lock_test: RuntimeError # Issue 31402 (Variable declaration)
 io/file_lock_test: RuntimeError # Issue 31402 (Variable declaration)

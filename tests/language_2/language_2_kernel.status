@@ -34,8 +34,9 @@ additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTi
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
-assertion_initializer_const_function_test/01: MissingCompileTimeError
-assertion_test: RuntimeError # Issue 30326
+assert_message_test: CompileTimeError # Issue 31402 (Assert statement)
+assertion_initializer_test: CompileTimeError # Issue 31402 (Assert statement)
+assertion_test: CompileTimeError # Issue 31402 (Assert statement)
 assign_static_type_test/06: MissingCompileTimeError
 assign_to_type_test/01: MissingCompileTimeError
 assign_to_type_test/02: MissingCompileTimeError
@@ -1289,6 +1290,7 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+vm/canonicalization_preserves_deopt_test: CompileTimeError # Issue 31402 (Assert statement)
 vm/causal_async_exception_stack2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 vm/causal_async_exception_stack_test: CompileTimeError # Issue 31402 (Invocation arguments)
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM
@@ -1498,10 +1500,11 @@ additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 argument_assignability_function_typed_test/03: RuntimeError # Issue 31402 (Invocation arguments)
 argument_assignability_function_typed_test/04: RuntimeError # Issue 31402 (Invocation arguments)
 argument_assignability_function_typed_test/05: RuntimeError # Issue 31402 (Invocation arguments)
+assert_message_test: CompileTimeError # Issue 31402 (Assert statement)
 assert_with_type_test_or_cast_test: Pass, Crash
 assertion_initializer_const_error_test/01: Pass
-assertion_initializer_const_function_test/01: MissingCompileTimeError
-assertion_test: Crash
+assertion_initializer_test: CompileTimeError # Issue 31402 (Assert statement)
+assertion_test: CompileTimeError # Issue 31402 (Assert statement)
 assertion_test: RuntimeError # Issue 30326
 assign_static_type_test/06: MissingCompileTimeError
 assign_to_type_test/01: MissingCompileTimeError
@@ -2970,6 +2973,7 @@ unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
+vm/canonicalization_preserves_deopt_test: CompileTimeError # Issue 31402 (Assert statement)
 vm/causal_async_exception_stack2_test: SkipByDesign
 vm/causal_async_exception_stack_test: SkipByDesign
 vm/closure_memory_retention_test: Skip  # KernelVM bug: Hits OOM

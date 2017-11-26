@@ -1145,6 +1145,7 @@ flatten_test/12: MissingRuntimeError # Issue 29920
 fuzzy_arrows_test/03: RuntimeError # Issue 29630
 generic_method_types_test/02: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
+implicit_downcast_during_assert_initializer_test: Crash
 implicit_downcast_during_compound_assignment_test: RuntimeError
 label_test: RuntimeError
 lazy_static3_test: RuntimeError # Issue 30852
