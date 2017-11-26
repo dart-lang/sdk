@@ -688,11 +688,6 @@ void FlowGraphCompiler::CheckTypeArgsLen(bool expect_type_args,
   // Type args are always optional, so length can always be zero.
   // If expect_type_args, a non-zero length must match the declaration length.
   __ LoadFieldFromOffset(R8, R4, ArgumentsDescriptor::type_args_len_offset());
-  if (isolate()->strong()) {
-    __ and_(R8, R8,
-            Operand(Smi::RawValue(
-                ArgumentsDescriptor::TypeArgsLenField::mask_in_place())));
-  }
   __ CompareImmediate(R8, Smi::RawValue(0));
   if (expect_type_args) {
     __ b(&correct_type_args_len, EQ);
@@ -821,12 +816,6 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
       // Load R5 with passed-in argument at provided arg_pos, i.e. at
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ LoadFromOffset(R5, R6, ArgumentsDescriptor::position_offset());
-      if (isolate()->strong()) {
-        __ and_(
-            R5, R5,
-            Operand(Smi::RawValue(
-                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
-      }
       // R5 is arg_pos as Smi.
       // Point to next named entry.
       __ add(R6, R6, Operand(ArgumentsDescriptor::named_entry_size()));

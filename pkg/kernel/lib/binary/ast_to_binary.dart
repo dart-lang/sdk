@@ -884,7 +884,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
   visitPropertySet(PropertySet node) {
     writeByte(Tag.PropertySet);
     writeOffset(node.fileOffset);
-    writeByte(node.flags);
     writeNode(node.receiver);
     writeName(node.name);
     writeNode(node.value);
@@ -917,7 +916,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
   visitDirectPropertySet(DirectPropertySet node) {
     writeByte(Tag.DirectPropertySet);
     writeOffset(node.fileOffset);
-    writeByte(node.flags);
     writeNode(node.receiver);
     writeReference(node.targetReference);
     writeNode(node.value);

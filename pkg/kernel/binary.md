@@ -491,7 +491,6 @@ type PropertyGet extends Expression {
 type PropertySet extends Expression {
   Byte tag = 23;
   FileOffset fileOffset;
-  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   Name name;
   Expression value;
@@ -524,7 +523,6 @@ type DirectPropertyGet extends Expression {
 type DirectPropertySet extends Expression {
   Byte tag = 16; // Note: tag is out of order
   FileOffset fileOffset;
-  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;
   Expression value;

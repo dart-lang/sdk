@@ -78,8 +78,7 @@ class CloneVisitor extends TreeVisitor {
 
   visitPropertySet(PropertySet node) {
     return new PropertySet.byReference(clone(node.receiver), node.name,
-        clone(node.value), node.interfaceTargetReference)
-      ..flags = node.flags;
+        clone(node.value), node.interfaceTargetReference);
   }
 
   visitDirectPropertyGet(DirectPropertyGet node) {
@@ -89,8 +88,7 @@ class CloneVisitor extends TreeVisitor {
 
   visitDirectPropertySet(DirectPropertySet node) {
     return new DirectPropertySet.byReference(
-        clone(node.receiver), node.targetReference, clone(node.value))
-      ..flags = node.flags;
+        clone(node.receiver), node.targetReference, clone(node.value));
   }
 
   visitSuperPropertyGet(SuperPropertyGet node) {

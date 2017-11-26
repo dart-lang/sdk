@@ -316,8 +316,6 @@ namespace dart {
   V(Internal_inquireIs64Bit, 0)                                                \
   V(Internal_prependTypeArguments, 3)                                          \
   V(InvocationMirror_decodePositionalCountEntry, 1)                            \
-  V(InvocationMirror_decodeTypeArgsLenEntry, 1)                                \
-  V(InvocationMirror_decodePositionEntry, 1)                                   \
   V(InvocationMirror_unpackTypeArguments, 1)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(LinkedHashMap_getIndex, 1)                                                 \

@@ -716,11 +716,6 @@ void FlowGraphCompiler::CheckTypeArgsLen(bool expect_type_args,
     // If expect_type_args, a non-zero length must match the declaration length.
     __ movq(RAX,
             FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()));
-    if (isolate()->strong()) {
-      __ andq(RAX,
-              Immediate(Smi::RawValue(
-                  ArgumentsDescriptor::TypeArgsLenField::mask_in_place())));
-    }
     __ CompareImmediate(RAX, Immediate(Smi::RawValue(0)));
     __ j(EQUAL, &correct_type_args_len, Assembler::kNearJump);
     __ CompareImmediate(RAX,
@@ -853,12 +848,6 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
       // Load RAX with passed-in argument at provided arg_pos, i.e. at
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ movq(RAX, Address(RDI, ArgumentsDescriptor::position_offset()));
-      if (isolate()->strong()) {
-        __ andq(
-            RAX,
-            Immediate(Smi::RawValue(
-                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
-      }
       // RAX is arg_pos as Smi.
       // Point to next named entry.
       __ AddImmediate(RDI, Immediate(ArgumentsDescriptor::named_entry_size()));

@@ -76,13 +76,6 @@ class FunctionNodeHelper {
   intptr_t next_read_;
 };
 
-struct TypeParameterHelper {
-  enum Flag {
-    kIsGenericCovariantImpl = 1 << 0,
-    kIsGenericCovariantInterface = 1 << 1
-  };
-};
-
 // Helper class that reads a kernel VariableDeclaration from binary.
 //
 // Use ReadUntilExcluding to read up to but not including a field.
@@ -172,7 +165,6 @@ class FieldHelper {
     kFinal = 1 << 0,
     kConst = 1 << 1,
     kStatic = 1 << 2,
-    kIsGenericCovariantInterface = 1 << 7
   };
 
   explicit FieldHelper(StreamingFlowGraphBuilder* builder)
@@ -195,9 +187,6 @@ class FieldHelper {
   bool IsConst() { return (flags_ & kConst) != 0; }
   bool IsFinal() { return (flags_ & kFinal) != 0; }
   bool IsStatic() { return (flags_ & kStatic) != 0; }
-  bool IsGenericCovariantInterface() {
-    return (flags_ & kIsGenericCovariantInterface) != 0;
-  }
 
   bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
                                           TokenPosition* end) {
@@ -1069,8 +1058,7 @@ class StreamingFlowGraphBuilder {
                       const Array& argument_names,
                       ICData::RebindRule rebind_rule,
                       intptr_t type_args_len = 0,
-                      intptr_t argument_check_bits = 0,
-                      intptr_t type_argument_check_bits = 0);
+                      intptr_t argument_check_bits = 0);
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,
@@ -1084,8 +1072,7 @@ class StreamingFlowGraphBuilder {
                         const Array& argument_names,
                         intptr_t checked_argument_count,
                         const Function& interface_target,
-                        intptr_t argument_check_bits = 0,
-                        intptr_t type_argument_check_bits = 0);
+                        intptr_t argument_check_bits = 0);
   Fragment ThrowException(TokenPosition position);
   Fragment BooleanNegate();
   Fragment TranslateInstantiatedTypeArguments(
@@ -1240,18 +1227,12 @@ class StreamingFlowGraphBuilder {
                                bool is_closure,
                                FunctionNodeHelper* function_node_helper);
 
-  intptr_t ArgumentCheckBitsForSetter(const Function& interface_target,
-                                      DispatchCategory category);
-
-  void ArgumentCheckBitsForInvocation(
+  intptr_t ArgumentCheckBitsForInvocation(
       intptr_t argument_count,  // excluding receiver
-      intptr_t type_argument_count,
       intptr_t positional_argument_count,
       const Array& argument_names,
       const Function& interface_target,
-      DispatchCategory category,
-      intptr_t* argument_bits,
-      intptr_t* type_argument_bits);
+      DispatchCategory category);
 
   RawScript* Script();
 

@@ -279,8 +279,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
 ArgumentsDescriptor::ArgumentsDescriptor(const Array& array) : array_(array) {}
 
 intptr_t ArgumentsDescriptor::TypeArgsLen() const {
-  return TypeArgsLenField::decode(
-      Smi::Cast(Object::Handle(array_.At(kTypeArgsLenIndex))).Value());
+  return Smi::Cast(Object::Handle(array_.At(kTypeArgsLenIndex))).Value();
 }
 
 intptr_t ArgumentsDescriptor::Count() const {
@@ -306,8 +305,7 @@ RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
 intptr_t ArgumentsDescriptor::PositionAt(intptr_t index) const {
   const intptr_t offset =
       kFirstNamedEntryIndex + (index * kNamedEntrySize) + kPositionOffset;
-  return NamedPositionField::decode(
-      Smi::Value(Smi::RawCast(array_.At(offset))));
+  return Smi::Value(Smi::RawCast(array_.At(offset)));
 }
 
 bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
@@ -334,8 +332,7 @@ intptr_t ArgumentsDescriptor::first_named_entry_offset() {
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
                                    const Array& optional_arguments_names,
-                                   intptr_t arg_bits,
-                                   intptr_t type_arg_bits) {
+                                   intptr_t arg_bits) {
   const intptr_t num_named_args =
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   if (num_named_args == 0) {
@@ -350,11 +347,6 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
       num_pos_args,
       ArgumentsDescriptor::PositionalArgumentsChecksField::bitsize()));
 
-  type_arg_bits &= Utils::SignedNBitMask(Utils::Minimum<intptr_t>(
-      type_args_len, ArgumentsDescriptor::TypeArgsChecksField::bitsize()));
-
-  const intptr_t named_arg_bits = arg_bits >> num_pos_args;
-
   // Build the arguments descriptor array, which consists of the the type
   // argument vector length (0 if none); total argument count; the positional
   // argument count; a sequence of (name, position) pairs, sorted by name, for
@@ -367,10 +359,7 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
       Array::Handle(zone, Array::New(descriptor_len, Heap::kOld));
 
   // Set length of type argument vector.
-  descriptor.SetAt(
-      kTypeArgsLenIndex,
-      Smi::Handle(Smi::New(TypeArgsChecksField::encode(type_arg_bits) |
-                           TypeArgsLenField::encode(type_args_len))));
+  descriptor.SetAt(kTypeArgsLenIndex, Smi::Handle(Smi::New(type_args_len)));
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, Smi::Handle(Smi::New(num_arguments)));
 
@@ -386,8 +375,7 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   Smi& previous_pos = Smi::Handle(zone);
   for (intptr_t i = 0; i < num_named_args; i++) {
     name ^= optional_arguments_names.At(i);
-    pos = Smi::New(NamedCheckField::encode((named_arg_bits >> i) & 1) |
-                   NamedPositionField::encode(num_pos_args + i));
+    pos = Smi::New(num_pos_args + i);
     intptr_t insert_index = kFirstNamedEntryIndex + (kNamedEntrySize * i);
     // Shift already inserted pairs with "larger" names.
     while (insert_index > kFirstNamedEntryIndex) {
@@ -417,30 +405,26 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
-                                   intptr_t arg_bits,
-                                   intptr_t type_arg_bits) {
+                                   intptr_t arg_bits) {
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
 
   arg_bits &= Utils::NBitMask(Utils::Minimum<intptr_t>(
-      num_arguments, PositionalArgumentsChecksField::bitsize()));
-  type_arg_bits &= Utils::NBitMask(
-      Utils::Minimum<intptr_t>(type_args_len, TypeArgsChecksField::bitsize()));
+      num_arguments,
+      ArgumentsDescriptor::PositionalArgumentsChecksField::bitsize()));
 
   // TODO(sjindel): Support caching of argument descriptors for calls with
   // strong-mode annotations.
   if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount) &&
-      (arg_bits == 0) && (type_arg_bits == 0)) {
+      arg_bits == 0) {
     return cached_args_descriptors_[num_arguments];
   }
-  return NewNonCached(type_args_len, num_arguments, arg_bits, type_arg_bits,
-                      false);
+  return NewNonCached(type_args_len, num_arguments, arg_bits);
 }
 
 RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
                                             intptr_t num_arguments,
                                             intptr_t pos_arg_bits,
-                                            intptr_t type_arg_bits,
                                             bool canonicalize) {
   // Build the arguments descriptor array, which consists of the length of the
   // type argument vector, total argument count; the positional argument count;
@@ -453,10 +437,8 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   const Smi& arg_count = Smi::Handle(zone, Smi::New(num_arguments));
 
   // Set type argument vector length.
-  descriptor.SetAt(
-      kTypeArgsLenIndex,
-      Smi::Handle(zone, Smi::New(TypeArgsLenField::encode(type_args_len) |
-                                 TypeArgsChecksField::encode(type_arg_bits))));
+  descriptor.SetAt(kTypeArgsLenIndex,
+                   Smi::Handle(zone, Smi::New(type_args_len)));
 
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, arg_count);
@@ -481,7 +463,7 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
 void ArgumentsDescriptor::InitOnce() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
     cached_args_descriptors_[i] =
-        NewNonCached(/*type_args_len=*/0, i, 0, 0, false);
+        ArgumentsDescriptor::NewNonCached(/*type_args_len=*/0, i, 0, false);
   }
 }
 
