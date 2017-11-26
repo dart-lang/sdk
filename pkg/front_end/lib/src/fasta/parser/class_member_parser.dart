@@ -21,9 +21,9 @@ class ClassMemberParser extends Parser {
 
   @override
   Token parseExpression(Token token) {
-    // TODO(brianwilkerson) Remove the invocation of `previous` when
-    // `skipExpression` returns the last consumed token.
-    return skipExpression(token).previous;
+    // TODO(brianwilkerson): Remove the invocation of `syntheticPreviousToken`
+    // when `parseExpression` accepts the last consumed token.
+    return skipExpression(syntheticPreviousToken(token));
   }
 
   @override
@@ -36,18 +36,16 @@ class ClassMemberParser extends Parser {
     if (kind == Assert.Statement) {
       return super.parseAssert(token, kind);
     } else {
-      // TODO(brianwilkerson) Remove the invocation of `previous` when
-      // `skipExpression` returns the last consumed token.
-      return skipExpression(token.next).previous;
+      return skipExpression(token);
     }
   }
 
   @override
   Token parseRecoverExpression(Token token, Message message) {
     Token begin = token;
-    // TODO(brianwilkerson) Remove the invocation of `previous` when
-    // `skipExpression` returns the last consumed token.
-    token = skipExpression(token).previous;
+    // TODO(brianwilkerson): Remove the invocation of `syntheticPreviousToken`
+    // when `parseRecoverExpression` accepts the last consumed token.
+    token = skipExpression(syntheticPreviousToken(token));
     listener.handleRecoverExpression(begin, message);
     return token;
   }

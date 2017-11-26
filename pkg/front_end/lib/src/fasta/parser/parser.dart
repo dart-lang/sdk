@@ -4054,11 +4054,10 @@ class Parser {
   }
 
   Token skipExpression(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson) Return the last consumed token.
     while (true) {
-      final kind = token.kind;
-      final value = token.stringValue;
+      Token next = token.next;
+      final kind = next.kind;
+      final value = next.stringValue;
       if ((identical(kind, EOF_TOKEN)) ||
           (identical(value, ';')) ||
           (identical(value, ',')) ||
@@ -4071,10 +4070,11 @@ class Parser {
           identical(value, '?') ||
           identical(value, ':') ||
           identical(value, '??')) {
-        var nextValue = token.next.stringValue;
+        var nextValue = next.next.stringValue;
         if (identical(nextValue, 'const')) {
-          token = token.next;
-          nextValue = token.next.stringValue;
+          token = next;
+          next = token.next;
+          nextValue = next.next.stringValue;
         }
         if (identical(nextValue, '{')) {
           // Handle cases like this:
@@ -4083,8 +4083,8 @@ class Parser {
           //   Foo() : map = {};
           //   Foo.x() : map = true ? {} : {};
           // }
-          token = closeBraceTokenFor(token.next) ?? token;
-          token = token.next;
+          token = closeBraceTokenFor(next.next) ?? next;
+          next = token.next;
           continue;
         }
         if (identical(nextValue, '<')) {
@@ -4094,11 +4094,11 @@ class Parser {
           //   Foo() : map = <String, Foo>{};
           //   Foo.x() : map = true ? <String, Foo>{} : <String, Foo>{};
           // }
-          token = closeBraceTokenFor(token.next) ?? token;
-          token = token.next;
-          if (identical(token.stringValue, '{')) {
-            token = closeBraceTokenFor(token) ?? token;
-            token = token.next;
+          token = closeBraceTokenFor(next.next) ?? next;
+          next = token.next;
+          if (identical(next.stringValue, '{')) {
+            token = closeBraceTokenFor(next) ?? next;
+            next = token.next;
           }
           continue;
         }
@@ -4106,12 +4106,14 @@ class Parser {
       if (!mayParseFunctionExpressions && identical(value, '{')) {
         break;
       }
-      if (token is BeginToken) {
-        token = closeBraceTokenFor(token) ?? token;
-      } else if (token is ErrorToken) {
-        reportErrorToken(token, false).next;
+      if (next is BeginToken) {
+        token = closeBraceTokenFor(next) ?? next;
+      } else {
+        if (next is ErrorToken) {
+          reportErrorToken(next, false);
+        }
+        token = next;
       }
-      token = token.next;
     }
     return token;
   }
