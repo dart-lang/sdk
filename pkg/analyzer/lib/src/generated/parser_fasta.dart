@@ -79,7 +79,9 @@ abstract class ParserAdapter implements Parser {
 
   @override
   ArgumentList parseArgumentList() {
-    currentToken = fastaParser.parseArguments(currentToken).next;
+    currentToken = fastaParser
+        .parseArguments(fastaParser.syntheticPreviousToken(currentToken))
+        .next;
     var result = astBuilder.pop();
     return result is MethodInvocation ? result.argumentList : result;
   }

@@ -945,8 +945,7 @@ class Parser {
     assert(optional('typedef', typedefKeyword));
     listener.beginFunctionTypeAlias(typedefKeyword);
     Token equals;
-    Token afterType =
-        parseType(typedefKeyword.next, TypeContinuation.Typedef)?.next;
+    Token afterType = parseType(typedefKeyword.next, TypeContinuation.Typedef);
     if (afterType == null) {
       token = ensureIdentifier(
           typedefKeyword.next, IdentifierContext.typedefDeclaration);
@@ -955,7 +954,8 @@ class Parser {
       expect('=', token);
       token = parseType(token.next);
     } else {
-      token = ensureIdentifier(afterType, IdentifierContext.typedefDeclaration);
+      token = ensureIdentifier(
+          afterType.next, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token);
       token =
           parseFormalParametersRequiredOpt(token, MemberKind.FunctionTypeAlias);
@@ -1576,7 +1576,9 @@ class Parser {
     Message message = context.recoveryTemplate.withArguments(token);
     Token identifier = new SyntheticStringToken(
         TokenType.IDENTIFIER, stringValue, token.charOffset, 0);
-    return rewriteAndRecover(token, message, identifier);
+    // TODO(brianwilkerson): Remove the invocation of `previous` when this
+    // method accepts the last consumed token.
+    return rewriteAndRecover(token.previous, message, identifier);
   }
 
   /// Parse a simple identifier at the given [token], and return the identifier
@@ -1609,7 +1611,11 @@ class Parser {
           context == IdentifierContext.methodDeclaration) {
         // If this is a user definable operator,
         // then assume that the user has forgotten the `operator` keyword.
-        token = rewriteAndRecover(token, fasta.messageMissingOperatorKeyword,
+        // TODO(brianwilkerson): Remove the invocation of `previous` when this
+        // method accepts the last consumed token.
+        token = rewriteAndRecover(
+            token.previous,
+            fasta.messageMissingOperatorKeyword,
             new SyntheticKeywordToken(Keyword.OPERATOR, token.offset));
         return parseOperatorName(token);
       } else {
@@ -2366,8 +2372,7 @@ class Parser {
             Message message = fasta.templateExpectedButGot.withArguments('.');
             Token newToken =
                 new SyntheticToken(TokenType.PERIOD, token.charOffset);
-            periodAfterThis =
-                rewriteAndRecover(thisKeyword.next, message, newToken);
+            periodAfterThis = rewriteAndRecover(thisKeyword, message, newToken);
           } else {
             periodAfterThis = token;
           }
@@ -3020,7 +3025,7 @@ class Parser {
     if (optional(':', token.next)) return token.next;
     Message message = fasta.templateExpectedButGot.withArguments(':');
     Token newToken = new SyntheticToken(TokenType.COLON, token.charOffset);
-    return rewriteAndRecover(token.next, message, newToken);
+    return rewriteAndRecover(token, message, newToken);
   }
 
   Token ensureParseLiteralString(Token token) {
@@ -3030,7 +3035,7 @@ class Parser {
       Message message = fasta.templateExpectedString.withArguments(next);
       Token newToken =
           new SyntheticStringToken(TokenType.STRING, '""', token.charOffset, 0);
-      rewriteAndRecover(token.next, message, newToken);
+      rewriteAndRecover(token, message, newToken);
     }
     return parseLiteralString(token);
   }
@@ -3045,11 +3050,11 @@ class Parser {
     if (optional(';', next)) return next;
     Message message = fasta.templateExpectedButGot.withArguments(';');
     Token newToken = new SyntheticToken(TokenType.SEMICOLON, next.charOffset);
-    return rewriteAndRecover(token.next, message, newToken);
+    return rewriteAndRecover(token, message, newToken);
   }
 
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    token = token.next;
     reportRecoverableError(token, message);
     return rewriter.insertToken(newToken, token);
   }
@@ -4355,7 +4360,7 @@ class Parser {
           Message message = fasta.templateExpectedButGot.withArguments(']');
           Token newToken = new SyntheticToken(
               TokenType.CLOSE_SQUARE_BRACKET, next.charOffset);
-          next = rewriteAndRecover(token.next, message, newToken);
+          next = rewriteAndRecover(token, message, newToken);
         }
         listener.handleIndexedExpression(openSquareBracket, next);
         token = next;
@@ -4373,7 +4378,7 @@ class Parser {
             listener.handleNoTypeArguments(next);
           }
         }
-        token = parseArguments(next);
+        token = parseArguments(token);
         next = token.next;
         listener.handleSend(beginToken, next);
         typeArguments = null;
@@ -4511,7 +4516,7 @@ class Parser {
     if (optional('(', next)) {
       // Constructor forwarding.
       listener.handleNoTypeArguments(next);
-      token = parseArguments(token.next);
+      token = parseArguments(token);
       listener.handleSend(thisToken, token.next);
     }
     return token;
@@ -4525,7 +4530,7 @@ class Parser {
     if (optional('(', next)) {
       // Super constructor.
       listener.handleNoTypeArguments(next);
-      token = parseArguments(token.next);
+      token = parseArguments(token);
       listener.handleSend(superToken, token.next);
     } else if (optional("?.", next)) {
       reportRecoverableError(next, fasta.messageSuperNullAware);
@@ -4686,12 +4691,13 @@ class Parser {
   }
 
   Token parseRequiredArguments(Token token) {
-    token = token.next;
-    if (optional('(', token)) {
+    Token next = token.next;
+    if (optional('(', next)) {
       token = parseArguments(token);
     } else {
-      listener.handleNoArguments(token);
-      token = reportUnexpectedToken(token);
+      listener.handleNoArguments(next);
+      // TODO(brianwilkerson): Consider recovering by inserting parentheses.
+      token = reportUnexpectedToken(next);
     }
     return token;
   }
@@ -4934,7 +4940,7 @@ class Parser {
       listener.handleNoArguments(next);
       return token;
     } else {
-      return parseArguments(token.next);
+      return parseArguments(token);
     }
   }
 
@@ -4953,9 +4959,8 @@ class Parser {
   /// ;
   /// ```
   Token parseArguments(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    assert(optional('(', token));
-    Token begin = token;
+    Token begin = token = token.next;
+    assert(optional('(', begin));
     listener.beginArguments(begin);
     int argumentCount = 0;
     bool hasSeenNamedArgument = false;
@@ -5210,7 +5215,7 @@ class Parser {
         token = next;
         break;
       }
-      token = parseExpression(next).next;
+      token = parseExpression(token.next).next;
       ++expressionCount;
       if (!optional(',', token)) {
         break;
