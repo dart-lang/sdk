@@ -900,15 +900,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       bool typeNeeded, int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = returnContext == null;
     if (!isTopLevel) {
-      for (var parameter in function.positionalParameters) {
+      var positionalParameters = function.positionalParameters;
+      for (var i = 0; i < positionalParameters.length; i++) {
+        var parameter = positionalParameters[i];
+        if (i >= function.requiredParameterCount &&
+            parameter.initializer == null) {
+          parameter.initializer = new ShadowNullLiteral()..parent = parameter;
+        }
         if (parameter.initializer != null) {
           inferExpression(parameter.initializer, parameter.type, false);
         }
       }
       for (var parameter in function.namedParameters) {
-        if (parameter.initializer != null) {
-          inferExpression(parameter.initializer, parameter.type, false);
+        if (parameter.initializer == null) {
+          parameter.initializer = new ShadowNullLiteral()..parent = parameter;
         }
+        inferExpression(parameter.initializer, parameter.type, false);
       }
     }
 

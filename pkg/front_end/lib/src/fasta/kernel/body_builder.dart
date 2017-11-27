@@ -600,9 +600,25 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
     typePromoter.finished();
+
+    KernelFunctionBuilder builder = member;
+    if (formals?.optional != null) {
+      Iterator<FormalParameterBuilder> formalBuilders =
+          builder.formals.skip(formals.required.length).iterator;
+      for (VariableDeclaration parameter in formals.optional.formals) {
+        bool hasMore = formalBuilders.moveNext();
+        assert(hasMore);
+        VariableDeclaration realParameter = formalBuilders.current.target;
+        Expression initializer =
+            parameter.initializer ?? new ShadowNullLiteral();
+        realParameter.initializer = initializer..parent = realParameter;
+        _typeInferrer.inferParameterInitializer(
+            initializer, realParameter.type);
+      }
+    }
+
     _typeInferrer.inferFunctionBody(
         _computeReturnTypeContext(member), asyncModifier, body);
-    KernelFunctionBuilder builder = member;
     if (builder.kind == ProcedureKind.Setter) {
       bool oneParameter = formals != null &&
           formals.required.length == 1 &&
@@ -640,20 +656,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     _typeInferrer.inferMetadata(annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(annotation);
-    }
-    if (formals?.optional != null) {
-      Iterator<FormalParameterBuilder> formalBuilders =
-          builder.formals.skip(formals.required.length).iterator;
-      for (VariableDeclaration parameter in formals.optional.formals) {
-        bool hasMore = formalBuilders.moveNext();
-        assert(hasMore);
-        VariableDeclaration realParameter = formalBuilders.current.target;
-        Expression initializer =
-            parameter.initializer ?? new ShadowNullLiteral();
-        realParameter.initializer = initializer..parent = realParameter;
-        _typeInferrer.inferParameterInitializer(
-            initializer, realParameter.type);
-      }
     }
     if (builder is KernelConstructorBuilder) {
       finishConstructor(builder, asyncModifier);

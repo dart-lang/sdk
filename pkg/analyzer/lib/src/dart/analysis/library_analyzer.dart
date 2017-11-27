@@ -800,9 +800,9 @@ class LibraryAnalyzer {
         var resolution = resolutions.next();
         var applier = _createResolutionApplier(context, resolution);
         applier.enclosingExecutable = context;
+        declaration.functionExpression.parameters?.accept(applier);
         declaration.functionExpression.body.accept(applier);
-        // TODO(scheglov) This fails because of Null default initializers
-//        applier.checkDone();
+        applier.checkDone();
       } else if (declaration is TopLevelVariableDeclaration) {
         if (declaration.variables.variables.length != 1) {
           // TODO(scheglov) Handle this case.

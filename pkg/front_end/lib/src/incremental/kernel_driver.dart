@@ -58,7 +58,7 @@ typedef KernelTarget KernelTargetFactory(FileSystem fileSystem,
 /// [getKernelSequence] will return a result.
 class KernelDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 1;
+  static const int DATA_VERSION = 2;
 
   /// Options used by the kernel compiler.
   final ProcessedOptions _options;

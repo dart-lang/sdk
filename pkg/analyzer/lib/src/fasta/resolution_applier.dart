@@ -59,7 +59,27 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFormalParameterList(FormalParameterList parameterList) {
+    for (var parameter in parameterList.parameters) {
+      if (parameter is DefaultFormalParameter) {
+        if (parameter.defaultValue == null) {
+          // Consume the Null type, for the implicit default value.
+          _getTypeFor(null, synthetic: true);
+        } else {
+          throw new UnimplementedError();
+        }
+      }
+    }
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionExpression functionExpression = node.functionExpression;
+    FormalParameterList parameterList = functionExpression.parameters;
+
+    // Apply resolution to default values of formal parameters.
+    parameterList.accept(this);
+
     DartType returnType = _getTypeFor(node);
     if (node.returnType != null) {
       applyToTypeAnnotation(returnType, node.returnType);
@@ -73,12 +93,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       node.name.staticElement = element;
       node.name.staticType = element.type;
 
-      var parameterNodes = node.functionExpression.parameters.parameters;
-      _applyParameters(element.parameters, parameterNodes);
+      _applyParameters(element.parameters, parameterList.parameters);
     }
 
     // Visit components of the FunctionExpression.
-    FunctionExpression functionExpression = node.functionExpression;
     functionExpression.element = element;
     functionExpression.typeParameters?.accept(this);
     functionExpression.body?.accept(this);
@@ -284,7 +302,12 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   /// Return the type associated with the given [node].
-  DartType _getTypeFor(AstNode node) {
+  ///
+  /// If [synthetic] is `true`, the [node] must be `null` and the type is
+  /// an implicit type, e.g. the type of the absent default values of an
+  /// optional parameter (i.e. [Null]).
+  DartType _getTypeFor(AstNode node, {bool synthetic: false}) {
+    assert(!synthetic || node == null);
     return _types[_typeIndex++];
   }
 
@@ -463,8 +486,8 @@ class ValidatingResolutionApplier extends ResolutionApplier {
   }
 
   @override
-  DartType _getTypeFor(AstNode node) {
-    var nodeOffset = node.offset;
+  DartType _getTypeFor(AstNode node, {bool synthetic: false}) {
+    var nodeOffset = synthetic ? -1 : node.offset;
     if (_debug) {
       print('Getting type for $node at $nodeOffset');
     }
