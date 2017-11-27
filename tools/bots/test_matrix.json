@@ -92,6 +92,29 @@
     },
     {
       "builders": [
+        "vm-canary-linux-debug"
+      ],
+      "meta": {
+        "description": "This configuration is used to get fast feedback on vm builds."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32,x64", "runtime"]
+        },
+        {
+          "name": "vm ia32 tests",
+          "arguments": ["--arch=ia32", "vm"]
+        },
+        {
+          "name": "vm x64 tests",
+          "arguments": ["--arch=x64", "vm"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-linux-release-x64"
       ],
       "meta": {
