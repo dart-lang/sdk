@@ -14496,7 +14496,6 @@ const char* Code::Name() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     if (name == NULL) {
-      ASSERT(!StubCode::HasBeenInitialized());
       return zone->PrintToString("[this stub]");  // Not yet recorded.
     }
     return zone->PrintToString("[Stub] %s", name);
