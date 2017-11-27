@@ -30,6 +30,7 @@
       "tools/",
       "tests/",
       "pkg/",
+      "sdk/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       ".packages"
@@ -40,6 +41,13 @@
       "tools/",
       "tests/",
       "pkg/",
+      "sdk/",
+      "third_party/firefox_jsshell/",
+      "third_party/observatory_pub_packages/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "runtime/tests/",
+      "runtime/observatory/",
       ".packages"
     ]
   },
@@ -565,7 +573,6 @@
     {
       "builders": [
         "dart2js-linux-x64-chrome",
-        "dart2js-linux-x64-drt",
         "dart2js-linux-x64-ff",
         "dart2js-linux-x64-jsshell",
         "dart2js-mac-x64-chrome",
@@ -980,6 +987,18 @@
           "arguments": ["--arch=ia32,x64", "create_sdk" ]
         },
         {
+          "name": "trigger dart2js",
+          "trigger": [
+            "dart2js-csp-minified-linux-x64-drt",
+            "dart2js-linux-x64-chrome",
+            "dart2js-linux-x64-drt",
+            "dart2js-linux-x64-ff",
+            "dart2js-linux-x64-jsshell",
+            "dart2js-minified-linux-x64-d8"
+          ],
+          "fileset": "dart2js"
+        },
+        {
           "name": "trigger analyzer",
           "trigger": [
             "analyzer-linux-release",
@@ -1005,6 +1024,22 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["--arch=ia32,x64", "create_sdk" ]
+        },
+        {
+          "name": "trigger dart2js",
+          "trigger": [
+            "dart2js-mac-x64-chrome",
+            "dart2js-mac-x64-safari"
+          ],
+          "fileset": "dart2js"
+        },
+        {
+          "name": "trigger analyzer",
+          "trigger": [
+            "analyzer-mac-release",
+            "analyzer-strong-mac-release"
+          ],
+          "fileset": "analyzer"
         }
       ]
     },
@@ -1018,6 +1053,24 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["--arch=ia32,x64", "create_sdk" ]
+        },
+        {
+          "name": "trigger dart2js",
+          "trigger": [
+            "dart2js-win-x64-chrome",
+            "dart2js-win-x64-ie11",
+            "dart2js-win-x64-ff",
+            "dart2js-win-x64-edge"
+          ],
+          "fileset": "dart2js"
+        },
+        {
+          "name": "trigger analyzer",
+          "trigger": [
+            "analyzer-win-release",
+            "analyzer-strong-win-release"
+          ],
+          "fileset": "analyzer"
         }
       ]
     },
