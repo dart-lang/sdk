@@ -1196,15 +1196,7 @@ conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironm
 constant_string_interpolation2_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
 cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
-default_init_test: RuntimeError # RangeError: Maximum call stack size exceeded
 deferred_closurize_load_library_test: RuntimeError # NoSuchMethodError: method not found: 'then'
-deferred_constraints_constants_test/none: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
-deferred_constraints_constants_test/reference_after_load: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
-deferred_constraints_type_annotation_test/new: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
-deferred_constraints_type_annotation_test/none: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
-deferred_constraints_type_annotation_test/static_method: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # Uncaught RangeError: Maximum call stack size exceeded
 enum_duplicate_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 enum_duplicate_test/02: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 enum_duplicate_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
@@ -1266,7 +1258,6 @@ mixin_mixin_type_arguments_test: RuntimeError
 mixin_naming_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_regress_13688_test: RuntimeError
 mixin_type_parameter5_test: RuntimeError
-named_argument_in_const_creation_test: RuntimeError # RangeError: Maximum call stack size exceeded
 nested_generic_closure_test: RuntimeError # Expect.equals(at index 3: Expected <...(<F>(F) => F) => void>, Found: <...(<F extends Object>(F) => F) => void...>) fails.
 no_such_method_mock_test: RuntimeError # Type 'bool' is not a subtype of type '(String) => bool' in strong mode
 no_such_method_subtype_test: RuntimeError # Type 'int' is not a subtype of type '() => dynamic' in strong mode
@@ -1279,13 +1270,10 @@ regress_23408_test: RuntimeError # Expect.equals(expected: <K>, actual: <dynamic
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
-static_const_field_test: RuntimeError # RangeError: Maximum call stack size exceeded
 string_interpolate_test: RuntimeError # Uncaught Type 'PrivateSymbol' is not a subtype of type 'Symbol' in strong mode
 super_bound_closure_test/none: RuntimeError # TypeError: Cannot read property '0' of undefined
-switch_test: RuntimeError # RangeError: Maximum call stack size exceeded
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
-type_parameter_test/none: RuntimeError # ReferenceError: VoidToSetOfT is not defined
 type_promotion_functions_test/02: RuntimeError
 type_promotion_functions_test/03: RuntimeError
 type_promotion_functions_test/04: RuntimeError

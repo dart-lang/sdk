@@ -1272,6 +1272,16 @@ class ProgramCompiler
     return _finishConstructorFunction(params, body, isCallable);
   }
 
+  void addStatementToList(JS.Statement statement, List<JS.Statement> list) {
+    // If the statement is a nested block, flatten it into the list when
+    // possible.  If the statement is empty, discard it.
+    if (statement is JS.Block && (list.isEmpty || !statement.isScope)) {
+      list.addAll(statement.statements);
+    } else if (statement is! JS.EmptyStatement) {
+      list.add(statement);
+    }
+  }
+
   JS.Block _emitConstructorBody(
       Constructor node, List<Field> fields, JS.Expression className) {
     var cls = node.enclosingClass;
@@ -1299,7 +1309,7 @@ class ProgramCompiler
     // These are expanded into each non-redirecting constructor.
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
-    body.add(_initializeFields(fields, node));
+    addStatementToList(_initializeFields(fields, node), body);
 
     var superCall = node.initializers.firstWhere((i) => i is SuperInitializer,
         orElse: () => null) as SuperInitializer;
@@ -1308,9 +1318,12 @@ class ProgramCompiler
     // form `super()` is added at the end of the initializer list, unless the
     // enclosing class is class Object.
     var jsSuper = _emitSuperConstructorCallIfNeeded(cls, className, superCall);
-    if (jsSuper != null) body.add(jsSuper..sourceInformation = superCall);
+    if (jsSuper != null) {
+      addStatementToList(jsSuper..sourceInformation = superCall, body);
+    }
 
-    body.add(_visitStatement(node.function.body));
+    var jsBody = _visitStatement(node.function.body);
+    if (jsBody != null) addStatementToList(jsBody, body);
     _initTempVars(body);
     return new JS.Block(body)..sourceInformation = node;
   }
@@ -1429,6 +1442,7 @@ class ProgramCompiler
     }
 
     for (var f in fields) {
+      if (f.isStatic) continue;
       var init = f.initializer;
       if (init == null ||
           ctorFields != null &&
@@ -2722,14 +2736,7 @@ class ProgramCompiler
 
     var block = _emitArgumentInitializers(f);
     var jsBody = _visitStatement(f.body);
-    if (jsBody != null) {
-      if (jsBody is JS.Block && (block.isEmpty || !jsBody.isScope)) {
-        // If the body is a nested block that can be flattened, do so.
-        block.addAll(jsBody.statements);
-      } else {
-        block.add(jsBody);
-      }
-    }
+    if (jsBody != null) addStatementToList(jsBody, block);
 
     _initTempVars(block);
     _currentFunction = savedFunction;
