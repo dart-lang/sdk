@@ -458,11 +458,7 @@ class LibraryAnalyzer {
       if (referencedNode is kernel.VariableDeclaration) {
         element = declarationToElement[referencedNode];
         assert(element != null);
-      } else if (referencedNode is kernel.Field) {
-        element = _kernelResynthesizer
-            .getElementFromCanonicalName(referencedNode.canonicalName);
-        assert(element != null);
-      } else if (referencedNode is kernel.Procedure) {
+      } else if (referencedNode is kernel.NamedNode) {
         element = _kernelResynthesizer
             .getElementFromCanonicalName(referencedNode.canonicalName);
         assert(element != null);

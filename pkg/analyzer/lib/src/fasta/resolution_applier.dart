@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -94,8 +95,37 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.argumentList?.accept(this);
-    // TODO(paulberry): store resolution of node.constructorName.
-    node.staticType = _getTypeFor(node.constructorName);
+
+    ConstructorName constructorName = node.constructorName;
+
+    DartType type = _getTypeFor(constructorName);
+    ConstructorElement element = _getReferenceFor(constructorName);
+    ClassElement classElement = element?.enclosingElement;
+
+    node.staticElement = element;
+    node.staticType = type;
+
+    Identifier typeIdentifier = constructorName.type.name;
+    if (typeIdentifier is SimpleIdentifier) {
+      applyToTypeAnnotation(type, constructorName.type);
+      if (constructorName.name != null) {
+        constructorName.name.staticElement = element;
+      }
+    } else if (typeIdentifier is PrefixedIdentifier) {
+      // TODO(scheglov) Rewrite AST using knowledge about prefixes.
+      // TODO(scheglov) Add support for `new prefix.Type()`.
+      // TODO(scheglov) Add support for `new prefix.Type.name()`.
+      assert(constructorName.name == null);
+      constructorName.period = typeIdentifier.period;
+      constructorName.name = typeIdentifier.identifier;
+      SimpleIdentifier classNode = typeIdentifier.prefix;
+      constructorName.type = astFactory.typeName(classNode, null);
+      classNode.staticElement = classElement;
+      classNode.staticType = type;
+      constructorName.name.staticElement = element;
+    }
+
+    _associateArgumentsWithParameters(element, node.argumentList);
   }
 
   @override
@@ -121,15 +151,18 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
+
+    ExecutableElement calleeElement = _getReferenceFor(node.methodName);
     DartType invokeType = _getTypeFor(node.methodName);
+
     node.staticInvokeType = invokeType;
     node.methodName.staticType = invokeType;
     // TODO(paulberry): store resolution of node.typeArguments.
 
     // Apply resolution to arguments.
     // Skip names of named arguments.
-    List<Expression> arguments = node.argumentList.arguments;
-    for (var argument in arguments) {
+    ArgumentList argumentList = node.argumentList;
+    for (var argument in argumentList.arguments) {
       if (argument is NamedExpression) {
         argument.expression.accept(this);
       } else {
@@ -137,32 +170,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       }
     }
 
-    ExecutableElement calleeElement = _getReferenceFor(node.methodName);
     node.methodName.staticElement = calleeElement;
-    node.staticType = _getTypeFor(node.argumentList);
+    node.staticType = _getTypeFor(argumentList);
 
-    // Associate arguments with parameters.
-    if (calleeElement != null) {
-      var correspondingParameters =
-          new List<ParameterElement>(arguments.length);
-      for (int i = 0; i < arguments.length; i++) {
-        var argument = arguments[i];
-        if (argument is NamedExpression) {
-          for (var parameter in calleeElement.parameters) {
-            SimpleIdentifier label = argument.name.label;
-            if (parameter.parameterKind == ParameterKind.NAMED &&
-                parameter.name == label.name) {
-              label.staticElement = parameter;
-              correspondingParameters[i] = parameter;
-              break;
-            }
-          }
-        } else {
-          correspondingParameters[i] = calleeElement.parameters[i];
-        }
-      }
-      node.argumentList.correspondingStaticParameters = correspondingParameters;
-    }
+    _associateArgumentsWithParameters(calleeElement, argumentList);
   }
 
   @override
@@ -229,6 +240,34 @@ class ResolutionApplier extends GeneralizingAstVisitor {
           applyToTypeAnnotation(type, node.type);
         }
       }
+    }
+  }
+
+  /// Associate arguments of the [argumentList] with parameters of the
+  /// given [executable].
+  void _associateArgumentsWithParameters(
+      ExecutableElement executable, ArgumentList argumentList) {
+    if (executable != null) {
+      List<Expression> arguments = argumentList.arguments;
+      var correspondingParameters =
+          new List<ParameterElement>(arguments.length);
+      for (int i = 0; i < arguments.length; i++) {
+        var argument = arguments[i];
+        if (argument is NamedExpression) {
+          for (var parameter in executable.parameters) {
+            SimpleIdentifier label = argument.name.label;
+            if (parameter.parameterKind == ParameterKind.NAMED &&
+                parameter.name == label.name) {
+              label.staticElement = parameter;
+              correspondingParameters[i] = parameter;
+              break;
+            }
+          }
+        } else {
+          correspondingParameters[i] = executable.parameters[i];
+        }
+      }
+      argumentList.correspondingStaticParameters = correspondingParameters;
     }
   }
 

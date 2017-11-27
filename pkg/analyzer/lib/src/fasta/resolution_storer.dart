@@ -30,6 +30,8 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   final List<int> _declarationOffsets;
   final List<int> _referenceOffsets;
   final List<int> _typeOffsets;
+
+  final List<int> _deferredReferenceOffsets = [];
   final List<int> _deferredTypeOffsets = [];
 
   InstrumentedResolutionStorer(
@@ -40,6 +42,14 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
       this._referenceOffsets,
       this._typeOffsets)
       : super(declarations, references, types);
+
+  @override
+  void _deferReference(int offset) {
+    super._deferReference(offset);
+    if (_debug) {
+      _deferredReferenceOffsets.add(offset);
+    }
+  }
 
   @override
   void _deferType(int offset) {
@@ -59,12 +69,12 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   }
 
   @override
-  void _recordReference(Node target, int offset) {
+  int _recordReference(Node target, int offset) {
     if (_debug) {
       print('Recording reference to $target for offset $offset');
     }
     _referenceOffsets.add(offset);
-    super._recordReference(target, offset);
+    return super._recordReference(target, offset);
   }
 
   @override
@@ -75,6 +85,15 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
     assert(_types.length == _typeOffsets.length);
     _typeOffsets.add(offset);
     return super._recordType(type, offset);
+  }
+
+  @override
+  void _replaceReference(Node reference) {
+    if (_debug) {
+      int offset = _deferredReferenceOffsets.removeLast();
+      print('Replacing reference $reference for offset $offset');
+    }
+    super._replaceReference(reference);
   }
 
   @override
@@ -109,10 +128,32 @@ class ResolutionStorer extends TypeInferenceListener {
   final List<Node> _references;
   final List<DartType> _types;
 
+  /// Indices into [_references] which need to be filled in later.
+  final _deferredReferenceSlots = <int>[];
+
   /// Indices into [_types] which need to be filled in later.
   final _deferredTypeSlots = <int>[];
 
   ResolutionStorer(this._declarations, this._references, this._types);
+
+  @override
+  bool constructorInvocationEnter(
+      InvocationExpression expression, DartType typeContext) {
+    return super.constructorInvocationEnter(expression, typeContext);
+  }
+
+  @override
+  void constructorInvocationExit(
+      InvocationExpression expression, DartType inferredType) {
+    if (expression is ConstructorInvocation) {
+      _recordReference(expression.target, expression.fileOffset);
+    } else if (expression is StaticInvocation) {
+      _recordReference(expression.target, expression.fileOffset);
+    } else {
+      throw new UnimplementedError('${expression.runtimeType}');
+    }
+    super.constructorInvocationExit(expression, inferredType);
+  }
 
   /// Verifies that all deferred work has been completed.
   void finished() {
@@ -143,6 +184,10 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {
     if (!isImplicitCall) {
+      // When the invocation target is `VariableGet`, we record the target
+      // before arguments. To ensure this order for method invocations, we
+      // first record `null`, and then replace it on exit.
+      _deferReference(expression.fileOffset);
       // We are visiting a method invocation like: a.f(args).  We have visited a
       // but we haven't visited the args yet.
       //
@@ -163,9 +208,9 @@ class ResolutionStorer extends TypeInferenceListener {
   void methodInvocationExit(Expression expression, Arguments arguments,
       bool isImplicitCall, Object interfaceMember, DartType inferredType) {
     if (!isImplicitCall) {
+      _replaceReference(interfaceMember);
       _replaceType(new MemberReferenceDartType(
           interfaceMember as Member, arguments.types));
-      _recordReference(interfaceMember, expression.fileOffset);
     }
     _recordType(inferredType, arguments.fileOffset);
     super.genericExpressionExit("methodInvocation", expression, inferredType);
@@ -180,6 +225,10 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   bool staticInvocationEnter(
       StaticInvocation expression, DartType typeContext) {
+    // When the invocation target is `VariableGet`, we record the target
+    // before arguments. To ensure this order for method invocations, we
+    // first record `null`, and then replace it on exit.
+    _deferReference(expression.fileOffset);
     // We are visiting a static invocation like: f(args), and we haven't visited
     // args yet.
     //
@@ -198,12 +247,12 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   void staticInvocationExit(
       StaticInvocation expression, DartType inferredType) {
+    _replaceReference(expression.target);
     // TODO(paulberry): get the actual callee function type from the inference
     // engine
     var calleeType = const DynamicType();
     _replaceType(calleeType);
     _recordType(inferredType, expression.arguments.fileOffset);
-    _recordReference(expression.target, expression.fileOffset);
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
@@ -240,6 +289,13 @@ class ResolutionStorer extends TypeInferenceListener {
     }
   }
 
+  /// Record `null` as the reference at the given [offset], and put the current
+  /// slot into the [_deferredReferenceSlots] stack.
+  void _deferReference(int offset) {
+    int slot = _recordReference(null, offset);
+    _deferredReferenceSlots.add(slot);
+  }
+
   /// Record `null` as the type at the given [offset], and put the current
   /// slot into the [_deferredTypeSlots] stack.
   void _deferType(int offset) {
@@ -251,14 +307,21 @@ class ResolutionStorer extends TypeInferenceListener {
     _declarations.add(declaration);
   }
 
-  void _recordReference(Node target, int offset) {
+  int _recordReference(Node target, int offset) {
+    int slot = _references.length;
     _references.add(target);
+    return slot;
   }
 
   int _recordType(DartType type, int offset) {
     int slot = _types.length;
     _types.add(type);
     return slot;
+  }
+
+  void _replaceReference(Node reference) {
+    int slot = _deferredReferenceSlots.removeLast();
+    _references[slot] = reference;
   }
 
   void _replaceType(DartType type) {
