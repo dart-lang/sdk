@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -125,11 +126,15 @@ $selection
     standardAnalysisSetup();
     await analysisFinished;
 
-    await checkElements(selection, [
-      new ImportedElements(
-          path.join('lib', 'core', 'core.dart'), '', ['String', 'print']),
-      new ImportedElements(
-          path.join('lib', 'math', 'math.dart'), '', ['Random'])
-    ]);
+    if (disableManageImportsOnPaste) {
+      await checkElements(selection, []);
+    } else {
+      await checkElements(selection, [
+        new ImportedElements(
+            path.join('lib', 'core', 'core.dart'), '', ['String', 'print']),
+        new ImportedElements(
+            path.join('lib', 'math', 'math.dart'), '', ['Random'])
+      ]);
+    }
   }
 }
