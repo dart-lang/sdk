@@ -72,6 +72,31 @@ class _Devirtualization extends RecursiveVisitor<Null> {
     program.addMetadataRepository(_metadata);
   }
 
+  bool _isMethod(Member member) => (member is Procedure) && !member.isGetter;
+
+  bool _isFieldOrGetter(Member member) =>
+      (member is Field) || ((member is Procedure) && member.isGetter);
+
+  bool _isLegalTargetForMethodInvocation(Member target, Arguments arguments) {
+    final FunctionNode func = target.function;
+
+    final positionalArgs = arguments.positional.length;
+    if ((positionalArgs < func.requiredParameterCount) ||
+        (positionalArgs > func.positionalParameters.length)) {
+      return false;
+    }
+
+    if (arguments.named.isNotEmpty) {
+      final names = arguments.named.map((v) => v.name).toSet();
+      names.removeAll(func.namedParameters.map((v) => v.name));
+      if (names.isNotEmpty) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   _makeDirectCall(TreeNode node, Member target, Member singleTarget) {
     if (_trace) {
       print("[devirt] Resolving ${target} to ${singleTarget}");
@@ -94,16 +119,18 @@ class _Devirtualization extends RecursiveVisitor<Null> {
 
     Member target = node.interfaceTarget;
     if ((target != null) &&
-        (target is! Field) &&
+        _isMethod(target) &&
         !_objectMemberNames.contains(target.name)) {
       Member singleTarget =
           _hierarchy.getSingleTargetForInterfaceInvocation(target);
-      if ((singleTarget is Procedure) && !singleTarget.isGetter) {
+      // TODO(dartbug.com/30480): Convert _isLegalTargetForMethodInvocation()
+      // check into an assertion once front-end implements override checks.
+      if ((singleTarget != null) &&
+          _isMethod(singleTarget) &&
+          _isLegalTargetForMethodInvocation(singleTarget, node.arguments)) {
         _makeDirectCall(node, target, singleTarget);
       }
     }
-
-    return node;
   }
 
   @override
@@ -111,15 +138,15 @@ class _Devirtualization extends RecursiveVisitor<Null> {
     super.visitPropertyGet(node);
 
     Member target = node.interfaceTarget;
-    if ((target != null) && !_objectMemberNames.contains(target.name)) {
+    if ((target != null) &&
+        _isFieldOrGetter(target) &&
+        !_objectMemberNames.contains(target.name)) {
       Member singleTarget =
           _hierarchy.getSingleTargetForInterfaceInvocation(target);
-      if (singleTarget != null) {
+      if ((singleTarget != null) && _isFieldOrGetter(singleTarget)) {
         _makeDirectCall(node, target, singleTarget);
       }
     }
-
-    return node;
   }
 
   @override
@@ -134,7 +161,5 @@ class _Devirtualization extends RecursiveVisitor<Null> {
         _makeDirectCall(node, target, singleTarget);
       }
     }
-
-    return node;
   }
 }
