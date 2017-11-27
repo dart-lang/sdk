@@ -802,10 +802,10 @@ class Parser {
   /// ```
   Token parseTypeList(Token token) {
     listener.beginTypeList(token.next);
-    token = parseType(token.next);
+    token = parseType(token);
     int count = 1;
     while (optional(',', token.next)) {
-      token = parseType(token.next.next);
+      token = parseType(token.next);
       count++;
     }
     listener.endTypeList(count);
@@ -945,14 +945,14 @@ class Parser {
     assert(optional('typedef', typedefKeyword));
     listener.beginFunctionTypeAlias(typedefKeyword);
     Token equals;
-    Token afterType = parseType(typedefKeyword.next, TypeContinuation.Typedef);
+    Token afterType = parseType(typedefKeyword, TypeContinuation.Typedef);
     if (afterType == null) {
       token = ensureIdentifier(
           typedefKeyword.next, IdentifierContext.typedefDeclaration);
       token = parseTypeVariablesOpt(token).next;
       equals = token;
       expect('=', token);
-      token = parseType(token.next);
+      token = parseType(token);
     } else {
       token = ensureIdentifier(
           afterType.next, IdentifierContext.typedefDeclaration);
@@ -1370,7 +1370,7 @@ class Parser {
       Token token, Token begin, Token classKeyword) {
     Token equals = token = token.next;
     assert(optional('=', equals));
-    token = parseType(token.next);
+    token = parseType(token);
     token = parseMixinApplicationRest(token);
     Token implementsKeyword = null;
     if (optional('implements', token.next)) {
@@ -1458,7 +1458,7 @@ class Parser {
             TokenType.IDENTIFIER, 'Object', next.offset);
         rewriter.insertToken(extendsKeyword, next);
         rewriter.insertToken(superclassToken, next);
-        token = parseType(extendsKeyword.next);
+        token = parseType(extendsKeyword);
         token = parseMixinApplicationRest(token);
         listener.handleClassExtends(extendsKeyword);
       } else {
@@ -1522,7 +1522,7 @@ class Parser {
     Token next = token.next;
     if (optional('extends', next)) {
       Token extendsKeyword = next;
-      token = parseType(next.next);
+      token = parseType(next);
       if (optional('with', token.next)) {
         token = parseMixinApplicationRest(token);
       } else {
@@ -1547,7 +1547,7 @@ class Parser {
     if (optional('implements', token.next)) {
       implementsKeyword = token.next;
       do {
-        token = parseType(token.next.next);
+        token = parseType(token.next);
         ++interfacesCount;
       } while (optional(',', token.next));
     }
@@ -1861,7 +1861,7 @@ class Parser {
     Token next = token.next;
     if (optional('extends', next) || optional('super', next)) {
       extendsOrSuper = next;
-      token = parseType(next.next);
+      token = parseType(next);
     } else {
       listener.handleNoType(next);
     }
@@ -1908,9 +1908,11 @@ class Parser {
       [TypeContinuation continuation = TypeContinuation.Required,
       IdentifierContext continuationContext,
       MemberKind memberKind]) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     /// True if we've seen the `var` keyword.
     bool hasVar = false;
+
+    /// The token before the `begin` token.
+    Token beforeBegin;
 
     /// Where the type begins.
     Token begin;
@@ -1948,13 +1950,17 @@ class Parser {
           TypeContinuation.ExpressionStatementOrConstDeclaration) {
         // This is a special case. The first token is `const` and we need to
         // analyze the tokens following the const keyword.
-        assert(optional("const", token));
-        begin = token;
-        token = listener.injectGenericCommentTypeAssign(token.next);
+        assert(optional("const", token.next));
+        beforeBegin = token;
+        begin = token.next;
+        token = listener.injectGenericCommentTypeAssign(begin.next);
         assert(begin.next == token);
       } else {
         // Modify [begin] in case generic type are injected from a comment.
-        begin = token = listener.injectGenericCommentTypeAssign(token);
+        begin = token = listener.injectGenericCommentTypeAssign(token.next);
+        // TODO(brianwilkerson): Remove the invocation of `previous` when
+        // `injectGenericCommentTypeAssign` returns the last consumed token.
+        beforeBegin = begin.previous;
       }
 
       if (optional("void", token)) {
@@ -2034,7 +2040,7 @@ class Parser {
         listener.handleVoidKeyword(voidToken);
         token = voidToken.next;
       } else {
-        token = ensureIdentifier(begin, context);
+        token = ensureIdentifier(beforeBegin.next, context);
         token = parseQualifiedRestOpt(
             token, IdentifierContext.typeReferenceContinuation);
         assert(typeArguments == null || typeArguments == token.next);
@@ -2047,7 +2053,10 @@ class Parser {
             listener.replaceTokenWithGenericCommentTypeAssign(begin, token);
         if (!identical(newBegin, begin)) {
           listener.discardTypeReplacedWithCommentTypeAssign();
-          return parseType(newBegin);
+          // TODO(brianwilkerson): Remove the invocation of `previous` when
+          // `replaceTokenWithGenericCommentTypeAssign` returns the last
+          // consumed token.
+          return parseType(newBegin.previous);
         }
       }
 
@@ -2490,7 +2499,7 @@ class Parser {
     return parseStuff(
         token,
         (t) => listener.beginTypeArguments(t),
-        (t) => parseType(t.next).next,
+        (t) => parseType(t).next,
         (c, bt, et) => listener.endTypeArguments(c, bt, et),
         (t) => listener.handleNoTypeArguments(t));
   }
@@ -2609,7 +2618,7 @@ class Parser {
 
   Token parseFields(Token start, Link<Token> modifiers, Token type,
       Token beforeName, bool isTopLevel) {
-    // TODO(brianwilkerson) Remove the parameter `type` because it isn't used.
+    // TODO(brianwilkerson): Remove the parameter `type` because it isn't used.
     Token varFinalOrConst = null;
     for (Token beforeModifier in modifiers) {
       Token modifier = beforeModifier.next;
@@ -2704,7 +2713,7 @@ class Parser {
     if (beforeType == null) {
       listener.handleNoType(name);
     } else {
-      parseType(beforeType.next, TypeContinuation.Optional);
+      parseType(beforeType, TypeContinuation.Optional);
     }
     name = ensureIdentifier(
         beforeName.next, IdentifierContext.topLevelFunctionDeclaration);
@@ -3203,7 +3212,7 @@ class Parser {
             ? TypeContinuation.Required
             : TypeContinuation.Optional;
 
-    token = parseType(token.next, context.typeContinuation, null, memberKind);
+    token = parseType(token, context.typeContinuation, null, memberKind);
     return token;
   }
 
@@ -3472,7 +3481,7 @@ class Parser {
     if (beforeType == null) {
       listener.handleNoType(name);
     } else {
-      parseType(beforeType.next, TypeContinuation.Optional);
+      parseType(beforeType, TypeContinuation.Optional);
     }
     if (getOrSet == null && optional('operator', name)) {
       token = parseOperatorName(beforeName.next);
@@ -4025,8 +4034,7 @@ class Parser {
   }
 
   Token parseExpressionStatementOrDeclaration(Token token) {
-    return parseType(
-        token.next, TypeContinuation.ExpressionStatementOrDeclaration);
+    return parseType(token, TypeContinuation.ExpressionStatementOrDeclaration);
   }
 
   Token parseExpressionStatementOrConstDeclaration(Token token) {
@@ -4036,7 +4044,7 @@ class Parser {
       return parseVariablesDeclaration(token);
     } else {
       return parseType(
-          token.next, TypeContinuation.ExpressionStatementOrConstDeclaration);
+          token, TypeContinuation.ExpressionStatementOrConstDeclaration);
     }
   }
 
@@ -4730,8 +4738,7 @@ class Parser {
     if (!mayParseFunctionExpressions) {
       return parseSend(token.next, context);
     } else {
-      return parseType(
-          token.next, TypeContinuation.SendOrFunctionLiteral, context);
+      return parseType(token, TypeContinuation.SendOrFunctionLiteral, context);
     }
   }
 
@@ -5056,7 +5063,7 @@ class Parser {
     if (optional('!', token.next)) {
       not = token = token.next;
     }
-    token = parseType(token.next);
+    token = parseType(token);
     Token next = token.next;
     listener.handleIsOperator(operator, not, next);
     String value = next.stringValue;
@@ -5076,7 +5083,7 @@ class Parser {
   Token parseAsOperatorRest(Token token) {
     Token operator = token = token.next;
     assert(optional('as', operator));
-    token = parseType(token.next);
+    token = parseType(token);
     Token next = token.next;
     listener.handleAsOperator(operator, next);
     String value = next.stringValue;
@@ -5232,8 +5239,7 @@ class Parser {
     } else if (isOneOf4(next, '@', 'var', 'final', 'const')) {
       return parseVariablesDeclarationNoSemicolon(token);
     }
-    return parseType(
-        token.next, TypeContinuation.VariablesDeclarationOrExpression);
+    return parseType(token, TypeContinuation.VariablesDeclarationOrExpression);
   }
 
   /// This method parses the portion of the forLoopParts that starts with the
@@ -5457,7 +5463,7 @@ class Parser {
       if (identical(value, 'on')) {
         // 'on' type catchPart?
         onKeyword = token;
-        lastConsumed = parseType(token.next);
+        lastConsumed = parseType(token);
         token = lastConsumed.next;
         value = token.stringValue;
       }
