@@ -2539,32 +2539,32 @@ class Parser {
     token = token.next;
     listener.beginTopLevelMember(token);
 
-    Link<Token> identifiers = findMemberName(token);
+    Link<Token> identifiers = findMemberName(beforeStart);
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
           token, fasta.templateExpectedDeclaration);
     }
-    Token afterName = identifiers.head;
+    Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
           token, fasta.templateExpectedDeclaration);
     }
-    Token name = identifiers.head;
+    Token name = identifiers.head.next;
     identifiers = identifiers.tail;
     Token getOrSet;
     if (!identifiers.isEmpty) {
-      String value = identifiers.head.stringValue;
+      String value = identifiers.head.next.stringValue;
       if ((identical(value, 'get')) || (identical(value, 'set'))) {
-        getOrSet = identifiers.head;
+        getOrSet = identifiers.head.next;
         identifiers = identifiers.tail;
       }
     }
     Token type;
     if (!identifiers.isEmpty) {
-      if (isValidTypeReference(identifiers.head)) {
-        type = identifiers.head;
+      if (isValidTypeReference(identifiers.head.next)) {
+        type = identifiers.head.next;
         identifiers = identifiers.tail;
       }
     }
@@ -2599,7 +2599,7 @@ class Parser {
       }
     }
     Token afterModifiers =
-        identifiers.isNotEmpty ? identifiers.head.next : beforeStart.next;
+        identifiers.isNotEmpty ? identifiers.head.next.next : beforeStart.next;
     return isField
         ? parseFields(beforeStart, identifiers.reverse(), type, name, true)
         : parseTopLevelMethod(
@@ -2611,7 +2611,8 @@ class Parser {
     // TODO(brianwilkerson) Accept the token before `name` so that we can pass
     // the last consumed token to `ensureIdentifier`.
     Token varFinalOrConst = null;
-    for (Token modifier in modifiers) {
+    for (Token beforeModifier in modifiers) {
+      Token modifier = beforeModifier.next;
       if (optional("var", modifier) ||
           optional("final", modifier) ||
           optional("const", modifier)) {
@@ -2736,29 +2737,29 @@ class Parser {
     }
   }
 
-  /// Looks ahead to find the name of a member. Returns a link of the modifiers,
-  /// set/get, (operator) name, and either the start of the method body or the
-  /// end of the declaration.
+  /// Looks ahead to find the name of a member. Returns a link of tokens
+  /// immediately before the modifiers, set/get, (operator) name, and either the
+  /// start of the method body or the end of the declaration.
   ///
   /// Examples:
   ///
   ///     int get foo;
-  /// results in
+  /// results in the tokens before
   ///     [';', 'foo', 'get', 'int']
   ///
   ///
   ///     static const List<int> foo = null;
-  /// results in
+  /// results in the tokens before
   ///     ['=', 'foo', 'List', 'const', 'static']
   ///
   ///
   ///     get foo async* { return null }
-  /// results in
+  /// results in the tokens before
   ///     ['{', 'foo', 'get']
   ///
   ///
   ///     operator *(arg) => null;
-  /// results in
+  /// results in the tokens before
   ///     ['(', '*', 'operator']
   ///
   Link<Token> findMemberName(Token token) {
@@ -2780,15 +2781,19 @@ class Parser {
     // `true` if an identifier has been seen after 'get'.
     bool hasName = false;
 
+    Token previous = token;
+    token = token.next;
     while (token.kind != EOF_TOKEN) {
       if (optional('get', token)) {
         isGetter = true;
       } else if (hasName &&
           (optional("sync", token) || optional("async", token))) {
         // Skip.
+        previous = token;
         token = token.next;
         if (optional("*", token)) {
           // Skip.
+          previous = token;
           token = token.next;
         }
         continue;
@@ -2796,19 +2801,21 @@ class Parser {
           optional("{", token) ||
           optional("=>", token)) {
         // A method.
-        identifiers = identifiers.prepend(token);
+        identifiers = identifiers.prepend(previous);
         return identifiers;
       } else if (optional("=", token) ||
           optional(";", token) ||
           optional(",", token)) {
         // A field or abstract getter.
-        identifiers = identifiers.prepend(token);
+        identifiers = identifiers.prepend(previous);
         return identifiers;
       } else if (optional('native', token) &&
           (token.next.kind == STRING_TOKEN || optional(';', token.next))) {
         // Skip.
+        previous = token;
         token = token.next;
         if (token.kind == STRING_TOKEN) {
+          previous = token;
           token = token.next;
         }
         continue;
@@ -2816,7 +2823,10 @@ class Parser {
         hasName = true;
       }
       token = listener.injectGenericCommentTypeAssign(token);
-      identifiers = identifiers.prepend(token);
+      // TODO(brianwilkerson): Remove the invocation of `previous` when
+      // `injectGenericCommentTypeAssign` returns the last consumed token.
+      previous = token.previous;
+      identifiers = identifiers.prepend(previous);
 
       if (!isGeneralizedFunctionType(token)) {
         // Read a potential return type.
@@ -2827,17 +2837,24 @@ class Parser {
             // type '.' ...
             if (token.next.next.isIdentifier) {
               // type '.' identifier
+              previous = token.next;
               token = token.next.next;
             }
           }
           if (optional('<', token.next)) {
             if (token.next is BeginToken) {
+              previous = token;
               token = token.next;
               Token closeBrace = closeBraceTokenFor(token);
               if (closeBrace == null) {
-                token = reportUnmatchedToken(token).next;
+                previous = reportUnmatchedToken(token);
+                token = previous.next;
               } else {
                 token = closeBrace;
+                // TODO(brianwilkerson): Remove the invocation of `previous`
+                // when `closeBraceTokenFor` returns the token before the
+                // closing brace.
+                previous = token.previous;
               }
             }
           }
@@ -2850,6 +2867,10 @@ class Parser {
             if (!identical(newType, type)) {
               identifiers = identifiers.tail;
               token = newType;
+              // TODO(brianwilkerson): Remove the invocation of `previous` when
+              // `replaceTokenWithGenericCommentTypeAssign` returns the last
+              // consumed token.
+              previous = token.previous;
               continue;
             }
           }
@@ -2857,35 +2878,47 @@ class Parser {
           // Handle the edge case where a built-in keyword is being used
           // as the identifier, as in "abstract<T>() => 0;"
           if (optional('<', token.next)) {
+            Token beforeIdentifier = previous;
             Token identifier = token;
             if (token.next is BeginToken) {
+              previous = token;
               token = token.next;
               Token closeBrace = closeBraceTokenFor(token);
               if (closeBrace == null) {
                 // Handle the edge case where the user is defining the less
                 // than operator, as in "bool operator <(other) => false;"
                 if (optional('operator', identifier)) {
+                  previous = beforeIdentifier;
                   token = identifier;
                 } else {
-                  token = reportUnmatchedToken(token).next;
+                  previous = reportUnmatchedToken(token);
+                  token = previous.next;
                 }
               } else {
                 token = closeBrace;
+                // TODO(brianwilkerson): Remove the invocation of `previous`
+                // when `closeBraceTokenFor` returns the token before the
+                // closing brace.
+                previous = token.previous;
               }
             }
           }
         }
+        previous = token;
         token = token.next;
       }
       while (isGeneralizedFunctionType(token)) {
+        previous = token;
         token = token.next;
         if (optional('<', token)) {
           if (token is BeginToken) {
             Token closeBrace = closeBraceTokenFor(token);
             if (closeBrace == null) {
-              token = reportUnmatchedToken(token).next;
+              previous = reportUnmatchedToken(token);
+              token = previous.next;
             } else {
-              token = closeBrace.next;
+              previous = closeBrace;
+              token = previous.next;
             }
           }
         }
@@ -2893,14 +2926,17 @@ class Parser {
           if (optional(';', token)) {
             reportRecoverableError(token, fasta.messageExpectedOpenParens);
           }
+          previous = token;
           token = expect("(", token);
         }
         if (token is BeginToken) {
           Token closeBrace = closeBraceTokenFor(token);
           if (closeBrace == null) {
-            token = reportUnmatchedToken(token).next;
+            previous = reportUnmatchedToken(token);
+            token = previous.next;
           } else {
-            token = closeBrace.next;
+            previous = closeBrace;
+            token = previous.next;
           }
         }
       }
@@ -3272,37 +3308,37 @@ class Parser {
       return token;
     }
 
-    Link<Token> identifiers = findMemberName(token);
+    Link<Token> identifiers = findMemberName(start);
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
           token, fasta.templateExpectedDeclaration);
     }
-    Token afterName = identifiers.head;
+    Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
       return reportUnrecoverableErrorWithToken(
           token, fasta.templateExpectedDeclaration);
     }
-    Token name = identifiers.head;
+    Token name = identifiers.head.next;
     identifiers = identifiers.tail;
     if (!identifiers.isEmpty) {
-      if (optional('operator', identifiers.head)) {
-        name = identifiers.head;
+      if (optional('operator', identifiers.head.next)) {
+        name = identifiers.head.next;
         identifiers = identifiers.tail;
       }
     }
     Token getOrSet;
     if (!identifiers.isEmpty) {
-      if (isGetOrSet(identifiers.head)) {
-        getOrSet = identifiers.head;
+      if (isGetOrSet(identifiers.head.next)) {
+        getOrSet = identifiers.head.next;
         identifiers = identifiers.tail;
       }
     }
     Token type;
     if (!identifiers.isEmpty) {
-      if (isValidTypeReference(identifiers.head)) {
-        type = identifiers.head;
+      if (isValidTypeReference(identifiers.head.next)) {
+        type = identifiers.head.next;
         identifiers = identifiers.tail;
       }
     }
@@ -3346,7 +3382,7 @@ class Parser {
     }
 
     Token afterModifiers =
-        identifiers.isNotEmpty ? identifiers.head.next : start.next;
+        identifiers.isNotEmpty ? identifiers.head.next.next : start.next;
     token = isField
         ? parseFields(start, identifiers.reverse(), type, name, false)
         : parseMethod(start, afterModifiers, type, getOrSet, name);
