@@ -5,7 +5,6 @@
 import 'graph_builder.dart';
 import 'nodes.dart';
 import '../common.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -220,16 +219,7 @@ abstract class TypeBuilder {
 
   /// In checked mode, generate type tests for the parameters of the inlined
   /// function.
-  void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
-    if (!checkOrTrustTypes) return;
-
-    FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((_parameter) {
-      ParameterElement parameter = _parameter;
-      HInstruction argument = builder.localsHandler.readLocal(parameter);
-      potentiallyCheckOrTrustType(argument, parameter.type);
-    });
-  }
+  void potentiallyCheckInlinedParameterTypes(FunctionEntity function);
 
   bool get checkOrTrustTypes =>
       builder.options.enableTypeAssertions ||

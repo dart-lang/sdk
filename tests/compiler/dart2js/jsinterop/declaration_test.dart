@@ -450,6 +450,8 @@ runTestInternal(Test test, {bool useKernel}) async {
   List<String> options = <String>[];
   if (useKernel) {
     options.add(Flags.useKernel);
+    // TODO(redemption): Enable inlining.
+    options.add(Flags.disableInlining);
   }
   print('--useKernel=${useKernel}--------------------------------------------');
   await runCompiler(

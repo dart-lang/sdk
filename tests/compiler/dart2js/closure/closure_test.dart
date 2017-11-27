@@ -29,7 +29,11 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
         skipForKernel: skipForKernel,
-        options: [Flags.disableTypeInference],
+        options: [
+          Flags.disableTypeInference,
+          // TODO(redemption): Enable inlining.
+          Flags.disableInlining
+        ],
         args: args);
   });
 }

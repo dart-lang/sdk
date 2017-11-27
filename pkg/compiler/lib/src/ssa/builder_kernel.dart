@@ -16,6 +16,7 @@ import '../constants/values.dart'
         InterceptorConstantValue,
         StringConstantValue,
         TypeConstantValue;
+import '../dump_info.dart';
 import '../elements/elements.dart' show ErroneousElement;
 import '../elements/entities.dart';
 import '../elements/jumps.dart';
@@ -26,15 +27,18 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
-import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
+import '../js_model/locals.dart'
+    show forEachOrderedParameter, GlobalLocalsMap, JumpVisitor;
 import '../kernel/element_map.dart';
+import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/nodes.dart' show Node;
 import '../types/masks.dart';
+import '../types/types.dart';
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show ConstantUse, DynamicUse;
+import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse;
 import '../universe/world_builder.dart' show CodegenWorldBuilder;
 import '../world.dart';
 import 'graph_builder.dart';
@@ -76,6 +80,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   // of the type variables in an environment (like the [LocalsHandler]).
   final List<InterfaceType> currentImplicitInstantiations = <InterfaceType>[];
 
+  /// Used to report information about inlining (which occurs while building the
+  /// SSA graph), when dump-info is enabled.
+  final InfoReporter _infoReporter;
+
   HInstruction rethrowableException;
 
   final Compiler compiler;
@@ -89,8 +97,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   SourceInformationBuilder<ir.Node> _sourceInformationBuilder;
   final KernelToElementMapForBuilding _elementMap;
-  final KernelToTypeInferenceMap _typeInferenceMap;
+  final GlobalTypeInferenceResults _globalInferenceResults;
   final GlobalLocalsMap _globalLocalsMap;
+  KernelToTypeInferenceMap _typeInferenceMap;
   KernelToLocalsMap _localsMap;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
@@ -105,12 +114,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
 
+  // TODO(johnniwinther): Normalize the use of properties that are updated
+  // for inlining.
+  final List<KernelInliningState> _inliningStack = <KernelInliningState>[];
+  Local _returnLocal;
+  DartType _returnType;
+  bool _inLazyInitializerExpression = false;
+
   KernelSsaGraphBuilder(
       this.targetElement,
       InterfaceType instanceType,
       this.compiler,
       this._elementMap,
-      this._typeInferenceMap,
+      this._globalInferenceResults,
       this._globalLocalsMap,
       this.closedWorld,
       this._worldBuilder,
@@ -119,10 +135,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.nativeEmitter,
       // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
       this._sourceInformationBuilder,
-      this.functionNode) {
+      this.functionNode)
+      : _infoReporter = compiler.dumpInfoTask {
     _localsMap = _globalLocalsMap.getLocalsMap(targetElement);
+    _typeInferenceMap = new KernelToTypeInferenceMapImpl(
+        targetElement, _globalInferenceResults);
     this.loopHandler = new KernelLoopHandler(this);
-    typeBuilder = new KernelTypeBuilder(this, _elementMap);
+    typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
     graph.element = targetElement;
     graph.sourceInformation =
         _sourceInformationBuilder.buildVariableDeclaration();
@@ -248,6 +267,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   void buildField(ir.Field field) {
+    _inLazyInitializerExpression = field.isStatic;
     openFunction();
     if (field.isInstanceMember && options.enableTypeAssertions) {
       HInstruction thisInstruction = localsHandler.readThis();
@@ -357,7 +377,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _sourceInformationBuilder.buildCreate(constructor);
     ir.Class constructedClass = constructor.enclosingClass;
 
-    openFunction(constructor.function);
+    if (_inliningStack.isEmpty) {
+      openFunction(constructor.function);
+    }
     _addClassTypeVariablesIfNeeded(constructor);
     _potentiallyAddFunctionParameterTypeChecks(constructor.function);
 
@@ -493,13 +515,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
         }
       }
 
+      // TODO(redemption): Try to inline [body].
       _invokeConstructorBody(body, bodyCallInputs);
       _localsMap = oldLocalsMap;
     }
 
-    closeAndGotoExit(
-        new HReturn(newObject, null)..sourceInformation = sourceInformation);
-    closeFunction();
+    if (_inliningStack.isEmpty) {
+      closeAndGotoExit(new HReturn(newObject, sourceInformation));
+      closeFunction();
+    } else {
+      localsHandler.updateLocal(_returnLocal, newObject,
+          sourceInformation: sourceInformation);
+    }
   }
 
   static bool _isEmptyStatement(ir.Statement body) {
@@ -973,6 +1000,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       function.namedParameters.toList()
         ..sort(namedOrdering)
         ..forEach(handleParameter);
+      _returnType = _elementMap.getDartType(function.returnType);
     }
 
     HBasicBlock block = graph.addNewBlock();
@@ -1081,8 +1109,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitExpressionStatement(ir.ExpressionStatement node) {
     if (!isReachable) return;
     ir.Expression expression = node.expression;
-    if (expression is ir.Throw) {
-      // TODO(sra): Prevent generating a statement when inlining.
+    if (expression is ir.Throw && _inliningStack.isEmpty) {
       _visitThrowExpression(expression.expression);
       handleInTryStatement();
       SourceInformation sourceInformation =
@@ -1125,26 +1152,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
       assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       node.expression.accept(this);
       value = pop();
-      DartType returnType =
-          _elementMap.getFunctionType(_targetFunction).returnType;
       if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
         if (options.enableTypeAssertions &&
-            !isValidAsyncReturnType(returnType)) {
+            !isValidAsyncReturnType(_returnType)) {
           generateTypeError(
               node,
               "Async function returned a Future,"
-              " was declared to return a ${returnType}.");
+              " was declared to return a ${_returnType}.");
           pop();
           return;
         }
       } else {
-        value = typeBuilder.potentiallyCheckOrTrustType(value, returnType);
+        value = typeBuilder.potentiallyCheckOrTrustType(value, _returnType);
       }
     }
     handleInTryStatement();
-    // TODO(het): Set a return value instead of closing the function when we
-    // support inlining.
-    closeAndGotoExit(new HReturn(value, sourceInformation));
+    _emitReturn(value, sourceInformation);
   }
 
   @override
@@ -3388,7 +3411,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _pushStaticInvocation(
       MemberEntity target, List<HInstruction> arguments, TypeMask typeMask,
-      {SourceInformation sourceInformation}) {
+      {SourceInformation sourceInformation,
+      // TODO(redemption): Pass instance type.
+      InterfaceType instanceType}) {
+    // TODO(redemption): Pass current node if needed.
+    if (_tryInlineMethod(target, null, null, arguments, null, sourceInformation,
+        instanceType: instanceType)) {
+      return;
+    }
+
     var instruction;
     if (closedWorld.nativeData.isJsInteropMember(target)) {
       instruction = _invokeJsInteropFunction(target, arguments);
@@ -3409,6 +3440,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void _pushDynamicInvocation(ir.Node node, TypeMask mask,
       List<HInstruction> arguments, SourceInformation sourceInformation,
       {Selector selector}) {
+    // TODO(redemption): Try to inline single targets.
+
     HInstruction receiver = arguments.first;
     List<HInstruction> inputs = <HInstruction>[];
 
@@ -3978,6 +4011,519 @@ class KernelSsaGraphBuilder extends ir.Visitor
       })
       ..cleanUp();
   }
+
+  /**
+   * Try to inline [element] within the correct context of the builder. The
+   * insertion point is the state of the builder.
+   */
+  // TODO(redemption): Use this.
+  bool _tryInlineMethod(
+      FunctionEntity function,
+      Selector selector,
+      TypeMask mask,
+      List<HInstruction> providedArguments,
+      ir.Node currentNode,
+      SourceInformation sourceInformation,
+      {InterfaceType instanceType}) {
+    if (nativeData.isJsInteropMember(function) &&
+        !(function is ConstructorEntity && function.isFactoryConstructor)) {
+      // We only inline factory JavaScript interop constructors.
+      return false;
+    }
+
+    if (compiler.elementHasCompileTimeError(function)) return false;
+
+    bool insideLoop = loopDepth > 0 || graph.calledInLoop;
+
+    // Bail out early if the inlining decision is in the cache and we can't
+    // inline (no need to check the hard constraints).
+    bool cachedCanBeInlined =
+        inlineCache.canInline(function, insideLoop: insideLoop);
+    if (cachedCanBeInlined == false) return false;
+
+    bool meetsHardConstraints() {
+      if (options.disableInlining) return false;
+
+      assert(
+          selector != null ||
+              function.isStatic ||
+              function.isTopLevel ||
+              function is ConstructorBodyEntity,
+          failedAt(function, "Missing selector for inlining of $function."));
+      if (selector != null) {
+        if (!selector.applies(function)) return false;
+        if (mask != null && !mask.canHit(function, selector, closedWorld)) {
+          return false;
+        }
+      }
+
+      if (nativeData.isJsInteropMember(function)) return false;
+
+      // Don't inline operator== methods if the parameter can be null.
+      if (function.name == '==') {
+        if (function.enclosingClass != commonElements.objectClass &&
+            providedArguments[1].canBeNull()) {
+          return false;
+        }
+      }
+
+      // Generative constructors of native classes should not be called directly
+      // and have an extra argument that causes problems with inlining.
+      if (function is ConstructorEntity &&
+          function.isGenerativeConstructor &&
+          nativeData.isNativeOrExtendsNative(function.enclosingClass)) {
+        return false;
+      }
+
+      // A generative constructor body is not seen by global analysis,
+      // so we should not query for its type.
+      if (function is! ConstructorBodyEntity) {
+        if (globalInferenceResults.resultOfMember(function).throwsAlways) {
+          isReachable = false;
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    bool doesNotContainCode() {
+      // A function with size 1 does not contain any code.
+      return InlineWeeder.canBeInlined(function, 1,
+          enableUserAssertions: options.enableUserAssertions);
+    }
+
+    bool reductiveHeuristic() {
+      // The call is on a path which is executed rarely, so inline only if it
+      // does not make the program larger.
+      if (_isCalledOnce(function)) {
+        return InlineWeeder.canBeInlined(function, null,
+            enableUserAssertions: options.enableUserAssertions);
+      }
+      // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
+      // case we miss by doing nothing is inlining very simple constructors
+      // where all fields are initialized with values from the arguments at this
+      // call site.  The code is slightly larger (`new Foo(1)` vs `Foo$(1)`) but
+      // that usually means the factory constructor is left unused and not
+      // emitted.
+      // We at least inline bodies that are empty (and thus have a size of 1).
+      return doesNotContainCode();
+    }
+
+    bool heuristicSayGoodToGo() {
+      // Don't inline recursively
+      if (_inliningStack.any((entry) => entry.function == function)) {
+        return false;
+      }
+
+      //if (function.isSynthesized) return true;
+
+      // Don't inline across deferred import to prevent leaking code. The only
+      // exception is an empty function (which does not contain code).
+      bool hasOnlyNonDeferredImportPaths = backend.outputUnitData
+          .hasOnlyNonDeferredImportPaths(compiler.currentElement, function);
+
+      if (!hasOnlyNonDeferredImportPaths) {
+        return doesNotContainCode();
+      }
+
+      // Do not inline code that is rarely executed unless it reduces size.
+      if (_inExpressionOfThrow || _inLazyInitializerExpression) {
+        return reductiveHeuristic();
+      }
+
+      if (cachedCanBeInlined == true) {
+        // We may have forced the inlining of some methods. Therefore check
+        // if we can inline this method regardless of size.
+        assert(InlineWeeder.canBeInlined(function, null,
+            allowLoops: true,
+            enableUserAssertions: options.enableUserAssertions));
+        return true;
+      }
+
+      int numParameters = function.parameterStructure.totalParameters;
+      int maxInliningNodes;
+      if (insideLoop) {
+        maxInliningNodes = InlineWeeder.INLINING_NODES_INSIDE_LOOP +
+            InlineWeeder.INLINING_NODES_INSIDE_LOOP_ARG_FACTOR * numParameters;
+      } else {
+        maxInliningNodes = InlineWeeder.INLINING_NODES_OUTSIDE_LOOP +
+            InlineWeeder.INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR * numParameters;
+      }
+
+      // If a method is called only once, and all the methods in the
+      // inlining stack are called only once as well, we know we will
+      // save on output size by inlining this method.
+      if (_isCalledOnce(function)) {
+        maxInliningNodes = null;
+      }
+      bool canInline = InlineWeeder.canBeInlined(function, maxInliningNodes,
+          enableUserAssertions: options.enableUserAssertions);
+      if (canInline) {
+        inlineCache.markAsInlinable(function, insideLoop: insideLoop);
+      } else {
+        inlineCache.markAsNonInlinable(function, insideLoop: insideLoop);
+      }
+      return canInline;
+    }
+
+    void doInlining() {
+      registry.registerStaticUse(new StaticUse.inlining(function));
+
+      // Add an explicit null check on the receiver before doing the
+      // inlining. We use [element] to get the same name in the
+      // NoSuchMethodError message as if we had called it.
+      if (function.isInstanceMember &&
+          function is! ConstructorBodyEntity &&
+          (mask == null || mask.isNullable)) {
+        add(new HFieldGet(null, providedArguments[0], commonMasks.dynamicType,
+            isAssignable: false)
+          ..sourceInformation = sourceInformation);
+      }
+      List<HInstruction> compiledArguments = _completeCallArgumentsList(
+          function, selector, providedArguments, currentNode);
+      _enterInlinedMethod(function, compiledArguments, instanceType);
+      inlinedFrom(function, () {
+        if (!isReachable) {
+          _emitReturn(graph.addConstantNull(closedWorld), sourceInformation);
+        } else {
+          _doInline(function);
+        }
+      });
+      _leaveInlinedMethod();
+    }
+
+    if (meetsHardConstraints() && heuristicSayGoodToGo()) {
+      doInlining();
+      _infoReporter?.reportInlined(
+          function,
+          _inliningStack.isEmpty
+              ? targetElement
+              : _inliningStack.last.function);
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Returns a complete argument list for a call of [function].
+  List<HInstruction> _completeCallArgumentsList(
+      FunctionEntity function,
+      Selector selector,
+      List<HInstruction> providedArguments,
+      ir.Node currentNode) {
+    assert(providedArguments != null);
+
+    bool isInstanceMember = function.isInstanceMember;
+    // For static calls, [providedArguments] is complete, default arguments
+    // have been included if necessary, see [makeStaticArgumentList].
+    if (!isInstanceMember ||
+        currentNode == null || // In erroneous code, currentNode can be null.
+        _providedArgumentsKnownToBeComplete(currentNode) ||
+        function is ConstructorBodyEntity ||
+        selector.isGetter) {
+      // For these cases, the provided argument list is known to be complete.
+      return providedArguments;
+    } else {
+      return _completeDynamicCallArgumentsList(
+          selector, function, providedArguments);
+    }
+  }
+
+  /// Returns a complete argument list for a dynamic call of [function]. The
+  /// initial argument list [providedArguments], created by
+  /// [addDynamicSendArgumentsToList], does not include values for default
+  /// arguments used in the call. The reason is that the target function (which
+  /// defines the defaults) is not known.
+  ///
+  /// However, inlining can only be performed when the target function can be
+  /// resolved statically. The defaults can therefore be included at this point.
+  ///
+  /// The [providedArguments] list contains first all positional arguments, then
+  /// the provided named arguments (the named arguments that are defined in the
+  /// [selector]) in a specific order (see [addDynamicSendArgumentsToList]).
+  List<HInstruction> _completeDynamicCallArgumentsList(Selector selector,
+      FunctionEntity function, List<HInstruction> providedArguments) {
+    assert(selector.applies(function));
+    ParameterStructure parameterStructure = function.parameterStructure;
+    List<String> selectorArgumentNames =
+        selector.callStructure.getOrderedNamedArguments();
+    List<HInstruction> compiledArguments = new List<HInstruction>(
+        parameterStructure.totalParameters + 1); // Plus one for receiver.
+
+    compiledArguments[0] = providedArguments[0]; // Receiver.
+    int index = 1;
+    int namedArgumentIndex = 0;
+    int firstProvidedNamedArgument;
+    _worldBuilder.forEachParameter(function,
+        (DartType type, String name, ConstantValue defaultValue) {
+      if (index <= parameterStructure.positionalParameters) {
+        if (index <= providedArguments.length) {
+          compiledArguments[index] = providedArguments[index];
+        } else {
+          assert(defaultValue != null,
+              failedAt(function, 'No constant computed for parameter $name'));
+          compiledArguments[index] =
+              graph.addConstant(defaultValue, closedWorld);
+        }
+      } else {
+        // Example:
+        //     void foo(a, {b, d, c})
+        //     foo(0, d = 1, b = 2)
+        //
+        // providedArguments = [0, 2, 1]
+        // selectorArgumentNames = [b, d]
+        // parameterStructure.namedParameters = [b, c, d]
+        //
+        // For each parameter name in the signature, if the argument name
+        // matches we use the next provided argument, otherwise we get the
+        // default.
+        firstProvidedNamedArgument ??= index;
+        if (namedArgumentIndex < selectorArgumentNames.length &&
+            name == selectorArgumentNames[namedArgumentIndex]) {
+          // The named argument was provided in the function invocation.
+          compiledArguments[index] = providedArguments[
+              firstProvidedNamedArgument + namedArgumentIndex++];
+        } else {
+          assert(defaultValue != null,
+              failedAt(function, 'No constant computed for parameter $name'));
+          compiledArguments[index] =
+              graph.addConstant(defaultValue, closedWorld);
+        }
+      }
+      index++;
+    });
+    return compiledArguments;
+  }
+
+  /// This method is invoked before inlining the body of [function] into this
+  /// [SsaGraphBuilder].
+  void _enterInlinedMethod(FunctionEntity function,
+      List<HInstruction> compiledArguments, InterfaceType instanceType) {
+    KernelInliningState state = new KernelInliningState(
+        function,
+        _returnLocal,
+        _returnType,
+        stack,
+        localsHandler,
+        inTryStatement,
+        _isCalledOnce(function),
+        _typeInferenceMap);
+    _typeInferenceMap =
+        new KernelToTypeInferenceMapImpl(function, _globalInferenceResults);
+    _inliningStack.add(state);
+
+    // Setting up the state of the (AST) builder is performed even when the
+    // inlined function is in IR, because the irInliner uses the [returnElement]
+    // of the AST builder.
+    _setupStateForInlining(function, compiledArguments, instanceType);
+  }
+
+  /// This method sets up the local state of the builder for inlining
+  /// [function]. The arguments of the function are inserted into the
+  /// [localsHandler].
+  ///
+  /// When inlining a function, [:return:] statements are not emitted as
+  /// [HReturn] instructions. Instead, the value of a synthetic element is
+  /// updated in the [localsHandler]. This function creates such an element and
+  /// stores it in the [_returnLocal] field.
+  void _setupStateForInlining(FunctionEntity function,
+      List<HInstruction> compiledArguments, InterfaceType instanceType) {
+    localsHandler = new LocalsHandler(
+        this,
+        function,
+        function,
+        instanceType ?? _elementMap.getMemberThisType(function),
+        nativeData,
+        interceptorData);
+    localsHandler.scopeInfo = closureDataLookup.getScopeInfo(function);
+    _returnLocal = new SyntheticLocal("result", function, function);
+    localsHandler.updateLocal(_returnLocal, graph.addConstantNull(closedWorld));
+
+    inTryStatement = false; // TODO(lry): why? Document.
+
+    int argumentIndex = 0;
+    if (function.isInstanceMember) {
+      localsHandler.updateLocal(localsHandler.scopeInfo.thisLocal,
+          compiledArguments[argumentIndex++]);
+    }
+
+    forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
+        (Local parameter) {
+      HInstruction argument = compiledArguments[argumentIndex++];
+      localsHandler.updateLocal(parameter, argument);
+    });
+
+    ClassEntity enclosing = function.enclosingClass;
+    if ((function.isConstructor || function is ConstructorBodyEntity) &&
+        rtiNeed.classNeedsRti(enclosing)) {
+      InterfaceType thisType =
+          _elementMap.elementEnvironment.getThisType(enclosing);
+      thisType.typeArguments.forEach((_typeVariable) {
+        TypeVariableType typeVariable = _typeVariable;
+        HInstruction argument = compiledArguments[argumentIndex++];
+        localsHandler.updateLocal(
+            localsHandler.getTypeVariableAsLocal(typeVariable), argument);
+      });
+    }
+    assert(argumentIndex == compiledArguments.length);
+
+    _returnType =
+        _elementMap.elementEnvironment.getFunctionType(function).returnType;
+    stack = <HInstruction>[];
+
+    _insertTraceCall(function);
+    _insertCoverageCall(function);
+  }
+
+  void _leaveInlinedMethod() {
+    HInstruction result = localsHandler.readLocal(_returnLocal);
+    KernelInliningState state = _inliningStack.removeLast();
+    _restoreState(state);
+    stack.add(result);
+  }
+
+  void _restoreState(KernelInliningState state) {
+    localsHandler = state.oldLocalsHandler;
+    _returnLocal = state.oldReturnLocal;
+    inTryStatement = state.inTryStatement;
+    _typeInferenceMap = state.oldTypeInferenceMap;
+    _returnType = state.oldReturnType;
+    assert(stack.isEmpty);
+    stack = state.oldStack;
+  }
+
+  bool _providedArgumentsKnownToBeComplete(ir.Node currentNode) {
+    /* When inlining the iterator methods generated for a [:for-in:] loop, the
+     * [currentNode] is the [ForIn] tree. The compiler-generated iterator
+     * invocations are known to have fully specified argument lists, no default
+     * arguments are used. See invocations of [pushInvokeDynamic] in
+     * [visitForIn].
+     */
+    // TODO(redemption): Is this valid here?
+    return currentNode is ir.ForInStatement;
+  }
+
+  void _emitReturn(HInstruction value, SourceInformation sourceInformation) {
+    if (_inliningStack.isEmpty) {
+      closeAndGotoExit(new HReturn(value, sourceInformation));
+    } else {
+      localsHandler.updateLocal(_returnLocal, value);
+    }
+  }
+
+  void _doInline(FunctionEntity function) {
+    _visitInlinedFunction(function);
+  }
+
+  /// Run this builder on the body of the [function] to be inlined.
+  void _visitInlinedFunction(FunctionEntity function) {
+    typeBuilder.potentiallyCheckInlinedParameterTypes(function);
+
+    MemberDefinition definition = _elementMap.getMemberDefinition(function);
+    switch (definition.kind) {
+      case MemberKind.constructorBody:
+        buildConstructorBody(definition.node);
+        return;
+      case MemberKind.regular:
+        ir.Node node = definition.node;
+        if (node is ir.Constructor) {
+          node.function.body.accept(this);
+          return;
+        } else if (node is ir.Procedure) {
+          node.function.body.accept(this);
+          return;
+        }
+        break;
+      case MemberKind.closureCall:
+        ir.Node node = definition.node;
+        if (node is ir.FunctionExpression) {
+          node.function.body.accept(this);
+          return;
+        } else if (node is ir.FunctionDeclaration) {
+          node.function.body.accept(this);
+          return;
+        }
+        break;
+      default:
+        break;
+    }
+    failedAt(function, "Unexpected inlined function: $definition");
+  }
+
+  bool get _allInlinedFunctionsCalledOnce {
+    return _inliningStack.isEmpty || _inliningStack.last.allFunctionsCalledOnce;
+  }
+
+  bool _isFunctionCalledOnce(FunctionEntity element) {
+    // ConstructorBodyElements are not in the type inference graph.
+    if (element is ConstructorBodyEntity) return false;
+    return globalInferenceResults.resultOfMember(element).isCalledOnce;
+  }
+
+  bool _isCalledOnce(FunctionEntity element) {
+    return _allInlinedFunctionsCalledOnce && _isFunctionCalledOnce(element);
+  }
+
+  void _insertTraceCall(FunctionEntity element) {
+    if (JavaScriptBackend.TRACE_METHOD == 'console') {
+      if (element == commonElements.traceHelper) return;
+      n(e) => e == null ? '' : e.name;
+      String name = "${n(element.library)}:${n(element.enclosingClass)}."
+          "${n(element)}";
+      HConstant nameConstant = graph.addConstantString(name, closedWorld);
+      add(new HInvokeStatic(commonElements.traceHelper,
+          <HInstruction>[nameConstant], commonMasks.dynamicType));
+    }
+  }
+
+  void _insertCoverageCall(FunctionEntity element) {
+    if (JavaScriptBackend.TRACE_METHOD == 'post') {
+      if (element == commonElements.traceHelper) return;
+      // TODO(sigmund): create a better uuid for elements.
+      HConstant idConstant =
+          graph.addConstantInt(element.hashCode, closedWorld);
+      HConstant nameConstant =
+          graph.addConstantString(element.name, closedWorld);
+      add(new HInvokeStatic(commonElements.traceHelper,
+          <HInstruction>[idConstant, nameConstant], commonMasks.dynamicType));
+    }
+  }
+}
+
+class KernelInliningState {
+  final FunctionEntity function;
+  final Local oldReturnLocal;
+  final DartType oldReturnType;
+  final List<HInstruction> oldStack;
+  final LocalsHandler oldLocalsHandler;
+  final bool inTryStatement;
+  final bool allFunctionsCalledOnce;
+  final KernelToTypeInferenceMap oldTypeInferenceMap;
+
+  KernelInliningState(
+      this.function,
+      this.oldReturnLocal,
+      this.oldReturnType,
+      this.oldStack,
+      this.oldLocalsHandler,
+      this.inTryStatement,
+      this.allFunctionsCalledOnce,
+      this.oldTypeInferenceMap);
+}
+
+class InlineWeeder {
+  // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
+  static const INLINING_NODES_OUTSIDE_LOOP = 18;
+  static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
+  static const INLINING_NODES_INSIDE_LOOP = 42;
+  static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
+
+  static bool canBeInlined(FunctionEntity function, int maxInliningNodes,
+      {bool allowLoops: false, bool enableUserAssertions: null}) {
+    // TODO(redemption): Implement inlining heuristic.
+    return true;
+  }
 }
 
 /// Class in charge of building try, catch and/or finally blocks. This handles
@@ -4207,11 +4753,28 @@ class TryCatchFinallyBuilder {
 
 class KernelTypeBuilder extends TypeBuilder {
   KernelToElementMapForBuilding _elementMap;
+  GlobalLocalsMap _globalLocalsMap;
 
-  KernelTypeBuilder(GraphBuilder builder, this._elementMap) : super(builder);
+  KernelTypeBuilder(
+      GraphBuilder builder, this._elementMap, this._globalLocalsMap)
+      : super(builder);
 
   ClassTypeVariableAccess computeTypeVariableAccess(MemberEntity member) {
     return _elementMap.getClassTypeVariableAccessForMember(member);
+  }
+
+  /// In checked mode, generate type tests for the parameters of the inlined
+  /// function.
+  void potentiallyCheckInlinedParameterTypes(FunctionEntity function) {
+    if (!checkOrTrustTypes) return;
+
+    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
+    forEachOrderedParameter(_globalLocalsMap, _elementMap, function,
+        (Local parameter) {
+      HInstruction argument = builder.localsHandler.readLocal(parameter);
+      potentiallyCheckOrTrustType(
+          argument, localsMap.getLocalType(_elementMap, parameter));
+    });
   }
 }
 

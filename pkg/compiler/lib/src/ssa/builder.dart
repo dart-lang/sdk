@@ -599,8 +599,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       List<HInstruction> compiledArguments = completeSendArgumentsList(
           function, selector, providedArguments, currentNode);
-      enterInlinedMethod(function, functionResolvedAst, compiledArguments,
-          instanceType: instanceType);
+      enterInlinedMethod(
+          function, functionResolvedAst, compiledArguments, instanceType);
       inlinedFrom(functionResolvedAst, () {
         if (!isReachable) {
           emitReturn(graph.addConstantNull(closedWorld), null);
@@ -613,8 +613,10 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     if (meetsHardConstraints() && heuristicSayGoodToGo()) {
       doInlining();
-      infoReporter?.reportInlined(function,
-          inliningStack.isEmpty ? target : inliningStack.last.function);
+      MemberElement inlinedFrom = inliningStack.isEmpty
+          ? target.declaration
+          : inliningStack.last.function.declaration;
+      infoReporter?.reportInlined(declaration, inlinedFrom);
       return true;
     }
 
@@ -900,8 +902,8 @@ class SsaAstGraphBuilder extends ast.Visitor
    * Run this builder on the body of the [function] to be inlined.
    */
   void visitInlinedFunction(ResolvedAst resolvedAst) {
-    typeBuilder.potentiallyCheckInlinedParameterTypes(
-        resolvedAst.element.implementation);
+    MethodElement function = resolvedAst.element.implementation;
+    typeBuilder.potentiallyCheckInlinedParameterTypes(function);
 
     if (resolvedAst.element.isGenerativeConstructor) {
       buildFactory(resolvedAst);
@@ -6506,9 +6508,11 @@ class SsaAstGraphBuilder extends ast.Visitor
    * This method is invoked before inlining the body of [function] into this
    * [SsaBuilder].
    */
-  void enterInlinedMethod(MethodElement function,
-      ResolvedAst functionResolvedAst, List<HInstruction> compiledArguments,
-      {ResolutionInterfaceType instanceType}) {
+  void enterInlinedMethod(
+      MethodElement function,
+      ResolvedAst functionResolvedAst,
+      List<HInstruction> compiledArguments,
+      ResolutionInterfaceType instanceType) {
     AstInliningState state = new AstInliningState(
         function,
         returnLocal,
@@ -6862,7 +6866,7 @@ abstract class InliningState {
   /**
    * Invariant: [function] must be an implementation element.
    */
-  final FunctionElement function;
+  final MethodElement function;
 
   InliningState(this.function) {
     assert(function.isImplementation);
@@ -6880,7 +6884,7 @@ class AstInliningState extends InliningState {
   final GlobalTypeInferenceElementResult oldElementInferenceResults;
 
   AstInliningState(
-      FunctionElement function,
+      MethodElement function,
       this.oldReturnLocal,
       this.oldReturnType,
       this.oldResolvedAst,
@@ -6938,5 +6942,18 @@ class AstTypeBuilder extends TypeBuilder {
     } else {
       return ClassTypeVariableAccess.none;
     }
+  }
+
+  /// In checked mode, generate type tests for the parameters of the inlined
+  /// function.
+  void potentiallyCheckInlinedParameterTypes(covariant MethodElement function) {
+    if (!checkOrTrustTypes) return;
+
+    FunctionSignature signature = function.functionSignature;
+    signature.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
+      HInstruction argument = builder.localsHandler.readLocal(parameter);
+      potentiallyCheckOrTrustType(argument, parameter.type);
+    });
   }
 }
