@@ -2345,8 +2345,11 @@ class ShadowWhileStatement extends WhileStatement implements ShadowStatement {
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
     inferrer.listener.whileStatementEnter(this);
-    inferrer.inferExpression(
-        condition, inferrer.coreTypes.boolClass.rawType, false);
+    var expectedType = inferrer.coreTypes.boolClass.rawType;
+    var actualType =
+        inferrer.inferExpression(condition, expectedType, !inferrer.isTopLevel);
+    inferrer.checkAssignability(
+        expectedType, actualType, condition, condition.fileOffset);
     inferrer.inferStatement(body);
     inferrer.listener.whileStatementExit(this);
   }

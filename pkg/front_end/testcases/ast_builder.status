@@ -476,6 +476,7 @@ runtime_checks/implicit_downcast_do: Crash
 runtime_checks/implicit_downcast_for_condition: Crash
 runtime_checks/implicit_downcast_if: Crash
 runtime_checks/implicit_downcast_not: Crash
+runtime_checks/implicit_downcast_while: Crash
 runtime_checks_new/call_through_this: Crash
 runtime_checks_new/contravariant_combiner: Crash
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: Crash

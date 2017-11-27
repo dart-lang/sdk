@@ -1025,6 +1025,7 @@ implicit_downcast_during_not_test: RuntimeError
 implicit_downcast_during_return_async_test: RuntimeError
 implicit_downcast_during_return_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
+implicit_downcast_during_while_statement_test: RuntimeError
 
 [ $runtime == vm && $checked && $mode == debug && $compiler != dartk ]
 tearoff_dynamic_test: Crash

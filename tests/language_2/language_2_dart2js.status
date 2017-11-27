@@ -1071,6 +1071,7 @@ implicit_downcast_during_return_test: RuntimeError
 implicit_downcast_during_static_method_invocation_test: RuntimeError
 implicit_downcast_during_super_method_invocation_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
+implicit_downcast_during_while_statement_test: RuntimeError
 inferrer_synthesized_constructor_test: RuntimeError
 malformed2_test/00: MissingCompileTimeError
 mixin_mixin2_test: RuntimeError
@@ -2989,6 +2990,7 @@ implicit_downcast_during_return_test: RuntimeError
 implicit_downcast_during_static_method_invocation_test: RuntimeError
 implicit_downcast_during_super_method_invocation_test: RuntimeError
 implicit_downcast_during_variable_declaration_test: RuntimeError
+implicit_downcast_during_while_statement_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
 known_identifier_usage_error_test/none: RuntimeError # Issue 28815
