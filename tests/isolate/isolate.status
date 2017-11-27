@@ -156,7 +156,6 @@ count_test: Skip # Isolate.spawnUri
 cross_isolate_message_test: Skip # Isolate.spawnUri
 deferred_in_isolate2_test: Skip # Isolate.spawnUri
 deferred_in_isolate_test: Skip # Isolate.spawnUri
-deferred_in_isolate_test: Skip # Isolate.spawnUri
 error_at_spawnuri_test: Skip # Isolate.spawnUri
 error_exit_at_spawnuri_test: Skip # Isolate.spawnUri
 exit_at_spawnuri_test: Skip # Isolate.spawnUri

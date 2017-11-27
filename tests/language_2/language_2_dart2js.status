@@ -777,18 +777,37 @@ generic_closure_test: RuntimeError
 generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_typedef_test: RuntimeError
+implicit_downcast_during_assert_initializer_test: CompileTimeError
+implicit_downcast_during_list_literal_test: RuntimeError
+implicit_downcast_during_redirecting_initializer_test: RuntimeError
+implicit_downcast_during_return_async_test: RuntimeError
+implicit_downcast_during_super_initializer_test: RuntimeError
+implicit_downcast_during_yield_star_test: RuntimeError
+implicit_downcast_during_yield_test: RuntimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 many_generic_instanceof_test: RuntimeError
 map_literal8_test: RuntimeError
+mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101
+mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 15101
+mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 15101
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
 null_test/mirrors: Skip # Uses mirrors.
+ref_before_declaration_test/00: MissingCompileTimeError
+ref_before_declaration_test/01: MissingCompileTimeError
+ref_before_declaration_test/02: MissingCompileTimeError
+ref_before_declaration_test/03: MissingCompileTimeError
+ref_before_declaration_test/04: MissingCompileTimeError
+ref_before_declaration_test/05: MissingCompileTimeError
+ref_before_declaration_test/06: MissingCompileTimeError
+regress_28341_test: Fail # Issue 28340
 symbol_literal_test/none: CompileTimeError
 tearoff_dynamic_test: RuntimeError
+truncdiv_test: RuntimeError # Issue 15246
 type_literal_test: RuntimeError
 vm/*: SkipByDesign # Tests for the VM.
 
@@ -919,12 +938,7 @@ method_override5_test: RuntimeError # Issue 12809
 mint_arithmetic_test: RuntimeError # Issue 1533
 mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test/none: CompileTimeError
-mixin_super_constructor_named_test/01: Fail # Issue 15101
-mixin_super_constructor_positionals_test/01: Fail # Issue 15101
-mixin_super_test: CompileTimeError # Issue 23773
 mixin_super_bound2_test: CompileTimeError # Issue 23773
-mixin_super_use_test: CompileTimeError # Issue 23773
-mixin_superclass_test: CompileTimeError # Issue 23773
 mixin_mixin_type_arguments_test: RuntimeError # Issue 29587
 mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
@@ -988,49 +1002,8 @@ expect_test: RuntimeError, OK # Issue 13080
 setter4_test: CompileTimeError # issue 13639
 stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
 truncdiv_test: RuntimeError # Issue 15246
-final_attempt_reinitialization_test.dart: Skip # Issue 29659
-const_switch_test/02: RuntimeError # Issue 17960
-const_switch_test/04: RuntimeError # Issue 17960
 const_dynamic_type_literal_test/03: CompileTimeError # Issue 23009
 full_stacktrace3_test: Pass, RuntimeError # Issue 12698
-
-[ $compiler == dart2js && $runtime != none && !$dart2js_with_kernel ]
-accessor_conflict_import2_test: RuntimeError # Issue 25626
-accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
-accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
-accessor_conflict_import_test: RuntimeError # Issue 25626
-assertion_test: RuntimeError # Issue 30326
-bit_operations_test: RuntimeError, OK # Issue 1533
-branch_canonicalization_test: RuntimeError # Issue 638.
-covariant_override/runtime_check_test: RuntimeError
-generic_closure_test: RuntimeError
-generic_function_typedef_test/01: RuntimeError
-generic_instanceof_test: RuntimeError
-generic_typedef_test: RuntimeError
-implicit_downcast_during_assert_initializer_test: CompileTimeError
-implicit_downcast_during_list_literal_test: RuntimeError
-implicit_downcast_during_redirecting_initializer_test: RuntimeError
-implicit_downcast_during_return_async_test: RuntimeError
-implicit_downcast_during_super_initializer_test: RuntimeError
-implicit_downcast_during_yield_star_test: RuntimeError
-implicit_downcast_during_yield_test: RuntimeError
-instanceof2_test: RuntimeError
-instanceof4_test/01: RuntimeError
-instanceof4_test/none: RuntimeError
-many_generic_instanceof_test: RuntimeError
-vm/*: SkipByDesign # Tests for the VM.
-mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101
-mixin_forwarding_constructor4_test/02: MissingCompileTimeError # Issue 15101
-mixin_forwarding_constructor4_test/03: MissingCompileTimeError # Issue 15101
-ref_before_declaration_test/00: MissingCompileTimeError
-ref_before_declaration_test/01: MissingCompileTimeError
-ref_before_declaration_test/02: MissingCompileTimeError
-ref_before_declaration_test/03: MissingCompileTimeError
-ref_before_declaration_test/04: MissingCompileTimeError
-ref_before_declaration_test/05: MissingCompileTimeError
-ref_before_declaration_test/06: MissingCompileTimeError
-regress_28341_test: Fail # Issue 28340
-truncdiv_test: RuntimeError # Issue 15246
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 callable_test/none: RuntimeError

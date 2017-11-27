@@ -10,8 +10,6 @@ io/process_run_output_test: RuntimeError # Flutter Issue 9115
 io/process_run_test: RuntimeError # Flutter Issue 9115
 io/process_sync_test: RuntimeError # Flutter Issue 9115
 io/test_extension_test: RuntimeError # Flutter Issue 9115
-io/test_extension_test: RuntimeError # Flutter Issue 9115
-io/test_extension_fail_test: RuntimeError # Flutter Issue 9115
 io/test_extension_fail_test: RuntimeError # Flutter Issue 9115
 oom_error_stacktrace_test: RuntimeError # Flutter Issue 9115
 io/raw_socket_cross_process_test: RuntimeError # Flutter Issue 9115
@@ -87,7 +85,3 @@ io/dependency_graph_test: CompileTimeError # Imports dart:mirrors
 io/skipping_dart2js_compilations_test: CompileTimeError # Uses mirrors
 io/test_harness_analyzer_test: CompileTimeError # Uses mirrors
 io/test_runner_test: CompileTimeError # Uses mirrors
-io/addlatexhash_test: RuntimeError # Issue 9115
-http_launch_test: Skip # Issue 9115
-dart_developer_disabled_env_test: RuntimeError # Issue 9115
-dart_developer_disabled_env_test: RuntimeError # Issue 9115

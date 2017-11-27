@@ -37,7 +37,6 @@ deferred_import_core_test: Crash # Requires deferred libraries
 deferred_inlined_test: Crash # Requires deferred libraries
 deferred_inheritance_constraints_test: Crash # Requires deferred libraries
 deferred_load_constants_test: Crash # Requires deferred libraries
-deferred_load_constants_test: Crash # Requires deferred libraries
 deferred_load_inval_code_test: Crash # Requires deferred libraries
 deferred_load_library_wrong_args_test: Crash # Requires deferred libraries
 deferred_mixin_test: Crash # Requires deferred libraries
@@ -83,14 +82,9 @@ compile_time_constant_k_test/01: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/02: MissingCompileTimeError # Requires strong mode
 compile_time_constant_k_test/03: MissingCompileTimeError # Requires strong mode
 compile_time_constant_static2_test: Skip # Requires strong mode
-compile_time_constant_static2_test: Skip # Requires strong mode
-compile_time_constant_static3_test: Skip # Requires strong mode
 compile_time_constant_static3_test: Skip # Requires strong mode
 compile_time_constant_static4_test: Skip # Requires strong mode
-compile_time_constant_static4_test: Skip # Requires strong mode
 compile_time_constant_static5_test: Skip # Requires strong mode
-compile_time_constant_static5_test: Skip # Requires strong mode
-compile_time_constant_static_test: Skip # Requires strong mode
 compile_time_constant_static_test: Skip # Requires strong mode
 crash_6725_test/01: MissingCompileTimeError # Requires strong mode
 deferred_super_dependency_test/01: MissingCompileTimeError # Requires strong mode

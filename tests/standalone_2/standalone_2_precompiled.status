@@ -13,7 +13,6 @@ io/compile_all_test: Skip # Incompatible flag --compile_all
 http_launch_test: Skip
 io/addlatexhash_test: Skip
 io/dart_std_io_pipe_test: Skip
-io/dart_std_io_pipe_test: Skip
 io/file_blocking_lock_test: Skip
 io/file_lock_test: Skip
 io/file_read_special_device_test: Skip
@@ -44,8 +43,6 @@ io/stdin_sync_test: Skip
 io/stdio_implicit_close_test: Skip
 io/stdio_nonblocking_test: Skip
 io/test_extension_fail_test: Skip
-io/test_extension_fail_test: Skip
-io/test_extension_test: Skip
 io/test_extension_test: Skip
 io/windows_environment_test: Skip
 io/platform_test: RuntimeError # Expects to be running from 'dart' instead of 'dart_precompiled_runtime'

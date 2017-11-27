@@ -625,7 +625,6 @@ prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
 prefix22_test/00: MissingCompileTimeError
 prefix23_test/00: MissingCompileTimeError
-prefix23_test/00: MissingCompileTimeError
 private_access_test/01: MissingCompileTimeError
 private_access_test/02: MissingCompileTimeError
 private_access_test/03: MissingCompileTimeError
@@ -651,8 +650,6 @@ setter4_test: MissingCompileTimeError # Issue 14736
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError
 static_field1_test/01: MissingCompileTimeError
-static_field1_test/01: MissingCompileTimeError
-static_field1a_test/01: MissingCompileTimeError
 static_field1a_test/01: MissingCompileTimeError
 static_field3_test/01: MissingCompileTimeError
 static_field3_test/02: MissingCompileTimeError
@@ -1071,7 +1068,6 @@ generic_functions_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869
 generic_methods_function_type_test: Pass # Issue 25869
 generic_methods_generic_function_parameter_test: Pass # Issue 25869
-generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
 
@@ -1144,7 +1140,6 @@ vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 [ $runtime == vm && $compiler == app_jit && $checked ]
 generic_functions_test: Pass # Issue 25869
 generic_methods_function_type_test: Pass # Issue 25869
-generic_methods_generic_function_parameter_test: Pass # Issue 25869
 generic_methods_test: Pass # Issue 25869
 generic_methods_new_test: Pass # Issue 25869
 generic_local_functions_test: Pass # Issue 25869

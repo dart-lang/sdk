@@ -353,7 +353,6 @@ deferred_mixin_test: CompileTimeError # KernelVM bug: Deferred loading kernel is
 deferred_mixin_test: RuntimeError
 deferred_no_such_method_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_no_such_method_test: RuntimeError
-deferred_not_loaded_check_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_only_constant_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_only_constant_test: RuntimeError
@@ -659,7 +658,6 @@ issue11724_test/01: MissingCompileTimeError
 issue13179_test: RuntimeError
 issue15606_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
-issue_1751477_test: CompileTimeError # Deferred loading kernel issue 28335.
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 issue_25671b_test/01: DartkCrash
 known_identifier_prefix_error_test/09: MissingCompileTimeError # Issue 28814
@@ -1871,7 +1869,6 @@ deferred_load_library_wrong_args_test/none: CompileTimeError # KernelVM bug: Def
 deferred_mixin_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_no_prefix_test/01: MissingCompileTimeError
 deferred_no_such_method_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_not_loaded_check_test: RuntimeError
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_only_constant_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_optimized_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -1896,8 +1893,7 @@ duplicate_implements_test/04: MissingCompileTimeError
 dynamic_field_test/01: MissingCompileTimeError
 dynamic_field_test/02: MissingCompileTimeError
 dynamic_prefix_core_test/01: MissingCompileTimeError
-dynamic_prefix_core_test/01: RuntimeError # Issue 12478
-dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
+dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Issue 12478, Blocked on language issue 29125.
 dynamic_prefix_core_test/none: RuntimeError
 dynamic_test: CompileTimeError # Issue 31402 (Variable declaration)
 empty_block_case_test: MissingCompileTimeError
@@ -2108,7 +2104,6 @@ function_type_alias2_test: RuntimeError
 function_type_alias4_test: RuntimeError
 function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176
-generalized_void_syntax_test: CompileTimeError # Issue #30176.
 generic_closure_test: RuntimeError
 generic_function_bounds_test: CompileTimeError
 generic_function_bounds_test: RuntimeError
@@ -2461,7 +2456,6 @@ mixin_type_parameters_mixin_test: RuntimeError
 mixin_type_parameters_super_extends_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 mixin_with_two_implicit_constructors_test: MissingCompileTimeError
-mock_writable_final_private_field_test: RuntimeError
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
 multiline_strings_test: Fail # Issue 23020
 multiline_strings_test: Pass
@@ -2655,7 +2649,6 @@ regress_29784_test/02: MissingCompileTimeError
 regress_30339_test: CompileTimeError # Issue 31402 (Variable declaration)
 rewrite_implicit_this_test/01: MissingCompileTimeError
 runtime_type_function_test: RuntimeError
-setter4_test: MissingCompileTimeError
 setter4_test: MissingCompileTimeError # Issue 14736
 setter_override_test/01: MissingCompileTimeError
 setter_override_test/02: MissingCompileTimeError

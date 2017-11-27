@@ -128,11 +128,7 @@ regexp/non-greedy-parentheses_test: RuntimeError # Issue 29921
 regexp/pcre-test-4_test: RuntimeError # Issue 29921
 regexp/alternative-length-miscalculation_test: RuntimeError # Issue 29921
 regexp/ascii-regexp-subject_test: RuntimeError # Issue 29921
-regexp/bol-with-multiline_test: RuntimeError # Issue 29921
 regexp/capture-3_test: RuntimeError # Issue 29921
-regexp/char-insensitive_test: RuntimeError # Issue 29921
-regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
-regexp/loop-capture_test: RuntimeError # Issue 29921
 regexp/char-insensitive_test: RuntimeError # Issue 29921
 regexp/character-match-out-of-order_test: RuntimeError # Issue 29921
 regexp/compile-crash_test: RuntimeError # Issue 29921
@@ -147,7 +143,6 @@ regexp/range-bound-ffff_test: RuntimeError # Issue 29921
 regexp/range-out-of-order_test: RuntimeError # Issue 29921
 regexp/ranges-and-escaped-hyphens_test: RuntimeError # Issue 29921
 regexp/regress-6-9-regexp_test: RuntimeError # Issue 29921
-regexp/pcre-test-4_test: RuntimeError # Issue 29921
 regexp/regress-regexp-codeflush_test: RuntimeError # Issue 29921
 regexp/regress-regexp-construct-result_test: RuntimeError # Issue 29921
 regexp/repeat-match-waldemar_test: RuntimeError # Issue 29921

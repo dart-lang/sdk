@@ -264,7 +264,6 @@ built_in_identifier_type_annotation_test/66: MissingCompileTimeError
 built_in_identifier_type_annotation_test/67: MissingCompileTimeError
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError
 call_function_apply_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::A' can't be assigned to a variable of type 'dart.core::Function'.
-call_function_apply_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::A' can't be assigned to a variable of type 'dart.core::Function'.
 call_function_test: CompileTimeError
 call_function2_test: CompileTimeError # Issue 31402; Error: A value of type '#lib1::Bar' can't be assigned to a variable of type '(dart.core::Object) → dart.core::Object'.
 call_non_method_field_test/01: MissingCompileTimeError
@@ -272,7 +271,6 @@ call_non_method_field_test/02: MissingCompileTimeError
 call_through_getter_test/01: MissingCompileTimeError
 call_through_getter_test/02: MissingCompileTimeError
 call_type_literal_test/01: MissingCompileTimeError
-call_with_no_such_method_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::F' can't be assigned to a variable of type 'dart.core::Function'.
 call_with_no_such_method_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::F' can't be assigned to a variable of type 'dart.core::Function'.
 callable_test/none: CompileTimeError
 cast_test/04: MissingCompileTimeError
@@ -433,7 +431,6 @@ deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: MissingCompileTimeError
 deferred_load_library_wrong_args_test/01: CompileTimeError
 deferred_shared_and_unshared_classes_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::List<dynamic>' can't be assigned to a variable of type 'dart.core::Iterable<dart.async::Future<dynamic>>'.
-deferred_shared_and_unshared_classes_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::List<dynamic>' can't be assigned to a variable of type 'dart.core::Iterable<dart.async::Future<dynamic>>'.
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
@@ -530,7 +527,6 @@ implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
-invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
@@ -789,7 +785,6 @@ regress_22976_test/01: CompileTimeError
 regress_23089_test: MissingCompileTimeError
 regress_25550_test: CompileTimeError
 regress_29025_test: CompileTimeError
-regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
 regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
 regress_29784_test/01: MissingCompileTimeError
 regress_29784_test/02: MissingCompileTimeError
