@@ -40,40 +40,21 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @potentialAnalyzerProblem
   @override
   test_asyncChangesDuringAnalysis_getErrors() async {
+    //  Unexpected exceptions:
+    //  Path: /test/lib/test.dart
+    //  Exception: NoSuchMethodError: The getter 'iterator' was called on null.
+    //  Receiver: null
+    //  Tried calling: iterator
+    //  #0      Object.noSuchMethod (dart:core-patch/dart:core/object_patch.dart:46)
+    //  #1      _LibraryWalker.evaluateScc (package:front_end/src/incremental/file_state.dart:581:35)
+    //  #2      _LibraryWalker.evaluate (package:front_end/src/incremental/file_state.dart:571:5)
+    //  #3      DependencyWalker.walk.strongConnect (package:front_end/src/dependency_walker.dart:149:13)
+    //  #4      DependencyWalker.walk (package:front_end/src/dependency_walker.dart:168:18)
+    //  #5      FileState.topologicalOrder (package:front_end/src/incremental/file_state.dart:147:19)
+    //  #6      KernelDriver.getKernelSequence.<anonymous closure>.<anonymous closure> (package:front_end/src/incremental/kernel_driver.dart:282:50)
+    //  #7      PerformanceLog.run (package:front_end/src/base/performance_logger.dart:34:15)
+    //  #8      KernelDriver.getKernelSequence.<anonymous closure> (package:front_end/src/incremental/kernel_driver.dart:281:43)
     await super.test_asyncChangesDuringAnalysis_getErrors();
-//    @7: Expected a class body, but got ''.
-//    null
-//    #0      Listener.handleUnrecoverableError (package:front_end/src/fasta/parser/listener.dart:1179:5)
-//    #1      Parser.reportUnrecoverableErrorWithToken (package:front_end/src/fasta/parser/parser.dart:5709:23)
-//    #2      Parser.skipClassBody (package:front_end/src/fasta/parser/parser.dart:3149:14)
-//    #3      TopLevelParser.parseClassBody (package:front_end/src/fasta/parser/top_level_parser.dart:18:58)
-//    #4      Parser.parseClass (package:front_end/src/fasta/parser/parser.dart:1381:13)
-//    #5      Parser.parseClassOrNamedMixinApplication (package:front_end/src/fasta/parser/parser.dart:1342:14)
-//    #6      Parser.parseTopLevelKeywordDeclaration (package:front_end/src/fasta/parser/parser.dart:438:14)
-//    #7      Parser.parseTopLevelDeclarationImpl (package:front_end/src/fasta/parser/parser.dart:365:14)
-//    #8      Parser.parseUnit (package:front_end/src/fasta/parser/parser.dart:308:15)
-//    #9      computeUnlinkedUnit (package:front_end/src/incremental/unlinked_unit.dart:25:32)
-//    #10     FileState.refresh (package:front_end/src/incremental/file_state.dart:208:23)
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_asyncChangesDuringAnalysis_resultsStream() async {
-    await super.test_asyncChangesDuringAnalysis_resultsStream();
-//    @7: Expected a class body, but got ''.
-//    null
-//    #0      Listener.handleUnrecoverableError (package:front_end/src/fasta/parser/listener.dart:1179:5)
-//    #1      Parser.reportUnrecoverableErrorWithToken (package:front_end/src/fasta/parser/parser.dart:5709:23)
-//    #2      Parser.skipClassBody (package:front_end/src/fasta/parser/parser.dart:3149:14)
-//    #3      TopLevelParser.parseClassBody (package:front_end/src/fasta/parser/top_level_parser.dart:18:58)
-//    #4      Parser.parseClass (package:front_end/src/fasta/parser/parser.dart:1381:13)
-//    #5      Parser.parseClassOrNamedMixinApplication (package:front_end/src/fasta/parser/parser.dart:1342:14)
-//    #6      Parser.parseTopLevelKeywordDeclaration (package:front_end/src/fasta/parser/parser.dart:438:14)
-//    #7      Parser.parseTopLevelDeclarationImpl (package:front_end/src/fasta/parser/parser.dart:365:14)
-//    #8      Parser.parseUnit (package:front_end/src/fasta/parser/parser.dart:308:15)
-//    #9      computeUnlinkedUnit (package:front_end/src/incremental/unlinked_unit.dart:25:32)
-//    #10     FileState.refresh (package:front_end/src/incremental/file_state.dart:208:23)
   }
 
   @failingTest

@@ -3224,9 +3224,7 @@ class Parser {
   Token skipClassBody(Token token) {
     token = token.next;
     if (!optional('{', token)) {
-      return reportUnrecoverableErrorWithToken(
-              token, fasta.templateExpectedClassBodyToSkip)
-          .next;
+      token = recoverFromMissingClassBody(token);
     }
     Token closeBrace = closeBraceTokenFor(token);
     if (closeBrace == null ||
@@ -3248,13 +3246,7 @@ class Parser {
     Token begin = token = token.next;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      reportRecoverableError(
-          token, fasta.templateExpectedClassBody.withArguments(token));
-      BeginToken replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
-          new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-      rewriter.insertToken(replacement, token);
-      token = begin = replacement;
+      token = begin = recoverFromMissingClassBody(token);
     }
     int count = 0;
     while (notEofOrValue('}', token.next)) {
@@ -3265,6 +3257,19 @@ class Parser {
     expect('}', token);
     listener.endClassBody(count, begin, token);
     return token;
+  }
+
+  /// Report that the given [token] was expected to be the beginning of a class
+  /// body, but isn't, insert a synthetic pair of curly braces, and return the
+  /// opening curly brace.
+  Token recoverFromMissingClassBody(Token token) {
+    reportRecoverableError(
+        token, fasta.templateExpectedClassBody.withArguments(token));
+    BeginToken replacement = link(
+        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
+        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
+    rewriter.insertToken(replacement, token);
+    return replacement;
   }
 
   bool isGetOrSet(Token token) {
