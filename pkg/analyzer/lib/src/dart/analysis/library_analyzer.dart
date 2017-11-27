@@ -24,8 +24,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/fasta/resolution_applier.dart';
-import 'package:analyzer/src/fasta/resolution_storer.dart' as kernel
-    show FunctionReferenceDartType;
+import 'package:analyzer/src/fasta/resolution_storer.dart' as kernel;
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
@@ -444,6 +443,12 @@ class LibraryAnalyzer {
       if (kernelType is kernel.FunctionReferenceDartType) {
         kernel.VariableDeclaration variable = kernelType.function.variable;
         FunctionElement element = declarationToElement[variable];
+        astType = element.type;
+      } else if (kernelType is kernel.MemberReferenceDartType) {
+        ExecutableElementImpl element = _kernelResynthesizer
+            .getElementFromCanonicalName(kernelType.member.canonicalName);
+        // TODO(scheglov) Instantiate the executable type with arguments.
+        assert(kernelType.typeArguments.isEmpty);
         astType = element.type;
       } else {
         astType = _kernelResynthesizer.getType(context, kernelType);

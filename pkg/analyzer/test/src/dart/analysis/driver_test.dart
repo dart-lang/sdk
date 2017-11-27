@@ -215,6 +215,32 @@ var b = new C<num, String>.named(4, 'five');
     }
   }
 
+  test_binaryExpression() async {
+    String content = r'''
+main() {
+  var v = 1 + 2;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableDeclarationStatement statement = mainStatements[0];
+    VariableDeclaration vNode = statement.variables.variables[0];
+    VariableElement vElement = vNode.element;
+    expect(vElement.type, typeProvider.intType);
+
+    BinaryExpression value = vNode.initializer;
+    expect(value.leftOperand.staticType, typeProvider.intType);
+    expect(value.rightOperand.staticType, typeProvider.intType);
+    expect(value.staticElement.name, '+');
+    expect(value.staticType, typeProvider.intType);
+  }
+
   test_local_function() async {
     addTestFile(r'''
 void main() {

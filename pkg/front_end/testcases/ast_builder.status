@@ -47,7 +47,6 @@ inference/block_bodied_lambdas_infer_bottom_async_star: Fail
 inference/block_bodied_lambdas_infer_bottom_sync: Crash
 inference/block_bodied_lambdas_infer_bottom_sync_star: Crash
 inference/block_bodied_lambdas_lub: Crash
-inference/block_bodied_lambdas_nested_lambdas: Crash
 inference/block_bodied_lambdas_no_return: Crash
 inference/block_bodied_lambdas_sync_star: Crash
 inference/block_bodied_lambdas_void_context: Crash
@@ -170,7 +169,6 @@ inference/infer_assign_to_property_super_upwards: Crash
 inference/infer_assign_to_property_upwards: Crash
 inference/infer_assign_to_static: Crash
 inference/infer_assign_to_static_upwards: Crash
-inference/infer_binary_custom: Crash
 inference/infer_binary_double_double: Crash
 inference/infer_binary_double_int: Crash
 inference/infer_binary_int_double: Crash
@@ -226,8 +224,6 @@ inference/infer_types_on_loop_indices_for_each_loop: Crash
 inference/infer_types_on_loop_indices_for_loop_with_inference: Crash
 inference/inferred_initializing_formal_checks_default_value: Crash
 inference/inferred_type_cascade: Crash
-inference/inferred_type_custom_binary_op: Crash
-inference/inferred_type_custom_binary_op_via_interface: Crash
 inference/inferred_type_custom_index_op: Crash
 inference/inferred_type_custom_index_op_via_interface: Crash
 inference/inferred_type_custom_unary_op: Crash
@@ -259,7 +255,6 @@ inference/null_aware_property_get: Crash
 inference/null_coalescing_operator: Crash
 inference/null_coalescing_operator_2: Crash
 inference/null_literal_should_not_infer_as_bottom: Crash
-inference/overloaded_int_operators: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
 inference/promote_bounds: Crash
@@ -323,7 +318,6 @@ inference/unsafe_block_closure_inference_method_call_explicit_dynamic_param: Cra
 inference/unsafe_block_closure_inference_method_call_explicit_type_param: Crash
 inference/unsafe_block_closure_inference_method_call_implicit_type_param: Crash
 inference/void_return_type_subtypes_dynamic: Crash
-inference_new/dependency_only_if_overloaded: Crash
 inference_new/field_inference_circularity: Crash
 inference_new/indexed_assign_combiner: Crash
 inference_new/infer_assign_to_implicit_this: Crash
@@ -392,7 +386,6 @@ rasta/issue_000002: Crash
 rasta/issue_000004: Crash
 rasta/issue_000012: Crash
 rasta/issue_000025: Crash
-rasta/issue_000026: Crash
 rasta/issue_000031: Crash
 rasta/issue_000036: Crash
 rasta/issue_000039: Crash

@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:front_end/src/base/syntactic_entity.dart';
 
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST.
@@ -48,8 +49,17 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    visitExpression(node);
-    node.staticElement = _getReferenceFor(node);
+    node.leftOperand.accept(this);
+
+    node.staticElement = _getReferenceFor(node.operator);
+
+    // Skip the function type of the operator.
+    _getTypeFor(node.operator);
+
+    node.rightOperand.accept(this);
+
+    // Record the return type of the expression.
+    node.staticType = _getTypeFor(node.operator);
   }
 
   @override
@@ -296,18 +306,18 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   /// Return the element associated with the reference represented by the
-  /// given [node].
-  Element _getReferenceFor(AstNode node) {
+  /// given [entity].
+  Element _getReferenceFor(SyntacticEntity entity) {
     return _referencedElements[_referencedElementIndex++];
   }
 
-  /// Return the type associated with the given [node].
+  /// Return the type associated with the given [entity].
   ///
-  /// If [synthetic] is `true`, the [node] must be `null` and the type is
+  /// If [synthetic] is `true`, the [entity] must be `null` and the type is
   /// an implicit type, e.g. the type of the absent default values of an
   /// optional parameter (i.e. [Null]).
-  DartType _getTypeFor(AstNode node, {bool synthetic: false}) {
-    assert(!synthetic || node == null);
+  DartType _getTypeFor(SyntacticEntity entity, {bool synthetic: false}) {
+    assert(!synthetic || entity == null);
     return _types[_typeIndex++];
   }
 
@@ -468,36 +478,37 @@ class ValidatingResolutionApplier extends ResolutionApplier {
   }
 
   @override
-  Element _getReferenceFor(AstNode node) {
-    int nodeOffset = node.offset;
+  Element _getReferenceFor(SyntacticEntity entity) {
+    int entityOffset = entity.offset;
     if (_debug) {
-      print('Getting reference element for $node at $nodeOffset');
+      print('Getting reference element for $entity at $entityOffset');
     }
     if (_referencedElementIndex >= _referencedElements.length) {
-      throw new StateError('No reference information for $node at $nodeOffset');
+      throw new StateError(
+          'No reference information for $entity at $entityOffset');
     }
     int elementOffset = _referencedElementOffsets[_referencedElementIndex];
-    if (nodeOffset != elementOffset) {
+    if (entityOffset != elementOffset) {
       throw new StateError(
-          'Expected element reference for analyzer offset $nodeOffset; '
+          'Expected element reference for analyzer offset $entityOffset; '
           'got one for kernel offset $elementOffset');
     }
-    return super._getReferenceFor(node);
+    return super._getReferenceFor(entity);
   }
 
   @override
-  DartType _getTypeFor(AstNode node, {bool synthetic: false}) {
-    var nodeOffset = synthetic ? -1 : node.offset;
+  DartType _getTypeFor(SyntacticEntity entity, {bool synthetic: false}) {
+    var entityOffset = synthetic ? -1 : entity.offset;
     if (_debug) {
-      print('Getting type for $node at $nodeOffset');
+      print('Getting type for $entity at $entityOffset');
     }
     if (_typeIndex >= _types.length) {
-      throw new StateError('No type information for $node at $nodeOffset');
+      throw new StateError('No type information for $entity at $entityOffset');
     }
-    if (nodeOffset != _typeOffsets[_typeIndex]) {
-      throw new StateError('Expected a type for $node at $nodeOffset; '
+    if (entityOffset != _typeOffsets[_typeIndex]) {
+      throw new StateError('Expected a type for $entity at $entityOffset; '
           'got one for kernel offset ${_typeOffsets[_typeIndex]}');
     }
-    return super._getTypeFor(node);
+    return super._getTypeFor(entity);
   }
 }

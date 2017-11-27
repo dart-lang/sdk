@@ -212,7 +212,10 @@ class ResolutionStorer extends TypeInferenceListener {
       _replaceType(new MemberReferenceDartType(
           interfaceMember as Member, arguments.types));
     }
-    _recordType(inferredType, arguments.fileOffset);
+    int resultOffset = arguments.fileOffset != -1
+        ? arguments.fileOffset
+        : expression.fileOffset;
+    _recordType(inferredType, resultOffset);
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
 

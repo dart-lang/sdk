@@ -83,13 +83,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_const_dependency_sameUnit() async {
-    await super.test_const_dependency_sameUnit();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_const_externalConstFactory() async {
     await super.test_const_externalConstFactory();
   }

@@ -67,12 +67,13 @@ f(String s, int i) {
 }
 ''', [], [
       _createFunctionParameter('s', 9),
+      new MethodElementImpl('+', -1),
       _createFunctionParameter('i', 16),
-      new MethodElementImpl('+', -1)
     ], <DartType>[
       typeProvider.stringType,
+      new FunctionTypeImpl(new FunctionElementImpl('+', -1)),
       typeProvider.intType,
-      typeProvider.stringType
+      typeProvider.stringType,
     ]);
   }
 
