@@ -1958,6 +1958,7 @@ class PropertySet extends Expression {
   Expression receiver;
   Name name;
   Expression value;
+  int flags = 0;
 
   Reference interfaceTargetReference;
 
@@ -1970,6 +1971,19 @@ class PropertySet extends Expression {
       this.receiver, this.name, this.value, this.interfaceTargetReference) {
     receiver?.parent = this;
     value?.parent = this;
+    this.dispatchCategory = DispatchCategory.dynamicDispatch;
+  }
+
+  // Must match serialized bit positions.
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
@@ -2064,6 +2078,7 @@ class DirectPropertySet extends Expression {
   Expression receiver;
   Reference targetReference;
   Expression value;
+  int flags = 0;
 
   DirectPropertySet(Expression receiver, Member target, Expression value)
       : this.byReference(receiver, getMemberReference(target), value);
@@ -2072,6 +2087,18 @@ class DirectPropertySet extends Expression {
       this.receiver, this.targetReference, this.value) {
     receiver?.parent = this;
     value?.parent = this;
+  }
+
+  // Must match serialized bit positions
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get target => targetReference?.asMember;

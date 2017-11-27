@@ -7,6 +7,8 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
+#include "vm/raw_object.h"
 
 namespace dart {
 
@@ -79,7 +81,8 @@ class ArgumentsDescriptor : public ValueObject {
   static RawArray* New(intptr_t type_args_len,
                        intptr_t num_arguments,
                        const Array& optional_arguments_names,
-                       intptr_t arg_bits = 0);
+                       intptr_t arg_check_bits = 0,
+                       intptr_t type_arg_check_bits = 0);
 
   // Allocate and return an arguments descriptor that has no optional
   // arguments. All arguments are positional. The presence of a type argument
@@ -91,7 +94,8 @@ class ArgumentsDescriptor : public ValueObject {
   // receiver is interpreted as the dispatch bit.
   static RawArray* New(intptr_t type_args_len,
                        intptr_t num_arguments,
-                       intptr_t arg_bits = 0);
+                       intptr_t arg_check_bits = 0,
+                       intptr_t type_arg_check_bits = 0);
 
   // Initialize the preallocated fixed length arguments descriptors cache.
   static void InitOnce();
@@ -123,8 +127,9 @@ class ArgumentsDescriptor : public ValueObject {
     // will happen to be 0 and the entry won't require any extra interpretation
     // in generated code.
     //
-    // The named argument bits are attached to the corresponding entry in the
-    // array (see below).
+    // The bits for type arguments are packed in the same way into
+    // 'kTypeArgsLenIndex'. The named argument bits are attached to the
+    // corresponding entry in the array (see below).
     //
     // Ideally we would use a struct with bitfields, but the order of bitfields
     // is implementation-dependent and we need to manipulate them in generated
@@ -139,26 +144,32 @@ class ArgumentsDescriptor : public ValueObject {
   typedef BitField<intptr_t, intptr_t, kSmiBits / 2, kSmiBits / 2 + 1>
       PositionalArgumentsChecksField;
 
-  static inline intptr_t PackPositionalCount(intptr_t pos_arg_checks,
-                                             intptr_t num_pos_args) {
-    return PositionalCountField::encode(num_pos_args) |
-           PositionalArgumentsChecksField::encode(pos_arg_checks);
-  }
-
-  static inline void UnpackPositionalCount(intptr_t positional_count,
-                                           intptr_t* pos_arg_checks, /*out*/
-                                           intptr_t* num_pos_args /*out*/) {
-    *pos_arg_checks = PositionalArgumentsChecksField::decode(positional_count);
-    *num_pos_args = PositionalCountField::decode(positional_count);
-  }
+  // The Smi at kTypeArgsLenIndex holds these two bitfields.
+  typedef BitField<intptr_t, intptr_t, 0, kSmiBits / 2> TypeArgsLenField;
+  typedef BitField<intptr_t, intptr_t, kSmiBits / 2, kSmiBits / 2 + 1>
+      TypeArgsChecksField;
 
  private:
   // Relative indexes into each named argument entry.
   enum {
     kNameOffset,
+    // The least significant bit of the entry in 'kPositionOffset' (second
+    // least-significant after Smi-encoding) holds the strong-mode checking bit
+    // for the named argument.
     kPositionOffset,
     kNamedEntrySize,
   };
+
+  static RawSmi* PackBitFieldsToSmi(intptr_t value) {
+    ASSERT(((value >> (kSmiBits + 1)) & 1) == 0);
+    // Sign extend the value.
+    return Smi::New((value << kSmiTagShift) >> kSmiTagShift);
+  }
+
+ public:
+  // The Smis at kPositionOffset hold these two bitfields.
+  typedef BitField<intptr_t, intptr_t, 0, kSmiBits> NamedPositionField;
+  typedef BitField<intptr_t, intptr_t, kSmiBits, 1> NamedCheckField;
 
   static intptr_t LengthFor(intptr_t num_named_arguments) {
     // Add 1 for the terminating null.
@@ -168,7 +179,8 @@ class ArgumentsDescriptor : public ValueObject {
   static RawArray* NewNonCached(intptr_t type_args_len,
                                 intptr_t num_arguments,
                                 intptr_t pos_arg_bits,
-                                bool canonicalize = true);
+                                intptr_t type_arg_bits,
+                                bool canonicalize);
 
   // Used by Simulator to parse argument descriptors.
   static intptr_t name_index(intptr_t index) {

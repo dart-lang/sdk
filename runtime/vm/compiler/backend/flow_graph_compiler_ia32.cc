@@ -725,6 +725,11 @@ void FlowGraphCompiler::CheckTypeArgsLen(bool expect_type_args,
     // If expect_type_args, a non-zero length must match the declaration length.
     __ movl(EAX,
             FieldAddress(EDX, ArgumentsDescriptor::type_args_len_offset()));
+    if (isolate()->strong()) {
+      __ andl(EAX,
+              Immediate(Smi::RawValue(
+                  ArgumentsDescriptor::TypeArgsLenField::mask_in_place())));
+    }
     __ cmpl(EAX, Immediate(Smi::RawValue(0)));
     __ j(EQUAL, &correct_type_args_len, Assembler::kNearJump);
     __ cmpl(EAX, Immediate(Smi::RawValue(function.NumTypeParameters())));
@@ -856,6 +861,12 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
       // Load EAX with passed-in argument at provided arg_pos, i.e. at
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ movl(EAX, Address(EDI, ArgumentsDescriptor::position_offset()));
+      if (isolate()->strong()) {
+        __ andl(
+            EAX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+      }
       // EAX is arg_pos as Smi.
       // Point to next named entry.
       __ addl(EDI, Immediate(ArgumentsDescriptor::named_entry_size()));
