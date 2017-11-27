@@ -221,11 +221,9 @@ abstract_syntax_test/00: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTimeError
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
-assertion_initializer_const_function_test/01: MissingCompileTimeError
-assign_static_type_test/01: MissingCompileTimeError
-assign_static_type_test/02: MissingCompileTimeError
-assign_static_type_test/03: MissingCompileTimeError
-assign_static_type_test/04: MissingCompileTimeError
+assert_message_test: CompileTimeError
+assertion_initializer_test: CompileTimeError
+assertion_test: CompileTimeError
 assign_static_type_test/06: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
@@ -330,31 +328,12 @@ compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
 compile_time_constant_static4_test/03: MissingCompileTimeError
 compile_time_constant_static5_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/04: MissingCompileTimeError
-compile_time_constant_static5_test/05: MissingCompileTimeError
-compile_time_constant_static5_test/06: MissingCompileTimeError
-compile_time_constant_static5_test/07: MissingCompileTimeError
-compile_time_constant_static5_test/08: MissingCompileTimeError
-compile_time_constant_static5_test/09: MissingCompileTimeError
-compile_time_constant_static5_test/10: MissingCompileTimeError
 compile_time_constant_static5_test/11: Pass
-compile_time_constant_static5_test/12: MissingCompileTimeError
 compile_time_constant_static5_test/13: MissingCompileTimeError
-compile_time_constant_static5_test/14: MissingCompileTimeError
-compile_time_constant_static5_test/15: MissingCompileTimeError
 compile_time_constant_static5_test/16: Pass
-compile_time_constant_static5_test/17: MissingCompileTimeError
 compile_time_constant_static5_test/18: MissingCompileTimeError
-compile_time_constant_static5_test/19: MissingCompileTimeError
-compile_time_constant_static5_test/20: MissingCompileTimeError
 compile_time_constant_static5_test/21: Pass
-compile_time_constant_static5_test/22: MissingCompileTimeError
 compile_time_constant_static5_test/23: Pass
-compile_time_constant_static5_test/24: MissingCompileTimeError
-compile_time_constant_static5_test/25: MissingCompileTimeError
-compile_time_constant_static_test/01: MissingCompileTimeError
-compile_time_constant_static_test/02: MissingCompileTimeError
-compile_time_constant_static_test/03: MissingCompileTimeError
 conditional_method_invocation_test/07: MissingCompileTimeError
 conditional_property_access_test/05: MissingCompileTimeError
 conditional_property_access_test/06: MissingCompileTimeError
@@ -375,7 +354,6 @@ const_error_multiply_initialized_test/02: Crash
 const_error_multiply_initialized_test/03: Crash
 const_error_multiply_initialized_test/04: Crash
 const_factory_with_body_test/01: MissingCompileTimeError
-const_init2_test/02: MissingCompileTimeError
 const_instance_field_test/01: MissingCompileTimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
@@ -485,7 +463,6 @@ function_subtype_bound_closure7_test: CompileTimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generalized_void_syntax_test: CompileTimeError
-generic_field_mixin6_test/01: MissingCompileTimeError
 generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: CompileTimeError
 generic_methods_bounds_test/01: MissingCompileTimeError
@@ -528,7 +505,6 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
-issue18628_1_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
@@ -801,7 +777,6 @@ static_field_test/01: MissingCompileTimeError
 static_field_test/02: MissingCompileTimeError
 static_field_test/03: MissingCompileTimeError
 static_field_test/04: MissingCompileTimeError
-static_initializer_type_error_test: MissingCompileTimeError
 string_interpolation_test/01: MissingCompileTimeError
 string_no_operator_test/01: MissingCompileTimeError
 string_no_operator_test/02: MissingCompileTimeError
@@ -1180,12 +1155,8 @@ assertion_initializer_const_error2_test/cc08: RuntimeError # Assertion failed: i
 assertion_initializer_const_error2_test/cc09: RuntimeError # Assertion failed: "2 < 1"
 assertion_initializer_const_error2_test/cc10: RuntimeError # Assertion failed: is not true
 assertion_initializer_const_error2_test/cc11: RuntimeError # Assertion failed: "2 < 1"
-built_in_identifier_type_annotation_test/05: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
-built_in_identifier_type_annotation_test/39: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
-built_in_identifier_type_annotation_test/56: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
-built_in_identifier_type_annotation_test/73: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-checked_setter3_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+compile_time_constant_static5_test/23: RuntimeError
 conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
 conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 constant_string_interpolation2_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
@@ -1199,7 +1170,6 @@ enum_mirror_test: RuntimeError # Expect.equals(expected: <Foo.BAR>, actual: <nul
 enum_private_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
 enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-execute_finally12_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx._equals)' of null
 f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
 field_override_optimization_test: RuntimeError # Expect.fail('This should also be unreachable')
 first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
@@ -1229,7 +1199,6 @@ function_type_alias4_test: RuntimeError # Expect.isTrue(false) fails.
 function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
 generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
-generic_field_mixin6_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
 generic_method_types_test/02: RuntimeError
 generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.

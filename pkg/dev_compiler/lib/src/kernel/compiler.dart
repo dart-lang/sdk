@@ -4196,7 +4196,7 @@ class ProgramCompiler
     if (expr is StaticGet) {
       var target = expr.target;
       // tear-offs are not null, other accessors are nullable.
-      return target is Procedure && target.isAccessor;
+      return target is Field || (target is Procedure && target.isGetter);
     }
 
     if (expr is TypeLiteral) return false;
