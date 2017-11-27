@@ -1291,8 +1291,7 @@ class Parser {
   Token skipBlock(Token token) {
     // TODO(brianwilkerson) Accept the last consumed token.
     if (!optional('{', token)) {
-      return reportUnrecoverableError(token, fasta.messageExpectedBlockToSkip)
-          .next;
+      token = recoverFromMissingBlock(token);
     }
     Token closeBrace = closeBraceTokenFor(token);
     if (closeBrace == null ||
@@ -5354,7 +5353,9 @@ class Parser {
     Token begin = token = token.next;
     listener.beginBlock(begin);
     int statementCount = 0;
-    expect('{', token);
+    if (!optional('{', token)) {
+      token = recoverFromMissingBlock(token);
+    }
     while (notEofOrValue('}', token.next)) {
       Token startToken = token.next;
       token = parseStatementOpt(token);
@@ -5371,6 +5372,20 @@ class Parser {
     listener.endBlock(statementCount, begin, token);
     expect('}', token);
     return token;
+  }
+
+  /// Report that the given [token] was expected to be the beginning of a block
+  /// but isn't, insert a synthetic pair of curly braces, and return the opening
+  /// curly brace.
+  Token recoverFromMissingBlock(Token token) {
+    // TODO(brianwilkerson): Add context information (as a parameter) so that we
+    // can generate a better error.
+    reportRecoverableError(token, fasta.messageExpectedBlock);
+    BeginToken replacement = link(
+        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
+        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
+    rewriter.insertToken(replacement, token);
+    return replacement;
   }
 
   /// ```
