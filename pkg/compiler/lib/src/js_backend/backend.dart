@@ -814,6 +814,9 @@ class JavaScriptBackend {
             nativeCodegenEnqueuer));
   }
 
+  static bool cacheCodegenImpactForTesting = false;
+  Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
+
   WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
     MemberEntity element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
@@ -842,6 +845,10 @@ class JavaScriptBackend {
             sourceInformationStrategy.buildSourceMappedMarker());
       }
       generatedCode[element] = function;
+    }
+    if (cacheCodegenImpactForTesting) {
+      codegenImpactsForTesting ??= <MemberEntity, WorldImpact>{};
+      codegenImpactsForTesting[element] = work.registry.worldImpact;
     }
     WorldImpact worldImpact = _codegenImpactTransformer
         .transformCodegenImpact(work.registry.worldImpact);
