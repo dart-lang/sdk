@@ -2,33 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: callExpression:Reads anything; writes anything.*/
+/*element: callExpression:SideEffects(reads anything; writes anything)*/
 callExpression() => (null)();
 
-/*element: Super.:Reads nothing; writes nothing.*/
+/*element: Super.:SideEffects(reads nothing; writes nothing)*/
 class Super {
   var field;
 
-  /*element: Super.getter:Reads nothing; writes nothing.*/
+  /*element: Super.getter:SideEffects(reads nothing; writes nothing)*/
   get getter => null;
 }
 
-/*element: Class.:Reads nothing; writes nothing.*/
+/*element: Class.:SideEffects(reads nothing; writes nothing)*/
 class Class extends Super {
-  /*element: Class.callSuperField:Reads anything; writes anything.*/
+  /*element: Class.callSuperField:SideEffects(reads anything; writes anything)*/
   callSuperField() => field();
 
-  /*element: Class.callSuperGetter:Reads anything; writes anything.*/
+  /*element: Class.callSuperGetter:SideEffects(reads anything; writes anything)*/
   callSuperGetter() => getter();
 
-  /*element: Class.call:Reads nothing; writes nothing.*/
+  /*element: Class.call:SideEffects(reads nothing; writes nothing)*/
   call() {}
 }
 
-/*element: callCall:Reads anything; writes anything.*/
+/*element: callCall:SideEffects(reads anything; writes anything)*/
 callCall(c) => c.call();
 
-/*element: main:Reads anything; writes anything.*/
+/*element: main:SideEffects(reads anything; writes anything)*/
 main() {
   var c = new Class();
   callExpression();

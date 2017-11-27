@@ -10,17 +10,17 @@ var field;
 
 /// Read a static field. This adds dependency of static properties to the
 /// side effects of the method.
-/*element: readStaticField:Reads static; writes nothing.*/
+/*element: readStaticField:SideEffects(reads static; writes nothing)*/
 readStaticField() => field;
 
 /// Read a static field. If not for the `@NoSideEffects()` annotation this would
 /// add dependency of static properties to the side effects of the method.
-/*element: readStaticFieldAnnotated:Reads nothing; writes nothing.*/
+/*element: readStaticFieldAnnotated:SideEffects(reads nothing; writes nothing)*/
 @NoInline()
 @NoSideEffects()
 readStaticFieldAnnotated() => field;
 
-/*element: main:Reads static; writes nothing.*/
+/*element: main:SideEffects(reads static; writes nothing)*/
 main() {
   readStaticField();
   readStaticFieldAnnotated();

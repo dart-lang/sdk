@@ -15,7 +15,7 @@ main() {
 // Switch statement without default case.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _switchWithoutDefault:Union of [[exact=JSUInt31], [null|exact=JSString]]*/
+/*element: _switchWithoutDefault:Union([exact=JSUInt31], [null|exact=JSString])*/
 _switchWithoutDefault(/*[exact=JSUInt31]*/ o) {
   var local;
   switch (o) {
@@ -39,7 +39,7 @@ switchWithoutDefault() {
 // Switch statement with default case.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _switchWithDefault:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: _switchWithDefault:Union([exact=JSString], [exact=JSUInt31])*/
 _switchWithDefault(/*[exact=JSUInt31]*/ o) {
   var local;
   switch (o) {
@@ -64,7 +64,7 @@ switchWithDefault() {
 // Switch statement with default case without break.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _switchWithDefaultWithoutBreak:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: _switchWithDefaultWithoutBreak:Union([exact=JSString], [exact=JSUInt31])*/
 _switchWithDefaultWithoutBreak(/*[exact=JSUInt31]*/ o) {
   var local;
   switch (o) {
@@ -88,7 +88,7 @@ switchWithDefaultWithoutBreak() {
 // Switch statement with continue.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _switchWithContinue:Union of [[exact=JSBool], [exact=JSString], [null|exact=JSUInt31]]*/
+/*element: _switchWithContinue:Union([exact=JSBool], [exact=JSString], [null|exact=JSUInt31])*/
 _switchWithContinue(/*[exact=JSUInt31]*/ o) {
   dynamic local;
   switch (o) {
@@ -98,7 +98,7 @@ _switchWithContinue(/*[exact=JSUInt31]*/ o) {
     label:
     case 1:
       local = local
-          . /*Union of [[exact=JSBool], [exact=JSString], [null|exact=JSUInt31]]*/ isEven;
+          . /*Union([exact=JSBool], [exact=JSString], [null|exact=JSUInt31])*/ isEven;
       break;
     case 2:
     default:
@@ -118,7 +118,7 @@ switchWithContinue() {
 // the continue statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _switchWithoutContinue:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: _switchWithoutContinue:Union([exact=JSString], [exact=JSUInt31])*/
 _switchWithoutContinue(/*[exact=JSUInt31]*/ o) {
   dynamic local;
   switch (o) {

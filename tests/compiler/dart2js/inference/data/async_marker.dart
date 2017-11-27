@@ -13,7 +13,7 @@ main() {
 /*element: asyncMethod:[exact=_Future]*/
 asyncMethod() async {}
 
-/*element: asyncMethodWithReturn:Union of [[exact=JSUInt31], [exact=_Future]]*/
+/*element: asyncMethodWithReturn:Union([exact=JSUInt31], [exact=_Future])*/
 asyncMethodWithReturn() async {
   return 0;
 }

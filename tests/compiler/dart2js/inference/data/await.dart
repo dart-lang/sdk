@@ -44,7 +44,7 @@ awaitOfInt() async {
 
 /*element: _method3:[null]*/
 _method3(
-    /*Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/ o) {}
+    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/ o) {}
 
 /*element: _method4:[null]*/
 _method4(/*[null|subclass=Object]*/ o) {}

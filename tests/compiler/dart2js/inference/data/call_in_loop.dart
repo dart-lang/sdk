@@ -8,7 +8,7 @@
 class Class<T> {
   /*element: Class.method:[null]*/
   method() {
-    /*iterator: Container mask: [empty] length: 0 type: [exact=JSExtendableArray]*/
+    /*iterator: Container([exact=JSExtendableArray], element: [empty], length: 0)*/
     /*current: [exact=ArrayIterator]*/
     /*moveNext: [exact=ArrayIterator]*/
     for (var a in []) {

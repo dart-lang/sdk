@@ -38,72 +38,72 @@ class Class2 {
 }
 
 /*element: _refineToClass1Invoke:[empty]*/
-_refineToClass1Invoke(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*invoke: Union of [[exact=Class1], [exact=Class2]]*/ method1();
+_refineToClass1Invoke(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method1();
   o. /*invoke: [exact=Class1]*/ method0();
   o. /*invoke: [exact=Class1]*/ method2();
   return o;
 }
 
 /*element: _refineToClass2Invoke:[empty]*/
-_refineToClass2Invoke(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*invoke: Union of [[exact=Class1], [exact=Class2]]*/ method2();
+_refineToClass2Invoke(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method2();
   o. /*invoke: [exact=Class2]*/ method0();
   o. /*invoke: [exact=Class2]*/ method1();
   return o;
 }
 
 /*element: _refineToEmptyInvoke:[empty]*/
-_refineToEmptyInvoke(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*invoke: Union of [[exact=Class1], [exact=Class2]]*/ method1();
+_refineToEmptyInvoke(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*invoke: Union([exact=Class1], [exact=Class2])*/ method1();
   o. /*invoke: [exact=Class1]*/ method2();
   o. /*invoke: [empty]*/ method0();
   return o;
 }
 
 /*element: _refineToClass1Get:[empty]*/
-_refineToClass1Get(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*Union of [[exact=Class1], [exact=Class2]]*/ field0;
-  o. /*Union of [[exact=Class1], [exact=Class2]]*/ field1;
+_refineToClass1Get(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*Union([exact=Class1], [exact=Class2])*/ field0;
+  o. /*Union([exact=Class1], [exact=Class2])*/ field1;
   o. /*[exact=Class1]*/ field2;
   return o;
 }
 
 /*element: _refineToClass2Get:[empty]*/
-_refineToClass2Get(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*Union of [[exact=Class1], [exact=Class2]]*/ field0;
-  o. /*Union of [[exact=Class1], [exact=Class2]]*/ field2;
+_refineToClass2Get(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*Union([exact=Class1], [exact=Class2])*/ field0;
+  o. /*Union([exact=Class1], [exact=Class2])*/ field2;
   o. /*[exact=Class2]*/ field1;
   return o;
 }
 
 /*element: _refineToEmptyGet:[empty]*/
-_refineToEmptyGet(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*Union of [[exact=Class1], [exact=Class2]]*/ field1;
+_refineToEmptyGet(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*Union([exact=Class1], [exact=Class2])*/ field1;
   o. /*[exact=Class1]*/ field2;
   o. /*[empty]*/ field0;
   return o;
 }
 
 /*element: _refineToClass1Set:[empty]*/
-_refineToClass1Set(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*update: Union of [[exact=Class1], [exact=Class2]]*/ field0 = 0;
-  o. /*update: Union of [[exact=Class1], [exact=Class2]]*/ field1 = 0;
+_refineToClass1Set(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*update: Union([exact=Class1], [exact=Class2])*/ field0 = 0;
+  o. /*update: Union([exact=Class1], [exact=Class2])*/ field1 = 0;
   o. /*update: [exact=Class1]*/ field2 = 0;
   return o;
 }
 
 /*element: _refineToClass2Set:[empty]*/
-_refineToClass2Set(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*update: Union of [[exact=Class1], [exact=Class2]]*/ field0 = 0;
-  o. /*update: Union of [[exact=Class1], [exact=Class2]]*/ field2 = 0;
+_refineToClass2Set(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*update: Union([exact=Class1], [exact=Class2])*/ field0 = 0;
+  o. /*update: Union([exact=Class1], [exact=Class2])*/ field2 = 0;
   o. /*update: [exact=Class2]*/ field1 = 0;
   return o;
 }
 
 /*element: _refineToEmptySet:[empty]*/
-_refineToEmptySet(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
-  o. /*update: Union of [[exact=Class1], [exact=Class2]]*/ field1 = 0;
+_refineToEmptySet(/*Union([exact=Class1], [exact=Class2])*/ o) {
+  o. /*update: Union([exact=Class1], [exact=Class2])*/ field1 = 0;
   o. /*update: [exact=Class1]*/ field2 = 0;
   o. /*update: [empty]*/ field0 = 0;
   return o;
@@ -111,19 +111,19 @@ _refineToEmptySet(/*Union of [[exact=Class1], [exact=Class2]]*/ o) {
 
 /*element: _refineToClass1InvokeIfNotNull:[null]*/
 _refineToClass1InvokeIfNotNull(
-    /*Union of [[exact=Class2], [null|exact=Class1]]*/ o) {
-  o?. /*ast.invoke: Union of [[exact=Class2], [null|exact=Class1]]*/ /*kernel.invoke: Union of [[exact=Class1], [exact=Class2]]*/ method1();
+    /*Union([exact=Class2], [null|exact=Class1])*/ o) {
+  o?. /*ast.invoke: Union([exact=Class2], [null|exact=Class1])*/ /*kernel.invoke: Union([exact=Class1], [exact=Class2])*/ method1();
   o?. /*ast.invoke: [null|exact=Class1]*/ /*kernel.invoke: [exact=Class1]*/ method0();
   o?. /*ast.invoke: [null|exact=Class1]*/ /*kernel.invoke: [exact=Class1]*/ method2();
   return o;
 }
 
-/*element: _noRefinementToClass1InvokeSet:Union of [[exact=Class2], [null|exact=Class1]]*/
+/*element: _noRefinementToClass1InvokeSet:Union([exact=Class2], [null|exact=Class1])*/
 _noRefinementToClass1InvokeSet(
-    /*Union of [[exact=Class2], [null|exact=Class1]]*/ o) {
-  (o = o). /*invoke: Union of [[exact=Class2], [null|exact=Class1]]*/ method1();
-  (o = o). /*invoke: Union of [[exact=Class2], [null|exact=Class1]]*/ method0();
-  (o = o). /*invoke: Union of [[exact=Class2], [null|exact=Class1]]*/ method2();
+    /*Union([exact=Class2], [null|exact=Class1])*/ o) {
+  (o = o). /*invoke: Union([exact=Class2], [null|exact=Class1])*/ method1();
+  (o = o). /*invoke: Union([exact=Class2], [null|exact=Class1])*/ method0();
+  (o = o). /*invoke: Union([exact=Class2], [null|exact=Class1])*/ method2();
   return o;
 }
 

@@ -15,7 +15,7 @@ main() {
 
 /*element: Super1.:[exact=Super1]*/
 class Super1 {
-  /*element: Super1.field:Union of [[exact=JSUInt31], [exact=Sub1]]*/
+  /*element: Super1.field:Union([exact=JSUInt31], [exact=Sub1])*/
   dynamic field = 42;
 }
 

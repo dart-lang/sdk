@@ -26,7 +26,7 @@ catchUntyped() {
 /// Typed catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: catchTyped:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: catchTyped:Union([exact=JSString], [exact=JSUInt31])*/
 catchTyped() {
   dynamic local = 0;
   try {} on String catch (e) {

@@ -34,7 +34,7 @@ main() {
 class Class1 {}
 
 /*element: _promotedIfThen:[null]*/
-_promotedIfThen(/*Union of [[exact=Class1], [exact=JSUInt31]]*/ o) {
+_promotedIfThen(/*Union([exact=Class1], [exact=JSUInt31])*/ o) {
   if (o is Class1) {
     o. /*invoke: [exact=Class1]*/ toString();
   }
@@ -54,13 +54,13 @@ promotedIfThen() {
 class Class2 {}
 
 /*element: _promotedIfThenElse:[null]*/
-_promotedIfThenElse(/*Union of [[exact=Class2], [exact=JSUInt31]]*/ o) {
+_promotedIfThenElse(/*Union([exact=Class2], [exact=JSUInt31])*/ o) {
   if (o is Class2) {
     o. /*invoke: [exact=Class2]*/ toString();
   } else {
     // TODO(johnniwinther): Use negative type knowledge to show that the
     // receiver must be [exact=JSUInt31].
-    o. /*invoke: Union of [[exact=Class2], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class2], [exact=JSUInt31])*/ toString();
   }
 }
 
@@ -78,9 +78,9 @@ promotedIfThenElse() {
 class Class3 {}
 
 /*element: _promotedNotIfThenElse:[null]*/
-_promotedNotIfThenElse(/*Union of [[exact=Class3], [exact=JSUInt31]]*/ o) {
+_promotedNotIfThenElse(/*Union([exact=Class3], [exact=JSUInt31])*/ o) {
   if (o is! Class3) {
-    o. /*invoke: Union of [[exact=Class3], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class3], [exact=JSUInt31])*/ toString();
   } else {
     o. /*invoke: [exact=Class3]*/ toString();
   }
@@ -101,7 +101,7 @@ class Class4 {}
 
 /*element: _promotedAndIfThen:[null]*/
 _promotedAndIfThen(
-    /*Union of [[exact=Class4], [exact=JSUInt31]]*/ o,
+    /*Union([exact=Class4], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
   if (o is Class4 && c) {
     o. /*invoke: [exact=Class4]*/ toString();
@@ -123,14 +123,14 @@ class Class5 {}
 
 /*element: _promotedAndIfThenElse:[null]*/
 _promotedAndIfThenElse(
-    /*Union of [[exact=Class5], [exact=JSUInt31]]*/ o,
+    /*Union([exact=Class5], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
   if (o is Class5 && c) {
     o. /*invoke: [exact=Class5]*/ toString();
   } else {
     // TODO(johnniwinther): Use negative type knowledge to show that the
     // receiver must be [exact=JSUInt31].
-    o. /*invoke: Union of [[exact=Class5], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class5], [exact=JSUInt31])*/ toString();
   }
 }
 
@@ -149,12 +149,12 @@ class Class6 {}
 
 /*element: _promotedNotAndIfThenElse:[null]*/
 _promotedNotAndIfThenElse(
-    /*Union of [[exact=Class6], [exact=JSUInt31]]*/ o,
+    /*Union([exact=Class6], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
   if (o is! Class6 && c) {
-    o. /*invoke: Union of [[exact=Class6], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class6], [exact=JSUInt31])*/ toString();
   } else {
-    o. /*invoke: Union of [[exact=Class6], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class6], [exact=JSUInt31])*/ toString();
   }
 }
 
@@ -173,10 +173,10 @@ class Class7 {}
 
 /*element: _promotedOrIfThen:[null]*/
 _promotedOrIfThen(
-    /*Union of [[exact=Class7], [exact=JSUInt31]]*/ o,
+    /*Union([exact=Class7], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
   if (o is Class7 || c) {
-    o. /*invoke: Union of [[exact=Class7], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class7], [exact=JSUInt31])*/ toString();
   }
 }
 
@@ -195,14 +195,14 @@ class Class8 {}
 
 /*element: _promotedOrIfThenElse:[null]*/
 _promotedOrIfThenElse(
-    /*Union of [[exact=Class8], [exact=JSUInt31]]*/ o,
+    /*Union([exact=Class8], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
   if (o is Class8 || c) {
-    o. /*invoke: Union of [[exact=Class8], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class8], [exact=JSUInt31])*/ toString();
   } else {
     // TODO(johnniwinther): Use negative type knowledge to show that the
     // receiver must be [exact=JSUInt31].
-    o. /*invoke: Union of [[exact=Class8], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class8], [exact=JSUInt31])*/ toString();
   }
 }
 
@@ -221,12 +221,12 @@ class Class9 {}
 
 /*element: _promotedNotOrIfThenElse:[null]*/
 _promotedNotOrIfThenElse(
-    /*Union of [[exact=Class9], [exact=JSUInt31]]*/ o,
+    /*Union([exact=Class9], [exact=JSUInt31])*/ o,
     /*[exact=JSBool]*/ c) {
   if (o is! Class9 || c) {
-    o. /*invoke: Union of [[exact=Class9], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class9], [exact=JSUInt31])*/ toString();
   } else {
-    o. /*invoke: Union of [[exact=Class9], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class9], [exact=JSUInt31])*/ toString();
   }
 }
 
@@ -244,9 +244,9 @@ promotedNotOrIfThenElse() {
 class Class10 {}
 
 /*element: _promotedNotNotIfThen:[null]*/
-_promotedNotNotIfThen(/*Union of [[exact=Class10], [exact=JSUInt31]]*/ o) {
+_promotedNotNotIfThen(/*Union([exact=Class10], [exact=JSUInt31])*/ o) {
   if (!(o is! Class10)) {
-    o. /*ast.invoke: Union of [[exact=Class10], [exact=JSUInt31]]*/ /*kernel.invoke: [exact=Class10]*/ toString();
+    o. /*ast.invoke: Union([exact=Class10], [exact=JSUInt31])*/ /*kernel.invoke: [exact=Class10]*/ toString();
   }
 }
 
@@ -265,13 +265,13 @@ class Class11 {}
 
 /*element: _promotedParenNotIfThenElse:[null]*/
 _promotedParenNotIfThenElse(
-    /*Union of [[exact=Class11], [exact=JSUInt31]]*/ o) {
+    /*Union([exact=Class11], [exact=JSUInt31])*/ o) {
   if (!(o is Class11)) {
     // TODO(johnniwinther): Use negative type knowledge to show that the
     // receiver must be [exact=JSUInt31].
-    o. /*invoke: Union of [[exact=Class11], [exact=JSUInt31]]*/ toString();
+    o. /*invoke: Union([exact=Class11], [exact=JSUInt31])*/ toString();
   } else {
-    o. /*ast.invoke: Union of [[exact=Class11], [exact=JSUInt31]]*/ /*kernel.invoke: [exact=Class11]*/ toString();
+    o. /*ast.invoke: Union([exact=Class11], [exact=JSUInt31])*/ /*kernel.invoke: [exact=Class11]*/ toString();
   }
 }
 

@@ -43,14 +43,14 @@ main() {
 /// Return `true`.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: returnTrue:Value mask: [true] type: [exact=JSBool]*/
+/*element: returnTrue:Value([exact=JSBool], value: true)*/
 returnTrue() => true;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Return `false`.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: returnFalse:Value mask: [false] type: [exact=JSBool]*/
+/*element: returnFalse:Value([exact=JSBool], value: false)*/
 returnFalse() => false;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +176,7 @@ returnLogicalAndNullTrue() => null && true;
 
 /*element: Class1.:[exact=Class1]*/
 class Class1 {
-  /*element: Class1.field:Value mask: [true] type: [exact=JSBool]*/
+  /*element: Class1.field:Value([exact=JSBool], value: true)*/
   final bool field = true;
 }
 
@@ -197,7 +197,7 @@ returnLogicalAndIs() {
 
 /*element: Class2.:[exact=Class2]*/
 class Class2 {
-  /*element: Class2.field:Value mask: [true] type: [exact=JSBool]*/
+  /*element: Class2.field:Value([exact=JSBool], value: true)*/
   final bool field = true;
 }
 
@@ -220,7 +220,7 @@ returnLogicalAndIsNot() {
 
 /*element: Class3.:[exact=Class3]*/
 class Class3 {
-  /*element: Class3.field:Value mask: [true] type: [exact=JSBool]*/
+  /*element: Class3.field:Value([exact=JSBool], value: true)*/
   final bool field = true;
 }
 
@@ -241,7 +241,7 @@ returnLogicalAndNull() {
 
 /*element: Class4.:[exact=Class4]*/
 class Class4 {
-  /*element: Class4.field:Value mask: [true] type: [exact=JSBool]*/
+  /*element: Class4.field:Value([exact=JSBool], value: true)*/
   final bool field = true;
 }
 
@@ -296,7 +296,7 @@ returnLogicalOrNullTrue() => null || true;
 
 /*element: Class5.:[exact=Class5]*/
 class Class5 {
-  /*element: Class5.field:Value mask: [true] type: [exact=JSBool]*/
+  /*element: Class5.field:Value([exact=JSBool], value: true)*/
   final bool field = true;
 }
 
@@ -319,7 +319,7 @@ returnLogicalOrIs() {
 
 /*element: Class6.:[exact=Class6]*/
 class Class6 {
-  /*element: Class6.field:Value mask: [true] type: [exact=JSBool]*/
+  /*element: Class6.field:Value([exact=JSBool], value: true)*/
   final bool field = true;
 }
 
@@ -340,7 +340,7 @@ returnLogicalOrIsNot() {
 
 /*element: Class7.:[exact=Class7]*/
 class Class7 {
-  /*element: Class7.field:Value mask: [true] type: [exact=JSBool]*/
+  /*element: Class7.field:Value([exact=JSBool], value: true)*/
   final bool field = true;
 }
 
@@ -361,7 +361,7 @@ returnLogicalOrNull() {
 
 /*element: Class8.:[exact=Class8]*/
 class Class8 {
-  /*element: Class8.field:Value mask: [true] type: [exact=JSBool]*/
+  /*element: Class8.field:Value([exact=JSBool], value: true)*/
   final bool field = true;
 }
 

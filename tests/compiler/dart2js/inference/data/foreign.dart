@@ -39,7 +39,7 @@ jsCallInt() => JS('int', '#', 0);
 /*element: jsCallVoid:[null|subclass=Object]*/
 jsCallVoid() => JS('void', '#', 0);
 
-/*element: jsCallUnion:Union of [[exact=JSString], [subclass=JSInt]]*/
+/*element: jsCallUnion:Union([exact=JSString], [subclass=JSInt])*/
 jsCallUnion() => JS('int|String', '#', 0);
 
 /*element: jsBuiltin_createFunctionTypeRti:[exact=Object]*/

@@ -46,7 +46,7 @@ enum Enum3 {
   b,
 }
 
-/*element: enumValues:Container mask: [exact=Enum3] length: 2 type: [exact=JSUnmodifiableArray]*/
+/*element: enumValues:Container([exact=JSUnmodifiableArray], element: [exact=Enum3], length: 2)*/
 enumValues() => Enum3.values;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ enum Enum4 {
   a,
 }
 
-/*element: enumToString1:Value mask: ["Enum4.a"] type: [exact=JSString]*/
+/*element: enumToString1:Value([exact=JSString], value: "Enum4.a")*/
 enumToString1() {
   return Enum4.a. /*invoke: [exact=Enum4]*/ toString();
 }

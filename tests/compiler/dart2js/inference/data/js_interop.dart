@@ -17,7 +17,7 @@ main() {
 class Class1 {
   /*element: Class1.:[null|subclass=Object]*/
   external factory Class1(
-      {/*[exact=JSUInt31]*/ a, /*Value mask: [""] type: [exact=JSString]*/ b});
+      {/*[exact=JSUInt31]*/ a, /*Value([exact=JSString], value: "")*/ b});
 }
 
 /*element: anonymousClass:[null|subclass=Object]*/

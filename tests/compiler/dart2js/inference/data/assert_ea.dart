@@ -51,7 +51,7 @@ simpleAssertWithMessage() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _promoteLocalAssert:[exact=JSUInt31]*/
-_promoteLocalAssert(/*Union of [[exact=JSString], [exact=JSUInt31]]*/ o) {
+_promoteLocalAssert(/*Union([exact=JSString], [exact=JSUInt31])*/ o) {
   var local = o;
   assert(local is int);
   return local;
@@ -68,7 +68,7 @@ promoteLocalAssert() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _promoteParameterAssert:[exact=JSUInt31]*/
-_promoteParameterAssert(/*Union of [[exact=JSString], [exact=JSUInt31]]*/ o) {
+_promoteParameterAssert(/*Union([exact=JSString], [exact=JSUInt31])*/ o) {
   assert(o is int);
   return o;
 }

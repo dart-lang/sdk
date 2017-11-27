@@ -33,7 +33,7 @@ simpleWhile() {
 /// While loop with null test.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: whileNull:Value mask: ["null"] type: [null|exact=JSString]*/
+/*element: whileNull:Value([null|exact=JSString], value: "null")*/
 whileNull() {
   var o;
   while (o == null) {
@@ -98,10 +98,10 @@ class Class2 {
   var field;
 }
 
-/*element: _whileUnion1:Union of [[exact=Class1], [null|exact=Class2]]*/
+/*element: _whileUnion1:Union([exact=Class1], [null|exact=Class2])*/
 _whileUnion1(/*[exact=Class1]*/ o) {
   while (o != null) {
-    o = o. /*Union of [[exact=Class1], [exact=Class2]]*/ field;
+    o = o. /*Union([exact=Class1], [exact=Class2])*/ field;
   }
   return o;
 }
@@ -132,10 +132,10 @@ class Class4 {
   var field;
 }
 
-/*element: _whileUnion2:Union of [[exact=Class4], [null|exact=Class3]]*/
+/*element: _whileUnion2:Union([exact=Class4], [null|exact=Class3])*/
 _whileUnion2(/*[exact=Class4]*/ o) {
   while (o != null) {
-    o = o. /*Union of [[exact=Class3], [exact=Class4]]*/ field;
+    o = o. /*Union([exact=Class3], [exact=Class4])*/ field;
   }
   return o;
 }
@@ -166,10 +166,10 @@ class Class6 {
   var field;
 }
 
-/*element: _whileUnion3:Union of [[null|exact=Class5], [null|exact=Class6]]*/
-_whileUnion3(/*Union of [[exact=Class5], [exact=Class6]]*/ o) {
+/*element: _whileUnion3:Union([null|exact=Class5], [null|exact=Class6])*/
+_whileUnion3(/*Union([exact=Class5], [exact=Class6])*/ o) {
   while (o != null) {
-    o = o. /*Union of [[exact=Class5], [exact=Class6]]*/ field;
+    o = o. /*Union([exact=Class5], [exact=Class6])*/ field;
   }
   return o;
 }
@@ -200,7 +200,7 @@ class Class8 {
   var field;
 }
 
-/*element: _whileIs:Union of [[exact=Class7], [null|exact=Class8]]*/
+/*element: _whileIs:Union([exact=Class7], [null|exact=Class8])*/
 _whileIs(/*[exact=Class7]*/ o) {
   while (o is Class7) {
     o = o. /*[exact=Class7]*/ field;
@@ -233,10 +233,10 @@ class Class10 {
   var field;
 }
 
-/*element: _whileIsNot:Union of [[exact=Class9], [null|exact=Class10]]*/
+/*element: _whileIsNot:Union([exact=Class9], [null|exact=Class10])*/
 _whileIsNot(/*[exact=Class9]*/ o) {
   while (o is! Class10) {
-    o = o. /*Union of [[exact=Class9], [null|exact=Class10]]*/ field;
+    o = o. /*Union([exact=Class9], [null|exact=Class10])*/ field;
   }
   return o;
 }

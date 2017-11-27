@@ -182,7 +182,7 @@ class SideEffects {
 
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    buffer.write('Reads');
+    buffer.write('SideEffects(reads');
     if (!dependsOnSomething()) {
       buffer.write(' nothing');
     } else if (dependsOnIndexStore() &&
@@ -224,7 +224,7 @@ class SideEffects {
         buffer.write('$comma static');
       }
     }
-    buffer.write('.');
+    buffer.write(')');
     return buffer.toString();
   }
 }

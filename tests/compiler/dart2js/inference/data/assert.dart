@@ -50,8 +50,8 @@ simpleAssertWithMessage() {
 // Assert statement that promotes a local.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _promoteLocalAssert:Union of [[exact=JSString], [exact=JSUInt31]]*/
-_promoteLocalAssert(/*Union of [[exact=JSString], [exact=JSUInt31]]*/ o) {
+/*element: _promoteLocalAssert:Union([exact=JSString], [exact=JSUInt31])*/
+_promoteLocalAssert(/*Union([exact=JSString], [exact=JSUInt31])*/ o) {
   var local = o;
   assert(local is int);
   return local;
@@ -67,8 +67,8 @@ promoteLocalAssert() {
 // Assert statement that promotes a parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _promoteParameterAssert:Union of [[exact=JSString], [exact=JSUInt31]]*/
-_promoteParameterAssert(/*Union of [[exact=JSString], [exact=JSUInt31]]*/ o) {
+/*element: _promoteParameterAssert:Union([exact=JSString], [exact=JSUInt31])*/
+_promoteParameterAssert(/*Union([exact=JSString], [exact=JSUInt31])*/ o) {
   assert(o is int);
   return o;
 }
