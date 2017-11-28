@@ -6,16 +6,18 @@ library dart2js.kernel.frontend_strategy;
 
 import '../../compiler_new.dart' as api;
 import '../common.dart';
-import '../common_elements.dart';
 import '../common/backend_api.dart';
 import '../common/resolution.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
+import '../common_elements.dart';
+import '../compiler.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../environment.dart' as env;
 import '../enqueue.dart';
+import '../environment.dart' as env;
 import '../frontend_strategy.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
@@ -30,12 +32,14 @@ import '../library_loader.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
 import '../options.dart';
-import '../serialization/task.dart';
 import '../patch_parser.dart';
 import '../resolved_uri_translator.dart';
+import '../serialization/task.dart';
+import '../universe/class_hierarchy_builder.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
 import '../world.dart';
+import 'deferred_load.dart';
 import 'element_map.dart';
 import 'element_map_impl.dart';
 
@@ -68,8 +72,9 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       env.Environment environment,
       DiagnosticReporter reporter,
       Measurer measurer) {
-    return new KernelLibraryLoaderTask(_options.platformConfigUri.resolve("."),
-        _options.packageConfig, _elementMap, compilerInput, reporter, measurer);
+    return new KernelLibraryLoaderTask(_options.platformBinaries,
+        _options.packageConfig, _elementMap, compilerInput, reporter, measurer,
+        verbose: _options.verbose);
   }
 
   @override
@@ -85,6 +90,10 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   @override
   AnnotationProcessor get annotationProcesser => _annotationProcesser ??=
       new KernelAnnotationProcessor(elementMap, nativeBasicDataBuilder);
+
+  @override
+  DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
+      new KernelDeferredLoadTask(compiler, _elementMap);
 
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
@@ -124,7 +133,10 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
+      NoSuchMethodRegistry noSuchMethodRegistry,
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      ClassHierarchyBuilder classHierarchyBuilder,
+      ClassQueries classQueries) {
     return new KernelResolutionWorldBuilder(
         _options,
         elementMap,
@@ -134,15 +146,24 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
         backendUsageBuilder,
         rtiNeedBuilder,
         nativeResolutionEnqueuer,
-        selectorConstraintsStrategy);
+        noSuchMethodRegistry,
+        selectorConstraintsStrategy,
+        classHierarchyBuilder,
+        classQueries);
   }
 
+  @override
   WorkItemBuilder createResolutionWorkItemBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
-      ImpactTransformer impactTransformer) {
+      ImpactTransformer impactTransformer,
+      Map<Entity, WorldImpact> impactCache) {
     return new KernelWorkItemBuilder(elementMap, nativeBasicData,
-        nativeDataBuilder, impactTransformer, closureModels);
+        nativeDataBuilder, impactTransformer, closureModels, impactCache);
+  }
+
+  ClassQueries createClassQueries() {
+    return new KernelClassQueries(elementMap);
   }
 
   @override
@@ -156,20 +177,22 @@ class KernelWorkItemBuilder implements WorkItemBuilder {
   final ImpactTransformer _impactTransformer;
   final NativeMemberResolver _nativeMemberResolver;
   final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<Entity, WorldImpact> impactCache;
 
   KernelWorkItemBuilder(
       this._elementMap,
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
       this._impactTransformer,
-      this.closureModels)
+      this.closureModels,
+      this.impactCache)
       : _nativeMemberResolver = new KernelNativeMemberResolver(
             _elementMap, nativeBasicData, nativeDataBuilder);
 
   @override
   WorkItem createWorkItem(MemberEntity entity) {
     return new KernelWorkItem(_elementMap, _impactTransformer,
-        _nativeMemberResolver, entity, closureModels);
+        _nativeMemberResolver, entity, closureModels, impactCache);
   }
 }
 
@@ -179,9 +202,15 @@ class KernelWorkItem implements ResolutionWorkItem {
   final NativeMemberResolver _nativeMemberResolver;
   final MemberEntity element;
   final Map<MemberEntity, ScopeModel> closureModels;
+  final Map<Entity, WorldImpact> impactCache;
 
-  KernelWorkItem(this._elementMap, this._impactTransformer,
-      this._nativeMemberResolver, this.element, this.closureModels);
+  KernelWorkItem(
+      this._elementMap,
+      this._impactTransformer,
+      this._nativeMemberResolver,
+      this.element,
+      this.closureModels,
+      this.impactCache);
 
   @override
   WorldImpact run() {
@@ -191,7 +220,12 @@ class KernelWorkItem implements ResolutionWorkItem {
     if (closureModel != null) {
       closureModels[element] = closureModel;
     }
-    return _impactTransformer.transformResolutionImpact(impact);
+    WorldImpact worldImpact =
+        _impactTransformer.transformResolutionImpact(impact);
+    if (impactCache != null) {
+      impactCache[element] = impact;
+    }
+    return worldImpact;
   }
 }
 

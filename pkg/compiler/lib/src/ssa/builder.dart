@@ -32,6 +32,7 @@ import '../js_backend/element_strategy.dart' show ElementCodegenWorkItem;
 import '../js_backend/runtime_types.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
+import '../resolution/deferred_load.dart' show AstDeferredLoadTask;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
@@ -186,6 +187,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   final JavaScriptBackend backend;
 
   Compiler get compiler => backend.compiler;
+
+  AstDeferredLoadTask get deferredLoadTask => super.deferredLoadTask;
 
   final ConstantSystem constantSystem;
   final RuntimeTypesSubstitutions rtiSubstitutions;
@@ -532,7 +535,7 @@ class SsaAstGraphBuilder extends ast.Visitor
 
       // Don't inline across deferred import to prevent leaking code. The only
       // exception is an empty function (which does not contain code).
-      bool hasOnlyNonDeferredImportPaths = deferredLoadTask
+      bool hasOnlyNonDeferredImportPaths = backend.outputUnitData
           .hasOnlyNonDeferredImportPaths(compiler.currentElement, function);
 
       if (!hasOnlyNonDeferredImportPaths) {
@@ -596,8 +599,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       List<HInstruction> compiledArguments = completeSendArgumentsList(
           function, selector, providedArguments, currentNode);
-      enterInlinedMethod(function, functionResolvedAst, compiledArguments,
-          instanceType: instanceType);
+      enterInlinedMethod(
+          function, functionResolvedAst, compiledArguments, instanceType);
       inlinedFrom(functionResolvedAst, () {
         if (!isReachable) {
           emitReturn(graph.addConstantNull(closedWorld), null);
@@ -610,8 +613,10 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     if (meetsHardConstraints() && heuristicSayGoodToGo()) {
       doInlining();
-      infoReporter?.reportInlined(function,
-          inliningStack.isEmpty ? target : inliningStack.last.function);
+      MemberElement inlinedFrom = inliningStack.isEmpty
+          ? target.declaration
+          : inliningStack.last.function.declaration;
+      infoReporter?.reportInlined(declaration, inlinedFrom);
       return true;
     }
 
@@ -776,7 +781,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   HGraph buildCheckedSetter(FieldElement field) {
     ResolvedAst resolvedAst = field.resolvedAst;
     openFunction(field, resolvedAst.node);
-    HInstruction thisInstruction = localsHandler.readThis();
+    HInstruction thisInstruction = localsHandler.readThis(
+        sourceInformation: sourceInformationBuilder.buildDeclaration(field));
     // Use dynamic type because the type computed by the inferrer is
     // narrowed to the type annotation.
     HInstruction parameter =
@@ -897,8 +903,8 @@ class SsaAstGraphBuilder extends ast.Visitor
    * Run this builder on the body of the [function] to be inlined.
    */
   void visitInlinedFunction(ResolvedAst resolvedAst) {
-    typeBuilder.potentiallyCheckInlinedParameterTypes(
-        resolvedAst.element.implementation);
+    MethodElement function = resolvedAst.element.implementation;
+    typeBuilder.potentiallyCheckInlinedParameterTypes(function);
 
     if (resolvedAst.element.isGenerativeConstructor) {
       buildFactory(resolvedAst);
@@ -1030,6 +1036,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(closureDataLookup.getCapturedScope(callee),
+            sourceInformationBuilder.buildDeclaration(callee),
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
@@ -1331,10 +1338,11 @@ class SsaAstGraphBuilder extends ast.Visitor
       newObject = new HCreate(classElement, constructorArguments, ssaType,
           instantiatedTypes: instantiatedTypes, hasRtiInput: hasRtiInput);
       if (function != null) {
-        // TODO(johnniwinther): Provide source information for creation through
-        // synthetic constructors.
         newObject.sourceInformation =
             sourceInformationBuilder.buildCreate(function);
+      } else {
+        newObject.sourceInformation =
+            sourceInformationBuilder.buildDeclaration(functionElement);
       }
       add(newObject);
     } else {
@@ -1448,6 +1456,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         closureDataLookup.getScopeInfo(element),
         closureDataLookup.getCapturedScope(element),
         parameters,
+        sourceInformationBuilder.buildDeclaration(element),
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
@@ -1729,7 +1738,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         buildInitializer,
         buildCondition,
         buildUpdate,
-        buildBody);
+        buildBody,
+        sourceInformationBuilder.buildLoop(node));
   }
 
   visitWhile(ast.While node) {
@@ -1742,14 +1752,16 @@ class SsaAstGraphBuilder extends ast.Visitor
     loopHandler.handleLoop(node, closureDataLookup.getCapturedLoopScope(node),
         elements.getTargetDefinition(node), () {}, buildCondition, () {}, () {
       visit(node.body);
-    });
+    }, sourceInformationBuilder.buildLoop(node));
   }
 
   visitDoWhile(ast.DoWhile node) {
     assert(isReachable);
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildLoop(node);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     var loopClosureInfo = closureDataLookup.getCapturedLoopScope(node);
-    localsHandler.startLoop(loopClosureInfo);
+    localsHandler.startLoop(loopClosureInfo, sourceInformation);
     loopDepth++;
     JumpTarget target = elements.getTargetDefinition(node);
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(node, target);
@@ -1767,7 +1779,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // Using a separate block is just a simple workaround.
       bodyEntryBlock = openNewBlock();
     }
-    localsHandler.enterLoopBody(loopClosureInfo);
+    localsHandler.enterLoopBody(loopClosureInfo, sourceInformation);
     visit(node.body);
 
     // If there are no continues we could avoid the creation of the condition
@@ -1851,7 +1863,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           null,
           loopEntryBlock.loopInformation.target,
           loopEntryBlock.loopInformation.labels,
-          sourceInformationBuilder.buildLoop(node));
+          sourceInformation);
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
       loopInfo.loopBlockInformation = loopBlockInfo;
     } else {
@@ -1912,7 +1924,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void visitThisGet(ast.Identifier node, [_]) {
-    stack.add(localsHandler.readThis());
+    stack.add(localsHandler.readThis(
+        sourceInformation: sourceInformationBuilder.buildGet(node)));
   }
 
   visitIdentifier(ast.Identifier node) {
@@ -2082,7 +2095,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   HInstruction generateInstanceSendReceiver(ast.Send send) {
     assert(Elements.isInstanceSend(send, elements));
     if (send.receiver == null) {
-      return localsHandler.readThis();
+      return localsHandler.readThis(
+          sourceInformation: sourceInformationBuilder.buildGet(send));
     }
     visit(send.receiver);
     return pop();
@@ -2106,15 +2120,14 @@ class SsaAstGraphBuilder extends ast.Visitor
         sourceInformation: sourceInformationBuilder.buildGet(send));
   }
 
-  /// Inserts a call to checkDeferredIsLoaded for [prefixElement].
-  /// If [prefixElement] is [null] ndo nothing.
+  /// Inserts a call to checkDeferredIsLoaded for a deferred [import].
+  /// If [import] is [null], do nothing.
   void generateIsDeferredLoadedCheckIfNeeded(
-      PrefixElement prefixElement, ast.Node location) {
-    if (prefixElement == null) return;
-    String loadId =
-        deferredLoadTask.getImportDeferName(location, prefixElement);
+      ImportElement import, ast.Node location) {
+    if (import == null) return;
+    String loadId = deferredLoadTask.getImportDeferName(location, import);
     HInstruction loadIdConstant = addConstantString(loadId);
-    String uri = prefixElement.deferredImport.uri.toString();
+    String uri = import.uri.toString();
     HInstruction uriConstant = addConstantString(uri);
     MethodElement helper = commonElements.checkDeferredIsLoaded;
     pushInvokeStatic(location, helper, [loadIdConstant, uriConstant]);
@@ -2125,7 +2138,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   /// resolves to a deferred library.
   void generateIsDeferredLoadedCheckOfSend(ast.Send node) {
     generateIsDeferredLoadedCheckIfNeeded(
-        deferredLoadTask.deferredPrefixElement(node, elements), node);
+        deferredLoadTask.deferredImportElement(node, elements), node);
   }
 
   void handleInvalidStaticGet(ast.Send node, Element element) {
@@ -2158,11 +2171,11 @@ class SsaAstGraphBuilder extends ast.Visitor
     HConstant instruction;
     // Constants that are referred via a deferred prefix should be referred
     // by reference.
-    PrefixElement prefix =
-        deferredLoadTask.deferredPrefixElement(node, elements);
-    if (prefix != null) {
+    ImportElement deferredImport =
+        deferredLoadTask.deferredImportElement(node, elements);
+    if (deferredImport != null) {
       instruction = graph.addDeferredConstant(
-          value, prefix, sourceInformation, compiler, closedWorld);
+          value, deferredImport, sourceInformation, compiler, closedWorld);
     } else {
       instruction = graph.addConstant(value, closedWorld,
           sourceInformation: sourceInformation);
@@ -2182,14 +2195,14 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
-    generateIsDeferredLoadedCheckIfNeeded(prefix, node);
+    generateIsDeferredLoadedCheckIfNeeded(prefix.deferredImport, node);
   }
 
   /// Read a static or top level [field].
   void generateStaticFieldGet(ast.Send node, FieldElement field) {
     ConstantExpression constant = field.constant;
     SourceInformation sourceInformation =
-        sourceInformationBuilder.buildGet(node);
+        sourceInformationBuilder.buildGet(node.selector);
     if (constant != null) {
       if (!field.isAssignable) {
         // A static final or const. Get its constant value and inline it if
@@ -2201,14 +2214,15 @@ class SsaAstGraphBuilder extends ast.Visitor
         HInstruction instruction = new HStatic(
             field,
             TypeMaskFactory.inferredTypeForMember(
-                field, globalInferenceResults))
-          ..sourceInformation = sourceInformation;
+                field, globalInferenceResults),
+            sourceInformation);
         push(instruction);
       }
     } else {
-      HInstruction instruction = new HLazyStatic(field,
-          TypeMaskFactory.inferredTypeForMember(field, globalInferenceResults))
-        ..sourceInformation = sourceInformation;
+      HInstruction instruction = new HLazyStatic(
+          field,
+          TypeMaskFactory.inferredTypeForMember(field, globalInferenceResults),
+          sourceInformation);
       push(instruction);
     }
   }
@@ -2216,7 +2230,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   /// Generate a getter invocation of the static or top level [getter].
   void generateStaticGetterGet(ast.Send node, MethodElement getter) {
     SourceInformation sourceInformation =
-        sourceInformationBuilder.buildGet(node);
+        sourceInformationBuilder.buildGet(node.selector);
     if (getter.isDeferredLoaderGetter) {
       generateDeferredLoaderGet(node, getter, sourceInformation);
     } else {
@@ -2238,9 +2252,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     SourceInformation sourceInformation =
-        sourceInformationBuilder.buildGet(node);
-    push(new HStatic(method, commonMasks.nonNullType)
-      ..sourceInformation = sourceInformation);
+        sourceInformationBuilder.buildGet(node.selector);
+    push(new HStatic(method, commonMasks.nonNullType, sourceInformation));
   }
 
   /// Read a local variable, function or parameter.
@@ -2435,7 +2448,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       HInstruction converted = typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),
-          HTypeConversion.CAST_TYPE_CHECK);
+          HTypeConversion.CAST_TYPE_CHECK,
+          sourceInformation: sourceInformationBuilder.buildAs(node));
       if (converted != expressionInstruction) add(converted);
       stack.add(converted);
     }
@@ -2444,20 +2458,22 @@ class SsaAstGraphBuilder extends ast.Visitor
   @override
   void visitIs(ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
-    push(buildIsNode(node, type, expressionInstruction));
+    push(buildIsNode(node, type, expressionInstruction,
+        sourceInformationBuilder.buildIs(node)));
   }
 
   @override
   void visitIsNot(
       ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
-    HInstruction instruction = buildIsNode(node, type, expressionInstruction);
+    HInstruction instruction = buildIsNode(node, type, expressionInstruction,
+        sourceInformationBuilder.buildIs(node));
     add(instruction);
     push(new HNot(instruction, commonMasks.boolType));
   }
 
-  HInstruction buildIsNode(
-      ast.Node node, ResolutionDartType type, HInstruction expression) {
+  HInstruction buildIsNode(ast.Node node, ResolutionDartType type,
+      HInstruction expression, SourceInformation sourceInformation) {
     type = localsHandler.substInContext(type).unaliased;
     if (type.isMalformed) {
       String message;
@@ -2471,7 +2487,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       generateTypeError(node, message);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call, commonMasks.boolType);
+      return new HIs.compound(
+          type, expression, call, commonMasks.boolType, sourceInformation);
     } else if (type.isFunctionType) {
       HInstruction representation =
           typeBuilder.analyzeTypeArgument(type, sourceElement);
@@ -2480,18 +2497,21 @@ class SsaAstGraphBuilder extends ast.Visitor
         representation,
       ];
       pushInvokeStatic(node, commonElements.functionTypeTest, inputs,
-          typeMask: commonMasks.boolType);
+          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call, commonMasks.boolType);
+      return new HIs.compound(
+          type, expression, call, commonMasks.boolType, sourceInformation);
     } else if (type.isTypeVariable) {
       ResolutionTypeVariableType typeVariable = type;
       HInstruction runtimeType =
           typeBuilder.addTypeVariableReference(typeVariable, sourceElement);
       MethodElement helper = commonElements.checkSubtypeOfRuntimeType;
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
-      pushInvokeStatic(null, helper, inputs, typeMask: commonMasks.boolType);
+      pushInvokeStatic(null, helper, inputs,
+          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.variable(type, expression, call, commonMasks.boolType);
+      return new HIs.variable(
+          type, expression, call, commonMasks.boolType, sourceInformation);
     } else if (RuntimeTypesSubstitutions.hasTypeArguments(type)) {
       ClassElement element = type.element;
       MethodElement helper = commonElements.checkSubtype;
@@ -2509,17 +2529,20 @@ class SsaAstGraphBuilder extends ast.Visitor
         representations,
         asFieldName
       ];
-      pushInvokeStatic(node, helper, inputs, typeMask: commonMasks.boolType);
+      pushInvokeStatic(node, helper, inputs,
+          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call, commonMasks.boolType);
+      return new HIs.compound(
+          type, expression, call, commonMasks.boolType, sourceInformation);
     } else {
       if (backend.hasDirectCheckFor(closedWorld.commonElements, type)) {
-        return new HIs.direct(type, expression, commonMasks.boolType);
+        return new HIs.direct(
+            type, expression, commonMasks.boolType, sourceInformation);
       }
       // The interceptor is not always needed.  It is removed by optimization
       // when the receiver type or tested type permit.
       return new HIs.raw(type, expression, invokeInterceptor(expression),
-          commonMasks.boolType);
+          commonMasks.boolType, sourceInformation);
     }
   }
 
@@ -2648,7 +2671,10 @@ class SsaAstGraphBuilder extends ast.Visitor
   @override
   visitThisInvoke(
       ast.Send node, ast.NodeList arguments, CallStructure callStructure, _) {
-    generateCallInvoke(node, localsHandler.readThis(),
+    generateCallInvoke(
+        node,
+        localsHandler.readThis(
+            sourceInformation: sourceInformationBuilder.buildGet(node)),
         sourceInformationBuilder.buildCall(node, node.argumentsNode));
   }
 
@@ -2717,18 +2743,45 @@ class SsaAstGraphBuilder extends ast.Visitor
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
 
+    DartType typeArgument;
+    ast.NodeList typeArgumentsNode = node.typeArgumentsNode;
+    if (typeArgumentsNode != null) {
+      if (typeArgumentsNode.slowLength() == 1) {
+        ast.Node typeNode = typeArgumentsNode.single;
+        typeArgument = elements.getType(typeNode);
+      } else {
+        reporter.reportErrorMessage(typeArgumentsNode, MessageKind.GENERIC,
+            {'text': 'JS takes one type argument'});
+      }
+    }
+
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildCall(node, node.argumentsNode);
-    if (nativeBehavior.codeTemplate.isExpression) {
-      push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
-          effects: nativeBehavior.sideEffects, nativeBehavior: nativeBehavior)
-        ..sourceInformation = sourceInformation);
-    } else {
-      push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
-          isStatement: true,
-          effects: nativeBehavior.sideEffects,
-          nativeBehavior: nativeBehavior)
-        ..sourceInformation = sourceInformation);
+    push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
+        isStatement: !nativeBehavior.codeTemplate.isExpression,
+        effects: nativeBehavior.sideEffects,
+        nativeBehavior: nativeBehavior)
+      ..sourceInformation = sourceInformation);
+
+    HInstruction code = stack.last;
+    TypeMask trustedMask = typeBuilder.trustTypeMask(typeArgument);
+
+    if (trustedMask != null) {
+      // We only allow the type argument to narrow `dynamic`, which probably
+      // comes from an unspecified return type in the NativeBehavior.
+      if (code.instructionType.containsAll(closedWorld)) {
+        // Overwrite the type with the narrower type.
+        code.instructionType = trustedMask;
+      } else if (trustedMask.containsMask(code.instructionType, closedWorld)) {
+        // It is acceptable for the type parameter to be broader than the
+        // specified type.
+      } else {
+        reporter.reportErrorMessage(typeArgumentsNode, MessageKind.GENERIC, {
+          'text': 'Type argument too narrow for specified behavior type '
+              '(${trustedMask} does not allow '
+              'all values in ${code.instructionType})'
+        });
+      }
     }
   }
 
@@ -3062,7 +3115,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
     FunctionEntity loadFunction = commonElements.loadLibraryWrapper;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
-    String loadId = deferredLoadTask.getImportDeferName(node, prefixElement);
+    String loadId =
+        deferredLoadTask.getImportDeferName(node, prefixElement.deferredImport);
     var inputs = [graph.addConstantString(loadId, closedWorld)];
     push(new HInvokeStatic(loadFunction, inputs, commonMasks.nonNullType,
         targetCanThrow: false)
@@ -3145,7 +3199,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void handleSuperGet(ast.Send node, Element element) {
     Selector selector = elements.getSelector(node);
     SourceInformation sourceInformation =
-        sourceInformationBuilder.buildGet(node);
+        sourceInformationBuilder.buildGet(node.selector);
     push(buildInvokeSuper(
         selector, element, const <HInstruction>[], sourceInformation));
   }
@@ -3153,17 +3207,23 @@ class SsaAstGraphBuilder extends ast.Visitor
   /// Invoke .call on the value retrieved from the super [element].
   void handleSuperCallInvoke(ast.Send node, Element element) {
     Selector selector = elements.getSelector(node);
-    HInstruction target = buildInvokeSuper(selector, element,
-        const <HInstruction>[], sourceInformationBuilder.buildGet(node));
+    HInstruction target = buildInvokeSuper(
+        selector,
+        element,
+        const <HInstruction>[],
+        sourceInformationBuilder.buildGet(node.selector));
     add(target);
-    generateCallInvoke(node, target,
-        sourceInformationBuilder.buildCall(node, node.argumentsNode));
+    generateCallInvoke(
+        node,
+        target,
+        sourceInformationBuilder.buildCall(
+            node.argumentsNode, node.argumentsNode));
   }
 
   /// Invoke super [method].
   void handleSuperMethodInvoke(ast.Send node, MethodElement method) {
-    generateSuperInvoke(
-        node, method, sourceInformationBuilder.buildCall(node, node.selector));
+    generateSuperInvoke(node, method,
+        sourceInformationBuilder.buildCall(node.selector, node.selector));
   }
 
   /// Access an unresolved super property.
@@ -3308,28 +3368,30 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   HInstruction handleListConstructor(ResolutionInterfaceType type,
-      ast.Node currentNode, HInstruction newObject) {
+      HInstruction newObject, SourceInformation sourceInformation) {
     if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return newObject;
     }
     List<HInstruction> inputs = <HInstruction>[];
     type = localsHandler.substInContext(type);
     type.typeArguments.forEach((ResolutionDartType argument) {
-      inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
+      inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement,
+          sourceInformation: sourceInformation));
     });
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(type, inputs, newObject);
+    return callSetRuntimeTypeInfoWithTypeArguments(
+        type, inputs, newObject, sourceInformation);
   }
 
-  HInstruction callSetRuntimeTypeInfo(
-      HInstruction typeInfo, HInstruction newObject) {
+  HInstruction callSetRuntimeTypeInfo(HInstruction typeInfo,
+      HInstruction newObject, SourceInformation sourceInformation) {
     // Set the runtime type information on the object.
     MethodElement typeInfoSetterElement = commonElements.setRuntimeTypeInfo;
     pushInvokeStatic(
         null, typeInfoSetterElement, <HInstruction>[newObject, typeInfo],
         typeMask: commonMasks.dynamicType,
-        sourceInformation: newObject.sourceInformation);
+        sourceInformation: sourceInformation);
 
     // The new object will now be referenced through the
     // `setRuntimeTypeInfo` call. We therefore set the type of that
@@ -3347,6 +3409,9 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   void handleNewSend(ast.NewExpression node) {
     ast.Send send = node.send;
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildNew(send);
+
     generateIsDeferredLoadedCheckOfSend(send);
 
     ConstructorElement constructor = elements[send];
@@ -3422,7 +3487,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       while (target.isRedirectingFactory) {
         if (constructorDeclaration.redirectionDeferredPrefix != null) {
           generateIsDeferredLoadedCheckIfNeeded(
-              target.redirectionDeferredPrefix, node);
+              target.redirectionDeferredPrefix.deferredImport, node);
         }
         target = target.immediateRedirectionTarget;
       }
@@ -3482,7 +3547,8 @@ class SsaAstGraphBuilder extends ast.Visitor
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
             commonMasks.numType,
-            inputs[0]);
+            inputs[0],
+            sourceInformation);
         add(conversion);
         inputs[0] = conversion;
       }
@@ -3523,8 +3589,6 @@ class SsaAstGraphBuilder extends ast.Visitor
           '${cls.name}.${constructor.name} '
           'can only be used as a const constructor');
     } else {
-      SourceInformation sourceInformation =
-          sourceInformationBuilder.buildNew(send);
       potentiallyAddTypeArguments(inputs, cls, expectedType);
       addInlinedInstantiation(expectedType);
       pushInvokeStatic(node, constructor.declaration, inputs,
@@ -3549,7 +3613,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         (isFixedListConstructorCall ||
             isGrowableListConstructorCall ||
             isJSArrayTypedConstructor)) {
-      newInstance = handleListConstructor(type, send, pop());
+      newInstance = handleListConstructor(type, pop(), sourceInformation);
       stack.add(newInstance);
     }
 
@@ -3644,10 +3708,9 @@ class SsaAstGraphBuilder extends ast.Visitor
       ast.Send node, MethodElement function, CallStructure callStructure) {
     List<HInstruction> inputs =
         makeStaticArgumentList(callStructure, node.arguments, function);
-
     pushInvokeStatic(node, function, inputs,
         sourceInformation:
-            sourceInformationBuilder.buildCall(node, node.selector));
+            sourceInformationBuilder.buildCall(node.selector, node.selector));
   }
 
   /// Generate an invocation to a static or top level function with the wrong
@@ -3661,8 +3724,11 @@ class SsaAstGraphBuilder extends ast.Visitor
   void visitStaticFieldInvoke(ast.Send node, FieldElement field,
       ast.NodeList arguments, CallStructure callStructure, _) {
     generateStaticFieldGet(node, field);
-    generateCallInvoke(node, pop(),
-        sourceInformationBuilder.buildCall(node, node.argumentsNode));
+    generateCallInvoke(
+        node,
+        pop(),
+        sourceInformationBuilder.buildCall(
+            node.argumentsNode, node.argumentsNode));
   }
 
   @override
@@ -4069,14 +4135,14 @@ class SsaAstGraphBuilder extends ast.Visitor
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(
         selector, mask, globalInferenceResults);
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(selector, mask, null, inputs, type)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicGetter(
+          selector, mask, null, inputs, type, sourceInformation));
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(selector, mask, null, inputs, type)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicSetter(
+          selector, mask, null, inputs, type, sourceInformation));
     } else {
-      push(new HInvokeDynamicMethod(selector, mask, inputs, type, isIntercepted)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicMethod(
+          selector, mask, inputs, type, sourceInformation, isIntercepted));
     }
   }
 
@@ -4213,7 +4279,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       instruction.sideEffects = closedWorld.getSideEffectsOfElement(element);
     }
-    if (location == null) {
+    if (sourceInformation != null || location == null) {
       push(instruction);
     } else {
       pushWithPosition(instruction, location);
@@ -4223,7 +4289,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   HInstruction buildInvokeSuper(
       Selector selector, MemberElement element, List<HInstruction> arguments,
       [SourceInformation sourceInformation]) {
-    HInstruction receiver = localsHandler.readThis();
+    HInstruction receiver =
+        localsHandler.readThis(sourceInformation: sourceInformation);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     List<HInstruction> inputs = <HInstruction>[];
@@ -4669,7 +4736,10 @@ class SsaAstGraphBuilder extends ast.Visitor
   @override
   void visitThisPropertySet(ast.SendSet node, Name name, ast.Node rhs, _) {
     generateInstanceSetterWithCompiledReceiver(
-        node, localsHandler.readThis(), visitAndPop(rhs));
+        node,
+        localsHandler.readThis(
+            sourceInformation: sourceInformationBuilder.buildGet(node)),
+        visitAndPop(rhs));
   }
 
   @override
@@ -5243,15 +5313,17 @@ class SsaAstGraphBuilder extends ast.Visitor
   visitYield(ast.Yield node) {
     visit(node.expression);
     HInstruction yielded = pop();
-    add(new HYield(yielded, node.hasStar));
+    add(new HYield(
+        yielded, node.hasStar, sourceInformationBuilder.buildYield(node)));
   }
 
   visitAwait(ast.Await node) {
     visit(node.expression);
     HInstruction awaited = pop();
     // TODO(herhut): Improve this type.
-    push(new HAwait(awaited,
-        new TypeMask.subclass(commonElements.objectClass, closedWorld)));
+    push(new HAwait(
+        awaited, new TypeMask.subclass(commonElements.objectClass, closedWorld))
+      ..sourceInformation = sourceInformationBuilder.buildAwait(node));
   }
 
   visitTypeAnnotation(ast.TypeAnnotation node) {
@@ -5277,7 +5349,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
   }
 
-  HInstruction setRtiIfNeeded(HInstruction object, ast.Node node) {
+  HInstruction setRtiIfNeeded(
+      HInstruction object, ast.Node node, SourceInformation sourceInformation) {
     ResolutionInterfaceType type =
         localsHandler.substInContext(elements.getType(node));
     if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
@@ -5285,11 +5358,13 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
     List<HInstruction> arguments = <HInstruction>[];
     for (ResolutionDartType argument in type.typeArguments) {
-      arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
+      arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement,
+          sourceInformation: sourceInformation));
     }
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(type, arguments, object);
+    return callSetRuntimeTypeInfoWithTypeArguments(
+        type, arguments, object, sourceInformation);
   }
 
   visitLiteralList(ast.LiteralList node) {
@@ -5307,7 +5382,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       instruction = buildLiteralList(inputs);
       add(instruction);
-      instruction = setRtiIfNeeded(instruction, node);
+      instruction = setRtiIfNeeded(
+          instruction, node, sourceInformationBuilder.buildListLiteral(node));
     }
 
     TypeMask type = _inferredTypeOfListLiteral(node);
@@ -5460,12 +5536,12 @@ class SsaAstGraphBuilder extends ast.Visitor
           buildInitializer,
           buildCondition,
           buildUpdate,
-          buildBody);
+          buildBody,
+          sourceInformationBuilder.buildLoop(node));
     }, () {
       pushInvokeDynamic(node, Selectors.cancel, null, [streamIterator]);
-      push(new HAwait(pop(),
+      add(new HAwait(pop(),
           new TypeMask.subclass(commonElements.objectClass, closedWorld)));
-      pop();
     });
   }
 
@@ -5507,21 +5583,24 @@ class SsaAstGraphBuilder extends ast.Visitor
       TypeMask mask = elementInferenceResults.typeOfIterator(node);
       visit(node.expression);
       HInstruction receiver = pop();
-      pushInvokeDynamic(node, selector, mask, [receiver]);
+      pushInvokeDynamic(node, selector, mask, [receiver],
+          sourceInformation: sourceInformationBuilder.buildForInIterator(node));
       iterator = pop();
     }
 
     HInstruction buildCondition() {
       Selector selector = Selectors.moveNext;
       TypeMask mask = elementInferenceResults.typeOfIteratorMoveNext(node);
-      pushInvokeDynamic(node, selector, mask, [iterator]);
+      pushInvokeDynamic(node, selector, mask, [iterator],
+          sourceInformation: sourceInformationBuilder.buildForInMoveNext(node));
       return popBoolified();
     }
 
     void buildBody() {
       Selector call = Selectors.current;
       TypeMask mask = elementInferenceResults.typeOfIteratorCurrent(node);
-      pushInvokeDynamic(node, call, mask, [iterator]);
+      pushInvokeDynamic(node, call, mask, [iterator],
+          sourceInformation: sourceInformationBuilder.buildForInCurrent(node));
       buildAssignLoopVariable(node, pop());
       visit(node.body);
     }
@@ -5533,7 +5612,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         buildInitializer,
         buildCondition,
         () {},
-        buildBody);
+        buildBody,
+        sourceInformationBuilder.buildLoop(node));
   }
 
   buildAssignLoopVariable(ast.ForIn node, HInstruction value) {
@@ -5658,7 +5738,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         buildInitializer,
         buildCondition,
         buildUpdate,
-        buildBody);
+        buildBody,
+        sourceInformationBuilder.buildLoop(node));
   }
 
   visitLabel(ast.Label node) {
@@ -5814,6 +5895,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   visitSwitchStatement(ast.SwitchStatement node) {
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildSwitch(node);
     Map<ast.CaseMatch, ConstantValue> constants =
         buildSwitchCaseConstants(node);
 
@@ -5842,9 +5925,10 @@ class SsaAstGraphBuilder extends ast.Visitor
     if (!hasContinue) {
       // If the switch statement has no switch cases targeted by continue
       // statements we encode the switch statement directly.
-      buildSimpleSwitchStatement(node, constants);
+      buildSimpleSwitchStatement(node, constants, sourceInformation);
     } else {
-      buildComplexSwitchStatement(node, constants, caseIndex, hasDefault);
+      buildComplexSwitchStatement(
+          node, constants, caseIndex, hasDefault, sourceInformation);
     }
   }
 
@@ -5853,7 +5937,9 @@ class SsaAstGraphBuilder extends ast.Visitor
    * statements to labeled switch cases.
    */
   void buildSimpleSwitchStatement(
-      ast.SwitchStatement node, Map<ast.CaseMatch, ConstantValue> constants) {
+      ast.SwitchStatement node,
+      Map<ast.CaseMatch, ConstantValue> constants,
+      SourceInformation sourceInformation) {
     JumpHandler jumpHandler = createJumpHandler(
         node, elements.getTargetDefinition(node),
         isLoopJump: false);
@@ -5881,7 +5967,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     handleSwitch(node, jumpHandler, buildExpression, node.cases, getConstants,
-        isDefaultCase, buildSwitchCase);
+        isDefaultCase, buildSwitchCase, sourceInformation);
     jumpHandler.close();
   }
 
@@ -5893,7 +5979,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       ast.SwitchStatement node,
       Map<ast.CaseMatch, ConstantValue> constants,
       Map<ast.SwitchCase, int> caseIndex,
-      bool hasDefault) {
+      bool hasDefault,
+      SourceInformation sourceInformation) {
     // If the switch statement has switch cases targeted by continue
     // statements we create the following encoding:
     //
@@ -5971,7 +6058,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     handleSwitch(node, jumpHandler, buildExpression, switchCases, getConstants,
-        isDefaultCase, buildSwitchCase);
+        isDefaultCase, buildSwitchCase, sourceInformation);
     jumpHandler.close();
 
     HInstruction buildCondition() => graph.addConstantBool(true, closedWorld);
@@ -6004,12 +6091,20 @@ class SsaAstGraphBuilder extends ast.Visitor
           node.cases,
           getConstants,
           (_) => false, // No case is default.
-          buildSwitchCase);
+          buildSwitchCase,
+          sourceInformation);
     }
 
     void buildLoop() {
-      loopHandler.handleLoop(node, closureDataLookup.getCapturedLoopScope(node),
-          switchTarget, () {}, buildCondition, () {}, buildSwitch);
+      loopHandler.handleLoop(
+          node,
+          closureDataLookup.getCapturedLoopScope(node),
+          switchTarget,
+          () {},
+          buildCondition,
+          () {},
+          buildSwitch,
+          sourceInformationBuilder.buildLoop(node));
     }
 
     if (hasDefault) {
@@ -6051,7 +6146,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       var switchCases,
       Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase),
       bool isDefaultCase(ast.SwitchCase switchCase),
-      void buildSwitchCase(ast.SwitchCase switchCase)) {
+      void buildSwitchCase(ast.SwitchCase switchCase),
+      SourceInformation sourceInformation) {
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();
     if (switchCases.isEmpty) {
@@ -6152,8 +6248,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         new HSubExpressionBlockInformation(
             new SubExpression(expressionStart, expressionEnd));
     expressionStart.setBlockFlow(
-        new HSwitchBlockInformation(
-            expressionInfo, statements, jumpHandler.target, jumpHandler.labels),
+        new HSwitchBlockInformation(expressionInfo, statements,
+            jumpHandler.target, jumpHandler.labels, sourceInformation),
         joinBlock);
 
     jumpHandler.close();
@@ -6300,12 +6396,16 @@ class SsaAstGraphBuilder extends ast.Visitor
       open(startCatchBlock);
       // Note that the name of this local is irrelevant.
       SyntheticLocal local = localsHandler.createLocal('exception');
-      exception = new HLocalValue(local, commonMasks.nonNullType);
+      SourceInformation trySourceInformation =
+          sourceInformationBuilder.buildTry(node);
+      exception = new HLocalValue(local, commonMasks.nonNullType)
+        ..sourceInformation = trySourceInformation;
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
 
-      pushInvokeStatic(node, commonElements.exceptionUnwrapper, [exception]);
+      pushInvokeStatic(node, commonElements.exceptionUnwrapper, [exception],
+          sourceInformation: trySourceInformation);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
       Link<ast.Node> link = node.catchBlocks.nodes;
@@ -6316,8 +6416,11 @@ class SsaAstGraphBuilder extends ast.Visitor
           if (type == null) {
             reporter.internalError(catchBlock.type, 'On with no type.');
           }
-          HInstruction condition =
-              buildIsNode(catchBlock.type, type, unwrappedException);
+          HInstruction condition = buildIsNode(
+              catchBlock.type,
+              type,
+              unwrappedException,
+              sourceInformationBuilder.buildCatch(catchBlock.type));
           push(condition);
         } else {
           ast.VariableDefinitions declaration = catchBlock.formals.nodes.head;
@@ -6334,7 +6437,8 @@ class SsaAstGraphBuilder extends ast.Visitor
             if (type == null) {
               reporter.internalError(catchBlock, 'Catch with unresolved type.');
             }
-            condition = buildIsNode(declaration.type, type, unwrappedException);
+            condition = buildIsNode(declaration.type, type, unwrappedException,
+                sourceInformationBuilder.buildCatch(declaration));
             push(condition);
           }
         }
@@ -6346,7 +6450,9 @@ class SsaAstGraphBuilder extends ast.Visitor
         if (catchBlock.exception != null) {
           LocalVariableElement exceptionVariable =
               elements[catchBlock.exception];
-          localsHandler.updateLocal(exceptionVariable, unwrappedException);
+          localsHandler.updateLocal(exceptionVariable, unwrappedException,
+              sourceInformation:
+                  sourceInformationBuilder.buildCatch(catchBlock.exception));
         }
         ast.Node trace = catchBlock.trace;
         if (trace != null) {
@@ -6371,7 +6477,8 @@ class SsaAstGraphBuilder extends ast.Visitor
                 pushCondition(newBlock);
               },
               visitThen: visitThen,
-              visitElse: visitElse);
+              visitElse: visitElse,
+              sourceInformation: sourceInformationBuilder.buildCatch(newBlock));
         }
       }
 
@@ -6382,7 +6489,8 @@ class SsaAstGraphBuilder extends ast.Visitor
             pushCondition(firstBlock);
           },
           visitThen: visitThen,
-          visitElse: visitElse);
+          visitElse: visitElse,
+          sourceInformation: sourceInformationBuilder.buildCatch(firstBlock));
       if (!isAborted()) endCatchBlock = close(new HGoto());
 
       rethrowableException = oldRethrowableException;
@@ -6482,9 +6590,11 @@ class SsaAstGraphBuilder extends ast.Visitor
    * This method is invoked before inlining the body of [function] into this
    * [SsaBuilder].
    */
-  void enterInlinedMethod(MethodElement function,
-      ResolvedAst functionResolvedAst, List<HInstruction> compiledArguments,
-      {ResolutionInterfaceType instanceType}) {
+  void enterInlinedMethod(
+      MethodElement function,
+      ResolvedAst functionResolvedAst,
+      List<HInstruction> compiledArguments,
+      ResolutionInterfaceType instanceType) {
     AstInliningState state = new AstInliningState(
         function,
         returnLocal,
@@ -6659,7 +6769,8 @@ class StringBuilderVisitor extends ast.Visitor {
 
   HInstruction stringify(ast.Node node, HInstruction expression) {
     HInstruction instruction =
-        new HStringify(expression, builder.commonMasks.stringType);
+        new HStringify(expression, builder.commonMasks.stringType)
+          ..sourceInformation = expression.sourceInformation;
     builder.add(instruction);
     return instruction;
   }
@@ -6837,7 +6948,7 @@ abstract class InliningState {
   /**
    * Invariant: [function] must be an implementation element.
    */
-  final FunctionElement function;
+  final MethodElement function;
 
   InliningState(this.function) {
     assert(function.isImplementation);
@@ -6855,7 +6966,7 @@ class AstInliningState extends InliningState {
   final GlobalTypeInferenceElementResult oldElementInferenceResults;
 
   AstInliningState(
-      FunctionElement function,
+      MethodElement function,
       this.oldReturnLocal,
       this.oldReturnType,
       this.oldResolvedAst,
@@ -6913,5 +7024,18 @@ class AstTypeBuilder extends TypeBuilder {
     } else {
       return ClassTypeVariableAccess.none;
     }
+  }
+
+  /// In checked mode, generate type tests for the parameters of the inlined
+  /// function.
+  void potentiallyCheckInlinedParameterTypes(covariant MethodElement function) {
+    if (!checkOrTrustTypes) return;
+
+    FunctionSignature signature = function.functionSignature;
+    signature.orderedForEachParameter((_parameter) {
+      ParameterElement parameter = _parameter;
+      HInstruction argument = builder.localsHandler.readLocal(parameter);
+      potentiallyCheckOrTrustType(argument, parameter.type);
+    });
   }
 }

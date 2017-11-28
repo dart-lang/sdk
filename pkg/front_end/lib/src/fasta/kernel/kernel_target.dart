@@ -88,6 +88,8 @@ import 'kernel_builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
+import 'metadata_collector.dart' show MetadataCollector;
+
 import 'verifier.dart' show verifyProgram;
 
 class KernelTarget extends TargetImplementation {
@@ -102,14 +104,16 @@ class KernelTarget extends TargetImplementation {
   /// Shared with [CompilerContext].
   final Map<String, Source> uriToSource;
 
+  /// The [MetadataCollector] to write metadata to.
+  final MetadataCollector metadataCollector;
+
   SourceLoader<Library> loader;
 
   Program program;
 
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
-  final TypeBuilder dynamicType =
-      new KernelNamedTypeBuilder("dynamic", null, -1, null);
+  final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
 
   bool get strongMode => backendTarget.strongMode;
 
@@ -117,9 +121,10 @@ class KernelTarget extends TargetImplementation {
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
-      [Map<String, Source> uriToSource])
+      {Map<String, Source> uriToSource, MetadataCollector metadataCollector})
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
+        metadataCollector = metadataCollector,
         super(dillTarget.ticker, uriTranslator, dillTarget.backendTarget) {
     resetCrashReporting();
     loader = createLoader();
@@ -138,14 +143,16 @@ class KernelTarget extends TargetImplementation {
     loader.read(uri, -1);
   }
 
-  LibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, bool isPatch) {
+  @override
+  LibraryBuilder createLibraryBuilder(
+      Uri uri, Uri fileUri, KernelLibraryBuilder origin) {
     if (dillTarget.isLoaded) {
       var builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
     }
-    return new KernelLibraryBuilder(uri, fileUri, loader, isPatch);
+    return new KernelLibraryBuilder(uri, fileUri, loader, origin);
   }
 
   void forEachDirectSupertype(ClassBuilder cls, void f(NamedTypeBuilder type)) {
@@ -199,7 +206,7 @@ class KernelTarget extends TargetImplementation {
     List<SourceClassBuilder> result = <SourceClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       library.forEach((String name, Builder member) {
-        if (member is SourceClassBuilder) {
+        if (member is SourceClassBuilder && !member.isPatch) {
           result.add(member);
         }
       });
@@ -212,9 +219,8 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelNamedTypeBuilder("Object", null,
-        builder.charOffset, builder.fileUri ?? Uri.parse(cls.fileUri))
-      ..builder = objectClassBuilder;
+    builder.supertype = new KernelNamedTypeBuilder("Object", null)
+      ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
   }
@@ -249,11 +255,15 @@ class KernelTarget extends TargetImplementation {
       loader.finishTypeVariables(objectClassBuilder);
       program =
           link(new List<Library>.from(loader.libraries), nameRoot: nameRoot);
+      if (metadataCollector != null) {
+        program.addMetadataRepository(metadataCollector.repository);
+      }
       loader.computeHierarchy(program);
       loader.checkOverrides(sourceClasses);
-      loader.prepareInitializerInference();
-      loader.performInitializerInference();
-      loader.computeFormalSafety(sourceClasses);
+      if (!loader.target.disableTypeInference) {
+        loader.prepareTopLevelInference(sourceClasses);
+        loader.performTopLevelInference(sourceClasses);
+      }
     } on deprecated_InputError catch (e) {
       handleInputError(e, isFullProgram: false);
     } catch (e, s) {
@@ -280,8 +290,10 @@ class KernelTarget extends TargetImplementation {
     try {
       await loader.buildBodies();
       loader.finishStaticInvocations();
+      loader.finishDeferredLoadTearoffs();
       finishAllConstructors();
       loader.finishNativeMethods();
+      loader.finishPatchMethods();
       runBuildTransformations();
 
       if (verify) this.verify();
@@ -326,27 +338,15 @@ class KernelTarget extends TargetImplementation {
     Uri uri = loader.first?.uri ?? Uri.parse("error:error");
     Uri fileUri = loader.first?.fileUri ?? uri;
     KernelLibraryBuilder library =
-        new KernelLibraryBuilder(uri, fileUri, loader, false);
+        new KernelLibraryBuilder(uri, fileUri, loader, null);
     loader.first = library;
     if (isFullProgram) {
       // If this is an outline, we shouldn't add an executable main
       // method. Similarly considerations apply to separate compilation. It
       // could also make sense to add a way to mark .dill files as having
       // compile-time errors.
-      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(
-          null,
-          null,
-          0,
-          null,
-          "#main",
-          null,
-          null,
-          ProcedureKind.Method,
-          library,
-          -1,
-          -1,
-          -1,
-          -1);
+      KernelProcedureBuilder mainBuilder = new KernelProcedureBuilder(null, 0,
+          null, "#main", null, null, ProcedureKind.Method, library, -1, -1, -1);
       library.addBuilder(mainBuilder.name, mainBuilder, -1);
       mainBuilder.body = new Block(new List<Statement>.from(errors.map(
           (LocatedMessage message) => new ExpressionStatement(new Throw(
@@ -391,6 +391,8 @@ class KernelTarget extends TargetImplementation {
           Class cls = builder.target;
           if (cls != objectClass) {
             cls.supertype ??= objectClass.asRawSupertype;
+            builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
+              ..bind(objectClassBuilder);
           }
           if (builder.isMixinApplication) {
             cls.mixedInType = builder.mixedInType.buildSupertype(library);
@@ -419,6 +421,7 @@ class KernelTarget extends TargetImplementation {
   void installDefaultConstructor(SourceClassBuilder builder) {
     if (builder.isMixinApplication && !builder.isNamedMixinApplication) return;
     if (builder.constructors.local.isNotEmpty) return;
+    if (builder.isPatch) return;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
@@ -540,6 +543,7 @@ class KernelTarget extends TargetImplementation {
   /// Ensure constructors of [cls] have the correct initializers and other
   /// requirements.
   void finishConstructors(SourceClassBuilder builder) {
+    if (builder.isPatch) return;
     Class cls = builder.target;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
@@ -660,6 +664,28 @@ class KernelTarget extends TargetImplementation {
   /// from sources, and not loaded from a [DillTarget].
   bool isSourceLibrary(Library library) {
     return loader.libraries.contains(library);
+  }
+
+  @override
+  void readPatchFiles(KernelLibraryBuilder library) {
+    assert(library.uri.scheme == "dart");
+    List<Uri> patches = uriTranslator.getDartPatches(library.uri.path);
+    if (patches != null) {
+      KernelLibraryBuilder first;
+      for (Uri patch in patches) {
+        if (first == null) {
+          first =
+              library.loader.read(patch, -1, fileUri: patch, origin: library);
+        } else {
+          // If there's more than one patch file, it's interpreted as a part of
+          // the patch library.
+          KernelLibraryBuilder part =
+              library.loader.read(patch, -1, fileUri: patch);
+          first.parts.add(part);
+          part.addPartOf(null, null, "${first.uri}", -1);
+        }
+      }
+    }
   }
 }
 

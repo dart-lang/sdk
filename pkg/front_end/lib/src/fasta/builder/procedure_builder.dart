@@ -34,7 +34,6 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
   final List<FormalParameterBuilder> formals;
 
   ProcedureBuilder(
-      String documentationComment,
       this.metadata,
       this.modifiers,
       this.returnType,
@@ -43,7 +42,7 @@ abstract class ProcedureBuilder<T extends TypeBuilder> extends MemberBuilder {
       this.formals,
       LibraryBuilder compilationUnit,
       int charOffset)
-      : super(compilationUnit, charOffset, documentationComment);
+      : super(compilationUnit, charOffset);
 
   String get debugName => "ProcedureBuilder";
 

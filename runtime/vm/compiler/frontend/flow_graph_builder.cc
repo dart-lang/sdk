@@ -1110,11 +1110,12 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     ZoneGrowableArray<PushArgumentInstr*>* no_arguments =
         new (Z) ZoneGrowableArray<PushArgumentInstr*>(0);
     const int kTypeArgsLen = 0;
-    StaticCallInstr* call_async_clear_thread_stack_trace = new (Z)
-        StaticCallInstr(node->token_pos().ToSynthetic(),
-                        async_clear_thread_stack_trace, kTypeArgsLen,
-                        Object::null_array(), no_arguments,
-                        owner()->ic_data_array(), owner()->GetNextDeoptId());
+    StaticCallInstr* call_async_clear_thread_stack_trace =
+        new (Z) StaticCallInstr(node->token_pos().ToSynthetic(),
+                                async_clear_thread_stack_trace, kTypeArgsLen,
+                                Object::null_array(), no_arguments,
+                                owner()->ic_data_array(),
+                                owner()->GetNextDeoptId(), ICData::kStatic);
     Do(call_async_clear_thread_stack_trace);
   }
 
@@ -1150,7 +1151,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     StaticCallInstr* call = new (Z) StaticCallInstr(
         node->token_pos().ToSynthetic(), complete_on_async_return, kTypeArgsLen,
         Object::null_array(), arguments, owner()->ic_data_array(),
-        owner()->GetNextDeoptId());
+        owner()->GetNextDeoptId(), ICData::kStatic);
     Do(call);
 
     // Rebind the return value for the actual return call to be null.
@@ -1412,12 +1413,6 @@ PushArgumentInstr* EffectGraphVisitor::PushFunctionTypeArguments(
 Value* EffectGraphVisitor::BuildNullValue(TokenPosition token_pos) {
   return Bind(
       new (Z) ConstantInstr(Object::ZoneHandle(Z, Object::null()), token_pos));
-}
-
-Value* EffectGraphVisitor::BuildEmptyTypeArguments(TokenPosition token_pos) {
-  return Bind(new (Z) ConstantInstr(
-      TypeArguments::ZoneHandle(Z, Object::empty_type_arguments().raw()),
-      token_pos));
 }
 
 // Used for testing incoming arguments.
@@ -2247,7 +2242,7 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
                kTypeArgsLen, kNumberOfArguments, kNoArgumentNames));
     StaticCallInstr* call = new (Z) StaticCallInstr(
         node->token_pos(), function, kTypeArgsLen, kNoArgumentNames, values,
-        owner()->ic_data_array(), owner()->GetNextDeoptId());
+        owner()->ic_data_array(), owner()->GetNextDeoptId(), ICData::kStatic);
     ReturnDefinition(call);
     return;
   }
@@ -2476,6 +2471,38 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   }
 }
 
+static ICData::RebindRule ConvertRebindRule(
+    StaticCallNode::RebindRule rebind_rule_ast) {
+  switch (rebind_rule_ast) {
+    case StaticCallNode::kNoRebind:
+      return ICData::kNoRebind;
+    case StaticCallNode::kNSMDispatch:
+      return ICData::kNSMDispatch;
+    case StaticCallNode::kSuper:
+      return ICData::kSuper;
+    case StaticCallNode::kStatic:
+      return ICData::kStatic;
+    default:
+      UNREACHABLE();
+      return ICData::kStatic;
+  }
+}
+
+static ICData::RebindRule ConvertRebindRule(
+    StaticGetterSetter::RebindRule rebind_rule_ast) {
+  switch (rebind_rule_ast) {
+    case StaticGetterSetter::kNoRebind:
+      return ICData::kNoRebind;
+    case StaticGetterSetter::kSuper:
+      return ICData::kSuper;
+    case StaticGetterSetter::kStatic:
+      return ICData::kStatic;
+    default:
+      UNREACHABLE();
+      return ICData::kStatic;
+  }
+}
+
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
@@ -2487,7 +2514,7 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
   StaticCallInstr* call = new (Z) StaticCallInstr(
       node->token_pos(), node->function(), node->arguments()->type_args_len(),
       node->arguments()->names(), arguments, owner()->ic_data_array(),
-      owner()->GetNextDeoptId());
+      owner()->GetNextDeoptId(), ConvertRebindRule(node->rebind_rule()));
   if (node->function().recognized_kind() != MethodRecognizer::kUnknown) {
     call->set_result_cid(MethodRecognizer::ResultCid(node->function()));
   }
@@ -2548,8 +2575,9 @@ void EffectGraphVisitor::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
   Value* context = Bind(BuildCurrentContext(node->token_pos()));
-  Value* clone = Bind(new (Z) CloneContextInstr(node->token_pos(), context,
-                                                owner()->GetNextDeoptId()));
+  Value* clone = Bind(new (Z) CloneContextInstr(
+      node->token_pos(), context, node->scope()->num_context_variables(),
+      owner()->GetNextDeoptId()));
   Do(BuildStoreContext(clone, node->token_pos()));
 }
 
@@ -2581,10 +2609,10 @@ void EffectGraphVisitor::BuildConstructorCall(
 
   BuildPushArguments(*node->arguments(), arguments);
   const intptr_t kTypeArgsLen = 0;
-  Do(new (Z)
-         StaticCallInstr(node->token_pos(), node->constructor(), kTypeArgsLen,
-                         node->arguments()->names(), arguments,
-                         owner()->ic_data_array(), owner()->GetNextDeoptId()));
+  Do(new (Z) StaticCallInstr(node->token_pos(), node->constructor(),
+                             kTypeArgsLen, node->arguments()->names(),
+                             arguments, owner()->ic_data_array(),
+                             owner()->GetNextDeoptId(), ICData::kStatic));
 }
 
 static intptr_t GetResultCidOfListFactory(ConstructorCallNode* node) {
@@ -2621,10 +2649,10 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
     ASSERT(arguments->length() == 1);
     BuildPushArguments(*node->arguments(), arguments);
     const int kTypeArgsLen = 0;
-    StaticCallInstr* call = new (Z)
-        StaticCallInstr(node->token_pos(), node->constructor(), kTypeArgsLen,
-                        node->arguments()->names(), arguments,
-                        owner()->ic_data_array(), owner()->GetNextDeoptId());
+    StaticCallInstr* call = new (Z) StaticCallInstr(
+        node->token_pos(), node->constructor(), kTypeArgsLen,
+        node->arguments()->names(), arguments, owner()->ic_data_array(),
+        owner()->GetNextDeoptId(), ICData::kStatic);
     const intptr_t result_cid = GetResultCidOfListFactory(node);
     if (result_cid != kDynamicCid) {
       call->set_result_cid(result_cid);
@@ -2712,23 +2740,8 @@ Value* EffectGraphVisitor::BuildFunctionTypeArguments(TokenPosition token_pos) {
   LocalVariable* function_type_arguments_var =
       owner()->parsed_function().function_type_arguments();
   if (function_type_arguments_var == NULL) {
-    // We encountered an uninstantiated type referring to type parameters of a
-    // signature that is local to the function being compiled. The type remains
-    // uninstantiated. Example: Foo(f<T>(T t)) => null;
-    // Foo is non-generic, but takes a generic function f as argument.
-    // The uninstantiated function type of f cannot be instantiated from within
-    // Foo and should not be instantiated. It is used in uninstantiated form to
-    // check incoming closures for assignability. We pass an empty function
-    // type argument vector.
-    return BuildEmptyTypeArguments(token_pos);
-
-    // Note that the function type could also get partially instantiated:
-    // Bar<B>(B g<T>(T t)) => null;
-    // In this case, function_type_arguments_var will not be null, since Bar
-    // is generic, and will be used to partially instantiate the type of g, more
-    // specifically the result type of g. Note that the instantiator vector will
-    // have length 1, and type parameters with indices above 0, e.g. T, must
-    // remain uninstantiated.
+    ASSERT(!owner()->isolate()->reify_generic_functions());
+    return BuildNullValue(token_pos);
   }
   return Bind(BuildLoadLocal(*function_type_arguments_var, token_pos));
 }
@@ -3023,7 +3036,8 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   StaticCallInstr* call = new (Z) StaticCallInstr(
       node->token_pos(), getter_function, kTypeArgsLen,
       Object::null_array(),  // No names
-      arguments, owner()->ic_data_array(), owner()->GetNextDeoptId());
+      arguments, owner()->ic_data_array(), owner()->GetNextDeoptId(),
+      ConvertRebindRule(node->rebind_rule()));
   ReturnDefinition(call);
 }
 
@@ -3085,7 +3099,8 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
     call = new (Z) StaticCallInstr(token_pos, setter_function, kTypeArgsLen,
                                    Object::null_array(),  // No names.
                                    arguments, owner()->ic_data_array(),
-                                   owner()->GetNextDeoptId());
+                                   owner()->GetNextDeoptId(),
+                                   ConvertRebindRule(node->rebind_rule()));
   }
   if (result_is_needed) {
     Do(call);
@@ -3248,9 +3263,9 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
                               Type::ZoneHandle(Z, Type::SmiType()), kSmiCid));
       }
       case MethodRecognizer::kLinkedHashMap_getIndex: {
-        return ReturnDefinition(
-            BuildNativeGetter(node, kind, LinkedHashMap::index_offset(),
-                              Object::dynamic_type(), kDynamicCid));
+        return ReturnDefinition(BuildNativeGetter(
+            node, kind, LinkedHashMap::index_offset(), Object::dynamic_type(),
+            kTypedDataUint32ArrayCid));
       }
       case MethodRecognizer::kLinkedHashMap_setIndex: {
         return ReturnDefinition(DoNativeSetterStoreValue(
@@ -3515,7 +3530,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Generate static call to super operator.
     StaticCallInstr* load = new (Z) StaticCallInstr(
         node->token_pos(), *super_function, kTypeArgsLen, Object::null_array(),
-        arguments, owner()->ic_data_array(), owner()->GetNextDeoptId());
+        arguments, owner()->ic_data_array(), owner()->GetNextDeoptId(),
+        ICData::kSuper);
     ReturnDefinition(load);
   } else {
     // Generate dynamic call to index operator.
@@ -3588,7 +3604,8 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(StoreIndexedNode* node,
 
     StaticCallInstr* store = new (Z) StaticCallInstr(
         token_pos, *super_function, kTypeArgsLen, Object::null_array(),
-        arguments, owner()->ic_data_array(), owner()->GetNextDeoptId());
+        arguments, owner()->ic_data_array(), owner()->GetNextDeoptId(),
+        ICData::kSuper);
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp(token_pos);
@@ -3748,7 +3765,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // Load the passed-in type argument vector from the temporary stack slot,
   // prepend the function type arguments of the generic parent function, and
   // store it to the final location, possibly in the context.
-  if (FLAG_reify_generic_functions && is_top_level_sequence &&
+  if (owner()->isolate()->reify_generic_functions() && is_top_level_sequence &&
       function.IsGeneric()) {
     const ParsedFunction& parsed_function = owner()->parsed_function();
     LocalVariable* type_args_var = parsed_function.function_type_arguments();
@@ -3796,7 +3813,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         type_args_val = Bind(new (Z) StaticCallInstr(
             node->token_pos(), prepend_function, kTypeArgsLen,
             Object::null_array(),  // No names.
-            arguments, owner()->ic_data_array(), owner()->GetNextDeoptId()));
+            arguments, owner()->ic_data_array(), owner()->GetNextDeoptId(),
+            ICData::kStatic));
       }
       Do(BuildStoreLocal(*type_args_var, type_args_val, ST(node->token_pos())));
       if (type_args_var->is_captured()) {
@@ -3838,11 +3856,12 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     ASSERT(!async_set_thread_stack_trace.IsNull());
     // Call _asyncSetThreadStackTrace
     const intptr_t kTypeArgsLen = 0;
-    StaticCallInstr* call_async_set_thread_stack_trace = new (Z)
-        StaticCallInstr(node->token_pos().ToSynthetic(),
-                        async_set_thread_stack_trace, kTypeArgsLen,
-                        Object::null_array(), arguments,
-                        owner()->ic_data_array(), owner()->GetNextDeoptId());
+    StaticCallInstr* call_async_set_thread_stack_trace =
+        new (Z) StaticCallInstr(node->token_pos().ToSynthetic(),
+                                async_set_thread_stack_trace, kTypeArgsLen,
+                                Object::null_array(), arguments,
+                                owner()->ic_data_array(),
+                                owner()->GetNextDeoptId(), ICData::kStatic);
     Do(call_async_set_thread_stack_trace);
   }
 
@@ -3890,7 +3909,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
-  if (Isolate::Current()->type_checks() && is_top_level_sequence) {
+  if (is_top_level_sequence && isolate()->argument_type_checks()) {
     const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsFactory() || function.IsDynamicFunction() ||
@@ -3906,8 +3925,13 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                             parameter.name())) {
         Value* parameter_value =
             Bind(BuildLoadLocal(parameter, parameter.token_pos()));
+        const String& dst_name =
+            (function.kind() == RawFunction::kImplicitSetter)
+                ? String::ZoneHandle(Z, Field::NameFromSetter(
+                                            String::Handle(Z, function.name())))
+                : parameter.name();
         Do(BuildAssertAssignable(parameter.token_pos(), parameter_value,
-                                 parameter.type(), parameter.name()));
+                                 parameter.type(), dst_name));
       }
       pos++;
     }
@@ -4201,7 +4225,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   BuildPushArguments(*args, push_arguments);
   return new (Z) StaticCallInstr(
       args_pos, no_such_method_func, kTypeArgsLen, Object::null_array(),
-      push_arguments, owner()->ic_data_array(), owner()->GetNextDeoptId());
+      push_arguments, owner()->ic_data_array(), owner()->GetNextDeoptId(),
+      ICData::kNSMDispatch);
 }
 
 StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
@@ -4228,6 +4253,12 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   Value* invocation_type_value = Bind(
       new (Z) ConstantInstr(Smi::ZoneHandle(Z, Smi::New(invocation_type))));
   arguments->Add(PushArgument(invocation_type_value));
+  // Object typeArguments.
+  Value* type_arguments_value = Bind(new (Z) ConstantInstr(
+      function_arguments == NULL
+          ? TypeArguments::ZoneHandle(Z, TypeArguments::null())
+          : function_arguments->type_arguments()));
+  arguments->Add(PushArgument(type_arguments_value));
   // List arguments.
   if (function_arguments == NULL) {
     Value* arguments_value =
@@ -4249,10 +4280,6 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   Value* argument_names_value = Bind(cinstr);
   arguments->Add(PushArgument(argument_names_value));
 
-  // List existingArgumentNames.
-  Value* existing_argument_names_value =
-      Bind(new (Z) ConstantInstr(Array::ZoneHandle(Z, Array::null())));
-  arguments->Add(PushArgument(existing_argument_names_value));
   // Resolve and call NoSuchMethodError._throwNew.
   const Library& core_lib = Library::Handle(Z, Library::CoreLibrary());
   const Class& cls =
@@ -4267,7 +4294,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   return new (Z) StaticCallInstr(token_pos, func, kTypeArgsLen,
                                  Object::null_array(),  // No names.
                                  arguments, owner()->ic_data_array(),
-                                 owner()->GetNextDeoptId());
+                                 owner()->GetNextDeoptId(), ICData::kStatic);
 }
 
 void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {

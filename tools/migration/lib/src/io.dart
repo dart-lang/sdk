@@ -57,15 +57,18 @@ void deleteFile(String path) {
 }
 
 /// Returns a list of the paths to all files within [dir], which is
-/// assumed to be relative to the SDK's "tests" directory and having file
-/// [extension].
-Iterable<String> listFiles(String dir, {String extension = ".dart"}) {
+/// assumed to be relative to the SDK's "tests" directory and having file with
+/// an extension in [extensions].
+Iterable<String> listFiles(String dir,
+    {List<String> extensions = const [".dart", ".html"]}) {
   try {
     return new Directory(p.join(testRoot, dir))
         .listSync(recursive: true)
         .map((entry) {
-      if (!entry.path.endsWith(extension)) return null;
-      return entry.path;
+      var matches = extensions.map((extension) {
+        return entry.path.endsWith(extension);
+      }).where((match) => match);
+      return matches.isEmpty ? null : entry.path;
     }).where((path) => path != null);
   } catch (FileSystemException) {
     return [];

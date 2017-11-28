@@ -361,6 +361,56 @@ void ProgramVisitor::DedupDeoptEntries() {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+#if defined(DART_PRECOMPILER)
+void ProgramVisitor::DedupCatchEntryStateMaps() {
+  if (!FLAG_precompiled_mode) {
+    return;
+  }
+  class DedupCatchEntryStateMapsVisitor : public FunctionVisitor {
+   public:
+    explicit DedupCatchEntryStateMapsVisitor(Zone* zone)
+        : zone_(zone),
+          canonical_catch_entry_state_maps_(),
+          code_(Code::Handle(zone)),
+          catch_entry_state_maps_(TypedData::Handle(zone)) {}
+
+    void Visit(const Function& function) {
+      if (!function.HasCode()) {
+        return;
+      }
+      code_ = function.CurrentCode();
+      catch_entry_state_maps_ = code_.catch_entry_state_maps();
+      catch_entry_state_maps_ =
+          DedupCatchEntryStateMaps(catch_entry_state_maps_);
+      code_.set_catch_entry_state_maps(catch_entry_state_maps_);
+    }
+
+    RawTypedData* DedupCatchEntryStateMaps(
+        const TypedData& catch_entry_state_maps) {
+      const TypedData* canonical_catch_entry_state_maps =
+          canonical_catch_entry_state_maps_.LookupValue(
+              &catch_entry_state_maps);
+      if (canonical_catch_entry_state_maps == NULL) {
+        canonical_catch_entry_state_maps_.Insert(
+            &TypedData::ZoneHandle(zone_, catch_entry_state_maps.raw()));
+        return catch_entry_state_maps.raw();
+      } else {
+        return canonical_catch_entry_state_maps->raw();
+      }
+    }
+
+   private:
+    Zone* zone_;
+    TypedDataSet canonical_catch_entry_state_maps_;
+    Code& code_;
+    TypedData& catch_entry_state_maps_;
+  };
+
+  DedupCatchEntryStateMapsVisitor visitor(Thread::Current()->zone());
+  ProgramVisitor::VisitFunctions(&visitor);
+}
+#endif  // !defined(DART_PRECOMPILER)
+
 class CodeSourceMapKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -651,6 +701,9 @@ void ProgramVisitor::Dedup() {
   DedupStackMaps();
   DedupPcDescriptors();
   NOT_IN_PRECOMPILED(DedupDeoptEntries());
+#if defined(DART_PRECOMPILER)
+  DedupCatchEntryStateMaps();
+#endif
   DedupCodeSourceMaps();
   DedupLists();
 

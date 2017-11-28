@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+import 'dart:math' as math;
+
 import '../environment.dart';
 
 /// A parsed Boolean expression AST.
-abstract class Expression {
+abstract class Expression implements Comparable<Expression> {
   /// Parses Boolean expressions in a .status file for Dart.
   ///
   /// The grammar is:
@@ -34,6 +37,43 @@ abstract class Expression {
   /// Evaluates the expression where all variables are defined by the given
   /// [environment].
   bool evaluate(Environment environment);
+
+  /// Produce a "normalized" version of this expression.
+  ///
+  /// This removes any redundant computation and orders subexpressions in a
+  /// well-defined way such that two expressions with the same tree structure
+  /// and operands should result in equivalent expressions. It:
+  ///
+  /// * Simplifies comparisons against boolean literals "true" and "false" to
+  ///   the equivalent bare variable forms.
+  /// * Sorts the operands to a series of logic operators in a well-defined way.
+  ///   (We are free to do this because status expressions are side-effect free
+  ///   and don't need to short-circuit).
+  /// * Removes duplicate operands to logic operators.
+  ///
+  /// This does not try to produce a *minimal* expression that calculates the
+  /// same truth values as the original expression.
+  Expression normalize();
+
+  /// Computes a relative ordering between two expressions or returns zero if
+  /// they are exactly identical.
+  ///
+  /// This is useful for things like sorting lists of expressions or
+  /// normalizing a list of subexpressions. The rough logic is that higher
+  /// precedence and alphabetically lower expressions come first.
+  int compareTo(Expression other) {
+    var comparison = _typeComparison.compareTo(other._typeComparison);
+    if (comparison != 0) return comparison;
+
+    // They must be the same type.
+    return _compareToMyType(other);
+  }
+
+  int _compareToMyType(covariant Expression other);
+
+  /// The "precedence" of each expression type when comparing them using
+  /// `compareTo()`. Expressions whose type is lower compare earlier.
+  int get _typeComparison;
 }
 
 /// Keyword token strings.
@@ -76,7 +116,7 @@ class _Variable {
 /// $variable == someValue
 /// ```
 /// Negate the result if [negate] is true.
-class _ComparisonExpression implements Expression {
+class _ComparisonExpression extends Expression {
   final _Variable left;
   final String right;
   final bool negate;
@@ -90,6 +130,33 @@ class _ComparisonExpression implements Expression {
   bool evaluate(Environment environment) {
     return negate != (left.lookup(environment) == right);
   }
+
+  Expression normalize() {
+    // Replace Boolean comparisons with a straight variable expression.
+    if (right == "true") {
+      return new _VariableExpression(left, negate: negate);
+    } else if (right == "false") {
+      return new _VariableExpression(left, negate: !negate);
+    } else {
+      return this;
+    }
+  }
+
+  int _compareToMyType(_ComparisonExpression other) {
+    if (left.name != other.left.name) {
+      return left.name.compareTo(other.left.name);
+    }
+
+    if (right != other.right) {
+      return right.compareTo(other.right);
+    }
+
+    return _compareBool(negate, other.negate);
+  }
+
+  // Comparisons come before variables so that "$compiler == ..." and
+  // "$runtime == ..." appear on the left in status expressions.
+  int get _typeComparison => 0;
 
   String toString() => "\$${left.name} ${negate ? '!=' : '=='} $right";
 }
@@ -111,7 +178,7 @@ class _ComparisonExpression implements Expression {
 /// ```
 ///     $variable != true
 /// ```
-class _VariableExpression implements Expression {
+class _VariableExpression extends Expression {
   final _Variable variable;
   final bool negate;
 
@@ -125,27 +192,75 @@ class _VariableExpression implements Expression {
   bool evaluate(Environment environment) =>
       negate != (variable.lookup(environment) == "true");
 
+  /// Variable expressions are fine as they are.
+  Expression normalize() => this;
+
+  int _compareToMyType(_VariableExpression other) {
+    if (variable.name != other.variable.name) {
+      return variable.name.compareTo(other.variable.name);
+    }
+
+    return _compareBool(negate, other.negate);
+  }
+
+  int get _typeComparison => 1;
+
   String toString() => "${negate ? "!" : ""}\$${variable.name}";
 }
 
 /// A logical `||` or `&&` expression.
-class _LogicExpression implements Expression {
+class _LogicExpression extends Expression {
   /// The operator, `||` or `&&`.
   final String op;
 
-  final Expression left;
-  final Expression right;
+  final List<Expression> operands;
 
-  _LogicExpression(this.op, this.left, this.right);
+  _LogicExpression(this.op, this.operands);
 
   void validate(Environment environment, List<String> errors) {
-    left.validate(environment, errors);
-    right.validate(environment, errors);
+    for (var operand in operands) {
+      operand.validate(environment, errors);
+    }
   }
 
-  bool evaluate(Environment environment) => (op == _Token.and)
-      ? left.evaluate(environment) && right.evaluate(environment)
-      : left.evaluate(environment) || right.evaluate(environment);
+  bool evaluate(Environment environment) {
+    if (op == _Token.and) {
+      return operands.every((operand) => operand.evaluate(environment));
+    } else {
+      return operands.any((operand) => operand.evaluate(environment));
+    }
+  }
+
+  Expression normalize() {
+    // Normalize the order of the clauses. Since there is no short-circuiting,
+    // a || b means the same as b || a. Picking a standard order lets us
+    // identify and collapse identical expressions that only differ by clause
+    // order.
+
+    // Recurse into the operands, sort them, and remove duplicates.
+    var normalized = operands.map((operand) => operand.normalize());
+    var ordered = new SplayTreeSet<Expression>.from(normalized).toList();
+    return new _LogicExpression(op, ordered);
+  }
+
+  int _compareToMyType(_LogicExpression other) {
+    // Put "&&" before "||".
+    if (op != other.op) return op == _Token.and ? -1 : 1;
+
+    // Lexicographically compare the operands.
+    var length = math.max(operands.length, other.operands.length);
+    for (var i = 0; i < length; i++) {
+      if (i >= operands.length) return -1;
+      if (i >= other.operands.length) return 1;
+
+      var comparison = operands[i].compareTo(other.operands[i]);
+      if (comparison != 0) return comparison;
+    }
+
+    return 0;
+  }
+
+  int get _typeComparison => 2;
 
   String toString() {
     String parenthesize(Expression operand) {
@@ -157,7 +272,7 @@ class _LogicExpression implements Expression {
       return result;
     }
 
-    return "${parenthesize(left)} $op ${parenthesize(right)}";
+    return operands.map(parenthesize).join(" $op ");
   }
 }
 
@@ -179,23 +294,25 @@ class _ExpressionParser {
   }
 
   Expression _parseOr() {
-    var left = _parseAnd();
+    var operands = [_parseAnd()];
     while (_scanner.match(_Token.or)) {
-      var right = _parseAnd();
-      left = new _LogicExpression(_Token.or, left, right);
+      operands.add(_parseAnd());
     }
 
-    return left;
+    if (operands.length == 1) return operands.single;
+
+    return new _LogicExpression(_Token.or, operands);
   }
 
   Expression _parseAnd() {
-    var left = _parsePrimary();
+    var operands = [_parsePrimary()];
     while (_scanner.match(_Token.and)) {
-      var right = _parsePrimary();
-      left = new _LogicExpression(_Token.and, left, right);
+      operands.add(_parsePrimary());
     }
 
-    return left;
+    if (operands.length == 1) return operands.single;
+
+    return new _LogicExpression(_Token.and, operands);
   }
 
   Expression _parsePrimary() {
@@ -300,4 +417,10 @@ class _Scanner {
     current = tokenIterator.moveNext() ? tokenIterator.current : null;
     return previous;
   }
+}
+
+int _compareBool(bool a, bool b) {
+  if (a == b) return 0;
+  if (a) return 1;
+  return -1;
 }

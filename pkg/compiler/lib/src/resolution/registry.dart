@@ -8,10 +8,11 @@ import '../common.dart';
 import '../common/backend_api.dart' show ForeignResolver, NativeRegistry;
 import '../common/resolution.dart' show ResolutionImpact, Target;
 import '../constants/expressions.dart';
-import '../elements/resolution_types.dart';
 import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart' show ClassEntity;
 import '../elements/jumps.dart';
+import '../elements/resolution_types.dart';
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart';
@@ -33,6 +34,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   Setlet<String> _constSymbolNames;
   Setlet<ConstantExpression> _constantLiterals;
   Setlet<dynamic> _nativeData;
+  Setlet<ClassEntity> _seenClasses;
 
   ResolutionWorldImpactBuilder(this.name);
 
@@ -115,6 +117,18 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   @override
   Iterable<dynamic> get nativeData {
     return _nativeData != null ? _nativeData : const <dynamic>[];
+  }
+
+  void registerSeenClass(ClassEntity seenClass) {
+    if (_seenClasses == null) {
+      _seenClasses = new Setlet<ClassEntity>();
+    }
+    _seenClasses.add(seenClass);
+  }
+
+  @override
+  Iterable<ClassEntity> get seenClasses {
+    return _seenClasses ?? const <ClassEntity>[];
   }
 
   String toString() {
@@ -421,6 +435,10 @@ class ResolutionRegistry {
 
   void registerTryStatement() {
     mapping.containsTryStatement = true;
+  }
+
+  void registerSeenClass(ClassEntity seenClass) {
+    impactBuilder.registerSeenClass(seenClass);
   }
 }
 

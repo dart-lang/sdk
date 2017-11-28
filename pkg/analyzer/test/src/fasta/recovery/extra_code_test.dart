@@ -28,6 +28,14 @@ class B = Object with A {}
 class B = Object with A;
 ''');
   }
+
+  void test_getter_parameters() {
+    testRecovery('''
+int get g() => 0;
+''', [ParserErrorCode.GETTER_WITH_PARAMETERS], '''
+int get g => 0;
+''');
+  }
 }
 
 /**
@@ -35,7 +43,10 @@ class B = Object with A;
  */
 @reflectiveTest
 class ModifiersTest extends AbstractRecoveryTest {
+  @failingTest
   void test_classDeclaration_static() {
+    // TODO(danrubel): Fails because compilation unit begin token is `static`
+    // even after recovery.
     testRecovery('''
 static class A {}
 ''', [ParserErrorCode.EXTRANEOUS_MODIFIER], '''

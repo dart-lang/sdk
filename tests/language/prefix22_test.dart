@@ -9,8 +9,7 @@ library Prefix21NegativeTest.dart;
 import "library12.dart" as lib12;
 
 class myClass {
-  myClass(lib12.Library13 p) { // //# static type warning
-  }
+  myClass(lib12.Library13 p) {} // //# static type warning
 }
 
 main() {

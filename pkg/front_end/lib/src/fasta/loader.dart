@@ -46,6 +46,8 @@ abstract class Loader<L> {
 
   LibraryBuilder coreLibrary;
 
+  /// The first library that we've been asked to compile. When compiling a
+  /// program (aka script), this is the library that should have a main method.
   LibraryBuilder first;
 
   int byteCount = 0;
@@ -68,8 +70,7 @@ abstract class Loader<L> {
   /// directive. If [accessor] isn't allowed to access [uri], it's a
   /// compile-time error.
   LibraryBuilder read(Uri uri, int charOffset,
-      {Uri fileUri, LibraryBuilder accessor, bool isPatch: false}) {
-    firstSourceUri ??= uri;
+      {Uri fileUri, LibraryBuilder accessor, LibraryBuilder origin}) {
     LibraryBuilder builder = builders.putIfAbsent(uri, () {
       if (fileUri == null) {
         switch (uri.scheme) {
@@ -84,21 +85,31 @@ abstract class Loader<L> {
         }
       }
       LibraryBuilder library =
-          target.createLibraryBuilder(uri, fileUri, isPatch);
+          target.createLibraryBuilder(uri, fileUri, origin);
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
         target.loadExtraRequiredLibraries(this);
       }
-      if (target.backendTarget.mayDefineRestrictedType(uri)) {
+      if (library.loader != this) {
+        // This library isn't owned by this loader, so not further processing
+        // should be attempted.
+        return library;
+      }
+
+      {
+        // Add any additional logic after this block. Setting the
+        // firstSourceUri and first library should be done as early as
+        // possible.
+        firstSourceUri ??= uri;
+        first ??= library;
+      }
+      if (target.backendTarget.mayDefineRestrictedType(origin?.uri ?? uri)) {
         library.mayImplementRestrictedTypes = true;
       }
       if (uri.scheme == "dart") {
         target.readPatchFiles(library);
       }
-      first ??= library;
-      if (library.loader == this) {
-        unparsedLibraries.addLast(library);
-      }
+      unparsedLibraries.addLast(library);
       return library;
     });
     if (accessor != null &&
@@ -173,10 +184,13 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
   /// If [wasHandled] is true, this error is added to [handledErrors],
   /// otherwise it is added to [unhandledErrors].
   void addCompileTimeError(Message message, int charOffset, Uri fileUri,
-      {bool silent: false, bool wasHandled: false}) {
+      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
     if (!silent) {
       target.context
           .report(message.withLocation(fileUri, charOffset), Severity.error);
+      if (context != null) {
+        target.context.report(context, Severity.error);
+      }
     }
     (wasHandled ? handledErrors : unhandledErrors)
         .add(message.withLocation(fileUri, charOffset));

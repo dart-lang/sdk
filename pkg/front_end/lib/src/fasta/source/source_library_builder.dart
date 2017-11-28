@@ -8,6 +8,9 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueLiteral;
+
 import '../../scanner/token.dart' show Token;
 
 import '../builder/builder.dart'
@@ -23,11 +26,13 @@ import '../builder/builder.dart'
         NamedTypeBuilder,
         PrefixBuilder,
         ProcedureBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder,
-        Unhandled;
+        Unhandled,
+        UnresolvedType;
 
 import '../combinator.dart' show Combinator;
 
@@ -37,9 +42,15 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
+        Message,
+        codeTypeNotFound,
+        messageExpectedUri,
         messagePartOfSelf,
+        messageMemberWithSameNameAsClass,
         templateConflictsWithMember,
         templateConflictsWithSetter,
+        templateCouldNotParseUri,
         templateDeferredPrefixDuplicated,
         templateDeferredPrefixDuplicatedCause,
         templateDuplicatedDefinition,
@@ -57,6 +68,8 @@ import 'source_loader.dart' show SourceLoader;
 
 abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     extends LibraryBuilder<T, R> {
+  static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
+
   final SourceLoader loader;
 
   final DeclarationBuilder<T> libraryDeclaration;
@@ -86,7 +99,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   String partOfName;
 
-  String partOfUri;
+  Uri partOfUri;
 
   List<MetadataBuilder> metadata;
 
@@ -113,24 +126,22 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   bool get isPart => partOfName != null || partOfUri != null;
 
-  @override
-  bool get isPatch;
+  List<UnresolvedType<T>> get types => libraryDeclaration.types;
 
-  List<T> get types => libraryDeclaration.types;
-
-  T addNamedType(String name, List<T> arguments, int charOffset);
+  T addNamedType(Object name, List<T> arguments, int charOffset);
 
   T addMixinApplication(T supertype, List<T> mixins, int charOffset);
 
-  T addType(T type) {
-    currentDeclaration.addType(type);
+  T addType(T type, int charOffset) {
+    currentDeclaration
+        .addType(new UnresolvedType<T>(type, charOffset, fileUri));
     return type;
   }
 
   T addVoidType(int charOffset);
 
   ConstructorReferenceBuilder addConstructorReference(
-      String name, List<T> typeArguments, String suffix, int charOffset) {
+      Object name, List<T> typeArguments, String suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
         name, typeArguments, suffix, this, charOffset);
     constructorReferences.add(ref);
@@ -152,11 +163,44 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     return previous;
   }
 
-  Uri resolve(String path) => uri.resolve(path);
+  bool uriIsValid(Uri uri) => uri.scheme != MALFORMED_URI_SCHEME;
 
-  void addExport(List<MetadataBuilder> metadata, String uri,
-      Unhandled conditionalUris, List<Combinator> combinators, int charOffset) {
-    var exportedLibrary = loader.read(resolve(uri), charOffset, accessor: this);
+  Uri resolve(Uri baseUri, String uri, int uriOffset, {isPart: false}) {
+    if (uri == null) {
+      addCompileTimeError(messageExpectedUri, uriOffset, this.uri);
+      return new Uri(scheme: MALFORMED_URI_SCHEME);
+    }
+    Uri parsedUri;
+    try {
+      parsedUri = Uri.parse(uri);
+    } on FormatException catch (e) {
+      // Point to position in string indicated by the exception,
+      // or to the initial quote if no position is given.
+      // (Assumes the directive is using a single-line string.)
+      addCompileTimeError(
+          templateCouldNotParseUri.withArguments(uri, e.message),
+          uriOffset + 1 + (e.offset ?? -1),
+          this.uri);
+      return new Uri(
+          scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
+    }
+    if (isPart && baseUri.scheme == "dart") {
+      // Resolve using special rules for dart: URIs
+      return resolveRelativeUri(baseUri, parsedUri);
+    } else {
+      return baseUri.resolveUri(parsedUri);
+    }
+  }
+
+  void addExport(
+      List<MetadataBuilder> metadata,
+      String uri,
+      Unhandled conditionalUris,
+      List<Combinator> combinators,
+      int charOffset,
+      int uriOffset) {
+    var exportedLibrary = loader
+        .read(resolve(this.uri, uri, uriOffset), charOffset, accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
@@ -169,10 +213,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<Combinator> combinators,
       bool deferred,
       int charOffset,
-      int prefixCharOffset) {
+      int prefixCharOffset,
+      int uriOffset) {
     imports.add(new Import(
         this,
-        loader.read(resolve(uri), charOffset, accessor: this),
+        loader.read(resolve(this.uri, uri, uriOffset), charOffset,
+            accessor: this),
         deferred,
         prefix,
         combinators,
@@ -180,25 +226,23 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
         prefixCharOffset));
   }
 
-  void addPart(List<MetadataBuilder> metadata, String path, int charOffset) {
+  void addPart(List<MetadataBuilder> metadata, String uri, int charOffset) {
     Uri resolvedUri;
     Uri newFileUri;
-    if (uri.scheme == "dart") {
-      resolvedUri = resolveRelativeUri(uri, Uri.parse(path));
-      newFileUri = fileUri.resolve(path);
-    } else {
-      resolvedUri = uri.resolve(path);
-      if (uri.scheme != "package") {
-        newFileUri = fileUri.resolve(path);
-      }
+    resolvedUri = resolve(this.uri, uri, charOffset, isPart: true);
+    if (this.uri.scheme != "package") {
+      newFileUri = resolve(fileUri, uri, charOffset);
     }
     parts.add(loader.read(resolvedUri, charOffset,
         fileUri: newFileUri, accessor: this));
   }
 
-  void addPartOf(List<MetadataBuilder> metadata, String name, String uri) {
+  void addPartOf(
+      List<MetadataBuilder> metadata, String name, String uri, int uriOffset) {
     partOfName = name;
-    partOfUri = uri;
+    if (uri != null) {
+      partOfUri = resolve(this.uri, uri, uriOffset);
+    }
   }
 
   void addClass(
@@ -209,7 +253,9 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<TypeVariableBuilder> typeVariables,
       T supertype,
       List<T> interfaces,
-      int charOffset);
+      int charOffset,
+      int charEndOffset,
+      int supertypeOffset);
 
   void addNamedMixinApplication(
       String documentationComment,
@@ -253,7 +299,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<MetadataBuilder> metadata,
       int modifiers,
       T returnType,
-      String name,
+      Object name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       ProcedureKind kind,
@@ -272,6 +318,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charEndOffset);
 
   void addFunctionTypeAlias(
+      String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
@@ -321,6 +368,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
     bool isConstructor = builder is ProcedureBuilder &&
         (builder.isConstructor || builder.isFactory);
+    if (!isConstructor && name == currentDeclaration.name) {
+      addCompileTimeError(
+          messageMemberWithSameNameAsClass, charOffset, fileUri);
+    }
     Map<String, Builder> members = isConstructor
         ? currentDeclaration.constructors
         : (builder.isSetter
@@ -450,7 +501,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void includePart(SourceLibraryBuilder<T, R> part) {
     if (part.partOfUri != null) {
-      if (uri.resolve(part.partOfUri) != uri) {
+      if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
         // This is a warning, but the part is still included.
         addWarning(
             templatePartOfUriMismatch.withArguments(
@@ -476,16 +527,19 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
             -1,
             fileUri);
       }
-    } else if (name != null) {
-      // This is an error, and the part isn't included.
+    } else {
+      // This is an error, but the part is still included, so that
+      // metadata annotations can be associated with it.
       assert(!part.isPart);
-      addCompileTimeError(
-          templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
-      parts.remove(part);
-      return;
+      if (uriIsValid(part.fileUri)) {
+        addCompileTimeError(
+            templateMissingPartOf.withArguments(part.fileUri), -1, fileUri);
+      }
     }
     part.forEach((String name, Builder builder) {
       if (builder.next != null) {
+        // TODO(ahe): This shouldn't be necessary as setters have been added to
+        // their own scope.
         assert(builder.next.next == null);
         addBuilder(name, builder.next, builder.next.charOffset);
       }
@@ -532,14 +586,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     }
   }
 
-  int resolveTypes(_) {
+  /// Resolves all unresolved types in [types]. The list of types is cleared
+  /// when done.
+  int resolveTypes() {
     int typeCount = types.length;
-    for (T t in types) {
+    for (UnresolvedType<T> t in types) {
       t.resolveIn(scope);
     }
-    forEach((String name, Builder member) {
-      typeCount += member.resolveTypes(this);
-    });
+    types.clear();
     return typeCount;
   }
 
@@ -559,11 +613,57 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   String get fullNameForErrors => name ?? "<library '$relativeFileUri'>";
 
   @override
-  void prepareInitializerInference(
+  void prepareTopLevelInference(
       SourceLibraryBuilder library, ClassBuilder currentClass) {
     forEach((String name, Builder member) {
-      member.prepareInitializerInference(library, currentClass);
+      if (member is ClassBuilder) {
+        // Classes are handled separately, in class hierarchy order.
+        return;
+      }
+      member.prepareTopLevelInference(library, currentClass);
     });
+  }
+
+  @override
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    forEach((String name, Builder member) {
+      member.instrumentTopLevelInference(instrumentation);
+    });
+  }
+
+  @override
+  void addWarning(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    super
+        .addWarning(message, charOffset, uri, silent: silent, context: context);
+    if (!silent) {
+      // TODO(ahe): All warnings should have a charOffset, but currently, some
+      // unresolved type warnings lack them.
+      if (message.code != codeTypeNotFound && charOffset != -1) {
+        // TODO(ahe): Should I add a value for messages?
+        loader.instrumentation?.record(uri, charOffset, "warning",
+            new InstrumentationValueLiteral(message.code.name));
+        if (context != null) {
+          loader.instrumentation?.record(context.uri, context.charOffset,
+              "context", new InstrumentationValueLiteral(context.code.name));
+        }
+      }
+    }
+  }
+
+  @override
+  void addError(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    super.addError(message, charOffset, uri, silent: silent, context: context);
+    if (!silent) {
+      // TODO(ahe): Should I add a value for messages?
+      loader.instrumentation?.record(uri, charOffset, "error",
+          new InstrumentationValueLiteral(message.code.name));
+      if (context != null) {
+        loader.instrumentation?.record(context.uri, context.charOffset,
+            "context", new InstrumentationValueLiteral(context.code.name));
+      }
+    }
   }
 }
 
@@ -578,7 +678,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
 
   final Map<String, Builder> setters;
 
-  final List<T> types = <T>[];
+  final List<UnresolvedType<T>> types = <UnresolvedType<T>>[];
 
   String name;
 
@@ -603,7 +703,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
         this);
   }
 
-  void addType(T type) {
+  void addType(UnresolvedType<T> type) {
     types.add(type);
   }
 
@@ -613,6 +713,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
     // TODO(ahe): The input to this method, [typeVariables], shouldn't be just
     // type variables. It should be everything that's in scope, for example,
     // members (of a class) or formal parameters (of a method).
+    // Also, this doesn't work well with patching.
     if (typeVariables == null) {
       // If there are no type variables in the scope, propagate our types to be
       // resolved in the parent declaration.
@@ -640,8 +741,11 @@ class DeclarationBuilder<T extends TypeBuilder> {
       for (TypeVariableBuilder builder in typeVariables) {
         map[builder.name] = builder;
       }
-      for (T type in types) {
-        String name = type.name;
+      for (UnresolvedType<T> type in types) {
+        Object nameOrQualified = type.builder.name;
+        String name = nameOrQualified is QualifiedName
+            ? nameOrQualified.prefix
+            : nameOrQualified;
         TypeVariableBuilder builder;
         if (name != null) {
           builder = map[name];
@@ -650,8 +754,12 @@ class DeclarationBuilder<T extends TypeBuilder> {
           // Since name didn't resolve in this scope, propagate it to the
           // parent declaration.
           parent.addType(type);
+        } else if (nameOrQualified is QualifiedName) {
+          // Attempt to use type variable as prefix.
+          type.builder.bind(
+              type.builder.buildInvalidType(type.charOffset, type.fileUri));
         } else {
-          type.bind(builder);
+          type.builder.bind(builder);
         }
       }
     }

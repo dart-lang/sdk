@@ -34,14 +34,14 @@ Future check(SerializedData serializedData, Uri entryPoint,
     bool verbose: false}) async {
   Compiler compilerNormal =
       compilerFor(memorySourceFiles: sourceFiles, options: [Flags.analyzeAll]);
-  compilerNormal.resolution.retainCachesForTesting = true;
+  compilerNormal.impactCacheDeleter.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
 
   Compiler compilerDeserialized = compilerFor(
       memorySourceFiles: serializedData.toMemorySourceFiles(sourceFiles),
       resolutionInputs: serializedData.toUris(),
       options: [Flags.analyzeAll]);
-  compilerDeserialized.resolution.retainCachesForTesting = true;
+  compilerDeserialized.impactCacheDeleter.retainCachesForTesting = true;
   await compilerDeserialized.run(entryPoint);
 
   checkAllImpacts(compilerNormal, compilerDeserialized, verbose: verbose);

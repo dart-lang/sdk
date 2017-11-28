@@ -14,30 +14,30 @@ main() {
 
   Expect.equals(2, list1.firstWhere((x) => x.isEven));
   Expect.equals(1, list1.firstWhere((x) => x.isOdd));
-  Expect.throws(() => list1.firstWhere((x) => x > 3), (e) => e is StateError);
+  Expect.throwsStateError(() => list1.firstWhere((x) => x > 3));
   Expect.equals(null, list1.firstWhere((x) => x > 3, orElse: () => null));
   Expect.equals(499, list1.firstWhere((x) => x > 3, orElse: () => 499));
 
   Expect.equals(4, list2.firstWhere((x) => x.isEven));
   Expect.equals(5, list2.firstWhere((x) => x.isOdd));
-  Expect.throws(() => list2.firstWhere((x) => x == 0), (e) => e is StateError);
+  Expect.throwsStateError(() => list2.firstWhere((x) => x == 0));
   Expect.equals(null, list2.firstWhere((x) => false, orElse: () => null));
   Expect.equals(499, list2.firstWhere((x) => false, orElse: () => 499));
 
-  Expect.throws(() => list3.firstWhere((x) => x == 0), (e) => e is StateError);
-  Expect.throws(() => list3.firstWhere((x) => true), (e) => e is StateError);
+  Expect.throwsStateError(() => list3.firstWhere((x) => x == 0));
+  Expect.throwsStateError(() => list3.firstWhere((x) => true));
   Expect.equals(null, list3.firstWhere((x) => true, orElse: () => null));
   Expect.equals("str", list3.firstWhere((x) => false, orElse: () => "str"));
 
   Expect.equals(12, set1.firstWhere((x) => x.isEven));
   var odd = set1.firstWhere((x) => x.isOdd);
   Expect.isTrue(odd == 11 || odd == 13);
-  Expect.throws(() => set1.firstWhere((x) => false), (e) => e is StateError);
+  Expect.throwsStateError(() => set1.firstWhere((x) => false));
   Expect.equals(null, set1.firstWhere((x) => false, orElse: () => null));
   Expect.equals(499, set1.firstWhere((x) => false, orElse: () => 499));
 
-  Expect.throws(() => set2.firstWhere((x) => false), (e) => e is StateError);
-  Expect.throws(() => set2.firstWhere((x) => true), (e) => e is StateError);
+  Expect.throwsStateError(() => set2.firstWhere((x) => false));
+  Expect.throwsStateError(() => set2.firstWhere((x) => true));
   Expect.equals(null, set2.firstWhere((x) => true, orElse: () => null));
   Expect.equals(499, set2.firstWhere((x) => false, orElse: () => 499));
 }

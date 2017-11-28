@@ -4,6 +4,8 @@
 
 library js_backend.backend.impact_transformer;
 
+import '../universe/class_hierarchy_builder.dart' show ClassHierarchyBuilder;
+
 import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
@@ -43,6 +45,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final MirrorsDataBuilder _mirrorsDataBuilder;
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
+  final ClassHierarchyBuilder _classHierarchyBuilder;
 
   JavaScriptImpactTransformer(
       this._options,
@@ -54,7 +57,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._backendUsageBuider,
       this._mirrorsDataBuilder,
       this._customElementsResolutionAnalysis,
-      this._rtiNeedBuilder);
+      this._rtiNeedBuilder,
+      this._classHierarchyBuilder);
 
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
@@ -276,6 +280,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           transformed, behavior, worldImpact);
     }
 
+    for (ClassEntity classEntity in worldImpact.seenClasses) {
+      _classHierarchyBuilder.registerClass(classEntity);
+    }
+
     return transformed;
   }
 
@@ -376,15 +384,15 @@ class CodegenImpactTransformer {
       // calls to [enqueue] with the resolution enqueuer serve as assertions
       // that the helper was in fact added.
       // TODO(13155): Find a way to enqueue helpers lazily.
-      CheckedModeHelper helper =
-          _checkedModeHelpers.getCheckedModeHelper(type, typeCast: false);
+      CheckedModeHelper helper = _checkedModeHelpers
+          .getCheckedModeHelper(type, _commonElements, typeCast: false);
       if (helper != null) {
         StaticUse staticUse = helper.getStaticUse(_commonElements);
         transformed.registerStaticUse(staticUse);
       }
       // We also need the native variant of the check (for DOM types).
-      helper =
-          _checkedModeHelpers.getNativeCheckedModeHelper(type, typeCast: false);
+      helper = _checkedModeHelpers
+          .getNativeCheckedModeHelper(type, _commonElements, typeCast: false);
       if (helper != null) {
         StaticUse staticUse = helper.getStaticUse(_commonElements);
         transformed.registerStaticUse(staticUse);

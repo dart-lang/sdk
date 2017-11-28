@@ -25,12 +25,14 @@ import 'command.dart';
 import 'command_output.dart';
 import 'configuration.dart';
 import 'dependency_graph.dart';
+import 'repository.dart';
 import 'runtime_configuration.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 
 const int browserCrashExitCode = -10;
+const int parseFailExitCode = 245;
 const int slowTimeoutMultiplier = 4;
 const int nonUtfFakeExitCode = 0xFFFD;
 
@@ -77,9 +79,10 @@ class TestCase extends UniqueObject {
   static final int HAS_RUNTIME_ERROR = 1 << 1;
   static final int HAS_STATIC_WARNING = 1 << 2;
   static final int IS_NEGATIVE_IF_CHECKED = 1 << 3;
-  static final int HAS_COMPILE_ERROR = 1 << 4;
-  static final int HAS_COMPILE_ERROR_IF_CHECKED = 1 << 5;
-  static final int EXPECT_COMPILE_ERROR = 1 << 6;
+  static final int HAS_SYNTAX_ERROR = 1 << 4;
+  static final int HAS_COMPILE_ERROR = 1 << 5;
+  static final int HAS_COMPILE_ERROR_IF_CHECKED = 1 << 6;
+  static final int EXPECT_COMPILE_ERROR = 1 << 7;
   /**
    * A list of commands to execute. Most test cases have a single command.
    * Dart2js tests have two commands, one to compile the source and another
@@ -107,8 +110,7 @@ class TestCase extends UniqueObject {
     }
     if (info != null) {
       _setExpectations(info);
-      hash =
-          info.originTestPath.relativeTo(TestUtils.dartDir).toString().hashCode;
+      hash = info.originTestPath.relativeTo(Repository.dir).toString().hashCode;
     }
   }
 
@@ -118,11 +120,15 @@ class TestCase extends UniqueObject {
     if (info.hasRuntimeError) _expectations |= HAS_RUNTIME_ERROR;
     if (info.hasStaticWarning) _expectations |= HAS_STATIC_WARNING;
     if (info.isNegativeIfChecked) _expectations |= IS_NEGATIVE_IF_CHECKED;
-    if (info.hasCompileError) _expectations |= HAS_COMPILE_ERROR;
+    if (info.hasSyntaxError) _expectations |= HAS_SYNTAX_ERROR;
+    if (info.hasCompileError || info.hasSyntaxError) {
+      _expectations |= HAS_COMPILE_ERROR;
+    }
     if (info.hasCompileErrorIfChecked) {
       _expectations |= HAS_COMPILE_ERROR_IF_CHECKED;
     }
     if (info.hasCompileError ||
+        info.hasSyntaxError ||
         (configuration.isChecked && info.hasCompileErrorIfChecked)) {
       _expectations |= EXPECT_COMPILE_ERROR;
     }
@@ -132,6 +138,7 @@ class TestCase extends UniqueObject {
   bool get hasRuntimeError => _expectations & HAS_RUNTIME_ERROR != 0;
   bool get hasStaticWarning => _expectations & HAS_STATIC_WARNING != 0;
   bool get isNegativeIfChecked => _expectations & IS_NEGATIVE_IF_CHECKED != 0;
+  bool get hasSyntaxError => _expectations & HAS_SYNTAX_ERROR != 0;
   bool get hasCompileError => _expectations & HAS_COMPILE_ERROR != 0;
   bool get hasCompileErrorIfChecked =>
       _expectations & HAS_COMPILE_ERROR_IF_CHECKED != 0;
@@ -206,34 +213,12 @@ class TestCase extends UniqueObject {
 }
 
 /**
- * BrowserTestCase has an extra compilation command that is run in a separate
- * process, before the regular test is run as in the base class [TestCase].
- * If the compilation command fails, then the rest of the test is not run.
- */
-class BrowserTestCase extends TestCase {
-  BrowserTestCase(
-      String displayName,
-      List<Command> commands,
-      Configuration configuration,
-      Set<Expectation> expectedOutcomes,
-      TestInformation info,
-      bool isNegative,
-      this._testingUrl)
-      : super(displayName, commands, configuration, expectedOutcomes,
-            isNegative: isNegative, info: info);
-
-  String _testingUrl;
-
-  String get testingUrl => _testingUrl;
-}
-
-/**
  * An OutputLog records the output from a test, but truncates it if
  * it is longer than MAX_HEAD characters, and just keeps the head and
  * the last TAIL_LENGTH characters of the output.
  */
 class OutputLog {
-  static const int MAX_HEAD = 100 * 1024;
+  static const int MAX_HEAD = 500 * 1024;
   static const int TAIL_LENGTH = 10 * 1024;
   List<int> head = <int>[];
   List<int> tail;
@@ -296,7 +281,8 @@ class OutputLog {
 
 *****************************************************************************
 
-test.dart: Data was removed due to excessive length
+test.dart: Data was removed due to excessive length. If you need the limit to
+be increased, please contact dart-engprod or file an issue.
 
 *****************************************************************************
 
@@ -393,7 +379,7 @@ class RunningProcess {
     } else {
       var processEnvironment = _createProcessEnvironment();
       var args = command.arguments;
-      Future processFuture = io.Process.start(command.executable, args,
+      var processFuture = io.Process.start(command.executable, args,
           environment: processEnvironment,
           workingDirectory: command.workingDirectory);
       processFuture.then((io.Process process) {
@@ -683,11 +669,12 @@ class BatchRunnerProcess {
 
   void _reportResult() {
     if (!_currentlyRunning) return;
-    // _status == '>>> TEST {PASS, FAIL, OK, CRASH, FAIL, TIMEOUT}'
+    // _status == '>>> TEST {PASS, FAIL, OK, CRASH, TIMEOUT, PARSE_FAIL}'
 
     var outcome = _status.split(" ")[2];
     var exitCode = 0;
     if (outcome == "CRASH") exitCode = browserCrashExitCode;
+    if (outcome == "PARSE_FAIL") exitCode = parseFailExitCode;
     if (outcome == "FAIL" || outcome == "TIMEOUT") exitCode = 1;
     var output = createCommandOutput(
         _command,
@@ -736,12 +723,12 @@ class BatchRunnerProcess {
         environment[key] = _processEnvironmentOverrides[key];
       }
     }
-    Future processFuture =
+    var processFuture =
         io.Process.start(executable, arguments, environment: environment);
     processFuture.then((io.Process p) {
       _process = p;
 
-      var _stdoutStream =
+      Stream<String> _stdoutStream =
           _process.stdout.transform(UTF8.decoder).transform(new LineSplitter());
       _stdoutSubscription = _stdoutStream.listen((String line) {
         if (line.startsWith('>>> TEST')) {
@@ -762,7 +749,7 @@ class BatchRunnerProcess {
       });
       _stdoutSubscription.pause();
 
-      var _stderrStream =
+      Stream<String> _stderrStream =
           _process.stderr.transform(UTF8.decoder).transform(new LineSplitter());
       _stderrSubscription = _stderrStream.listen((String line) {
         if (line.startsWith('>>> EOF STDERR')) {
@@ -1172,7 +1159,8 @@ class CommandExecutorImpl implements CommandExecutor {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);
     } else if (command is CompilationCommand &&
-        command.displayName == 'dartdevc' &&
+        (command.displayName == 'dartdevc' ||
+            command.displayName == 'dartdevk') &&
         globalConfiguration.batch) {
       return _getBatchRunner(command.displayName)
           .runCommand(command.displayName, command, timeout, command.arguments);
@@ -1509,8 +1497,10 @@ class ProcessQueue {
 
         for (TestCase testCase in testCases) {
           eventFinishedTestCase(testCase);
+          var outcomes = testCase.expectedOutcomes.map((o) => '$o').toList()
+            ..sort();
           print("${testCase.displayName}   "
-              "Expectations: ${testCase.expectedOutcomes.join(', ')}   "
+              "Expectations: ${outcomes.join(', ')}   "
               "Configuration: '${testCase.configurationString}'");
         }
         eventAllTestsKnown();

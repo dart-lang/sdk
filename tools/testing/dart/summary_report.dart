@@ -51,6 +51,10 @@ class SummaryReport {
     } else if (containsSkipByDesign) {
       ++_skipped;
       ++_skippedByDesign;
+    } else if (testCase.configuration.fastTestsOnly &&
+        (containsSlow || containsTimeout)) {
+      ++_skipped;
+      ++_skippedByDesign;
     } else {
       // We don't do if-else below because the buckets should be exclusive.
       // We keep a count around to guarantee that

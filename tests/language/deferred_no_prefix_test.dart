@@ -4,7 +4,7 @@
 
 // Loading a deferred library without prefix is not allowed.
 import "deferred_constraints_lib2.dart"
-  deferred //# 01: compile-time error
+  deferred //# 01: syntax error
     ;
 
 void main() {}

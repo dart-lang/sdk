@@ -6,7 +6,7 @@ library testing.chain;
 
 import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show JSON, JsonEncoder;
+import 'dart:convert' show json, JsonEncoder;
 
 import 'dart:io' show Directory, File, FileSystemEntity, exitCode;
 
@@ -181,7 +181,7 @@ abstract class ChainContext {
         } else {
           future = new Future.value(null);
         }
-        future = future.then((_currentResult) {
+        future = future.then((_currentResult) async {
           Result currentResult = _currentResult;
           if (currentResult != null) {
             logStepComplete(completed, unexpectedResults.length,
@@ -192,20 +192,9 @@ abstract class ChainContext {
               return doStep(result.output);
             }
           }
-          if (description.multitestExpectations != null) {
-            if (isError(description.multitestExpectations)) {
-              result = toNegativeTestResult(
-                  result, description.multitestExpectations);
-            }
-          } else if (lastStep == lastStepRun &&
-              description.shortName.endsWith("negative_test")) {
-            if (result.outcome == Expectation.Pass) {
-              result.addLog("Negative test didn't report an error.\n");
-            } else if (result.outcome == Expectation.Fail) {
-              result.addLog("Negative test reported an error as expeceted.\n");
-            }
-            result = toNegativeTestResult(result);
-          }
+          await cleanUp(description, result);
+          result =
+              processTestResult(description, result, lastStep == lastStepRun);
           if (!expectedOutcomes.contains(result.outcome) &&
               !expectedOutcomes.contains(result.outcome.canonical)) {
             result.addLog("$sb");
@@ -262,6 +251,24 @@ abstract class ChainContext {
     }
   }
 
+  Result processTestResult(
+      TestDescription description, Result result, bool last) {
+    if (description.multitestExpectations != null) {
+      if (isError(description.multitestExpectations)) {
+        result =
+            toNegativeTestResult(result, description.multitestExpectations);
+      }
+    } else if (last && description.shortName.endsWith("negative_test")) {
+      if (result.outcome == Expectation.Pass) {
+        result.addLog("Negative test didn't report an error.\n");
+      } else if (result.outcome == Expectation.Fail) {
+        result.addLog("Negative test reported an error as expeceted.\n");
+      }
+      result = toNegativeTestResult(result);
+    }
+    return result;
+  }
+
   Result toNegativeTestResult(Result result, [Set<String> expectations]) {
     Expectation outcome = result.outcome;
     if (outcome == Expectation.Pass) {
@@ -280,6 +287,8 @@ abstract class ChainContext {
     }
     return result.copyWithOutcome(outcome);
   }
+
+  void cleanUp(TestDescription description, Result result) {}
 }
 
 abstract class Step<I, O, C extends ChainContext> {
@@ -342,9 +351,9 @@ class Result<O> {
 
 /// This is called from generated code.
 Future<Null> runChain(CreateContext f, Map<String, String> environment,
-    Set<String> selectors, String json) {
+    Set<String> selectors, String jsonText) {
   return withErrorHandling(() async {
-    Chain suite = new Suite.fromJsonMap(Uri.base, JSON.decode(json));
+    Chain suite = new Suite.fromJsonMap(Uri.base, json.decode(jsonText));
     print("Running ${suite.name}");
     ChainContext context = await f(suite, environment);
     return context.run(suite, selectors);

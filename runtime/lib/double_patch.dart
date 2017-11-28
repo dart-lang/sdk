@@ -1,7 +1,8 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Dart core library.
+
+// part of "core_patch.dart";
 
 // VM implementation of double.
 
@@ -35,7 +36,7 @@ class double {
     }
     if (firstChar == _I) {
       if (end == start + 8 && str.startsWith("nfinity", start + 1)) {
-        return sign * double.INFINITY;
+        return sign * double.infinity;
       }
       return null;
     }
@@ -43,7 +44,7 @@ class double {
       if (end == start + 3 &&
           str.codeUnitAt(start + 1) == _a &&
           str.codeUnitAt(start + 2) == _N) {
-        return double.NAN;
+        return double.nan;
       }
       return null;
     }

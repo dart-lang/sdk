@@ -8,6 +8,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/types/types.dart';
 import 'package:compiler/src/js_model/locals.dart';
@@ -37,9 +38,17 @@ abstract class ComputeValueMixin<T> {
   String getMemberValue(MemberEntity member) {
     GlobalTypeInferenceMemberResult<T> memberResult =
         results.resultOfMember(member);
-    return getTypeMaskValue(member.isFunction || member.isConstructor
-        ? memberResult.returnType
-        : memberResult.type);
+    if (member.isFunction || member.isConstructor || member.isGetter) {
+      return getTypeMaskValue(memberResult.returnType);
+    } else if (member.isField) {
+      return getTypeMaskValue(memberResult.type);
+    } else {
+      assert(member.isSetter);
+      // Setters have no type mask of interest; the return type is always void
+      // and shouldn't be used, and their type is a closure which cannot be
+      // created.
+      return null;
+    }
   }
 
   String getParameterValue(Local parameter) {
@@ -67,13 +76,13 @@ class TypeMaskAstComputer extends AstDataExtractor
   @override
   String computeElementValue(Id id, AstElement element) {
     if (element.isParameter) {
-      ParameterElement parameter = element;
+      ParameterElement parameter = element.implementation;
       return getParameterValue(parameter);
     } else if (element.isLocal && element.isFunction) {
       LocalFunctionElement localFunction = element;
       return getMemberValue(localFunction.callMethod);
     } else {
-      MemberElement member = element;
+      MemberElement member = element.declaration;
       return getMemberValue(member);
     }
   }
@@ -85,7 +94,10 @@ class TypeMaskAstComputer extends AstDataExtractor
     } else if (element != null && element.isParameter) {
       return computeElementValue(id, element);
     } else if (node is ast.SendSet) {
-      if (id.kind == IdKind.invoke) {
+      SendStructure sendStructure = elements.getSendStructure(node);
+      if (sendStructure?.kind == SendStructureKind.INDEX_SET) {
+        return getTypeMaskValue(result.typeOfSend(node));
+      } else if (id.kind == IdKind.invoke) {
         return getTypeMaskValue(result.typeOfOperator(node));
       } else if (id.kind == IdKind.update) {
         return getTypeMaskValue(result.typeOfSend(node));
@@ -132,7 +144,7 @@ void computeMemberIrTypeMasks(
 class TypeMaskIrComputer extends IrDataExtractor
     with ComputeValueMixin<ir.Node> {
   final GlobalTypeInferenceResults<ir.Node> results;
-  final GlobalTypeInferenceElementResult<ir.Node> result;
+  GlobalTypeInferenceElementResult<ir.Node> result;
   final KernelToElementMapForBuilding _elementMap;
   final KernelToLocalsMap _localsMap;
   final ClosureDataLookup<ir.Node> _closureDataLookup;
@@ -149,6 +161,24 @@ class TypeMaskIrComputer extends IrDataExtractor
         super(reporter, actualMap);
 
   @override
+  visitFunctionExpression(ir.FunctionExpression node) {
+    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+    result = results.resultOfMember(info.callMethod);
+    super.visitFunctionExpression(node);
+    result = oldResult;
+  }
+
+  @override
+  visitFunctionDeclaration(ir.FunctionDeclaration node) {
+    GlobalTypeInferenceElementResult<ir.Node> oldResult = result;
+    ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
+    result = results.resultOfMember(info.callMethod);
+    super.visitFunctionDeclaration(node);
+    result = oldResult;
+  }
+
+  @override
   String computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
@@ -163,6 +193,10 @@ class TypeMaskIrComputer extends IrDataExtractor
       ClosureRepresentationInfo info = _closureDataLookup.getClosureInfo(node);
       return getMemberValue(info.callMethod);
     } else if (node is ir.MethodInvocation) {
+      return getTypeMaskValue(result.typeOfSend(node));
+    } else if (node is ir.PropertyGet) {
+      return getTypeMaskValue(result.typeOfGetter(node));
+    } else if (node is ir.PropertySet) {
       return getTypeMaskValue(result.typeOfSend(node));
     } else if (node is ir.ForInStatement) {
       if (id.kind == IdKind.iterator) {

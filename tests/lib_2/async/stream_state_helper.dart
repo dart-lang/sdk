@@ -4,9 +4,10 @@
 
 library stream_state_helper;
 
-import "package:test/test.dart";
-import "dart:async";
-import "dart:collection";
+import 'dart:async';
+import 'dart:collection';
+
+import 'package:unittest/unittest.dart';
 
 class SubscriptionProtocolTest {
   final StreamProtocolTest _streamTest;

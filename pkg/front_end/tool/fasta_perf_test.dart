@@ -16,6 +16,9 @@ main() async {
   ];
   var inputFile = Platform.script.resolve('../lib/file_system.dart').path;
   for (var id in benchIds) {
+    print('=== legacy for $id $inputFile');
+    await m.main(['--legacy', id, inputFile]);
+    print('=== strong for $id $inputFile');
     await m.main([id, inputFile]);
   }
 }

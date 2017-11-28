@@ -1,0 +1,23 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → core::num;
+}
+abstract class B extends self::A {
+  default constructor •() → void
+    : super self::A::•()
+    ;
+  abstract set x(core::int value) → void;
+}
+class C extends self::B {
+  field core::num x = null;
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method main() → dynamic {}

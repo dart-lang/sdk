@@ -584,6 +584,7 @@ class Namer {
 
   NativeData get _nativeData => _closedWorld.nativeData;
 
+  String get deferredMetadataName => 'deferredMetadata';
   String get deferredTypesName => 'deferredTypes';
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
@@ -927,11 +928,8 @@ class Namer {
     // scheme that tries to avoid name clashes with super classes does not
     // apply. So we can directly grab a name.
     if (element is JSEntity) {
-      var jsEntity = element;
       return _disambiguateInternalMember(
-          jsEntity,
-          // ignore: UNDEFINED_GETTER
-          () => jsEntity.declaredEntity.name);
+          element, () => (element as JSEntity).declaredEntity.name);
     }
 
     // If the name of the field might clash with another field,
@@ -963,7 +961,7 @@ class Namer {
         _elementEnvironment.getSuperClass(element.enclosingClass);
     while (lookupClass != null) {
       MemberEntity foundMember =
-          _elementEnvironment.lookupClassMember(lookupClass, fieldName);
+          _elementEnvironment.lookupLocalClassMember(lookupClass, fieldName);
       if (foundMember != null) {
         if (foundMember.isField) {
           if (!isPrivate || memberLibrary == foundMember.library) {
@@ -2114,7 +2112,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitDeferred(DeferredConstantValue constant, [_]) {
     // TODO(sra): Investigate that the use of hashCode here is probably a source
     // of instability.
-    int hash = constant.prefix.hashCode;
+    int hash = constant.import.hashCode;
     return _combine(hash, _visit(constant.referenced));
   }
 

@@ -280,6 +280,8 @@ class _ElementWriter {
 
     if (e == null) {
       buffer.write('<null>');
+    } else if (e is SimpleIdentifier && e.name == '#invalidConst') {
+      buffer.write('#invalidConst');
     } else if (e is Annotation) {
       buffer.write('@');
       writeExpression(e.name);

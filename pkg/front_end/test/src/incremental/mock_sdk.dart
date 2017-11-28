@@ -34,8 +34,20 @@ abstract class Completer<T> {
   bool get isCompleted;
 }
 
-class _StreamIterator<T> implements StreamIterator<T> {}
-class _AsyncStarStreamController {}
+class _StreamIterator<T> implements StreamIterator<T> {
+  T get current;
+  Future<bool> moveNext();
+  Future cancel();
+}
+
+class _AsyncStarStreamController<T> {
+  Stream<T> get stream;
+  bool add(T event);
+  bool addStream(Stream<T> stream);
+  void addError(Object error, StackTrace stackTrace);
+  close();
+}
+
 Object _asyncStackTraceHelper(Function async_op) { }
 Function _asyncThenWrapperHelper(continuation) {}
 Function _asyncErrorWrapperHelper(continuation) {}
@@ -226,13 +238,46 @@ external bool identical(Object a, Object b);
 
 void print(Object o) {}
 
-abstract class _SyncIterable implements Iterable {}
-class _InvocationMirror {}
+abstract class _SyncIterable<T> implements Iterable<T> {}
+
+class _SyncIterator<T> implements Iterator<T> {
+  T _current;
+  Iterable<T> _yieldEachIterable;
+}
+
+class _InvocationMirror {
+  _InvocationMirror._withoutType(
+      String _functionName, List<Type> _typeArguments,
+      List _positionalArguments, Map<Symbol, dynamic>_namedArguments,
+      bool _isSuperInvocation);
+}
+
+class _CompileTimeError {
+  final String _errorMsg;
+  _CompileTimeError(this._errorMsg);
+}
+
+class _ConstantExpressionError {
+  const _ConstantExpressionError();
+}
+
+class _DuplicatedFieldInitializerError {
+  _DuplicatedFieldInitializerError(String name);
+}
+
+class AbstractClassInstantiationError {
+  AbstractClassInstantiationError(String className);
+}
+
+class FallThroughError {
+  FallThroughError();
+  FallThroughError._create(String url, int line);
+}
 ''';
 
 /// Create SDK libraries which are used by Fasta to perform kernel generation.
-/// The root of the SDK is `file:///sdk`, it will contain a libraries
-/// specification file at `lib/libraries.json`.
+/// The root of the SDK is `org-dartlang-test:///sdk`, it will contain a
+/// libraries specification file at `lib/libraries.json`.
 ///
 /// Returns the [TargetLibrariesSpecification] whose contents are in
 /// libraries.json.
@@ -240,12 +285,14 @@ TargetLibrariesSpecification createSdkFiles(MemoryFileSystem fileSystem) {
   Map<String, LibraryInfo> dartLibraries = {};
   void addSdkLibrary(String name, String contents) {
     String path = '$name/$name.dart';
-    Uri uri = Uri.parse('file:///sdk/lib/$path');
+    Uri uri = Uri.parse('org-dartlang-test:///sdk/lib/$path');
     fileSystem.entityForUri(uri).writeAsStringSync(contents);
     dartLibraries[name] = new LibraryInfo(name, uri, const []);
   }
 
-  fileSystem.entityForUri(Uri.parse('file:///sdk/')).createDirectory();
+  fileSystem
+      .entityForUri(Uri.parse('org-dartlang-test:///sdk/'))
+      .createDirectory();
 
   addSdkLibrary('core', _CORE);
   addSdkLibrary('async', _ASYNC);
@@ -264,6 +311,8 @@ external double sin(num radians);
   addSdkLibrary('profiler', 'library dart.profiler;');
   addSdkLibrary('typed_data', 'library dart.typed_data;');
   addSdkLibrary('_builtin', 'library dart._builtin;');
+  addSdkLibrary('_vmservice', 'library dart._vmservice;');
+  addSdkLibrary('vmservice_io', 'library dart.vmservice_io;');
   addSdkLibrary('_internal', '''
 library dart._internal;
 class Symbol {}
@@ -276,7 +325,7 @@ class ExternalName {
   var targetSpec = new TargetLibrariesSpecification(null, dartLibraries);
   var spec = new LibrariesSpecification({'none': targetSpec, 'vm': targetSpec});
 
-  Uri uri = Uri.parse('file:///sdk/lib/libraries.json');
+  Uri uri = Uri.parse('org-dartlang-test:///sdk/lib/libraries.json');
   fileSystem.entityForUri(uri).writeAsStringSync(spec.toJsonString(uri));
   return targetSpec;
 }

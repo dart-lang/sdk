@@ -31,8 +31,6 @@ class C extends A {
 B nullB() => null;
 C nullC() => null;
 
-noMethod(e) => e is NoSuchMethodError;
-
 main() {
   Expect.equals(1, 1 ?? 2);
   Expect.equals(1, 1 ?? null);

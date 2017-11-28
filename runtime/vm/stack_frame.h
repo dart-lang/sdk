@@ -118,6 +118,7 @@ class StackFrame : public ValueObject {
 
  private:
   RawCode* GetCodeObject() const;
+  RawCode* UncheckedGetCodeObject() const;
 
   uword GetCallerSp() const { return fp() + (kCallerSpSlotFromFp * kWordSize); }
 

@@ -217,7 +217,7 @@ class JumpVisitor extends ir.Visitor {
   @override
   defaultNode(ir.Node node) => node.visitChildren(this);
 
-  bool _canBeBreakTarget(ir.TreeNode node) {
+  static bool canBeBreakTarget(ir.TreeNode node) {
     return node is ir.ForStatement ||
         node is ir.ForInStatement ||
         node is ir.WhileStatement ||
@@ -225,8 +225,7 @@ class JumpVisitor extends ir.Visitor {
         node is ir.SwitchStatement;
   }
 
-  bool _canBeContinueTarget(ir.TreeNode node) {
-    // TODO(johnniwinther): Add more.
+  static bool canBeContinueTarget(ir.TreeNode node) {
     return node is ir.ForStatement ||
         node is ir.ForInStatement ||
         node is ir.WhileStatement ||
@@ -238,7 +237,7 @@ class JumpVisitor extends ir.Visitor {
     JJumpTarget target;
     ir.TreeNode body = node.target.body;
     ir.TreeNode parent = node.target.parent;
-    if (_canBeBreakTarget(body)) {
+    if (canBeBreakTarget(body)) {
       // We have code like
       //
       //     l1: for (int i = 0; i < 10; i++) {
@@ -251,7 +250,7 @@ class JumpVisitor extends ir.Visitor {
       ir.TreeNode search = node;
       bool needsLabel = false;
       while (search != node.target) {
-        if (_canBeBreakTarget(search)) {
+        if (canBeBreakTarget(search)) {
           needsLabel = search != body;
           break;
         }
@@ -261,7 +260,7 @@ class JumpVisitor extends ir.Visitor {
         JLabelDefinition label = _getOrCreateLabel(target, node.target);
         label.isBreakTarget = true;
       }
-    } else if (_canBeContinueTarget(parent)) {
+    } else if (canBeContinueTarget(parent)) {
       // We have code like
       //
       //     for (int i = 0; i < 10; i++) l1: {
@@ -275,7 +274,7 @@ class JumpVisitor extends ir.Visitor {
       ir.TreeNode search = node;
       bool needsLabel = false;
       while (search != node.target) {
-        if (_canBeContinueTarget(search)) {
+        if (canBeContinueTarget(search)) {
           needsLabel = search != body;
           break;
         }
@@ -441,4 +440,57 @@ class LocalData {
   }
 
   ir.FunctionNode get functionNode => node.parent;
+}
+
+/// Calls [f] for each parameter in [function] in the canonical order:
+/// Positional parameters by index, then named parameters lexicographically.
+void forEachOrderedParameter(
+    GlobalLocalsMap globalLocalsMap,
+    KernelToElementMapForBuilding elementMap,
+    FunctionEntity function,
+    void f(Local parameter)) {
+  KernelToLocalsMap localsMap = globalLocalsMap.getLocalsMap(function);
+
+  void processFunctionNode(ir.FunctionNode node) {
+    for (ir.VariableDeclaration variable in node.positionalParameters) {
+      f(localsMap.getLocalVariable(variable));
+    }
+    for (ir.VariableDeclaration variable in node.namedParameters) {
+      f(localsMap.getLocalVariable(variable));
+    }
+  }
+
+  MemberDefinition definition = elementMap.getMemberDefinition(function);
+  switch (definition.kind) {
+    case MemberKind.regular:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        processFunctionNode(node.function);
+        return;
+      }
+      break;
+    case MemberKind.constructor:
+    case MemberKind.constructorBody:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        processFunctionNode(node.function);
+        return;
+      } else if (node is ir.Constructor) {
+        processFunctionNode(node.function);
+        return;
+      }
+      break;
+    case MemberKind.closureCall:
+      ir.Node node = definition.node;
+      if (node is ir.FunctionDeclaration) {
+        processFunctionNode(node.function);
+        return;
+      } else if (node is ir.FunctionExpression) {
+        processFunctionNode(node.function);
+        return;
+      }
+      break;
+    default:
+  }
+  failedAt(function, "Unexpected function definition $definition.");
 }

@@ -5,7 +5,8 @@
 library timer_cancel1_test;
 
 import 'dart:async';
-import 'package:test/test.dart';
+
+import 'package:unittest/unittest.dart';
 
 main() {
   // Test that a timeout handler can cancel another.

@@ -28,12 +28,12 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
             compiler.progress,
             compiler.reporter,
             compiler.outputProvider,
-            compiler.backend.optimizerHints,
             closedWorld,
             closedWorldRefiner,
             compiler.backend.mirrorsData,
             compiler.backend.noSuchMethodRegistry,
             mainElement,
+            compiler.backendStrategy.sorter,
             const TypeSystemStrategyImpl());
 
   GlobalTypeInferenceElementData<ast.Node> createElementData() =>
@@ -46,6 +46,12 @@ class AstInferrerEngine extends InferrerEngineImpl<ast.Node> {
     ast.Node body;
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       body = resolvedAst.body;
+      if (member.isField &&
+          member.isInstanceMember &&
+          !member.isFinal &&
+          body is ast.LiteralNull) {
+        return null;
+      }
     }
     return body;
   }

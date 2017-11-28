@@ -1,0 +1,20 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Note: if you edit this file, you must also edit libraries.json in this
+# directory:
+#
+#     python ./tools/yaml2json.py sdk/lib/vmservice_libraries.yaml sdk/lib/vmservice_libraries.json
+#
+# We currently have several different files that needs to be updated when
+# changing libraries, sources, and patch files.  See
+# https://github.com/dart-lang/sdk/issues/28836.
+
+vm:
+  libraries:
+    _vmservice:
+      uri: "vmservice/vmservice.dart"
+
+    vmservice_io:
+      uri: "../../runtime/bin/vmservice/vmservice_io.dart"

@@ -81,13 +81,12 @@ test(MirrorSystem mirrors) {
   Expect.throws(() => Func.isSubclassOf(IntGen), isArgumentOrTypeError);
   Expect.throws(() => Func.isSubclassOf(DubGen), isArgumentOrTypeError);
 
-  isNoSuchMethodError(e) => e is NoSuchMethodError;
-  Expect.throws(() => NumPred.isSubclassOf(Func), isNoSuchMethodError);
-  Expect.throws(() => IntPred.isSubclassOf(Func), isNoSuchMethodError);
-  Expect.throws(() => DubPred.isSubclassOf(Func), isNoSuchMethodError);
-  Expect.throws(() => NumGen.isSubclassOf(Func), isNoSuchMethodError);
-  Expect.throws(() => IntGen.isSubclassOf(Func), isNoSuchMethodError);
-  Expect.throws(() => DubGen.isSubclassOf(Func), isNoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => NumPred.isSubclassOf(Func));
+  Expect.throwsNoSuchMethodError(() => IntPred.isSubclassOf(Func));
+  Expect.throwsNoSuchMethodError(() => DubPred.isSubclassOf(Func));
+  Expect.throwsNoSuchMethodError(() => NumGen.isSubclassOf(Func));
+  Expect.throwsNoSuchMethodError(() => IntGen.isSubclassOf(Func));
+  Expect.throwsNoSuchMethodError(() => DubGen.isSubclassOf(Func));
 
   // Function type.
   TypeMirror NumPredRef = (NumPred as TypedefMirror).referent;

@@ -8,7 +8,7 @@ class StringInterpolation6NegativeTest {
   static testMain() {
     // Dollar not followed by "{" or identifier.
     String regexp;
-    regexp = "^(\\d\\d?)[-/](\\d\\d?)$"; //# 01: compile-time error
+    regexp = "^(\\d\\d?)[-/](\\d\\d?)$"; //# 01: syntax error
     print(regexp);
   }
 }

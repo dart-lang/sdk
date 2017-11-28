@@ -12,5 +12,5 @@ var list;
 
 main() {
   if (new DateTime.now().millisecondsSinceEpoch == 0) list = new List(4);
-  Expect.throws(() => print(list[5]), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => print(list[5]));
 }

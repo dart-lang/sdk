@@ -11,7 +11,7 @@ import 'dart:_js_helper'
         checkInt,
         getRuntimeType,
         getTraceFromException,
-        JsLinkedHashMap,
+        LinkedMap,
         JSSyntaxRegExp,
         NoInline,
         notNull,
@@ -337,6 +337,7 @@ class List<E> {
             "Length must be a non-negative integer: $_length");
       }
       list = JS('', 'new Array(#)', length);
+      JS('', '#.fill(null)', list);
       JSArray.markFixedList(list);
     }
     return new JSArray<E>.of(list);
@@ -345,13 +346,7 @@ class List<E> {
   @patch
   factory List.filled(@nullCheck int length, E fill, {bool growable: false}) {
     var list = new JSArray<E>.of(JS('', 'new Array(#)', length));
-    if (length != 0 && fill != null) {
-      @notNull
-      var length = list.length;
-      for (int i = 0; i < length; i++) {
-        list[i] = fill;
-      }
-    }
+    JS('', '#.fill(#)', list, fill);
     if (!growable) JSArray.markFixedList(list);
     return list;
   }
@@ -390,7 +385,7 @@ class Map<K, V> {
   }
 
   @patch
-  factory Map() = JsLinkedHashMap<K, V>.es6;
+  factory Map() = LinkedMap<K, V>;
 }
 
 @patch
@@ -557,6 +552,13 @@ class StringBuffer {
   }
 }
 
+// TODO(jmesserly): kernel expects to find this in our SDK.
+class _CompileTimeError extends Error {
+  final String _errorMsg;
+  _CompileTimeError(this._errorMsg);
+  String toString() => _errorMsg;
+}
+
 @patch
 class NoSuchMethodError {
   @patch
@@ -568,6 +570,14 @@ class NoSuchMethodError {
         _arguments = positionalArguments,
         _namedArguments = namedArguments,
         _existingArgumentNames = existingArgumentNames;
+
+  @patch
+  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation)
+      : _receiver = receiver,
+        _memberName = invocation.memberName,
+        _arguments = invocation.positionalArguments,
+        _namedArguments = invocation.namedArguments,
+        _existingArgumentNames = null;
 
   @patch
   String toString() {
@@ -641,7 +651,7 @@ class _Uri {
   @patch
   static String _uriEncode(List<int> canonicalTable, String text,
       Encoding encoding, bool spaceToPlus) {
-    if (identical(encoding, UTF8) && _needsNoEncoding.hasMatch(text)) {
+    if (identical(encoding, utf8) && _needsNoEncoding.hasMatch(text)) {
       return text;
     }
 

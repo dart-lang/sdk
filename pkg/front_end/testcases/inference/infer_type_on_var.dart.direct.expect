@@ -6,6 +6,4 @@ static method test1() → dynamic {
   core::int x = 3;
   x = "hi";
 }
-static method main() → dynamic {
-  self::test1();
-}
+static method main() → dynamic {}

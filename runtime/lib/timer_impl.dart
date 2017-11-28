@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' hide Symbol;
+// part of "isolate_patch.dart";
 
 // Timer heap implemented as a array-based binary heap[0].
 // This allows for O(1) `first`, O(log(n)) `remove`/`removeFirst` and O(log(n))
@@ -61,7 +61,7 @@ class _TimerHeap {
   }
 
   void _resize() {
-    var newList = new List(_list.length * 2 + 1);
+    var newList = new List<_Timer>(_list.length * 2 + 1);
     newList.setRange(0, _used, _list);
     _list = newList;
   }

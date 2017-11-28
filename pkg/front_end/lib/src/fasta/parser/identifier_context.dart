@@ -298,7 +298,7 @@ class IdentifierContext {
       this.isScopeReference: false,
       this.isBuiltInIdentifierAllowed: true,
       bool allowedInConstantExpression,
-      this.recoveryTemplate: null})
+      this.recoveryTemplate: templateExpectedIdentifier})
       : this.allowedInConstantExpression =
             // Generally, declarations are legal in constant expressions.  A
             // continuation doesn't affect constant expressions: if what it's

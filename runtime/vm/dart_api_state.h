@@ -217,7 +217,8 @@ class FinalizablePersistentHandle {
     if (SpaceForExternal() == Heap::kNew) {
       SetExternalNewSpaceBit();
     }
-    isolate->heap()->AllocateExternal(external_size(), SpaceForExternal());
+    isolate->heap()->AllocateExternal(raw()->GetClassIdMayBeSmi(),
+                                      external_size(), SpaceForExternal());
   }
 
   // Called when the referent becomes unreachable.
@@ -229,7 +230,8 @@ class FinalizablePersistentHandle {
   // Called when the referent has moved, potentially between generations.
   void UpdateRelocated(Isolate* isolate) {
     if (IsSetNewSpaceBit() && (SpaceForExternal() == Heap::kOld)) {
-      isolate->heap()->PromoteExternal(external_size());
+      isolate->heap()->PromoteExternal(raw()->GetClassIdMayBeSmi(),
+                                       external_size());
       ClearExternalNewSpaceBit();
     }
   }
@@ -321,8 +323,7 @@ class FinalizablePersistentHandle {
   // Returns the space to charge for the external size.
   Heap::Space SpaceForExternal() const {
     // Non-heap and VM-heap objects count as old space here.
-    return (raw_->IsHeapObject() && raw_->IsNewObject()) ? Heap::kNew
-                                                         : Heap::kOld;
+    return raw_->IsSmiOrOldObject() ? Heap::kOld : Heap::kNew;
   }
 
   RawObject* raw_;

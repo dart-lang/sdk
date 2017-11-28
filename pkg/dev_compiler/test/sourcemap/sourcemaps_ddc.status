@@ -1,0 +1,15 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+/hello_sane_column_on_print_return_value: Crash
+/printing_class_fields: Crash
+/printing_class_fields_step_into: Crash
+/stops_at_ending_brace: Crash
+/no_mapping_on_class_constructor_line: Crash
+/no_mapping_on_class_named_constructor_line: Crash
+/next_through_assign_call_test: Crash
+/hello_class_call: Crash
+/next_through_assign_call_test: Crash
+/method_call_with_named_parameters: Crash
+/method_call_with_named_parameters_no_given: Crash

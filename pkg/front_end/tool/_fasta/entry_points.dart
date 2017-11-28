@@ -117,8 +117,8 @@ class CompileTask {
 
   KernelTarget createKernelTarget(
       DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode) {
-    return new KernelTarget(
-        c.fileSystem, false, dillTarget, uriTranslator, c.uriToSource);
+    return new KernelTarget(c.fileSystem, false, dillTarget, uriTranslator,
+        uriToSource: c.uriToSource);
   }
 
   Future<KernelTarget> buildOutline([Uri output]) async {
@@ -172,6 +172,5 @@ class CompileTask {
 void _appendDillForUri(DillTarget dillTarget, Uri uri) {
   var bytes = new File.fromUri(uri).readAsBytesSync();
   var platformProgram = loadProgramFromBytes(bytes);
-  platformProgram.unbindCanonicalNames();
   dillTarget.loader.appendLibraries(platformProgram);
 }

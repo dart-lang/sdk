@@ -6,10 +6,14 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'results_get.dart';
 import 'results_list.dart';
+import 'results_status.dart';
+import 'results_test_matrix.dart';
 
 var runner = new CommandRunner("results", "Results from tests.")
   ..addCommand(new GetCommand())
-  ..addCommand(new ListCommand());
+  ..addCommand(new ListCommand())
+  ..addCommand(new StatusCommand())
+  ..addCommand(new TestMatrixCommand());
 
 main(List<String> args) {
   runner.run(args).catchError((error) {

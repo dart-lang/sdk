@@ -1,0 +1,15 @@
+library test;
+import self as self;
+
+static method test() → void {
+  dynamic i = 0;
+  for (final dynamic #t1 = i = i.+(1); i.<(10); i = i.+(1)) {
+  }
+  for (final dynamic #t2 = i = i.+(1); i.<(10); i = i.+(1)) {
+  }
+  for (final dynamic #t3 = i = i.-(1); i.>=(0); i = i.-(1)) {
+  }
+  for (final dynamic #t4 = i = i.-(1); i.>=(0); i = i.-(1)) {
+  }
+}
+static method main() → dynamic {}

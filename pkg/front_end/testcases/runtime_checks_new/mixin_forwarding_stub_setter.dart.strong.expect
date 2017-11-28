@@ -1,0 +1,82 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → core::int {
+    throw "Should not be reached";
+  }
+  set x(core::int value) → void {
+    throw "Should not be reached";
+  }
+  get y() → core::int {
+    throw "Should not be reached";
+  }
+  set y(core::int value) → void {
+    throw "Should not be reached";
+  }
+}
+abstract class I<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract get x() → self::I::T;
+  abstract set x(generic-covariant-impl generic-covariant-interface self::I::T value) → void;
+  abstract get y() → core::Object;
+  abstract set y(covariant core::Object value) → void;
+}
+class M extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return 1;
+  set x(core::int value) → void {
+    self::expect(value, 2);
+  }
+  get y() → core::int
+    return 3;
+  set y(core::int value) → void {
+    self::expect(value, 4);
+  }
+}
+class C = self::B with self::M implements self::I<core::int> {
+  constructor •() → void
+    : super self::B::•()
+    ;
+  forwarding-stub set y(covariant core::Object value) → void
+    return super.{self::B::y} = value;
+  forwarding-stub set x(generic-covariant-impl core::int value) → void
+    return super.{self::B::x} = value;
+}
+static method expectTypeError(() → void callback) → void {
+  try {
+    callback.call();
+    throw "Expected TypeError, did not occur";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}
+static method expect(core::Object value, core::Object expected) → void {
+  if(!value.{core::Object::==}(expected)) {
+    throw "Expected ${expected}, got ${value}";
+  }
+}
+static method test(self::I<core::Object> i) → void {
+  self::expectTypeError(() → core::Null {
+    i.{self::I::x} = "hello";
+  });
+  i.{self::I::x} = 2;
+  self::expect(i.{self::I::x}, 1);
+  self::expectTypeError(() → core::Null {
+    i.{self::I::y} = "hello";
+  });
+  i.{self::I::y} = 4;
+  self::expect(i.{self::I::y}, 3);
+}
+static method main() → void {
+  self::test(new self::C::•());
+}

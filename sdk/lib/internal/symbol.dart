@@ -137,4 +137,6 @@ class Symbol implements core.Symbol {
   static bool isValidSymbol(String name) {
     return (name.isEmpty || symbolPattern.hasMatch(name));
   }
+
+  external static String computeUnmangledName(Symbol symbol);
 }

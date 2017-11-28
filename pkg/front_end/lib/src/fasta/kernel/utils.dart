@@ -30,11 +30,16 @@ void printProgramText(Program program, {bool libraryFilter(Library library)}) {
   print(sb);
 }
 
-Future<Null> writeProgramToFile(Program program, Uri uri) async {
+/// Write [program] to file only including libraries that match [filter].
+Future<Null> writeProgramToFile(Program program, Uri uri,
+    {bool filter(Library library)}) async {
   File output = new File.fromUri(uri);
   IOSink sink = output.openWrite();
   try {
-    new BinaryPrinter(sink).writeProgramFile(program);
+    BinaryPrinter printer = filter == null
+        ? new BinaryPrinter(sink)
+        : new LimitedBinaryPrinter(sink, filter ?? (_) => true, false);
+    printer.writeProgramFile(program);
     program.unbindCanonicalNames();
   } finally {
     await sink.close();

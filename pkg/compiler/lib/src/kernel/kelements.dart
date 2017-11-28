@@ -21,6 +21,17 @@ class KLibrary extends IndexedLibrary {
   String toString() => '${kElementPrefix}library($name)';
 }
 
+class KImport implements ImportEntity {
+  final bool isDeferred;
+  final String name;
+  final Uri uri;
+
+  KImport(this.isDeferred, this.name, this.uri);
+
+  String toString() =>
+      '${kElementPrefix}import($name:${isDeferred ? ' deferred' : ''})';
+}
+
 class KClass extends IndexedClass {
   final KLibrary library;
 
@@ -33,6 +44,16 @@ class KClass extends IndexedClass {
   bool get isClosure => false;
 
   String toString() => '${kElementPrefix}class($name)';
+}
+
+class KTypedef extends IndexedTypedef {
+  final KLibrary library;
+
+  final String name;
+
+  KTypedef(this.library, this.name);
+
+  String toString() => '${kElementPrefix}typedef($name)';
 }
 
 abstract class KMember extends IndexedMember {

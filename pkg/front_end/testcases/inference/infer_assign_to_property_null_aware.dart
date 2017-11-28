@@ -33,8 +33,6 @@ class Test {
         t?. /*@target=Test::member*/ member = /*@typeArgs=B*/ f();
     var /*@type=B*/ v2 =
         t?. /*@target=Test::member*/ member ??= /*@typeArgs=B*/ f();
-    var /*@type=A*/ v3 =
-        t?. /*@target=Test::member*/ member += /*@typeArgs=dynamic*/ f();
     var /*@type=B*/ v4 =
         t?. /*@target=Test::member*/ member *= /*@typeArgs=dynamic*/ f();
     var /*@type=C*/ v5 =

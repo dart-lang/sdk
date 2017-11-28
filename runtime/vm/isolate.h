@@ -22,6 +22,7 @@
 #include "vm/thread.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
+#include "vm/verifier.h"
 
 namespace dart {
 
@@ -129,12 +130,15 @@ typedef FixedCache<intptr_t, CatchEntryState, 16> CatchEntryStateCache;
 // List of Isolate flags with corresponding members of Dart_IsolateFlags and
 // corresponding global command line flags.
 //
-//       V(name, Dart_IsolateFlags-member-name, command-line-flag-name)
+//       V(when, name, Dart_IsolateFlags-member-name, command-line-flag-name)
 //
 #define ISOLATE_FLAG_LIST(V)                                                   \
   V(NONPRODUCT, type_checks, EnableTypeChecks, enable_type_checks,             \
     FLAG_enable_type_checks)                                                   \
   V(NONPRODUCT, asserts, EnableAsserts, enable_asserts, FLAG_enable_asserts)   \
+  V(NONPRODUCT, reify_generic_functions, ReifyGenericFunctions,                \
+    reify_generic_functions, FLAG_reify_generic_functions)                     \
+  V(NONPRODUCT, strong, Strong, strong, FLAG_strong)                           \
   V(NONPRODUCT, error_on_bad_type, ErrorOnBadType, enable_error_on_bad_type,   \
     FLAG_error_on_bad_type)                                                    \
   V(NONPRODUCT, error_on_bad_override, ErrorOnBadOverride,                     \
@@ -180,7 +184,14 @@ class Isolate : public BaseIsolate {
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
   void RegisterClassAt(intptr_t index, const Class& cls);
+#if defined(DEBUG)
   void ValidateClassTable();
+#endif
+
+  void RehashConstants();
+#if defined(DEBUG)
+  void ValidateConstants();
+#endif
 
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
@@ -303,6 +314,13 @@ class Isolate : public BaseIsolate {
       set_last_resume_timestamp();
     }
 #endif
+  }
+
+  bool compaction_in_progress() const {
+    return CompactionInProgressBit::decode(isolate_flags_);
+  }
+  void set_compaction_in_progress(bool value) {
+    isolate_flags_ = CompactionInProgressBit::update(value, isolate_flags_);
   }
 
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
@@ -724,6 +742,10 @@ class Isolate : public BaseIsolate {
   }
 #endif  // defined(PRODUCT)
 
+  // Convenience flag tester indicating whether incoming function arguments
+  // should be type checked.
+  bool argument_type_checks() { return strong() || type_checks(); }
+
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
@@ -833,9 +855,12 @@ class Isolate : public BaseIsolate {
   V(EnableAsserts)                                                             \
   V(ErrorOnBadType)                                                            \
   V(ErrorOnBadOverride)                                                        \
+  V(ReifyGenericFunctions)                                                     \
+  V(Strong)                                                                    \
   V(UseFieldGuards)                                                            \
   V(UseOsr)                                                                    \
-  V(Obfuscate)
+  V(Obfuscate)                                                                 \
+  V(CompactionInProgress)
 
   // Isolate specific flags.
   enum FlagBits {
@@ -987,6 +1012,7 @@ class Isolate : public BaseIsolate {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class Become;    // VisitObjectPointers
+  friend class GCCompactor;  // VisitObjectPointers
   friend class GCMarker;  // VisitObjectPointers
   friend class SafepointHandler;
   friend class ObjectGraph;  // VisitObjectPointers

@@ -33,6 +33,7 @@ class Immediate : public ValueObject {
   bool is_uint8() const { return Utils::IsUint(8, value_); }
   bool is_uint16() const { return Utils::IsUint(16, value_); }
   bool is_int32() const { return Utils::IsInt(32, value_); }
+  bool is_uint32() const { return Utils::IsUint(32, value_); }
 
  private:
   const int64_t value_;
@@ -396,6 +397,7 @@ class Assembler : public ValueObject {
   void movq(Register dst, const Address& src);
   void movq(const Address& dst, Register src);
   void movq(const Address& dst, const Immediate& imm);
+  void movq(Register dst, XmmRegister src);
 
   void movsxd(Register dst, Register src);
   void movsxd(Register dst, const Address& src);
@@ -504,73 +506,64 @@ class Assembler : public ValueObject {
   void xchgq(Register dst, Register src);
 
   void cmpb(const Address& address, const Immediate& imm);
-
-  void cmpw(Register reg, const Address& address);
   void cmpw(const Address& address, const Immediate& imm);
-
-  void cmpl(Register reg, const Immediate& imm);
-  void cmpl(Register reg0, Register reg1);
-  void cmpl(Register reg, const Address& address);
-  void cmpl(const Address& address, const Immediate& imm);
-
-  void cmpq(Register reg, const Immediate& imm);
-  void cmpq(const Address& address, Register reg);
-  void cmpq(const Address& address, const Immediate& imm);
-  void cmpq(Register reg0, Register reg1);
-  void cmpq(Register reg, const Address& address);
 
   void CompareImmediate(Register reg, const Immediate& imm);
   void CompareImmediate(const Address& address, const Immediate& imm);
 
   void testl(Register reg1, Register reg2);
-  void testl(Register reg, const Immediate& imm);
+  void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
   void testb(const Address& address, const Immediate& imm);
 
   void testq(Register reg1, Register reg2);
   void testq(Register reg, const Immediate& imm);
   void TestImmediate(Register dst, const Immediate& imm);
 
-  void andl(Register dst, Register src);
-  void andl(Register dst, const Immediate& imm);
-
-  void orl(Register dst, Register src);
-  void orl(Register dst, const Immediate& imm);
-  void orl(const Address& dst, Register src);
-
-  void xorl(Register dst, Register src);
-
-  void andq(Register dst, Register src);
-  void andq(Register dst, const Address& address);
-  void andq(Register dst, const Immediate& imm);
   void AndImmediate(Register dst, const Immediate& imm);
-
-  void orq(Register dst, Register src);
-  void orq(Register dst, const Address& address);
-  void orq(Register dst, const Immediate& imm);
   void OrImmediate(Register dst, const Immediate& imm);
-
-  void xorq(Register dst, Register src);
-  void xorq(Register dst, const Address& address);
-  void xorq(const Address& dst, Register src);
-  void xorq(Register dst, const Immediate& imm);
   void XorImmediate(Register dst, const Immediate& imm);
 
-  void addl(Register dst, Register src);
-  void addl(Register dst, const Immediate& imm);
-  void addl(Register dst, const Address& address);
-  void addl(const Address& address, Register src);
-  void adcl(Register dst, Register src);
-  void adcl(Register dst, const Immediate& imm);
-  void adcl(Register dst, const Address& address);
+// clang-format off
+// Macro for handling common ALU instructions. Arguments to F:
+//   name, opcode, reversed opcode, opcode for the reg field of the modrm byte.
+#define ALU_OPS(F)                                                             \
+  F(and, 0x23, 0x21, 4)                                                        \
+  F(or, 0x0b, 0x09, 1)                                                         \
+  F(xor, 0x33, 0x31, 6)                                                        \
+  F(add, 0x03, 0x01, 0)                                                        \
+  F(adc, 0x13, 0x11, 2)                                                        \
+  F(sub, 0x2b, 0x29, 5)                                                        \
+  F(sbb, 0x1b, 0x19, 3)                                                        \
+  F(cmp, 0x3b, 0x39, 7)
+// clang-format on
 
-  void addq(Register dst, Register src);
-  void addq(Register dst, const Immediate& imm);
-  void addq(Register dst, const Address& address);
-  void addq(const Address& address, const Immediate& imm);
-  void addq(const Address& address, Register src);
-  void adcq(Register dst, Register src);
-  void adcq(Register dst, const Immediate& imm);
-  void adcq(Register dst, const Address& address);
+#define DECLARE_ALU(op, opcode, opcode2, modrm_opcode)                         \
+  void op##w(Register dst, Register src) { Alu(2, opcode, dst, src); }         \
+  void op##l(Register dst, Register src) { Alu(4, opcode, dst, src); }         \
+  void op##q(Register dst, Register src) { Alu(8, opcode, dst, src); }         \
+  void op##w(Register dst, const Address& src) { Alu(2, opcode, dst, src); }   \
+  void op##l(Register dst, const Address& src) { Alu(4, opcode, dst, src); }   \
+  void op##q(Register dst, const Address& src) { Alu(8, opcode, dst, src); }   \
+  void op##w(const Address& dst, Register src) { Alu(2, opcode2, dst, src); }  \
+  void op##l(const Address& dst, Register src) { Alu(4, opcode2, dst, src); }  \
+  void op##q(const Address& dst, Register src) { Alu(8, opcode2, dst, src); }  \
+  void op##l(Register dst, const Immediate& imm) {                             \
+    AluL(modrm_opcode, dst, imm);                                              \
+  }                                                                            \
+  void op##q(Register dst, const Immediate& imm) {                             \
+    AluQ(modrm_opcode, opcode, dst, imm);                                      \
+  }                                                                            \
+  void op##l(const Address& dst, const Immediate& imm) {                       \
+    AluL(modrm_opcode, dst, imm);                                              \
+  }                                                                            \
+  void op##q(const Address& dst, const Immediate& imm) {                       \
+    AluQ(modrm_opcode, opcode, dst, imm);                                      \
+  }
+
+  ALU_OPS(DECLARE_ALU);
+
+#undef DECLARE_ALU
+#undef ALU_OPS
 
   void cdq();
   void cqo();
@@ -590,22 +583,6 @@ class Assembler : public ValueObject {
   void imulq(Register dst, const Immediate& imm);
   void MulImmediate(Register reg, const Immediate& imm);
   void mulq(Register reg);
-
-  void subl(Register dst, Register src);
-  void subl(Register dst, const Immediate& imm);
-  void subl(Register dst, const Address& address);
-  void sbbl(Register dst, Register src);
-  void sbbl(Register dst, const Immediate& imm);
-  void sbbl(Register dst, const Address& address);
-
-  void subq(Register dst, Register src);
-  void subq(Register reg, const Immediate& imm);
-  void subq(Register reg, const Address& address);
-  void subq(const Address& address, Register reg);
-  void subq(const Address& address, const Immediate& imm);
-  void sbbq(Register dst, Register src);
-  void sbbq(Register dst, const Immediate& imm);
-  void sbbq(Register dst, const Address& address);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -641,6 +618,7 @@ class Assembler : public ValueObject {
   void bsrq(Register dst, Register src);
 
   void btq(Register base, Register offset);
+  void btq(Register base, int bit);
 
   void enter(const Immediate& imm);
   void leave();
@@ -735,7 +713,9 @@ class Assembler : public ValueObject {
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
+  // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
+
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
@@ -825,7 +805,9 @@ class Assembler : public ValueObject {
 
   void LoadClass(Register result, Register object);
 
-  void CompareClassId(Register object, intptr_t class_id);
+  void CompareClassId(Register object,
+                      intptr_t class_id,
+                      Register scratch = kNoRegister);
 
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
@@ -1028,11 +1010,28 @@ class Assembler : public ValueObject {
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
   void LoadWordFromPoolOffset(Register dst, int32_t offset);
 
+  void Alu(int bytes, uint8_t opcode, Register dst, Register src);
+  void Alu(int bytes, uint8_t opcode, Register dst, const Address& src);
+  void Alu(int bytes, uint8_t opcode, const Address& dst, Register src);
+  void AluL(uint8_t modrm_opcode, Register dst, const Immediate& imm);
+  void AluL(uint8_t modrm_opcode, const Address& dst, const Immediate& imm);
+  void AluQ(uint8_t modrm_opcode,
+            uint8_t opcode,
+            Register dst,
+            const Immediate& imm);
+  void AluQ(uint8_t modrm_opcode,
+            uint8_t opcode,
+            const Address& dst,
+            const Immediate& imm);
+
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);
+  inline void EmitUInt32(uint32_t value);
   inline void EmitInt64(int64_t value);
 
-  inline void EmitRegisterREX(Register reg, uint8_t rex);
+  inline void EmitRegisterREX(Register reg,
+                              uint8_t rex,
+                              bool force_emit = false);
   inline void EmitOperandREX(int rm, const Operand& operand, uint8_t rex);
   inline void EmitXmmRegisterOperand(int rm, XmmRegister reg);
   inline void EmitFixup(AssemblerFixup* fixup);
@@ -1084,14 +1083,18 @@ inline void Assembler::EmitInt32(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
 
+inline void Assembler::EmitUInt32(uint32_t value) {
+  buffer_.Emit<uint32_t>(value);
+}
+
 inline void Assembler::EmitInt64(int64_t value) {
   buffer_.Emit<int64_t>(value);
 }
 
-inline void Assembler::EmitRegisterREX(Register reg, uint8_t rex) {
+inline void Assembler::EmitRegisterREX(Register reg, uint8_t rex, bool force) {
   ASSERT(reg != kNoRegister);
   rex |= (reg > 7 ? REX_B : REX_NONE);
-  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
+  if (rex != REX_NONE || force) EmitUint8(REX_PREFIX | rex);
 }
 
 inline void Assembler::EmitOperandREX(int rm,

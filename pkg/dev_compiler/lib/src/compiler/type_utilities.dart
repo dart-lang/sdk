@@ -16,6 +16,11 @@ Set<TypeParameterElement> freeTypeParameters(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.element);
     } else if (t is FunctionType) {
+      // Visit type arguments of typedefs, because we use these when we're
+      // emitting the type.
+      if (t.name != '' && t.name != null) {
+        t.typeArguments.forEach(find);
+      }
       find(t.returnType);
       t.parameters.forEach((p) => find(p.type));
       t.typeFormals.forEach((p) => find(p.bound));

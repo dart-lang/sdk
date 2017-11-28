@@ -25,6 +25,8 @@ abstract class BackendUsage {
 
   Iterable<ClassEntity> get globalClassDependencies;
 
+  Iterable<ClassEntity> get helperClassesUsed;
+
   /// `true` if a core-library function requires the preamble file to function.
   bool get requiresPreamble;
 
@@ -360,5 +362,6 @@ class BackendUsageImpl implements BackendUsage {
 
   Iterable<FunctionEntity> get helperFunctionsUsed => _helperFunctionsUsed;
 
+  @override
   Iterable<ClassEntity> get helperClassesUsed => _helperClassesUsed;
 }

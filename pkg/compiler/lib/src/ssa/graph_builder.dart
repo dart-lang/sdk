@@ -12,6 +12,7 @@ import '../diagnostics/diagnostic_listener.dart';
 import '../elements/entities.dart' show Entity, Local, MemberEntity;
 import '../elements/jumps.dart';
 import '../elements/types.dart';
+import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_handler_javascript.dart';
@@ -244,20 +245,15 @@ abstract class GraphBuilder {
   /// The returned element is a declaration element.
   MemberEntity get sourceElement;
 
-  // TODO(karlklose): this is needed to avoid a bug where the resolved type is
-  // not stored on a type annotation in the closure translator. Remove when
-  // fixed.
-  bool hasDirectLocal(Local local) {
-    return !localsHandler.isAccessedDirectly(local) ||
-        localsHandler.directLocals[local] != null;
-  }
-
   HLiteralList buildLiteralList(List<HInstruction> inputs) {
     return new HLiteralList(inputs, commonMasks.extendableArrayType);
   }
 
-  HInstruction callSetRuntimeTypeInfoWithTypeArguments(InterfaceType type,
-      List<HInstruction> rtiInputs, HInstruction newObject) {
+  HInstruction callSetRuntimeTypeInfoWithTypeArguments(
+      InterfaceType type,
+      List<HInstruction> rtiInputs,
+      HInstruction newObject,
+      SourceInformation sourceInformation) {
     if (!rtiNeed.classNeedsRti(type.element)) {
       return newObject;
     }
@@ -268,7 +264,7 @@ abstract class GraphBuilder {
         rtiInputs,
         closedWorld.commonMasks.dynamicType);
     add(typeInfo);
-    return callSetRuntimeTypeInfo(typeInfo, newObject);
+    return callSetRuntimeTypeInfo(typeInfo, newObject, sourceInformation);
   }
 
   /// Called when control flow is about to change, in which case we need to
@@ -281,8 +277,8 @@ abstract class GraphBuilder {
     open(newBlock);
   }
 
-  HInstruction callSetRuntimeTypeInfo(
-      HInstruction typeInfo, HInstruction newObject);
+  HInstruction callSetRuntimeTypeInfo(HInstruction typeInfo,
+      HInstruction newObject, SourceInformation sourceInformation);
 
   /// The element for which this SSA builder is being used.
   MemberEntity get targetElement;
@@ -302,7 +298,7 @@ abstract class GraphBuilder {
       case 'USE_CONTENT_SECURITY_POLICY':
         return options.useContentSecurityPolicy;
       case 'IS_FULL_EMITTER':
-        return !USE_LAZY_EMITTER && !options.useStartupEmitter;
+        return !options.useStartupEmitter;
       default:
         return null;
     }

@@ -5,10 +5,10 @@
 library kernel.transformations.reify.transformation.builder;
 
 import '../asts.dart';
-import 'package:kernel/ast.dart';
+import '../../../ast.dart';
 import 'dart:collection' show LinkedHashMap;
 import 'binding.dart' show RuntimeLibrary;
-import 'package:kernel/core_types.dart' show CoreTypes;
+import '../../../core_types.dart' show CoreTypes;
 
 class Scope {
   final Map<String, TreeNode> names = <String, TreeNode>{};

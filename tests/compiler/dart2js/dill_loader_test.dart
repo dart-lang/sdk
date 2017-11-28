@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
@@ -20,6 +19,8 @@ import 'package:front_end/front_end.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart' show serializeProgram;
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 class TestScriptLoader implements ScriptLoader {
   CompilerImpl compiler;
@@ -42,15 +43,12 @@ main() {
     OutputCollector output = new OutputCollector();
     Uri entryPoint = Uri.parse('memory:main.dill');
 
-    String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
-    String configuration =
-        Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
-    String sdkPath = '$buildDir/$configuration/patched_dart2js_sdk/';
-    var platform = Uri.base.resolve('$sdkPath/platform.dill');
     var options = new CompilerOptions()
       ..target = new Dart2jsTarget(new TargetFlags())
       ..packagesFileUri = Uri.base.resolve('.packages')
-      ..linkedDependencies = [platform]
+      ..linkedDependencies = <Uri>[
+        computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
+      ]
       ..setExitCodeOnProblem = true
       ..verify = true;
 

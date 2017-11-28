@@ -20,8 +20,6 @@ final _variables = {
   "compiler": new _Variable((c) => c.compiler.name, Compiler.names),
   "csp": new _Variable.bool((c) => c.isCsp),
   "dart2js_with_kernel": new _Variable.bool((c) => c.useDart2JSWithKernel),
-  "dart2js_with_kernel_in_ssa":
-      new _Variable.bool((c) => c.useDart2JSWithKernelInSsa),
   "fast_startup": new _Variable.bool((c) => c.useFastStartup),
   "enable_asserts": new _Variable.bool((c) => c.useEnableAsserts),
   "host_checked": new _Variable.bool((c) => c.isHostChecked),
@@ -33,6 +31,7 @@ final _variables = {
   "minified": new _Variable.bool((c) => c.isMinified),
   "mode": new _Variable((c) => c.mode.name, Mode.names),
   "runtime": new _Variable(_runtimeName, Runtime.names),
+  "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
   "strong": new _Variable.bool((c) => c.isStrong),
   "system": new _Variable((c) => c.system.name, System.names),
   "use_sdk": new _Variable.bool((c) => c.useSdk)

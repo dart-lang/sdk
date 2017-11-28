@@ -14,7 +14,6 @@ import '../compiler.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../enqueue.dart';
-import '../io/source_information.dart';
 import '../js_backend/backend.dart';
 import '../js_emitter/sorter.dart';
 import '../js_model/js_strategy.dart';
@@ -93,22 +92,20 @@ class KernelSsaBuilder implements SsaBuilder {
 
   @override
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(work.element);
     KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
         work.element,
         _elementMap.getMemberThisType(work.element),
         _compiler,
         _elementMap,
-        new KernelToTypeInferenceMapImpl(
-            work.element, _compiler.globalInference.results),
-        localsMap,
+        _compiler.globalInference.results,
+        _globalLocalsMap,
         closedWorld,
         _compiler.codegenWorldBuilder,
         work.registry,
         _compiler.backendStrategy.closureDataLookup,
         _compiler.backend.emitter.nativeEmitter,
-        // TODO(redemption): Support these:
-        const SourceInformationBuilder(),
+        _compiler.backend.sourceInformationStrategy
+            .createBuilderForContext(work.element),
         null); // Function node used as capture scope id.
     return builder.build();
   }

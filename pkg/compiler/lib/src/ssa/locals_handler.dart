@@ -118,15 +118,17 @@ class LocalsHandler {
     assert(isStoredInClosureField(from) || isBoxed(from));
   }
 
-  HInstruction createBox() {
-    HInstruction box = new HCreateBox(commonMasks.nonNullType);
+  HInstruction createBox(SourceInformation sourceInformation) {
+    HInstruction box = new HCreateBox(commonMasks.nonNullType)
+      ..sourceInformation = sourceInformation;
     builder.add(box);
     return box;
   }
 
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
-  void enterScope(CapturedScope closureInfo,
+  void enterScope(
+      CapturedScope closureInfo, SourceInformation sourceInformation,
       {bool forGenerativeConstructorBody: false}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
@@ -138,7 +140,7 @@ class LocalsHandler {
       // constructor body.
       box = builder.addParameter(closureInfo.context, commonMasks.nonNullType);
     } else {
-      box = createBox();
+      box = createBox(sourceInformation);
     }
     // Add the box to the known locals.
     directLocals[closureInfo.context] = box;
@@ -173,11 +175,12 @@ class LocalsHandler {
 
   /// Replaces the current box with a new box and copies over the given list
   /// of elements from the old box into the new box.
-  void updateCaptureBox(Local currentBox, List<Local> toBeCopiedElements) {
+  void updateCaptureBox(Local currentBox, List<Local> toBeCopiedElements,
+      SourceInformation sourceInformation) {
     // Create a new box and copy over the values from the old box into the
     // new one.
     HInstruction oldBox = readLocal(currentBox);
-    HInstruction newBox = createBox();
+    HInstruction newBox = createBox(sourceInformation);
     for (Local boxedVariable in toBeCopiedElements) {
       // [readLocal] uses the [currentBox] to find its box. By replacing it
       // behind its back we can still get to the old values.
@@ -192,8 +195,12 @@ class LocalsHandler {
   /// Documentation wanted -- johnniwinther
   ///
   /// Invariant: [function] must be an implementation element.
-  void startFunction(MemberEntity element, ScopeInfo scopeInfo,
-      CapturedScope scopeData, Map<Local, TypeMask> parameters,
+  void startFunction(
+      MemberEntity element,
+      ScopeInfo scopeInfo,
+      CapturedScope scopeData,
+      Map<Local, TypeMask> parameters,
+      SourceInformation sourceInformation,
       {bool isGenerativeConstructorBody}) {
     assert(!(element is MemberElement && !element.isImplementation),
         failedAt(element));
@@ -212,7 +219,7 @@ class LocalsHandler {
       directLocals[local] = parameter;
     });
 
-    enterScope(scopeData,
+    enterScope(scopeData, sourceInformation,
         forGenerativeConstructorBody: isGenerativeConstructorBody);
 
     // When we remove the element model, we can just use the first check
@@ -321,8 +328,8 @@ class LocalsHandler {
         if (local is TypeVariableLocal) {
           failedAt(
               CURRENT_ELEMENT_SPANNABLE,
-              "Runtime type information not available for $local in ${directLocals.keys}"
-              "in $executableContext.");
+              "Runtime type information not available for $local "
+              "in ${directLocals.keys} for $executableContext.");
         } else {
           failedAt(
               local,
@@ -376,8 +383,9 @@ class LocalsHandler {
     }
   }
 
-  HInstruction readThis() {
-    HInstruction res = readLocal(scopeInfo.thisLocal);
+  HInstruction readThis({SourceInformation sourceInformation}) {
+    HInstruction res =
+        readLocal(scopeInfo.thisLocal, sourceInformation: sourceInformation);
     if (res.instructionType == null) {
       res.instructionType = getTypeOfThis();
     }
@@ -490,13 +498,14 @@ class LocalsHandler {
   ///    <updates>
   ///    goto loop-entry;
   ///  loop-exit:
-  void startLoop(CapturedLoopScope loopInfo) {
+  void startLoop(
+      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
     if (loopInfo.hasBoxedLoopVariables) {
       // If there are boxed loop variables then we set up the box and
       // redirections already now. This way the initializer can write its
       // values into the box.
       // For other loops the box will be created when entering the body.
-      enterScope(loopInfo);
+      enterScope(loopInfo, sourceInformation);
     }
   }
 
@@ -523,22 +532,25 @@ class LocalsHandler {
     });
   }
 
-  void enterLoopBody(CapturedLoopScope loopInfo) {
+  void enterLoopBody(
+      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!loopInfo.hasBoxedLoopVariables) {
-      enterScope(loopInfo);
+      enterScope(loopInfo, sourceInformation);
     }
   }
 
-  void enterLoopUpdates(CapturedLoopScope loopInfo) {
+  void enterLoopUpdates(
+      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.
     // In all other cases a new box will be created when entering the body of
     // the next iteration.
     if (loopInfo.hasBoxedLoopVariables) {
-      updateCaptureBox(loopInfo.context, loopInfo.boxedLoopVariables);
+      updateCaptureBox(
+          loopInfo.context, loopInfo.boxedLoopVariables, sourceInformation);
     }
   }
 

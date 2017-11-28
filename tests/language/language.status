@@ -6,51 +6,59 @@
 # current state of the language.
 
 [ $strong ]
-*: SkipByDesign # tests/language_strong has the strong mode versions of these tests.
+*: SkipByDesign # tests/language_2 has the strong mode versions of these tests.
 
-[$compiler == precompiler && $runtime == dart_precompiled ]
+[ $compiler == precompiler && $runtime == dart_precompiled ]
 stacktrace_demangle_ctors_test: RuntimeError
+deep_nesting1_negative_test: Skip  # Issue 31158
+deep_nesting2_negative_test: Skip  # Issue 31158
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $checked ]
+assertion_initializer_const_error2_test/cc02: Crash
+
+[$compiler == none && $runtime == vm && !$checked]
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
+[$compiler == app_jit && $runtime == vm && !$checked]
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $compiler != dartk && $compiler != dartkp ]
 abstract_beats_arguments2_test/01: Crash # Issue 29171
 
 # These test entries will be valid for vm (with and without kernel).
 [ $compiler == none || $compiler == app_jit || $compiler == dartk || $runtime == dart_precompiled ]
+async_star_cancel_while_paused_test: RuntimeError
+async_star_pause_test: Fail, OK # This is OK for now, but we may want to change the semantics to match the test.
 
-# These tests are skipped in the VM because it has "--supermixin"
-# functionality enabled unconditionally.  The tests should be removed
-# once the same is true for analyzer (#24478) and dart2js (#23773)
-mixin_illegal_super_use_test: Skip # Issues 24478 and 23773
-mixin_illegal_superclass_test: Skip # Issues 24478 and 23773
+mixin_illegal_super_use_test: Skip # Issues 24478 and 23773, # These tests are skipped in the VM because it has "--supermixin" functionality enabled unconditionally.  The tests should be removed once the same is true for analyzer (#24478) and dart2js (#23773)
+mixin_illegal_superclass_test: Skip # Issues 24478 and 23773, # These tests are skipped in the VM because it has "--supermixin" functionality enabled unconditionally.  The tests should be removed once the same is true for analyzer (#24478) and dart2js (#23773)
 
-# These bugs refer currently ongoing language discussions.
-constructor5_test: Fail # Issue 6422
-constructor6_test: Fail # Issue 6422
+constructor5_test: Fail # Issue 6422, These bugs refer currently ongoing language discussions.
+constructor6_test: Fail # Issue 6422, These bugs refer currently ongoing language discussions.
 
+generalized_void_syntax_test: CompileTimeError
+generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 
-# Failures related to super call in ctor initializer list
-super_test: Fail, OK
-final_field_initialization_order_test: Fail, OK
-field_initialization_order_test: Fail, OK
-example_constructor_test: Fail, OK
-constructor3_test: Fail, OK
-constructor2_test: Fail, OK
+super_test: Fail, OK # Failures related to super call in ctor initializer list
+final_field_initialization_order_test: Fail, OK # Failures related to super call in ctor initializer list
+field_initialization_order_test: Fail, OK # Failures related to super call in ctor initializer list
+example_constructor_test: Fail, OK # Failures related to super call in ctor initializer list
+constructor3_test: Fail, OK # Failures related to super call in ctor initializer list
+constructor2_test: Fail, OK # Failures related to super call in ctor initializer list
 
-# Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134
 
-# Non-contractive types are not supported in the vm.
-cyclic_type_test/02: Fail, OK
-cyclic_type_test/04: Fail, OK
-cyclic_type2_test: Fail, OK
-least_upper_bound_expansive_test/*: Fail, OK
+cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the vm.
+cyclic_type_test/04: Fail, OK # Non-contractive types are not supported in the vm.
+cyclic_type2_test: Fail, OK # Non-contractive types are not supported in the vm.
+least_upper_bound_expansive_test/*: Fail, OK # Non-contractive types are not supported in the vm.
 
-# Skipped temporarily until fixed
 vm/regress_29145_test: Skip # Issue 29145
 
-# Skipped temporaril until Issue 29895 is fixed.
-no_main_test/01: Skip
-main_not_a_function_test/01: Skip
+no_main_test/01: Skip # Skipped temporaril until Issue 29895 is fixed.
+main_not_a_function_test/01: Skip # Skipped temporaril until Issue 29895 is fixed.
 
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
@@ -59,7 +67,19 @@ multiline_strings_test: Fail # Issue 23020
 deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
+async_star_regression_2238_test: CompileTimeError
+
+[ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
+generic_methods_function_type_test: Pass # Issue 25869, These generic functions tests pass for the wrong reason in checked mode, because the parsed type parameters are mapped to dynamic type.
+generic_methods_test: Pass # Issue 25869, These generic functions tests pass for the wrong reason in checked mode, because the parsed type parameters are mapped to dynamic type.
+generic_methods_new_test: Pass # Issue 25869, These generic functions tests pass for the wrong reason in checked mode, because the parsed type parameters are mapped to dynamic type.
+generic_local_functions_test: Pass # Issue 25869, These generic functions tests pass for the wrong reason in checked mode, because the parsed type parameters are mapped to dynamic type.
+generic_functions_test: Pass # Issue 25869, These generic functions tests pass for the wrong reason in checked mode, because the parsed type parameters are mapped to dynamic type.
+generic_methods_generic_function_parameter_test: Pass # Issue 25869, These generic functions tests pass for the wrong reason in checked mode, because the parsed type parameters are mapped to dynamic type.
+
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) ]
+class_keyword_test/02: MissingCompileTimeError # Issue 13627
+unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $checked ]
@@ -73,10 +93,10 @@ dynamic_prefix_core_test/none: Fail # Issue 12478
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $arch == arm64 ]
 large_class_declaration_test: SkipSlow # Uses too much memory.
+closure_cycles_test: Pass, Slow
 
 [ $runtime == vm || $runtime == dart_precompiled ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
-vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
 vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && (($runtime == vm || $runtime == dart_precompiled)) && $arch == ia32 ]
@@ -88,53 +108,53 @@ export_double_same_main_test: Skip # Issue 29895
 export_ambiguous_main_negative_test: Skip # Issue 29895
 vm/optimized_stacktrace_test: Skip # Issue 30198
 
+[ $compiler == precompiler && $runtime == dart_precompiled && !$checked]
+assertion_initializer_const_error_test/01: MissingCompileTimeError
+assertion_initializer_const_function_error_test/01: MissingCompileTimeError
+
 [ $compiler == precompiler && $runtime == dart_precompiled && $mode == debug ]
 regress_29025_test: Crash  # Issue dartbug.com/29331
 
 [ $runtime == dart_precompiled ]
-# Imports dart:mirrors
-const_evaluation_test: SkipByDesign
-deferred_constraints_constants_test: SkipByDesign
-enum_mirror_test: SkipByDesign
-field_increment_bailout_test: SkipByDesign
-instance_creation_in_function_annotation_test: SkipByDesign
-invocation_mirror2_test: SkipByDesign
-invocation_mirror_invoke_on2_test: SkipByDesign
-invocation_mirror_invoke_on_test: SkipByDesign
-issue21079_test: SkipByDesign
-many_overridden_no_such_method_test: SkipByDesign
-no_such_method_test: SkipByDesign
-null_test/none: SkipByDesign
-overridden_no_such_method_test: SkipByDesign
-redirecting_factory_reflection_test: SkipByDesign
-regress_13462_0_test: SkipByDesign
-regress_13462_1_test: SkipByDesign
-regress_18535_test: SkipByDesign
-super_call4_test: SkipByDesign
-super_getter_setter_test: SkipByDesign
-vm/reflect_core_vm_test: SkipByDesign
-regress_28255_test: SkipByDesign
+const_evaluation_test: SkipByDesign # Imports dart:mirrors
+deferred_constraints_constants_test: SkipByDesign # Imports dart:mirrors
+enum_mirror_test: SkipByDesign # Imports dart:mirrors
+field_increment_bailout_test: SkipByDesign # Imports dart:mirrors
+instance_creation_in_function_annotation_test: SkipByDesign # Imports dart:mirrors
+invocation_mirror2_test: SkipByDesign # Imports dart:mirrors
+invocation_mirror_invoke_on2_test: SkipByDesign # Imports dart:mirrors
+invocation_mirror_invoke_on_test: SkipByDesign # Imports dart:mirrors
+issue21079_test: SkipByDesign # Imports dart:mirrors
+many_overridden_no_such_method_test: SkipByDesign # Imports dart:mirrors
+no_such_method_test: SkipByDesign # Imports dart:mirrors
+null_test/none: SkipByDesign # Imports dart:mirrors
+overridden_no_such_method_test: SkipByDesign # Imports dart:mirrors
+redirecting_factory_reflection_test: SkipByDesign # Imports dart:mirrors
+regress_13462_0_test: SkipByDesign # Imports dart:mirrors
+regress_13462_1_test: SkipByDesign # Imports dart:mirrors
+regress_18535_test: SkipByDesign # Imports dart:mirrors
+super_call4_test: SkipByDesign # Imports dart:mirrors
+super_getter_setter_test: SkipByDesign # Imports dart:mirrors
+vm/reflect_core_vm_test: SkipByDesign # Imports dart:mirrors
+regress_28255_test: SkipByDesign # Imports dart:mirrors
 
 [ $runtime == dart_precompiled || $mode == product ]
-# Causal async stacks are not supported in product mode
-vm/causal_async_exception_stack_test: SkipByDesign
-vm/causal_async_exception_stack2_test: SkipByDesign
+vm/causal_async_exception_stack_test: SkipByDesign # Causal async stacks are not supported in product mode
+vm/causal_async_exception_stack2_test: SkipByDesign # Causal async stacks are not supported in product mode
 
 [ $mode == product || $compiler == app_jit || $compiler == precompiler ]
-# Deferred loading happens eagerly. Issue #27587
-deferred_load_constants_test/02: Fail
-deferred_load_constants_test/03: Fail
-deferred_load_constants_test/05: Fail
-deferred_not_loaded_check_test: Fail
+deferred_load_constants_test/02: Fail # Deferred loading happens eagerly. Issue #27587
+deferred_load_constants_test/03: Fail # Deferred loading happens eagerly. Issue #27587
+deferred_load_constants_test/05: Fail # Deferred loading happens eagerly. Issue #27587
+deferred_not_loaded_check_test: Fail # Deferred loading happens eagerly. Issue #27587
 vm/regress_27201_test: Fail
 
 [ $compiler == app_jit ]
 deferred_inheritance_constraints_test/redirecting_constructor: Crash
 
 [ $compiler == precompiler ]
-# Deferred loading happens eagerly. Issue #27587
-deferred_global_test: Fail
-vm/regress_27201_test: Fail
+deferred_global_test: Fail # Deferred loading happens eagerly. Issue #27587
+vm/regress_27201_test: Fail # Deferred loading happens eagerly. Issue #27587
 regress_23408_test: RuntimeError
 
 [ $compiler == precompiler ]
@@ -143,10 +163,12 @@ deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 
 [ $runtime == dart_precompiled || $compiler == app_jit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
+hello_dart_test: Skip # Incompatible flag: --compile_all
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 
 [ $mode == product ]
+assertion_test: SkipByDesign # Requires checked mode.
 issue13474_test: SkipByDesign # Requires checked mode.
 named_parameters_type_test/01: SkipByDesign # Requires checked mode.
 named_parameters_type_test/02: SkipByDesign # Requires checked mode.
@@ -155,6 +177,7 @@ type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
 positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
 positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
 list_literal4_test: SkipByDesign # Requires checked mode.
+generic_test: SkipByDesign # Requires checked mode.
 map_literal4_test: SkipByDesign # Requires checked mode.
 
 vm/type_vm_test: Fail,OK  # Expects exact type name.
@@ -162,27 +185,26 @@ vm/type_vm_test: Fail,OK  # Expects exact type name.
 stacktrace_demangle_ctors_test: SkipByDesign # Names are not scrubbed.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && $browser ]
-# The following tests are supposed to fail.
-library_env_test/has_io_support: RuntimeError, OK
-library_env_test/has_no_html_support: RuntimeError, OK
+library_env_test/has_io_support: RuntimeError, OK # The test is supposed to fail.
+library_env_test/has_no_html_support: RuntimeError, OK # The test is supposed to fail.
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) && ! $browser ]
-# The following tests are supposed to fail.
-library_env_test/has_html_support: RuntimeError, OK
-library_env_test/has_no_io_support: RuntimeError, OK
+library_env_test/has_html_support: RuntimeError, OK # The test is supposed to fail.
+library_env_test/has_no_io_support: RuntimeError, OK # The test is supposed to fail.
 
 [ $compiler == none || $compiler == app_jit ]
-# The following tests are supposed to fail.
-library_env_test/has_no_mirror_support: RuntimeError, OK
+library_env_test/has_no_mirror_support: RuntimeError, OK  # The test is supposed to fail.
 
 [ $runtime == dart_precompiled ]
-# The following tests are supposed to fail.
-library_env_test/has_mirror_support: RuntimeError, OK
+library_env_test/has_mirror_support: RuntimeError, OK  # The test is supposed to fail.
 
 [ $hot_reload || $hot_reload_rollback ]
 issue21159_test: Pass, Crash # Issue 29094
 issue_22780_test/01: Pass, Crash # Issue 29094
 static_closure_identical_test: Pass, Fail # Closure identity
+cha_deopt1_test: Crash # Requires deferred libraries
+cha_deopt2_test: Crash # Requires deferred libraries
+cha_deopt3_test: Crash # Requires deferred libraries
 deferred_call_empty_before_load_test: Crash # Requires deferred libraries
 deferred_closurize_load_library_test: Crash # Requires deferred libraries
 deferred_constant_list_test: Crash # Requires deferred libraries
@@ -218,6 +240,12 @@ conditional_import_string_test: Crash # Requires deferred libraries
 vm/regress_27201_test: Pass, Crash # Requires deferred libraries
 vm/optimized_stacktrace_test: Pass, Slow
 
+[ ($runtime != vm && $compiler != dartk && $compiler != dartkp ) || ($compiler != none && $compiler != dartk && $compiler != dartkp )]
+assert_initializer_test/*: SKIP  # not implemented yet, experiment is VM only.
+
+[($runtime == vm || $runtime == flutter) && $compiler == none && $checked]
+assert_initializer_test/4*: MissingCompileTimeError # Issue 392. The VM doesn't enforce that potentially const expressions are actually const expressions when the constructor is called with `const`.
+
 [($runtime == vm || $runtime == flutter) && $compiler == none]
 duplicate_part_test/01: MissingCompileTimeError # Issue 27516
 
@@ -225,13 +253,12 @@ duplicate_part_test/01: MissingCompileTimeError # Issue 27516
 vm/optimized_stacktrace_test: Pass, Crash # Issue 28276
 
 [$runtime == vm && $compiler == none && $system == fuchsia]
-# Use package:unittest
-async_await_test: RuntimeError
-async_star_test: RuntimeError
-vm/causal_async_exception_stack_test: RuntimeError
-vm/causal_async_exception_stack2_test: RuntimeError
-# TODO(zra): Investigate
-vm/math_vm_test: Crash
+async_await_test: RuntimeError # Use package:unittest
+async_star_test: RuntimeError # Use package:unittest
+vm/causal_async_exception_stack_test: RuntimeError # Use package:unittest
+vm/causal_async_exception_stack2_test: RuntimeError # Use package:unittest
+closure_cycles_test: Pass, Crash # TODO(zra): Investigate
+vm/math_vm_test: Crash # TODO(zra): Investigate
 
 [$compiler == dart2analyzer]
 vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
@@ -248,6 +275,9 @@ syntax_test/none: CompileTimeError # Issue #30176.
 await_backwards_compatibility_test/none: CompileTimeError
 await_test: CompileTimeError
 async_await_test: CompileTimeError
+async_await_syntax_test/a05c: CompileTimeError
+async_await_syntax_test/a05e: CompileTimeError
+async_await_syntax_test/d08c: CompileTimeError
 static_initializer_type_error_test: CompileTimeError
 new_expression_type_args_test/02: CompileTimeError
 super_getter_setter_test: CompileTimeError
@@ -258,6 +288,13 @@ method_override2_test/01: CompileTimeError
 regress_22438_test: CompileTimeError
 regress_13462_1_test: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
+type_variable_scope_test/none: CompileTimeError
+type_variable_scope_test/00: CompileTimeError
+type_variable_scope_test/01: CompileTimeError
+type_variable_scope_test/03: CompileTimeError
+type_variable_scope_test/02: CompileTimeError
+type_variable_scope_test/04: CompileTimeError
+type_variable_scope_test/05: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
 method_override3_test/00: CompileTimeError
 method_override3_test/01: CompileTimeError
@@ -318,12 +355,14 @@ override_inheritance_method_test/30: CompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
 method_override6_test: CompileTimeError
 try_catch_syntax_test/08: CompileTimeError
+async_return_types_test/tooManyTypeParameters: CompileTimeError
 method_override4_test: CompileTimeError
 super_call4_test: CompileTimeError
 wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 is_malformed_type_test/97: CompileTimeError
+class_keyword_test/02: CompileTimeError
 is_malformed_type_test/98: CompileTimeError
 is_malformed_type_test/99: CompileTimeError
 is_malformed_type_test/95: CompileTimeError
@@ -371,6 +410,11 @@ check_method_override_test/02: CompileTimeError
 malformed_inheritance_test/02: CompileTimeError
 malformed_inheritance_test/04: CompileTimeError
 malformed_inheritance_test/06: CompileTimeError
+call_constructor_on_unresolvable_class_test/01: CompileTimeError
+call_constructor_on_unresolvable_class_test/03: CompileTimeError
+call_constructor_on_unresolvable_class_test/02: CompileTimeError
+call_constructor_on_unresolvable_class_test/07: CompileTimeError
+unicode_bom_test: CompileTimeError
 prefix16_test: CompileTimeError
 deferred_not_loaded_check_test: CompileTimeError
 regress_23408_test: CompileTimeError
@@ -398,7 +442,9 @@ deferred_static_seperate_test: CompileTimeError
 default_factory_test/01: CompileTimeError
 internal_library_test/01: CompileTimeError
 internal_library_test/02: CompileTimeError
+type_variable_scope2_test: CompileTimeError
 mixin_super_bound_test: CompileTimeError
+bad_override_test/06: CompileTimeError
 invocation_mirror2_test: CompileTimeError
 deferred_inheritance_constraints_test/redirecting_constructor: CompileTimeError
 deferred_no_such_method_test: CompileTimeError
@@ -415,6 +461,8 @@ list_literal_syntax_test/02: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError
 vm/debug_break_enabled_vm_test/none: CompileTimeError
+generic_function_typedef2_test/04: CompileTimeError
+class_override_test/00: CompileTimeError
 const_types_test/01: CompileTimeError
 const_types_test/02: CompileTimeError
 const_types_test/03: CompileTimeError
@@ -430,32 +478,35 @@ invocation_mirror_invoke_on2_test: CompileTimeError
 isnot_malformed_type_test: RuntimeError
 is_not_class2_test: RuntimeError
 
-# No mirrors support in Flutter.
-library_env_test/has_no_mirror_support: Pass
-library_env_test/has_mirror_support: RuntimeError, Ok
+library_env_test/has_no_mirror_support: Pass # No mirrors support in Flutter.
+library_env_test/has_mirror_support: RuntimeError, Ok # No mirrors support in Flutter.
 
 internal_library_test/01: MissingCompileTimeError
 internal_library_test/02: MissingCompileTimeError
 
-# deferred loading is not supported by Flutter
-deferred_type_dependency_test/is: Skip # Timeout
-deferred_type_dependency_test/none: Skip # Timeout
-deferred_type_dependency_test/as: Skip # Timeout
-deferred_type_dependency_test/type_annotation: Skip # Timeout
-deferred_closurize_load_library_test: Skip # Timeout
-deferred_constraints_type_annotation_test/none: Skip # Timeout
-deferred_constraints_type_annotation_test/static_method: Skip # Timeout
-deferred_shared_and_unshared_classes_test: Skip # Timeout
-deferred_constant_list_test: Skip # Timeout
-deferred_redirecting_factory_test: Skip # Timeout
-deferred_shadow_load_library_test: Skip # Timeout
-deferred_global_test: Skip # Timeout
+deferred_type_dependency_test/is: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_type_dependency_test/none: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_type_dependency_test/as: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_type_dependency_test/type_annotation: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_closurize_load_library_test: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_constraints_type_annotation_test/none: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_constraints_type_annotation_test/static_method: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_shared_and_unshared_classes_test: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_constant_list_test: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_redirecting_factory_test: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_shadow_load_library_test: Skip # Timeout, deferred loading is not supported by Flutter
+deferred_global_test: Skip # Timeout, deferred loading is not supported by Flutter
 
-# Look like bugs.
 config_import_test: RuntimeError # Flutter Issue 9110
 vm/no_such_method_error_message_callable_vm_test: RuntimeError # Flutter Issue 9110
 vm/regress_27201_test: Fail # Flutter Issue 9110
+async_return_types_test/nestedFuture: Skip # Flutter Issue 9110
+async_return_types_test/wrongTypeParameter: Skip # Flutter Issue 9110
+async_return_types_test/wrongReturnType: Skip # Flutter Issue 9110
+async_return_types_test/return_value_sync_star: Skip # Flutter Issue 9110
 asyncstar_yield_test: Skip # Flutter Issue 9110
+async_star_no_cancel_test: Skip # Flutter Issue 9110
+async_star_cancel_while_paused_test: Skip # Flutter Issue 9110
 await_for_test: Skip # Flutter Issue 9110
 await_for_cancel_test: Skip # Flutter Issue 9110
 
@@ -464,26 +515,24 @@ enum_duplicate_test/*: Skip  # Uses Enum.toString()
 enum_private_test/*: Skip  # Uses Enum.toString()
 enum_test: Skip  # Uses Enum.toString()
 no_such_method_dispatcher_test: Skip  # Uses new Symbol()
-# Tests below rely on Type.toString()
-cyclic_type_test/*: Skip
-f_bounded_quantification4_test: Skip
-f_bounded_quantification5_test: Skip
-mixin_generic_test: Skip
-mixin_mixin2_test: Skip
-mixin_mixin3_test: Skip
-mixin_mixin5_test: Skip
-mixin_mixin6_test: Skip
-mixin_mixin_bound2_test: Skip
-mixin_mixin_type_arguments_test: Skip
-mixin_super_2_test: Skip
-# Tests below rely on Stacktrace.toString()
-full_stacktrace1_test: Skip
-full_stacktrace2_test: Skip
-full_stacktrace3_test: Skip
-stacktrace_rethrow_error_test: Skip
-stacktrace_rethrow_nonerror_test: Skip
-vm/no_such_args_error_message_vm_test: Skip
-vm/no_such_method_error_message_callable_vm_test: Skip
-vm/no_such_method_error_message_vm_test: Skip
-vm/regress_28325_test:Skip
+cyclic_type_test/*: Skip # Tests below rely on Type.toString()
+f_bounded_quantification4_test: Skip # Tests below rely on Type.toString()
+f_bounded_quantification5_test: Skip # Tests below rely on Type.toString()
+mixin_generic_test: Skip # Tests below rely on Type.toString()
+mixin_mixin2_test: Skip # Tests below rely on Type.toString()
+mixin_mixin3_test: Skip # Tests below rely on Type.toString()
+mixin_mixin5_test: Skip # Tests below rely on Type.toString()
+mixin_mixin6_test: Skip # Tests below rely on Type.toString()
+mixin_mixin_bound2_test: Skip # Tests below rely on Type.toString()
+mixin_mixin_type_arguments_test: Skip # Tests below rely on Type.toString()
+mixin_super_2_test: Skip # Tests below rely on Type.toString()
+full_stacktrace1_test: Skip # Tests below rely on Stacktrace.toString()
+full_stacktrace2_test: Skip # Tests below rely on Stacktrace.toString()
+full_stacktrace3_test: Skip # Tests below rely on Stacktrace.toString()
+stacktrace_rethrow_error_test: Skip # Tests below rely on Stacktrace.toString()
+stacktrace_rethrow_nonerror_test: Skip # Tests below rely on Stacktrace.toString()
+vm/no_such_args_error_message_vm_test: Skip # Tests below rely on Stacktrace.toString()
+vm/no_such_method_error_message_callable_vm_test: Skip # Tests below rely on Stacktrace.toString()
+vm/no_such_method_error_message_vm_test: Skip # Tests below rely on Stacktrace.toString()
+vm/regress_28325_test:Skip # Tests below rely on Stacktrace.toString()
 

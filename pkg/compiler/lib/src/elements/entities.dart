@@ -9,6 +9,7 @@ import 'package:front_end/src/fasta/parser/async_modifier.dart'
 
 import '../common.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../util/util.dart';
 import 'names.dart';
 
 /// Abstract interface for entities.
@@ -31,6 +32,17 @@ abstract class Entity implements Spannable {
 abstract class LibraryEntity extends Entity {
   /// Return the canonical uri that identifies this library.
   Uri get canonicalUri;
+}
+
+/// Stripped down super interface for import entities.
+///
+/// The [name] property corresponds to the prefix name, if any.
+abstract class ImportEntity extends Entity {
+  /// Whether the import is a deferred import.
+  bool get isDeferred;
+
+  /// The target import URI.
+  Uri get uri;
 }
 
 /// Stripped down super interface for class like entities.
@@ -264,5 +276,35 @@ class ParameterStructure {
   CallStructure get callStructure {
     return new CallStructure(
         positionalParameters + namedParameters.length, namedParameters);
+  }
+
+  int get hashCode => Hashing.listHash(
+      namedParameters,
+      Hashing.objectHash(
+          positionalParameters, Hashing.objectHash(requiredParameters)));
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! ParameterStructure) return false;
+    if (requiredParameters != other.requiredParameters ||
+        positionalParameters != other.positionalParameters ||
+        namedParameters.length != other.namedParameters.length) {
+      return false;
+    }
+    for (int i = 0; i < namedParameters.length; i++) {
+      if (namedParameters[i] != other.namedParameters[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('ParameterStructure(');
+    sb.write('requiredParameters=$requiredParameters,');
+    sb.write('positionalParameters=$positionalParameters,');
+    sb.write('namedParameters={${namedParameters.join(',')}})');
+    return sb.toString();
   }
 }

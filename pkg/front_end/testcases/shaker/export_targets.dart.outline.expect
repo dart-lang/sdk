@@ -5,7 +5,7 @@ pkg/front_end/tool/fasta testing shaker -DupdateExpectations=true
 library;
 import self as self;
 import "lib/targets_top.dart" as tar;
-additionalExports = (tar::MyClasstar::MyFunctionTypeAliastar::myTopLevelVariabletar::myTopLevelFunction)
+additionalExports = (tar::MyClass, tar::MyFunctionTypeAlias, tar::myTopLevelVariable, tar::myTopLevelFunction)
 
 
 ----- external pkg/front_end/testcases/shaker/lib/targets_top.dart

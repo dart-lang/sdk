@@ -26,7 +26,7 @@ main() {
       await nextMicrotask();
       log.add("$i!");
     }
-    Expect.listEquals(log, [
+    Expect.listEquals([
       "0-",
       "0?",
       "0!",
@@ -39,7 +39,7 @@ main() {
       "2?",
       "2!",
       "2+"
-    ]);
+    ], log);
   });
 }
 

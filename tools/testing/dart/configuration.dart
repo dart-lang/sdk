@@ -9,8 +9,8 @@ import 'dart:io';
 import 'compiler_configuration.dart';
 import 'http_server.dart';
 import 'path.dart';
+import 'repository.dart';
 import 'runtime_configuration.dart';
-import 'utils.dart';
 
 /// All of the contextual information to determine how a test suite should be
 /// run.
@@ -51,7 +51,6 @@ class Configuration {
       this.useFastStartup,
       this.useEnableAsserts,
       this.useDart2JSWithKernel,
-      this.useDart2JSWithKernelInSsa,
       this.writeDebugLog,
       this.writeTestOutcomeLog,
       this.writeResultLog,
@@ -78,7 +77,8 @@ class Configuration {
       this.suiteDirectory,
       this.builderTag,
       this.outputDirectory,
-      this.reproducingArguments})
+      this.reproducingArguments,
+      this.fastTestsOnly})
       : _packages = packages,
         _timeout = timeout;
 
@@ -97,6 +97,7 @@ class Configuration {
   final bool batch;
   final bool batchDart2JS;
   final bool copyCoreDumps;
+  final bool fastTestsOnly;
   final bool hotReload;
   final bool hotReloadRollback;
   final bool isChecked;
@@ -118,7 +119,6 @@ class Configuration {
   final bool useFastStartup;
   final bool useEnableAsserts;
   final bool useDart2JSWithKernel;
-  final bool useDart2JSWithKernelInSsa;
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
@@ -153,7 +153,7 @@ class Configuration {
   String get packages {
     // If the .packages file path wasn't given, find it.
     if (packageRoot == null && _packages == null) {
-      _packages = TestUtils.dartDirUri.resolve('.packages').toFilePath();
+      _packages = Repository.uri.resolve('.packages').toFilePath();
     }
 
     return _packages;
@@ -227,7 +227,6 @@ class Configuration {
     if (useFastStartup) args.add("--fast-startup");
     if (useEnableAsserts) args.add("--enable-asserts");
     if (useDart2JSWithKernel) args.add("--use-kernel");
-    if (useDart2JSWithKernelInSsa) args.add("--use-kernel-in-ssa");
     return args;
   }
 
@@ -342,7 +341,10 @@ class Configuration {
       isValid = false;
     }
 
-    if (runtime.isIE && Platform.operatingSystem != 'windows') {
+    if (runtime.isIE &&
+        Platform.operatingSystem != 'windows' &&
+        !listStatusFiles &&
+        !listTests) {
       print("Warning: cannot run Internet Explorer on non-Windows operating"
           " system.");
       isValid = false;
@@ -385,7 +387,7 @@ class Configuration {
 
     if (isVerbose) {
       future = future.then((_) {
-        print('Started HttpServers: ${servers.httpServerCommandLine()}');
+        print('Started HttpServers: ${servers.commandLine}');
       });
     }
 
@@ -453,10 +455,12 @@ class Configuration {
         'timeout': timeout,
         'preview_dart_2': previewDart2,
         'dart2js_with_kernel': useDart2JSWithKernel,
-        'dart2js_with_kernel_in_ssa': useDart2JSWithKernelInSsa,
         'enable_asserts': useEnableAsserts,
         'hot_reload': hotReload,
         'hot_reload_rollback': hotReloadRollback,
+        'batch': batch,
+        'batch_dart2js': batchDart2JS,
+        'reset_browser_configuration': resetBrowser,
         'selectors': selectors.keys.toList()
       };
     }
@@ -493,7 +497,7 @@ class Architecture {
     simarm64,
     simdbc,
     simdbc64
-  ], key: (Architecture architecture) => architecture.name);
+  ], key: (architecture) => (architecture as Architecture).name);
 
   static Architecture find(String name) {
     var architecture = _all[name];
@@ -515,9 +519,11 @@ class Compiler {
   static const dart2js = const Compiler._('dart2js');
   static const dart2analyzer = const Compiler._('dart2analyzer');
   static const dartdevc = const Compiler._('dartdevc');
+  static const dartdevk = const Compiler._('dartdevk');
   static const appJit = const Compiler._('app_jit');
   static const dartk = const Compiler._('dartk');
   static const dartkp = const Compiler._('dartkp');
+  static const specParser = const Compiler._('spec_parser');
 
   static final List<String> names = _all.keys.toList();
 
@@ -527,10 +533,12 @@ class Compiler {
     dart2js,
     dart2analyzer,
     dartdevc,
+    dartdevk,
     appJit,
     dartk,
-    dartkp
-  ], key: (Compiler compiler) => compiler.name);
+    dartkp,
+    specParser,
+  ], key: (compiler) => (compiler as Compiler).name);
 
   static Compiler find(String name) {
     var compiler = _all[name];
@@ -567,8 +575,8 @@ class Compiler {
           Runtime.safariMobileSim
         ];
 
-      case Compiler.dart2js:
       case Compiler.dartdevc:
+      case Compiler.dartdevk:
         // TODO(rnystrom): Expand to support other JS execution environments
         // (other browsers, d8) when tested and working.
         return const [
@@ -585,6 +593,8 @@ class Compiler {
       case Compiler.precompiler:
       case Compiler.dartkp:
         return const [Runtime.dartPrecompiled];
+      case Compiler.specParser:
+        return const [Runtime.none];
       case Compiler.none:
         return const [
           Runtime.vm,
@@ -592,6 +602,32 @@ class Compiler {
           Runtime.drt,
           Runtime.contentShellOnAndroid
         ];
+    }
+
+    throw "unreachable";
+  }
+
+  /// The preferred runtime to use with this compiler if no other runtime is
+  /// specified.
+  Runtime get defaultRuntime {
+    switch (this) {
+      case Compiler.dart2js:
+        return Runtime.d8;
+      case Compiler.dartdevc:
+      case Compiler.dartdevk:
+        return Runtime.chrome;
+      case Compiler.dart2analyzer:
+        return Runtime.none;
+      case Compiler.appJit:
+      case Compiler.dartk:
+        return Runtime.vm;
+      case Compiler.precompiler:
+      case Compiler.dartkp:
+        return Runtime.dartPrecompiled;
+      case Compiler.specParser:
+        return Runtime.none;
+      case Compiler.none:
+        return Runtime.vm;
     }
 
     throw "unreachable";
@@ -609,7 +645,7 @@ class Mode {
 
   static final _all = new Map<String, Mode>.fromIterable(
       [debug, product, release],
-      key: (Mode mode) => mode.name);
+      key: (mode) => (mode as Mode).name);
 
   static Mode find(String name) {
     var mode = _all[name];
@@ -641,7 +677,7 @@ class Progress {
 
   static final _all = new Map<String, Progress>.fromIterable(
       [compact, color, line, verbose, silent, status, buildbot, diff],
-      key: (Progress progress) => progress.name);
+      key: (progress) => (progress as Progress).name);
 
   static Progress find(String name) {
     var progress = _all[name];
@@ -698,7 +734,7 @@ class Runtime {
     contentShellOnAndroid,
     selfCheck,
     none
-  ], key: (Runtime runtime) => runtime.name);
+  ], key: (runtime) => (runtime as Runtime).name);
 
   static Runtime find(String name) {
     // Allow "ff" as a synonym for Firefox.
@@ -737,6 +773,43 @@ class Runtime {
   /// If the runtime doesn't support `Window.open`, we use iframes instead.
   bool get requiresIFrame => !const [ie11, ie10].contains(this);
 
+  /// The preferred compiler to use with this runtime if no other compiler is
+  /// specified.
+  Compiler get defaultCompiler {
+    switch (this) {
+      case vm:
+      case flutter:
+      case drt:
+        return Compiler.none;
+
+      case dartPrecompiled:
+        return Compiler.precompiler;
+
+      case d8:
+      case jsshell:
+      case firefox:
+      case chrome:
+      case safari:
+      case ie9:
+      case ie10:
+      case ie11:
+      case opera:
+      case chromeOnAndroid:
+      case safariMobileSim:
+      case contentShellOnAndroid:
+        return Compiler.dart2js;
+
+      case selfCheck:
+        return Compiler.dartk;
+
+      case none:
+        // If we aren't running it, we probably just want to analyze it.
+        return Compiler.dart2analyzer;
+    }
+
+    throw "unreachable";
+  }
+
   String toString() => "Runtime($name)";
 }
 
@@ -751,7 +824,7 @@ class System {
 
   static final _all = new Map<String, System>.fromIterable(
       [android, fuchsia, linux, macos, windows],
-      key: (System system) => system.name);
+      key: (system) => (system as System).name);
 
   static System find(String name) {
     var system = _all[name];

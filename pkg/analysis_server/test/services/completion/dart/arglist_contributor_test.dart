@@ -8,7 +8,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../correction/flutter_util.dart';
+import '../../../src/utilities/flutter_util.dart';
 import 'completion_contributor_util.dart';
 
 main() {
@@ -344,6 +344,31 @@ build() => new Row(
         defaultArgumentListTextRanges: null);
   }
 
+  test_ArgumentList_Flutter_InstanceCreationExpression_slivers() async {
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code +
+          '\nclass CustomScrollView extends Widget { CustomScrollView('
+          '\n{List<Widget> slivers}){}}'
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new CustomScrollView(
+    ^
+  );
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('slivers: <Widget>[],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null,
+        selectionOffset: 18,
+        defaultArgumentListTextRanges: null);
+  }
+
   test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
     // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
     // type it's children.
@@ -362,11 +387,11 @@ build() => new Container(
 
     await computeSuggestions();
 
-    assertSuggest('children: [],',
+    assertSuggest('children: ,',
         csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         defaultArgListString: null,
-        selectionOffset: 11,
+        selectionOffset: 10,
         defaultArgumentListTextRanges: null);
   }
 

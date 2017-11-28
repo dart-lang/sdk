@@ -581,8 +581,8 @@ void IsolateReloadContext::Reload(bool force_reload,
         ASSERT(data_len == 1);
         kernel_program.set(reinterpret_cast<kernel::Program*>(data));
         Dart_TypedDataReleaseData(retval);
-        kernel::KernelLoader loader(kernel_program.get());
-        loader.FindModifiedLibraries(I, modified_libs_, force_reload);
+        kernel::KernelLoader::FindModifiedLibraries(
+            kernel_program.get(), I, modified_libs_, force_reload);
       }
     }
     if (result.IsError()) {
@@ -600,6 +600,9 @@ void IsolateReloadContext::Reload(bool force_reload,
   if (!modified_libs_->Contains(old_root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
+    // Inform GetUnusedChangesInLastReload that a reload has happened.
+    I->object_store()->set_changed_in_last_reload(
+        GrowableObjectArray::Handle(GrowableObjectArray::New()));
     ReportOnJSON(js_);
     TIR_Print("---- SKIPPING RELOAD (No libraries were modified)\n");
     return;
@@ -653,9 +656,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   // propagating the UnwindError or an UnhandledException error.
 
   if (isolate()->use_dart_frontend()) {
-    // Load the kernel program.
-    kernel::KernelLoader loader(kernel_program.get());
-    const Object& tmp = loader.LoadProgram();
+    const Object& tmp =
+        kernel::KernelLoader::LoadEntireProgram(kernel_program.get());
     if (!tmp.IsError()) {
       Library& lib = Library::Handle(thread->zone());
       lib ^= tmp.raw();
@@ -1163,6 +1165,79 @@ void IsolateReloadContext::VerifyMaps() {
 }
 #endif
 
+static void RecordChanges(const GrowableObjectArray& changed_in_last_reload,
+                          const Class& old_cls,
+                          const Class& new_cls) {
+  // Don't report synthetic classes like the superclass of
+  // `class MA extends S with M {}` or `class MA = S with M'. The relevant
+  // changes with be reported as changes in M.
+  if (new_cls.IsMixinApplication() || new_cls.is_mixin_app_alias()) {
+    return;
+  }
+
+  // Don't report `typedef bool Predicate(Object o)` as unused. There is nothing
+  // to execute.
+  if (new_cls.IsTypedefClass()) {
+    return;
+  }
+
+  if (new_cls.raw() == old_cls.raw()) {
+    // A new class maps to itself. All its functions, field initizers, and so
+    // on are new.
+    changed_in_last_reload.Add(new_cls);
+    return;
+  }
+
+  ASSERT(new_cls.is_finalized() == old_cls.is_finalized());
+  if (!new_cls.is_finalized()) {
+    if (new_cls.SourceFingerprint() == old_cls.SourceFingerprint()) {
+      return;
+    }
+    // We don't know the members. Register interest in the whole class. Creates
+    // false positives.
+    changed_in_last_reload.Add(new_cls);
+    return;
+  }
+
+  Zone* zone = Thread::Current()->zone();
+  const Array& functions = Array::Handle(zone, new_cls.functions());
+  const Array& fields = Array::Handle(zone, new_cls.fields());
+  Function& new_function = Function::Handle(zone);
+  Function& old_function = Function::Handle(zone);
+  Field& new_field = Field::Handle(zone);
+  Field& old_field = Field::Handle(zone);
+  String& selector = String::Handle(zone);
+  for (intptr_t i = 0; i < functions.Length(); i++) {
+    new_function ^= functions.At(i);
+    selector = new_function.name();
+    old_function = old_cls.LookupFunction(selector);
+    // If we made live changes with proper structed edits, this would just be
+    // old != new.
+    if (old_function.IsNull() || (new_function.SourceFingerprint() !=
+                                  old_function.SourceFingerprint())) {
+      ASSERT(!new_function.HasCode());
+      ASSERT(new_function.usage_counter() == 0);
+      changed_in_last_reload.Add(new_function);
+    }
+  }
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    new_field ^= fields.At(i);
+    if (!new_field.is_static()) continue;
+    selector = new_field.name();
+    old_field = old_cls.LookupField(selector);
+    if (old_field.IsNull() || !old_field.is_static()) {
+      // New field.
+      changed_in_last_reload.Add(new_field);
+    } else if (new_field.SourceFingerprint() != old_field.SourceFingerprint()) {
+      // Changed field.
+      changed_in_last_reload.Add(new_field);
+      if (!old_field.IsUninitialized()) {
+        new_field.set_initializer_changed_after_initialization(true);
+      }
+    }
+  }
+}
+
 void IsolateReloadContext::Commit() {
   TIMELINE_SCOPE(Commit);
   TIR_Print("---- COMMITTING RELOAD\n");
@@ -1182,6 +1257,9 @@ void IsolateReloadContext::Commit() {
 #ifdef DEBUG
   VerifyMaps();
 #endif
+
+  const GrowableObjectArray& changed_in_last_reload =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
 
   {
     TIMELINE_SCOPE(CopyStaticFieldsAndPatchFieldsAndFunctions);
@@ -1208,11 +1286,21 @@ void IsolateReloadContext::Commit() {
           old_cls.PatchFieldsAndFunctions();
           old_cls.MigrateImplicitStaticClosures(this, new_cls);
         }
+        RecordChanges(changed_in_last_reload, old_cls, new_cls);
       }
     }
 
     class_map.Release();
   }
+
+  if (FLAG_identity_reload) {
+    Object& changed = Object::Handle();
+    for (intptr_t i = 0; i < changed_in_last_reload.Length(); i++) {
+      changed = changed_in_last_reload.At(i);
+      ASSERT(changed.IsClass());  // Only fuzzy from lazy finalization.
+    }
+  }
+  I->object_store()->set_changed_in_last_reload(changed_in_last_reload);
 
   // Copy over certain properties of libraries, e.g. is the library
   // debuggable?
@@ -1301,17 +1389,14 @@ void IsolateReloadContext::Commit() {
 
   // Rehash constants map for all classes. Constants are hashed by address, and
   // addresses may change during a become operation.
-  RehashConstants();
+  {
+    TIMELINE_SCOPE(RehashConstants);
+    I->RehashConstants();
+  }
 
 #ifdef DEBUG
-  // Verify that all canonical instances are correctly setup in the
-  // corresponding canonical tables.
-  Thread* thread = Thread::Current();
-  I->heap()->CollectAllGarbage();
-  HeapIterationScope iteration(thread);
-  VerifyCanonicalVisitor check_canonical(thread);
-  iteration.IterateObjects(&check_canonical);
-#endif  // DEBUG
+  I->ValidateConstants();
+#endif
 
   if (FLAG_identity_reload) {
     if (saved_num_cids_ != I->class_table()->NumCids()) {
@@ -1330,30 +1415,6 @@ void IsolateReloadContext::Commit() {
 
   // Run the initializers for new instance fields.
   RunNewFieldInitializers();
-}
-
-void IsolateReloadContext::RehashConstants() {
-  TIMELINE_SCOPE(RehashConstants);
-  ClassTable* class_table = I->class_table();
-  Class& cls = Class::Handle(zone_);
-  const intptr_t top = class_table->NumCids();
-  for (intptr_t cid = kInstanceCid; cid < top; cid++) {
-    if (cid == kTypeArgumentsCid) {
-      continue;
-    }
-    if (!class_table->IsValidIndex(cid) || !class_table->HasValidClassAt(cid)) {
-      // Skip invalid classes.
-      continue;
-    }
-    if (RawObject::IsNumberClassId(cid) || RawObject::IsStringClassId(cid)) {
-      // Skip classes that cannot be affected by the 'become' operation.
-      continue;
-    }
-    // Rehash constants.
-    cls = class_table->At(cid);
-    VTIR_Print("Rehashing constants in class `%s`\n", cls.ToCString());
-    cls.RehashConstants(zone_);
-  }
 }
 
 bool IsolateReloadContext::IsDirty(const Library& lib) {
@@ -1662,7 +1723,7 @@ class MarkFunctionsForRecompilation : public ObjectVisitor {
     // Null out the ICData array and code.
     func.ClearICDataArray();
     func.ClearCode();
-    func.set_was_compiled(false);
+    func.SetWasCompiled(false);
   }
 
   void PreserveUnoptimizedCode() {

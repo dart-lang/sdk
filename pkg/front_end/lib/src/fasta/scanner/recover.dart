@@ -244,3 +244,16 @@ String closeBraceFor(String openBrace) {
     r'${': '}',
   }[openBrace];
 }
+
+String closeQuoteFor(String openQuote) {
+  return const {
+    '"': '"',
+    "'": "'",
+    '"""': '"""',
+    "'''": "'''",
+    'r"': '"',
+    "r'": "'",
+    'r"""': '"""',
+    "r'''": "'''",
+  }[openQuote];
+}

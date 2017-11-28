@@ -9,7 +9,11 @@ import '../elements/elements.dart' show Elements;
 import '../elements/entities.dart'
     show Entity, ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
 import '../elements/resolution_types.dart'
-    show GenericType, ResolutionDartType, ResolutionTypeKind;
+    show
+        GenericType,
+        ResolutionDartType,
+        ResolutionFunctionType,
+        ResolutionTypeKind;
 import '../elements/types.dart';
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import 'sorter.dart' show Sorter;
@@ -39,14 +43,14 @@ class _ConstantOrdering
     return a.accept(this, b);
   }
 
-  static int compareNullable(int compare(a, b), a, b) {
+  static int compareNullable<T>(int compare(T a, T b), T a, T b) {
     if (a == null && b == null) return 0;
     if (a == null) return -1;
     if (b == null) return 1;
     return compare(a, b);
   }
 
-  static int compareLists(int compare(a, b), List a, List b) {
+  static int compareLists<S, T>(int compare(S a, T b), List<S> a, List<T> b) {
     int r = a.length.compareTo(b.length);
     if (r != 0) return r;
     for (int i = 0; i < a.length; i++) {
@@ -95,6 +99,22 @@ class _ConstantOrdering
           bGeneric.typeArguments);
       if (r != 0) return r;
     }
+    if (a is ResolutionFunctionType && b is ResolutionFunctionType) {
+      int r = compareLists(
+          _compareResolutionDartTypes, a.parameterTypes, b.parameterTypes);
+      if (r != 0) return r;
+      r = compareLists(_compareResolutionDartTypes, a.optionalParameterTypes,
+          b.optionalParameterTypes);
+      if (r != 0) return r;
+      r = _ConstantOrdering.compareLists((String a, String b) => a.compareTo(b),
+          a.namedParameters, b.namedParameters);
+      if (r != 0) return r;
+      r = compareLists(_compareResolutionDartTypes, a.namedParameterTypes,
+          b.namedParameterTypes);
+      if (r != 0) return r;
+      return _compareResolutionDartTypes(a.returnType, b.returnType);
+    }
+
     throw 'unexpected compareDartTypes  $a  $b';
   }
 
@@ -210,9 +230,8 @@ class _ConstantOrdering
   int visitDeferred(DeferredConstantValue a, DeferredConstantValue b) {
     int r = compareValues(a.referenced, b.referenced);
     if (r != 0) return r;
-    // TODO(sra): Implement deferred imports for Kernel.
     // TODO(sra): What kind of Entity is `prefix`?
-    return compareElements(a.prefix, b.prefix);
+    return compareElements(a.import, b.import);
   }
 }
 
@@ -314,9 +333,20 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
         "Type variables are not expected in constants: '$type' in '$_root'");
   }
 
-  int visitFunctionType(covariant FunctionType type, DartType _other) {
-    throw new UnimplementedError(
-        "Unimplemented FuntionType '$type' in '$_root'");
+  int visitFunctionType(
+      covariant FunctionType type, covariant FunctionType other) {
+    int r = _compareTypeArguments(type.parameterTypes, other.parameterTypes);
+    if (r != 0) return r;
+    r = _compareTypeArguments(
+        type.optionalParameterTypes, other.optionalParameterTypes);
+    if (r != 0) return r;
+    r = _ConstantOrdering.compareLists((String a, String b) => a.compareTo(b),
+        type.namedParameters, other.namedParameters);
+    if (r != 0) return r;
+    r = _compareTypeArguments(
+        type.namedParameterTypes, other.namedParameterTypes);
+    if (r != 0) return r;
+    return compare(type.returnType, other.returnType);
   }
 
   int visitInterfaceType(

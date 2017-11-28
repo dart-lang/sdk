@@ -620,6 +620,7 @@ bool _allListsIdentical(List<List> lists, int position) {
  */
 class CancelCorrectionException {
   final Object exception;
+
   CancelCorrectionException({this.exception});
 }
 
@@ -957,8 +958,18 @@ class CorrectionUtils {
     if (!_isTypeVisible(type)) {
       return 'dynamic';
     }
+
+    Element element = type.element;
+
+    // Typedef(s) are represented as GenericFunctionTypeElement(s).
+    if (element is GenericFunctionTypeElement &&
+        element.typeParameters.isEmpty &&
+        element.enclosingElement is GenericTypeAliasElement) {
+      element = element.enclosingElement;
+    }
+
     // just a Function, not FunctionTypeAliasElement
-    if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
+    if (type is FunctionType && element is! FunctionTypeAliasElement) {
       if (parametersBuffer == null) {
         return "Function";
       }
@@ -980,7 +991,6 @@ class CorrectionUtils {
       return 'dynamic';
     }
     // prepare element
-    Element element = type.element;
     if (element == null) {
       String source = type.toString();
       source = source.replaceAll('<dynamic>', '');
@@ -1043,7 +1053,7 @@ class CorrectionUtils {
   /**
    * Indents given source left or right.
    */
-  String indentSourceLeftRight(String source, bool right) {
+  String indentSourceLeftRight(String source, {bool indentLeft: true}) {
     StringBuffer sb = new StringBuffer();
     String indent = getIndent(1);
     String eol = endOfLine;
@@ -1055,10 +1065,10 @@ class CorrectionUtils {
         break;
       }
       // update line
-      if (right) {
-        line = "$indent$line";
-      } else {
+      if (indentLeft) {
         line = removeStart(line, indent);
+      } else {
+        line = "$indent$line";
       }
       // append line
       sb.write(line);

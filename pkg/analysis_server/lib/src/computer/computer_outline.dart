@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
@@ -416,6 +417,24 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (flutter.isWidgetCreation(node)) {
+      List<Outline> children = <Outline>[];
+      node.argumentList
+          .accept(new _FunctionBodyOutlinesVisitor(outlineComputer, children));
+
+      String text = flutter.getWidgetPresentationText(node);
+      Element element = new Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
+          location: outlineComputer._getLocationOffsetLength(node.offset, 0));
+
+      contents.add(new Outline(element, node.offset, node.length,
+          children: nullIfEmpty(children)));
+    } else {
+      super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier nameNode = node.methodName;
     engine.ExecutableElement executableElement = nameNode.bestElement;
@@ -434,10 +453,12 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
       return 'unnamed';
     }
 
-    void addOutline(String kind, [List<Outline> children]) {
+    void addOutlineNode(ElementKind kind, [List<Outline> children]) {
       SourceRange range = outlineComputer._getSourceRange(node);
-      String name = kind + ' ' + extractString(node.argumentList?.arguments);
-      Element element = new Element(ElementKind.UNKNOWN, name, 0,
+      String kindName = kind == ElementKind.UNIT_TEST_GROUP ? 'group' : 'test';
+      String name = '$kindName("${extractString(
+          node.argumentList?.arguments)}")';
+      Element element = new Element(kind, name, 0,
           location: outlineComputer._getLocationNode(nameNode));
       contents.add(new Outline(element, range.offset, range.length,
           children: nullIfEmpty(children)));
@@ -447,9 +468,9 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
       List<Outline> groupContents = <Outline>[];
       node.argumentList.accept(
           new _FunctionBodyOutlinesVisitor(outlineComputer, groupContents));
-      addOutline('group', groupContents);
+      addOutlineNode(ElementKind.UNIT_TEST_GROUP, groupContents);
     } else if (isTest(executableElement)) {
-      addOutline('test');
+      addOutlineNode(ElementKind.UNIT_TEST_TEST);
     } else {
       super.visitMethodInvocation(node);
     }

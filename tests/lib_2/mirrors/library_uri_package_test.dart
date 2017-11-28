@@ -7,8 +7,9 @@
 library MirrorsTest;
 
 import 'dart:mirrors';
+
 import 'package:args/args.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 testLibraryUri(var value, Uri expectedUri) {
   var valueMirror = reflect(value);

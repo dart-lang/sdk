@@ -7,6 +7,10 @@ class B<T extends core::Object> extends core::Object {
     ;
   method f(self::B::T x) → void
     ;
+  method g({self::B::T x}) → void
+    ;
+  method h<U extends self::B::T>() → void
+    ;
 }
 class C extends self::B<core::int> {
   default constructor •() → void

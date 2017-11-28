@@ -184,14 +184,14 @@ testInvocationMirrors() {
   // Closurizing a method means that calling it badly will not hit the
   // original receivers noSuchMethod, only the one inherited from Object
   // by the closure object.
-  Expect.throws(() {
+  Expect.throwsNoSuchMethodError(() {
     var x = n.flif;
     x(37, 42);
-  }, (e) => e is NoSuchMethodError);
-  Expect.throws(() {
+  });
+  Expect.throwsNoSuchMethodError(() {
     var x = c.call;
     x(37, 42);
-  }, (e) => e is NoSuchMethodError);
+  });
 }
 
 class M extends N {
@@ -284,35 +284,31 @@ class M extends N {
     // Closurizing a method means that calling it badly will not hit the
     // original receivers noSuchMethod, only the one inherited from Object
     // by the closure object.
-    Expect.throws(() {
+    Expect.throwsNoSuchMethodError(() {
       var x = self.flif;
       x(37, 42);
-    }, (e) => e is NoSuchMethodError);
+    });
   }
 }
 
 // Test the NoSuchMethodError thrown by different incorrect calls.
 testNoSuchMethodErrors() {
-  test(block()) {
-    Expect.throws(block, (e) => e is NoSuchMethodError);
-  }
-
   dynamic n = new N();
   dynamic o = new Object();
-  test(() => o.bar);
-  test(() => o.bar = 42);
-  test(() => o.bar());
-  test(() => o + 2);
-  test(() => -o);
-  test(() => o[0]);
-  test(() => o[0] = 42);
-  test(() => o());
-  test(() => o.toString = 42);
-  test(() => o.toString(42));
-  test(() => o.toString(x: 37));
-  test(() => o.hashCode = 42);
-  test(() => o.hashCode()); // Thrown by int.noSuchMethod.
-  test(() => (n.flif)()); // Extracted method has no noSuchMethod.
+  Expect.throwsNoSuchMethodError(() => o.bar);
+  Expect.throwsNoSuchMethodError(() => o.bar = 42);
+  Expect.throwsNoSuchMethodError(() => o.bar());
+  Expect.throwsNoSuchMethodError(() => o + 2);
+  Expect.throwsNoSuchMethodError(() => -o);
+  Expect.throwsNoSuchMethodError(() => o[0]);
+  Expect.throwsNoSuchMethodError(() => o[0] = 42);
+  Expect.throwsNoSuchMethodError(() => o());
+  Expect.throwsNoSuchMethodError(() => o.toString = 42);
+  Expect.throwsNoSuchMethodError(() => o.toString(42));
+  Expect.throwsNoSuchMethodError(() => o.toString(x: 37));
+  Expect.throwsNoSuchMethodError(() => o.hashCode = 42);
+  Expect.throwsNoSuchMethodError(() => o.hashCode()); // Thrown by int.noSuchMethod.
+  Expect.throwsNoSuchMethodError(() => (n.flif)()); // Extracted method has no noSuchMethod.
 }
 
 main() {

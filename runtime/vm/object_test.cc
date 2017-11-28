@@ -10,6 +10,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/debugger_api_impl_test.h"
 #include "vm/isolate.h"
 #include "vm/malloc_hooks.h"
 #include "vm/object.h"
@@ -273,7 +274,8 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   const String& field_name = String::Handle(Symbols::New(thread, "the_field"));
   const Field& field = Field::Handle(
       Field::New(field_name, false, false, false, true, one_field_class,
-                 Object::dynamic_type(), TokenPosition::kMinSource));
+                 Object::dynamic_type(), TokenPosition::kMinSource,
+                 TokenPosition::kMinSource));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2933,9 +2935,9 @@ static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name =
       String::Handle(Symbols::New(Thread::Current(), name));
-  const Field& field = Field::Handle(
-      Field::New(field_name, true, false, false, true, cls,
-                 Object::dynamic_type(), TokenPosition::kMinSource));
+  const Field& field = Field::Handle(Field::New(
+      field_name, true, false, false, true, cls, Object::dynamic_type(),
+      TokenPosition::kMinSource, TokenPosition::kMinSource));
   return field.raw();
 }
 
@@ -2987,7 +2989,7 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
       ArgumentsDescriptor::New(kTypeArgsLen, kNumArgs, Object::null_array()));
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested,
-                   false);
+                   ICData::kInstance);
   EXPECT_EQ(1, o1.NumArgsTested());
   EXPECT_EQ(id, o1.deopt_id());
   EXPECT_EQ(function.raw(), o1.Owner());
@@ -3026,7 +3028,8 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
   EXPECT_EQ(2, o1.NumberOfUsedChecks());
 
   ICData& o2 = ICData::Handle();
-  o2 = ICData::New(function, target_name, args_descriptor, 57, 2, false);
+  o2 = ICData::New(function, target_name, args_descriptor, 57, 2,
+                   ICData::kInstance);
   EXPECT_EQ(2, o2.NumArgsTested());
   EXPECT_EQ(57, o2.deopt_id());
   EXPECT_EQ(function.raw(), o2.Owner());
@@ -3044,8 +3047,9 @@ ISOLATE_UNIT_TEST_CASE(ICData) {
 
   // Check ICData for unoptimized static calls.
   const intptr_t kNumArgsChecked = 0;
-  const ICData& scall_icdata = ICData::Handle(ICData::New(
-      function, target_name, args_descriptor, 57, kNumArgsChecked, false));
+  const ICData& scall_icdata =
+      ICData::Handle(ICData::New(function, target_name, args_descriptor, 57,
+                                 kNumArgsChecked, ICData::kInstance));
   scall_icdata.AddTarget(target1);
   EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }

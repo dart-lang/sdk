@@ -16,13 +16,13 @@ bool FieldHasFunctionLiteralInitializer(const Field& field,
   Zone* zone = Thread::Current()->zone();
   const Script& script = Script::Handle(zone, field.Script());
 
-  TranslationHelper translation_helper(
-      Thread::Current(), script.kernel_string_offsets(),
-      script.kernel_string_data(), script.kernel_canonical_names());
+  TranslationHelper translation_helper(Thread::Current());
+  translation_helper.InitFromScript(script);
 
-  StreamingFlowGraphBuilder builder(
-      &translation_helper, zone, field.kernel_offset(),
-      TypedData::Handle(zone, field.kernel_data()));
+  StreamingFlowGraphBuilder builder(&translation_helper, field.Script(), zone,
+                                    TypedData::Handle(zone, field.KernelData()),
+                                    field.KernelDataProgramOffset());
+  builder.SetOffset(field.kernel_offset());
   kernel::FieldHelper field_helper(&builder);
   field_helper.ReadUntilExcluding(kernel::FieldHelper::kEnd, true);
   return field_helper.FieldHasFunctionLiteralInitializer(start, end);

@@ -43,8 +43,6 @@ class Test extends Base {
         /*@typeArgs=dynamic*/ f()] = /*@typeArgs=B*/ f();
     var /*@type=B*/ v2 = super /*@target=Base::[]=*/ [
         /*@typeArgs=dynamic*/ f()] ??= /*@typeArgs=B*/ f();
-    var /*@type=A*/ v3 = super /*@target=Base::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] += /*@typeArgs=dynamic*/ f();
     var /*@type=B*/ v4 = super /*@target=Base::[]=*/ [
         /*@typeArgs=dynamic*/ f()] *= /*@typeArgs=dynamic*/ f();
     var /*@type=C*/ v5 = super /*@target=Base::[]=*/ [

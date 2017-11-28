@@ -13,10 +13,12 @@
 namespace dart {
 namespace bin {
 
+class NamespaceImpl;
+
 class Namespace : public ReferenceCounted<Namespace> {
  public:
   // Assumes namespc is a value that can be directly used as namespc_.
-  static Namespace* Create(intptr_t namespc) { return new Namespace(namespc); }
+  static Namespace* Create(intptr_t namespc);
 
   // Uses path to compute a value that can be used as namespc_.
   static Namespace* Create(const char* path);
@@ -36,14 +38,14 @@ class Namespace : public ReferenceCounted<Namespace> {
   static const char* GetCurrent(Namespace* namespc);
   static bool SetCurrent(Namespace* namespc, const char* path);
 
-  intptr_t namespc() const { return namespc_; }
+  NamespaceImpl* namespc() const { return namespc_; }
 
  private:
   // When namespc_ has this value, it indicates that there is currently
   // no namespace for resolving absolute paths.
   static const intptr_t kNone = 0;
 
-  explicit Namespace(intptr_t namespc)
+  explicit Namespace(NamespaceImpl* namespc)
       : ReferenceCounted(), namespc_(namespc) {}
 
   ~Namespace();
@@ -57,14 +59,13 @@ class Namespace : public ReferenceCounted<Namespace> {
   // Given a namespace and a path, computes the information needed to access the
   // path relative to the namespace. This can include massaging the path and
   // returning a platform specific value in dirfd that together are used to
-  // access the path. Returns true if the caller should take ownership of
-  // dirfd, and false if the namespace retains ownership of dirfd.
-  static bool ResolvePath(Namespace* namespc,
+  // access the path.
+  static void ResolvePath(Namespace* namespc,
                           const char* path,
                           intptr_t* dirfd,
                           const char** resolved_path);
 
-  intptr_t namespc_;
+  NamespaceImpl* namespc_;
   // TODO(zra): When Isolate-specific cwds are added, we'll need some more
   // fields here to track them.
 
@@ -84,7 +85,6 @@ class NamespaceScope {
  private:
   intptr_t fd_;
   const char* path_;
-  bool owns_fd_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(NamespaceScope);

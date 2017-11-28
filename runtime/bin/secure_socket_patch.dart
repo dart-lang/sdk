@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class SecureSocket {
   @patch
@@ -22,14 +24,9 @@ class X509Certificate {
 }
 
 class _SecureSocket extends _Socket implements SecureSocket {
-  _SecureSocket(RawSecureSocket raw) : super(raw);
+  _RawSecureSocket get _raw => super._raw as _RawSecureSocket;
 
-  void set onBadCertificate(bool callback(X509Certificate certificate)) {
-    if (_raw == null) {
-      throw new StateError("onBadCertificate called on destroyed SecureSocket");
-    }
-    _raw.onBadCertificate = callback;
-  }
+  _SecureSocket(RawSecureSocket raw) : super(raw);
 
   void renegotiate(
       {bool useSessionCache: true,
@@ -121,8 +118,8 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
 @patch
 class SecurityContext {
   @patch
-  factory SecurityContext() {
-    return new _SecurityContext();
+  factory SecurityContext({bool withTrustedRoots: false}) {
+    return new _SecurityContext(withTrustedRoots);
   }
 
   @patch
@@ -136,14 +133,16 @@ class SecurityContext {
 
 class _SecurityContext extends NativeFieldWrapperClass1
     implements SecurityContext {
-  _SecurityContext() {
+  _SecurityContext(bool withTrustedRoots) {
     _createNativeContext();
+    if (withTrustedRoots) {
+      _trustBuiltinRoots();
+    }
   }
 
   void _createNativeContext() native "SecurityContext_Allocate";
 
-  static final SecurityContext defaultContext = new _SecurityContext()
-    .._trustBuiltinRoots();
+  static final SecurityContext defaultContext = new _SecurityContext(true);
 
   void usePrivateKey(String file, {String password}) {
     List<int> bytes = (new File(file)).readAsBytesSync();

@@ -1,48 +1,55 @@
 # Informal Specification: Parameters that are Covariant due to Class Type Parameters
 
-Owner: eernstg@.
+**Owner**: eernst@
+
+**Status**: Implemented.
+
+**Version**: 0.4 (2017-11-24)
+
 
 ## Summary
 
-This document is an informal specification which specifies how to determine the
-reified type of a tear-off where one or more parameters has a type annotation in
-which a formal type parameter of the enclosing class occurs in a covariant
-position. This feature has no effect in Dart 1, it only affects strong mode and
-the upcoming Dart 2.
+This document is an informal specification which specifies how to determine
+the reified type of a tear-off where one or more parameters has a type
+annotation in which a formal type parameter of the enclosing class occurs
+in a covariant position. This feature has no effect in Dart 1, it only
+affects strong mode and the upcoming Dart 2.
+
 
 ## Motivation
 
-The main topic here is variance, so we will briefly introduce that
-concept.
+The main topic here is variance, so we will briefly introduce that concept.
 
-Consider the situation where a type is specified as an expression that contains
-another type as a subexpression. For instance, `List<int>` contains `int` as a
-subexpression. We may then consider `List<...>` as a function, and `int` as an
-argument which is passed to that function. With that, covariance is the property
-that this function is increasing, and contravariance is the property that it is
-decreasing, using the subtype relation for comparisons.
+Consider the situation where a type is specified as an expression that
+contains another type as a subexpression. For instance, `List<int>`
+contains `int` as a subexpression. We may then consider `List<...>` as a
+function, and `int` as an argument which is passed to that function. With
+that, covariance is the property that this function is increasing, and
+contravariance is the property that it is decreasing, using the subtype
+relation for comparisons.
 
 Generic classes in Dart are covariant in all their arguments. For example
 `List<E>` is covariant in `E`. This then means that `List<...>` is an
-increasing function, i.e., whenever `S` is a subtype of `T`, `List<S>` will be a
-subtype of `List<T>`.
+increasing function, i.e., whenever `S` is a subtype of `T`, `List<S>`
+is a subtype of `List<T>`.
 
 The subtype rule for function types in Dart 1 is different from the one in
-strong mode and in the upcoming Dart 2. This difference is the main fact that
-motivates the feature described in this document.
+strong mode and in the upcoming Dart 2. This difference is the main fact
+that motivates the feature described in this document.
 
 Concretely, the subtype rule for function types allows for covariant return
-types in all cases. For instance, assuming that two functions `f` and `g` have
-identical parameter types, the type of `f` will always be a subtype of the type
-of `g` if `f` returns `int` and `g` returns `num`.
+types in all cases. For instance, assuming that two functions `f` and `g`
+have identical parameter types, the type of `f` will always be a subtype of
+the type of `g` if `f` returns `int` and `g` returns `num`.
 
-This is not true for parameter types. In Dart 1, the function type subtype rule
-allows for covariant parameter types as well as contravariant ones, but strong
-mode and the upcoming Dart 2 require contravariance for parameter types. For
-instance, we have the following cases (using `void` for the return type, because
-the return type is uninteresting, it should just be the same everywhere):
+This is not true for parameter types. In Dart 1, the function type subtype
+rule allows for covariant parameter types as well as contravariant ones,
+but strong mode and the upcoming Dart 2 require contravariance for
+parameter types. For instance, we have the following cases (using `void`
+for the return type, because the return type is uninteresting, it should
+just be the same everywhere):
 
-```dart 
+```dart
 typedef void F(num n);
 
 void f1(Object o) {}
@@ -57,45 +64,48 @@ main() {
 }
 ```
 
-In all cases, the variance is concerned with the relationship between the type
-of the parameter for `myF` and the type of the parameter for the function which
-is assigned to `myF`. Since Dart 1 subtyping makes both `f1` and `f3` subtypes
-of the type of `myF`, all assignments succeed at run time (and static analysis
-proceeds without warnings). In strong mode and Dart 2, `f3` does not have a
-subtype of the type of `myF`, so this is considered as a downcast at compile
-time, and it fails at runtime.
+In all cases, the variance is concerned with the relationship between the
+type of the parameter for `myF` and the type of the parameter for the
+function which is assigned to `myF`. Since Dart 1 subtyping makes both `f1`
+and `f3` subtypes of the type of `myF`, all assignments succeed at run time
+(and static analysis proceeds without warnings). In strong mode and Dart 2,
+`f3` does not have a subtype of the type of `myF`, so this is considered as
+a downcast at compile time, and it fails at runtime.
 
-Contravariance is the sound rule that most languages use, so this means that
-function calls in strong mode and in Dart 2 are subject to more tight type
-checking, and some run-time errors cannot occur.
+Contravariance is the sound rule that most languages use, so this means
+that function calls in strong mode and in Dart 2 are subject to more tight
+type checking, and some run-time errors cannot occur.
 
-However, covariant parameter types can be quite natural and convenient, they
-just impose an obligation on developers to use ad-hoc reasoning in order to
-avoid the potential type errors at run time. The
+However, covariant parameter types can be quite natural and convenient,
+they just impose an obligation on developers to use ad-hoc reasoning in
+order to avoid the potential type errors at run time. The
 [covariant overrides](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/covariant-overrides.md)
-feature was added exactly for this purpose: When developers want to use unsound
-covariance, they can get it by requesting it explicitly. In the (vast majority
-of) cases where the sound and more strict contravariant rule fits the intended
-design, there will be no such request, and parameter type covariance (which
-would then presumably only arise by mistake) will be flagged as a type error.
+feature was added exactly for this purpose: When developers want to use
+unsound covariance, they can get it by requesting it explicitly. In the
+(vast majority of) cases where the sound and more strict contravariant rule
+fits the intended design, there will be no such request, and parameter type
+covariance (which would then presumably only arise by mistake) will be
+flagged as a type error.
 
-In order to preserve a fundamental soundness property of Dart, the reified type
-of tear-offs of methods has parameter type `Object` for every parameter whose
-type is covariant. The desired property is that every expression with static
-type `T` must evaluate to a value whose dynamic type `S` which is a subtype of
-`T`. Here is an example why it would not work to reify the declared parameter
-type directly:
+In order to preserve a fundamental soundness property of Dart, the reified
+type of tear-offs of methods has parameter type `Object` for every
+parameter whose type is covariant. The desired property is that every
+expression with static type `T` must evaluate to a value whose dynamic type
+`S` which is a subtype of `T`. Here is an example why it would not work to
+reify the declared parameter type directly:
 
 ```dart
+// Going by the OLD RULES, showing why we need to introduce new ones.
+
 typedef void F(num n);
 
 class A {
-  // Assume the reified parameter type is `num`, directly as declared.
+  // The reified parameter type is `num`, directly as declared.
   void f(covariant num n) {}
 }
 
 class B extends A {
-  // Assume the reified parameter type is `int`, directly as declared.
+  // The reified parameter type is `int`, directly as declared.
   void f(int i) {}
 }
 
@@ -109,19 +119,19 @@ The problem is that `a.f` has static type `(num) -> void`, and if the
 reified type at run time is `(int) -> void` then `a.f` is an expression
 whose value at run time does _not_ conform to the statically known type.
 
-Even worse, there is no statically known type annotation that we can use in the
-declaration of `myF` which will make it safe&mdash;the value of `a` could be an
-instance of some other class `C` where the parameter type is `double`, and in
-general we cannot statically specify a function type where the parameter type is
-a subtype of the actual parameter type at runtime (as required for the
-initialization to succeed).
+Even worse, there is no statically known type annotation that we can use in
+the declaration of `myF` which will make it safe&mdash;the value of `a`
+could be an instance of some other class `C` where the parameter type is
+`double`, and in general we cannot statically specify a function type where
+the parameter type is a subtype of the actual parameter type at runtime (as
+required for the initialization to succeed).
 
-_We could use the bottom type as the argument type, `(Null) -> void`, but that
-makes all invocations unsafe (except `myF(null)`). We believe that it is more
-useful to preserve the information that "it must be some kind of number", even
-though not all kinds of numbers will work. With `Null`, we just communicate that
-all invocations are unsafe, with no hints at all about which ones would be less
-unsafe than others._
+*We could use the bottom type as the argument type, `(Null) -> void`, but
+that makes all invocations unsafe (except `myF(null)`). We believe that it
+is more useful to preserve the information that "it must be some kind of
+number", even though not all kinds of numbers will work. With `Null`, we
+just communicate that all invocations are unsafe, with no hints at all
+about which ones would be less unsafe than others.*
 
 We do not want any such expressions where the value is not a subtype of the
 statically known type, and hence the reified type of `a.f` is `(Object) ->
@@ -147,20 +157,24 @@ main() {
 }
 ```
 
-_Note that an invocation of `myF` can be statically safe and yet fail at runtime,
-e.g., `myF(3.1)`, but this is exactly the same situation as with the torn-off
-method: `a.f(3.1)` is also considered statically safe, and yet it will fail at
-runtime._
+*Note that an invocation of `myF` can be statically safe and yet fail at
+runtime, e.g., `myF(3.1)`, but this is exactly the same situation as with
+the torn-off method: `a.f(3.1)` is also considered statically safe, and yet
+it will fail at runtime.*
 
-The purpose of this document is to cover one extra type of situation where the
-same typing situation arises.
+The purpose of this document is to cover one extra type of situation where
+the same typing situation arises.
 
-Parameters can have a covariant type because they are or contain a formal type
-parameter of an enclosing generic class. Here is an example using the core class
-`List` (which underscores that it is a common phenomenon, but any generic class
-would do):
+Parameters can have a covariant type because they are or contain a formal
+type parameter of an enclosing generic class. Here is an example using the
+core class `List` (which underscores that it is a common phenomenon, but
+any generic class would do). It illustrates why we need to change the
+reified type of tear-offs also with parameters that are covariant due to
+class covariance:
 
 ```dart
+// Going by the OLD RULES, showing why we need to introduce new ones.
+
 // Here is the small part of the core List class that we need here.
 abstract class List<E> ... {
   // The reified type is `(E) -> void` in all modes, as declared.
@@ -177,7 +191,7 @@ main() {
   List<num> xs = <int>[1, 2];
   F myF = xs.add;    // Statically safe, yet fails at run time
                      // in strong mode and Dart 2.
-  G myG = xs.addAll; // Same as above.
+  G myG = xs.addAll; // Same situation as with myF.
 }
 ```
 
@@ -186,92 +200,171 @@ following two cases:
 
 - A covariant parameter type is induced by an overriding method declaration
   (example: `int i` in `B.f`).
-- A Covariant parameter type is induced by the use of a formal type parameter of
-  the enclosing generic class in a covariant position in the parameter type
-  declaration (example: `E value` and `Iterable<E> iterable` in `List.add`
-  resp. `List.addAll`).
+- A covariant parameter type is induced by the use of a formal type
+  parameter of the enclosing generic class in a covariant position in the
+  parameter type declaration (example: `E value` and `Iterable<E> iterable`
+  in `List.add` resp. `List.addAll`).
 
-This document specifies how to preserve the above mentioned expression soundness
-property of Dart, based on a modified rule for how to reify parameter types of
-tear-offs.
+This document specifies how to preserve the above mentioned expression
+soundness property of Dart, based on a modified rule for how to reify
+parameter types of tear-offs. Here is how it works with the new rules
+specified in this document:
+
+```dart
+abstract class List<E> ... {
+  // The reified type is `(Object) -> void` in all modes.
+  void add(E value);
+  // The reified type is `(Object) -> void` in all modes.
+  void addAll(Iterable<E> iterable);
+  ...
+}
+
+typedef void F(num n);
+typedef void G(Iterable<num> n);
+
+main() {
+  List<num> xs = <int>[1, 2];
+  F myF = xs.add;    // Statically safe, and succeeds at run time.
+  G myG = xs.addAll; // Same situation as with myF.
+}
+```
+
 
 ## Informal specification
 
+
 ### Syntax
 
-This feature does not give rise to any changes to the grammar of the language.
+The grammar remains unchanged.
+
 
 ### Standard mode
 
 This feature does not give rise to any changes to the static analysis nor the
-dynamic semantics of standard mode.
+dynamic semantics of standard mode, also known as Dart 1.x.
+
 
 ### Strong mode
 
-In strong mode, this feature causes changes to the reified type of a function
-obtained by a closurizing property extraction in some cases, as specified
-below.
+In strong mode and Dart 2, this feature causes changes to the reified type
+of a function obtained by a closurizing property extraction in some cases,
+as specified below.
+
 
 #### Static types
 
 The static type of a property extraction remains unchanged.
 
-_The static type of a torn-off method is taken directly from the statically
-known declaration of that method, substituting actual type arguments for formal
-type parameters as usual. For instance, the static type of `xs.addAll` is
-`(Iterable<num>) -> void` when the static type of `xs` is `List<num>`._
+*The static type of a torn-off method is taken directly from the statically
+known declaration of that method, substituting actual type arguments for
+formal type parameters as usual. For instance, the static type of
+`xs.addAll` is `(Iterable<num>) -> void` when the static type of `xs` is
+`List<num>`.*
+
 
 #### Reified types
 
-We need to introduce a new kind of covariant parameters, in addition to the
+*We need to introduce a new kind of covariant parameters, in addition to the
 notion of covariant parameters which is introduced in the informal
 specification of
 [covariant overrides](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/covariant-overrides.md).
+To do that, we also need to define the variance of each occurrence of a type
+variable in a type, which determines how variations of the value of that
+type variable affect the overall type in a specific direction. There are
+three kinds: covariant, contravariant, and invariant occurrences.*
 
-Consider a class _T_ which is generic or has a generic supertype (directly or
-indirectly). Let _S_ be said generic class. Assume that there is a declaration
-of a method, setter, or operator `m` in _S_, that `X` is a formal type parameter
-declared by _S_, and that said declaration of `m` has a formal parameter `x`
-whose type contains `X` in a covariant position. In this situation we say that
-the parameter `x` is **covariant due to class covariance**.
+We say that a type variable _X_ _occurs covariantly_ in a type _T_ if:
 
-_The type of `x` is in a covariant position when the type is `X` itself, e.g.,
-when the parameter is declared as `X x`. It is also in a covariant position when
-it is declared like `List<X> x`, because generic classes are covariant in all
-their type arguments. An example where `X` does not occur in a covariant
-position is when `x` is a function typed parameter like `int x(X arg)`._
+-   _T_ is _X_.
+-   _T_ is a parameterized type _G<S<sub>0</sub> ..., S<sub>n</sub>>_, and
+    there is a _j_ such that _X_ occurs covariantly in _S<sub>j</sub>_.
+-   _T_ is a function type and _X_ occurs covariantly in the return type of
+    _T_, or _X_ occurs contravariantly in a parameter type of _T_.
+
+We say that a type variable _X_ _occurs contravariantly_ in a type _T_ if:
+
+-   _T_ is a parameterized type _G<S<sub>0</sub>, ..., S<sub>n</sub>>_, and
+    there is a _j_ such that _X_ occurs contravariantly in _S<sub>j</sub>_.
+-   _T_ is a function type and _X_ occurs contravariantly in the return
+    type of _T_, or _X_ occurs covariantly in a parameter type of _T_.
+
+We say that a type variable _X_ _occurs invariantly_ in a type _T_ if:
+
+-   _T_ is a parameterized type _G<S<sub>0</sub> ..., S<sub>n</sub>>_, and
+    there is a _j_ such that _X_ occurs invariantly in _S<sub>j</sub>_.
+-   _T_ is a function type, and _X_ occurs invariantly in the return type
+    or a parameter type of _T_, or _X_ occurs anywhere in the bound of a
+    formal type parameter of _T_.
+
+*Note that the notion of occurring invariantly differs from that of many
+other languages, where it simply means occurring covariantly as well as
+contravariantly somewhere in the same type. In Dart, a type variable occurs
+invariantly if and only if it occurs in the bound of a formal type
+parameter of a function type, anywhere in the given type. The situation
+where a given type variable occurs both covariantly and contravariantly
+differs from this situation, and there is no separate name for that in
+Dart; if it is of interest it must be spelled out as we just did here.*
+
+*As mentioned, variance gives a characterization of the way a type varies
+as the value of a type variable therein varies: Assume that _T_ is a type
+where a type variable _X_ occurs, and and _L_ and _U_ are types such that
+_L <: U_. If _X_ occurs covariantly in _T_, but not contravariantly and not
+invariantly, then _[L/X]T <: [U/X]T_. Similarly, if _X_ occurs
+contravariantly in _T_, but not covariantly and not invariantly, then 
+_[U/X]T <: [L/X]T_. If _X_ occurs both covariantly and contravariantly, or
+it occurs invariantly (at all), then _[L/X]T_ and _[U/X]T_ are not
+guaranteed to be subtypes of each other in any direction. In short: with
+covariance, the type covaries; with contravariance, the type contravaries;
+with invariance, all bets are off.*
+
+Consider a class _T_ which is generic or has a generic supertype (directly
+or indirectly). Let _S_ be said generic class. Assume that there is a
+declaration of a method, setter, or operator `m` in _S_, that `X` is a
+formal type parameter declared by _S_, and that said declaration of `m` has
+a formal parameter `x` wherein `X` occurs covariantly or invariantly. In
+this situation we say that the parameter `x` is **covariant due to class
+covariance**.
+
+*This means that the type annotation of the given parameter may actually be
+covariant in the relevant type parameter, or it may vary among types that
+have no subtype relationship to each other. The parameter will be called
+'covariant' in both cases, because the situation where it is actually
+covariant is expected to be much more common than the situation where it
+varies among unrelated types.*
 
 In the remainder of this section, a parameter which is covariant according
-to the definition given in 
+to the definition given in
 [covariant overrides](https://github.com/dart-lang/sdk/blob/master/docs/language/informal/covariant-overrides.md)
-is treated the same as a parameter which is covariant due to class covariance as
-defined in this document; in both cases we just refer to the parameter as a
-_covariant parameter_.
+is treated the same as a parameter which is covariant due to class
+covariance as defined in this document; in both cases we just refer to the
+parameter as a _covariant parameter_.
 
 The reified type for a function _f_ obtained by a closurizing property
-extraction on an instance method, setter, or operator is determined as follows:
+extraction on an instance method, setter, or operator is determined as
+follows:
 
 Let `m` be the name of the method, operator, or setter which is being
-closurized, let _T_ be the dynamic type of the receiver, and let _D_ be
-the declaration of `m` in _T_ or inherited by _T_ which is being extracted.
+closurized, let _T_ be the dynamic type of the receiver, and let _D_ be the
+declaration of `m` in _T_ or inherited by _T_ which is being extracted.
 
-The reified return type of _f_ the is the static return type of _D_. For each
-parameter `p` declared in _D_ which is not covariant, the part in the dynamic
-type of _f_ which corresponds to `p` is the static type of `p` in _D_. For each
-covariant parameter `q`, the part in the dynamic type of _f_ which corresponds
-to `q` is `Object`.
+The reified return type of _f_ the is the static return type of _D_. For
+each parameter `p` declared in _D_ which is not covariant, the part in the
+dynamic type of _f_ which corresponds to `p` is the static type of `p` in
+_D_. For each covariant parameter `q`, the part in the dynamic type of _f_
+which corresponds to `q` is `Object`.
 
-_The occurrences of type parameters in the types of non-covariant parameters
-(note that those occurrences must be in a non-covariant position in the
-parameter type) are used as-is. For instance, `<String>[].asMap()` will have the
-reified type `() -> Map<int, String>`._
+*The occurrences of type parameters in the types of non-covariant
+parameters (note that those occurrences must be in a non-covariant position
+in the parameter type) are used as-is. For instance, `<String>[].asMap()`
+will have the reified type `() -> Map<int, String>`.*
 
 The dynamic checks associated with invocation of such a function are still
 needed, and they are unchanged.
 
-_That is, a dynamic error occurs if a method with a covariant parameter p is
-invoked, and the actual argument value bound to p has a run-time type which is
-not a subtype of the type declared for p._
+*That is, a dynamic error occurs if a method with a covariant parameter p
+is invoked, and the actual argument value bound to p has a run-time type
+which is not a subtype of the type declared for p.*
+
 
 ## Alternatives
 
@@ -330,8 +423,8 @@ computation of a finite type which is the least upper bound of all possible
 instantiations, so we cannot instantiate-to-bound:
 
 ```dart
-// There is no finite type `T` such that all possible values
-// for `X` are subtypes of `T`.
+// There is no finite type `T` such that all possible values for `X`
+// and no other types are subtypes of `T`.
 class D<X extends D<X>> {}
 ```
 
@@ -372,11 +465,11 @@ main() {
   void Function(num) f6 = ys.add; // Statically same type, OK at runtime.
   void Function(Object) f7 = ys.add; // Statically a downcast, OK at runtime.
   void Function(String) f8 = ys.add; // An unrelated type, error in strong mode.
-  
+
   List<Object> zs = ys;
   void Function(int) f9 = zs.add; // Statically an upcast, OK at runtime.
   void Function(num) fa = zs.add; // Statically an upcast, OK at runtime.
-  void Function(Object) fb = zs.add; // Statically a same type, OK at runtime.
+  void Function(Object) fb = zs.add; // Statically same type, OK at runtime.
   void Function(String) fc = zs.add; // Finally we can go wrong silently!
 }
 ```
@@ -386,3 +479,15 @@ of knowledge (say, "this is a list of `num`") consistently, even though it is
 consistently incomplete ("it's actually a list of `int`"), and this helps a lot
 in avoiding those crazy assignments (to `List<String>`) where almost all method
 invocations will go wrong.
+
+
+## Updates
+
+*   Nov 24th 2017, version 0.4: Modified the definition of what it takes to be
+    a covariant parameter: Some cases were previously incorrectly omitted.
+
+*   Nov 11th 2017, no version number specified: Clarified examples.
+
+*   Apr 21st 2017, no version number specified: Some typos corrected.
+
+*   Feb 16th 2017, no version number specified: Initial version.

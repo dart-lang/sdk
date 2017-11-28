@@ -29,6 +29,7 @@
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
 #include "vm/json_parser.h"
+#include "vm/json_writer.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -637,6 +638,7 @@ static Dart_QualifiedFunctionName vm_entry_points[] = {
     {"dart:core", "_InternalError", "_InternalError."},
     {"dart:core", "_InvocationMirror", "_allocateInvocationMirror"},
     {"dart:core", "_TypeError", "_TypeError._create"},
+    {"dart:collection", "::", "_rehashObjects"},
     {"dart:isolate", "IsolateSpawnException", "IsolateSpawnException."},
     {"dart:isolate", "::", "_startIsolate"},
     {"dart:isolate", "_RawReceivePortImpl", "_handleMessage"},
@@ -659,6 +661,182 @@ static Dart_QualifiedFunctionName vm_entry_points[] = {
     {NULL, NULL, NULL}  // Must be terminated with NULL entries.
 };
 
+class PrecompilerEntryPointsPrinter : public ValueObject {
+ public:
+  explicit PrecompilerEntryPointsPrinter(Zone* zone);
+
+  void AddInstantiatedClass(const Class& cls);
+  void AddEntryPoint(const Object& entry_point);
+
+  void Print();
+
+ private:
+  Zone* zone() const { return zone_; }
+
+  void DescribeClass(JSONWriter* writer, const Class& cls);
+
+  Zone* zone_;
+  const GrowableObjectArray& instantiated_classes_;
+  const GrowableObjectArray& entry_points_;
+};
+
+PrecompilerEntryPointsPrinter::PrecompilerEntryPointsPrinter(Zone* zone)
+    : zone_(zone),
+      instantiated_classes_(GrowableObjectArray::Handle(
+          zone,
+          FLAG_print_precompiler_entry_points ? GrowableObjectArray::New()
+                                              : GrowableObjectArray::null())),
+      entry_points_(GrowableObjectArray::Handle(
+          zone,
+          FLAG_print_precompiler_entry_points ? GrowableObjectArray::New()
+                                              : GrowableObjectArray::null())) {}
+
+void PrecompilerEntryPointsPrinter::AddInstantiatedClass(const Class& cls) {
+  if (!FLAG_print_precompiler_entry_points) {
+    return;
+  }
+
+  if (!cls.is_abstract()) {
+    instantiated_classes_.Add(cls);
+  }
+}
+
+void PrecompilerEntryPointsPrinter::AddEntryPoint(const Object& entry_point) {
+  ASSERT(entry_point.IsFunction() || entry_point.IsField());
+
+  if (!FLAG_print_precompiler_entry_points) {
+    return;
+  }
+  entry_points_.Add(entry_point);
+}
+
+// Prints precompiler entry points as JSON.
+// The format is described in [entry_points_json.md].
+void PrecompilerEntryPointsPrinter::Print() {
+  if (!FLAG_print_precompiler_entry_points) {
+    return;
+  }
+
+  JSONWriter writer;
+
+  writer.OpenObject();
+
+  writer.OpenArray("roots");
+
+  for (intptr_t i = 0; i < instantiated_classes_.Length(); ++i) {
+    const Class& cls = Class::CheckedHandle(Z, instantiated_classes_.At(i));
+
+    writer.OpenObject();
+    DescribeClass(&writer, cls);
+    writer.PrintProperty("action", "create-instance");
+    writer.CloseObject();
+  }
+
+  for (intptr_t i = 0; i < entry_points_.Length(); ++i) {
+    const Object& entry_point = Object::Handle(Z, entry_points_.At(i));
+
+    if (entry_point.IsFunction()) {
+      const Function& func = Function::Cast(entry_point);
+
+      writer.OpenObject();
+      DescribeClass(&writer, Class::Handle(Z, func.Owner()));
+
+      String& name = String::Handle(Z);
+      if (func.IsGetterFunction() || func.IsImplicitGetterFunction() ||
+          (func.kind() == RawFunction::kImplicitStaticFinalGetter)) {
+        name = func.name();
+        name = Field::NameFromGetter(name);
+        name = String::ScrubName(name);
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "get");
+      } else if (func.IsSetterFunction() || func.IsImplicitSetterFunction()) {
+        name = func.name();
+        name = Field::NameFromSetter(name);
+        name = String::ScrubName(name);
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "set");
+      } else {
+        name = func.UserVisibleName();
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "call");
+      }
+      writer.CloseObject();
+    } else {
+      const Field& field = Field::Cast(entry_point);
+      const Class& owner = Class::Handle(Z, field.Owner());
+      const String& name = String::Handle(Z, field.UserVisibleName());
+
+      {
+        writer.OpenObject();
+        DescribeClass(&writer, owner);
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "get");
+        writer.CloseObject();
+      }
+
+      {
+        writer.OpenObject();
+        DescribeClass(&writer, owner);
+        writer.PrintPropertyStr("name", name);
+        writer.PrintProperty("action", "set");
+        writer.CloseObject();
+      }
+    }
+  }
+
+  writer.CloseArray();  // roots
+
+  writer.OpenObject("native-methods");
+
+  GrowableObjectArray& recognized_methods = GrowableObjectArray::Handle(
+      Z, MethodRecognizer::QueryRecognizedMethods(Z));
+  ASSERT(!recognized_methods.IsNull());
+
+  for (intptr_t i = 0; i < recognized_methods.Length(); ++i) {
+    const Function& func = Function::CheckedHandle(Z, recognized_methods.At(i));
+    if (!func.is_native()) {
+      continue;
+    }
+
+    intptr_t result_cid = MethodRecognizer::ResultCid(func);
+    if (result_cid == kDynamicCid) {
+      continue;
+    }
+
+    ASSERT(Isolate::Current()->class_table()->HasValidClassAt(result_cid));
+
+    writer.OpenArray(String::Handle(func.native_name()).ToCString());
+    writer.OpenObject();
+
+    writer.PrintProperty("action", "return");
+
+    const Class& result_cls =
+        Class::Handle(Isolate::Current()->class_table()->At(result_cid));
+    DescribeClass(&writer, result_cls);
+
+    writer.PrintProperty("nullable", "false");
+
+    writer.CloseObject();
+    writer.CloseArray();
+  }
+
+  writer.CloseObject();  // native-methods
+
+  writer.CloseObject();  // top-level
+
+  THR_Print("%s\n", writer.ToCString());
+}
+
+void PrecompilerEntryPointsPrinter::DescribeClass(JSONWriter* writer,
+                                                  const Class& cls) {
+  const Library& library = Library::Handle(Z, cls.library());
+  writer->PrintPropertyStr("library", String::Handle(Z, library.url()));
+
+  if (!cls.IsTopLevel()) {
+    writer->PrintPropertyStr("class", String::Handle(Z, cls.ScrubbedName()));
+  }
+}
+
 void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   // Note that <rootlibrary>.main is not a root. The appropriate main will be
   // discovered through _getMainClosure.
@@ -666,6 +844,8 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   AddSelector(Symbols::NoSuchMethod());
 
   AddSelector(Symbols::Call());  // For speed, not correctness.
+
+  PrecompilerEntryPointsPrinter entry_points_printer(zone());
 
   // Allocated from C++.
   Class& cls = Class::Handle(Z);
@@ -681,11 +861,22 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     }
     cls = isolate()->class_table()->At(cid);
     AddInstantiatedClass(cls);
+    entry_points_printer.AddInstantiatedClass(cls);
   }
 
-  AddEntryPoints(vm_entry_points);
-  AddEntryPoints(embedder_entry_points);
+  AddEntryPoints(vm_entry_points, &entry_points_printer);
+  AddEntryPoints(embedder_entry_points, &entry_points_printer);
+
+  entry_points_printer.Print();
+
   const Library& lib = Library::Handle(I->object_store()->root_library());
+  if (lib.IsNull()) {
+    const String& msg = String::Handle(
+        Z, String::New("Cannot find root library in isolate.\n"));
+    Jump(Error::Handle(Z, ApiError::New(msg)));
+    UNREACHABLE();
+  }
+
   const String& name = String::Handle(String::New("main"));
   const Object& main_closure = Object::Handle(lib.GetFunctionClosure(name));
   if (main_closure.IsClosure()) {
@@ -708,7 +899,9 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   }
 }
 
-void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
+void Precompiler::AddEntryPoints(
+    Dart_QualifiedFunctionName entry_points[],
+    PrecompilerEntryPointsPrinter* entry_points_printer) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Function& func = Function::Handle(Z);
@@ -772,6 +965,7 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
 
     if (!func.IsNull()) {
       AddFunction(func);
+      entry_points_printer->AddEntryPoint(func);
       if (func.IsGenerativeConstructor()) {
         // Allocation stubs are referenced from the call site of the
         // constructor, not in the constructor itself. So compiling the
@@ -779,10 +973,12 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
         // instantiated if the class isn't otherwise instantiated from Dart
         // code and only instantiated from C++.
         AddInstantiatedClass(cls);
+        entry_points_printer->AddInstantiatedClass(cls);
       }
     }
     if (!field.IsNull()) {
       AddField(field);
+      entry_points_printer->AddEntryPoint(field);
     }
   }
 }
@@ -1238,8 +1434,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
                                         parsed_function,
                                         /* optimized = */ true);
-  bool success = helper.Compile(&pipeline);
-  ASSERT(success);
+  helper.Compile(&pipeline);
 
   if (compute_type && field.is_final()) {
     intptr_t result_cid = pipeline.result_type().ToCid();
@@ -1450,35 +1645,6 @@ void Precompiler::CheckForNewDynamicFunctions() {
             // Function is get:foo and somewhere foo is called.
             AddFunction(function);
           }
-          selector3 = Symbols::LookupFromConcat(
-              thread(), Symbols::ClosurizePrefix(), selector2);
-          if (IsSent(selector3)) {
-            // Hash-closurization.
-            // Function is get:foo and somewhere get:#foo is called.
-            AddFunction(function);
-
-            function2 = function.ImplicitClosureFunction();
-            AddFunction(function2);
-
-            // Add corresponding method extractor get:#foo.
-            function2 = function.GetMethodExtractor(selector3);
-            AddFunction(function2);
-          }
-        } else if (Field::IsSetterName(selector)) {
-          selector2 = Symbols::LookupFromConcat(
-              thread(), Symbols::ClosurizePrefix(), selector);
-          if (IsSent(selector2)) {
-            // Hash-closurization.
-            // Function is set:foo and somewhere get:#set:foo is called.
-            AddFunction(function);
-
-            function2 = function.ImplicitClosureFunction();
-            AddFunction(function2);
-
-            // Add corresponding method extractor get:#set:foo.
-            function2 = function.GetMethodExtractor(selector2);
-            AddFunction(function2);
-          }
         } else if (function.kind() == RawFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
           if (IsSent(selector2)) {
@@ -1488,18 +1654,6 @@ void Precompiler::CheckForNewDynamicFunctions() {
             AddFunction(function2);
 
             // Add corresponding method extractor.
-            function2 = function.GetMethodExtractor(selector2);
-            AddFunction(function2);
-          }
-          selector2 = Symbols::LookupFromConcat(
-              thread(), Symbols::ClosurizePrefix(), selector);
-          if (IsSent(selector2)) {
-            // Hash-closurization.
-            // Function is foo and somewhere get:#foo is called.
-            function2 = function.ImplicitClosureFunction();
-            AddFunction(function2);
-
-            // Add corresponding method extractor get:#foo
             function2 = function.GetMethodExtractor(selector2);
             AddFunction(function2);
           }
@@ -2623,9 +2777,10 @@ void Precompiler::PopulateWithICData(const Function& function,
           const Array& arguments_descriptor =
               Array::Handle(zone, call->GetArgumentsDescriptor());
           const ICData& ic_data = ICData::ZoneHandle(
-              zone, ICData::New(function, call->function_name(),
-                                arguments_descriptor, call->deopt_id(),
-                                call->checked_argument_count(), false));
+              zone,
+              ICData::New(function, call->function_name(), arguments_descriptor,
+                          call->deopt_id(), call->checked_argument_count(),
+                          ICData::kInstance));
           call->set_ic_data(&ic_data);
         }
       } else if (instr->IsStaticCall()) {
@@ -2649,7 +2804,7 @@ void Precompiler::PopulateWithICData(const Function& function,
           const ICData& ic_data = ICData::ZoneHandle(
               zone, ICData::New(function, String::Handle(zone, target.name()),
                                 arguments_descriptor, call->deopt_id(),
-                                num_args_checked, true));
+                                num_args_checked, ICData::kStatic));
           ic_data.AddTarget(target);
           call->set_ic_data(&ic_data);
         }
@@ -2879,9 +3034,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
-  volatile bool use_speculative_inlining =
-      FLAG_max_speculative_inlining_attempts > 0;
-  GrowableArray<intptr_t> inlining_black_list;
+  SpeculativeInliningPolicy speculative_policy(
+      true, FLAG_max_speculative_inlining_attempts);
 
   while (!done) {
     const intptr_t prev_deopt_id = thread()->deopt_id();
@@ -2905,8 +3059,9 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         TimelineDurationScope tds(thread(), compiler_timeline,
                                   "BuildFlowGraph");
 #endif  // !PRODUCT
-        flow_graph = pipeline->BuildFlowGraph(
-            zone, parsed_function(), *ic_data_array, Compiler::kNoOSRDeoptId);
+        flow_graph =
+            pipeline->BuildFlowGraph(zone, parsed_function(), *ic_data_array,
+                                     Compiler::kNoOSRDeoptId, optimized());
       }
 
       if (optimized()) {
@@ -2967,8 +3122,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
         AotCallSpecializer call_specializer(precompiler_, flow_graph,
-                                            use_speculative_inlining,
-                                            &inlining_black_list);
+                                            &speculative_policy);
 
         call_specializer.ApplyClassIds();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -3002,8 +3156,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           FlowGraphInliner inliner(flow_graph, &inline_id_to_function,
                                    &inline_id_to_token_pos, &caller_inline_id,
-                                   use_speculative_inlining,
-                                   &inlining_black_list, precompiler_);
+                                   &speculative_policy, precompiler_);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -3284,8 +3437,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       Assembler assembler(use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          use_speculative_inlining, inline_id_to_function,
-          inline_id_to_token_pos, caller_inline_id);
+          &speculative_policy, inline_id_to_function, inline_id_to_token_pos,
+          caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
 #ifndef PRODUCT
@@ -3319,22 +3472,14 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // The return value of setjmp is the deopt id of the check instruction
         // that caused the bailout.
         done = false;
-        if (!use_speculative_inlining) {
+        if (!speculative_policy.AllowsSpeculativeInlining()) {
           // Assert that we don't repeatedly retry speculation.
           UNREACHABLE();
         }
-#if defined(DEBUG)
-        for (intptr_t i = 0; i < inlining_black_list.length(); ++i) {
-          ASSERT(inlining_black_list[i] != val);
-        }
-#endif
-        inlining_black_list.Add(val);
-        const intptr_t max_attempts = FLAG_max_speculative_inlining_attempts;
-        if (inlining_black_list.length() >= max_attempts) {
-          use_speculative_inlining = false;
+        if (!speculative_policy.AddBlockedDeoptId(val)) {
           if (FLAG_trace_compiler || FLAG_trace_optimizing_compiler) {
             THR_Print("Disabled speculative inlining after %" Pd " attempts.\n",
-                      inlining_black_list.length());
+                      speculative_policy.length());
           }
         }
       } else {

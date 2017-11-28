@@ -13,7 +13,7 @@ class C {
   num x;
 }
 
-class /*@forwardingStub=void set x(covariance=(genericImpl) num value)*/ D
-    extends C implements B<num> {}
+class /*@forwardingStub=void set x(covariance=(genericImpl) num _)*/ D extends C
+    implements B<num> {}
 
 void main() {}

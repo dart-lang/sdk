@@ -11,7 +11,9 @@
 
 #include <process.h>  // NOLINT
 
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/safe_stack.h"
 
 namespace dart {
 
@@ -165,13 +167,45 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
 // FS segment register on x86 and GS segment register on x86_64.
 #ifdef _WIN64
   *upper = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackBase)));
-  *lower = static_cast<uword>(__readgsqword(offsetof(NT_TIB64, StackLimit)));
 #else
   *upper = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackBase)));
-  *lower = static_cast<uword>(__readfsdword(offsetof(NT_TIB, StackLimit)));
 #endif
+  // Notice that we cannot use the TIB's StackLimit for the stack end, as it
+  // tracks the end of the committed range. We're after the end of the reserved
+  // stack area (most of which will be uncommitted, most times).
+  MEMORY_BASIC_INFORMATION stack_info;
+  memset(&stack_info, 0, sizeof(MEMORY_BASIC_INFORMATION));
+  size_t result_size =
+      VirtualQuery(&stack_info, &stack_info, sizeof(MEMORY_BASIC_INFORMATION));
+  ASSERT(result_size >= sizeof(MEMORY_BASIC_INFORMATION));
+  *lower = reinterpret_cast<uword>(stack_info.AllocationBase);
+  ASSERT(*upper > *lower);
+  // When the third last page of the reserved stack is accessed as a
+  // guard page, the second last page will be committed (along with removing
+  // the guard bit on the third last) _and_ a stack overflow exception
+  // is raised.
+  //
+  // http://blogs.msdn.com/b/satyem/archive/2012/08/13/thread-s-stack-memory-management.aspx
+  // explains the details.
+  ASSERT((*upper - *lower) >= (4u * 0x1000));
+  *lower += 4 * 0x1000;
   return true;
 }
+
+#if defined(USING_SAFE_STACK)
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+uword OSThread::GetCurrentSafestackPointer() {
+#error "SAFE_STACK is unsupported on this platform"
+  return 0;
+}
+
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_SAFE_STACK
+void OSThread::SetCurrentSafestackPointer(uword ssp) {
+#error "SAFE_STACK is unsupported on this platform"
+}
+#endif
 
 void OSThread::SetThreadLocal(ThreadLocalKey key, uword value) {
   ASSERT(key != kUnsetThreadLocalKey);
@@ -425,7 +459,7 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
                              reinterpret_cast<uword>(wait_data));
   } else {
     wait_data = reinterpret_cast<MonitorWaitData*>(raw_wait_data);
-    wait_data->next_ = NULL;
+    ASSERT(wait_data->next_ == NULL);
   }
   return wait_data;
 }
@@ -468,6 +502,24 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
     if (result == WAIT_TIMEOUT) {
       // No longer waiting. Remove from the list of waiters.
       data_.RemoveWaiter(wait_data);
+      // Caveat: wait_data->event_ might have been signaled between
+      // WaitForSingleObject and RemoveWaiter because we are not in any critical
+      // section here. Leaving it in a signaled state would break invariants
+      // that Monitor::Wait code relies on. We assume that when
+      // WaitForSingleObject(wait_data->event_, ...) returns successfully then
+      // corresponding wait_data is not on the waiters list anymore.
+      // This is guaranteed because we only signal these events from
+      // SignalAndRemoveAllWaiters/SignalAndRemoveFirstWaiter which
+      // simultaneously remove MonitorWaitData from the list.
+      // Now imagine that wait_data->event_ is left signaled here. In this case
+      // the next WaitForSingleObject(wait_data->event_, ...) will immediately
+      // return while wait_data is still on the waiters list. This would
+      // leave waiters list in the inconsistent state.
+      // To prevent this from happening simply reset the event.
+      // Note: wait_data is no longer on the waiters list so it can't be
+      // signaled anymore at this point so there is no race possible from
+      // this point onward.
+      ResetEvent(wait_data->event_);
       retval = kTimedOut;
     }
   }

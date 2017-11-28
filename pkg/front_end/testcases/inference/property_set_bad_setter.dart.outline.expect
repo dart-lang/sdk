@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   default constructor •() → void
     ;
-  set x() → void
+  set x(dynamic #synthetic) → void
     ;
 }
 static method f(self::A a) → void

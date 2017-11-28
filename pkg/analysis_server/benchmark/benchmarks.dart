@@ -65,9 +65,12 @@ class RunCommand extends Command {
   RunCommand(this.benchmarks) {
     argParser.addFlag('quick',
         negatable: false,
-        help: 'Run a quick version of the benchmark. This is '
-            'not useful for gathering accurate times, but can be used to '
-            'validate that the benchmark works.');
+        help: 'Run a quick version of the benchmark. This is not useful for '
+            'gathering accurate times,\nbut can be used to validate that the '
+            'benchmark works.');
+    argParser.addFlag('preview-dart-2',
+        negatable: false,
+        help: 'Benchmark against the Dart 2.0 front end implementation.');
     argParser.addOption('repeat',
         defaultsTo: '10', help: 'The number of times to repeat the benchmark.');
   }
@@ -90,6 +93,7 @@ class RunCommand extends Command {
     final String benchmarkId = argResults.rest.first;
     final int repeatCount = int.parse(argResults['repeat']);
     final bool quick = argResults['quick'];
+    final bool previewDart2 = argResults['preview-dart-2'];
 
     final Benchmark benchmark =
         benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {
@@ -108,7 +112,10 @@ class RunCommand extends Command {
       print('Running $benchmarkId $actualIterations times...');
 
       for (int iteration = 0; iteration < actualIterations; iteration++) {
-        BenchMarkResult newResult = await benchmark.run(quick: quick);
+        BenchMarkResult newResult = await benchmark.run(
+          quick: quick,
+          previewDart2: previewDart2,
+        );
         print('  $newResult');
         result = result == null ? newResult : result.combine(newResult);
       }
@@ -135,7 +142,7 @@ abstract class Benchmark {
 
   Benchmark(this.id, this.description, {this.enabled: true, this.kind: 'cpu'});
 
-  Future<BenchMarkResult> run({bool quick: false});
+  Future<BenchMarkResult> run({bool quick: false, bool previewDart2: false});
 
   int get maxIterations => 0;
 

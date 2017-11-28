@@ -1,0 +1,47 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B extends core::Object {
+  default constructor •() → void
+    ;
+  get x() → (core::int) → void
+    ;
+  set x(core::Object value) → void
+    ;
+}
+abstract class I<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    ;
+  abstract get x() → (self::I::T) → void;
+  abstract set x(core::Object value) → void;
+}
+abstract class M<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    ;
+  get x() → self::M::T
+    ;
+  set x(core::Object value) → void
+    ;
+  abstract method f() → self::M::T;
+}
+abstract class C<T extends core::Object> = self::B with self::M<(self::C::T) → void> implements self::I<self::C::T> {
+  constructor •() → void
+    : super self::B::•()
+    ;
+}
+class D extends self::C<core::int> {
+  default constructor •() → void
+    ;
+  method f() → (core::int) → void
+    ;
+}
+static method expectTypeError(() → void callback) → void
+  ;
+static method expect(core::Object value, core::Object expected) → void
+  ;
+static method test(self::I<core::Object> iObj, self::I<core::int> iInt) → void
+  ;
+static method main() → void
+  ;

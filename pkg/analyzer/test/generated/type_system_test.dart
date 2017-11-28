@@ -63,11 +63,9 @@ abstract class BoundTestBase {
   void setUp() {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     typeProvider = context.typeProvider;
-    FunctionTypeAliasElementImpl typeAlias =
-        ElementFactory.functionTypeAliasElement('A');
-    typeAlias.parameters = [];
-    typeAlias.returnType = voidType;
-    simpleFunctionType = typeAlias.type;
+    var simpleFunctionElement =
+        ElementFactory.genericTypeAliasElement('A', returnType: voidType);
+    simpleFunctionType = simpleFunctionElement.type;
   }
 
   void _checkGreatestLowerBound(

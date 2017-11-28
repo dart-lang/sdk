@@ -8,8 +8,8 @@ class Clonable<T extends core::Object> extends core::Object {
     ;
 }
 class Pair<T extends self::Clonable<self::Pair::T>, U extends self::Clonable<self::Pair::U>> extends core::Object {
-  field self::Pair::T t;
-  field self::Pair::U u;
+  generic-covariant-impl generic-covariant-interface field self::Pair::T t;
+  generic-covariant-impl generic-covariant-interface field self::Pair::U u;
   constructor •(self::Pair::T t, self::Pair::U u) → void
     : self::Pair::t = t, self::Pair::u = u, super core::Object::•()
     ;

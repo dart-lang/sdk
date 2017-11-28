@@ -218,88 +218,6 @@ abstract class _ClassHierarchyTest {
     program.libraries.add(library);
   }
 
-  void test_forEachOverridePair_crossGetterSetter_extends() {
-    var int = coreTypes.intClass.rawType;
-    var a = addClass(new Class(name: 'A', supertype: objectSuper, procedures: [
-      newEmptySetter('foo', type: int),
-      newEmptyGetter('bar', returnType: int)
-    ]));
-    var b = addClass(new Class(
-        name: 'B',
-        supertype: a.asThisSupertype,
-        procedures: [newEmptyGetter('foo'), newEmptySetter('bar')]));
-
-    _assertTestLibraryText('''
-class A {
-  set foo(core::int _) → void {}
-  get bar() → core::int {
-    return null;
-  }
-}
-class B extends self::A {
-  get foo() → dynamic {
-    return null;
-  }
-  set bar(dynamic _) → void {}
-}
-''');
-
-    // No overrides of getters with getters, or setters with setters.
-    _assertOverridePairs(b, []);
-
-    // Has cross-overrides between getters and setters.
-    _assertOverridePairs(
-        b,
-        [
-          'test::B::foo overrides test::A::foo=',
-          'test::B::bar= overrides test::A::bar'
-        ],
-        crossGettersSetters: true);
-  }
-
-  void test_forEachOverridePair_crossGetterSetter_implements() {
-    var int = coreTypes.intClass.rawType;
-    var double = coreTypes.doubleClass.rawType;
-    var a = addClass(new Class(name: 'A', supertype: objectSuper, procedures: [
-      newEmptySetter('foo', type: int),
-    ]));
-    var b = addClass(new Class(name: 'B', supertype: objectSuper, procedures: [
-      newEmptySetter('foo', type: double),
-    ]));
-    var c = addClass(new Class(
-        name: 'C',
-        supertype: objectSuper,
-        implementedTypes: [a.asThisSupertype, b.asThisSupertype],
-        procedures: [newEmptyGetter('foo')]));
-
-    _assertTestLibraryText('''
-class A {
-  set foo(core::int _) → void {}
-}
-class B {
-  set foo(core::double _) → void {}
-}
-class C implements self::A, self::B {
-  get foo() → dynamic {
-    return null;
-  }
-}
-''');
-
-    // No overrides of getters with getters, or setters with setters.
-    _assertOverridePairs(c, []);
-
-    // Has cross-overrides between getters and setters.
-    // Even if these overrides are incompatible with each other.
-    _assertOverridePairs(
-        c,
-        [
-          'test::C::foo overrides test::A::foo=',
-          'test::C::foo overrides test::B::foo=',
-        ],
-        crossGettersSetters: true);
-  }
-
   /// 2. A non-abstract member is inherited from a superclass, and in the
   /// context of this class, it overrides an abstract member inheritable through
   /// one of its superinterfaces.
@@ -846,6 +764,66 @@ class I implements self::C, self::D, self::E {}
         hierarchy.getClassicLeastUpperBound(h.rawType, i.rawType), a.rawType);
   }
 
+  void test_getDeclaredMembers() {
+    var method = newEmptyMethod('method');
+    var getter = newEmptyGetter('getter');
+    var setter = newEmptySetter('setter');
+    var abstractMethod = newEmptyMethod('abstractMethod', isAbstract: true);
+    var abstractGetter = newEmptyGetter('abstractGetter', isAbstract: true);
+    var abstractSetter = newEmptySetter('abstractSetter', isAbstract: true);
+    var nonFinalField = new Field(new Name('nonFinalField'));
+    var finalField = new Field(new Name('finalField'), isFinal: true);
+    var a = addClass(new Class(
+        isAbstract: true,
+        name: 'A',
+        supertype: objectSuper,
+        fields: [
+          nonFinalField,
+          finalField
+        ],
+        procedures: [
+          method,
+          getter,
+          setter,
+          abstractMethod,
+          abstractGetter,
+          abstractSetter
+        ]));
+    var b = addClass(
+        new Class(isAbstract: true, name: 'B', supertype: a.asThisSupertype));
+
+    _assertTestLibraryText('''
+abstract class A {
+  field dynamic nonFinalField;
+  final field dynamic finalField;
+  method method() → void {}
+  get getter() → dynamic {
+    return null;
+  }
+  set setter(dynamic _) → void {}
+  abstract method abstractMethod() → void;
+  get abstractGetter() → dynamic;
+  set abstractSetter(dynamic _) → void;
+}
+abstract class B extends self::A {}
+''');
+
+    expect(
+        hierarchy.getDeclaredMembers(a),
+        unorderedEquals([
+          method,
+          getter,
+          abstractMethod,
+          abstractGetter,
+          nonFinalField,
+          finalField
+        ]));
+    expect(hierarchy.getDeclaredMembers(a, setters: true),
+        unorderedEquals([setter, abstractSetter, nonFinalField]));
+    expect(hierarchy.getDeclaredMembers(b), isEmpty);
+    expect(hierarchy.getDeclaredMembers(b, setters: true), isEmpty);
+  }
+
   void test_getDispatchTarget() {
     var aMethod = newEmptyMethod('aMethod');
     var aSetter = newEmptySetter('aSetter');
@@ -1344,30 +1322,18 @@ class B<T> extends self::A<self::B::T, core::bool> {}
         new InterfaceType(objectClass));
   }
 
-  void _assertOverridePairs(Class class_, List<String> expected,
-      {bool crossGettersSetters: false}) {
+  void _assertOverridePairs(Class class_, List<String> expected) {
     List<String> overrideDescriptions = [];
     void callback(
         Member declaredMember, Member interfaceMember, bool isSetter) {
-      String declaredSuffix;
-      String interfaceSuffix;
-      declaredSuffix = isSetter ? '=' : '';
-      if (crossGettersSetters) {
-        interfaceSuffix = isSetter ? '' : '=';
-      } else {
-        interfaceSuffix = isSetter ? '=' : '';
-      }
-      String declaredName = '$declaredMember$declaredSuffix';
-      String interfaceName = '$interfaceMember$interfaceSuffix';
+      var suffix = isSetter ? '=' : '';
+      String declaredName = '$declaredMember$suffix';
+      String interfaceName = '$interfaceMember$suffix';
       var desc = '$declaredName overrides $interfaceName';
       overrideDescriptions.add(desc);
     }
 
-    if (crossGettersSetters) {
-      hierarchy.forEachCrossOverridePair(class_, callback);
-    } else {
-      hierarchy.forEachOverridePair(class_, callback);
-    }
+    hierarchy.forEachOverridePair(class_, callback);
     expect(overrideDescriptions, unorderedEquals(expected));
   }
 

@@ -108,6 +108,7 @@ class LibrariesSpecification {
     }
     var targets = <String, TargetLibrariesSpecification>{};
     jsonData.forEach((String targetName, targetData) {
+      if (targetName.startsWith("comment:")) return null;
       Map<String, LibraryInfo> libraries = <String, LibraryInfo>{};
       if (targetData is! Map) {
         return _reportError(

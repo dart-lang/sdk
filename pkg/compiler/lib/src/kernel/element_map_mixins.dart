@@ -30,7 +30,8 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
   ElementEnvironment get elementEnvironment;
   LibraryEntity getLibrary(ir.Library node);
 
-  ConstantValue computeConstantValue(ConstantExpression constant,
+  ConstantValue computeConstantValue(
+      Spannable spannable, ConstantExpression constant,
       {bool requireConstant: true});
 
   @override
@@ -319,7 +320,13 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
       }
       return null;
     }
-    return computeConstantValue(constant, requireConstant: requireConstant);
+    ConstantValue value = computeConstantValue(
+        computeSourceSpanFromTreeNode(node), constant,
+        requireConstant: requireConstant);
+    if (!value.isConstant && !requireConstant) {
+      return null;
+    }
+    return value;
   }
 
   /// Converts [annotations] into a list of [ConstantValue]s.
@@ -335,8 +342,8 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
   FunctionEntity getSuperNoSuchMethod(ClassEntity cls) {
     while (cls != null) {
       cls = elementEnvironment.getSuperClass(cls);
-      MemberEntity member =
-          elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+      MemberEntity member = elementEnvironment.lookupLocalClassMember(
+          cls, Identifiers.noSuchMethod_);
       if (member != null) {
         if (member.isFunction) {
           FunctionEntity function = member;
@@ -349,7 +356,7 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
         break;
       }
     }
-    FunctionEntity function = elementEnvironment.lookupClassMember(
+    FunctionEntity function = elementEnvironment.lookupLocalClassMember(
         commonElements.objectClass, Identifiers.noSuchMethod_);
     assert(function != null,
         failedAt(cls, "No super noSuchMethod found for class $cls."));
@@ -491,7 +498,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       elementMap.reporter.reportErrorMessage(
           computeSourceSpanFromTreeNode(failNode ?? node),
           MessageKind.NOT_A_COMPILE_TIME_CONSTANT);
-      return new NullConstantExpression();
+      return new ErroneousConstantExpression();
     }
     return constant;
   }
@@ -567,7 +574,8 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     ir.Member target = node.target;
     if (target is ir.Field && target.isConst) {
       return new FieldConstantExpression(elementMap.getField(node.target));
-    } else if (node.target is ir.Procedure) {
+    } else if (target is ir.Procedure &&
+        target.kind == ir.ProcedureKind.Method) {
       FunctionEntity function = elementMap.getMethod(node.target);
       DartType type = elementMap.getFunctionType(node.target.function);
       return new FunctionConstantExpression(function, type);
@@ -663,14 +671,9 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       name = '?';
     } else if (node.type is ir.FunctionType) {
       ir.FunctionType functionType = node.type;
-      if (functionType.typedef != null) {
-        type = elementMap.getTypedefType(functionType.typedef);
-        name = functionType.typedef.name;
-      } else {
-        // TODO(johnniwinther): Remove branch when [KernelAstAdapter] is
-        // removed.
-        name = '?';
-      }
+      assert(functionType.typedef != null);
+      type = elementMap.getTypedefType(functionType.typedef);
+      name = functionType.typedef.name;
     } else {
       return defaultExpression(node);
     }
@@ -837,7 +840,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       if (parameterIndex >= node.function.requiredParameterCount) {
         ConstantExpression defaultValue;
         if (parameter.initializer != null) {
-          defaultValue = parameter.initializer.accept(this);
+          defaultValue = visit(parameter.initializer);
         } else {
           defaultValue = new NullConstantExpression();
         }
@@ -847,7 +850,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       parameterIndex++;
     }
     for (ir.VariableDeclaration parameter in node.function.namedParameters) {
-      ConstantExpression defaultValue = parameter.initializer.accept(this);
+      ConstantExpression defaultValue = visit(parameter.initializer);
       if (defaultValue == null) return null;
       defaultValues[parameter.name] = defaultValue;
     }
@@ -866,7 +869,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       for (ir.Field field in cls.fields) {
         if (field.isStatic) continue;
         if (field.initializer != null) {
-          registerField(field, field.initializer.accept(this));
+          registerField(field, visit(field.initializer));
         }
       }
     }
@@ -874,16 +877,39 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
     ConstructedConstantExpression superConstructorInvocation;
     for (ir.Initializer initializer in node.initializers) {
       if (initializer is ir.FieldInitializer) {
-        registerField(initializer.field, initializer.value.accept(this));
+        registerField(initializer.field, visit(initializer.value));
       } else if (initializer is ir.SuperInitializer) {
         superConstructorInvocation = _computeConstructorInvocation(
             initializer.target, initializer.arguments);
       } else if (initializer is ir.RedirectingInitializer) {
         superConstructorInvocation = _computeConstructorInvocation(
             initializer.target, initializer.arguments);
+      } else if (initializer is ir.InvalidInitializer) {
+        String constructorName = '${cls.name}.${node.name}';
+        elementMap.reporter.reportErrorMessage(
+            computeSourceSpanFromTreeNode(initializer),
+            MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
+            {'constructorName': constructorName});
+        return new ErroneousConstantConstructor();
+      } else if (initializer is ir.LocalInitializer) {
+        // TODO(johnniwinther): Support this where it makes sense. Currently
+        // invalid initializers are currently encoded as local initializers with
+        // a throwing initializer. Also, assert in initializer is encoded as a
+        // local initializer with a called closure containing the assertion.
+        // Assert in initializer is currently not supported in dart2js.
+        // TODO(johnniwinther): Use [_ErroneousInitializerVisitor] in
+        // `ssa/builder_kernel.dart` to identify erroneous initializer.
+        // TODO(johnniwinther) Handle local initializers that are valid as
+        // constants, if any.
+        String constructorName = '${cls.name}.${node.name}';
+        elementMap.reporter.reportErrorMessage(
+            computeSourceSpanFromTreeNode(initializer),
+            MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
+            {'constructorName': constructorName});
+        return new ErroneousConstantConstructor();
       } else {
         throw new UnsupportedError(
-            'Unexpected initializer $node (${node.runtimeType})');
+            'Unexpected initializer $initializer (${initializer.runtimeType})');
       }
     }
     if (isRedirecting) {

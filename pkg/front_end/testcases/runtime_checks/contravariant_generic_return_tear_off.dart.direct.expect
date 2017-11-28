@@ -10,7 +10,7 @@ class C<T extends core::Object> extends core::Object {
     : self::C::_x = _x, super core::Object::•()
     ;
   method f() → (self::C::T) → void
-    return this._x;
+    return this.{self::C::_x};
 }
 static method g(self::C<core::num> c) → () → (core::num) → void {
   return c.f;

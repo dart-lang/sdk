@@ -79,7 +79,8 @@ static RawString* GetLibrarySourceByIndex(intptr_t index,
   return String::FromUTF8(utf8_array, file_length);
 }
 
-static RawString* GetLibrarySource(const Library& lib,
+static RawString* GetLibrarySource(Zone* zone,
+                                   const Library& lib,
                                    const String& uri,
                                    bool patch) {
   // First check if this is a valid bootstrap library and find its index in
@@ -95,7 +96,13 @@ static RawString* GetLibrarySource(const Library& lib,
     return String::null();  // The library is not a bootstrap library.
   }
 
-  return GetLibrarySourceByIndex(index, uri, patch);
+  const Array& strings = Array::Handle(zone, Array::New(3));
+  strings.SetAt(0, lib_uri);
+  strings.SetAt(1, Symbols::Slash());
+  strings.SetAt(2, uri);
+  const String& part_uri = String::Handle(zone, String::ConcatAll(strings));
+
+  return GetLibrarySourceByIndex(index, part_uri, patch);
 }
 
 static RawError* Compile(const Library& library, const Script& script) {
@@ -122,7 +129,7 @@ static Dart_Handle LoadPartSource(Thread* thread,
                                   const String& uri) {
   Zone* zone = thread->zone();
   const String& part_source =
-      String::Handle(zone, GetLibrarySource(lib, uri, false));
+      String::Handle(zone, GetLibrarySource(zone, lib, uri, false));
   const String& lib_uri = String::Handle(zone, lib.url());
   if (part_source.IsNull()) {
     return Api::NewError("Unable to read part file '%s' of library '%s'",
@@ -215,9 +222,9 @@ static RawError* LoadPatchFiles(Thread* thread,
   return Error::null();
 }
 
-static void Finish(Thread* thread, bool from_kernel) {
+static void Finish(Thread* thread) {
   Bootstrap::SetupNativeResolver();
-  if (!ClassFinalizer::ProcessPendingClasses(from_kernel)) {
+  if (!ClassFinalizer::ProcessPendingClasses()) {
     FATAL("Error in class finalization during bootstrapping.");
   }
 
@@ -292,7 +299,7 @@ static RawError* BootstrapFromSource(Thread* thread) {
   }
 
   if (error.IsNull()) {
-    Finish(thread, /*from_kernel=*/false);
+    Finish(thread);
   }
   // Restore the library tag handler for the isolate.
   isolate->set_library_tag_handler(saved_tag_handler);
@@ -304,17 +311,7 @@ static RawError* BootstrapFromSource(Thread* thread) {
 static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
   Zone* zone = thread->zone();
   kernel::KernelLoader loader(program);
-
   Isolate* isolate = thread->isolate();
-  // Mark the already-pending classes.  This mark bit will be used to avoid
-  // adding classes to the list more than once.
-  GrowableObjectArray& pending_classes = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->pending_classes());
-  Class& pending = Class::Handle(zone);
-  for (intptr_t i = 0; i < pending_classes.Length(); ++i) {
-    pending ^= pending_classes.At(i);
-    pending.set_is_marked_for_parsing();
-  }
 
   // Load the bootstrap libraries in order (see object_store.h).
   Library& library = Library::Handle(zone);
@@ -326,15 +323,14 @@ static RawError* BootstrapFromKernel(Thread* thread, kernel::Program* program) {
     for (intptr_t j = 0; j < program->library_count(); ++j) {
       const String& kernel_name = loader.LibraryUri(j);
       if (kernel_name.Equals(dart_name)) {
-        loader.LoadLibrary(loader.library_offset(j));
-        library.SetLoaded();
+        loader.LoadLibrary(j);
         break;
       }
     }
   }
 
   // Finish bootstrapping, including class finalization.
-  Finish(thread, /*from_kernel=*/true);
+  Finish(thread);
 
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.

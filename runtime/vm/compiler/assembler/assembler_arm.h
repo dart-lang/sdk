@@ -105,6 +105,29 @@ class Label : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Label);
 };
 
+class ArmEncode : public AllStatic {
+ public:
+  static inline uint32_t Rd(Register rd) {
+    ASSERT(rd < 16);
+    return static_cast<uint32_t>(rd) << kRdShift;
+  }
+
+  static inline uint32_t Rm(Register rm) {
+    ASSERT(rm < 16);
+    return static_cast<uint32_t>(rm) << kRmShift;
+  }
+
+  static inline uint32_t Rn(Register rn) {
+    ASSERT(rn < 16);
+    return static_cast<uint32_t>(rn) << kRnShift;
+  }
+
+  static inline uint32_t Rs(Register rs) {
+    ASSERT(rs < 16);
+    return static_cast<uint32_t>(rs) << kRsShift;
+  }
+};
+
 // Encodes Addressing Mode 1 - Data-processing operands.
 class Operand : public ValueObject {
  public:
@@ -265,7 +288,7 @@ class Address : public ValueObject {
     } else {
       encoding_ = am | offset;
     }
-    encoding_ |= static_cast<uint32_t>(rn) << kRnShift;
+    encoding_ |= ArmEncode::Rn(rn);
   }
 
   // There is no register offset mode unless Mode is Offset, in which case the
@@ -284,7 +307,7 @@ class Address : public ValueObject {
     } else {
       kind_ = ScaledIndexRegister;
     }
-    encoding_ = o.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
+    encoding_ = o.encoding() | am | ArmEncode::Rn(rn);
   }
 
   // There is no shifted register mode with a register shift.
@@ -1020,7 +1043,7 @@ class Assembler : public ValueObject {
   void MonomorphicCheckedEntry();
 
   // The register into which the allocation stats table is loaded with
-  // LoadAllocationStatsAddress should be passed to
+  // LoadAllocationStatsAddress should be passed to MaybeTraceAllocation and
   // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
@@ -1069,9 +1092,9 @@ class Assembler : public ValueObject {
   void LoadWordUnaligned(Register dst, Register addr, Register tmp);
   void StoreWordUnaligned(Register src, Register addr, Register tmp);
 
-  // If allocation tracing for |cid| is enabled, will jump to |trace| label,
+  // If allocation tracing is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label* trace);
+  void MaybeTraceAllocation(Register stats_addr_reg, Label* trace);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

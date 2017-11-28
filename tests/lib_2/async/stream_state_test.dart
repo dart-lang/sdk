@@ -5,8 +5,9 @@
 // Test the event/callback protocol of the stream implementations.
 library stream_state_test;
 
-import "package:test/test.dart";
-import "stream_state_helper.dart";
+import 'package:unittest/unittest.dart';
+
+import 'stream_state_helper.dart';
 
 const ms5 = const Duration(milliseconds: 5);
 

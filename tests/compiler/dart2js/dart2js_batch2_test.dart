@@ -49,7 +49,7 @@ void cleanUp() {
   tmpDir.deleteSync(recursive: true);
 }
 
-Future launchDart2Js(_) {
+Future<Process> launchDart2Js(_) {
   String ext = Platform.isWindows ? '.bat' : '';
   String command = path.normalize(path.join(
       path.fromUri(Platform.script), '../../../../sdk/bin/dart2js${ext}'));
@@ -63,8 +63,8 @@ Future runTests(Process process) {
 
   process.stdin.writeln('--out="$outFile" "$inFile"');
   process.stdin.close();
-  Future<String> output = process.stdout.transform(UTF8.decoder).join();
-  Future<String> errorOut = process.stderr.transform(UTF8.decoder).join();
+  Future<String> output = process.stdout.transform(utf8.decoder).join();
+  Future<String> errorOut = process.stderr.transform(utf8.decoder).join();
   return Future.wait([output, errorOut]).then((result) {
     String stdoutOutput = result[0];
     Expect.isFalse(stdoutOutput.contains("crashed"));

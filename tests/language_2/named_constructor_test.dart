@@ -22,28 +22,28 @@ void main() {
   // 'Class.named' is not a type:
   new Class.named<int>().value; //# 01: compile-time error
   // 'Class<int>.named<int>' doesn't fit the grammar syntax T.id:
-  new Class<int>.named<int>().value; //# 02: compile-time error
+  new Class<int>.named<int>().value; //# 02: syntax error
 
   new prefix.Class().value;
   // 'prefix' is not a type:
   new prefix<int>.Class().value; //# 03: compile-time error
   new prefix.Class<int>().value;
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class<int>().value; //# 04: compile-time error
+  new prefix<int>.Class<int>().value; //# 04: syntax error
 
   new prefix.Class.named().value;
   // 'prefix<int>.Class.named' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class.named().value; //# 05: compile-time error
+  new prefix<int>.Class.named().value; //# 05: syntax error
   // 'prefix.Class<int>.named' doesn't fit the grammar syntax T.id:
   new prefix.Class<int>.named().value;
   // 'prefix.Class.named<int>' doesn't fit the grammar syntax T.id:
-  new prefix.Class.named<int>().value; //# 06: compile-time error
+  new prefix.Class.named<int>().value; //# 06: syntax error
   // 'prefix<int>.Class<int>' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class<int>.named().value; //# 07: compile-time error
+  new prefix<int>.Class<int>.named().value; //# 07: syntax error
   // 'prefix<int>.Class.named<int>' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class.named<int>().value; //# 08: compile-time error
+  new prefix<int>.Class.named<int>().value; //# 08: syntax error
   // 'prefix.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
-  new prefix.Class<int>.named<int>().value; //# 09: compile-time error
+  new prefix.Class<int>.named<int>().value; //# 09: syntax error
   // 'prefix<int>.Class<int>.named<int>' doesn't fit the grammar syntax T.id:
-  new prefix<int>.Class<int>.named<int>().value; //# 10: compile-time error
+  new prefix<int>.Class<int>.named<int>().value; //# 10: syntax error
 }

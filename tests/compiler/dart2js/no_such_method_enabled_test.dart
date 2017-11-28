@@ -237,12 +237,13 @@ main() {
 checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
   ElementEnvironment elementEnvironment =
       compiler.frontendStrategy.elementEnvironment;
-  NoSuchMethodRegistry registry = compiler.backend.noSuchMethodRegistry;
+  NoSuchMethodRegistryImpl registry = compiler.backend.noSuchMethodRegistry;
   NoSuchMethodResolver resolver = registry.internalResolverForTesting;
   FunctionEntity ObjectNSM = elementEnvironment.lookupClassMember(
       compiler.frontendStrategy.commonElements.objectClass, 'noSuchMethod');
   ClosedWorld closedWorld =
       compiler.resolutionWorldBuilder.closedWorldForTesting;
+  NoSuchMethodDataImpl data = closedWorld.noSuchMethodData;
 
   // Test [NoSuchMethodResolver] results for each method.
   for (NoSuchMethodInfo info in test.methods) {
@@ -306,11 +307,11 @@ checkTest(Compiler compiler, NoSuchMethodTest test, {bool testComplexReturns}) {
     if (testComplexReturns) {
       Expect.equals(
           info.isComplexNoReturn,
-          registry.complexNoReturnImpls.contains(noSuchMethod),
+          data.complexNoReturnImpls.contains(noSuchMethod),
           "Unexpected isComplexNoReturn result on $noSuchMethod.");
       Expect.equals(
           info.isComplexReturn,
-          registry.complexReturningImpls.contains(noSuchMethod),
+          data.complexReturningImpls.contains(noSuchMethod),
           "Unexpected isComplexReturn result on $noSuchMethod.");
     }
   }

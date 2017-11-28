@@ -285,7 +285,7 @@ abstract class ListMixin<E> implements List<E> {
     _filter(test, true);
   }
 
-  void _filter(bool test(var element), bool retainMatching) {
+  void _filter(bool test(E element), bool retainMatching) {
     List<E> retained = <E>[];
     int length = this.length;
     for (int i = 0; i < length; i++) {

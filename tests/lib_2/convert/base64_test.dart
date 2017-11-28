@@ -25,24 +25,24 @@ main() {
   testIssue25577();
 
   // Decoder is lenienet with mixed styles.
-  Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], BASE64.decode("-_+/AA%3D="));
-  Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], BASE64.decode("-_+/AA=%3D"));
+  Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], base64.decode("-_+/AA%3D="));
+  Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], base64.decode("-_+/AA=%3D"));
 }
 
 void testRoundtrip(List<int> list, String name) {
   // Direct.
-  String encodedNormal = BASE64.encode(list);
+  String encodedNormal = base64.encode(list);
   String encodedPercent = encodedNormal.replaceAll("=", "%3D");
-  String uriEncoded = BASE64URL.encode(list);
+  String uriEncoded = base64Url.encode(list);
   String expectedUriEncoded =
       encodedNormal.replaceAll("+", "-").replaceAll("/", "_");
   Expect.equals(expectedUriEncoded, uriEncoded);
 
-  List result = BASE64.decode(encodedNormal);
+  List result = base64.decode(encodedNormal);
   Expect.listEquals(list, result, name);
-  result = BASE64.decode(encodedPercent);
+  result = base64.decode(encodedPercent);
   Expect.listEquals(list, result, name);
-  result = BASE64.decode(uriEncoded);
+  result = base64.decode(uriEncoded);
   Expect.listEquals(list, result, name);
 
   int increment = list.length ~/ 7 + 1;
@@ -56,7 +56,7 @@ void testRoundtrip(List<int> list, String name) {
         var sink = new ChunkedConversionSink<String>.withCallback((v) {
           results = v;
         });
-        var encoder = BASE64.encoder.startChunkedConversion(sink);
+        var encoder = base64.encoder.startChunkedConversion(sink);
         encoder.add(list.sublist(0, i));
         encoder.add(list.sublist(i, j));
         encoder.add(list.sublist(j, list.length));
@@ -70,7 +70,7 @@ void testRoundtrip(List<int> list, String name) {
         var sink = new ChunkedConversionSink<String>.withCallback((v) {
           results = v;
         });
-        var encoder = BASE64.encoder.startChunkedConversion(sink);
+        var encoder = base64.encoder.startChunkedConversion(sink);
         encoder.addSlice(list, 0, i, false);
         encoder.addSlice(list, i, j, false);
         encoder.addSlice(list, j, list.length, true);
@@ -84,7 +84,7 @@ void testRoundtrip(List<int> list, String name) {
         var sink = new ChunkedConversionSink<String>.withCallback((v) {
           results = v;
         });
-        var encoder = BASE64URL.encoder.startChunkedConversion(sink);
+        var encoder = base64Url.encoder.startChunkedConversion(sink);
         encoder.add(list.sublist(0, i));
         encoder.add(list.sublist(i, j));
         encoder.add(list.sublist(j, list.length));
@@ -98,7 +98,7 @@ void testRoundtrip(List<int> list, String name) {
         var sink = new ChunkedConversionSink<String>.withCallback((v) {
           results = v;
         });
-        var encoder = BASE64URL.encoder.startChunkedConversion(sink);
+        var encoder = base64Url.encoder.startChunkedConversion(sink);
         encoder.addSlice(list, 0, i, false);
         encoder.addSlice(list, i, j, false);
         encoder.addSlice(list, j, list.length, true);
@@ -118,7 +118,7 @@ void testRoundtrip(List<int> list, String name) {
           var sink = new ChunkedConversionSink<List<int>>.withCallback((v) {
             results = v;
           });
-          var decoder = BASE64.decoder.startChunkedConversion(sink);
+          var decoder = base64.decoder.startChunkedConversion(sink);
           decoder.add(encoded.substring(0, i));
           decoder.add(encoded.substring(i, j));
           decoder.add(encoded.substring(j, encoded.length));
@@ -132,7 +132,7 @@ void testRoundtrip(List<int> list, String name) {
           var sink = new ChunkedConversionSink<List<int>>.withCallback((v) {
             results = v;
           });
-          var decoder = BASE64.decoder.startChunkedConversion(sink);
+          var decoder = base64.decoder.startChunkedConversion(sink);
           decoder.addSlice(encoded, 0, i, false);
           decoder.addSlice(encoded, i, j, false);
           decoder.addSlice(encoded, j, encoded.length, true);
@@ -144,26 +144,23 @@ void testRoundtrip(List<int> list, String name) {
   }
 }
 
-bool isFormatException(e) => e is FormatException;
-bool isArgumentError(e) => e is ArgumentError;
-
 void testErrors() {
   void badChunkDecode(List<String> list) {
-    Expect.throws(() {
+    Expect.throwsFormatException(() {
       var sink = new ChunkedConversionSink<List<int>>.withCallback((v) {
         Expect.fail("Should have thrown: chunk $list");
       });
-      var c = BASE64.decoder.startChunkedConversion(sink);
+      var c = base64.decoder.startChunkedConversion(sink);
       for (String string in list) {
         c.add(string);
       }
       c.close();
-    }, isFormatException, "chunk $list");
+    }, "chunk $list");
   }
 
   void badDecode(String string) {
-    Expect.throws(() => BASE64.decode(string), isFormatException, string);
-    Expect.throws(() => BASE64URL.decode(string), isFormatException, string);
+    Expect.throwsFormatException(() => base64.decode(string), string);
+    Expect.throwsFormatException(() => base64Url.decode(string), string);
     badChunkDecode([string]);
     badChunkDecode(["", string]);
     badChunkDecode([string, ""]);
@@ -233,40 +230,37 @@ void testErrors() {
   badChunkEncode(List<int> list) {
     for (int i = 0; i < list.length; i++) {
       for (int j = 0; j < list.length; j++) {
-        Expect.throws(() {
+        Expect.throwsArgumentError(() {
           var sink = new ChunkedConversionSink<String>.withCallback((v) {
             Expect.fail("Should have thrown: chunked $list");
           });
-          var c = BASE64.encoder.startChunkedConversion(sink);
+          var c = base64.encoder.startChunkedConversion(sink);
           c.add(list.sublist(0, i));
           c.add(list.sublist(i, j));
           c.add(list.sublist(j, list.length));
           c.close();
-        }, isArgumentError, "chunk $list");
+        }, "chunk $list");
       }
     }
     for (int i = 0; i < list.length; i++) {
       for (int j = 0; j < list.length; j++) {
-        Expect.throws(() {
+        Expect.throwsArgumentError(() {
           var sink = new ChunkedConversionSink<String>.withCallback((v) {
             Expect.fail("Should have thrown: chunked $list");
           });
-          var c = BASE64.encoder.startChunkedConversion(sink);
+          var c = base64.encoder.startChunkedConversion(sink);
           c.addSlice(list, 0, i, false);
           c.addSlice(list, i, j, false);
           c.addSlice(list, j, list.length, true);
-        }, isArgumentError, "chunk $list");
+        }, "chunk $list");
       }
     }
   }
 
   void badEncode(int invalid) {
-    Expect.throws(() {
-      BASE64.encode([invalid]);
-    }, isArgumentError, "$invalid");
-    Expect.throws(() {
-      BASE64.encode([0, invalid, 0]);
-    }, isArgumentError, "$invalid");
+    Expect.throwsArgumentError(() => base64.encode([invalid]), "$invalid");
+    Expect.throwsArgumentError(
+        () => base64.encode([0, invalid, 0]), "$invalid");
     badChunkEncode([invalid]);
     badChunkEncode([0, invalid]);
     badChunkEncode([0, 0, invalid]);
@@ -279,15 +273,15 @@ void testErrors() {
   badEncode(0x1000);
   badEncode(0x10000);
   badEncode(0x100000000); //         //# 01: ok
-  badEncode(0x10000000000000000); // //# 01: continued
+  badEncode(0x7000000000000000); //  //# 01: continued
 }
 
 void testIssue25577() {
   // Regression test for http://dartbug.com/25577.
   StringConversionSink decodeSink =
-      BASE64.decoder.startChunkedConversion(new TestSink<List<int>>());
+      base64.decoder.startChunkedConversion(new TestSink<List<int>>());
   ByteConversionSink encodeSink =
-      BASE64.encoder.startChunkedConversion(new TestSink<String>());
+      base64.encoder.startChunkedConversion(new TestSink<String>());
 }
 
 // Implementation of Sink<T> to test type constraints.

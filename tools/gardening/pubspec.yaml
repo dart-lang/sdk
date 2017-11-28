@@ -8,7 +8,6 @@ dependencies:
   path:
   status_file:
     path: ../../pkg/status_file/
-  archive:
   expect:
     path: ../../pkg/expect/
   testing:

@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 static field dynamic h = null;
 static method foo((core::Object) → core::int f) → void {}
-static method main() → dynamic {
+static method test() → dynamic {
   (core::Object) → core::Null f = (core::Object x) → core::Null {
     return null;
   };
   core::String y = f.call(42);
-  f = (core::Object x) → core::String => "hello";
+  f = ((core::Object x) → core::String => "hello") as{TypeError} (core::Object) → core::Null;
   self::foo((core::Object x) → core::Null {
     return null;
   });
@@ -17,3 +17,4 @@ static method main() → dynamic {
     throw "not implemented";
   });
 }
+static method main() → dynamic {}

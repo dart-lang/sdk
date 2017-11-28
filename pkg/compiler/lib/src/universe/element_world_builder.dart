@@ -21,7 +21,10 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      SelectorConstraintsStrategy selectorConstraintsStrategy)
+      NoSuchMethodRegistry noSuchMethodRegistry,
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      ClassHierarchyBuilder classHierarchyBuilder,
+      ClassQueries classQueries)
       : super(
             backend.compiler.options,
             _resolution.elementEnvironment,
@@ -34,7 +37,10 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
             backendUsageBuilder,
             rtiNeedBuilder,
             nativeResolutionEnqueuer,
-            selectorConstraintsStrategy);
+            noSuchMethodRegistry,
+            selectorConstraintsStrategy,
+            classHierarchyBuilder,
+            classQueries);
 
   bool isImplemented(ClassElement cls) {
     return super.isImplemented(cls.declaration);
@@ -127,54 +133,12 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
     return super._createClassUsage(cls);
   }
 
-  /// Called to add [cls] to the set of known classes.
-  ///
-  /// This ensures that class hierarchy queries can be performed on [cls] and
-  /// classes that extend or implement it.
-  void registerClass(ClassElement cls) => _registerClass(cls.declaration);
-
-  void _registerClass(ClassEntity cls, {bool isDirectlyInstantiated: false}) {
-    _ensureClassSet(cls);
-    if (isDirectlyInstantiated) {
-      _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
-    }
-  }
-
   void _processInstantiatedClassMember(
       ClassEntity cls, MemberElement member, MemberUsedCallback memberUsed) {
     assert(member.isDeclaration, failedAt(member));
     member.computeType(_resolution);
     super._processInstantiatedClassMember(cls, member, memberUsed);
   }
-
-  @override
-  ClassEntity getAppliedMixin(ClassElement cls) {
-    if (cls.isMixinApplication) {
-      MixinApplicationElement mixinApplication = cls;
-      // Note: If [mixinApplication] is malformed [mixin] is `null`.
-      return mixinApplication.mixin;
-    }
-    return null;
-  }
-
-  @override
-  int getHierarchyDepth(ClassElement cls) => cls.hierarchyDepth;
-
-  @override
-  bool checkClass(ClassElement cls) => cls.isDeclaration;
-
-  @override
-  bool validateClass(ClassElement cls) => cls.isResolved;
-
-  @override
-  bool implementsFunction(ClassElement cls) =>
-      cls.implementsFunction(_commonElements);
-
-  @override
-  ClassEntity getSuperClass(ClassElement cls) => cls.superclass;
-
-  @override
-  Iterable<InterfaceType> getSupertypes(ClassElement cls) => cls.allSupertypes;
 
   ClosedWorld closeWorld() {
     Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses =
@@ -190,6 +154,7 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         nativeData: _nativeDataBuilder.close(),
         interceptorData: _interceptorDataBuilder.close(),
         backendUsage: _backendUsageBuilder.close(),
+        noSuchMethodData: _noSuchMethodRegistry.close(),
         resolutionWorldBuilder: this,
         rtiNeedBuilder: _rtiNeedBuilder,
         implementedClasses: _implementedClasses,
@@ -198,17 +163,10 @@ class ElementResolutionWorldBuilder extends ResolutionWorldBuilderBase {
         assignedInstanceMembers: computeAssignedInstanceMembers(),
         processedMembers: _processedMembers,
         allTypedefs: _allTypedefs,
-        mixinUses: _mixinUses,
+        mixinUses: classHierarchyBuilder.mixinUses,
         typesImplementedBySubclasses: typesImplementedBySubclasses,
-        classHierarchyNodes: _classHierarchyNodes,
-        classSets: _classSets);
-  }
-
-  @override
-  void registerMixinUse(
-      MixinApplicationElement mixinApplication, ClassElement mixin) {
-    assert(mixin.isDeclaration);
-    super.registerMixinUse(mixinApplication, mixin);
+        classHierarchyNodes: classHierarchyBuilder.classHierarchyNodes,
+        classSets: classHierarchyBuilder.classSets);
   }
 
   @override

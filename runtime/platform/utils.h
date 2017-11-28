@@ -103,7 +103,39 @@ class Utils {
   }
 
   static uintptr_t RoundUpToPowerOfTwo(uintptr_t x);
-  static int CountOneBits(uint32_t x);
+
+  static int CountOneBits32(uint32_t x) {
+#ifdef _MSC_VER
+    return __popcnt(x);
+#elif __GNUC__
+    return __builtin_popcount(x);
+#else
+#error CountOneBits32 not implemented for this compiler
+#endif
+  }
+
+  static int CountOneBits64(uint64_t x) {
+#ifdef _MSC_VER
+#ifdef ARCH_IS_64_BIT
+    return __popcnt64(x);
+#else
+    return CountOneBits32(static_cast<uint32_t>(x)) +
+           CountOneBits32(static_cast<uint32_t>(x >> 32));
+#endif
+#elif __GNUC__
+    return __builtin_popcountll(x);
+#else
+#error CountOneBits64 not implemented for this compiler
+#endif
+  }
+
+  static int CountOneBitsWord(uword x) {
+#ifdef ARCH_IS_64_BIT
+    return CountOneBits64(x);
+#else
+    return CountOneBits32(x);
+#endif
+  }
 
   static int HighestBit(int64_t v);
 
@@ -261,6 +293,30 @@ class Utils {
   // represent anything in the range -2^53 ... 2^53.
   static bool IsJavascriptInt(int64_t value) {
     return ((-0x20000000000000LL <= value) && (value <= 0x20000000000000LL));
+  }
+
+  // The lowest n bits are 1, the others are 0.
+  static uword NBitMask(uint32_t n) {
+    ASSERT(n <= kBitsPerWord);
+    if (n == kBitsPerWord) {
+#if defined(TARGET_ARCH_X64)
+      return 0xffffffffffffffffll;
+#else
+      return 0xffffffff;
+#endif
+    }
+    return (1ll << n) - 1;
+  }
+
+  static word SignedNBitMask(uint32_t n) {
+    uword mask = NBitMask(n);
+    return bit_cast<word>(mask);
+  }
+
+  static uword Bit(uint32_t n) {
+    ASSERT(n < kBitsPerWord);
+    uword bit = 1;
+    return bit << n;
   }
 
   static char* StrError(int err, char* buffer, size_t bufsize);

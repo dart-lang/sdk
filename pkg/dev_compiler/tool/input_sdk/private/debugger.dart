@@ -12,6 +12,8 @@ import 'dart:collection';
 import 'dart:html' as html;
 import 'dart:math';
 
+part 'profile.dart';
+
 /// JsonMLConfig object to pass to devtools to specify how an Object should
 /// be displayed. skipDart signals that an object should not be formatted
 /// by the Dart formatter. This is used to specify that an Object
@@ -34,6 +36,9 @@ class JsonMLConfig {
 
 int _maxSpanLength = 100;
 var _devtoolsFormatter = new JsonMLFormatter(new DartFormatter());
+
+/// We truncate a toString() longer than [maxStringLength].
+int maxFormatterStringLength = 100;
 
 String _typeof(object) => JS('String', 'typeof #', object);
 
@@ -70,8 +75,8 @@ void addPropertiesFromSignature(
   // the debugger output.
   // TODO(jacobr): consider adding runtimeType to this list.
   var skippedNames = new Set()..add('hashCode');
-
-  while (sig != null) {
+  var objectPrototype = JS('', 'Object.prototype');
+  while (sig != null && !identical(sig, objectPrototype)) {
     for (var symbol in getOwnPropertySymbols(sig)) {
       var dartName = symbolName(symbol);
       String dartXPrefix = 'dartx.';
@@ -520,7 +525,29 @@ class DartFormatter {
 class ObjectFormatter extends Formatter {
   bool accept(object, config) => !isNativeJavaScriptObject(object);
 
-  String preview(object) => getObjectTypeName(object);
+  String preview(object) {
+    var typeName = getObjectTypeName(object);
+    try {
+      // An explicit toString() call might not actually be a string. This way
+      // we're sure.
+      var toString = "$object";
+      if (toString.length > maxFormatterStringLength) {
+        toString = toString.substring(0, maxFormatterStringLength - 3) + "...";
+      }
+      // The default toString() will be "Instance of 'Foo'", in which case we
+      // don't need any further indication of the class.
+      if (toString.contains(typeName)) {
+        return toString;
+      } else {
+        // If there's no class indication, e.g. an Int64 that just prints as a
+        // number, then add the class name.
+        return "$toString ($typeName)";
+      }
+    } catch (e) {}
+    // We will only get here if there was an error getting the toString, in
+    // which case we just use the type name.
+    return typeName;
+  }
 
   bool hasChildren(object) => true;
 
@@ -529,10 +556,8 @@ class ObjectFormatter extends Formatter {
     var ret = new LinkedHashSet<NameValuePair>();
     // We use a Set rather than a List to avoid duplicates.
     var properties = new Set<NameValuePair>();
-    addPropertiesFromSignature(
-        dart.getFieldSig(type), properties, object, true);
-    addPropertiesFromSignature(
-        dart.getGetterSig(type), properties, object, true);
+    addPropertiesFromSignature(dart.getFields(type), properties, object, true);
+    addPropertiesFromSignature(dart.getGetters(type), properties, object, true);
     ret.addAll(sortProperties(properties));
     addMetadataChildren(object, ret);
     return ret.toList();
@@ -801,12 +826,12 @@ class ClassFormatter implements Formatter {
     var staticMethods = new Set<NameValuePair>();
     // Static fields and properties.
     addPropertiesFromSignature(
-        dart.getStaticFieldSig(type), staticProperties, type, false);
+        dart.getStaticFields(type), staticProperties, type, false);
     addPropertiesFromSignature(
-        dart.getStaticGetterSig(type), staticProperties, type, false);
+        dart.getStaticGetters(type), staticProperties, type, false);
     // static methods.
     addPropertiesFromSignature(
-        dart.getStaticSig(type), staticMethods, type, false);
+        dart.getStaticMethods(type), staticMethods, type, false);
 
     if (staticProperties.isNotEmpty || staticMethods.isNotEmpty) {
       ret
@@ -818,7 +843,7 @@ class ClassFormatter implements Formatter {
     // instance methods.
     var instanceMethods = new Set<NameValuePair>();
     // Instance methods are defined on the prototype not the constructor object.
-    addPropertiesFromSignature(dart.getMethodSig(type), instanceMethods,
+    addPropertiesFromSignature(dart.getMethods(type), instanceMethods,
         JS('', '#.prototype', type), false,
         tagTypes: true);
     if (instanceMethods.isNotEmpty) {
@@ -828,10 +853,11 @@ class ClassFormatter implements Formatter {
     }
 
     var typeName = getTypeName(type);
-    var mixins = dart.getMixins(type);
-    if (mixins != null && mixins.isNotEmpty) {
+    var mixin = dart.getMixin(type);
+    if (mixin != null) {
+      // TODO(jmesserly): this can only be one value.
       ret.add(new NameValuePair(
-          name: '[[Mixins]]', value: new HeritageClause('mixins', mixins)));
+          name: '[[Mixins]]', value: new HeritageClause('mixins', [mixin])));
     }
 
     var baseProto = JS('', '#.__proto__', type);

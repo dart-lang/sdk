@@ -15,6 +15,8 @@ import '../problems.dart' show unhandled;
 
 import 'fasta_accessors.dart' show BuilderHelper;
 
+import 'kernel_builder.dart' show LoadLibraryBuilder;
+
 import 'kernel_shadow_ast.dart'
     show
         ShadowArguments,
@@ -296,6 +298,9 @@ class ThisPropertyAccessor extends Accessor {
       : super(helper, token);
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    if (getter == null) {
+      helper.warnUnresolvedGet(name, offsetForToken(token));
+    }
     var read = new ShadowPropertyGet(new ShadowThisExpression(), name, getter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.read = read;
@@ -304,6 +309,9 @@ class ThisPropertyAccessor extends Accessor {
 
   Expression _makeWrite(Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
+    if (setter == null) {
+      helper.warnUnresolvedSet(name, offsetForToken(token));
+    }
     var write = new PropertySet(new ShadowThisExpression(), name, value, setter)
       ..fileOffset = offsetForToken(token);
     complexAssignment?.write = write;
@@ -369,7 +377,7 @@ class SuperPropertyAccessor extends Accessor {
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (getter == null) {
-      helper.warnUnresolvedSuperGet(name, offsetForToken(token));
+      helper.warnUnresolvedGet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertyGet] when possible.
     var read = new ShadowSuperPropertyGet(name, getter)
@@ -381,7 +389,7 @@ class SuperPropertyAccessor extends Accessor {
   Expression _makeWrite(Expression value, bool voidContext,
       ShadowComplexAssignment complexAssignment) {
     if (setter == null) {
-      helper.warnUnresolvedSuperSet(name, offsetForToken(token));
+      helper.warnUnresolvedSet(name, offsetForToken(token), isSuper: true);
     }
     // TODO(ahe): Use [DirectPropertySet] when possible.
     var write = new SuperPropertySet(name, value, setter)
@@ -508,7 +516,8 @@ class ThisIndexAccessor extends Accessor {
   Expression _makeSimpleRead() {
     return new ShadowMethodInvocation(new ShadowThisExpression(), indexGetName,
         new ShadowArguments(<Expression>[index]),
-        interfaceTarget: getter);
+        interfaceTarget: getter)
+      ..fileOffset = offsetForToken(token);
   }
 
   Expression _makeSimpleWrite(Expression value, bool voidContext,
@@ -585,7 +594,8 @@ class SuperIndexAccessor extends Accessor {
 
   Expression _makeSimpleRead() {
     if (getter == null) {
-      helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexGetName, offsetForToken(token),
+          isSuper: true);
     }
     // TODO(ahe): Use [DirectMethodInvocation] when possible.
     return new ShadowSuperMethodInvocation(
@@ -597,7 +607,8 @@ class SuperIndexAccessor extends Accessor {
       ShadowComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     if (setter == null) {
-      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
     }
     var write = new SuperMethodInvocation(
         indexSetName, new ShadowArguments(<Expression>[index, value]), setter)
@@ -608,7 +619,8 @@ class SuperIndexAccessor extends Accessor {
 
   Expression _makeRead(ShadowComplexAssignment complexAssignment) {
     if (getter == null) {
-      helper.warnUnresolvedSuperMethod(indexGetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexGetName, offsetForToken(token),
+          isSuper: true);
     }
     var read = new SuperMethodInvocation(
         indexGetName, new ShadowArguments(<Expression>[indexAccess()]), getter)
@@ -621,7 +633,8 @@ class SuperIndexAccessor extends Accessor {
       ShadowComplexAssignment complexAssignment) {
     if (!voidContext) return _makeWriteAndReturn(value, complexAssignment);
     if (setter == null) {
-      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
     }
     var write = new SuperMethodInvocation(indexSetName,
         new ShadowArguments(<Expression>[indexAccess(), value]), setter)
@@ -634,7 +647,8 @@ class SuperIndexAccessor extends Accessor {
       Expression value, ShadowComplexAssignment complexAssignment) {
     var valueVariable = new VariableDeclaration.forValue(value);
     if (setter == null) {
-      helper.warnUnresolvedSuperMethod(indexSetName, offsetForToken(token));
+      helper.warnUnresolvedMethod(indexSetName, offsetForToken(token),
+          isSuper: true);
     }
     var write = new SuperMethodInvocation(
         indexSetName,
@@ -686,6 +700,26 @@ class StaticAccessor extends Accessor {
   }
 }
 
+abstract class LoadLibraryAccessor extends Accessor {
+  final LoadLibraryBuilder builder;
+
+  LoadLibraryAccessor(BuilderHelper helper, Token token, this.builder)
+      : super(helper, token);
+
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) {
+    var read = helper.makeStaticGet(builder.createTearoffMethod(), token);
+    complexAssignment?.read = read;
+    return read;
+  }
+
+  Expression _makeWrite(Expression value, bool voidContext,
+      ShadowComplexAssignment complexAssignment) {
+    Expression write = makeInvalidWrite(value);
+    write.fileOffset = offsetForToken(token);
+    return write;
+  }
+}
+
 class ReadOnlyAccessor extends Accessor {
   Expression expression;
   VariableDeclaration value;
@@ -701,8 +735,11 @@ class ReadOnlyAccessor extends Accessor {
   }
 
   Expression _makeWrite(Expression value, bool voidContext,
-          ShadowComplexAssignment complexAssignment) =>
-      makeInvalidWrite(value);
+      ShadowComplexAssignment complexAssignment) {
+    var write = makeInvalidWrite(value);
+    complexAssignment?.write = write;
+    return write;
+  }
 
   Expression _finish(
           Expression body, ShadowComplexAssignment complexAssignment) =>

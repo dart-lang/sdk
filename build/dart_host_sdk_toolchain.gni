@@ -1,0 +1,16 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# dart_host_toolchain should be used in the Dart tree instead of host_toolchain.
+# It will ensure that we are selecting the correct host toolchain.
+dart_host_toolchain = host_toolchain
+
+# Config variable: dart_host_sdk_toolchain
+# In a cross-build, this should be set to the toolchain to use to build a Dart
+# SDK to run on the host that targets the host. This is distinct from
+# 'host_toolchain', which in a cross-build builds artifacts to run on the host
+# that target the target architecture.
+if (defined(dart_host_sdk_toolchain) && current_toolchain == dart_host_sdk_toolchain) {
+  dart_host_toolchain = dart_host_sdk_toolchain
+}

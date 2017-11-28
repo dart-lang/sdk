@@ -64,7 +64,7 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     types_.Add(NULL);
   }
 
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     asserts_ = new ZoneGrowableArray<AssertAssignableInstr*>(
         flow_graph->current_ssa_temp_index());
     for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {
@@ -624,6 +624,10 @@ CompileType CompileType::Smi() {
   return Create(kSmiCid, Type::ZoneHandle(Type::SmiType()));
 }
 
+CompileType CompileType::Double() {
+  return Create(kDoubleCid, Type::ZoneHandle(Type::Double()));
+}
+
 CompileType CompileType::String() {
   return FromAbstractType(Type::ZoneHandle(Type::StringType()), kNonNullable);
 }
@@ -1043,11 +1047,20 @@ CompileType InstanceCallInstr::ComputeType() const {
   if (FLAG_experimental_strong_mode) {
     const Function& target = interface_target();
     if (!target.IsNull()) {
-      // TODO(dartbug.com/30480): instantiate generic result_type
       const AbstractType& result_type =
           AbstractType::ZoneHandle(target.result_type());
-      TraceStrongModeType(this, result_type);
-      return CompileType::FromAbstractType(result_type);
+      // Currently VM doesn't have enough information to instantiate generic
+      // result types of interface targets:
+      // 1. receiver type inferred by the front-end is not passed to VM.
+      // 2. VM collects type arguments through the chain of superclasses but
+      // not through implemented interfaces.
+      // So treat non-instantiated generic types as dynamic to avoid pretending
+      // the type is known.
+      // TODO(dartbug.com/30480): instantiate generic result_type
+      if (result_type.IsInstantiated()) {
+        TraceStrongModeType(this, result_type);
+        return CompileType::FromAbstractType(result_type);
+      }
     }
   }
 
@@ -1299,150 +1312,16 @@ CompileType DoubleTestOpInstr::ComputeType() const {
   return CompileType::FromCid(kBoolCid);
 }
 
-CompileType BinaryFloat32x4OpInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
+static const intptr_t simd_op_result_cids[] = {
+#define kInt8Cid kSmiCid
+#define CASE(Arity, Mask, Name, Args, Result) k##Result##Cid,
+    SIMD_OP_LIST(CASE, CASE)
+#undef CASE
+#undef kWordCid
+};
 
-CompileType Simd32x4ShuffleInstr::ComputeType() const {
-  if ((op_kind() == MethodRecognizer::kFloat32x4ShuffleX) ||
-      (op_kind() == MethodRecognizer::kFloat32x4ShuffleY) ||
-      (op_kind() == MethodRecognizer::kFloat32x4ShuffleZ) ||
-      (op_kind() == MethodRecognizer::kFloat32x4ShuffleW)) {
-    return CompileType::FromCid(kDoubleCid);
-  }
-  if ((op_kind() == MethodRecognizer::kInt32x4Shuffle)) {
-    return CompileType::FromCid(kInt32x4Cid);
-  }
-  ASSERT((op_kind() == MethodRecognizer::kFloat32x4Shuffle));
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Simd32x4ShuffleMixInstr::ComputeType() const {
-  if (op_kind() == MethodRecognizer::kInt32x4ShuffleMix) {
-    return CompileType::FromCid(kInt32x4Cid);
-  }
-  ASSERT((op_kind() == MethodRecognizer::kFloat32x4ShuffleMix));
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Simd32x4GetSignMaskInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType Float32x4ConstructorInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4ZeroInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4SplatInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4ComparisonInstr::ComputeType() const {
-  return CompileType::FromCid(kInt32x4Cid);
-}
-
-CompileType Float32x4MinMaxInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4ScaleInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4SqrtInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4ZeroArgInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4ClampInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4WithInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float32x4ToInt32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kInt32x4Cid);
-}
-
-CompileType Simd64x2ShuffleInstr::ComputeType() const {
-  if ((op_kind() == MethodRecognizer::kFloat64x2GetX) ||
-      (op_kind() == MethodRecognizer::kFloat64x2GetY)) {
-    return CompileType::FromCid(kDoubleCid);
-  }
-  UNREACHABLE();
-  return CompileType::FromCid(kDoubleCid);
-}
-
-CompileType Float64x2ZeroInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat64x2Cid);
-}
-
-CompileType Float64x2SplatInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat64x2Cid);
-}
-
-CompileType Float64x2ConstructorInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat64x2Cid);
-}
-
-CompileType Float32x4ToFloat64x2Instr::ComputeType() const {
-  return CompileType::FromCid(kFloat64x2Cid);
-}
-
-CompileType Float64x2ToFloat32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Float64x2ZeroArgInstr::ComputeType() const {
-  if (op_kind() == MethodRecognizer::kFloat64x2GetSignMask) {
-    return CompileType::Int();
-  }
-  return CompileType::FromCid(kFloat64x2Cid);
-}
-
-CompileType Float64x2OneArgInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat64x2Cid);
-}
-
-CompileType Int32x4ConstructorInstr::ComputeType() const {
-  return CompileType::FromCid(kInt32x4Cid);
-}
-
-CompileType Int32x4BoolConstructorInstr::ComputeType() const {
-  return CompileType::FromCid(kInt32x4Cid);
-}
-
-CompileType Int32x4GetFlagInstr::ComputeType() const {
-  return CompileType::FromCid(kBoolCid);
-}
-
-CompileType Int32x4SelectInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType Int32x4SetFlagInstr::ComputeType() const {
-  return CompileType::FromCid(kInt32x4Cid);
-}
-
-CompileType Int32x4ToFloat32x4Instr::ComputeType() const {
-  return CompileType::FromCid(kFloat32x4Cid);
-}
-
-CompileType BinaryInt32x4OpInstr::ComputeType() const {
-  return CompileType::FromCid(kInt32x4Cid);
-}
-
-CompileType BinaryFloat64x2OpInstr::ComputeType() const {
-  return CompileType::FromCid(kFloat64x2Cid);
+CompileType SimdOpInstr::ComputeType() const {
+  return CompileType::FromCid(simd_op_result_cids[kind()]);
 }
 
 CompileType MathUnaryInstr::ComputeType() const {

@@ -271,7 +271,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
 
   int get length => _nodeList.length;
 
-  E operator [](int index) => _downcast/*<Node, E>*/(_nodeList[index]);
+  E operator [](int index) => _nodeList[index];
 
   void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
@@ -289,11 +289,11 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  E get first => _downcast/*<Node, E>*/(_nodeList.first);
+  E get first => _nodeList.first;
 
-  E get last => _downcast/*<Node, E>*/(_nodeList.last);
+  E get last => _nodeList.last;
 
-  E get single => _downcast/*<Node, E>*/(_nodeList.single);
+  E get single => _nodeList.single;
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 

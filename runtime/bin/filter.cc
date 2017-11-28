@@ -246,6 +246,10 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
   } else {
     uint8_t* io_buffer;
     Dart_Handle result = IOBuffer::Allocate(read, &io_buffer);
+    if (Dart_IsNull(result)) {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      return;
+    }
     memmove(io_buffer, filter->processed_buffer(), read);
     Dart_SetReturnValue(args, result);
   }

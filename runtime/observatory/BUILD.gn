@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("../../build/dart_host_sdk_toolchain.gni")
 import("../../build/executable_suffix.gni")
 import("../../build/prebuilt_dart_sdk.gni")
-import("../../build/dart_host_toolchain.gni")
 import("observatory_sources.gni")
 
 # Construct arguments to the observatory tool for finding pub.

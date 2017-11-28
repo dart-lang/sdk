@@ -9,10 +9,12 @@
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/dart_api_impl.h"
+#include "vm/flags.h"
 #include "vm/kernel_binary.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/service_isolate.h"
 #include "vm/symbols.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -23,6 +25,8 @@ namespace kernel {
 #define I (isolate_)
 #define T (builder_.type_translator_)
 #define H (translation_helper_)
+
+static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
 
 class SimpleExpressionConverter {
  public:
@@ -122,28 +126,146 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
   return loader_->LookupClass(klass).raw();
 }
 
+LibraryIndex::LibraryIndex(const TypedData& kernel_data)
+    : reader_(kernel_data) {
+  intptr_t data_size = reader_.size();
+
+  procedure_count_ = reader_.ReadUInt32At(data_size - 4);
+  procedure_index_offset_ = data_size - 4 - (procedure_count_ + 1) * 4;
+
+  class_count_ = reader_.ReadUInt32At(procedure_index_offset_ - 4);
+  class_index_offset_ = procedure_index_offset_ - 4 - (class_count_ + 1) * 4;
+}
+
+ClassIndex::ClassIndex(const uint8_t* buffer,
+                       intptr_t buffer_size,
+                       intptr_t class_offset,
+                       intptr_t class_size)
+    : reader_(buffer, buffer_size) {
+  Init(class_offset, class_size);
+}
+
+ClassIndex::ClassIndex(const TypedData& library_kernel_data,
+                       intptr_t class_offset,
+                       intptr_t class_size)
+    : reader_(library_kernel_data) {
+  Init(class_offset, class_size);
+}
+
+void ClassIndex::Init(intptr_t class_offset, intptr_t class_size) {
+  procedure_count_ = reader_.ReadUInt32At(class_offset + class_size - 4);
+  procedure_index_offset_ =
+      class_offset + class_size - 4 - (procedure_count_ + 1) * 4;
+}
+
 KernelLoader::KernelLoader(Program* program)
     : program_(program),
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       isolate_(thread_->isolate()),
-      scripts_(Array::ZoneHandle(zone_)),
+      is_service_isolate_(ServiceIsolate::NameEquals(I->name())),
       patch_classes_(Array::ZoneHandle(zone_)),
+      library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
+      correction_offset_(-1),      // Set to the correct value in LoadLibrary
+      loading_native_wrappers_library_(false),
+      library_kernel_data_(TypedData::ZoneHandle(zone_)),
+      kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
       translation_helper_(this, thread_),
       builder_(&translation_helper_,
                zone_,
                program_->kernel_data(),
-               program_->kernel_data_size()) {
+               program_->kernel_data_size(),
+               0),
+      external_name_class_(Class::Handle(Z)),
+      external_name_field_(Field::Handle(Z)),
+      potential_natives_(GrowableObjectArray::Handle(Z)) {
+  if (!program->is_single_program()) {
+    FATAL(
+        "Trying to load a concatenated dill file at a time where that is "
+        "not allowed");
+  }
   T.active_class_ = &active_class_;
   T.finalize_ = false;
 
-  scripts_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
-  patch_classes_ = Array::New(builder_.SourceTableSize(), Heap::kOld);
+  initialize_fields();
+}
+
+Object& KernelLoader::LoadEntireProgram(Program* program) {
+  if (program->is_single_program()) {
+    KernelLoader loader(program);
+    return loader.LoadProgram();
+  } else {
+    kernel::Reader reader(program->kernel_data(), program->kernel_data_size());
+    GrowableArray<intptr_t> subprogram_file_starts;
+    index_programs(&reader, &subprogram_file_starts);
+
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    Library& library = Library::Handle(zone);
+    // Create "fake programs" for each sub-program.
+    intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+    for (intptr_t i = 0; i < subprogram_count; ++i) {
+      intptr_t subprogram_start = subprogram_file_starts.At(i);
+      intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+      reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+      reader.set_size(subprogram_end - subprogram_start);
+      reader.set_offset(0);
+      Program* subprogram = Program::ReadFrom(&reader, false);
+      ASSERT(subprogram->is_single_program());
+      KernelLoader loader(subprogram);
+      Object& load_result = loader.LoadProgram(false);
+      if (load_result.IsError()) return load_result;
+
+      if (library.IsNull() && load_result.IsLibrary()) {
+        library ^= load_result.raw();
+      }
+
+      delete subprogram;
+    }
+
+    if (!ClassFinalizer::ProcessPendingClasses()) {
+      // Class finalization failed -> sticky error would be set.
+      Error& error = Error::Handle(zone);
+      error = thread->sticky_error();
+      thread->clear_sticky_error();
+      return error;
+    }
+
+    return library;
+  }
+}
+
+void KernelLoader::index_programs(
+    kernel::Reader* reader,
+    GrowableArray<intptr_t>* subprogram_file_starts) {
+  // Dill files can be concatenated (e.g. cat a.dill b.dill > c.dill), so we
+  // need to first index the (possibly combined) file.
+  // First entry becomes last entry.
+  // Last entry is for ease of calculating size of last subprogram.
+  subprogram_file_starts->Add(reader->size());
+  reader->set_offset(reader->size() - 4);
+  while (reader->offset() > 0) {
+    intptr_t size = reader->ReadUInt32();
+    intptr_t start = reader->offset() - size;
+    if (start < 0) {
+      FATAL("Invalid kernel binary: Indicated size is invalid.");
+    }
+    subprogram_file_starts->Add(start);
+    reader->set_offset(start - 4);
+  }
+  subprogram_file_starts->Reverse();
+}
+
+void KernelLoader::initialize_fields() {
+  const intptr_t source_table_size = builder_.SourceTableSize();
+  const Array& scripts =
+      Array::Handle(Z, Array::New(source_table_size, Heap::kOld));
+  patch_classes_ = Array::New(source_table_size, Heap::kOld);
 
   // Copy the Kernel string offsets out of the binary and into the VM's heap.
-  ASSERT(program->string_table_offset() >= 0);
-  Reader reader(program->kernel_data(), program->kernel_data_size());
-  reader.set_offset(program->string_table_offset());
+  ASSERT(program_->string_table_offset() >= 0);
+  Reader reader(program_->kernel_data(), program_->kernel_data_size());
+  reader.set_offset(program_->string_table_offset());
   intptr_t count = reader.ReadUInt() + 1;
   TypedData& offsets = TypedData::Handle(
       Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
@@ -155,12 +277,13 @@ KernelLoader::KernelLoader(Program* program)
   }
 
   // Copy the string data out of the binary and into the VM's heap.
-  TypedData& data =
-      reader.CopyDataToVMHeap(Z, reader.offset(), reader.offset() + end_offset);
+  TypedData& data = TypedData::Handle(
+      Z, TypedData::New(kTypedDataUint8ArrayCid, end_offset, Heap::kOld));
+  reader.CopyDataToVMHeap(data, reader.offset(), end_offset);
 
   // Copy the canonical names into the VM's heap.  Encode them as unsigned, so
   // the parent indexes are adjusted when extracted.
-  reader.set_offset(program->name_table_offset());
+  reader.set_offset(program_->name_table_offset());
   count = reader.ReadUInt() * 2;
   TypedData& names = TypedData::Handle(
       Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
@@ -168,39 +291,198 @@ KernelLoader::KernelLoader(Program* program)
     names.SetUint32(i << 2, reader.ReadUInt());
   }
 
-  H.SetStringOffsets(offsets);
-  H.SetStringData(data);
-  H.SetCanonicalNames(names);
+  // Metadata mappings immediately follow names table.
+  const intptr_t metadata_mappings_start = reader.offset();
+
+  // Copy metadata payloads into the VM's heap
+  // TODO(alexmarkov): add more info to program index instead of guessing
+  // the end of metadata payloads by offsets of the libraries.
+  intptr_t metadata_payloads_end = program_->source_table_offset();
+  for (intptr_t i = 0; i < program_->library_count(); ++i) {
+    metadata_payloads_end =
+        Utils::Minimum(metadata_payloads_end, library_offset(i));
+  }
+  ASSERT(metadata_payloads_end >= MetadataPayloadOffset);
+  const intptr_t metadata_payloads_size =
+      metadata_payloads_end - MetadataPayloadOffset;
+  TypedData& metadata_payloads =
+      TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
+                                          metadata_payloads_size, Heap::kOld));
+  reader.CopyDataToVMHeap(metadata_payloads, MetadataPayloadOffset,
+                          metadata_payloads_size);
+
+  // Copy metadata mappings into the VM's heap
+  const intptr_t metadata_mappings_size =
+      program_->string_table_offset() - metadata_mappings_start;
+  TypedData& metadata_mappings =
+      TypedData::Handle(Z, TypedData::New(kTypedDataUint8ArrayCid,
+                                          metadata_mappings_size, Heap::kOld));
+  reader.CopyDataToVMHeap(metadata_mappings, metadata_mappings_start,
+                          metadata_mappings_size);
+
+  kernel_program_info_ = KernelProgramInfo::New(
+      offsets, data, names, metadata_payloads, metadata_mappings, scripts);
+
+  H.InitFromKernelProgramInfo(kernel_program_info_);
+
+  Script& script = Script::Handle(Z);
+  for (intptr_t index = 0; index < source_table_size; ++index) {
+    script = LoadScriptAt(index);
+    scripts.SetAt(index, script);
+  }
 }
 
-Object& KernelLoader::LoadProgram() {
-  LongJumpScope jump;
-  if (setjmp(*jump.Set()) == 0) {
-    intptr_t length = program_->library_count();
-    for (intptr_t i = 0; i < length; i++) {
-      LoadLibrary(library_offset(i));
-    }
+KernelLoader::KernelLoader(const Script& script,
+                           const TypedData& kernel_data,
+                           intptr_t data_program_offset)
+    : program_(NULL),
+      thread_(Thread::Current()),
+      zone_(thread_->zone()),
+      isolate_(thread_->isolate()),
+      patch_classes_(Array::ZoneHandle(zone_)),
+      library_kernel_offset_(data_program_offset),
+      correction_offset_(0),
+      loading_native_wrappers_library_(false),
+      library_kernel_data_(TypedData::ZoneHandle(zone_)),
+      kernel_program_info_(
+          KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
+      translation_helper_(this, thread_),
+      builder_(&translation_helper_, script.raw(), zone_, kernel_data, 0),
+      external_name_class_(Class::Handle(Z)),
+      external_name_field_(Field::Handle(Z)),
+      potential_natives_(GrowableObjectArray::Handle(Z)) {
+  T.active_class_ = &active_class_;
+  T.finalize_ = false;
 
-    for (intptr_t i = 0; i < length; i++) {
-      Library& library = LookupLibrary(library_canonical_name(i));
-      if (!library.Loaded()) library.SetLoaded();
-    }
+  const Array& scripts = Array::Handle(Z, kernel_program_info_.scripts());
+  patch_classes_ = Array::New(scripts.Length(), Heap::kOld);
+  library_kernel_data_ = kernel_data.raw();
 
-    if (ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
-      // If 'main' is not found return a null library, this is the case
-      // when bootstrapping is in progress.
-      NameIndex main = program_->main_method();
-      if (main == -1) {
-        return Library::Handle(Z);
+  H.InitFromKernelProgramInfo(kernel_program_info_);
+}
+
+const Array& KernelLoader::ReadConstantTable() {
+  // We use the very first library's toplevel class as an owner for an
+  // [ActiveClassScope]
+  //
+  // Though since constants cannot refer to types containing type parameter
+  // references, the only purpose of the class is to serve as an owner for
+  // signature functions (which get created for function types).
+  const dart::Library& owner_library = LookupLibrary(library_canonical_name(0));
+  const dart::Class& toplevel_class =
+      Class::Handle(Z, owner_library.toplevel_class());
+  ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
+
+  builder_.SetOffset(program_->constant_table_offset());
+  StreamingDartTypeTranslator type_translator_(&builder_, true /* finalize */);
+  type_translator_.active_class_ = &active_class_;
+
+  ConstantHelper helper(&active_class_, &builder_, &type_translator_,
+                        &translation_helper_, Z, skip_vmservice_library_);
+  return helper.ReadConstantTable();
+}
+
+void KernelLoader::AnnotateNativeProcedures(const Array& constant_table) {
+  potential_natives_ = kernel_program_info_.potential_natives();
+  const intptr_t length =
+      !potential_natives_.IsNull() ? potential_natives_.Length() : 0;
+  if (length > 0) {
+    // Obtain `dart:_internal::ExternalName.name`.
+    EnsureExternalClassIsLookedUp();
+    Instance& constant = Instance::Handle(Z);
+    String& native_name = String::Handle(Z);
+
+    // Start scanning all candidates in [potential_natives] for the annotation
+    // constant.  If the annotation is found, flag the [Function] as native and
+    // attach the native name to it.
+    Function& function = Function::Handle(Z);
+    for (intptr_t i = 0; i < length; ++i) {
+      function ^= potential_natives_.At(i);
+      builder_.SetOffset(function.KernelDataProgramOffset() +
+                         function.kernel_offset());
+      {
+        ProcedureHelper procedure_helper(&builder_);
+        procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
       }
 
-      NameIndex main_library = H.EnclosingName(main);
-      Library& library = LookupLibrary(main_library);
-      // Sanity check that we can find the main entrypoint.
-      ASSERT(library.LookupObjectAllowPrivate(H.DartSymbol("main")) !=
-             Object::null());
-      return library;
+      const intptr_t annotation_count = builder_.ReadListLength();
+      for (intptr_t j = 0; j < annotation_count; ++j) {
+        const intptr_t tag = builder_.PeekTag();
+        if (tag == kConstantExpression) {
+          builder_.ReadByte();  // Skip the tag.
+
+          // We have a candiate.  Let's look if it's an instance of the
+          // ExternalName class.
+          const intptr_t constant_table_index = builder_.ReadUInt();
+          constant ^= constant_table.At(constant_table_index);
+          if (constant.clazz() == external_name_class_.raw()) {
+            // We found the annotation, let's flag the function as native and
+            // set the native name!
+            native_name ^= constant.GetField(external_name_field_);
+            function.set_is_native(true);
+            function.set_native_name(native_name);
+            break;
+          }
+        } else {
+          builder_.SkipExpression();
+        }
+      }
     }
+
+    // Clear out the list of [Function] objects which might need their native
+    // name to be set after reading the constant table from the kernel blob.
+    potential_natives_ = GrowableObjectArray::null();
+    kernel_program_info_.set_potential_natives(potential_natives_);
+  }
+}
+
+Object& KernelLoader::LoadProgram(bool process_pending_classes) {
+  ASSERT(kernel_program_info_.constants() == Array::null());
+
+  if (!program_->is_single_program()) {
+    FATAL(
+        "Trying to load a concatenated dill file at a time where that is "
+        "not allowed");
+  }
+
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    const intptr_t length = program_->library_count();
+    for (intptr_t i = 0; i < length; i++) {
+      LoadLibrary(i);
+    }
+
+    if (process_pending_classes) {
+      if (!ClassFinalizer::ProcessPendingClasses()) {
+        // Class finalization failed -> sticky error would be set.
+        Error& error = Error::Handle(Z);
+        error = H.thread()->sticky_error();
+        H.thread()->clear_sticky_error();
+        return error;
+      }
+    }
+
+    // All classes were successfully loaded, so let's:
+    //     a) load & canonicalize the constant table
+    const Array& constants = ReadConstantTable();
+
+    //     b) set the native names for native functions which have been created
+    //        so far (the rest will be directly set during LoadProcedure)
+    AnnotateNativeProcedures(constants);
+    ASSERT(kernel_program_info_.constants() == Array::null());
+
+    //     c) update all scripts with the constants array
+    kernel_program_info_.set_constants(constants);
+
+    NameIndex main = program_->main_method();
+    if (main == -1) {
+      return Library::Handle(Z);
+    }
+
+    NameIndex main_library = H.EnclosingName(main);
+    Library& library = LookupLibrary(main_library);
+
+    return library;
   }
 
   // Either class finalization failed or we caught a compile error.
@@ -211,10 +493,12 @@ Object& KernelLoader::LoadProgram() {
   return error;
 }
 
-void KernelLoader::FindModifiedLibraries(Isolate* isolate,
+void KernelLoader::FindModifiedLibraries(Program* program,
+                                         Isolate* isolate,
                                          BitVector* modified_libs,
                                          bool force_reload) {
   LongJumpScope jump;
+  Zone* zone = Thread::Current()->zone();
   if (setjmp(*jump.Set()) == 0) {
     if (force_reload) {
       // If a reload is being forced we mark all libraries as having
@@ -222,7 +506,7 @@ void KernelLoader::FindModifiedLibraries(Isolate* isolate,
       const GrowableObjectArray& libs =
           GrowableObjectArray::Handle(isolate->object_store()->libraries());
       intptr_t num_libs = libs.Length();
-      Library& lib = dart::Library::Handle(Z);
+      Library& lib = dart::Library::Handle(zone);
       for (intptr_t i = 0; i < num_libs; i++) {
         lib ^= libs.At(i);
         if (!lib.is_dart_scheme()) {
@@ -231,31 +515,101 @@ void KernelLoader::FindModifiedLibraries(Isolate* isolate,
       }
       return;
     }
+
     // Now go through all the libraries that are present in the incremental
     // kernel files, these will constitute the modified libraries.
-    intptr_t length = program_->library_count();
-    for (intptr_t i = 0; i < length; i++) {
-      intptr_t kernel_offset = library_offset(i);
-      builder_.SetOffset(kernel_offset);
-      LibraryHelper library_helper(&builder_);
-      library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
-      dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
-      if (!lib.IsNull() && !lib.is_dart_scheme()) {
-        // This is a library that already exists so mark it as being modified.
-        modified_libs->Add(lib.index());
+    if (program->is_single_program()) {
+      KernelLoader loader(program);
+      return loader.walk_incremental_kernel(modified_libs);
+    } else {
+      kernel::Reader reader(program->kernel_data(),
+                            program->kernel_data_size());
+      GrowableArray<intptr_t> subprogram_file_starts;
+      index_programs(&reader, &subprogram_file_starts);
+
+      // Create "fake programs" for each sub-program.
+      intptr_t subprogram_count = subprogram_file_starts.length() - 1;
+      for (intptr_t i = 0; i < subprogram_count; ++i) {
+        intptr_t subprogram_start = subprogram_file_starts.At(i);
+        intptr_t subprogram_end = subprogram_file_starts.At(i + 1);
+        reader.set_raw_buffer(program->kernel_data() + subprogram_start);
+        reader.set_size(subprogram_end - subprogram_start);
+        reader.set_offset(0);
+        Program* subprogram = Program::ReadFrom(&reader, false);
+        ASSERT(subprogram->is_single_program());
+        KernelLoader loader(subprogram);
+        loader.walk_incremental_kernel(modified_libs);
+        delete subprogram;
       }
     }
   }
 }
 
-void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
-  builder_.SetOffset(kernel_offset);
+void KernelLoader::walk_incremental_kernel(BitVector* modified_libs) {
+  intptr_t length = program_->library_count();
+  for (intptr_t i = 0; i < length; i++) {
+    intptr_t kernel_offset = library_offset(i);
+    builder_.SetOffset(kernel_offset);
+    LibraryHelper library_helper(&builder_);
+    library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
+    dart::Library& lib = LookupLibrary(library_helper.canonical_name_);
+    if (!lib.IsNull() && !lib.is_dart_scheme()) {
+      // This is a library that already exists so mark it as being modified.
+      modified_libs->Add(lib.index());
+    }
+  }
+}
+
+void KernelLoader::LoadLibrary(intptr_t index) {
+  if (!program_->is_single_program()) {
+    FATAL(
+        "Trying to load a concatenated dill file at a time where that is "
+        "not allowed");
+  }
+
+  // Read library index.
+  library_kernel_offset_ = library_offset(index);
+  correction_offset_ = library_kernel_offset_;
+  intptr_t library_end = library_offset(index + 1);
+  intptr_t library_size = library_end - library_kernel_offset_;
+
+  // NOTE: Since |builder_| is used to load the overall kernel program,
+  // it's reader's offset is an offset into the overall kernel program.
+  // Hence, when setting the kernel offsets of field and functions, one
+  // has to subtract the library's kernel offset from the reader's
+  // offset.
+  builder_.SetOffset(library_kernel_offset_);
+
   LibraryHelper library_helper(&builder_);
   library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
+  if (!is_service_isolate_ && !FLAG_precompiled_mode) {
+    StringIndex lib_name_index =
+        H.CanonicalNameString(library_helper.canonical_name_);
+    if (H.StringEquals(lib_name_index, kVMServiceIOLibraryUri)) {
+      // We are not the service isolate and we are not generating an AOT
+      // snapshot so we skip loading 'dart:vmservice_io'.
+      skip_vmservice_library_ = library_helper.canonical_name_;
+      ASSERT(H.IsLibrary(skip_vmservice_library_));
+      return;
+    }
+  }
+
   Library& library = LookupLibrary(library_helper.canonical_name_);
+
   // The Kernel library is external implies that it is already loaded.
   ASSERT(!library_helper.IsExternal() || library.Loaded());
   if (library.Loaded()) return;
+
+  library_kernel_data_ =
+      TypedData::New(kTypedDataUint8ArrayCid, library_size, Heap::kOld);
+  builder_.reader_->CopyDataToVMHeap(library_kernel_data_,
+                                     library_kernel_offset_, library_size);
+  library.set_kernel_data(library_kernel_data_);
+  library.set_kernel_offset(library_kernel_offset_);
+
+  LibraryIndex library_index(library_kernel_data_);
+  intptr_t class_count = library_index.class_count();
+  intptr_t procedure_count = library_index.procedure_count();
 
   library_helper.ReadUntilIncluding(LibraryHelper::kName);
   library.SetName(H.DartSymbol(library_helper.name_index_));
@@ -265,20 +619,22 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   if (library.name() ==
       Symbols::Symbol(Symbols::kDartNativeWrappersLibNameId).raw()) {
     ASSERT(library.LoadInProgress());
+    loading_native_wrappers_library_ = true;
   } else {
+    loading_native_wrappers_library_ = false;
     library.SetLoadInProgress();
   }
-  // Setup toplevel class (which contains library fields/procedures).
-
   StringIndex import_uri_index =
       H.CanonicalNameString(library_helper.canonical_name_);
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
-  Script& script = ScriptAt(library_helper.source_uri_index_, import_uri_index);
+  const Script& script = Script::Handle(
+      Z, ScriptAt(library_helper.source_uri_index_, import_uri_index));
 
   library_helper.ReadUntilExcluding(LibraryHelper::kDependencies);
   LoadLibraryImportsAndExports(&library);
   library_helper.SetJustRead(LibraryHelper::kDependencies);
 
+  // Setup toplevel class (which contains library fields/procedures).
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
                                   TokenPosition::kNoSource));
@@ -288,13 +644,18 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   const GrowableObjectArray& classes =
       GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
 
-  library_helper.ReadUntilExcluding(LibraryHelper::kClasses);
+  // Everything up til the classes are skipped implicitly, and library_helper
+  // is no longer used.
 
   // Load all classes.
-  int class_count = builder_.ReadListLength();  // read list length.
+  intptr_t next_class_offset = library_index.ClassOffset(0);
   for (intptr_t i = 0; i < class_count; ++i) {
-    classes.Add(LoadClass(library, toplevel_class), Heap::kOld);
+    builder_.SetOffset(next_class_offset);
+    next_class_offset = library_index.ClassOffset(i + 1);
+    classes.Add(LoadClass(library, toplevel_class, next_class_offset),
+                Heap::kOld);
   }
+  builder_.SetOffset(next_class_offset);
 
   fields_.Clear();
   functions_.Clear();
@@ -302,7 +663,7 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   // Load toplevel fields.
   intptr_t field_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < field_count; ++i) {
-    intptr_t field_offset = builder_.ReaderOffset();
+    intptr_t field_offset = builder_.ReaderOffset() - correction_offset_;
     ActiveMemberScope active_member_scope(&active_class_, NULL);
     FieldHelper field_helper(&builder_);
     field_helper.ReadUntilExcluding(FieldHelper::kName);
@@ -312,10 +673,13 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
     field_helper.ReadUntilExcluding(FieldHelper::kType);
     const Object& script_class =
         ClassForScriptAt(toplevel_class, field_helper.source_uri_index_);
+    // In the VM all const fields are implicitly final whereas in Kernel they
+    // are not final because they are not explicitly declared that way.
+    const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
     Field& field = Field::Handle(
         Z,
-        Field::NewTopLevel(name, field_helper.IsFinal(), field_helper.IsConst(),
-                           script_class, field_helper.position_));
+        Field::NewTopLevel(name, is_final, field_helper.IsConst(), script_class,
+                           field_helper.position_, field_helper.end_position_));
     field.set_kernel_offset(field_offset);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
@@ -324,18 +688,13 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
     intptr_t field_initializer_offset = builder_.ReaderOffset();
     field.set_has_initializer(builder_.PeekTag() == kSomething);
     field_helper.ReadUntilExcluding(FieldHelper::kEnd);
-    TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
-        Z, field_offset, builder_.ReaderOffset());
-    field.set_kernel_data(kernel_data);
     {
       // GenerateFieldAccessors reads (some of) the initializer.
       AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
-      GenerateFieldAccessors(toplevel_class, field, &field_helper,
-                             field_offset);
+      GenerateFieldAccessors(toplevel_class, field, &field_helper);
     }
     if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
-      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
-                               &kernel_data);
+      library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
     }
     fields_.Add(&field);
     library.AddObject(field, name);
@@ -343,14 +702,16 @@ void KernelLoader::LoadLibrary(intptr_t kernel_offset) {
   toplevel_class.AddFields(fields_);
 
   // Load toplevel procedures.
-  intptr_t procedure_count = builder_.ReadListLength();  // read list length.
+  intptr_t next_procedure_offset = library_index.ProcedureOffset(0);
   for (intptr_t i = 0; i < procedure_count; ++i) {
-    LoadProcedure(library, toplevel_class, false);
+    builder_.SetOffset(next_procedure_offset);
+    next_procedure_offset = library_index.ProcedureOffset(i + 1);
+    LoadProcedure(library, toplevel_class, false, next_procedure_offset);
   }
 
   toplevel_class.SetFunctions(Array::Handle(MakeFunctionsArray()));
-
   classes.Add(toplevel_class, Heap::kOld);
+  if (!library.Loaded()) library.SetLoaded();
 }
 
 void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
@@ -407,6 +768,10 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
 
     Library& target_library =
         LookupLibrary(dependency_helper.target_library_canonical_name_);
+    if (!FLAG_enable_mirrors &&
+        target_library.url() == Symbols::DartMirrors().raw()) {
+      H.ReportError("import of dart:mirrors with --enable-mirrors=false");
+    }
     String& prefix = H.DartSymbol(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
     if (dependency_helper.flags_ & LibraryDependencyHelper::Export) {
@@ -430,17 +795,17 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library) {
   }
 }
 
-void KernelLoader::LoadPreliminaryClass(Class* klass,
-                                        ClassHelper* class_helper,
+void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
                                         intptr_t type_parameter_count) {
+  const Class* klass = active_class_.klass;
   // Note: This assumes that ClassHelper is exactly at the position where
   // the length of the type parameters have been read, and that the order in
   // the binary is as follows: [...], kTypeParameters, kSuperClass, kMixinType,
   // kImplementedClasses, [...].
 
   // Set type parameters.
-  LoadAndSetupTypeParameters(*klass, type_parameter_count, *klass,
-                             Function::Handle(Z));
+  builder_.LoadAndSetupTypeParameters(
+      &active_class_, *klass, type_parameter_count, Function::Handle(Z));
 
   // Set super type.  Some classes (e.g., Object) do not have one.
   Tag type_tag = builder_.ReadTag();  // read super class type (part 1).
@@ -471,18 +836,25 @@ void KernelLoader::LoadPreliminaryClass(Class* klass,
 }
 
 Class& KernelLoader::LoadClass(const Library& library,
-                               const Class& toplevel_class) {
-  ClassHelper class_helper(&builder_);
+                               const Class& toplevel_class,
+                               intptr_t class_end) {
   intptr_t class_offset = builder_.ReaderOffset();
+  ClassIndex class_index(program_->kernel_data(), program_->kernel_data_size(),
+                         class_offset, class_end - class_offset);
+
+  ClassHelper class_helper(&builder_);
   class_helper.ReadUntilIncluding(ClassHelper::kCanonicalName);
   Class& klass = LookupClass(class_helper.canonical_name_);
+  klass.set_kernel_offset(class_offset - correction_offset_);
 
   // The class needs to have a script because all the functions in the class
   // will inherit it.  The predicate Function::IsOptimizable uses the absence of
   // a script to detect test functions that should not be optimized.
   if (klass.script() == Script::null()) {
     class_helper.ReadUntilIncluding(ClassHelper::kSourceUriIndex);
-    klass.set_script(ScriptAt(class_helper.source_uri_index_));
+    const Script& script =
+        Script::Handle(Z, ScriptAt(class_helper.source_uri_index_));
+    klass.set_script(script);
   }
   if (klass.token_pos() == TokenPosition::kNoSource) {
     class_helper.ReadUntilIncluding(ClassHelper::kPosition);
@@ -490,14 +862,13 @@ Class& KernelLoader::LoadClass(const Library& library,
   }
 
   class_helper.ReadUntilIncluding(ClassHelper::kAnnotations);
-  intptr_t class_offset_after_annotations = builder_.ReaderOffset();
   class_helper.ReadUntilExcluding(ClassHelper::kTypeParameters);
   intptr_t type_parameter_counts =
       builder_.ReadListLength();  // read type_parameters list length.
 
   ActiveClassScope active_class_scope(&active_class_, &klass);
   if (!klass.is_cycle_free()) {
-    LoadPreliminaryClass(&klass, &class_helper, type_parameter_counts);
+    LoadPreliminaryClass(&class_helper, type_parameter_counts);
   } else {
     for (intptr_t i = 0; i < type_parameter_counts; ++i) {
       builder_.SkipStringReference();  // read ith name index.
@@ -506,9 +877,31 @@ Class& KernelLoader::LoadClass(const Library& library,
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
 
+  if (FLAG_enable_mirrors && class_helper.annotation_count_ > 0) {
+    library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
+                             class_offset - correction_offset_);
+  }
+
+  if (loading_native_wrappers_library_) {
+    FinishClassLoading(klass, library, toplevel_class, class_offset,
+                       class_index, &class_helper);
+  }
+
+  builder_.SetOffset(class_end);
+
+  return klass;
+}
+
+void KernelLoader::FinishClassLoading(const Class& klass,
+                                      const Library& library,
+                                      const Class& toplevel_class,
+                                      intptr_t class_offset,
+                                      const ClassIndex& class_index,
+                                      ClassHelper* class_helper) {
   fields_.Clear();
   functions_.Clear();
 
+  ActiveClassScope active_class_scope(&active_class_, &klass);
   if (library.raw() == Library::InternalLibrary() &&
       klass.Name() == Symbols::ClassID().raw()) {
     // If this is a dart:internal.ClassID class ignore field declarations
@@ -516,10 +909,10 @@ Class& KernelLoader::LoadClass(const Library& library,
     // fields.
     klass.InjectCIDFields();
   } else {
-    class_helper.ReadUntilExcluding(ClassHelper::kFields);
+    class_helper->ReadUntilExcluding(ClassHelper::kFields);
     int field_count = builder_.ReadListLength();  // read list length.
     for (intptr_t i = 0; i < field_count; ++i) {
-      intptr_t field_offset = builder_.ReaderOffset();
+      intptr_t field_offset = builder_.ReaderOffset() - correction_offset_;
       ActiveMemberScope active_member(&active_class_, NULL);
       FieldHelper field_helper(&builder_);
       field_helper.ReadUntilExcluding(FieldHelper::kName);
@@ -536,41 +929,37 @@ Class& KernelLoader::LoadClass(const Library& library,
       const bool is_reflectable =
           field_helper.position_.IsReal() &&
           !(library.is_dart_scheme() && library.IsPrivate(name));
+      // In the VM all const fields are implicitly final whereas in Kernel they
+      // are not final because they are not explicitly declared that way.
+      const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
       Field& field = Field::Handle(
-          Z, Field::New(name, field_helper.IsStatic(),
-                        // In the VM all const fields are implicitly final
-                        // whereas in Kernel they are not final because they
-                        // are not explicitly declared that way.
-                        field_helper.IsFinal() || field_helper.IsConst(),
-                        field_helper.IsConst(), is_reflectable, script_class,
-                        type, field_helper.position_));
+          Z,
+          Field::New(name, field_helper.IsStatic(), is_final,
+                     field_helper.IsConst(), is_reflectable, script_class, type,
+                     field_helper.position_, field_helper.end_position_));
       field.set_kernel_offset(field_offset);
       field_helper.ReadUntilExcluding(FieldHelper::kInitializer);
       intptr_t field_initializer_offset = builder_.ReaderOffset();
       field.set_has_initializer(builder_.PeekTag() == kSomething);
       field_helper.ReadUntilExcluding(FieldHelper::kEnd);
-      TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
-          Z, field_offset, builder_.ReaderOffset());
-      field.set_kernel_data(kernel_data);
       {
         // GenerateFieldAccessors reads (some of) the initializer.
         AlternativeReadingScope alt(builder_.reader_, field_initializer_offset);
-        GenerateFieldAccessors(klass, field, &field_helper, field_offset);
+        GenerateFieldAccessors(klass, field, &field_helper);
       }
       if (FLAG_enable_mirrors && field_helper.annotation_count_ > 0) {
-        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset,
-                                 &kernel_data);
+        library.AddFieldMetadata(field, TokenPosition::kNoSource, field_offset);
       }
       fields_.Add(&field);
     }
     klass.AddFields(fields_);
-    class_helper.SetJustRead(ClassHelper::kFields);
+    class_helper->SetJustRead(ClassHelper::kFields);
   }
 
-  class_helper.ReadUntilExcluding(ClassHelper::kConstructors);
+  class_helper->ReadUntilExcluding(ClassHelper::kConstructors);
   int constructor_count = builder_.ReadListLength();  // read list length.
   for (intptr_t i = 0; i < constructor_count; ++i) {
-    intptr_t constructor_offset = builder_.ReaderOffset();
+    intptr_t constructor_offset = builder_.ReaderOffset() - correction_offset_;
     ActiveMemberScope active_member_scope(&active_class_, NULL);
     ConstructorHelper constructor_helper(&builder_);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
@@ -592,54 +981,76 @@ Class& KernelLoader::LoadClass(const Library& library,
 
     FunctionNodeHelper function_node_helper(&builder_);
     function_node_helper.ReadUntilExcluding(
-        FunctionNodeHelper::kRequiredParameterCount);
-    builder_.SetupFunctionParameters(klass, function,
+        FunctionNodeHelper::kTypeParameters);
+    builder_.SetupFunctionParameters(&active_class_, klass, function,
                                      true,   // is_method
                                      false,  // is_closure
                                      &function_node_helper);
     function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
     constructor_helper.SetJustRead(ConstructorHelper::kFunction);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kEnd);
-    TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
-        Z, constructor_offset, builder_.ReaderOffset());
-    function.set_kernel_data(kernel_data);
 
     if (FLAG_enable_mirrors && constructor_helper.annotation_count_ > 0) {
       library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                  constructor_offset, &kernel_data);
+                                  constructor_offset);
     }
   }
-  class_helper.SetJustRead(ClassHelper::kConstructors);
 
-  class_helper.ReadUntilExcluding(ClassHelper::kProcedures);
-  int procedure_count = builder_.ReadListLength();  // read list length.
+  // Everything up til the procedures are skipped implicitly, and class_helper
+  // is no longer used.
+
+  intptr_t procedure_count = class_index.procedure_count();
+  // Procedure offsets within a class index are whole program offsets and not
+  // relative to the library of the class. Hence, we need a correction to get
+  // the currect procedure offset within the current data.
+  intptr_t correction = correction_offset_ - library_kernel_offset_;
+  intptr_t next_procedure_offset = class_index.ProcedureOffset(0) + correction;
   for (intptr_t i = 0; i < procedure_count; ++i) {
-    LoadProcedure(library, klass, true);
+    builder_.SetOffset(next_procedure_offset);
+    next_procedure_offset = class_index.ProcedureOffset(i + 1) + correction;
+    LoadProcedure(library, klass, true, next_procedure_offset);
   }
-  class_helper.SetJustRead(ClassHelper::kProcedures);
 
   klass.SetFunctions(Array::Handle(MakeFunctionsArray()));
+}
 
-  if (!klass.is_marked_for_parsing()) {
-    klass.set_is_marked_for_parsing();
-  }
+void KernelLoader::FinishLoading(const Class& klass) {
+  ASSERT(klass.kernel_offset() > 0);
 
-  if (FLAG_enable_mirrors && class_helper.annotation_count_ > 0) {
-    TypedData& header_data = builder_.reader_->CopyDataToVMHeap(
-        Z, class_offset, class_offset_after_annotations);
-    library.AddClassMetadata(klass, toplevel_class, TokenPosition::kNoSource,
-                             class_offset, &header_data);
-  }
+  Zone* zone = Thread::Current()->zone();
+  const Script& script = Script::Handle(zone, klass.script());
+  const Library& library = Library::Handle(zone, klass.library());
+  const Class& toplevel_class = Class::Handle(zone, library.toplevel_class());
+  const TypedData& library_kernel_data =
+      TypedData::Handle(zone, library.kernel_data());
+  ASSERT(!library_kernel_data.IsNull());
+  const intptr_t library_kernel_offset = library.kernel_offset();
+  ASSERT(library_kernel_offset > 0);
 
-  class_helper.ReadUntilExcluding(ClassHelper::kEnd);
+  const intptr_t class_offset = klass.kernel_offset();
+  KernelLoader kernel_loader(script, library_kernel_data,
+                             library_kernel_offset);
+  LibraryIndex library_index(library_kernel_data);
+  ClassIndex class_index(
+      library_kernel_data, class_offset,
+      // Class offsets in library index are whole program offsets.
+      // Hence, we need to add |library_kernel_offset| to
+      // |class_offset| to lookup the entry for the class in the library
+      // index.
+      library_index.SizeOfClassAtOffset(class_offset + library_kernel_offset));
 
-  return klass;
+  kernel_loader.builder_.SetOffset(class_offset);
+  ClassHelper class_helper(&kernel_loader.builder_);
+
+  kernel_loader.FinishClassLoading(klass, library, toplevel_class, class_offset,
+                                   class_index, &class_helper);
 }
 
 void KernelLoader::LoadProcedure(const Library& library,
                                  const Class& owner,
-                                 bool in_class) {
-  intptr_t procedure_offset = builder_.ReaderOffset();
+                                 bool in_class,
+                                 intptr_t procedure_end) {
+  intptr_t procedure_offset = builder_.ReaderOffset() - correction_offset_;
   ProcedureHelper procedure_helper(&builder_);
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kAnnotations);
@@ -649,58 +1060,98 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_external = procedure_helper.IsExternal();
   String* native_name = NULL;
   intptr_t annotation_count;
+  bool is_potential_native = false;
   if (is_external) {
     // Maybe it has a native implementation, which is not external as far as
     // the VM is concerned because it does have an implementation.  Check for
     // an ExternalName annotation and extract the string from it.
     annotation_count = builder_.ReadListLength();  // read list length.
     for (int i = 0; i < annotation_count; ++i) {
-      if (builder_.PeekTag() != kConstructorInvocation &&
-          builder_.PeekTag() != kConstConstructorInvocation) {
+      const intptr_t tag = builder_.PeekTag();
+      if (tag == kConstructorInvocation || tag == kConstConstructorInvocation) {
+        builder_.ReadTag();
+        builder_.ReadPosition();
+        NameIndex annotation_class = H.EnclosingName(
+            builder_.ReadCanonicalNameReference());  // read target reference,
+        ASSERT(H.IsClass(annotation_class));
+        StringIndex class_name_index = H.CanonicalNameString(annotation_class);
+        // Just compare by name, do not generate the annotation class.
+        if (!H.StringEquals(class_name_index, "ExternalName")) {
+          builder_.SkipArguments();
+          continue;
+        }
+        ASSERT(H.IsLibrary(H.CanonicalNameParent(annotation_class)));
+        StringIndex library_name_index =
+            H.CanonicalNameString(H.CanonicalNameParent(annotation_class));
+        if (!H.StringEquals(library_name_index, "dart:_internal")) {
+          builder_.SkipArguments();
+          continue;
+        }
+
+        is_external = false;
+        // Read arguments:
+        intptr_t total_arguments = builder_.ReadUInt();  // read argument count.
+        builder_.SkipListOfDartTypes();                  // read list of types.
+        intptr_t positional_arguments = builder_.ReadListLength();
+        ASSERT(total_arguments == 1 && positional_arguments == 1);
+
+        Tag tag = builder_.ReadTag();
+        ASSERT(tag == kStringLiteral);
+        native_name = &H.DartSymbol(
+            builder_.ReadStringReference());  // read index into string table.
+
+        // List of named.
+        intptr_t list_length = builder_.ReadListLength();  // read list length.
+        ASSERT(list_length == 0);
+
+        // Skip remaining annotations
+        for (++i; i < annotation_count; ++i) {
+          builder_.SkipExpression();  // read ith annotation.
+        }
+        break;
+      } else if (tag == kConstantExpression) {
+        if (kernel_program_info_.constants() == Array::null()) {
+          // We can only read in the constant table once all classes have been
+          // finalized (otherwise we can't create instances of the classes!).
+          //
+          // We therefore delay the scanning for `ExternalName {name: ... }`
+          // constants in the annotation list to later.
+          is_potential_native = true;
+          builder_.SkipExpression();
+        } else {
+          builder_.ReadByte();  // Skip the tag.
+
+          // Obtain `dart:_internal::ExternalName.name`.
+          EnsureExternalClassIsLookedUp();
+
+          const Array& constant_table =
+              Array::Handle(kernel_program_info_.constants());
+
+          // We have a candiate.  Let's look if it's an instance of the
+          // ExternalName class.
+          const intptr_t constant_table_index = builder_.ReadUInt();
+          const Object& constant =
+              Object::Handle(constant_table.At(constant_table_index));
+          if (constant.clazz() == external_name_class_.raw()) {
+            const Instance& instance =
+                Instance::Handle(Instance::RawCast(constant.raw()));
+
+            // We found the annotation, let's flag the function as native and
+            // set the native name!
+            native_name = &String::Handle(
+                String::RawCast(instance.GetField(external_name_field_)));
+
+            // Skip remaining annotations
+            for (++i; i < annotation_count; ++i) {
+              builder_.SkipExpression();  // read ith annotation.
+            }
+            break;
+          }
+        }
+      } else {
         builder_.SkipExpression();
         continue;
       }
-      builder_.ReadTag();
-      builder_.ReadPosition();
-      NameIndex annotation_class = H.EnclosingName(
-          builder_.ReadCanonicalNameReference());  // read target reference,
-      ASSERT(H.IsClass(annotation_class));
-      StringIndex class_name_index = H.CanonicalNameString(annotation_class);
-      // Just compare by name, do not generate the annotation class.
-      if (!H.StringEquals(class_name_index, "ExternalName")) {
-        builder_.SkipArguments();
-        continue;
-      }
-      ASSERT(H.IsLibrary(H.CanonicalNameParent(annotation_class)));
-      StringIndex library_name_index =
-          H.CanonicalNameString(H.CanonicalNameParent(annotation_class));
-      if (!H.StringEquals(library_name_index, "dart:_internal")) {
-        builder_.SkipArguments();
-        continue;
-      }
-
-      is_external = false;
-      // Read arguments:
-      intptr_t total_arguments = builder_.ReadUInt();  // read argument count.
-      builder_.SkipListOfDartTypes();                  // read list of types.
-      intptr_t positional_arguments = builder_.ReadListLength();
-      ASSERT(total_arguments == 1 && positional_arguments == 1);
-
-      Tag tag = builder_.ReadTag();
-      ASSERT(tag == kStringLiteral);
-      native_name = &H.DartSymbol(
-          builder_.ReadStringReference());  // read index into string table.
-
-      // List of named.
-      intptr_t list_length = builder_.ReadListLength();  // read list length.
-      ASSERT(list_length == 0);
-
-      // Skip remaining annotations
-      for (++i; i < annotation_count; ++i) {
-        builder_.SkipExpression();  // read ith annotation.
-      }
-
-      break;
     }
     procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   } else {
@@ -723,6 +1174,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   ActiveMemberScope active_member(&active_class_, &function);
 
   procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
+
   Tag function_node_tag = builder_.ReadTag();
   ASSERT(function_node_tag == kSomething);
   FunctionNodeHelper function_node_helper(&builder_);
@@ -750,24 +1202,19 @@ void KernelLoader::LoadProcedure(const Library& library,
   if (native_name != NULL) {
     function.set_native_name(*native_name);
   }
-
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
-  if (!function.IsFactory()) {
-    // Read type_parameters list length.
-    intptr_t type_parameter_count = builder_.ReadListLength();
-    // Set type parameters.
-    LoadAndSetupTypeParameters(function, type_parameter_count, Class::Handle(Z),
-                               function);
-    function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
+  if (is_potential_native) {
+    EnsurePotentialNatives();
+    potential_natives_.Add(function);
   }
 
-  function_node_helper.ReadUntilExcluding(
-      FunctionNodeHelper::kRequiredParameterCount);
-  builder_.SetupFunctionParameters(owner, function, is_method,
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+  builder_.SetupFunctionParameters(&active_class_, owner, function, is_method,
                                    false,  // is_closure
                                    &function_node_helper);
-  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
-  procedure_helper.SetJustRead(ProcedureHelper::kFunction);
+
+  // Everything else is skipped implicitly, and procedure_helper and
+  // function_node_helper are no longer used.
+  builder_.SetOffset(procedure_end);
 
   if (!in_class) {
     library.AddObject(function, name);
@@ -777,87 +1224,24 @@ void KernelLoader::LoadProcedure(const Library& library,
                 .IsNull());
   }
 
-  procedure_helper.ReadUntilExcluding(ProcedureHelper::kEnd);
-  TypedData& kernel_data = builder_.reader_->CopyDataToVMHeap(
-      Z, procedure_offset, builder_.ReaderOffset());
-  function.set_kernel_data(kernel_data);
-
   if (FLAG_enable_mirrors && annotation_count > 0) {
     library.AddFunctionMetadata(function, TokenPosition::kNoSource,
-                                procedure_offset, &kernel_data);
-  }
-}
-
-void KernelLoader::LoadAndSetupTypeParameters(
-    const Object& set_on,
-    intptr_t type_parameter_count,
-    const Class& parameterized_class,
-    const Function& parameterized_function) {
-  ASSERT(type_parameter_count >= 0);
-  if (type_parameter_count == 0) {
-    return;
-  }
-  // First setup the type parameters, so if any of the following code uses it
-  // (in a recursive way) we're fine.
-  TypeArguments& type_parameters =
-      TypeArguments::Handle(Z, TypeArguments::null());
-  TypeParameter& parameter = TypeParameter::Handle(Z);
-  Type& null_bound = Type::Handle(Z, Type::null());
-
-  // Step a) Create array of [TypeParameter] objects (without bound).
-  type_parameters = TypeArguments::New(type_parameter_count);
-  {
-    AlternativeReadingScope alt(builder_.reader_);
-    for (intptr_t i = 0; i < type_parameter_count; i++) {
-      builder_.SkipFlags();
-      parameter = TypeParameter::New(
-          parameterized_class, parameterized_function, i,
-          H.DartSymbol(builder_.ReadStringReference()),  // read ith name index.
-          null_bound, TokenPosition::kNoSource);
-      type_parameters.SetTypeAt(i, parameter);
-      builder_.SkipDartType();  // read guard.
-    }
-  }
-
-  ASSERT(set_on.IsClass() || set_on.IsFunction());
-  if (set_on.IsClass()) {
-    Class::Cast(set_on).set_type_parameters(type_parameters);
-  } else {
-    Function::Cast(set_on).set_type_parameters(type_parameters);
-  }
-
-  // Step b) Fill in the bounds of all [TypeParameter]s.
-  for (intptr_t i = 0; i < type_parameter_count; i++) {
-    builder_.SkipFlags();
-    builder_.SkipStringReference();  // read ith name index.
-
-    // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
-    // by the frontend.
-    parameter ^= type_parameters.TypeAt(i);
-    Tag tag = builder_.PeekTag();  // peek ith bound type.
-    if (tag == kDynamicType) {
-      builder_.SkipDartType();  // read ith bound.
-      parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
-    } else {
-      AbstractType& bound =
-          T.BuildTypeWithoutFinalization();  // read ith bound.
-      if (bound.IsMalformedOrMalbounded()) {
-        bound = I->object_store()->object_type();
-      }
-      parameter.set_bound(bound);
-    }
+                                procedure_offset);
   }
 }
 
 const Object& KernelLoader::ClassForScriptAt(const Class& klass,
                                              intptr_t source_uri_index) {
-  Script& correct_script = ScriptAt(source_uri_index);
+  const Script& correct_script = Script::Handle(Z, ScriptAt(source_uri_index));
   if (klass.script() != correct_script.raw()) {
     // Use cache for patch classes. This works best for in-order usages.
     PatchClass& patch_class = PatchClass::ZoneHandle(Z);
     patch_class ^= patch_classes_.At(source_uri_index);
     if (patch_class.IsNull() || patch_class.origin_class() != klass.raw()) {
+      ASSERT(!library_kernel_data_.IsNull());
       patch_class = PatchClass::New(klass, correct_script);
+      patch_class.set_library_kernel_data(library_kernel_data_);
+      patch_class.set_library_kernel_offset(library_kernel_offset_);
       patch_classes_.SetAt(source_uri_index, patch_class);
     }
     return patch_class;
@@ -865,33 +1249,34 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
   return klass;
 }
 
-Script& KernelLoader::ScriptAt(intptr_t index, StringIndex import_uri) {
-  Script& script = Script::ZoneHandle(Z);
-  script ^= scripts_.At(index);
-  if (script.IsNull()) {
-    // Create script with correct uri(s).
-    String& uri_string = builder_.SourceTableUriFor(index);
-    String& import_uri_string =
-        import_uri == -1 ? uri_string : H.DartString(import_uri, Heap::kOld);
-    script = Script::New(import_uri_string, uri_string,
-                         builder_.GetSourceFor(index), RawScript::kKernelTag);
-    script.set_kernel_script_index(index);
-    script.set_kernel_string_offsets(H.string_offsets());
-    script.set_kernel_string_data(H.string_data());
-    script.set_kernel_canonical_names(H.canonical_names());
-    scripts_.SetAt(index, script);
+RawScript* KernelLoader::LoadScriptAt(intptr_t index) {
+  const String& uri_string = builder_.SourceTableUriFor(index);
+  const Script& script =
+      Script::Handle(Z, Script::New(uri_string, builder_.GetSourceFor(index),
+                                    RawScript::kKernelTag));
+  script.set_kernel_script_index(index);
+  script.set_kernel_program_info(kernel_program_info_);
+  const TypedData& line_starts =
+      TypedData::Handle(Z, builder_.GetLineStartsFor(index));
+  script.set_line_starts(line_starts);
+  script.set_debug_positions(Array::Handle(Array::null()));
+  script.set_yield_positions(Array::Handle(Array::null()));
+  return script.raw();
+}
 
-    script.set_line_starts(builder_.GetLineStartsFor(index));
-    script.set_debug_positions(Array::Handle(Array::null()));
-    script.set_yield_positions(Array::Handle(Array::null()));
+RawScript* KernelLoader::ScriptAt(intptr_t index, StringIndex import_uri) {
+  if (import_uri != -1) {
+    const Script& script =
+        Script::Handle(Z, kernel_program_info_.ScriptAt(index));
+    script.set_url(H.DartString(import_uri, Heap::kOld));
+    return script.raw();
   }
-  return script;
+  return kernel_program_info_.ScriptAt(index);
 }
 
 void KernelLoader::GenerateFieldAccessors(const Class& klass,
                                           const Field& field,
-                                          FieldHelper* field_helper,
-                                          intptr_t field_offset) {
+                                          FieldHelper* field_helper) {
   Tag tag = builder_.PeekTag();
   if (field_helper->IsStatic() && tag == kNothing) {
     // Static fields without an initializer are implicitly initialized to null.
@@ -947,9 +1332,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
           false,  // is_native
           script_class, field_helper->position_));
   functions_.Add(&getter);
-  getter.set_kernel_data(TypedData::Handle(Z, field.kernel_data()));
   getter.set_end_token_pos(field_helper->end_position_);
-  getter.set_kernel_offset(field_offset);
+  getter.set_kernel_offset(field.kernel_offset());
   getter.set_result_type(AbstractType::Handle(Z, field.type()));
   getter.set_is_debuggable(false);
   SetupFieldAccessorFunction(klass, getter);
@@ -967,9 +1351,8 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
                          false,  // is_native
                          script_class, field_helper->position_));
     functions_.Add(&setter);
-    setter.set_kernel_data(TypedData::Handle(Z, field.kernel_data()));
     setter.set_end_token_pos(field_helper->end_position_);
-    setter.set_kernel_offset(field_offset);
+    setter.set_kernel_offset(field.kernel_offset());
     setter.set_result_type(Object::void_type());
     setter.set_is_debuggable(false);
     SetupFieldAccessorFunction(klass, setter);
@@ -1066,7 +1449,6 @@ ParsedFunction* ParseStaticFieldInitializer(Zone* zone, const Field& field) {
                           false,  // is_external
                           false,  // is_native
                           owner, TokenPosition::kNoSource));
-  initializer_fun.set_kernel_data(TypedData::Handle(zone, field.kernel_data()));
   initializer_fun.set_kernel_offset(field.kernel_offset());
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_debuggable(false);

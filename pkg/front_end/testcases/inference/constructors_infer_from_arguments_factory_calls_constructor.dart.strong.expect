@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A<T extends core::Object> extends core::Object {
-  field self::A<self::A::T> f = new self::A::•<self::A::T>();
+  generic-covariant-impl generic-covariant-interface field self::A<self::A::T> f = new self::A::•<self::A::T>();
   constructor •() → void
     : super core::Object::•()
     ;

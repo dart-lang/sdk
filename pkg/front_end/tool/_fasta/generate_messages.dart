@@ -58,6 +58,10 @@ String compileTemplate(String name, String template, String tip,
     exitCode = 1;
     return '';
   }
+  // Remove trailing whitespace. This is necessary for templates defined with
+  // `|` (verbatim) as they always contain a trailing newline that we don't
+  // want.
+  template = template.trimRight();
   var parameters = new Set<String>();
   var conversions = new Set<String>();
   var arguments = new Set<String>();
@@ -69,9 +73,12 @@ String compileTemplate(String name, String template, String tip,
         break;
 
       case "#unicode":
+        // Write unicode value using at least four (but otherwise no more than
+        // necessary) hex digits, using uppercase letters.
+        // http://www.unicode.org/versions/Unicode10.0.0/appA.pdf
         parameters.add("int codePoint");
-        conversions.add("String unicode = "
-            "\"(U+\${codePoint.toRadixString(16).padLeft(4, '0')})\";");
+        conversions.add("String unicode = \"U+\${codePoint.toRadixString(16)"
+            ".toUpperCase().padLeft(4, '0')}\";");
         arguments.add("'codePoint': codePoint");
         break;
 
@@ -104,6 +111,16 @@ String compileTemplate(String name, String template, String tip,
       case "#string2":
         parameters.add("String string2");
         arguments.add("'string2': string2");
+        break;
+
+      case "#type":
+        parameters.add("DartType type");
+        arguments.add("'type': type");
+        break;
+
+      case "#type2":
+        parameters.add("DartType type2");
+        arguments.add("'type2': type2");
         break;
 
       case "#uri":

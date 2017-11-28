@@ -49,10 +49,3 @@ throwNullValueError() {
   throw new NoSuchMethodError(
       null, new Symbol('<Unexpected Null Value>'), null, null, null);
 }
-
-throwNoSuchMethodError(Object receiver, Symbol memberName,
-    List positionalArguments, Map<Symbol, dynamic> namedArguments) {
-  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
-  throw new NoSuchMethodError(
-      receiver, memberName, positionalArguments, namedArguments);
-}

@@ -27,7 +27,7 @@ import 'dart:collection' show Maps, LinkedHashMap;
  * Throws [FormatException] if the input is not valid JSON text.
  */
 @patch
-_parseJson(String source, reviver(key, value)) {
+_parseJson(String source, reviver(Object key, Object value)) {
   if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
@@ -50,7 +50,7 @@ _parseJson(String source, reviver(key, value)) {
  * Maps. [json] is expected to be freshly allocated so elements can be replaced
  * in-place.
  */
-_convertJsonToDart(json, reviver(key, value)) {
+_convertJsonToDart(json, reviver(Object key, Object value)) {
   assert(reviver != null);
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.

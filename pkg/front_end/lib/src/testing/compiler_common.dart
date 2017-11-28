@@ -7,9 +7,10 @@ library front_end.testing.compiler_options_common;
 
 import 'dart:async';
 
+import 'dart:io' show Platform;
+
 import 'package:front_end/front_end.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 import 'package:front_end/src/testing/hybrid_file_system.dart';
 import 'package:kernel/ast.dart';
 
@@ -70,8 +71,7 @@ Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///
 ///   * define an empty .packages file
 ///
-///   * specify the location of the sdk and sdk summaries based on
-///     the path where the `patched_sdk` is generated in the sdk-repo.
+///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     {List<String> inputSummaries: const [],
     List<String> linkedDependencies: const []}) async {
@@ -96,13 +96,14 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
     ..packagesFileUri = toTestUri('.packages');
 
   if (options.sdkSummary == null) {
-    options.sdkRoot = await computePatchedSdk();
+    options.sdkRoot =
+        Uri.base.resolve(Platform.resolvedExecutable).resolve("./");
   }
 }
 
 /// A fake absolute directory used as the root of a memory-file system in the
 /// helpers above.
-Uri _defaultDir = Uri.parse('file:///a/b/c/');
+Uri _defaultDir = Uri.parse('org-dartlang-test:///a/b/c/');
 
 /// Convert relative file paths into an absolute Uri as expected by the test
 /// helpers above.

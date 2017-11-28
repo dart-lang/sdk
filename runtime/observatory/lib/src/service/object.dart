@@ -45,6 +45,7 @@ class ServerRpcException extends RpcException implements M.RequestException {
   static const kCannotResume = 107;
   static const kIsolateIsReloading = 108;
   static const kIsolateReloadBarred = 109;
+  static const kIsolateMustHaveReloaded = 110;
 
   static const kFileSystemAlreadyExists = 1001;
   static const kFileSystemDoesNotExist = 1002;
@@ -3138,6 +3139,10 @@ class ServiceFunction extends HeapObject implements M.Function {
       m = m.dartOwner;
     }
     return m;
+  }
+
+  String toString() {
+    return "ServiceFunction($qualifiedName)";
   }
 }
 

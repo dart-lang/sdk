@@ -10,10 +10,10 @@ class C {
   dynamic y;
   void test() {
     // Get via this
-    var v1 = x;
-    var v2 = this.x;
-    var v3 = y;
-    var v4 = this.y;
+    var v1 = /*@callKind=this*/ x;
+    var v2 = this. /*@callKind=this*/ x;
+    var v3 = /*@callKind=this*/ y;
+    var v4 = this. /*@callKind=this*/ y;
   }
 }
 
@@ -23,7 +23,7 @@ void test(C c, dynamic d) {
   var v2 = c.y;
 
   // Dynamic get
-  var v3 = d.x;
+  var v3 = d. /*@callKind=dynamic*/ x;
 }
 
 main() {}

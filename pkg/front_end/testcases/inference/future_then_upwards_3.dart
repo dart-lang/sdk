@@ -14,7 +14,7 @@ class MyFuture<T> implements Future<T> {
   MyFuture<S> then<S>(FutureOr<S> f(T x), {Function onError}) => null;
 }
 
-void main() {
+void test() {
   var /*@type=Future<double>*/ f =
       foo(). /*@typeArgs=double*/ /*@target=Future::then*/ then(
           /*@returnType=double*/ (/*@type=dynamic*/ _) => 2.3);
@@ -29,3 +29,5 @@ void main() {
 }
 
 Future foo() => new Future<int>.value(1);
+
+main() {}

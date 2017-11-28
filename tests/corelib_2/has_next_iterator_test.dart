@@ -11,7 +11,7 @@ main() {
   var it = new HasNextIterator([].iterator);
   Expect.isFalse(it.hasNext);
   Expect.isFalse(it.hasNext);
-  Expect.throws(() => it.next(), (e) => e is StateError);
+  Expect.throwsStateError(() => it.next());
   Expect.isFalse(it.hasNext);
 
   it = new HasNextIterator([1].iterator);
@@ -20,7 +20,7 @@ main() {
   Expect.equals(1, it.next());
   Expect.isFalse(it.hasNext);
   Expect.isFalse(it.hasNext);
-  Expect.throws(() => it.next(), (e) => e is StateError);
+  Expect.throwsStateError(() => it.next());
   Expect.isFalse(it.hasNext);
 
   it = new HasNextIterator([1, 2].iterator);
@@ -32,6 +32,6 @@ main() {
   Expect.equals(2, it.next());
   Expect.isFalse(it.hasNext);
   Expect.isFalse(it.hasNext);
-  Expect.throws(() => it.next(), (e) => e is StateError);
+  Expect.throwsStateError(() => it.next());
   Expect.isFalse(it.hasNext);
 }

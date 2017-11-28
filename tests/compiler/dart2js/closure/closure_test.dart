@@ -22,16 +22,18 @@ import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'package:kernel/ast.dart' as ir;
 
-const List<String> skipForKernel = const <String>[
-  'type_variables.dart',
-];
+const List<String> skipForKernel = const <String>[];
 
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, computeClosureData, computeKernelClosureData,
         skipForKernel: skipForKernel,
-        options: [Flags.disableTypeInference],
+        options: [
+          Flags.disableTypeInference,
+          // TODO(redemption): Enable inlining.
+          Flags.disableInlining
+        ],
         args: args);
   });
 }
@@ -106,6 +108,12 @@ class ClosureAstComputer extends AstDataExtractor with ComputeValueMixin {
     }
   }
 
+  visitLoop(ast.Loop node) {
+    pushLoopNode(node);
+    super.visitLoop(node);
+    popLoop();
+  }
+
   @override
   String computeNodeValue(Id id, ast.Node node, [AstElement element]) {
     if (element != null && element.isLocal) {
@@ -168,6 +176,24 @@ class ClosureIrChecker extends IrDataExtractor with ComputeValueMixin<ir.Node> {
     popMember();
   }
 
+  visitForStatement(ir.ForStatement node) {
+    pushLoopNode(node);
+    super.visitForStatement(node);
+    popLoop();
+  }
+
+  visitWhileStatement(ir.WhileStatement node) {
+    pushLoopNode(node);
+    super.visitWhileStatement(node);
+    popLoop();
+  }
+
+  visitForInStatement(ir.ForInStatement node) {
+    pushLoopNode(node);
+    super.visitForInStatement(node);
+    popLoop();
+  }
+
   @override
   String computeNodeValue(Id id, ir.Node node) {
     if (node is ir.VariableDeclaration) {
@@ -221,6 +247,21 @@ abstract class ComputeValueMixin<T> {
     capturedScopeStack = capturedScopeStack.tail;
   }
 
+  void pushLoopNode(T node) {
+    //scopeInfoStack = // TODO?
+    //    scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));
+    capturedScopeStack = capturedScopeStack
+        .prepend(closureDataLookup.getCapturedLoopScope(node));
+    if (capturedScope.requiresContextBox) {
+      boxNames[capturedScope.context] = 'box${boxNames.length}';
+    }
+    dump(node);
+  }
+
+  void popLoop() {
+    capturedScopeStack = capturedScopeStack.tail;
+  }
+
   void pushLocalFunction(T node) {
     closureRepresentationInfoStack = closureRepresentationInfoStack
         .prepend(closureDataLookup.getClosureInfo(node));
@@ -241,8 +282,6 @@ abstract class ComputeValueMixin<T> {
     }
     print(
         ' closureRepresentationInfo (${closureRepresentationInfo.runtimeType})');
-    closureRepresentationInfo
-        ?.forEachCapturedVariable((a, b) => print('  captured: $a->$b'));
     closureRepresentationInfo
         ?.forEachFreeVariable((a, b) => print('  free: $a->$b'));
     closureRepresentationInfo

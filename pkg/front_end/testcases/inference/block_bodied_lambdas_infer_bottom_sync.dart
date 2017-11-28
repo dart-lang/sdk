@@ -8,7 +8,7 @@ library test;
 var /*@topType=dynamic*/ h = null;
 void foo(int f(Object _)) {}
 
-main() {
+test() {
   var /*@type=(Object) -> Null*/ f = /*@returnType=Null*/ (Object x) {
     return null;
   };
@@ -24,3 +24,5 @@ main() {
     throw "not implemented";
   });
 }
+
+main() {}

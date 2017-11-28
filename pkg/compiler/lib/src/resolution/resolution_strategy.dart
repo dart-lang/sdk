@@ -17,6 +17,7 @@ import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart';
+import '../deferred_load.dart' show DeferredLoadTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/modelx.dart';
@@ -42,9 +43,12 @@ import '../resolved_uri_translator.dart';
 import '../serialization/task.dart';
 import '../tree/tree.dart' show Node;
 import '../universe/call_structure.dart';
+import '../universe/class_hierarchy_builder.dart';
 import '../universe/use.dart';
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart';
+
+import 'deferred_load.dart';
 import 'no_such_method_resolver.dart';
 
 /// [FrontendStrategy] that loads '.dart' files and creates a resolved element
@@ -98,6 +102,9 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
   AnnotationProcessor get annotationProcesser => _annotationProcessor ??=
       new _ElementAnnotationProcessor(_compiler, nativeBasicDataBuilder);
 
+  DeferredLoadTask createDeferredLoadTask(Compiler compiler) =>
+      new AstDeferredLoadTask(_compiler);
+
   @override
   NativeClassFinder createNativeClassFinder(NativeBasicData nativeBasicData) {
     return new ResolutionNativeClassFinder(
@@ -132,7 +139,10 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
       BackendUsageBuilder backendUsageBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       NativeResolutionEnqueuer nativeResolutionEnqueuer,
-      SelectorConstraintsStrategy selectorConstraintsStrategy) {
+      NoSuchMethodRegistry noSuchMethodRegistry,
+      SelectorConstraintsStrategy selectorConstraintsStrategy,
+      ClassHierarchyBuilder classHierarchyBuilder,
+      ClassQueries classQueries) {
     return new ElementResolutionWorldBuilder(
         _compiler.backend,
         _compiler.resolution,
@@ -142,14 +152,22 @@ class ResolutionFrontEndStrategy extends FrontendStrategyBase
         backendUsageBuilder,
         rtiNeedBuilder,
         nativeResolutionEnqueuer,
-        selectorConstraintsStrategy);
+        noSuchMethodRegistry,
+        selectorConstraintsStrategy,
+        classHierarchyBuilder,
+        classQueries);
   }
 
   WorkItemBuilder createResolutionWorkItemBuilder(
       NativeBasicData nativeBasicData,
       NativeDataBuilder nativeDataBuilder,
-      ImpactTransformer impactTransformer) {
+      ImpactTransformer impactTransformer,
+      Map<Entity, WorldImpact> impactCache) {
     return new ResolutionWorkItemBuilder(_compiler.resolution);
+  }
+
+  ClassQueries createClassQueries() {
+    return new ElementClassQueries(commonElements);
   }
 
   FunctionEntity computeMain(
@@ -248,9 +266,16 @@ class ComputeSpannableMixin {
       }
       Element element = currentElement;
       uri = element.compilationUnit.script.resourceUri;
+      String message;
       assert(() {
         bool sameToken(Token token, Token sought) {
           if (token == sought) return true;
+          if (token.stringValue == '[') {
+            // `[` is converted to `[]` in the parser when needed.
+            return sought.stringValue == '[]' &&
+                token.charOffset <= sought.charOffset &&
+                sought.charOffset < token.charEnd;
+          }
           if (token.stringValue == '>>') {
             // `>>` is converted to `>` in the parser when needed.
             return sought.stringValue == '>' &&
@@ -297,7 +322,8 @@ class ComputeSpannableMixin {
             }
             token = token.next;
           }
-          return sb.toString();
+          message = sb.toString();
+          return false;
         }
 
         if (element.enclosingClass != null &&
@@ -323,9 +349,7 @@ class ComputeSpannableMixin {
           }
         }
         return true;
-      },
-          failedAt(currentElement,
-              "Invalid current element: $element [$begin,$end]."));
+      }, failedAt(currentElement, message));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }
@@ -386,7 +410,7 @@ class ComputeSpannableMixin {
 }
 
 /// An element environment base on a [Compiler].
-class _CompilerElementEnvironment implements ElementEnvironment {
+class _CompilerElementEnvironment extends ElementEnvironment {
   final Compiler _compiler;
 
   LibraryEntity _mainLibrary;
@@ -463,7 +487,7 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
-  MemberElement lookupClassMember(covariant ClassElement cls, String name,
+  MemberElement lookupLocalClassMember(covariant ClassElement cls, String name,
       {bool setter: false, bool required: false}) {
     cls.ensureResolved(_resolution);
     Element member = cls.implementation.lookupLocalMember(name);
@@ -503,6 +527,19 @@ class _CompilerElementEnvironment implements ElementEnvironment {
           "required constructor: '$name'.");
     }
     return constructor?.declaration;
+  }
+
+  @override
+  void forEachLocalClassMember(
+      covariant ClassElement cls, void f(MemberElement member)) {
+    cls.ensureResolved(_resolution);
+    cls.forEachLocalMember((_member) {
+      MemberElement member = _member;
+      if (member.isSynthesized) return;
+      if (member.isMalformed) return;
+      if (member.isConstructor) return;
+      f(member);
+    });
   }
 
   @override
@@ -723,6 +760,11 @@ class _CompilerElementEnvironment implements ElementEnvironment {
   }
 
   @override
+  Iterable<ImportEntity> getImports(covariant LibraryElement library) {
+    return library.imports;
+  }
+
+  @override
   Iterable<ConstantValue> getClassMetadata(covariant ClassElement element) {
     return _getMetadataOf(element);
   }
@@ -753,6 +795,14 @@ class _CompilerElementEnvironment implements ElementEnvironment {
     if (result.isMalformed) return null;
     return result;
   }
+
+  @override
+  ResolutionTypedefType getTypedefTypeOfTypedef(
+          covariant TypedefElement typedef) =>
+      typedef.thisType;
+
+  @override
+  bool isEnumClass(covariant ClassElement cls) => cls.isEnumClass;
 }
 
 /// AST-based logic for processing annotations. These annotations are processed
@@ -923,16 +973,15 @@ class _ElementAnnotationProcessor implements AnnotationProcessor {
             }
 
             if (fn.isFactoryConstructor && isAnonymous) {
-              fn.functionSignature.orderedForEachParameter((_parameter) {
-                ParameterElement parameter = _parameter;
-                if (!parameter.isNamed) {
-                  _compiler.reporter.reportErrorMessage(
-                      parameter,
-                      MessageKind
-                          .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
-                      {'cls': classElement.name});
-                }
-              });
+              if (fn.functionSignature.requiredParameterCount > 0 ||
+                  fn.functionSignature.hasOptionalParameters &&
+                      !fn.functionSignature.optionalParametersAreNamed) {
+                _compiler.reporter.reportErrorMessage(
+                    fn,
+                    MessageKind
+                        .JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+                    {'cls': classElement.name});
+              }
             } else {
               checkFunctionParameters(fn);
             }

@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/safe_stack.h"
 #include "vm/atomic.h"
 #include "vm/bitfield.h"
 #include "vm/globals.h"
@@ -100,11 +101,18 @@ class Zone;
 #endif
 
 // List of VM-global objects/addresses cached in each Thread object.
+// Important: constant false must immediately follow constant true.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
   V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
   CACHED_VM_STUBS_LIST(V)
+
+// This assertion marks places which assume that boolean false immediate
+// follows bool true in the CACHED_VM_OBJECTS_LIST
+#define ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE()                                  \
+  ASSERT((Thread::bool_true_offset() + kWordSize) ==                           \
+         Thread::bool_false_offset());
 
 #if defined(TARGET_ARCH_DBC)
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)
@@ -197,7 +205,9 @@ class Thread : public BaseThread {
   void ClearStackLimit();
 
   // Returns the current C++ stack pointer. Equivalent taking the address of a
-  // stack allocated local, but plays well with AddressSanitizer.
+  // stack allocated local, but plays well with AddressSanitizer and SafeStack.
+  // Accurate enough for stack overflow checks but not accurate enough for
+  // alignment checks.
   static uword GetCurrentStackPointer();
 
   // Access to the current stack limit for generated code.  This may be
@@ -211,6 +221,13 @@ class Thread : public BaseThread {
 
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
+
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit() const { return saved_safestack_limit_; }
+  void set_saved_safestack_limit(uword limit) {
+    saved_safestack_limit_ = limit;
+  }
+#endif
 
 #if defined(TARGET_ARCH_DBC)
   // Access to the current stack limit for DBC interpreter.
@@ -581,9 +598,6 @@ class Thread : public BaseThread {
    *   kThreadInNative - The thread is running native code.
    *   kThreadInBlockedState - The thread is blocked waiting for a resource.
    */
-  static intptr_t safepoint_state_offset() {
-    return OFFSET_OF(Thread, safepoint_state_);
-  }
   static bool IsAtSafepoint(uint32_t state) {
     return AtSafepointField::decode(state);
   }
@@ -639,30 +653,39 @@ class Thread : public BaseThread {
   void set_execution_state(ExecutionState state) {
     execution_state_ = static_cast<uint32_t>(state);
   }
-  static intptr_t execution_state_offset() {
-    return OFFSET_OF(Thread, execution_state_);
+
+  bool TryEnterSafepoint() {
+    uint32_t new_state = SetAtSafepoint(true, 0);
+    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, 0,
+                                               new_state) != 0) {
+      return false;
+    }
+    return true;
   }
 
   void EnterSafepoint() {
     // First try a fast update of the thread state to indicate it is at a
     // safepoint.
-    uint32_t new_state = SetAtSafepoint(true, 0);
-    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), 0, new_state) != 0) {
+    if (!TryEnterSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       EnterSafepointUsingLock();
     }
   }
 
+  bool TryExitSafepoint() {
+    uint32_t old_state = SetAtSafepoint(true, 0);
+    if (AtomicOperations::CompareAndSwapUint32(&safepoint_state_, old_state,
+                                               0) != old_state) {
+      return false;
+    }
+    return true;
+  }
+
   void ExitSafepoint() {
     // First try a fast update of the thread state to indicate it is not at a
     // safepoint anymore.
-    uint32_t old_state = SetAtSafepoint(true, 0);
-    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
-    if (AtomicOperations::CompareAndSwapUint32(
-            reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+    if (!TryExitSafepoint()) {
       // Fast update failed which means we could potentially be in the middle
       // of a safepoint operation.
       ExitSafepointUsingLock();
@@ -785,6 +808,10 @@ class Thread : public BaseThread {
   class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
   uint32_t safepoint_state_;
   uint32_t execution_state_;
+
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit_;
+#endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
 

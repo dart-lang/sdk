@@ -8,11 +8,11 @@ import 'dart:collection';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -509,22 +509,23 @@ class AssistProcessor {
         return;
       }
       InstanceCreationExpression newExpr = namedExp.parent.parent;
-      if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+      if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
         return;
       }
     } else {
-      InstanceCreationExpression newExpr = identifyNewExpression(node);
-      if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+      InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
+      if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
         _coverageMarker();
         return;
       }
-      namedExp = findChildArgument(newExpr);
+      namedExp = flutter.findChildArgument(newExpr);
       if (namedExp == null || namedExp.expression == null) {
         _coverageMarker();
         return;
       }
     }
-    InstanceCreationExpression childArg = getChildWidget(namedExp, false);
+    InstanceCreationExpression childArg =
+        flutter.getChildWidget(namedExp, false);
     if (childArg == null) {
       _coverageMarker();
       return;
@@ -680,7 +681,16 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+
     Expression returnValue = (body as ExpressionFunctionBody).expression;
+
+    // Return expressions can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in the function body.
+    if (selectionOffset >= returnValue.offset) {
+      _coverageMarker();
+      return;
+    }
+
     DartType returnValueType = returnValue.staticType;
     String returnValueCode = _getNodeText(returnValue);
     // prepare prefix
@@ -729,6 +739,13 @@ class AssistProcessor {
       returnExpression = onlyStatement.expression;
     }
     if (returnExpression == null) {
+      _coverageMarker();
+      return;
+    }
+
+    // Return expressions can be quite large, e.g. Flutter build() methods.
+    // It is surprising to see this Quick Assist deep in the function body.
+    if (selectionOffset >= returnExpression.offset) {
       _coverageMarker();
       return;
     }
@@ -1445,7 +1462,7 @@ class AssistProcessor {
     List<Statement> innerThenStatements = getStatements(innerThenStatement);
     SourceRange lineRanges = utils.getLinesRangeStatements(innerThenStatements);
     String oldSource = utils.getRangeText(lineRanges);
-    String newSource = utils.indentSourceLeftRight(oldSource, false);
+    String newSource = utils.indentSourceLeftRight(oldSource);
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1509,7 +1526,7 @@ class AssistProcessor {
     SourceRange lineRanges =
         utils.getLinesRangeStatements(targetThenStatements);
     String oldSource = utils.getRangeText(lineRanges);
-    String newSource = utils.indentSourceLeftRight(oldSource, false);
+    String newSource = utils.indentSourceLeftRight(oldSource);
 
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1654,18 +1671,19 @@ class AssistProcessor {
   }
 
   Future<Null> _addProposal_moveFlutterWidgetDown() async {
-    InstanceCreationExpression exprGoingDown = identifyNewExpression(node);
-    if (exprGoingDown == null ||
-        !isFlutterInstanceCreationExpression(exprGoingDown)) {
+    InstanceCreationExpression exprGoingDown =
+        flutter.identifyNewExpression(node);
+    if (exprGoingDown == null || !flutter.isWidgetCreation(exprGoingDown)) {
       _coverageMarker();
       return;
     }
-    InstanceCreationExpression exprGoingUp = findChildWidget(exprGoingDown);
+    InstanceCreationExpression exprGoingUp =
+        flutter.findChildWidget(exprGoingDown);
     if (exprGoingUp == null) {
       _coverageMarker();
       return;
     }
-    NamedExpression stableChild = findChildArgument(exprGoingUp);
+    NamedExpression stableChild = flutter.findChildArgument(exprGoingUp);
     if (stableChild == null || stableChild.expression == null) {
       _coverageMarker();
       return;
@@ -1687,9 +1705,9 @@ class AssistProcessor {
   }
 
   Future<Null> _addProposal_moveFlutterWidgetUp() async {
-    InstanceCreationExpression exprGoingUp = identifyNewExpression(node);
-    if (exprGoingUp == null ||
-        !isFlutterInstanceCreationExpression(exprGoingUp)) {
+    InstanceCreationExpression exprGoingUp =
+        flutter.identifyNewExpression(node);
+    if (exprGoingUp == null || !flutter.isWidgetCreation(exprGoingUp)) {
       _coverageMarker();
       return;
     }
@@ -1699,7 +1717,7 @@ class AssistProcessor {
       return;
     }
     InstanceCreationExpression exprGoingDown = expr;
-    NamedExpression stableChild = findChildArgument(exprGoingUp);
+    NamedExpression stableChild = flutter.findChildArgument(exprGoingUp);
     if (stableChild == null || stableChild.expression == null) {
       _coverageMarker();
       return;
@@ -1745,7 +1763,12 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    // add edit
+    // The variable must have an initializer, otherwise there is no other
+    // source for its type.
+    if (firstVariable.initializer == null) {
+      _coverageMarker();
+      return;
+    }
     Token keyword = declarationList.keyword;
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1765,7 +1788,7 @@ class AssistProcessor {
     }
     if ((node as ListLiteral).elements.any((Expression exp) =>
         !(exp is InstanceCreationExpression &&
-            isFlutterInstanceCreationExpression(exp)))) {
+            flutter.isWidgetCreation(exp)))) {
       _coverageMarker();
       return;
     }
@@ -1808,8 +1831,8 @@ class AssistProcessor {
   }
 
   Future<Null> _addProposal_reparentFlutterWidget() async {
-    InstanceCreationExpression newExpr = identifyNewExpression(node);
-    if (newExpr == null || !isFlutterInstanceCreationExpression(newExpr)) {
+    InstanceCreationExpression newExpr = flutter.identifyNewExpression(node);
+    if (newExpr == null || !flutter.isWidgetCreation(newExpr)) {
       _coverageMarker();
       return;
     }

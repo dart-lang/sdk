@@ -22,23 +22,33 @@ import 'kernel_builder.dart'
 
 class KernelTypeVariableBuilder
     extends TypeVariableBuilder<KernelTypeBuilder, DartType> {
-  final TypeParameter parameter;
+  final TypeParameter actualParameter;
+
+  KernelTypeVariableBuilder actualOrigin;
 
   KernelTypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
       [KernelTypeBuilder bound])
-      : parameter = new TypeParameter(name, null)..fileOffset = charOffset,
+      : actualParameter = new TypeParameter(name, null)
+          ..fileOffset = charOffset,
         super(name, bound, compilationUnit, charOffset);
+
+  @override
+  KernelTypeVariableBuilder get origin => actualOrigin ?? this;
+
+  TypeParameter get parameter => origin.actualParameter;
 
   TypeParameter get target => parameter;
 
   DartType buildType(
       LibraryBuilder library, List<KernelTypeBuilder> arguments) {
     if (arguments != null) {
+      int charOffset = -1; // TODO(ahe): Provide these.
+      Uri fileUri = null; // TODO(ahe): Provide these.
       library.addWarning(
           templateTypeArgumentsOnTypeVariable.withArguments(name),
-          arguments.first.charOffset,
-          arguments.first.fileUri);
+          charOffset,
+          fileUri);
     }
     return new TypeParameterType(parameter);
   }
@@ -54,11 +64,16 @@ class KernelTypeVariableBuilder
   }
 
   KernelTypeBuilder asTypeBuilder() {
-    return new KernelNamedTypeBuilder(name, null, -1, null)..builder = this;
+    return new KernelNamedTypeBuilder(name, null)..bind(this);
   }
 
   void finish(LibraryBuilder library, KernelClassBuilder object) {
+    if (isPatch) return;
     parameter.bound ??=
         bound?.build(library) ?? object.buildType(library, null);
+  }
+
+  void applyPatch(covariant KernelTypeVariableBuilder patch) {
+    patch.actualOrigin = this;
   }
 }

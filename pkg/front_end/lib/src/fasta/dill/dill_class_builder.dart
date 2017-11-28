@@ -36,6 +36,9 @@ class DillClassBuilder extends KernelClassBuilder {
             parent,
             cls.fileOffset);
 
+  @override
+  Class get actualCls => cls;
+
   void addMember(Member member) {
     DillMemberBuilder builder = new DillMemberBuilder(member, this);
     String name = member.name.name;

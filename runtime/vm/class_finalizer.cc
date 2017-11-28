@@ -8,6 +8,7 @@
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/kernel_loader.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
 #include "vm/object_store.h"
@@ -115,7 +116,7 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
 // Processing ObjectStore::pending_classes_ occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
-bool ClassFinalizer::ProcessPendingClasses(bool from_kernel) {
+bool ClassFinalizer::ProcessPendingClasses() {
   Thread* thread = Thread::Current();
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
                                            "ProcessPendingClasses"));
@@ -147,16 +148,6 @@ bool ClassFinalizer::ProcessPendingClasses(bool from_kernel) {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
-    }
-
-    // Classes compiled from Dart sources are finalized more lazily, classes
-    // compiled from Kernel binaries can be finalized now (and should be,
-    // since we will not revisit them).
-    if (from_kernel) {
-      for (intptr_t i = 0; i < class_array.Length(); i++) {
-        cls ^= class_array.At(i);
-        FinalizeClass(cls);
-      }
     }
 
     if (FLAG_print_classes) {
@@ -452,9 +443,9 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
       ASSERT(target_type.IsInstantiated(kFunctions));
       const TypeArguments& type_args = TypeArguments::Handle(type.arguments());
       Error& bound_error = Error::Handle();
-      target_type ^=
-          target_type.InstantiateFrom(type_args, Object::null_type_arguments(),
-                                      &bound_error, NULL, NULL, Heap::kOld);
+      target_type ^= target_type.InstantiateFrom(
+          type_args, Object::null_type_arguments(), kNoneFree, &bound_error,
+          NULL, NULL, Heap::kOld);
       if (bound_error.IsNull()) {
         target_type ^= FinalizeType(cls, target_type);
       } else {
@@ -664,7 +655,7 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
   }
   // Consider mutually recursive and uninstantiated types pending finalization
   // with the same type class and report an error if they are not equal in their
-  // raw form, i.e. where each type parameter is substituted with dynamic.
+  // raw form, i.e. where each class type parameter is substituted with dynamic.
   // This test eliminates divergent types without restricting recursive types
   // typically found in the wild.
   TypeArguments& pending_arguments = TypeArguments::Handle(zone);
@@ -684,14 +675,16 @@ void ClassFinalizer::CheckRecursiveType(const Class& cls,
           !pending_arguments.IsSubvectorInstantiated(first_type_param,
                                                      num_type_params)) {
         const TypeArguments& instantiated_arguments = TypeArguments::Handle(
-            zone, arguments.InstantiateFrom(Object::null_type_arguments(),
-                                            Object::null_type_arguments(), NULL,
-                                            NULL, NULL, Heap::kNew));
+            zone,
+            arguments.InstantiateFrom(Object::null_type_arguments(),
+                                      Object::null_type_arguments(), kNoneFree,
+                                      NULL, NULL, NULL, Heap::kNew));
         const TypeArguments& instantiated_pending_arguments =
-            TypeArguments::Handle(zone, pending_arguments.InstantiateFrom(
-                                            Object::null_type_arguments(),
-                                            Object::null_type_arguments(), NULL,
-                                            NULL, NULL, Heap::kNew));
+            TypeArguments::Handle(
+                zone, pending_arguments.InstantiateFrom(
+                          Object::null_type_arguments(),
+                          Object::null_type_arguments(), kNoneFree, NULL, NULL,
+                          NULL, Heap::kNew));
         if (!instantiated_pending_arguments.IsSubvectorEquivalent(
                 instantiated_arguments, first_type_param, num_type_params)) {
           const String& type_name = String::Handle(zone, type.Name());
@@ -944,7 +937,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
           }
           Error& error = Error::Handle();
           super_type_arg = super_type_arg.InstantiateFrom(
-              arguments, Object::null_type_arguments(), &error,
+              arguments, Object::null_type_arguments(), kNoneFree, &error,
               instantiation_trail, NULL, Heap::kOld);
           if (!error.IsNull()) {
             // InstantiateFrom does not report an error if the type is still
@@ -1062,8 +1055,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
         instantiated_bound = declared_bound.raw();
       } else {
         instantiated_bound = declared_bound.InstantiateFrom(
-            arguments, Object::null_type_arguments(), &error, NULL, NULL,
-            Heap::kOld);
+            arguments, Object::null_type_arguments(), kNoneFree, &error, NULL,
+            NULL, Heap::kOld);
       }
       if (!instantiated_bound.IsFinalized()) {
         // The bound refers to type parameters, creating a cycle; postpone
@@ -1281,10 +1274,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           }
           const TypeArguments& instantiator_type_arguments =
               TypeArguments::Handle(zone, fun_type.arguments());
-          const TypeArguments& function_type_arguments =
-              TypeArguments::Handle(zone, signature.type_parameters());
           signature = signature.InstantiateSignatureFrom(
-              instantiator_type_arguments, function_type_arguments, Heap::kOld);
+              instantiator_type_arguments, Object::null_type_arguments(),
+              kNoneFree, Heap::kOld);
           // Note that if instantiator_type_arguments contains type parameters,
           // as in F<K>, the signature is still uninstantiated (the typedef type
           // parameters were substituted in the signature with typedef type
@@ -1648,7 +1640,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           getter.set_result_type(type);
           getter.set_is_debuggable(false);
           getter.set_kernel_offset(field.kernel_offset());
-          getter.set_kernel_data(TypedData::Handle(zone, field.kernel_data()));
           cls.AddFunction(getter);
           field.SetStaticValue(Object::sentinel(), true);
         }
@@ -1941,8 +1932,8 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
               param.set_bound(param_bound);  // In case part of recursive type.
             }
             param_bound = param_bound.InstantiateFrom(
-                instantiator, Object::null_type_arguments(), &bound_error, NULL,
-                NULL, Heap::kOld);
+                instantiator, Object::null_type_arguments(), kNoneFree,
+                &bound_error, NULL, NULL, Heap::kOld);
             // The instantiator contains only TypeParameter objects and no
             // BoundedType objects, so no bound error may occur.
             ASSERT(!param_bound.IsBoundedType());
@@ -2176,23 +2167,23 @@ void ClassFinalizer::ApplyMixinAppAlias(const Class& mixin_app_class,
         if (type.IsBoundedType()) {
           bounded_type = BoundedType::Cast(type).type();
           bounded_type = bounded_type.InstantiateFrom(
-              instantiator, Object::null_type_arguments(), &bound_error, NULL,
-              NULL, Heap::kOld);
+              instantiator, Object::null_type_arguments(), kNoneFree,
+              &bound_error, NULL, NULL, Heap::kOld);
           // The instantiator contains only TypeParameter objects and no
           // BoundedType objects, so no bound error may occur.
           ASSERT(bound_error.IsNull());
           upper_bound = BoundedType::Cast(type).bound();
           upper_bound = upper_bound.InstantiateFrom(
-              instantiator, Object::null_type_arguments(), &bound_error, NULL,
-              NULL, Heap::kOld);
+              instantiator, Object::null_type_arguments(), kNoneFree,
+              &bound_error, NULL, NULL, Heap::kOld);
           ASSERT(bound_error.IsNull());
           type_parameter = BoundedType::Cast(type).type_parameter();
           // The type parameter that declared the bound does not change.
           type = BoundedType::New(bounded_type, upper_bound, type_parameter);
         } else {
-          type =
-              type.InstantiateFrom(instantiator, Object::null_type_arguments(),
-                                   &bound_error, NULL, NULL, Heap::kOld);
+          type = type.InstantiateFrom(instantiator,
+                                      Object::null_type_arguments(), kNoneFree,
+                                      &bound_error, NULL, NULL, Heap::kOld);
           ASSERT(bound_error.IsNull());
         }
       }
@@ -2407,19 +2398,23 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   }
 
   // Now clone the functions from the mixin class.
+  const Library& from_library = Library::Handle(zone, mixin_cls.library());
+  const Library& to_library = Library::Handle(zone, cls.library());
+  Function& from_func = Function::Handle(zone);
+
   functions = mixin_cls.functions();
   const intptr_t num_functions = functions.Length();
   for (intptr_t i = 0; i < num_functions; i++) {
-    func ^= functions.At(i);
-    if (func.IsGenerativeConstructor()) {
+    from_func ^= functions.At(i);
+    if (from_func.IsGenerativeConstructor()) {
       // A mixin class must not have explicit constructors.
-      if (!func.IsImplicitConstructor()) {
+      if (!from_func.IsImplicitConstructor()) {
         const Script& script = Script::Handle(cls.script());
         const Error& error = Error::Handle(LanguageError::NewFormatted(
-            Error::Handle(), script, func.token_pos(), Report::AtLocation,
+            Error::Handle(), script, from_func.token_pos(), Report::AtLocation,
             Report::kError, Heap::kNew,
             "constructor '%s' is illegal in mixin class %s",
-            String::Handle(func.UserVisibleName()).ToCString(),
+            String::Handle(from_func.UserVisibleName()).ToCString(),
             String::Handle(zone, mixin_cls.Name()).ToCString()));
 
         ReportErrors(error, cls, cls.token_pos(),
@@ -2428,9 +2423,11 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
       }
       continue;  // Skip the implicit constructor.
     }
-    if (!func.is_static() && !func.IsMethodExtractor() &&
-        !func.IsNoSuchMethodDispatcher() && !func.IsInvokeFieldDispatcher()) {
-      func = func.Clone(cls);
+    if (!from_func.is_static() && !from_func.IsMethodExtractor() &&
+        !from_func.IsNoSuchMethodDispatcher() &&
+        !from_func.IsInvokeFieldDispatcher()) {
+      func = from_func.Clone(cls);
+      to_library.CloneMetadataFrom(from_library, from_func, func);
       cloned_funcs.Add(func);
     }
   }
@@ -2629,6 +2626,15 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (FLAG_trace_class_finalization) {
     THR_Print("Finalize %s\n", cls.ToCString());
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If loading from a kernel, make sure that the class is fully loaded.
+  // Top level classes are always fully loaded.
+  if (!cls.IsTopLevel() && cls.kernel_offset() > 0) {
+    kernel::KernelLoader::FinishLoading(cls);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   if (cls.is_patch()) {
     // The fields and functions of a patch class are copied to the
     // patched class after parsing. There is nothing to finalize.

@@ -16,7 +16,7 @@ enum Veggies {
 }
 
 // Need at least one enumeration identifier.
-enum Nada {} // //# 01: compile-time error
+enum Nada {} // //# 01: syntax error
 
 // Duplicate entries are a compile-time error
 enum ComeAgain { ahau, knust, zipfel, knust, gupf } // //# 02: compile-time error
@@ -32,10 +32,10 @@ enum ComeAgain { ahau, knust, zipfel, toString } //# 05: compile-time error
 enum ComeAgain { ahau, knust, zipfel, ComeAgain } //# 06: compile-time error
 
 // Missing comma.
-enum Numbers { one, two, three four, five } // //# 07: compile-time error
+enum Numbers { one, two, three four, five } // //# 07: syntax error
 
 // Missing enum type name.
-enum { eins, zwei, drei } // //# 08: compile-time error
+enum { eins, zwei, drei } // //# 08: syntax error
 
 // Duplicate name in library scope.
 topLevelFunction() => null;

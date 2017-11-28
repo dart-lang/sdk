@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/dependency_grapher.dart';
 import 'package:front_end/memory_file_system.dart';
-import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,6 +15,8 @@ main() {
     defineReflectiveTests(DependencyGrapherTest);
   });
 }
+
+final root = Uri.parse('org-dartlang-test:///');
 
 @reflectiveTest
 class DependencyGrapherTest {
@@ -35,12 +36,12 @@ class DependencyGrapherTest {
     // If no starting points given, assume the first entry in [contents] is the
     // single starting point.
     startingPoints ??= [contents.keys.first];
-    var fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+    var fileSystem = new MemoryFileSystem(root);
     if (packagesFilePath == null) {
       fileSystem.entityForUri(Uri.parse('.packages')).writeAsStringSync('');
     }
     contents.forEach((path, text) {
-      fileSystem.entityForUri(pathos.posix.toUri(path)).writeAsStringSync(text);
+      fileSystem.entityForUri(root.resolve(path)).writeAsStringSync(text);
     });
     // TODO(paulberry): implement and test other option possibilities.
     var options = new CompilerOptions()
@@ -48,9 +49,9 @@ class DependencyGrapherTest {
       ..chaseDependencies = true
       ..packagesFileUri = packagesFilePath == null
           ? Uri.parse('.packages')
-          : pathos.posix.toUri(packagesFilePath);
+          : root.resolve(packagesFilePath);
     var graph = await graphForProgram(
-        startingPoints.map(pathos.posix.toUri).toList(), options);
+        startingPoints.map(root.resolve).toList(), options);
     return graph.topologicallySortedCycles;
   }
 
@@ -69,7 +70,7 @@ class DependencyGrapherTest {
     var cycles = await getCycles({'/foo.dart': 'import "dart:core";'});
     expect(cycles, hasLength(1));
     expect(cycles[0].libraries, hasLength(1));
-    checkLibrary(cycles[0], 'file:///foo.dart');
+    checkLibrary(cycles[0], 'org-dartlang-test:///foo.dart');
   }
 
   test_exportDependency() async {
@@ -77,10 +78,10 @@ class DependencyGrapherTest {
         await getCycles({'/foo.dart': 'export "bar.dart";', '/bar.dart': ''});
     expect(cycles, hasLength(2));
     expect(cycles[0].libraries, hasLength(1));
-    checkLibrary(cycles[0], 'file:///bar.dart');
+    checkLibrary(cycles[0], 'org-dartlang-test:///bar.dart');
     expect(cycles[1].libraries, hasLength(1));
-    checkLibrary(cycles[1], 'file:///foo.dart',
-        dependencies: ['file:///bar.dart', 'dart:core']);
+    checkLibrary(cycles[1], 'org-dartlang-test:///foo.dart',
+        dependencies: ['org-dartlang-test:///bar.dart', 'dart:core']);
   }
 
   test_importDependency() async {
@@ -88,10 +89,10 @@ class DependencyGrapherTest {
         await getCycles({'/foo.dart': 'import "bar.dart";', '/bar.dart': ''});
     expect(cycles, hasLength(2));
     expect(cycles[0].libraries, hasLength(1));
-    checkLibrary(cycles[0], 'file:///bar.dart');
+    checkLibrary(cycles[0], 'org-dartlang-test:///bar.dart');
     expect(cycles[1].libraries, hasLength(1));
-    checkLibrary(cycles[1], 'file:///foo.dart',
-        dependencies: ['file:///bar.dart', 'dart:core']);
+    checkLibrary(cycles[1], 'org-dartlang-test:///foo.dart',
+        dependencies: ['org-dartlang-test:///bar.dart', 'dart:core']);
   }
 
   test_multipleStartingPoints() async {
@@ -105,14 +106,14 @@ class DependencyGrapherTest {
     ]);
     expect(cycles, hasLength(3));
     expect(cycles[0].libraries, hasLength(1));
-    checkLibrary(cycles[0], 'file:///c.dart');
+    checkLibrary(cycles[0], 'org-dartlang-test:///c.dart');
     // The other two cycles might be in any order, so sort them for
     // reproducibility.
     List<LibraryCycleNode> otherCycles = sortCycles(cycles.sublist(1));
-    checkLibrary(otherCycles[0], 'file:///a.dart',
-        dependencies: ['file:///c.dart', 'dart:core']);
-    checkLibrary(otherCycles[1], 'file:///b.dart',
-        dependencies: ['file:///c.dart', 'dart:core']);
+    checkLibrary(otherCycles[0], 'org-dartlang-test:///a.dart',
+        dependencies: ['org-dartlang-test:///c.dart', 'dart:core']);
+    checkLibrary(otherCycles[1], 'org-dartlang-test:///b.dart',
+        dependencies: ['org-dartlang-test:///c.dart', 'dart:core']);
   }
 
   test_packages() async {
@@ -129,7 +130,7 @@ class DependencyGrapherTest {
     checkLibrary(cycles[1], 'package:foo/bar.dart',
         dependencies: ['package:bar/baz.dart', 'dart:core']);
     expect(cycles[2].libraries, hasLength(1));
-    checkLibrary(cycles[2], 'file:///foo.dart',
+    checkLibrary(cycles[2], 'org-dartlang-test:///foo.dart',
         dependencies: ['package:foo/bar.dart', 'dart:core']);
   }
 
@@ -141,8 +142,8 @@ class DependencyGrapherTest {
     });
     expect(cycles, hasLength(1));
     expect(cycles[0].libraries, hasLength(1));
-    checkLibrary(cycles[0], 'file:///foo.dart',
-        parts: ['file:///a.dart', 'file:///b.dart']);
+    checkLibrary(cycles[0], 'org-dartlang-test:///foo.dart',
+        parts: ['org-dartlang-test:///a.dart', 'org-dartlang-test:///b.dart']);
   }
 
   test_relativeUris() async {
@@ -154,16 +155,16 @@ class DependencyGrapherTest {
     });
     expect(cycles, hasLength(4));
     expect(cycles[0].libraries, hasLength(1));
-    checkLibrary(cycles[0], 'file:///b/f.dart');
+    checkLibrary(cycles[0], 'org-dartlang-test:///b/f.dart');
     expect(cycles[1].libraries, hasLength(1));
-    checkLibrary(cycles[1], 'file:///b/d/e.dart',
-        dependencies: ['file:///b/f.dart', 'dart:core']);
+    checkLibrary(cycles[1], 'org-dartlang-test:///b/d/e.dart',
+        dependencies: ['org-dartlang-test:///b/f.dart', 'dart:core']);
     expect(cycles[2].libraries, hasLength(1));
-    checkLibrary(cycles[2], 'file:///b/c.dart',
-        dependencies: ['file:///b/d/e.dart', 'dart:core']);
+    checkLibrary(cycles[2], 'org-dartlang-test:///b/c.dart',
+        dependencies: ['org-dartlang-test:///b/d/e.dart', 'dart:core']);
     expect(cycles[3].libraries, hasLength(1));
-    checkLibrary(cycles[3], 'file:///a.dart',
-        dependencies: ['file:///b/c.dart', 'dart:core']);
+    checkLibrary(cycles[3], 'org-dartlang-test:///a.dart',
+        dependencies: ['org-dartlang-test:///b/c.dart', 'dart:core']);
   }
 
   test_sdkDependency() async {
@@ -172,7 +173,7 @@ class DependencyGrapherTest {
     var cycles = await getCycles({'/foo.dart': 'import "dart:async";'});
     expect(cycles, hasLength(1));
     expect(cycles[0].libraries, hasLength(1));
-    checkLibrary(cycles[0], 'file:///foo.dart',
+    checkLibrary(cycles[0], 'org-dartlang-test:///foo.dart',
         dependencies: ['dart:core', 'dart:async']);
   }
 
@@ -181,10 +182,10 @@ class DependencyGrapherTest {
         {'/foo.dart': 'import "bar.dart";', '/bar.dart': 'import "foo.dart";'});
     expect(cycles, hasLength(1));
     expect(cycles[0].libraries, hasLength(2));
-    var foo = checkLibrary(cycles[0], 'file:///foo.dart',
-        dependencies: ['file:///bar.dart', 'dart:core']);
-    var bar = checkLibrary(cycles[0], 'file:///bar.dart',
-        dependencies: ['file:///foo.dart', 'dart:core']);
+    var foo = checkLibrary(cycles[0], 'org-dartlang-test:///foo.dart',
+        dependencies: ['org-dartlang-test:///bar.dart', 'dart:core']);
+    var bar = checkLibrary(cycles[0], 'org-dartlang-test:///bar.dart',
+        dependencies: ['org-dartlang-test:///foo.dart', 'dart:core']);
     expect(foo.dependencies[0], same(bar));
     expect(bar.dependencies[0], same(foo));
   }
@@ -193,6 +194,6 @@ class DependencyGrapherTest {
     var cycles = await getCycles({'/foo.dart': ''});
     expect(cycles, hasLength(1));
     expect(cycles[0].libraries, hasLength(1));
-    checkLibrary(cycles[0], 'file:///foo.dart');
+    checkLibrary(cycles[0], 'org-dartlang-test:///foo.dart');
   }
 }

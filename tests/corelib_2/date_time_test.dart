@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 bool get supportsMicroseconds =>
     new DateTime.fromMicrosecondsSinceEpoch(1).microsecondsSinceEpoch == 1;
 
-// Identical to _MAX_MILLISECONDS_SINCE_EPOCH in date_time.dart
+// Identical to _maxMillisecondsSinceEpoch in date_time.dart
 const int _MAX_MILLISECONDS = 8640000000000000;
 
 // Tests if the time moves eventually forward.
@@ -611,8 +611,8 @@ void testChangeTimeZone() {
 
 void testSubAdd() {
   var dt1 = new DateTime.fromMillisecondsSinceEpoch(1305140315000, isUtc: true);
-  var dt2 = dt1.add(
-      new Duration(milliseconds: 3 * Duration.MILLISECONDS_PER_SECOND + 5));
+  var dt2 = dt1
+      .add(new Duration(milliseconds: 3 * Duration.millisecondsPerSecond + 5));
   Expect.equals(dt1.year, dt2.year);
   Expect.equals(dt1.month, dt2.month);
   Expect.equals(dt1.day, dt2.day);
@@ -622,15 +622,15 @@ void testSubAdd() {
   Expect.equals(dt1.millisecond + 5, dt2.millisecond);
   Expect.equals(dt1.microsecond, dt2.microsecond);
   var dt3 = dt2.subtract(
-      new Duration(milliseconds: 3 * Duration.MILLISECONDS_PER_SECOND + 5));
+      new Duration(milliseconds: 3 * Duration.millisecondsPerSecond + 5));
   Expect.equals(true, dt1 == dt3);
   Expect.equals(false, dt1 == dt2);
 
   if (!supportsMicroseconds) return;
 
   dt1 = new DateTime.fromMillisecondsSinceEpoch(1305140315000, isUtc: true);
-  dt2 = dt1.add(
-      new Duration(microseconds: 3 * Duration.MICROSECONDS_PER_SECOND + 5));
+  dt2 = dt1
+      .add(new Duration(microseconds: 3 * Duration.microsecondsPerSecond + 5));
   Expect.equals(dt1.year, dt2.year);
   Expect.equals(dt1.month, dt2.month);
   Expect.equals(dt1.day, dt2.day);
@@ -640,7 +640,7 @@ void testSubAdd() {
   Expect.equals(dt1.millisecond, dt2.millisecond);
   Expect.equals(dt1.microsecond + 5, dt2.microsecond);
   dt3 = dt2.subtract(
-      new Duration(microseconds: 3 * Duration.MICROSECONDS_PER_SECOND + 5));
+      new Duration(microseconds: 3 * Duration.microsecondsPerSecond + 5));
   Expect.equals(true, dt1 == dt3);
   Expect.equals(false, dt1 == dt2);
 }
@@ -1201,64 +1201,64 @@ void testDateStrings() {
   Expect.equals(9, dt1.millisecond);
   Expect.equals(true, dt1.isUtc);
 
-  Expect.throws(() => DateTime.parse("bad"), (e) => e is FormatException);
+  Expect.throwsFormatException(() => DateTime.parse("bad"));
   var bad_year =
       1970 + (_MAX_MILLISECONDS ~/ (1000 * 60 * 60 * 24 * 365.2425)) + 1;
-  Expect.throws(() => DateTime.parse(bad_year.toString() + "-01-01"),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(
+      () => DateTime.parse(bad_year.toString() + "-01-01"));
   // The last valid time; should not throw.
   dt1 = DateTime.parse("275760-09-13T00:00:00.000Z");
-  Expect.throws(() => DateTime.parse("275760-09-14T00:00:00.000Z"),
-      (e) => e is FormatException);
-  Expect.throws(() => DateTime.parse("275760-09-13T00:00:00.001Z"),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(
+      () => DateTime.parse("275760-09-14T00:00:00.000Z"));
+  Expect.throwsFormatException(
+      () => DateTime.parse("275760-09-13T00:00:00.001Z"));
   if (supportsMicroseconds) {
-    Expect.throws(() => DateTime.parse("275760-09-13T00:00:00.000001Z"),
-        (e) => e is FormatException);
+    Expect.throwsFormatException(
+        () => DateTime.parse("275760-09-13T00:00:00.000001Z"));
   } else {
     dt1 = DateTime.parse("275760-09-13T00:00:00.000001Z");
   }
 
   // first valid time; should not throw.
   dt1 = DateTime.parse("-271821-04-20T00:00:00.000Z");
-  Expect.throws(() => DateTime.parse("-271821-04-19T23:59:59.999Z"),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(
+      () => DateTime.parse("-271821-04-19T23:59:59.999Z"));
 
   if (supportsMicroseconds) {
-    Expect.throws(() => DateTime.parse("-271821-04-19T23:59:59.999999Z"),
-        (e) => e is FormatException);
+    Expect.throwsFormatException(
+        () => DateTime.parse("-271821-04-19T23:59:59.999999Z"));
   }
 }
 
 void testWeekday() {
   // 2011-10-06 is Summertime.
   var d = new DateTime(2011, 10, 6, 0, 45, 37, 0);
-  Expect.equals(DateTime.THURSDAY, d.weekday);
+  Expect.equals(DateTime.thursday, d.weekday);
   d = new DateTime.utc(2011, 10, 6, 0, 45, 37, 0);
-  Expect.equals(DateTime.THURSDAY, d.weekday);
+  Expect.equals(DateTime.thursday, d.weekday);
   d = new DateTime(2011, 10, 5, 23, 45, 37, 0);
-  Expect.equals(DateTime.WEDNESDAY, d.weekday);
+  Expect.equals(DateTime.wednesday, d.weekday);
   d = new DateTime.utc(2011, 10, 5, 23, 45, 37, 0);
-  Expect.equals(DateTime.WEDNESDAY, d.weekday);
+  Expect.equals(DateTime.wednesday, d.weekday);
   // 1970-01-01 is Wintertime.
   d = new DateTime(1970, 1, 1, 0, 0, 0, 1);
-  Expect.equals(DateTime.THURSDAY, d.weekday);
+  Expect.equals(DateTime.thursday, d.weekday);
   d = new DateTime.utc(1970, 1, 1, 0, 0, 0, 1);
-  Expect.equals(DateTime.THURSDAY, d.weekday);
+  Expect.equals(DateTime.thursday, d.weekday);
   d = new DateTime.utc(1969, 12, 31, 23, 59, 59, 999);
-  Expect.equals(DateTime.WEDNESDAY, d.weekday);
+  Expect.equals(DateTime.wednesday, d.weekday);
   d = new DateTime(1969, 12, 31, 23, 59, 59, 999);
-  Expect.equals(DateTime.WEDNESDAY, d.weekday);
+  Expect.equals(DateTime.wednesday, d.weekday);
   d = new DateTime(2011, 10, 4, 23, 45, 37, 0);
-  Expect.equals(DateTime.TUESDAY, d.weekday);
+  Expect.equals(DateTime.tuesday, d.weekday);
   d = new DateTime(2011, 10, 3, 23, 45, 37, 0);
-  Expect.equals(DateTime.MONDAY, d.weekday);
+  Expect.equals(DateTime.monday, d.weekday);
   d = new DateTime(2011, 10, 2, 23, 45, 37, 0);
-  Expect.equals(DateTime.SUNDAY, d.weekday);
+  Expect.equals(DateTime.sunday, d.weekday);
   d = new DateTime(2011, 10, 1, 23, 45, 37, 0);
-  Expect.equals(DateTime.SATURDAY, d.weekday);
+  Expect.equals(DateTime.saturday, d.weekday);
   d = new DateTime(2011, 9, 30, 23, 45, 37, 0);
-  Expect.equals(DateTime.FRIDAY, d.weekday);
+  Expect.equals(DateTime.friday, d.weekday);
 }
 
 void testToStrings() {

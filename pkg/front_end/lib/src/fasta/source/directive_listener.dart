@@ -7,8 +7,7 @@
 library front_end.src.fasta.source.directive_listener;
 
 import '../../scanner/token.dart' show Token;
-import '../fasta_codes.dart'
-    show Message, codeExpectedBlockToSkip, messageExpectedBlockToSkip;
+import '../fasta_codes.dart' show messageExpectedBlockToSkip;
 import '../parser/identifier_context.dart';
 import '../parser/listener.dart';
 import '../quote.dart';
@@ -83,7 +82,7 @@ class DirectiveListener extends Listener {
   }
 
   @override
-  endImport(Token import, Token deferred, Token asKeyword, Token semicolon) {
+  endImport(Token import, Token semicolon) {
     imports.add(new NamespaceDirective.import(_uri, _combinators));
     _uri = null;
     _combinators = null;
@@ -113,19 +112,6 @@ class DirectiveListener extends Listener {
   @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     super.handleUnrecoverableError(nativeToken, messageExpectedBlockToSkip);
-  }
-
-  /// Defines how native clauses are handled. By default, they are not handled
-  /// and an error is thrown;
-  Token handleNativeClauseError(Token token) => null;
-
-  @override
-  Token handleUnrecoverableError(Token token, Message message) {
-    if (message.code == codeExpectedBlockToSkip) {
-      Token recover = handleNativeClauseError(token);
-      if (recover != null) return recover;
-    }
-    return super.handleUnrecoverableError(token, message);
   }
 }
 

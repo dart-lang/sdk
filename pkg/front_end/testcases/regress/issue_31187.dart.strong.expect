@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method bad() → dynamic {
+  return const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_31187.dart:6:16: Error: Expected an identifier, but got '1'.\n  return null?.1;\n               ^"));
+}
+static method main() → dynamic {}

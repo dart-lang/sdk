@@ -5,7 +5,9 @@
 #ifndef RUNTIME_VM_OS_THREAD_H_
 #define RUNTIME_VM_OS_THREAD_H_
 
+#include "platform/address_sanitizer.h"
 #include "platform/globals.h"
+#include "platform/safe_stack.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
@@ -93,21 +95,25 @@ class OSThread : public BaseThread {
   Log* log() const { return log_; }
 
   uword stack_base() const { return stack_base_; }
-  void set_stack_base(uword stack_base) { stack_base_ = stack_base; }
-
-  // Retrieve the stack address bounds for profiler.
-  bool GetProfilerStackBounds(uword* lower, uword* upper) const {
-    uword stack_upper = stack_base_;
-    if (stack_upper == 0) {
-      return false;
-    }
-    uword stack_lower = stack_upper - GetSpecifiedStackSize();
-    *lower = stack_lower;
-    *upper = stack_upper;
-    return true;
+  uword stack_limit() const { return stack_limit_; }
+  uword stack_limit_with_headroom() const {
+    return stack_limit_ + kStackSizeBuffer;
   }
 
+  void RefineStackBoundsFromSP(uword sp) {
+    if (sp > stack_base_) {
+      stack_base_ = sp;
+      stack_limit_ = sp - GetSpecifiedStackSize();
+    }
+  }
+
+  // May fail for the main thread on Linux and Android.
   static bool GetCurrentStackBounds(uword* lower, uword* upper);
+
+#if defined(USING_SAFE_STACK)
+  static uword GetCurrentSafestackPointer();
+  static void SetCurrentSafestackPointer(uword ssp);
+#endif
 
   // Used to temporarily disable or enable thread interrupts.
   void DisableThreadInterrupts();
@@ -237,6 +243,7 @@ class OSThread : public BaseThread {
   uintptr_t thread_interrupt_disabled_;
   Log* log_;
   uword stack_base_;
+  uword stack_limit_;
   Thread* thread_;
 
   // thread_list_lock_ cannot have a static lifetime because the order in which

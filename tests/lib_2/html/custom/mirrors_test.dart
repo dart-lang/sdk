@@ -7,7 +7,8 @@ library tests.html.mirrors_test;
 @MirrorsUsed(targets: const [A, B])
 import 'dart:mirrors';
 import 'dart:html';
-import 'package:test/test.dart';
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 import '../utils.dart';
 
 /// Regression test for a tricky mirrors+custom_elements issue:
@@ -15,6 +16,8 @@ import '../utils.dart';
 /// This was failing for custom elements on IE 10, because the constructor was
 /// HTMLUnknownElement for all of them. So mirrors called the wrong method.
 main() {
+  useHtmlIndividualConfiguration();
+
   var registered = false;
   setUp(() => customElementsReady.then((_) {
         if (!registered) {

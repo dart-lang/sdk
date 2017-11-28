@@ -385,6 +385,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();
       results = typesInferrerInternal.createResults();
+      closedWorld.noSuchMethodData.categorizeComplexImplementations(results);
     });
   }
 }

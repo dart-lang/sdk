@@ -53,7 +53,7 @@ class Scanner extends fe.Scanner {
           : new Scanner._(source, reader, errorListener);
 
   factory Scanner.fasta(Source source, AnalysisErrorListener errorListener,
-      {String contents, int offset: 0}) {
+      {String contents, int offset: -1}) {
     return new _Scanner2(
         source, contents ?? source.contents.data, offset, errorListener);
   }

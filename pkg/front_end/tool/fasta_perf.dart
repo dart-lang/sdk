@@ -9,6 +9,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/src/fasta/ast_builder.dart';
+import 'package:args/args.dart';
+
 import 'package:front_end/front_end.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/parser.dart';
@@ -16,8 +18,10 @@ import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/io.dart' show readBytesFromFileSync;
 import 'package:front_end/src/fasta/source/directive_listener.dart';
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
-import 'package:front_end/src/fasta/parser/native_support.dart'
-    show skipNativeClause;
+
+import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/vm.dart' show VmTarget;
+import 'perf_common.dart';
 
 /// Cumulative total number of chars scanned.
 int inputSize = 0;
@@ -27,12 +31,15 @@ Stopwatch scanTimer = new Stopwatch();
 
 main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
-  if (args.length < 2) {
-    print('usage: fasta_perf.dart <bench-id> <entry.dart>');
+  var options = argParser.parse(args);
+  if (options.rest.length != 2) {
+    print('usage: fasta_perf.dart [options] <bench-id> <entry.dart>');
+    print(argParser.usage);
     exit(1);
   }
-  var bench = args[0];
-  var entryUri = Uri.base.resolve(args[1]);
+  bool strongMode = !options['legacy'];
+  var bench = options.rest[0];
+  var entryUri = Uri.base.resolve(options.rest[1]);
 
   await setup(entryUri);
 
@@ -42,10 +49,10 @@ main(List<String> args) async {
     // TODO(sigmund): enable when we can run the ast-builder standalone.
     // 'parse': () async => parseFiles(files),
     'kernel_gen_e2e': () async {
-      await generateKernel(entryUri);
+      await generateKernel(entryUri, strongMode: strongMode);
     },
     'kernel_gen_e2e_sum': () async {
-      await generateKernel(entryUri, compileSdk: false);
+      await generateKernel(entryUri, compileSdk: false, strongMode: strongMode);
     },
   };
 
@@ -68,10 +75,14 @@ main(List<String> args) async {
   }
 }
 
-// TODO(sigmund): use `perf.dart::_findSdkPath` here when fasta can patch the
-// sdk directly.
-Uri sdkRoot =
-    Uri.base.resolve(Platform.resolvedExecutable).resolve('patched_sdk/');
+Uri sdkRoot = _computeRoot();
+Uri _computeRoot() {
+  // TODO(sigmund): delete this when our performance bots include runtime/lib/
+  if (new Directory('runtime/lib/').existsSync()) {
+    return Uri.base.resolve("sdk/");
+  }
+  return Uri.base.resolve(Platform.resolvedExecutable).resolve('patched_sdk/');
+}
 
 /// Translates `dart:*` and `package:*` URIs to resolved URIs.
 UriTranslator uriResolver;
@@ -81,6 +92,10 @@ UriTranslator uriResolver;
 Future setup(Uri entryUri) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..reportMessages = true
+    // Because this is only used to create a uriResolver, we don't allow any
+    // whitelisting of error messages in the error handler.
+    ..onError = onErrorHandler(false)
     ..compileSdk = true
     ..packagesFileUri = Uri.base.resolve('.packages');
   uriResolver = await new ProcessedOptions(options).getUriTranslator();
@@ -172,9 +187,6 @@ class DirectiveListenerWithNative extends DirectiveListener {
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     // Always allow native functions.
   }
-
-  @override
-  Token handleNativeClauseError(Token token) => skipNativeClause(token, true);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
@@ -216,12 +228,20 @@ generateKernel(Uri entryUri,
   scanReachableFiles(entryUri);
 
   var timer = new Stopwatch()..start();
+  var flags = new TargetFlags(strongMode: strongMode);
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
+    ..reportMessages = true
+    ..onError = onErrorHandler(strongMode)
+    ..strongMode = strongMode
+    ..target = (strongMode ? new VmTarget(flags) : new LegacyVmTarget(flags))
     ..chaseDependencies = true
     ..packagesFileUri = Uri.base.resolve('.packages')
     ..compileSdk = compileSdk;
   if (!compileSdk) {
+    // TODO(sigmund): fix this: this is broken since the change to move .dill
+    // files out of the patched_sdk folder. It is not failing anywhere because
+    // this codepath is not used right now in our performance bots.
     options.sdkSummary = sdkRoot.resolve('outline.dill');
   }
 
@@ -258,4 +278,19 @@ void report(String name, int time) {
   var invSpeed = (time * 1000 / inputSize).toStringAsFixed(2);
   sb.write(', $invSpeed ns/char');
   print('$sb');
+}
+
+ArgParser argParser = new ArgParser()
+  ..addFlag('legacy',
+      help: 'run the compiler in legacy-mode',
+      defaultsTo: false,
+      negatable: false);
+
+// TODO(sigmund): delete as soon as the disableTypeInference flag and the
+// strongMode flag get merged.
+class LegacyVmTarget extends VmTarget {
+  LegacyVmTarget(TargetFlags flags) : super(flags);
+
+  @override
+  bool get disableTypeInference => true;
 }

@@ -1,0 +1,29 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  default constructor •() → void
+    ;
+  method f(core::int x) → core::int
+    ;
+}
+abstract class I extends core::Object {
+  default constructor •() → void
+    ;
+  abstract method f(covariant core::Object x) → core::int;
+}
+class C extends self::B implements self::I {
+  default constructor •() → void
+    ;
+}
+static method expectTypeError(() → void callback) → void
+  ;
+static method expect(core::Object value, core::Object expected) → void
+  ;
+static method g(self::C c) → void
+  ;
+static method test(self::C c, self::I i) → void
+  ;
+static method main() → dynamic
+  ;

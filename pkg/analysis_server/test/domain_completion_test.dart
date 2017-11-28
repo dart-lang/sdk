@@ -29,6 +29,17 @@ main() {
 
 @reflectiveTest
 class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
+  test_ArgumentList_constructor_named_fieldFormalParam() async {
+    // https://github.com/dart-lang/sdk/issues/31023
+    addTestFile('''
+main() { new A(field: ^);}
+class A {
+  A({this.field: -1}) {}
+}
+''');
+    await getSuggestions();
+  }
+
   test_ArgumentList_constructor_named_param_label() async {
     addTestFile('main() { new A(^);}'
         'class A { A({one, two}) {} }');

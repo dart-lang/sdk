@@ -4,14 +4,15 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   final field core::int index;
+  final field core::String _name;
   static const field core::List<self::Foo> values = const <self::Foo>[self::Foo::ec1, self::Foo::ec2];
-  static const field self::Foo ec1 = const self::Foo::•(0);
-  static const field self::Foo ec2 = const self::Foo::•(1);
-  const constructor •(core::int index) → void
-    : self::Foo::index = index, super core::Object::•()
+  static const field self::Foo ec1 = const self::Foo::•(0, "Foo.ec1");
+  static const field self::Foo ec2 = const self::Foo::•(1, "Foo.ec2");
+  const constructor •(core::int index, core::String _name) → void
+    : self::Foo::index = index, self::Foo::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return const <core::int, core::String>{0: "Foo.ec1", 1: "Foo.ec2"}.[](this.{=self::Foo::index});
+    return this.{=self::Foo::_name};
 }
 static method main() → dynamic
   ;

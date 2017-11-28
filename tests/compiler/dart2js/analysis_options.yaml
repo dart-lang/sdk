@@ -10,9 +10,6 @@ analyzer:
 
   errors:
     todo: ignore
-    # https://github.com/dart-lang/sdk/issues/30589
-    # TODO(leafp): remove once #30589 is resolved
-    uses_dynamic_as_bottom: ignore
     deprecated_member_use: ignore
 
   exclude:

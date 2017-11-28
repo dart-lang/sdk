@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../build/compiled_action.gni")
+import("../../sdk/lib/_http/http_sources.gni")
 import("../../sdk/lib/io/io_sources.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
@@ -103,6 +104,16 @@ gen_library_src_path("generate_io_patch_cc_file") {
   kind = "patch"
   sources = io_runtime_sources
   output = "$target_gen_dir/io_patch_gen.cc"
+}
+
+rebased_http_sdk_sources =
+    rebase_path(http_sdk_sources, ".", "../../sdk/lib/_http")
+
+gen_library_src_path("generate_http_cc_file") {
+  name = "_http"
+  kind = "source"
+  sources = [ "../../sdk/lib/_http/http.dart" ] + rebased_http_sdk_sources
+  output = "$target_gen_dir/http_gen.cc"
 }
 
 gen_library_src_path("generate_html_cc_file") {
@@ -220,7 +231,11 @@ template("build_libdart_builtin") {
     extra_configs += invoker.extra_configs
   }
   static_library(target_name) {
-    configs += [ "..:dart_config" ] + extra_configs
+    configs += [
+                 "..:dart_arch_config",
+                 "..:dart_config",
+                 "..:dart_os_config",
+               ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -229,6 +244,7 @@ template("build_libdart_builtin") {
       ":generate_builtin_cc_file",
       ":generate_html_cc_file",
       ":generate_html_common_cc_file",
+      ":generate_http_cc_file",
       ":generate_indexed_db_cc_file",
       ":generate_io_cc_file",
       ":generate_io_patch_cc_file",
@@ -274,7 +290,9 @@ template("build_gen_snapshot") {
   }
   executable(target_name) {
     configs += [
+                 "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_os_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -283,6 +301,7 @@ template("build_gen_snapshot") {
     deps = [
              ":gen_resources_cc",
              ":generate_builtin_cc_file",
+             ":generate_http_cc_file",
              ":generate_io_cc_file",
              ":generate_io_patch_cc_file",
            ] + extra_deps
@@ -290,6 +309,7 @@ template("build_gen_snapshot") {
     sources = [
       # Include generated source files.
       "$target_gen_dir/builtin_gen.cc",
+      "$target_gen_dir/http_gen.cc",
       "$target_gen_dir/io_gen.cc",
       "$target_gen_dir/io_patch_gen.cc",
       "$target_gen_dir/resources_gen.cc",
@@ -372,16 +392,19 @@ template("build_gen_snapshot_dart_io") {
   }
   source_set(target_name) {
     configs += [
+                 "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_os_config",
                  "..:dart_precompiler_config",
                ] + extra_configs
+    deps = []
+
     if (is_fuchsia) {
+      deps += [ "//garnet/public/lib/netstack/c" ]
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
-    deps = [
-      "$dart_zlib_path",
-    ]
+    deps += [ "$dart_zlib_path" ]
 
     custom_sources_filter = [
       "*_test.cc",
@@ -433,7 +456,11 @@ template("dart_io") {
     extra_sources += invoker.extra_sources
   }
   source_set(target_name) {
-    configs += [ "..:dart_config" ] + extra_configs
+    configs += [
+                 "..:dart_arch_config",
+                 "..:dart_config",
+                 "..:dart_os_config",
+               ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -470,6 +497,7 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
+      deps += [ "//garnet/public/lib/netstack/c" ]
       libs = [ "launchpad" ]
     }
 
@@ -539,6 +567,7 @@ compiled_action("generate_snapshot_bin") {
   ]
   tool = ":gen_snapshot"
   args = [
+    "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
     "--vm_snapshot_instructions=" +
@@ -660,7 +689,9 @@ template("dart_executable") {
   }
   executable(target_name) {
     configs += [
+                 "..:dart_arch_config",
                  "..:dart_config",
+                 "..:dart_os_config",
                  "..:dart_maybe_product_config",
                ] + extra_configs
     if (is_fuchsia) {
@@ -786,6 +817,7 @@ dart_executable("dart_bootstrap") {
     ":generate_builtin_cc_file",
     ":generate_html_cc_file",
     ":generate_html_common_cc_file",
+    ":generate_http_cc_file",
     ":generate_indexed_db_cc_file",
     ":generate_io_cc_file",
     ":generate_io_patch_cc_file",
@@ -815,6 +847,7 @@ dart_executable("dart_bootstrap") {
     "$target_gen_dir/builtin_gen.cc",
     "$target_gen_dir/html_common_gen.cc",
     "$target_gen_dir/html_gen.cc",
+    "$target_gen_dir/http_gen.cc",
     "$target_gen_dir/indexed_db_gen.cc",
     "$target_gen_dir/io_gen.cc",
     "$target_gen_dir/io_patch_gen.cc",
@@ -886,6 +919,40 @@ if (is_fuchsia) {
   #     ":hello_fuchsia_dylib($shlib_toolchain)",
   #   ]
   # }
+
+  import("//build/package.gni")
+
+  package("package") {
+    system_image = true
+
+    package_name = "dart"
+
+    deps = [
+      ":dart",
+      ":dart_precompiled_runtime",
+    ]
+
+    binaries = [
+      {
+        name = "dart"
+      },
+      {
+        name = "dart_precompiled_runtime"
+      },
+    ]
+  }
+
+  package("dart_tests") {
+    system_image = true
+
+    deps = [
+      ":hello_fuchsia",
+    ]
+
+    binaries = [ {
+          name = "hello_fuchsia.dart"
+        } ]
+  }
 }
 
 executable("process_test") {
@@ -928,7 +995,9 @@ executable("run_vm_tests") {
   }
 
   configs += [
+    "..:dart_arch_config",
     "..:dart_config",
+    "..:dart_os_config",
     "..:dart_maybe_product_config",
   ]
   if (is_fuchsia) {
@@ -955,7 +1024,7 @@ executable("run_vm_tests") {
   }
 
   if (is_fuchsia) {
-    deps += [ "//apps/tracing/lib/trace" ]
+    deps += [ "//zircon/system/ulib/trace" ]
   }
 
   # The VM sources are already included in libdart, so we just want to add in

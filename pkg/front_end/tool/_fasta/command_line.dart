@@ -11,6 +11,9 @@ import 'package:front_end/compiler_options.dart' show CompilerOptions;
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/fasta_codes.dart'
@@ -27,6 +30,9 @@ import 'package:front_end/src/fasta/severity.dart' show Severity;
 
 import 'package:kernel/target/targets.dart'
     show Target, getTarget, TargetFlags, targets;
+
+import 'package:kernel/target/implementation_option.dart'
+    show ImplementationOption, implementationOptions;
 
 class CommandLineProblem {
   final Message message;
@@ -101,7 +107,7 @@ class ParsedArguments {
         if (valueSpecification == null) {
           if (value != null) {
             throw new CommandLineProblem.deprecated(
-                "Argument '$argument' doesn't take a value: '$value'.");
+                "Option '$argument' doesn't take a value: '$value'.");
           }
           result.options[argument] = true;
         } else {
@@ -181,8 +187,9 @@ const Map<String, dynamic> optionSpecification = const <String, dynamic>{
   "-o": Uri,
   "--packages": Uri,
   "--platform": Uri,
-  "--sdk": Uri,
+  "--libraries-json": Uri,
   "--target": String,
+  "--target-options": ",",
   "-t": String,
 };
 
@@ -221,26 +228,22 @@ ProcessedOptions analyzeCommandLine(
         "Can't specify both '--compile-sdk' and '--platform'.");
   }
 
-  if (programName == "compile_platform") {
-    if (arguments.length != 3) {
-      return throw new CommandLineProblem.deprecated(
-          "Expected three arguments.");
-    }
-    if (options.containsKey("--compile-sdk")) {
-      return throw new CommandLineProblem.deprecated(
-          "Cannot specify '--compile-sdk' option to compile_platform.");
-    }
-    options['--compile-sdk'] = Uri.base.resolveUri(new Uri.file(arguments[0]));
-  } else if (arguments.isEmpty) {
-    return throw new CommandLineProblem.deprecated("No Dart file specified.");
-  }
+  final bool strongMode =
+      options.containsKey("--strong-mode") || options.containsKey("--strong");
 
-  final bool strongMode = options.containsKey("--strong-mode");
+  final String targetName = options["-t"] ?? options["--target"] ?? "vm";
 
-  final String targetName = options["-t"] ?? options["--target"] ?? "vm_fasta";
+  final List<ImplementationOption> targetOptions =
+      (options["--target-options"] ?? <String>[])
+          .map((String name) =>
+              implementationOptions[name] ??
+              (throw new CommandLineProblem.deprecated(
+                  "--target-options argument not recognized: '$name'.")))
+          .toList();
 
-  final Target target =
-      getTarget(targetName, new TargetFlags(strongMode: strongMode));
+  final TargetFlags flags = new TargetFlags(
+      strongMode: strongMode, implementationOptions: targetOptions);
+  final Target target = getTarget(targetName, flags);
   if (target == null) {
     return throw new CommandLineProblem.deprecated(
         "Target '${targetName}' not recognized. "
@@ -253,17 +256,7 @@ ProcessedOptions analyzeCommandLine(
 
   final bool excludeSource = options.containsKey("--exclude-source");
 
-  final Uri defaultOutput = Uri.base.resolve("${arguments.first}.dill");
-
-  final Uri output = options["-o"] ?? options["--output"] ?? defaultOutput;
-
-  final Uri platform = options.containsKey("--compile-sdk")
-      ? null
-      : options["--platform"] ?? Uri.base.resolve("platform.dill");
-
   final Uri packages = options["--packages"];
-
-  final Uri sdk = options["--sdk"] ?? options["--compile-sdk"];
 
   final Set<String> fatal =
       new Set<String>.from(options["--fatal"] ?? <String>[]);
@@ -274,8 +267,63 @@ ProcessedOptions analyzeCommandLine(
 
   final bool nitsAreFatal = fatal.contains("nits");
 
+  final bool compileSdk = options.containsKey("--compile-sdk");
+
+  if (programName == "compile_platform") {
+    if (arguments.length != 4) {
+      return throw new CommandLineProblem.deprecated(
+          "Expected four arguments.");
+    }
+    if (compileSdk) {
+      return throw new CommandLineProblem.deprecated(
+          "Cannot specify '--compile-sdk' option to compile_platform.");
+    }
+    if (options.containsKey("-o")) {
+      return throw new CommandLineProblem.deprecated(
+          "Cannot specify '-o' option to compile_platform.");
+    }
+    if (options.containsKey("--output")) {
+      return throw new CommandLineProblem.deprecated(
+          "Cannot specify '--output' option to compile_platform.");
+    }
+
+    return new ProcessedOptions(
+        new CompilerOptions()
+          ..sdkSummary = options["--platform"]
+          ..librariesSpecificationUri =
+              Uri.base.resolveUri(new Uri.file(arguments[1]))
+          ..setExitCodeOnProblem = true
+          ..chaseDependencies = true
+          ..packagesFileUri = packages
+          ..strongMode = strongMode
+          ..target = target
+          ..throwOnErrorsForDebugging = errorsAreFatal
+          ..throwOnWarningsForDebugging = warningsAreFatal
+          ..throwOnNitsForDebugging = nitsAreFatal
+          ..embedSourceText = !excludeSource
+          ..debugDump = dumpIr
+          ..verbose = verbose
+          ..verify = verify,
+        false,
+        <Uri>[Uri.parse(arguments[0])],
+        Uri.base.resolveUri(new Uri.file(arguments[2])));
+  } else if (arguments.isEmpty) {
+    return throw new CommandLineProblem.deprecated("No Dart file specified.");
+  }
+
+  final Uri defaultOutput = Uri.base.resolve("${arguments.first}.dill");
+
+  final Uri output = options["-o"] ?? options["--output"] ?? defaultOutput;
+
+  final Uri sdk = options["--sdk"] ?? options["--compile-sdk"];
+
+  final Uri platform = compileSdk
+      ? null
+      : (options["--platform"] ??
+          computePlatformBinariesLocation().resolve("vm_platform.dill"));
+
   CompilerOptions compilerOptions = new CompilerOptions()
-    ..compileSdk = options.containsKey("--compile-sdk")
+    ..compileSdk = compileSdk
     ..sdkRoot = sdk
     ..sdkSummary = platform
     ..packagesFileUri = packages
@@ -351,8 +399,8 @@ Message computeUsage(String programName, bool verbose) {
 
     case "compile_platform":
       summary = "Compiles Dart SDK platform to the Dill/Kernel IR format.";
-      basicUsage = "Usage: $programName [options] patched_sdk fullOutput "
-          "outlineOutput\n";
+      basicUsage = "Usage: $programName [options]"
+          " dart-library-uri libraries.json platform.dill outline.dill\n";
   }
   StringBuffer sb = new StringBuffer(basicUsage);
   if (summary != null) {

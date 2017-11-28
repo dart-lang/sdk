@@ -1,0 +1,12 @@
+{
+  "vm": {
+    "libraries": {
+      "vmservice_io": {
+        "uri": "../../runtime/bin/vmservice/vmservice_io.dart"
+      },
+      "_vmservice": {
+        "uri": "vmservice/vmservice.dart"
+      }
+    }
+  }
+}

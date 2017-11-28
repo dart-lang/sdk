@@ -3,5 +3,5 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::_withType(null, #Missing, 32, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Missing, 32, null, <dynamic>[].toList(growable: false), <dynamic, dynamic>{}));
 }

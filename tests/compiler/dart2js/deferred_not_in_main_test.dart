@@ -25,9 +25,10 @@ void deferredTest1() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
 
-    var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     dynamic lib2 = lookupLibrary("memory:lib2.dart");
     lib1.find("foo1");
@@ -46,9 +47,10 @@ void deferredTest2() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
 
-    var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     dynamic shared = lookupLibrary("memory:shared.dart");
     var a = shared.find("A");
 

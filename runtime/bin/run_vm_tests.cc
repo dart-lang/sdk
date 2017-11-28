@@ -154,8 +154,8 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   bin::IsolateData* isolate_data = new bin::IsolateData(
       script_uri, package_root, packages_config, NULL /* app_snapshot */);
   Dart_Isolate isolate = Dart_CreateIsolate(
-      script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
-      flags, isolate_data, error);
+      DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
+      isolate_snapshot_instructions, flags, isolate_data, error);
   if (isolate == NULL) {
     *error = strdup("Failed to create isolate");
     delete isolate_data;
@@ -190,6 +190,7 @@ static int Main(int argc, const char** argv) {
   // Perform platform specific initialization.
   if (!dart::bin::Platform::Initialize()) {
     OS::PrintErr("Initialization failed\n");
+    return 1;
   }
 
   if (argc < 2) {

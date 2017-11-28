@@ -14,9 +14,8 @@ import 'buildbot_structures.dart';
 import 'buildbot_data.dart';
 import 'cache_new.dart';
 import 'logger.dart';
-import 'luci.dart' hide Timing;
-import 'luci_services.dart';
-import 'try.dart';
+import 'luci_api.dart' hide Timing;
+import 'luci.dart';
 import 'util.dart';
 
 Future mainInternal(Bot bot, List<String> args,
@@ -33,8 +32,7 @@ Future mainInternal(Bot bot, List<String> args,
       args);
 }
 
-RegExp logdogUrlRegexp =
-    new RegExp(r'https://luci-logdog.appspot.com/.*client.dart');
+RegExp logdogUrlRegexp = new RegExp(r'https://logs.chromium.org/.*client.dart');
 
 /// Loads [BuildResult]s for the [runCount] last builds for the build(s) in
 /// [args]. [args] can be a list of [BuildGroup] names or a list of log uris.
@@ -47,26 +45,20 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
   List<BuildUri> buildUriList = <BuildUri>[];
   List<BuildDetail> buildDetails;
   if (commit != null) {
-    Luci luci = new Luci();
+    LuciApi luci = new LuciApi();
     Logger logger = createLogger(verbose: verbose);
     CreateCacheFunction createCache =
         createCacheFunction(logger, disableCache: noCache);
-    Try<List<BuildDetail>> tryBuildDetails = await fetchBuildsForCommmit(
+    buildDetails = await fetchBuildsForCommmit(
         luci, logger, DART_CLIENT, commit, createCache, 25);
-    tryBuildDetails.fold(exceptionPrint('Failed to fetch commits.'),
-        (List<BuildDetail> result) {
-      if (result.isEmpty) {
-        print('No builds found for $commit');
-      } else {
-        buildDetails = result;
-        if (verbose) {
-          log('Found builds for commit $commit:');
-          buildDetails.forEach((b) => log(' ${b.botName}: ${b.buildNumber}'));
-        } else {
-          print('Found ${buildDetails.length} builds for commit $commit.');
-        }
-      }
-    });
+    if (buildDetails.isEmpty) {
+      print('No builds found for $commit');
+    } else if (verbose) {
+      log('Found builds for commit $commit:');
+      buildDetails.forEach((b) => log(' ${b.botName}: ${b.buildNumber}'));
+    } else {
+      print('Found ${buildDetails.length} builds for commit $commit.');
+    }
   }
 
   BuildUri updateWithCommit(BuildUri buildUri) {
@@ -80,23 +72,32 @@ Future<Map<BuildUri, List<BuildResult>>> loadBuildResults(
     return buildUri;
   }
 
-  for (String arg in args) {
-    if (logdogUrlRegexp.hasMatch(arg)) {
-      print('Encountered a logdog URI ("${arg.substring(0,40)}...").');
-      print('Please use the regular log URI, even with --logdog.');
-      exit(-1);
-    }
-  }
   for (BuildGroup buildGroup in buildGroups) {
     if (args.contains(buildGroup.groupName)) {
       buildUriList.addAll(buildGroup
           .createUris(bot.mostRecentBuildNumber)
           .map(updateWithCommit));
+    } else {
+      for (BuildSubgroup subGroup in buildGroup.subgroups) {
+        for (String arg in args) {
+          if (subGroup.shardNames.contains(arg)) {
+            buildUriList.addAll(subGroup
+                .createUris(bot.mostRecentBuildNumber)
+                .map(updateWithCommit));
+            // Break out to not include more from same group.
+            break;
+          }
+        }
+      }
     }
   }
   if (buildUriList.isEmpty) {
     for (String url in args) {
-      buildUriList.add(updateWithCommit(new BuildUri.fromUrl(url)));
+      try {
+        buildUriList.add(updateWithCommit(new BuildUri.fromUrl(url)));
+      } catch (e) {
+        print("'$url' is not a valid build bot url: $e");
+      }
     }
   }
 

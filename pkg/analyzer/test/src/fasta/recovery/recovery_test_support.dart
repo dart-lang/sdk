@@ -16,9 +16,14 @@ import '../../../generated/parser_fasta_test.dart';
  */
 abstract class AbstractRecoveryTest extends FastaParserTestCase {
   void testRecovery(
-      String invalidCode, List<ErrorCode> errorCodes, String validCode) {
-    CompilationUnit invalidUnit = parseCompilationUnit(invalidCode, errorCodes);
+      String invalidCode, List<ErrorCode> errorCodes, String validCode,
+      {CompilationUnit adjustValidUnitBeforeComparison(CompilationUnit unit)}) {
+    CompilationUnit invalidUnit =
+        parseCompilationUnit(invalidCode, codes: errorCodes);
     CompilationUnit validUnit = parseCompilationUnit(validCode);
+    if (adjustValidUnitBeforeComparison != null) {
+      validUnit = adjustValidUnitBeforeComparison(validUnit);
+    }
     ResultComparator.compare(invalidUnit, validUnit);
   }
 }
@@ -102,7 +107,8 @@ class ResultComparator extends AstComparator {
    */
   @override
   bool isEqualTokensNotNull(Token first, Token second) =>
-      first.length == second.length && first.lexeme == second.lexeme;
+      (first.isSynthetic && first.type == second.type) ||
+      (first.length == second.length && first.lexeme == second.lexeme);
 
   void _safelyWriteNodePath(StringBuffer buffer, AstNode node) {
     buffer.write('  path: ');
@@ -123,11 +129,13 @@ class ResultComparator extends AstComparator {
   }
 
   /**
-   * Compare the [first] and [second] nodes, failing the test if they are
+   * Compare the [actual] and [expected] nodes, failing the test if they are
    * different.
    */
-  static void compare(AstNode first, AstNode second) {
+  static void compare(AstNode actual, AstNode expected) {
     ResultComparator comparator = new ResultComparator();
-    comparator.isEqualNodes(first, second);
+    if (!comparator.isEqualNodes(actual, expected)) {
+      fail('Expected: $expected\n   Found: $actual');
+    }
   }
 }

@@ -100,7 +100,7 @@ class C extends self::B {
     super.{self::B::i} = super.{self::A::i}.+(1);
     self::use(let final dynamic #t17 = super.{self::A::i} in let final dynamic #t18 = super.{self::B::i} = #t17.+(1) in #t17);
     let final core::int #t19 = 87 in super.{self::A::[]=}(#t19, super.{self::A::[]}(#t19).+(1));
-    self::use(let final core::int #t20 = 87 in let final dynamic #t21 = super.{self::A::[]}(#t20) in let final dynamic #t22 = super.{self::A::[]=}(#t20, #t21.+(1)) in #t21);
+    self::use(let final core::int #t20 = 87 in let final dynamic #t21 = super.{self::A::[]}(#t20) in let final void #t22 = super.{self::A::[]=}(#t20, #t21.+(1)) in #t21);
     super.m = super.{self::A::m}.+(1);
     self::use(let final () → void #t23 = super.{self::A::m} in let final dynamic #t24 = super.m = #t23.+(1) in #t23);
     super.{self::A::n} = super.{self::A::n}.+(1);
@@ -123,8 +123,8 @@ class C extends self::B {
     self::use(super.{self::A::h} = super.{self::A::h}.+(1));
     super.{self::B::i} = super.{self::A::i}.+(1);
     self::use(super.{self::B::i} = super.{self::A::i}.+(1));
-    let final core::int #t27 = 87 in let final dynamic #t28 = super.{self::A::[]}(#t27).+(1) in let final dynamic #t29 = super.{self::A::[]=}(#t27, #t28) in #t28;
-    self::use(let final core::int #t30 = 87 in let final dynamic #t31 = super.{self::A::[]}(#t30).+(1) in let final dynamic #t32 = super.{self::A::[]=}(#t30, #t31) in #t31);
+    let final core::int #t27 = 87 in let final dynamic #t28 = super.{self::A::[]}(#t27).+(1) in let final void #t29 = super.{self::A::[]=}(#t27, #t28) in #t28;
+    self::use(let final core::int #t30 = 87 in let final dynamic #t31 = super.{self::A::[]}(#t30).+(1) in let final void #t32 = super.{self::A::[]=}(#t30, #t31) in #t31);
     super.m = super.{self::A::m}.+(1);
     self::use(super.m = super.{self::A::m}.+(1));
     super.{self::A::n} = super.{self::A::n}.+(1);
@@ -174,7 +174,7 @@ class C extends self::B {
     super.{self::B::i} = 42;
     self::use(super.{self::B::i} = 42);
     super.{self::A::[]=}(87, 42);
-    self::use(let final core::int #t33 = 87 in let final core::int #t34 = 42 in let final dynamic #t35 = super.{self::A::[]=}(#t33, #t34) in #t34);
+    self::use(let final core::int #t33 = 87 in let final core::int #t34 = 42 in let final void #t35 = super.{self::A::[]=}(#t33, #t34) in #t34);
     super.m = 42;
     self::use(super.m = 42);
     super.{self::A::n} = 42;
@@ -197,12 +197,12 @@ class C extends self::B {
     self::use(let final dynamic #t43 = super.{self::A::h} in #t43.{core::Object::==}(null) ?{dynamic} super.{self::A::h} = 42 : #t43);
     super.{self::A::i}.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : null;
     self::use(let final dynamic #t44 = super.{self::A::i} in #t44.{core::Object::==}(null) ?{dynamic} super.{self::B::i} = 42 : #t44);
-    let final core::int #t45 = 87 in super.{self::A::[]}(#t45).{core::Object::==}(null) ?{dynamic} let final core::int #t46 = 42 in let final dynamic #t47 = super.{self::A::[]=}(#t45, #t46) in #t46 : null;
-    self::use(let final core::int #t48 = 87 in let final dynamic #t49 = super.{self::A::[]}(#t48) in #t49.{core::Object::==}(null) ?{dynamic} let final core::int #t50 = 42 in let final dynamic #t51 = super.{self::A::[]=}(#t48, #t50) in #t50 : #t49);
-    super.{self::A::m}.{core::Object::==}(null) ?{dynamic} super.m = 42 : null;
-    self::use(let final () → void #t52 = super.{self::A::m} in #t52.{core::Object::==}(null) ?{dynamic} super.m = 42 : #t52);
-    super.{self::A::n}.{core::Object::==}(null) ?{dynamic} super.{self::A::n} = 42 : null;
-    self::use(let final () → void #t53 = super.{self::A::n} in #t53.{core::Object::==}(null) ?{dynamic} super.{self::A::n} = 42 : #t53);
+    let final core::int #t45 = 87 in super.{self::A::[]}(#t45).{core::Object::==}(null) ?{dynamic} let final core::int #t46 = 42 in let final void #t47 = super.{self::A::[]=}(#t45, #t46) in #t46 : null;
+    self::use(let final core::int #t48 = 87 in let final dynamic #t49 = super.{self::A::[]}(#t48) in #t49.{core::Object::==}(null) ?{dynamic} let final core::int #t50 = 42 in let final void #t51 = super.{self::A::[]=}(#t48, #t50) in #t50 : #t49);
+    super.{self::A::m}.{core::Object::==}(null) ?{core::Object} super.m = 42 : null;
+    self::use(let final () → void #t52 = super.{self::A::m} in #t52.{core::Object::==}(null) ?{core::Object} super.m = 42 : #t52);
+    super.{self::A::n}.{core::Object::==}(null) ?{core::Object} super.{self::A::n} = 42 : null;
+    self::use(let final () → void #t53 = super.{self::A::n} in #t53.{core::Object::==}(null) ?{core::Object} super.{self::A::n} = 42 : #t53);
     super.{self::A::a} = super.{self::A::a}.+(42);
     self::use(super.{self::A::a} = super.{self::A::a}.+(42));
     super.{self::A::b} = super.{self::B::b}.+(42);
@@ -222,7 +222,7 @@ class C extends self::B {
     super.{self::B::i} = super.{self::A::i}.+(42);
     self::use(super.{self::B::i} = super.{self::A::i}.+(42));
     let final core::int #t54 = 87 in super.{self::A::[]=}(#t54, super.{self::A::[]}(#t54).+(42));
-    self::use(let final core::int #t55 = 87 in let final dynamic #t56 = super.{self::A::[]}(#t55).+(42) in let final dynamic #t57 = super.{self::A::[]=}(#t55, #t56) in #t56);
+    self::use(let final core::int #t55 = 87 in let final dynamic #t56 = super.{self::A::[]}(#t55).+(42) in let final void #t57 = super.{self::A::[]=}(#t55, #t56) in #t56);
     super.m = super.{self::A::m}.+(42);
     self::use(super.m = super.{self::A::m}.+(42));
     super.{self::A::n} = super.{self::A::n}.+(42);
@@ -246,14 +246,14 @@ class C extends self::B {
     super.{self::B::i} = super.{self::A::i}.-(42);
     self::use(super.{self::B::i} = super.{self::A::i}.-(42));
     let final core::int #t58 = 87 in super.{self::A::[]=}(#t58, super.{self::A::[]}(#t58).-(42));
-    self::use(let final core::int #t59 = 87 in let final dynamic #t60 = super.{self::A::[]}(#t59).-(42) in let final dynamic #t61 = super.{self::A::[]=}(#t59, #t60) in #t60);
+    self::use(let final core::int #t59 = 87 in let final dynamic #t60 = super.{self::A::[]}(#t59).-(42) in let final void #t61 = super.{self::A::[]=}(#t59, #t60) in #t60);
     super.m = super.{self::A::m}.-(42);
     self::use(super.m = super.{self::A::m}.-(42));
     super.{self::A::n} = super.{self::A::n}.-(42);
     self::use(super.{self::A::n} = super.{self::A::n}.-(42));
   }
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator. \n    +super;\n    ^", "pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator. \n    use(+super);\n        ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.\n    +super;\n    ^", "pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator.\n    use(+super);\n        ^"]/* from null */;
 static method use(dynamic x) → dynamic {
   if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
     throw "Shouldn't happen";

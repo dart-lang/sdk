@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Typed<T extends core::Object> extends core::Object {
+  field self::Typed::T v = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

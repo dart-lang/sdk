@@ -29,13 +29,11 @@ main() {
   new A.circular(); // //# 01: continued
   new A.circular2(); // //# 02: continued
 
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(
       () => cm.newInstance(#circular, []),
-      (e) => e is NoSuchMethodError,
       'Should disallow circular redirection (non-const)');
 
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(
       () => cm.newInstance(#circular2, []),
-      (e) => e is NoSuchMethodError,
       'Should disallow circular redirection (const)');
 }

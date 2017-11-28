@@ -9,13 +9,13 @@ typedef void F<T>(T x);
 typedef F<T> G<T>();
 
 class C<T> {
-  F<T> _x;
+  F<T> /*@genericContravariant=true*/ _x;
   C(this._x);
-  F<T> f() => _x;
+  F<T> /*@genericContravariant=true*/ f() => /*@callKind=this*/ _x;
 }
 
 G<num> g(C<num> c) {
-  return c. /*@checkTearOff=() -> (num) -> void*/ f;
+  return c. /*@checkReturn=() -> (num) -> void*/ f;
 }
 
 void h(int i) {

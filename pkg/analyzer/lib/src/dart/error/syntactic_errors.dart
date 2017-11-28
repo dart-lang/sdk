@@ -82,6 +82,11 @@ class ParserErrorCode extends ErrorCode {
       "For-in loops use 'in' rather than a colon.",
       "Try replacing the colon with the keyword 'in'.");
 
+  static const ParserErrorCode CONST_AFTER_FACTORY = const ParserErrorCode(
+      'CONST_AFTER_FACTORY',
+      "The modifier 'const' should be before the modifier 'factory'.",
+      "Try re-ordering the modifiers.");
+
   static const ParserErrorCode CONST_AND_COVARIANT = const ParserErrorCode(
       'CONST_AND_COVARIANT',
       "Members can't be declared to be both 'const' and 'covariant'.",
@@ -147,9 +152,14 @@ class ParserErrorCode extends ErrorCode {
       "A continue statement in a switch statement must have a label as a target.",
       "Try adding a label associated with one of the case clauses to the continue statement.");
 
+  static const ParserErrorCode COVARIANT_AFTER_FINAL = const ParserErrorCode(
+      'COVARIANT_AFTER_FINAL',
+      "The modifier 'covariant' should be before the modifier 'final'.",
+      "Try re-ordering the modifiers.");
+
   static const ParserErrorCode COVARIANT_AFTER_VAR = const ParserErrorCode(
       'COVARIANT_AFTER_VAR',
-      "The modifier 'covariant' should be before the modifier 'var'.",
+      "The modifier 'covariant' should be before the modifier 'final'.",
       "Try re-ordering the modifiers.");
 
   static const ParserErrorCode COVARIANT_AND_STATIC = const ParserErrorCode(
@@ -173,6 +183,12 @@ class ParserErrorCode extends ErrorCode {
       "A constructor can't be declared to be 'covariant'.",
       "Try removing the keyword 'covariant'.");
 
+  static const ParserErrorCode DEFERRED_AFTER_PREFIX = const ParserErrorCode(
+      'DEFERRED_AFTER_PREFIX',
+      "The deferred keyword should come"
+      " immediately before the prefix ('as' clause).",
+      "Try moving the deferred keyword before the prefix.");
+
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE =
       const ParserErrorCode(
           'DEFAULT_VALUE_IN_FUNCTION_TYPE',
@@ -195,6 +211,11 @@ class ParserErrorCode extends ErrorCode {
           "The label '{0}' was already used in this switch statement.",
           "Try choosing a different name for this label.");
 
+  static const ParserErrorCode DUPLICATE_DEFERRED = const ParserErrorCode(
+      'DUPLICATE_DEFERRED',
+      "An import directive can only have one 'deferred' keyword.",
+      "Try removing all but one 'deferred' keyword.");
+
   /**
    * Parameters:
    * 0: the modifier that was duplicated
@@ -203,6 +224,11 @@ class ParserErrorCode extends ErrorCode {
       'DUPLICATED_MODIFIER',
       "The modifier '{0}' was already specified.",
       "Try removing all but one occurance of the modifier.");
+
+  static const ParserErrorCode DUPLICATE_PREFIX = const ParserErrorCode(
+      'DUPLICATE_PREFIX',
+      "An import directive can only have one prefix ('as' clause).",
+      "Try removing all but one prefix.");
 
   static const ParserErrorCode EMPTY_ENUM_BODY = const ParserErrorCode(
       'EMPTY_ENUM_BODY',
@@ -630,7 +656,7 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode MISSING_PREFIX_IN_DEFERRED_IMPORT =
       const ParserErrorCode(
           'MISSING_PREFIX_IN_DEFERRED_IMPORT',
-          "Deferred imports must have a prefix.",
+          "Deferred imports should have a prefix.",
           "Try adding a prefix to the import.");
 
   static const ParserErrorCode MISSING_STAR_AFTER_SYNC = const ParserErrorCode(
@@ -826,6 +852,11 @@ class ParserErrorCode extends ErrorCode {
           'POSITIONAL_PARAMETER_OUTSIDE_GROUP',
           "Positional parameters must be enclosed in square brackets ('[' and ']').",
           "Try surrounding the positional parameters in square brackets.");
+
+  static const ParserErrorCode PREFIX_AFTER_COMBINATOR = const ParserErrorCode(
+      'PREFIX_AFTER_COMBINATOR',
+      "The prefix ('as' clause) should come before any show/hide combinators.",
+      "Try moving the prefix before the combinators.");
 
   static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
       const ParserErrorCode(

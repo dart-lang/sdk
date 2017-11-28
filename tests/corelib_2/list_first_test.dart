@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 void test(List list) {
   if (list.isEmpty) {
-    Expect.throws(() => list.first, (e) => e is StateError);
+    Expect.throwsStateError(() => list.first);
   } else {
     Expect.equals(list[0], list.first);
   }

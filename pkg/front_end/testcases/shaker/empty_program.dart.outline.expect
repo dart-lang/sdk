@@ -14,8 +14,8 @@ import "dart:core" as core;
 
 typedef ControllerCallback = () → void;
 typedef ControllerCancelCallback = () → dynamic;
-class _AsyncStarStreamController extends core::Object {
-  field self::StreamController<dynamic> controller;
+class _AsyncStarStreamController<T extends core::Object> extends core::Object {
+  field self::StreamController<self::_AsyncStarStreamController::T> controller;
   field core::Function asyncStarBody;
   field core::bool isAdding;
   field core::bool onListenReceived;
@@ -23,12 +23,12 @@ class _AsyncStarStreamController extends core::Object {
   field core::bool isSuspendedAtYield;
   field self::Completer<dynamic> cancellationCompleter;
   constructor •(core::Function asyncStarBody) → void;
-  get stream() → self::Stream<dynamic>;
+  get stream() → self::Stream<self::_AsyncStarStreamController::T>;
   method runBody() → void;
   method scheduleGenerator() → void;
-  method add(dynamic event) → core::bool;
-  method addStream(self::Stream<dynamic> stream) → core::bool;
-  method addError(dynamic error, dynamic stackTrace) → void;
+  method add(self::_AsyncStarStreamController::T event) → core::bool;
+  method addStream(self::Stream<self::_AsyncStarStreamController::T> stream) → core::bool;
+  method addError(core::Object error, core::StackTrace stackTrace) → void;
   method close() → dynamic;
   method onListen() → dynamic;
   method onResume() → dynamic;
@@ -171,8 +171,8 @@ abstract class EfficientLengthIterable<T extends core::Object> extends core::Ite
 }
 class Symbol extends core::Object implements core::Symbol {
   operator ==(dynamic other) → core::bool;
-  get hashCode() → core::int;
-  method toString() → dynamic;
+  external get hashCode() → core::int;
+  external method toString() → dynamic;
 }
 
 ----- external dart:math
@@ -193,15 +193,26 @@ import "dart:collection" as col;
 import "dart:_internal" as _in;
 import "dart:math" as math;
 
-typedef _SyncGeneratorCallback = (self::Iterator<dynamic>) → self::bool;
-class _SyncIterable extends col::IterableBase<dynamic> {
-  const constructor •((self::Iterator<dynamic>) → self::bool _moveNextFn) → void;
-  get iterator() → dynamic;
+class _SyncIterable<T extends self::Object> extends col::IterableBase<self::_SyncIterable::T> {
+  const constructor •((self::_SyncIterator<self::_SyncIterable::T>) → self::bool _moveNextFn) → void;
+  get iterator() → self::Iterator<self::_SyncIterable::T>;
+}
+class _SyncIterator<T extends self::Object> extends self::Object implements self::Iterator<self::_SyncIterator::T> {
+  get current() → self::_SyncIterator::T;
+  method moveNext() → self::bool;
+}
+class _CompileTimeError extends self::Error {
+  constructor •(self::String _errorMsg) → void;
+  method toString() → self::String;
+}
+class _DuplicatedFieldInitializerError extends self::Error {
+  constructor •(self::String _name) → void;
+  method toString() → dynamic;
 }
 class _InvocationMirror extends self::Object implements self::Invocation {
-  constructor •(self::String _functionName, self::List<dynamic> _argumentsDescriptor, self::List<dynamic> _arguments, self::bool _isSuperInvocation) → void;
+  constructor _withoutType(self::String _functionName, self::List<self::Type> _typeArguments, self::List<dynamic> _positionalArguments, self::Map<self::Symbol, dynamic> _namedArguments, self::bool _isSuperInvocation) → void;
   get memberName() → self::Symbol;
-  get typeArguments() → self::List<dynamic>;
+  get typeArguments() → self::List<self::Type>;
   get positionalArguments() → self::List<dynamic>;
   get namedArguments() → self::Map<self::Symbol, dynamic>;
   get isMethod() → self::bool;
@@ -210,7 +221,7 @@ class _InvocationMirror extends self::Object implements self::Invocation {
   get isSetter() → self::bool;
 }
 class bool extends self::Object {
-  get hashCode() → self::int;
+  external get hashCode() → self::int;
   method toString() → self::String;
 }
 abstract class Comparable<T extends self::Object> extends self::Object {
@@ -259,6 +270,16 @@ class Duration extends self::Object implements self::Comparable<self::Duration> 
   get isNegative() → self::bool;
   method abs() → self::Duration;
   operator unary-() → self::Duration;
+}
+class Error extends self::Object {
+  external get stackTrace() → self::StackTrace;
+}
+class FallThroughError extends self::Error {
+  external constructor _create(self::String url, self::int line) → void;
+  external method toString() → self::String;
+}
+class _ConstantExpressionError extends self::Object {
+  const constructor •() → void;
 }
 abstract class Function extends self::Object {
   abstract get hashCode() → self::int;
@@ -340,7 +361,7 @@ abstract class Iterator<E extends self::Object> extends self::Object {
   abstract get current() → self::Iterator::E;
 }
 abstract class List<E extends self::Object> extends self::Object implements _in::EfficientLengthIterable<self::List::E> {
-  static factory from<E extends self::Object>(self::Iterable<dynamic> elements, {self::bool growable}) → self::List<self::List::from::E>;
+  external static factory from<E extends self::Object>(self::Iterable<dynamic> elements, {self::bool growable}) → self::List<self::List::from::E>;
   abstract operator [](self::int index) → self::List::E;
   abstract operator []=(self::int index, self::List::E value) → void;
   abstract get length() → self::int;
@@ -386,7 +407,7 @@ abstract class Map<K extends self::Object, V extends self::Object> extends self:
   abstract get isNotEmpty() → self::bool;
 }
 class Null extends self::Object {
-  get hashCode() → self::int;
+  external get hashCode() → self::int;
   method toString() → self::String;
 }
 abstract class num extends self::Object implements self::Comparable<self::num> {
@@ -430,22 +451,20 @@ abstract class num extends self::Object implements self::Comparable<self::num> {
 class Object {
   static final field dynamic _hashCodeRnd;
   const constructor •() → void;
-  operator ==(dynamic other) → self::bool;
-  get hashCode() → self::int;
-  method toString() → self::String;
-  method noSuchMethod(self::Invocation invocation) → dynamic;
-  get runtimeType() → self::Type;
   static method _objectHashCode(dynamic obj) → self::int;
   get _identityHashCode() → self::int;
   static method _toString(dynamic obj) → self::String;
-  method _noSuchMethod(self::bool isMethod, self::String memberName, self::int type, self::List<dynamic> arguments, self::Map<self::String, dynamic> namedArguments) → dynamic;
   static method _haveSameRuntimeType(dynamic a, dynamic b) → self::bool;
   method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → self::bool;
   method _simpleInstanceOf(dynamic type) → self::bool;
   method _simpleInstanceOfTrue(dynamic type) → self::bool;
   method _simpleInstanceOfFalse(dynamic type) → self::bool;
   method _as(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → dynamic;
-  static method _symbolMapToStringMap(self::Map<self::Symbol, dynamic> map) → dynamic;
+  external operator ==(dynamic other) → self::bool;
+  external get hashCode() → self::int;
+  external method toString() → self::String;
+  external method noSuchMethod(self::Invocation invocation) → dynamic;
+  external get runtimeType() → self::Type;
 }
 abstract class Pattern extends self::Object {
   abstract method allMatches(self::String string, [self::int start]) → self::Iterable<self::Match>;

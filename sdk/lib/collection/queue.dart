@@ -172,14 +172,12 @@ abstract class _DoubleLinkedQueueEntry<E> extends DoubleLinkedQueueEntry<E> {
   E get _element => element;
 
   DoubleLinkedQueueEntry<E> nextEntry() {
-    _DoubleLinkedQueueEntry<E> entry =
-        _nextLink as dynamic/*=DoubleLinkedQueueEntry<E>*/;
+    _DoubleLinkedQueueEntry<E> entry = _nextLink;
     return entry._asNonSentinelEntry();
   }
 
   DoubleLinkedQueueEntry<E> previousEntry() {
-    _DoubleLinkedQueueEntry<E> entry =
-        _previousLink as dynamic/*=DoubleLinkedQueueEntry<E>*/;
+    _DoubleLinkedQueueEntry<E> entry = _previousLink;
     return entry._asNonSentinelEntry();
   }
 }
@@ -271,8 +269,7 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   factory DoubleLinkedQueue.from(Iterable elements) {
     Queue<E> list = new DoubleLinkedQueue<E>();
     for (final e in elements) {
-      E element = e as Object/*=E*/;
-      list.addLast(element);
+      list.addLast(e);
     }
     return list;
   }
@@ -536,7 +533,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
       ListQueue<E> queue = new ListQueue<E>(length + 1);
       assert(queue._table.length > length);
       for (int i = 0; i < length; i++) {
-        queue._table[i] = elements[i] as Object/*=E*/;
+        queue._table[i] = elements[i];
       }
       queue._tail = length;
       return queue;
@@ -547,7 +544,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
       }
       ListQueue<E> result = new ListQueue<E>(capacity);
       for (final element in elements) {
-        result.addLast(element as Object/*=E*/);
+        result.addLast(element);
       }
       return result;
     }

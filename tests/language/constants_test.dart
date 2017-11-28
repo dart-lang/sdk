@@ -6,10 +6,10 @@ class C {
   factory C() => null;
 }
 
-const //# 01: compile-time error
+const //# 01: syntax error
 t() => null;
 
-const //# 02: compile-time error
+const //# 02: syntax error
 get v => null;
 
 main() {

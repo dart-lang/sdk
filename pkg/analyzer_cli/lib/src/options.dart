@@ -35,10 +35,6 @@ typedef void ExitHandler(int code);
 class CommandLineOptions {
   final bool enableNewAnalysisDriver = true;
 
-  /// Return `true` if the parser is to parse asserts in the initializer list of
-  /// a constructor.
-  final bool enableAssertInitializer;
-
   /// Whether declaration casts are enabled (in strong mode)
   final bool declarationCasts;
 
@@ -79,6 +75,9 @@ class CommandLineOptions {
 
   /// The path to the dart SDK.
   String dartSdkPath;
+
+  /// The path to the folder with the 'vm_platform.dill' file.
+  String dartSdkPlatformBinariesPath;
 
   /// The path to the dart SDK summary file.
   String dartSdkSummaryPath;
@@ -183,7 +182,6 @@ class CommandLineOptions {
         disableHints = args['no-hints'],
         displayVersion = args['version'],
         enableTypeChecks = args['enable_type_checks'],
-        enableAssertInitializer = args['enable-assert-initializers'],
         ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
         lints = args[lintsFlag],
         log = args['log'],
@@ -269,6 +267,9 @@ class CommandLineOptions {
         printAndFail('Invalid Dart SDK path: $sdkPath');
         return null; // Only reachable in testing.
       }
+
+      options.dartSdkPlatformBinariesPath =
+          computePlatformBinariesPath(sdkPath);
     }
 
     // Check package config.
@@ -479,6 +480,8 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
+      // TODO(brianwilkerson) Remove the following option after we're sure that
+      // it's no longer being used.
       ..addFlag('enable-assert-initializers',
           help: 'Enable parsing of asserts in constructor initializers.',
           defaultsTo: null,

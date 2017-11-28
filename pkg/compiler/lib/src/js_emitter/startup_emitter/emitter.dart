@@ -11,7 +11,6 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart' show ConstantValue;
 import '../../deferred_load.dart' show OutputUnit;
-import '../../elements/elements.dart' show ClassElement, MethodElement;
 import '../../elements/entities.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
@@ -101,13 +100,13 @@ class Emitter extends emitterTask.EmitterBase {
   }
 
   @override
-  js.Expression isolateStaticClosureAccess(MethodElement element) {
+  js.Expression isolateStaticClosureAccess(FunctionEntity element) {
     return _emitter.generateStaticClosureAccess(element);
   }
 
   @override
   js.PropertyAccess prototypeAccess(
-      ClassElement element, bool hasBeenInstantiated) {
+      ClassEntity element, bool hasBeenInstantiated) {
     js.Expression constructor =
         hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
     return js.js('#.prototype', constructor);
@@ -115,11 +114,9 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   js.Template templateForBuiltin(JsBuiltin builtin) {
-    String typeNameProperty = ModelEmitter.typeNameProperty;
-
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
-        ClassElement objectClass = _closedWorld.commonElements.objectClass;
+        ClassEntity objectClass = _closedWorld.commonElements.objectClass;
         return js.js.expressionTemplateYielding(typeAccess(objectClass));
 
       case JsBuiltin.isCheckPropertyToJsConstructorName:
@@ -130,7 +127,7 @@ class Emitter extends emitterTask.EmitterBase {
         return _backend.rtiEncoder.templateForIsFunctionType;
 
       case JsBuiltin.rawRtiToJsConstructorName:
-        return js.js.expressionTemplateFor("#.$typeNameProperty");
+        return js.js.expressionTemplateFor("#.name");
 
       case JsBuiltin.rawRuntimeType:
         return js.js.expressionTemplateFor("#.constructor");
@@ -145,7 +142,7 @@ class Emitter extends emitterTask.EmitterBase {
         return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
 
       case JsBuiltin.isGivenTypeRti:
-        return js.js.expressionTemplateFor('#.$typeNameProperty === #');
+        return js.js.expressionTemplateFor('#.name === #');
 
       case JsBuiltin.getMetadata:
         String metadataAccess =

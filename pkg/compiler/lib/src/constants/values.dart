@@ -710,19 +710,24 @@ class ConstructedConstantValue extends ObjectConstantValue {
 
   ConstantValueKind get kind => ConstantValueKind.CONSTRUCTED;
 
+  Iterable<FieldEntity> get _fieldsSortedByName {
+    return fields.keys.toList()..sort((a, b) => a.name.compareTo(b.name));
+  }
+
   String toDartText() {
     StringBuffer sb = new StringBuffer();
     sb.write(type.element.name);
     _unparseTypeArguments(sb);
     sb.write('(');
     int i = 0;
-    fields.forEach((FieldEntity field, ConstantValue value) {
+    for (FieldEntity field in _fieldsSortedByName) {
+      ConstantValue value = fields[field];
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
       sb.write(value.toDartText());
       i++;
-    });
+    }
     sb.write(')');
     return sb.toString();
   }
@@ -733,13 +738,14 @@ class ConstructedConstantValue extends ObjectConstantValue {
     sb.write(type);
     sb.write('(');
     int i = 0;
-    fields.forEach((FieldEntity field, ConstantValue value) {
+    for (FieldEntity field in _fieldsSortedByName) {
+      ConstantValue value = fields[field];
       if (i > 0) sb.write(',');
       sb.write(field.name);
       sb.write('=');
       sb.write(value.toStructuredText());
       i++;
-    });
+    }
     sb.write('))');
     return sb.toString();
   }
@@ -748,20 +754,20 @@ class ConstructedConstantValue extends ObjectConstantValue {
 /// A reference to a constant in another output unit.
 /// Used for referring to deferred constants.
 class DeferredConstantValue extends ConstantValue {
-  DeferredConstantValue(this.referenced, this.prefix);
+  DeferredConstantValue(this.referenced, this.import);
 
   final ConstantValue referenced;
-  final Entity prefix;
+  final ImportEntity import;
 
   bool get isReference => true;
 
   bool operator ==(other) {
     return other is DeferredConstantValue &&
         referenced == other.referenced &&
-        prefix == other.prefix;
+        import == other.import;
   }
 
-  get hashCode => (referenced.hashCode * 17 + prefix.hashCode) & 0x3fffffff;
+  get hashCode => (referenced.hashCode * 17 + import.hashCode) & 0x3fffffff;
 
   List<ConstantValue> getDependencies() => <ConstantValue>[referenced];
 

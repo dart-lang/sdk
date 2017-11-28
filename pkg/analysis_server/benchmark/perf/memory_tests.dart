@@ -55,7 +55,7 @@ class AnalysisServerMemoryUsageTest
    * The server is automatically started before every test.
    */
   @override
-  Future setUp() {
+  Future setUp({bool previewDart2: false}) {
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
     });
@@ -68,7 +68,10 @@ class AnalysisServerMemoryUsageTest
       outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return startServer(servicesPort: vmServicePort).then((_) {
+    return startServer(
+      servicesPort: vmServicePort,
+      previewDart2: previewDart2,
+    ).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;

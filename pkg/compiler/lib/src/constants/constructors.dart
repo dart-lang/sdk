@@ -15,6 +15,7 @@ enum ConstantConstructorKind {
   GENERATIVE,
   REDIRECTING_GENERATIVE,
   REDIRECTING_FACTORY,
+  ERRONEOUS,
 }
 
 /// Definition of a constant constructor.
@@ -52,6 +53,8 @@ abstract class ConstantConstructorVisitor<R, A> {
   R visitRedirectingFactory(
       covariant RedirectingFactoryConstantConstructor constructor,
       covariant A arg);
+  R visitErroneous(
+      covariant ErroneousConstantConstructor constructor, covariant A arg);
 }
 
 /// A generative constant constructor.
@@ -133,7 +136,8 @@ class GenerativeConstantConstructor implements ConstantConstructor {
 
   /// Creates the field-to-constant map from applying [args] to
   /// [constructorInvocation]. If [constructorInvocation] is `null`, an empty
-  /// map is created.
+  /// map is created. Returns `null` if an erroneous constant constructor was
+  /// encountered in the super-chain.
   static Map<FieldEntity, ConstantExpression> applyFields(
       EvaluationEnvironment environment,
       NormalizedArguments args,
@@ -143,6 +147,10 @@ class GenerativeConstantConstructor implements ConstantConstructor {
     if (constructorInvocation != null) {
       Map<FieldEntity, ConstantExpression> fieldMap =
           constructorInvocation.computeInstanceFields(environment);
+      if (fieldMap == null) {
+        // An erroneous constant constructor was encountered in the super-chain.
+        return null;
+      }
       fieldMap.forEach((FieldEntity field, ConstantExpression constant) {
         appliedFieldMap[field] = constant.apply(args);
       });
@@ -256,5 +264,31 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
     sb.write("'constructor': ${targetConstructorInvocation.toDartText()}");
     sb.write("}");
     return sb.toString();
+  }
+}
+
+/// A constant constructor with errors.
+class ErroneousConstantConstructor implements ConstantConstructor {
+  @override
+  ConstantConstructorKind get kind => ConstantConstructorKind.ERRONEOUS;
+
+  @override
+  accept(ConstantConstructorVisitor visitor, arg) {
+    return visitor.visitErroneous(this, arg);
+  }
+
+  @override
+  Map<FieldEntity, ConstantExpression> computeInstanceFields(
+      EvaluationEnvironment environment,
+      List<ConstantExpression> arguments,
+      CallStructure callStructure) {
+    return null;
+  }
+
+  @override
+  InterfaceType computeInstanceType(
+      EvaluationEnvironment environment, InterfaceType newType) {
+    throw new UnsupportedError(
+        'ErroneousConstantConstructor.computeInstanceType');
   }
 }

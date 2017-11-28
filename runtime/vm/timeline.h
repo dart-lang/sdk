@@ -733,7 +733,7 @@ class TimelineEventRecorder {
 // An abstract recorder that stores events in a buffer of fixed capacity.
 class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
  public:
-  static const intptr_t kDefaultCapacity = 8192;
+  static const intptr_t kDefaultCapacity = 32 * KB;  // Number of events.
 
   explicit TimelineEventFixedBufferRecorder(intptr_t capacity);
   virtual ~TimelineEventFixedBufferRecorder();

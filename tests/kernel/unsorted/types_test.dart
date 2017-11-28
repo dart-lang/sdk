@@ -168,7 +168,7 @@ testFunctionTypes() {
   Expect.isTrue(nan is Function);
 }
 
-num nan(double d, Pattern p) => double.NAN;
+num nan(double d, Pattern p) => double.nan;
 
 typedef int FunctionType(num _, Pattern __);
 

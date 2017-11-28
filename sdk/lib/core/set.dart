@@ -30,6 +30,10 @@ part of dart.core;
  * [forEach] or [containsAll]. Nor is it allowed to modify the set while
  * iterating either the set itself or any [Iterable] that is backed by the set,
  * such as the ones returned by methods like [where] and [map].
+ *
+ * It is generally not allowed to modify the equality of elements (and thus not
+ * their hashcode) while they are in the set. Some specialized subtypes may be
+ * more permissive, in which case they should document this behavior.
  */
 abstract class Set<E> extends EfficientLengthIterable<E> {
   /**

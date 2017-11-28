@@ -7,8 +7,10 @@ library tests.html.mirrors_2_test;
 @MirrorsUsed(targets: "tests.html.mirrors_2_test")
 import 'dart:mirrors';
 import 'dart:html';
+
 import 'package:expect/expect.dart' show NoInline;
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
+
 import '../utils.dart';
 
 /// Regression test for http://dartbug/28196

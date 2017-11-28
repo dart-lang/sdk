@@ -39,7 +39,7 @@ class CT {
       : this.x1 = x1,
         this.x2 = x2,
         this.id = identical(x1, x2);
-  void test(void expect(a, b), name) {
+  void test(void expect(a, String b), name) {
     expect(id, "$name: identical($x1,$x2)");
   }
 }

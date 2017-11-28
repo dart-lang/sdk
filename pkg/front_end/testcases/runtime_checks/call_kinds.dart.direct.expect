@@ -13,12 +13,12 @@ class C extends core::Object {
   get h() → dynamic
     return null;
   method test() → void {
-    this.f();
-    this.f();
-    this.g();
-    this.g();
-    this.h();
-    this.h();
+    this.{self::C::f}();
+    this.{self::C::f}();
+    this.{self::C::g}();
+    this.{self::C::g}();
+    this.{self::C::h}();
+    this.{self::C::h}();
   }
 }
 static method test(self::C c, () → void f, dynamic d) → void {

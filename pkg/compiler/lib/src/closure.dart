@@ -45,12 +45,6 @@ abstract class ClosureDataLookup<T> {
   /// used inside the scope of [node].
   ScopeInfo getScopeInfo(MemberEntity member);
 
-  /// This returns the same information as ScopeInfo, but can be called in
-  /// situations when you are sure you are dealing with a closure specifically.
-  // TODO(johnniwinther,efortuna): Remove the need for this. It is now only
-  // used in inference.
-  ClosureRepresentationInfo getClosureInfoForMember(MemberEntity member);
-
   ClosureRepresentationInfo getClosureInfo(T localFunction);
 
   /// Look up information about a loop, in case any variables it declares need
@@ -229,13 +223,6 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// Convenience pointer to the field entity representation in the closure
   /// class of the element representing `this`.
   FieldEntity get thisFieldEntity => null;
-
-  /// Loop through every variable that has been captured in this closure. This
-  /// consists of all the free variables (variables captured *just* in this
-  /// closure) and all variables captured in nested scopes that we may be
-  /// capturing as well. These nested scopes hold "boxes" to hold the executable
-  /// context for that scope.
-  void forEachCapturedVariable(f(Local from, FieldEntity to)) {}
 
   /// Loop through each variable that has been boxed in this closure class. Only
   /// captured variables that are mutated need to be "boxed" (which basically
@@ -519,6 +506,8 @@ class ClosureClassElement extends ClassElementX {
         superclass.allSupertypesAndSelf.extendClass(thisType);
     callType = methodElement.type;
   }
+
+  MethodElement get callMethod => methodElement.callMethod;
 
   Iterable<ClosureFieldElement> get closureFields => _closureFields;
 
@@ -856,16 +845,6 @@ class ClosureClassMap implements ClosureRepresentationInfo {
       return true;
     }
     return capturingScopesBox(variable);
-  }
-
-  void forEachCapturedVariable(void f(Local variable, FieldEntity field)) {
-    freeVariableMap.forEach((variable, copy) {
-      if (variable is BoxLocal) return;
-      f(variable, copy);
-    });
-    capturingScopes.values.forEach((CapturedScopeImpl scope) {
-      scope.forEachCapturedVariable(f);
-    });
   }
 
   void forEachBoxedVariable(
@@ -1423,10 +1402,10 @@ class ClosureTranslator extends Visitor {
     String closureName = computeClosureName(element);
     ClosureClassElement globalizedElement =
         new ClosureClassElement(node, closureName, compiler, element);
-    // Extend [globalizedElement] as an instantiated class in the closed world.
-    closedWorldRefiner.registerClosureClass(globalizedElement);
     MethodElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
+    // Extend [globalizedElement] as an instantiated class in the closed world.
+    closedWorldRefiner.registerClosureClass(globalizedElement);
     backend.mirrorsDataBuilder.maybeMarkClosureAsNeededForReflection(
         globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;

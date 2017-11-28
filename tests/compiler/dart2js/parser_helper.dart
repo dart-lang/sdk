@@ -107,7 +107,7 @@ Node parseBodyCode(String text, Function parseMethod,
       reporter,
       library.entryCompilationUnit);
   Parser parser = new Parser(listener);
-  Token endToken = parseMethod(parser, tokens);
+  Token endToken = parseMethod(parser, tokens).next;
   assert(endToken.kind == EOF_TOKEN);
   Node node = listener.popNode();
   Expect.isNotNull(node);
@@ -115,8 +115,10 @@ Node parseBodyCode(String text, Function parseMethod,
   return node;
 }
 
-Node parseStatement(String text) =>
-    parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
+Node parseStatement(String text) => parseBodyCode(
+    text,
+    (parser, tokens) =>
+        parser.parseStatementOpt(parser.syntheticPreviousToken(tokens)));
 
 Node parseFunction(String text, MockCompiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;

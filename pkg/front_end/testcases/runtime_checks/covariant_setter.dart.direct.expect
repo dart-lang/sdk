@@ -10,8 +10,8 @@ class C<T extends core::Object> extends core::Object {
     ;
   set y(self::C::T value) → void {}
   method f(self::C::T value) → void {
-    this.x = value;
-    this.y = value;
+    this.{self::C::x} = value;
+    this.{self::C::y} = value;
   }
 }
 static method g(self::C<core::num> c) → void {

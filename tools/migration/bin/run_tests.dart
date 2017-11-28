@@ -20,6 +20,7 @@ const noCompiler = "--compiler=none";
 const precompiler = "--compiler=precompiler";
 const analyzer = "--compiler=dart2analyzer";
 const dartk = "--compiler=dartk";
+const dartkp = "--compiler=dartkp";
 
 const chrome = "--runtime=chrome";
 const precompiled = "--runtime=dart_precompiled";
@@ -30,6 +31,7 @@ const jsshell = "--runtime=jsshell";
 
 const checked = "--checked";
 const dart2jsBatch = "--dart2js-batch";
+const dart2jsWithKernel = "--dart2js-with-kernel";
 const fastStartup = "--fast-startup";
 const useSdk = "--use-sdk";
 const releaseMode = "--mode=release";
@@ -49,7 +51,11 @@ final allConfigs = {
   "vm-app": [appJit, vm],
   "vm-app-product": [productMode, appJit, vm],
   "vm-kernel": [dartk, releaseMode, vm],
+  "vm-kernel-strong": [dartk, releaseMode, vm, strong],
+  "vm-kernel-precomp": [dartkp, releaseMode, precompiled],
+  "vm-kernel-precomp-strong": [dartkp, releaseMode, precompiled, strong],
   "vm-precomp": [precompiler, precompiled],
+  "vm-precomp-checked": [precompiler, precompiled, checked],
   "vm-product": [productMode, noCompiler, vm],
   // TODO(rnystrom): Add dart2js-d8-hostchecked, dart2js-d8-minified, or
   // dart2js-jsshell?
@@ -63,6 +69,21 @@ final allConfigs = {
     d8,
     checked,
     fastStartup,
+    useSdk,
+    dart2jsBatch
+  ],
+  "dart2js-d8-withkernel": [
+    dart2js,
+    d8,
+    dart2jsWithKernel,
+    useSdk,
+    dart2jsBatch
+  ],
+  "dart2js-d8-withkernel-checked": [
+    dart2js,
+    d8,
+    dart2jsWithKernel,
+    checked,
     useSdk,
     dart2jsBatch
   ],

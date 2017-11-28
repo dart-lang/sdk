@@ -16,7 +16,7 @@ import '../../common.dart';
 import '../../compiler.dart' show Compiler;
 import '../../constants/values.dart';
 import '../../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../../deferred_load.dart' show OutputUnit;
+import '../../deferred_load.dart' show OutputUnit, OutputUnitData;
 import '../../elements/entities.dart';
 import '../../elements/entity_utils.dart' as utils;
 import '../../elements/types.dart';
@@ -92,7 +92,7 @@ class Emitter extends js_emitter.EmitterBase {
   Map<OutputUnit, Set<LibraryEntity>> outputLibraryLists;
   List<TypedefEntity> typedefsNeededForReflection;
 
-  final ContainerBuilder containerBuilder = new ContainerBuilder();
+  final ContainerBuilder containerBuilder;
   final ClassEmitter classEmitter;
   final NsmEmitter nsmEmitter;
   final InterceptorEmitter interceptorEmitter;
@@ -118,6 +118,7 @@ class Emitter extends js_emitter.EmitterBase {
   CommonElements get commonElements => _closedWorld.commonElements;
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
   CodegenWorldBuilder get _worldBuilder => compiler.codegenWorldBuilder;
+  OutputUnitData get _outputUnitData => compiler.backend.outputUnitData;
 
   // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
@@ -175,6 +176,7 @@ class Emitter extends js_emitter.EmitterBase {
         interceptorEmitter = new InterceptorEmitter(_closedWorld),
         nsmEmitter = new NsmEmitter(_closedWorld),
         _sorter = sorter,
+        containerBuilder = new ContainerBuilder(),
         _constantOrdering = new ConstantOrdering(sorter) {
     constantEmitter = new ConstantEmitter(
         compiler.options,
@@ -631,7 +633,7 @@ class Emitter extends js_emitter.EmitterBase {
           [namer.globalPropertyNameForMember(element), initialValue]);
     }
 
-    bool inMainUnit = (outputUnit == compiler.deferredLoadTask.mainOutputUnit);
+    bool inMainUnit = (outputUnit == _outputUnitData.mainOutputUnit);
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
     Iterable<FieldEntity> fields = outputStaticNonFinalFieldLists[outputUnit];
@@ -734,18 +736,21 @@ class Emitter extends js_emitter.EmitterBase {
   jsAst.Statement buildMetadata(Program program, OutputUnit outputUnit) {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
+    jsAst.Expression metadata = program.metadataForOutputUnit(outputUnit);
     jsAst.Expression types = program.metadataTypesForOutputUnit(outputUnit);
 
-    if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
+    if (outputUnit == _outputUnitData.mainOutputUnit) {
       jsAst.Expression metadataAccess =
           generateEmbeddedGlobalAccess(embeddedNames.METADATA);
       jsAst.Expression typesAccess =
           generateEmbeddedGlobalAccess(embeddedNames.TYPES);
 
       parts
-        ..add(js.statement('# = #;', [metadataAccess, program.metadata]))
+        ..add(js.statement('# = #;', [metadataAccess, metadata]))
         ..add(js.statement('# = #;', [typesAccess, types]));
     } else if (types != null) {
+      parts.add(
+          js.statement('var ${namer.deferredMetadataName} = #;', metadata));
       parts.add(js.statement('var ${namer.deferredTypesName} = #;', types));
     }
     return new jsAst.Block(parts);
@@ -1150,8 +1155,8 @@ class Emitter extends js_emitter.EmitterBase {
       FunctionType type = _elementEnvironment.getFunctionTypeOfTypedef(typedef);
       // TODO(zarah): reify type variables once reflection on type arguments of
       // typedefs is supported.
-      jsAst.Expression typeIndex =
-          task.metadataCollector.reifyType(type, ignoreTypeVariables: true);
+      jsAst.Expression typeIndex = task.metadataCollector
+          .reifyType(type, mainOutputUnit, ignoreTypeVariables: true);
       ClassBuilder builder = new ClassBuilder.forStatics(typedef, namer);
       builder.addPropertyByName(
           embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME, typeIndex);
@@ -1440,7 +1445,7 @@ class Emitter extends js_emitter.EmitterBase {
        // traces and profile entries.
        var dart = #descriptors;
 
-       #setupProgramName(dart, 0);
+       #setupProgramName(dart, 0, 0);
 
        #getInterceptorMethods;
        #oneShotInterceptors;
@@ -1666,8 +1671,8 @@ class Emitter extends js_emitter.EmitterBase {
       if (compiler.codegenWorldBuilder.directlyInstantiatedClasses
               .contains(cls) &&
           !_nativeData.isNativeClass(cls) &&
-          compiler.deferredLoadTask.outputUnitForMember(element) ==
-              compiler.deferredLoadTask.outputUnitForClass(cls)) {
+          _outputUnitData.outputUnitForMember(element) ==
+              _outputUnitData.outputUnitForClass(cls)) {
         return classDescriptors
             .putIfAbsent(fragment, () => new Map<ClassEntity, ClassBuilder>())
             .putIfAbsent(cls, () {
@@ -1810,6 +1815,8 @@ class Emitter extends js_emitter.EmitterBase {
             'var ${namer.isolateName} = '
             '#globalsHolder.${namer.isolateName};',
             {'globalsHolder': globalsHolder}));
+      String metadataAccess =
+          generateEmbeddedGlobalAccessString(embeddedNames.METADATA);
       String typesAccess =
           generateEmbeddedGlobalAccessString(embeddedNames.TYPES);
       if (libraryDescriptor != null) {
@@ -1821,12 +1828,14 @@ class Emitter extends js_emitter.EmitterBase {
         if (compiler.options.useContentSecurityPolicy) {
           body.add(buildCspPrecompiledFunctionFor(outputUnit));
         }
-        body.add(
-            js.statement('$setupProgramName(dart, ${typesAccess}.length);'));
+        body.add(js.statement('$setupProgramName('
+            'dart, ${metadataAccess}.length, ${typesAccess}.length);'));
       }
 
       body
         ..add(buildMetadata(program, outputUnit))
+        ..add(js.statement('${metadataAccess}.push.apply(${metadataAccess}, '
+            '${namer.deferredMetadataName});'))
         ..add(js.statement('${typesAccess}.push.apply(${typesAccess}, '
             '${namer.deferredTypesName});'));
 

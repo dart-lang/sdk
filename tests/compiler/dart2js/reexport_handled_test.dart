@@ -6,6 +6,7 @@ library reexport_handled_test;
 
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
+import 'package:compiler/src/elements/elements.dart' show LibraryElement;
 import 'mock_compiler.dart';
 
 final exportingLibraryUri = Uri.parse('exporting.dart');
@@ -30,7 +31,7 @@ void main() {
         return compiler.libraryLoader.loadLibrary(exportingLibraryUri);
       }).then((loadedLibraries) {
         compiler.processLoadedLibraries(loadedLibraries);
-        var exportingLibrary = loadedLibraries.rootLibrary;
+        LibraryElement exportingLibrary = loadedLibraries.rootLibrary;
         Expect.isTrue(exportingLibrary.exportsHandled);
         var foo = exportingLibrary.findExported('foo');
         Expect.isNotNull(foo);

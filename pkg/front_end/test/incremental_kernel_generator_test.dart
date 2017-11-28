@@ -27,35 +27,48 @@ main() {
 @reflectiveTest
 class IncrementalKernelGeneratorTest {
   /// Virtual filesystem for testing.
-  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(Uri.parse('org-dartlang-test:///'));
 
   /// The used file watcher.
   WatchUsedFilesFn watchFn = (uri, used) {};
 
   /// The object under test.
-  IncrementalKernelGeneratorImpl incrementalKernelGenerator;
+  IncrementalKernelGeneratorImpl generator;
 
   /// Compute the initial [Program] for the given [entryPoint].
-  Future<Program> getInitialState(Uri entryPoint,
-      {Uri sdkOutlineUri, bool setPackages: true}) async {
+  Future<DeltaProgram> getInitialState(Uri entryPoint,
+      {Uri sdkOutlineUri,
+      bool setPackages: true,
+      bool embedSourceText: true,
+      String initialState,
+      ByteStore byteStore}) async {
     createSdkFiles(fileSystem);
     // TODO(scheglov) Builder the SDK kernel and set it into the options.
 
     var compilerOptions = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..byteStore = new MemoryByteStore()
+      ..byteStore = byteStore ?? new MemoryByteStore()
 //      ..logger = new PerformanceLog(stdout)
       ..strongMode = true
       ..chaseDependencies = true
-      ..librariesSpecificationUri = Uri.parse('file:///sdk/lib/libraries.json')
-      ..sdkSummary = sdkOutlineUri;
+      ..librariesSpecificationUri =
+          Uri.parse('org-dartlang-test:///sdk/lib/libraries.json')
+      ..sdkSummary = sdkOutlineUri
+      ..embedSourceText = embedSourceText;
 
     if (setPackages) {
-      compilerOptions.packagesFileUri = Uri.parse('file:///test/.packages');
+      compilerOptions.packagesFileUri =
+          Uri.parse('org-dartlang-test:///test/.packages');
     }
-    incrementalKernelGenerator = await IncrementalKernelGenerator
+
+    generator = await IncrementalKernelGenerator
         .newInstance(compilerOptions, entryPoint, watch: watchFn);
-    return (await incrementalKernelGenerator.computeDelta()).newProgram;
+
+    if (initialState != null) {
+      generator.setState(initialState);
+    }
+
+    return await generator.computeDelta();
   }
 
   test_acceptLastDelta() async {
@@ -64,15 +77,15 @@ class IncrementalKernelGeneratorTest {
     Uri uri = writeFile(path, '');
 
     await getInitialState(uri);
-    incrementalKernelGenerator.acceptLastDelta();
+    generator.acceptLastDelta();
 
     // Attempt to accept the second time.
     _assertStateError(() {
-      incrementalKernelGenerator.acceptLastDelta();
+      generator.acceptLastDelta();
     }, IncrementalKernelGeneratorImpl.MSG_NO_LAST_DELTA);
   }
 
-  test_compile_chain() async {
+  test_computeDelta_chain() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -91,8 +104,9 @@ void main() {}
 ''');
 
     {
-      Program program = await getInitialState(cUri);
-      incrementalKernelGenerator.acceptLastDelta();
+      DeltaProgram delta = await getInitialState(cUri);
+      Program program = delta.newProgram;
+      generator.acceptLastDelta();
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
       Library library = _getLibrary(program, cUri);
@@ -117,9 +131,9 @@ static method main() → void {}
 import 'a.dart';
 var b = 1.2;
 ''');
-    incrementalKernelGenerator.invalidate(bUri);
+    generator.invalidate(bUri);
     {
-      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
+      DeltaProgram delta = await generator.computeDelta();
       Program program = delta.newProgram;
       _assertLibraryUris(program,
           includes: [bUri, cUri], excludes: [aUri, Uri.parse('dart:core')]);
@@ -141,26 +155,183 @@ static method main() → void {}
     }
   }
 
-  test_compile_parts() async {
+  test_computeDelta_cycle() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
-    Uri aUri = writeFile(aPath, r'''
-library lib;
-part 'b.dart';
-''');
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, 'var a = 1;');
     Uri bUri = writeFile(bPath, r'''
-part of lib;
+import 'c.dart';
+var b1 = c1;
+var b2 = c2;
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'a.dart';
+import 'b.dart';
+var c1 = a;
+var c2 = b1;
 ''');
 
-    Program program = await getInitialState(aUri);
+    {
+      DeltaProgram delta = await getInitialState(cUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      // b.dart and c.dart form a cycle.
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
+      Library library = _getLibrary(program, cUri);
+      expect(_getLibraryText(library), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
 
-    // Sources for library and its part must be present.
-    expect(program.uriToSource.keys, contains(aUri.toString()));
-    expect(program.uriToSource.keys, contains(bUri.toString()));
+static field core::int c1 = a::a;
+static field core::int c2 = b::b1;
+''');
+    }
+
+    // Update a.dart and recompile c.dart
+    writeFile(aPath, r'''
+var a = 1.2;
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri], excludes: [Uri.parse('dart:core')]);
+      Library library = _getLibrary(program, cUri);
+      expect(_getLibraryText(library), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field core::double c1 = a::a;
+static field core::double c2 = b::b1;
+''');
+    }
   }
 
-  test_compile_includePathToMain() async {
+  test_computeDelta_export() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'class A {}');
+    Uri bUri = writeFile(bPath, 'export "a.dart";');
+    Uri cUri = writeFile(cPath, 'export "b.dart";');
+
+    DeltaProgram delta = await getInitialState(cUri);
+    generator.acceptLastDelta();
+    Program program = delta.newProgram;
+    expect(_getLibraryText(_getLibrary(program, bUri)), r'''
+library;
+import self as self;
+import "./a.dart" as a;
+additionalExports = (a::A)
+
+''');
+    expect(_getLibraryText(_getLibrary(program, cUri)), r'''
+library;
+import self as self;
+import "./a.dart" as a;
+additionalExports = (a::A)
+
+''');
+  }
+
+  test_computeDelta_export_cycle() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    writeFile(aPath, 'export "b.dart"; class A {}');
+    writeFile(bPath, 'export "a.dart"; class B {}');
+    Uri cUri = writeFile(cPath, r'''
+import 'b.dart';
+A a;
+B b;
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(cUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      Library library = _getLibrary(program, cUri);
+      expect(_getLibraryText(library), r'''
+library;
+import self as self;
+import "./a.dart" as a;
+import "./b.dart" as b;
+
+static field a::A a;
+static field b::B b;
+''');
+    }
+
+    // Update c.dart and compile.
+    writeFile(cPath, r'''
+import 'b.dart';
+A a;
+B b;
+int c;
+''');
+    generator.invalidate(cUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      Program program = delta.newProgram;
+      _assertCompiledUris([cUri]);
+      Library library = _getLibrary(program, cUri);
+      expect(_getLibraryText(library), r'''
+library;
+import self as self;
+import "./a.dart" as a;
+import "./b.dart" as b;
+import "dart:core" as core;
+
+static field a::A a;
+static field b::B b;
+static field core::int c;
+''');
+    }
+  }
+
+  test_computeDelta_hasAnotherRunning() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, '');
+
+    await getInitialState(uri);
+    generator.acceptLastDelta();
+
+    // Run, but don't wait.
+    var future = generator.computeDelta();
+
+    // acceptLastDelta() is failing while the future is pending.
+    _assertStateError(() {
+      generator.acceptLastDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // rejectLastDelta() is failing while the future is pending.
+    _assertStateError(() {
+      generator.rejectLastDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // Run another, this causes StateError.
+    _assertStateError(() {
+      generator.computeDelta();
+    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
+
+    // Wait for the pending future.
+    await future;
+  }
+
+  test_computeDelta_includePathToMain() async {
     writeFile('/test/.packages', 'test:lib/');
     String aPath = '/test/lib/a.dart';
     String bPath = '/test/lib/b.dart';
@@ -188,8 +359,9 @@ b() {
     Uri dUri = writeFile(dPath, 'd() {}');
 
     {
-      Program program = await getInitialState(aUri);
-      incrementalKernelGenerator.acceptLastDelta();
+      DeltaProgram delta = await getInitialState(aUri);
+      Program program = delta.newProgram;
+      generator.acceptLastDelta();
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri, dUri, Uri.parse('dart:core')]);
     }
@@ -199,10 +371,10 @@ b() {
     // requires this (because of possible inlining). But d.dart is not on the
     // path from main() to the changed c.dart, so it is not included.
     writeFile(cPath, 'c() { print(1); }');
-    incrementalKernelGenerator.invalidate(cUri);
+    generator.invalidate(cUri);
     {
-      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
-      incrementalKernelGenerator.acceptLastDelta();
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
       Program program = delta.newProgram;
       _assertLibraryUris(program,
           includes: [aUri, bUri, cUri],
@@ -213,11 +385,543 @@ b() {
     }
   }
 
-  test_compile_useSdkOutline() async {
+  test_computeDelta_parts() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    Uri aUri = writeFile(aPath, r'''
+library lib;
+part 'b.dart';
+''');
+    Uri bUri = writeFile(bPath, r'''
+part of lib;
+''');
+
+    DeltaProgram delta = await getInitialState(aUri);
+    Program program = delta.newProgram;
+
+    // Sources for library and its part must be present.
+    expect(program.uriToSource.keys, contains(aUri.toString()));
+    expect(program.uriToSource.keys, contains(bUri.toString()));
+  }
+
+  test_computeDelta_updateBody() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    Uri aUri = writeFile(aPath, r'''
+int foo() {
+  return 1;
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
+import 'a.dart';
+var f = foo;
+main() {}
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(bUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 1;
+}
+''');
+      // b.dart uses references to a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+      // main() is set
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod, _getMainProcedure(bLibrary));
+    }
+
+    // Update a.dart and recompile b.dart
+    writeFile(aPath, r'''
+int foo() {
+  return 2;
+}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
+      _assertCompiledUris([aUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 2;
+}
+''');
+      // b.dart uses references to the new a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+      // main() is set
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod, _getMainProcedure(bLibrary));
+    }
+
+    // Update a.dart and recompile b.dart
+    writeFile(aPath, r'''
+int foo() {
+  return 3;
+}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
+      _assertCompiledUris([aUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 3;
+}
+''');
+      // b.dart uses references to the new a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+    }
+  }
+
+  test_computeDelta_updateBody2() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, r'''
+int foo() {
+  return 1;
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
+int bar() {
+  return 2;
+}
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'a.dart';
+import 'b.dart';
+var f1 = foo;
+var f2 = bar;
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(cUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri, cUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      Library cLibrary = _getLibrary(program, cUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 1;
+}
+''');
+      expect(_getLibraryText(bLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method bar() → core::int {
+  return 2;
+}
+''');
+      // c.dart uses references to a.dart and b.dart nodes.
+      expect((cLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+      expect((cLibrary.fields[1].initializer as StaticGet).targetReference,
+          same(bLibrary.procedures[0].reference));
+    }
+
+    // Update a.dart and b.dart, and recompile c.dart
+    writeFile(aPath, r'''
+int foo() {
+  return 3;
+}
+''');
+    writeFile(bPath, r'''
+int bar() {
+  return 4;
+}
+''');
+    generator.invalidate(aUri);
+    generator.invalidate(bUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      _assertCompiledUris([aUri, bUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri, cUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      Library cLibrary = _getLibrary(program, cUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 3;
+}
+''');
+      expect(_getLibraryText(bLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method bar() → core::int {
+  return 4;
+}
+''');
+      // c.dart uses references to the new a.dart and b.dart nodes.
+      expect((cLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+      expect((cLibrary.fields[1].initializer as StaticGet).targetReference,
+          same(bLibrary.procedures[0].reference));
+    }
+  }
+
+  test_computeDelta_updateBody_exportCycle() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, r'''
+export 'b.dart';
+int foo() {
+  return 1;
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
+export 'a.dart';
+int bar() {
+  return 1;
+}
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'a.dart';
+var f = foo;
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(cUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri, cUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      Library cLibrary = _getLibrary(program, cUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./b.dart" as b;
+additionalExports = (b::bar)
+
+static method foo() → core::int {
+  return 1;
+}
+''');
+      // b.dart and c.dart reference "foo" from a.dart
+      var fooReference = aLibrary.procedures[0].reference;
+      expect(bLibrary.additionalExports, contains(fooReference));
+      expect((cLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(fooReference));
+    }
+
+    // Update a.dart and recompile b.dart
+    writeFile(aPath, r'''
+export 'b.dart';
+int foo() {
+  return 2;
+}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      _assertCompiledUris([aUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri, cUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      Library cLibrary = _getLibrary(program, cUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+import "./b.dart" as b;
+additionalExports = (b::bar)
+
+static method foo() → core::int {
+  return 2;
+}
+''');
+      // b.dart and c.dart reference "foo" from a.dart
+      var fooReference = aLibrary.procedures[0].reference;
+      expect(bLibrary.additionalExports, contains(fooReference));
+      expect((cLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(fooReference));
+    }
+  }
+
+  test_computeDelta_updateBody_hasMain() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    Uri aUri = writeFile(aPath, r'''
+int foo() {
+  return 1;
+}
+main() {}
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(aUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, aUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      // main() is set
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod.enclosingLibrary, aLibrary);
+    }
+
+    // Recompile the library with main()
+    writeFile(aPath, r'''
+int foo() {
+  return 2;
+}
+main() {}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
+      _assertCompiledUris([aUri]);
+      Program program = delta.newProgram;
+      Library aLibrary = _getLibrary(program, aUri);
+      // main() is set
+      expect(program.mainMethod, isNotNull);
+      expect(program.mainMethod.enclosingLibrary, aLibrary);
+    }
+  }
+
+  test_computeDelta_updateBody_part() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, r'''
+library lib;
+part 'b.dart';
+int foo() {
+  return 1;
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
+part of lib;
+int bar() {
+  return 2;
+}
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'a.dart';
+var f1 = foo;
+var f2 = bar;
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(cUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, cUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library cLibrary = _getLibrary(program, cUri);
+      expect(_getLibraryText(aLibrary), r'''
+library lib;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 1;
+}
+static method /* from org-dartlang-test:///test/lib/b.dart */ bar() → core::int {
+  return 2;
+}
+''');
+      // b.dart uses references to a.dart nodes.
+      expect((cLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+      expect((cLibrary.fields[1].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[1].reference));
+    }
+
+    // Update b.dart and recompile.
+    writeFile(bPath, r'''
+part of lib;
+int bar() {
+  return 3;
+}
+''');
+    generator.invalidate(bUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      _assertCompiledUris([aUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, cUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library cLibrary = _getLibrary(program, cUri);
+      expect(_getLibraryText(aLibrary), r'''
+library lib;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 1;
+}
+static method /* from org-dartlang-test:///test/lib/b.dart */ bar() → core::int {
+  return 3;
+}
+''');
+      // b.dart uses references to the new a.dart nodes.
+      expect((cLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+      expect((cLibrary.fields[1].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[1].reference));
+    }
+  }
+
+  test_computeDelta_updateBody_updateApi() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    Uri aUri = writeFile(aPath, r'''
+int foo() {
+  return 1;
+}
+''');
+    Uri bUri = writeFile(bPath, r'''
+import 'a.dart';
+var f = foo;
+''');
+
+    {
+      DeltaProgram delta = await getInitialState(bUri);
+      generator.acceptLastDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 1;
+}
+''');
+      // b.dart uses references to a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+    }
+
+    // Update a body in a.dart and compile it.
+    writeFile(aPath, r'''
+int foo() {
+  return 2;
+}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
+      _assertCompiledUris([aUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 2;
+}
+''');
+      // b.dart uses references to the new a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+    }
+
+    // Compile a.dart and b.dart
+    writeFile(aPath, r'''
+int foo() {
+  return 2;
+}
+int bar() {
+  return 3;
+}
+''');
+    generator.invalidate(aUri);
+    {
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
+      _assertCompiledUris([aUri, bUri]);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [aUri, bUri]);
+      Library aLibrary = _getLibrary(program, aUri);
+      Library bLibrary = _getLibrary(program, bUri);
+      expect(_getLibraryText(aLibrary), r'''
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → core::int {
+  return 2;
+}
+static method bar() → core::int {
+  return 3;
+}
+''');
+      // b.dart uses references to the new a.dart nodes.
+      expect((bLibrary.fields[0].initializer as StaticGet).targetReference,
+          same(aLibrary.procedures[0].reference));
+    }
+  }
+
+  test_computeDelta_useSdkOutline() async {
     createSdkFiles(fileSystem);
     List<int> sdkOutlineBytes = await _computeSdkOutlineBytes();
 
-    Uri sdkOutlineUri = Uri.parse('file:///sdk/outline.dill');
+    Uri sdkOutlineUri = Uri.parse('org-dartlang-test:///sdk/outline.dill');
     fileSystem.entityForUri(sdkOutlineUri).writeAsBytesSync(sdkOutlineBytes);
 
     writeFile('/test/.packages', 'test:lib/');
@@ -236,8 +940,10 @@ var a = 1;
 Future<String> b;
 ''');
 
-    Program program = await getInitialState(bUri, sdkOutlineUri: sdkOutlineUri);
-    incrementalKernelGenerator.acceptLastDelta();
+    DeltaProgram delta =
+        await getInitialState(bUri, sdkOutlineUri: sdkOutlineUri);
+    Program program = delta.newProgram;
+    generator.acceptLastDelta();
     _assertLibraryUris(program,
         includes: [bUri], excludes: [Uri.parse('dart:core')]);
 
@@ -258,42 +964,26 @@ int getValue() {
   return 2;
 }
 ''');
-    incrementalKernelGenerator.invalidate(aUri);
-    var deltaProgram = await incrementalKernelGenerator.computeDelta();
+    generator.invalidate(aUri);
+    var deltaProgram = await generator.computeDelta();
 
     // Check that the canonical names for SDK libraries are serializable.
     serializeProgram(deltaProgram.newProgram,
         filter: (library) => !library.importUri.isScheme('dart'));
   }
 
-  test_computeDelta_hasAnotherRunning() async {
+  test_embedSourceText_false() async {
     writeFile('/test/.packages', 'test:lib/');
     String path = '/test/lib/test.dart';
-    Uri uri = writeFile(path, '');
+    Uri uri = writeFile(path, 'main() {}');
 
-    await getInitialState(uri);
-    incrementalKernelGenerator.acceptLastDelta();
+    DeltaProgram delta = await getInitialState(uri, embedSourceText: false);
+    Program program = delta.newProgram;
 
-    // Run, but don't wait.
-    var future = incrementalKernelGenerator.computeDelta();
-
-    // acceptLastDelta() is failing while the future is pending.
-    _assertStateError(() {
-      incrementalKernelGenerator.acceptLastDelta();
-    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
-
-    // rejectLastDelta() is failing while the future is pending.
-    _assertStateError(() {
-      incrementalKernelGenerator.rejectLastDelta();
-    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
-
-    // Run another, this causes StateError.
-    _assertStateError(() {
-      incrementalKernelGenerator.computeDelta();
-    }, IncrementalKernelGeneratorImpl.MSG_PENDING_COMPUTE);
-
-    // Wait for the pending future.
-    await future;
+    // The Source object is present in the map, but is empty.
+    Source source = program.uriToSource[uri.toString()];
+    expect(source, isNotNull);
+    expect(source.source, isEmpty);
   }
 
   test_inferPackagesFile() async {
@@ -308,7 +998,8 @@ var b = a;
 
     // Ensures that the `.packages` file can be discovered automatically
     // from the entry point file.
-    Program program = await getInitialState(bUri, setPackages: false);
+    DeltaProgram delta = await getInitialState(bUri, setPackages: false);
+    Program program = delta.newProgram;
     Library library = _getLibrary(program, bUri);
     expect(_getLibraryText(library), r'''
 library;
@@ -325,27 +1016,96 @@ static field core::int b = a::a;
     String path = '/test/lib/test.dart';
     Uri uri = writeFile(path, 'var v = 1;');
 
-    // The first delta includes the the library.
+    // The first delta includes the library.
     {
-      Program program = await getInitialState(uri);
+      DeltaProgram delta = await getInitialState(uri);
+      Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
       Library library = _getLibrary(program, uri);
       expect(_getLibraryText(library), contains('core::int v = 1'));
     }
 
     // Reject the last delta, so the test library is included again.
-    incrementalKernelGenerator.rejectLastDelta();
+    generator.rejectLastDelta();
     {
-      var delta = await incrementalKernelGenerator.computeDelta();
+      var delta = await generator.computeDelta();
       Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
     }
 
     // Attempt to reject the last delta twice.
-    incrementalKernelGenerator.rejectLastDelta();
+    generator.rejectLastDelta();
     _assertStateError(() {
-      incrementalKernelGenerator.rejectLastDelta();
+      generator.rejectLastDelta();
     }, IncrementalKernelGeneratorImpl.MSG_NO_LAST_DELTA);
+  }
+
+  test_reset() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String path = '/test/lib/test.dart';
+    Uri uri = writeFile(path, 'var v = 1;');
+
+    // The first delta includes the the library.
+    {
+      DeltaProgram delta = await getInitialState(uri);
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [uri]);
+      Library library = _getLibrary(program, uri);
+      expect(_getLibraryText(library), contains('core::int v = 1'));
+    }
+
+    // Accept the last delta, the new delta is empty.
+    generator.acceptLastDelta();
+    {
+      var delta = await generator.computeDelta();
+      expect(delta.newProgram.libraries, isEmpty);
+    }
+
+    // Reset the generator, so it will resend the whole program.
+    generator.reset();
+    {
+      var delta = await generator.computeDelta();
+      Program program = delta.newProgram;
+      _assertLibraryUris(program, includes: [uri]);
+    }
+  }
+
+  test_setState() async {
+    writeFile('/test/.packages', 'test:lib/');
+    String aPath = '/test/lib/a.dart';
+    String bPath = '/test/lib/b.dart';
+    String cPath = '/test/lib/c.dart';
+    Uri aUri = writeFile(aPath, 'var a = 1;');
+    Uri bUri = writeFile(bPath, r'''
+var b = 1;
+''');
+    Uri cUri = writeFile(cPath, r'''
+import 'a.dart';
+import 'b.dart';
+var c1 = a;
+var c2 = b;
+''');
+
+    String initialState;
+    {
+      DeltaProgram delta = await getInitialState(cUri);
+      Program program = delta.newProgram;
+      generator.acceptLastDelta();
+      _assertLibraryUris(program,
+          includes: [aUri, bUri, cUri, Uri.parse('dart:core')]);
+      initialState = delta.state;
+    }
+
+    // Update a.dart, don't notify the old generator - we throw it away.
+    writeFile(aPath, 'var a = 1.2');
+
+    // Create a new generator with the initial state.
+    var delta = await getInitialState(cUri, initialState: initialState);
+
+    // Only a.dart and c.dart are in the delta.
+    // The state of b.dart is the same as in the initial state.
+    _assertLibraryUris(delta.newProgram,
+        includes: [aUri, cUri], excludes: [bUri, Uri.parse('dart:core')]);
   }
 
   test_updateEntryPoint() async {
@@ -369,8 +1129,9 @@ static method main() → dynamic {
 
     // Compute the initial state.
     {
-      Program program = await getInitialState(uri);
-      incrementalKernelGenerator.acceptLastDelta();
+      DeltaProgram delta = await getInitialState(uri);
+      Program program = delta.newProgram;
+      generator.acceptLastDelta();
       Library library = _getLibrary(program, uri);
       expect(_getLibraryText(library), initialText);
     }
@@ -384,16 +1145,16 @@ main() {
 
     // We have not invalidated the file, so the delta is empty.
     {
-      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
-      incrementalKernelGenerator.acceptLastDelta();
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
       expect(delta.newProgram.libraries, isEmpty);
     }
 
     // Invalidate the file, so get the new text.
-    incrementalKernelGenerator.invalidate(uri);
+    generator.invalidate(uri);
     {
-      DeltaProgram delta = await incrementalKernelGenerator.computeDelta();
-      incrementalKernelGenerator.acceptLastDelta();
+      DeltaProgram delta = await generator.computeDelta();
+      generator.acceptLastDelta();
       Program program = delta.newProgram;
       _assertLibraryUris(program, includes: [uri]);
       Library library = _getLibrary(program, uri);
@@ -433,7 +1194,7 @@ import 'a.dart';
 
     {
       await getInitialState(cUri);
-      incrementalKernelGenerator.acceptLastDelta();
+      generator.acceptLastDelta();
       // We use at least c.dart and a.dart now.
       expect(usedFiles, contains(cUri));
       expect(usedFiles, contains(aUri));
@@ -446,10 +1207,10 @@ import 'a.dart';
 import 'a.dart';
 import 'b.dart';
 ''');
-    incrementalKernelGenerator.invalidate(cUri);
+    generator.invalidate(cUri);
     {
-      await incrementalKernelGenerator.computeDelta();
-      incrementalKernelGenerator.acceptLastDelta();
+      await generator.computeDelta();
+      generator.acceptLastDelta();
       // The only new file is b.dart now.
       expect(usedFiles, [bUri]);
       usedFiles.clear();
@@ -460,10 +1221,10 @@ import 'b.dart';
     writeFile(cPath, r'''
 import 'a.dart';
 ''');
-    incrementalKernelGenerator.invalidate(cUri);
+    generator.invalidate(cUri);
     {
-      await incrementalKernelGenerator.computeDelta();
-      incrementalKernelGenerator.acceptLastDelta();
+      await generator.computeDelta();
+      generator.acceptLastDelta();
       // No new used files.
       expect(usedFiles, isEmpty);
       // The file b.dart is not used anymore.
@@ -483,12 +1244,12 @@ import 'a.dart';
     watchFn = null;
 
     await getInitialState(bUri);
-    incrementalKernelGenerator.acceptLastDelta();
+    generator.acceptLastDelta();
 
     // Update b.dart to import a.dart file.
     writeFile(bPath, "import 'a.dart';");
-    incrementalKernelGenerator.invalidate(bUri);
-    await incrementalKernelGenerator.computeDelta();
+    generator.invalidate(bUri);
+    await generator.computeDelta();
 
     // No exception even though the watcher function is null.
   }
@@ -496,7 +1257,7 @@ import 'a.dart';
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {
-    Uri uri = Uri.parse('file://$path');
+    Uri uri = Uri.parse('org-dartlang-test://$path');
     fileSystem.entityForUri(uri).writeAsStringSync(text);
     return uri;
   }
@@ -507,12 +1268,7 @@ import 'a.dart';
   }
 
   void _assertCompiledUris(Iterable<Uri> expected) {
-    var compiledCycles =
-        incrementalKernelGenerator.test.driver.test.compiledCycles;
-    Set<Uri> compiledUris = compiledCycles
-        .map((cycle) => cycle.libraries.map((file) => file.uri))
-        .expand((uris) => uris)
-        .toSet();
+    Set<Uri> compiledUris = generator.test.compiledUris;
     expect(compiledUris, unorderedEquals(expected));
   }
 
@@ -521,14 +1277,14 @@ import 'a.dart';
     List<Uri> libraryUris =
         program.libraries.map((library) => library.importUri).toList();
     for (var shouldInclude in includes) {
-      var shouldIncludeStr = shouldInclude.toString();
       expect(libraryUris, contains(shouldInclude));
-      expect(program.uriToSource.keys, contains(shouldIncludeStr));
+      var shouldIncludeFileUri = _resolveUriToFileUri(shouldInclude);
+      expect(program.uriToSource.keys, contains(shouldIncludeFileUri));
     }
     for (var shouldExclude in excludes) {
-      var shouldExcludeStr = shouldExclude.toString();
       expect(libraryUris, isNot(contains(shouldExclude)));
-      expect(program.uriToSource.keys, isNot(contains(shouldExcludeStr)));
+      var shouldExcludeFileUri = _resolveUriToFileUri(shouldExclude);
+      expect(program.uriToSource.keys, isNot(contains(shouldExcludeFileUri)));
     }
   }
 
@@ -545,7 +1301,7 @@ import 'a.dart';
   Future<List<int>> _computeSdkOutlineBytes() async {
     var options = new CompilerOptions()
       ..fileSystem = fileSystem
-      ..sdkRoot = Uri.parse('file:///sdk/')
+      ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/')
       ..compileSdk = true
       ..chaseDependencies = true
       ..strongMode = true;
@@ -566,4 +1322,15 @@ import 'a.dart';
         .writeLibraryFile(library);
     return buffer.toString();
   }
+
+  /// Resolve the given `dart` or `package` [inputUri] into the corresponding
+  /// file URI, or return the same URI if it is already a file URI.
+  String _resolveUriToFileUri(Uri inputUri) {
+    var translator = generator.uriTranslator;
+    var outputUri = translator.translate(inputUri) ?? inputUri;
+    return outputUri.toString();
+  }
+
+  static Procedure _getMainProcedure(Library library) => library.procedures
+      .singleWhere((procedure) => procedure.name.name == 'main');
 }

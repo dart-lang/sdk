@@ -26,7 +26,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
-import 'flutter_util.dart';
+import '../../src/utilities/flutter_util.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -264,6 +264,25 @@ class Test {
   final int b;
   final int c;
   Test(this.a, this.b, [this.c]);
+}
+''');
+  }
+
+  test_addFieldFormalParameters_notAllFinal() async {
+    await resolveTestUnit('''
+class Test {
+  final int a;
+  int b;
+  final int c;
+  Test();
+}
+''');
+    await assertHasFix(DartFixKind.ADD_FIELD_FORMAL_PARAMETERS, '''
+class Test {
+  final int a;
+  int b;
+  final int c;
+  Test(this.a, this.c);
 }
 ''');
   }
@@ -2433,6 +2452,24 @@ main() {
 ''');
   }
 
+  test_createLocalVariable_functionType_named_generic() async {
+    await resolveTestUnit('''
+typedef MY_FUNCTION<T>(T p);
+foo(MY_FUNCTION<int> f) {}
+main() {
+  foo(bar);
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_LOCAL_VARIABLE, '''
+typedef MY_FUNCTION<T>(T p);
+foo(MY_FUNCTION<int> f) {}
+main() {
+  MY_FUNCTION<int> bar;
+  foo(bar);
+}
+''');
+  }
+
   @failingTest
   test_createLocalVariable_functionType_synthetic() async {
     await resolveTestUnit('''
@@ -2927,6 +2964,32 @@ abstract class A {
 class B implements A {
   @override
   E1 foo<E1, E2 extends C<int>>(V<E2> v) {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
+  test_createMissingOverrides_method_notEmptyClassBody() async {
+    await resolveTestUnit('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  void bar() {}
+}
+''');
+    await assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  void bar() {}
+
+  @override
+  void foo() {
     // TODO: implement foo
   }
 }

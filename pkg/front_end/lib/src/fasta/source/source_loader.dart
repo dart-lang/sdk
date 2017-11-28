@@ -8,6 +8,9 @@ import 'dart:async' show Future;
 
 import 'dart:typed_data' show Uint8List;
 
+import 'package:front_end/src/fasta/type_inference/interface_resolver.dart'
+    show InterfaceResolver;
+
 import 'package:kernel/ast.dart' show Arguments, Expression, Program;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -47,10 +50,10 @@ import '../fasta_codes.dart'
         templateIllegalMixin,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
-        templateInternalProblemUriMissingScheme,
-        templateUnspecified;
+        templateInternalProblemUriMissingScheme;
 
-import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
+import '../kernel/kernel_shadow_ast.dart'
+    show ShadowClass, ShadowTypeInferenceEngine;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -91,7 +94,11 @@ class SourceLoader<L> extends Loader<L> {
 
   TypeInferenceEngine typeInferenceEngine;
 
+  InterfaceResolver interfaceResolver;
+
   Instrumentation instrumentation;
+
+  List<ClassBuilder> orderedClasses;
 
   SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
       : super(target);
@@ -107,6 +114,9 @@ class SourceLoader<L> extends Loader<L> {
           templateInternalProblemUriMissingScheme.withArguments(uri),
           -1,
           library.uri);
+    } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
+      // Simulate empty file
+      return null;
     }
 
     // Get the library text from the cache, or read from the file system.
@@ -134,9 +144,7 @@ class SourceLoader<L> extends Loader<L> {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
         library.addCompileTimeError(
-            templateUnspecified.withArguments(error.assertionMessage),
-            token.charOffset,
-            uri);
+            error.assertionMessage, token.charOffset, uri);
       }
       token = token.next;
     }
@@ -175,6 +183,7 @@ class SourceLoader<L> extends Loader<L> {
         Token tokens = await tokenize(part);
         if (tokens != null) {
           listener.uri = part.fileUri;
+          listener.partDirectiveIndex = 0;
           parser.parseUnit(tokens);
         }
       }
@@ -201,6 +210,13 @@ class SourceLoader<L> extends Loader<L> {
     });
     parts.forEach(builders.remove);
     ticker.logMs("Resolved parts");
+
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library is SourceLibraryBuilder) {
+        library.applyPatches();
+      }
+    });
+    ticker.logMs("Applied patches");
   }
 
   void computeLibraryScopes() {
@@ -277,9 +293,20 @@ class SourceLoader<L> extends Loader<L> {
   void resolveTypes() {
     int typeCount = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
-      typeCount += library.resolveTypes(null);
+      if (library.loader == this) {
+        SourceLibraryBuilder sourceLibrary = library;
+        typeCount += sourceLibrary.resolveTypes();
+      }
     });
     ticker.logMs("Resolved $typeCount types");
+  }
+
+  void finishDeferredLoadTearoffs() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      count += library.finishDeferredLoadTearoffs();
+    });
+    ticker.logMs("Finished deferred load tearoffs $count");
   }
 
   void finishStaticInvocations() {
@@ -312,6 +339,14 @@ class SourceLoader<L> extends Loader<L> {
       count += library.finishNativeMethods();
     });
     ticker.logMs("Finished $count native methods");
+  }
+
+  void finishPatchMethods() {
+    int count = 0;
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      count += library.finishPatchMethods();
+    });
+    ticker.logMs("Finished $count patch methods");
   }
 
   /// Returns all the supertypes (including interfaces) of [cls]
@@ -453,7 +488,10 @@ class SourceLoader<L> extends Loader<L> {
   void buildProgram() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        libraries.add(library.build(coreLibrary));
+        L target = library.build(coreLibrary);
+        if (!library.isPatch) {
+          libraries.add(target);
+        }
       }
     });
     ticker.logMs("Built program");
@@ -483,35 +521,63 @@ class SourceLoader<L> extends Loader<L> {
   /// consists of creating kernel objects for all fields and top level variables
   /// that might be subject to type inference, and records dependencies between
   /// them.
-  void prepareInitializerInference() {
+  void prepareTopLevelInference(List<SourceClassBuilder> sourceClasses) {
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
+    interfaceResolver = new InterfaceResolver(
+        typeInferenceEngine,
+        typeInferenceEngine.typeSchemaEnvironment,
+        instrumentation,
+        target.strongMode);
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
-        library.prepareInitializerInference(library, null);
+        library.prepareTopLevelInference(library, null);
       }
     });
-    ticker.logMs("Prepared initializer inference");
+    // Note: we need to create a list before iterating, since calling
+    // builder.prepareTopLevelInference causes further class hierarchy queries
+    // to be made which would otherwise result in a concurrent modification
+    // exception.
+    orderedClasses = hierarchy
+        .getOrderedClasses(sourceClasses.map((builder) => builder.target))
+        .map((class_) => ShadowClass.getClassInferenceInfo(class_).builder)
+        .toList();
+    for (var builder in orderedClasses) {
+      ShadowClass class_ = builder.target;
+      builder.prepareTopLevelInference(builder.library, builder);
+      class_.setupApiMembers(interfaceResolver);
+    }
+    typeInferenceEngine.isTypeInferencePrepared = true;
+    ticker.logMs("Prepared top level inference");
   }
 
   /// Performs the second phase of top level initializer inference, which is to
   /// visit fields and top level variables in topologically-sorted order and
   /// assign their types.
-  void performInitializerInference() {
-    typeInferenceEngine.finishTopLevel();
-    ticker.logMs("Performed initializer inference");
-  }
-
-  /// Annotates method formals that require runtime checks to restore soundness
-  /// as a result of the fact that Dart 2.0 treats all class type parameters as
-  /// covariant.
-  void computeFormalSafety(List<SourceClassBuilder> sourceClasses) {
-    if (target.strongMode) {
-      for (var cls in hierarchy
-          .getOrderedClasses(sourceClasses.map((builder) => builder.target))) {
-        typeInferenceEngine.computeFormalSafety(cls);
-      }
-      ticker.logMs("Computed formal checks");
+  void performTopLevelInference(List<SourceClassBuilder> sourceClasses) {
+    typeInferenceEngine.finishTopLevelFields();
+    for (var builder in orderedClasses) {
+      ShadowClass class_ = builder.target;
+      class_.finalizeCovariance(interfaceResolver);
+      ShadowClass.clearClassInferenceInfo(class_);
     }
+    orderedClasses = null;
+    typeInferenceEngine.finishTopLevelInitializingFormals();
+    if (instrumentation != null) {
+      builders.forEach((Uri uri, LibraryBuilder library) {
+        if (library is SourceLibraryBuilder) {
+          library.instrumentTopLevelInference(instrumentation);
+        }
+      });
+    }
+    interfaceResolver = null;
+    // Since finalization of covariance may have added forwarding stubs, we need
+    // to recompute the class hierarchy so that method compilation will properly
+    // target those forwarding stubs.
+    // TODO(paulberry): could we make this unnecessary by not clearing class
+    // inference info?
+    typeInferenceEngine.classHierarchy =
+        hierarchy = new IncrementalClassHierarchy();
+    ticker.logMs("Performed top level inference");
   }
 
   List<Uri> getDependencies() => sourceBytes.keys.toList();

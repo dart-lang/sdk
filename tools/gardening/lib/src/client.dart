@@ -8,7 +8,6 @@ import 'dart:io' hide HttpException;
 import 'buildbot_data.dart';
 import 'buildbot_loading.dart';
 import 'buildbot_structures.dart';
-import 'logdog.dart';
 import 'util.dart';
 
 /// Interface for pulling build bot results.
@@ -108,10 +107,7 @@ class LogdogBuildbotClient implements BuildbotClient {
     while (true) {
       try {
         return await readBuildResultFromLogDog(buildUri);
-      } on LogdogException catch (e) {
-        if (e.exitKind != LogdogExitKind.error) {
-          return null;
-        }
+      } catch (e) {
         absoluteBuildNumbers ??= await _getAbsoluteBuildNumbers(buildUri);
         buildNumberIndex =
             getBuildNumberIndex(absoluteBuildNumbers, buildUri.buildNumber);

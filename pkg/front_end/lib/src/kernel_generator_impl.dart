@@ -50,7 +50,6 @@ Future<CompilerResult> generateKernelInternal(
     var dillTarget =
         new DillTarget(options.ticker, uriTranslator, options.target);
 
-    CanonicalName nameRoot = new CanonicalName.root();
     Set<Uri> externalLibs(Program program) {
       return program.libraries
           .where((lib) => lib.isExternal)
@@ -58,7 +57,10 @@ Future<CompilerResult> generateKernelInternal(
           .toSet();
     }
 
-    var sdkSummary = await options.loadSdkSummary(nameRoot);
+    var sdkSummary = await options.loadSdkSummary(null);
+    // By using the nameRoot of the the summary, we enable sharing the
+    // sdkSummary between multiple invocations.
+    CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
       var excluded = externalLibs(sdkSummary);
       dillTarget.loader

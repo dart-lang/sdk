@@ -6,7 +6,7 @@ library;
 import self as self;
 import "./export_combinators_lib1.dart" as exp;
 import "./export_combinators_lib2.dart" as exp2;
-additionalExports = (exp::A2exp2::A4exp2::A6)
+additionalExports = (exp::A2, exp2::A4, exp2::A6)
 
 
 ----- external pkg/front_end/testcases/shaker/export_combinators_lib1.dart

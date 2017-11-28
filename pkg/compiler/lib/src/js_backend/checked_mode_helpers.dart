@@ -110,9 +110,7 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
 }
 
 class CheckedModeHelpers {
-  final CommonElements _commonElements;
-
-  CheckedModeHelpers(this._commonElements);
+  CheckedModeHelpers();
 
   /// All the checked mode helpers.
   static const List<CheckedModeHelper> helpers = const <CheckedModeHelper>[
@@ -164,8 +162,10 @@ class CheckedModeHelpers {
    * the resolver with interface types (int, String, ...), and by the SSA
    * backend with implementation types (JSInt, JSString, ...).
    */
-  CheckedModeHelper getCheckedModeHelper(DartType type, {bool typeCast}) {
-    return getCheckedModeHelperInternal(type,
+  CheckedModeHelper getCheckedModeHelper(
+      DartType type, CommonElements commonElements,
+      {bool typeCast}) {
+    return getCheckedModeHelperInternal(type, commonElements,
         typeCast: typeCast, nativeCheckOnly: false);
   }
 
@@ -174,8 +174,10 @@ class CheckedModeHelpers {
    * check/type cast on [type] at runtime. If no native helper exists for
    * [type], [:null:] is returned.
    */
-  CheckedModeHelper getNativeCheckedModeHelper(DartType type, {bool typeCast}) {
-    return getCheckedModeHelperInternal(type,
+  CheckedModeHelper getNativeCheckedModeHelper(
+      DartType type, CommonElements commonElements,
+      {bool typeCast}) {
+    return getCheckedModeHelperInternal(type, commonElements,
         typeCast: typeCast, nativeCheckOnly: true);
   }
 
@@ -183,9 +185,10 @@ class CheckedModeHelpers {
    * Returns the checked mode helper for the type check/type cast for [type]. If
    * [nativeCheckOnly] is [:true:], only names for native helpers are returned.
    */
-  CheckedModeHelper getCheckedModeHelperInternal(DartType type,
+  CheckedModeHelper getCheckedModeHelperInternal(
+      DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {
-    String name = getCheckedModeHelperNameInternal(type,
+    String name = getCheckedModeHelperNameInternal(type, commonElements,
         typeCast: typeCast, nativeCheckOnly: nativeCheckOnly);
     if (name == null) return null;
     CheckedModeHelper helper = checkedModeHelperByName[name];
@@ -193,7 +196,8 @@ class CheckedModeHelpers {
     return helper;
   }
 
-  String getCheckedModeHelperNameInternal(DartType type,
+  String getCheckedModeHelperNameInternal(
+      DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {
     assert(!type.isTypedef);
     if (type.isMalformed) {
@@ -223,57 +227,57 @@ class CheckedModeHelpers {
     //  nativeCheckOnly || emitter.nativeEmitter.requiresNativeIsCheck(element);
 
     var suffix = typeCast ? 'TypeCast' : 'TypeCheck';
-    if (element == _commonElements.jsStringClass ||
-        element == _commonElements.stringClass) {
+    if (element == commonElements.jsStringClass ||
+        element == commonElements.stringClass) {
       if (nativeCheckOnly) return null;
       return 'string$suffix';
     }
 
-    if (element == _commonElements.jsDoubleClass ||
-        element == _commonElements.doubleClass) {
+    if (element == commonElements.jsDoubleClass ||
+        element == commonElements.doubleClass) {
       if (nativeCheckOnly) return null;
       return 'double$suffix';
     }
 
-    if (element == _commonElements.jsNumberClass ||
-        element == _commonElements.numClass) {
+    if (element == commonElements.jsNumberClass ||
+        element == commonElements.numClass) {
       if (nativeCheckOnly) return null;
       return 'num$suffix';
     }
 
-    if (element == _commonElements.jsBoolClass ||
-        element == _commonElements.boolClass) {
+    if (element == commonElements.jsBoolClass ||
+        element == commonElements.boolClass) {
       if (nativeCheckOnly) return null;
       return 'bool$suffix';
     }
 
-    if (element == _commonElements.jsIntClass ||
-        element == _commonElements.intClass ||
-        element == _commonElements.jsUInt32Class ||
-        element == _commonElements.jsUInt31Class ||
-        element == _commonElements.jsPositiveIntClass) {
+    if (element == commonElements.jsIntClass ||
+        element == commonElements.intClass ||
+        element == commonElements.jsUInt32Class ||
+        element == commonElements.jsUInt31Class ||
+        element == commonElements.jsPositiveIntClass) {
       if (nativeCheckOnly) return null;
       return 'int$suffix';
     }
 
-    if (_commonElements.isNumberOrStringSupertype(element)) {
+    if (commonElements.isNumberOrStringSupertype(element)) {
       return nativeCheck
           ? 'numberOrStringSuperNative$suffix'
           : 'numberOrStringSuper$suffix';
     }
 
-    if (_commonElements.isStringOnlySupertype(element)) {
+    if (commonElements.isStringOnlySupertype(element)) {
       return nativeCheck ? 'stringSuperNative$suffix' : 'stringSuper$suffix';
     }
 
-    if ((element == _commonElements.listClass ||
-            element == _commonElements.jsArrayClass) &&
+    if ((element == commonElements.listClass ||
+            element == commonElements.jsArrayClass) &&
         type.treatAsRaw) {
       if (nativeCheckOnly) return null;
       return 'list$suffix';
     }
 
-    if (_commonElements.isListSupertype(element)) {
+    if (commonElements.isListSupertype(element)) {
       return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
     }
 

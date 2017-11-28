@@ -8,9 +8,9 @@
 import "package:expect/expect.dart";
 
 void test(A func(String value), String value) {
-  Expect.throws(() {
-      B x = func(value);
-  }, (e) => e is TypeError);
+  Expect.throwsTypeError(() {
+    B x = func(value);
+  });
 }
 
 
@@ -25,9 +25,9 @@ class C {
 }
 
 A aclosure(String x) => C.a(x);
-A bclosure() => new A(); 
+A bclosure() => new A();
 
 main() {
   test(aclosure, "foo");
   test((bar) => bclosure(), "baz");
-} 
+}

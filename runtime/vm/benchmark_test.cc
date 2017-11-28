@@ -601,6 +601,7 @@ static uint8_t* message_allocator(uint8_t* ptr,
 static void message_deallocator(uint8_t* ptr) {}
 
 BENCHMARK(SerializeNull) {
+  TransitionNativeToVM transition(thread);
   const Object& null_object = Object::Handle();
   const intptr_t kLoopCount = 1000000;
   uint8_t* buffer;
@@ -623,6 +624,7 @@ BENCHMARK(SerializeNull) {
 }
 
 BENCHMARK(SerializeSmi) {
+  TransitionNativeToVM transition(thread);
   const Integer& smi_object = Integer::Handle(Smi::New(42));
   const intptr_t kLoopCount = 1000000;
   uint8_t* buffer;

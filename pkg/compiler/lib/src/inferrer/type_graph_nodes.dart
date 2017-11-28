@@ -236,6 +236,17 @@ abstract class TypeInformation {
     users = null;
     _assignments = null;
   }
+
+  String toStructuredTest() {
+    StringBuffer sb = new StringBuffer();
+    _toStructuredText(sb, '');
+    return sb.toString();
+  }
+
+  void _toStructuredText(StringBuffer sb, String indent) {
+    sb.write(indent);
+    sb.write(toString());
+  }
 }
 
 abstract class ApplyableTypeInformation implements TypeInformation {
@@ -475,7 +486,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
     if (!inferrer.options.trustTypeAnnotations &&
         !inferrer.options.enableTypeAssertions &&
-        !inferrer.optimizerHints.trustTypeAnnotations(_member)) {
+        !inferrer.trustTypeAnnotations(_member)) {
       return mask;
     }
     return _potentiallyNarrowType(mask, inferrer);
@@ -523,7 +534,7 @@ class FieldTypeInformation extends MemberTypeInformation {
 
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.canFieldBeUsedForGlobalOptimizations(_field) ||
-        inferrer.optimizerHints.assumeDynamic(_field)) {
+        inferrer.assumeDynamic(_field)) {
       // Do not infer types for fields that have a corresponding annotation or
       // are assigned by synthesized calls
 
@@ -734,7 +745,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
   // TODO(herhut): Cleanup into one conditional.
   TypeMask handleSpecialCases(InferrerEngine inferrer) {
     if (!inferrer.canFunctionParametersBeUsedForGlobalOptimizations(_method) ||
-        inferrer.optimizerHints.assumeDynamic(_method)) {
+        inferrer.assumeDynamic(_method)) {
       // Do not infer types for parameters that have a corresponding annotation
       // or that are assigned by synthesized calls.
       giveUp(inferrer);
@@ -782,7 +793,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
 
   TypeMask potentiallyNarrowType(TypeMask mask, InferrerEngine inferrer) {
     if (!inferrer.options.trustTypeAnnotations &&
-        !inferrer.optimizerHints.trustTypeAnnotations(_method)) {
+        !inferrer.trustTypeAnnotations(_method)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always
@@ -1027,7 +1038,7 @@ class DynamicCallSiteTypeInformation<T> extends CallSiteTypeInformation {
       return e.isFunction &&
           e.isInstanceMember &&
           e.name == Identifiers.noSuchMethod_ &&
-          inferrer.noSuchMethodRegistry.isComplex(e);
+          inferrer.noSuchMethodData.isComplex(e);
     });
   }
 
@@ -1794,6 +1805,23 @@ class PhiElementTypeInformation<T> extends TypeInformation {
   }
 
   String toString() => 'Phi $variable $type';
+
+  void _toStructuredText(StringBuffer sb, String indent) {
+    sb.write(indent);
+    sb.write(toString());
+    if (branchNode != null) {
+      String context = '$branchNode'.replaceAll('\n', ' ');
+      if (context.length > 80) {
+        context = context.substring(0, 77) + '...';
+      }
+      sb.write(': $context');
+    } else {
+      for (TypeInformation assignment in assignments) {
+        sb.write('\n');
+        assignment._toStructuredText(sb, '$indent  ');
+      }
+    }
+  }
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitPhiElementTypeInformation(this);

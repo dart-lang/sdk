@@ -1233,6 +1233,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
     typedefs.add(b);
+
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
   }

@@ -57,15 +57,19 @@ class CoreTypes {
   Class _invocationClass;
   Constructor _externalNameDefaultConstructor;
   Class _invocationMirrorClass;
-  Constructor _invocationMirrorDefaultConstructor;
+  Constructor _invocationMirrorWithTypeConstructor;
+  Constructor _invocationMirrorWithoutTypeConstructor;
   Class _noSuchMethodErrorClass;
-  Constructor _noSuchMethodErrorImplementationConstructor;
+  Constructor _noSuchMethodErrorDefaultConstructor;
   Procedure _listFromConstructor;
   Procedure _printProcedure;
   Procedure _identicalProcedure;
   Constructor _constantExpressionErrorDefaultConstructor;
+  Constructor _duplicatedFieldInitializerErrorDefaultConstructor;
   Constructor _fallThroughErrorUrlAndLineConstructor;
   Constructor _compileTimeErrorDefaultConstructor;
+  Procedure _objectEquals;
+  Procedure _mapUnmodifiable;
 
   Class _internalSymbolClass;
 
@@ -76,6 +80,8 @@ class CoreTypes {
   Class _completerClass;
   Class _futureOrClass;
   Procedure _completerSyncConstructor;
+  Procedure _completerComplete;
+  Procedure _completerCompleteError;
   Procedure _futureMicrotaskConstructor;
   Constructor _syncIterableDefaultConstructor;
   Constructor _streamIteratorDefaultConstructor;
@@ -99,9 +105,37 @@ class CoreTypes {
     return _asyncLibrary ??= _index.getLibrary('dart:async');
   }
 
+  Member get asyncStarStreamControllerAdd {
+    return _index.getMember('dart:async', '_AsyncStarStreamController', 'add');
+  }
+
+  Member get asyncStarStreamControllerAddError {
+    return _index.getMember(
+        'dart:async', '_AsyncStarStreamController', 'addError');
+  }
+
+  Member get asyncStarStreamControllerAddStream {
+    return _index.getMember(
+        'dart:async', '_AsyncStarStreamController', 'addStream');
+  }
+
+  Class get asyncStarStreamControllerClass {
+    return _index.getClass('dart:async', '_AsyncStarStreamController');
+  }
+
+  Member get asyncStarStreamControllerClose {
+    return _index.getMember(
+        'dart:async', '_AsyncStarStreamController', 'close');
+  }
+
   Constructor get asyncStarStreamControllerDefaultConstructor {
     return _asyncStarStreamControllerDefaultConstructor ??=
         _index.getMember('dart:async', '_AsyncStarStreamController', '');
+  }
+
+  Member get asyncStarStreamControllerStream {
+    return _index.getMember(
+        'dart:async', '_AsyncStarStreamController', 'get:stream');
   }
 
   Procedure get asyncStackTraceHelperProcedure {
@@ -130,6 +164,20 @@ class CoreTypes {
   Procedure get completerSyncConstructor {
     return _completerSyncConstructor ??=
         _index.getMember('dart:async', 'Completer', 'sync');
+  }
+
+  Procedure get completerComplete {
+    return _completerComplete ??=
+        _index.getMember('dart:async', 'Completer', 'complete');
+  }
+
+  Procedure get completerCompleteError {
+    return _completerCompleteError ??=
+        _index.getMember('dart:async', 'Completer', 'completeError');
+  }
+
+  Member get completerFuture {
+    return _index.getMember('dart:async', 'Completer', 'get:future');
   }
 
   Library get coreLibrary {
@@ -184,9 +232,14 @@ class CoreTypes {
         _index.getClass('dart:core', '_InvocationMirror');
   }
 
-  Constructor get invocationMirrorDefaultConstructor {
-    return _invocationMirrorDefaultConstructor ??=
-        _index.getMember('dart:core', '_InvocationMirror', '');
+  Constructor get invocationMirrorWithTypeConstructor {
+    return _invocationMirrorWithTypeConstructor ??=
+        _index.getMember('dart:core', '_InvocationMirror', '_withType');
+  }
+
+  Constructor get invocationMirrorWithoutTypeConstructor {
+    return _invocationMirrorWithoutTypeConstructor ??=
+        _index.getMember('dart:core', '_InvocationMirror', '_withoutType');
   }
 
   Class get iterableClass {
@@ -210,6 +263,11 @@ class CoreTypes {
     return _mapClass ??= _index.getClass('dart:core', 'Map');
   }
 
+  Procedure get mapUnmodifiable {
+    return _mapUnmodifiable ??=
+        _index.getMember('dart:core', 'Map', 'unmodifiable');
+  }
+
   Library get mirrorsLibrary {
     return _mirrorsLibrary ??= _index.tryGetLibrary('dart:mirrors');
   }
@@ -219,11 +277,10 @@ class CoreTypes {
         _index.getClass('dart:core', 'NoSuchMethodError');
   }
 
-  /// An implementation-specific constructor suitable for use by
-  /// `Target.instantiateNoSuchMethodError`.
-  Constructor get noSuchMethodErrorImplementationConstructor {
-    return _noSuchMethodErrorImplementationConstructor ??=
-        _index.getMember('dart:core', 'NoSuchMethodError', '_withType');
+  Constructor get noSuchMethodErrorDefaultConstructor {
+    return _noSuchMethodErrorDefaultConstructor ??=
+        // TODO(regis): Replace 'withInvocation' with '' after dart2js is fixed.
+        _index.getMember('dart:core', 'NoSuchMethodError', 'withInvocation');
   }
 
   Class get nullClass {
@@ -238,6 +295,10 @@ class CoreTypes {
     return _objectClass ??= _index.getClass('dart:core', 'Object');
   }
 
+  Procedure get objectEquals {
+    return _objectEquals ??= _index.getMember('dart:core', 'Object', '==');
+  }
+
   Procedure get printProcedure {
     return _printProcedure ??= _index.getTopLevelMember('dart:core', 'print');
   }
@@ -250,9 +311,25 @@ class CoreTypes {
     return _streamClass ??= _index.getClass('dart:async', 'Stream');
   }
 
+  Member get streamIteratorCancel {
+    return _index.getMember('dart:async', '_StreamIterator', 'cancel');
+  }
+
+  Class get streamIteratorClass {
+    return _index.getClass('dart:async', '_StreamIterator');
+  }
+
   Constructor get streamIteratorDefaultConstructor {
     return _streamIteratorDefaultConstructor ??=
         _index.getMember('dart:async', '_StreamIterator', '');
+  }
+
+  Member get streamIteratorMoveNext {
+    return _index.getMember('dart:async', '_StreamIterator', 'moveNext');
+  }
+
+  Member get streamIteratorCurrent {
+    return _index.getMember('dart:async', '_StreamIterator', 'get:current');
   }
 
   Class get stringClass {
@@ -268,6 +345,18 @@ class CoreTypes {
         _index.getMember('dart:core', '_SyncIterable', '');
   }
 
+  Class get syncIteratorClass {
+    return _index.getClass('dart:core', '_SyncIterator');
+  }
+
+  Member get syncIteratorCurrent {
+    return _index.getMember('dart:core', '_SyncIterator', '_current');
+  }
+
+  Member get syncIteratorYieldEachIterable {
+    return _index.getMember('dart:core', '_SyncIterator', '_yieldEachIterable');
+  }
+
   Class get typeClass {
     return _typeClass ??= _index.getClass('dart:core', 'Type');
   }
@@ -275,6 +364,11 @@ class CoreTypes {
   Constructor get constantExpressionErrorDefaultConstructor {
     return _constantExpressionErrorDefaultConstructor ??=
         _index.getMember('dart:core', '_ConstantExpressionError', '');
+  }
+
+  Constructor get duplicatedFieldInitializerErrorDefaultConstructor {
+    return _duplicatedFieldInitializerErrorDefaultConstructor ??=
+        _index.getMember('dart:core', '_DuplicatedFieldInitializerError', '');
   }
 
   Constructor get fallThroughErrorUrlAndLineConstructor {

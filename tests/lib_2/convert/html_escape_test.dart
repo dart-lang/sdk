@@ -78,12 +78,12 @@ void main() {
   _testMode(HTML_ESCAPE, _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(const HtmlEscape(), _TEST_INPUT, _OUTPUT_UNKNOWN);
   _testMode(
-      const HtmlEscape(HtmlEscapeMode.UNKNOWN), _TEST_INPUT, _OUTPUT_UNKNOWN);
-  _testMode(const HtmlEscape(HtmlEscapeMode.ATTRIBUTE), _TEST_INPUT,
+      const HtmlEscape(HtmlEscapeMode.unknown), _TEST_INPUT, _OUTPUT_UNKNOWN);
+  _testMode(const HtmlEscape(HtmlEscapeMode.attribute), _TEST_INPUT,
       _OUTPUT_ATTRIBUTE);
-  _testMode(const HtmlEscape(HtmlEscapeMode.SQ_ATTRIBUTE), _TEST_INPUT,
+  _testMode(const HtmlEscape(HtmlEscapeMode.sqAttribute), _TEST_INPUT,
       _OUTPUT_SQ_ATTRIBUTE);
   _testMode(
-      const HtmlEscape(HtmlEscapeMode.ELEMENT), _TEST_INPUT, _OUTPUT_ELEMENT);
+      const HtmlEscape(HtmlEscapeMode.element), _TEST_INPUT, _OUTPUT_ELEMENT);
   _testMode(HTML_ESCAPE, _NOOP, _NOOP);
 }

@@ -1906,8 +1906,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   void _inferGenericInvocationExpression(InvocationExpression node) {
     ArgumentList arguments = node.argumentList;
-    FunctionType inferred = _inferGenericInvoke(node, node.function.staticType,
-        node.typeArguments, arguments, node.function);
+    var type = node.function.staticType;
+    var freshType =
+        type is FunctionType ? new FunctionTypeImpl.fresh(type) : type;
+
+    FunctionType inferred = _inferGenericInvoke(
+        node, freshType, node.typeArguments, arguments, node.function);
     if (inferred != null && inferred != node.staticInvokeType) {
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters = ResolverVisitor
@@ -2276,44 +2280,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return type;
     }
 
-    // TODO(jmesserly): feels like we should be able to do this with less code.
-
-    // Create fresh type formals. This avoids capture if we're inferring the
-    // constructor to the class from inside it.
-
-    // We build up a substitution for the type parameters,
-    // {variablesFresh/variables} then apply it.
-    var typeVars = <DartType>[];
-    var freshTypeVars = <DartType>[];
-    var freshVarElements = <TypeParameterElement>[];
-    for (int i = 0; i < cls.typeParameters.length; i++) {
-      var typeParamElement = cls.typeParameters[i];
-      var freshElement =
-          new TypeParameterElementImpl.synthetic(typeParamElement.name);
-      var freshTypeVar = new TypeParameterTypeImpl(freshElement);
-      freshElement.type = freshTypeVar;
-
-      typeVars.add(typeParamElement.type);
-      freshTypeVars.add(freshTypeVar);
-      freshVarElements.add(freshElement);
-
-      var bound = typeParamElement.bound ?? DynamicTypeImpl.instance;
-      freshElement.bound = bound.substitute2(freshTypeVars, typeVars);
-    }
-
-    type = type.substitute2(freshTypeVars, typeVars);
-
+    // Create a synthetic function type using the class type parameters,
+    // and then rename it with fresh variables.
     var name = cls.name;
     if (constructor.name != null) {
       name += '.' + constructor.name;
     }
     var function = new FunctionElementImpl(name, -1);
-    function.enclosingElement = cls;
+    function.enclosingElement = cls.enclosingElement;
     function.isSynthetic = true;
     function.returnType = type.returnType;
-    function.typeParameters = freshVarElements;
+    function.shareTypeParameters(cls.typeParameters);
     function.shareParameters(type.parameters);
-    return function.type = new FunctionTypeImpl(function);
+    function.type = new FunctionTypeImpl(function);
+    return new FunctionTypeImpl.fresh(function.type);
   }
 
   /**

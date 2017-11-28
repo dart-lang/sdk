@@ -27,7 +27,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:dev_compiler/src/analyzer/context.dart';
-import 'package:dev_compiler/src/compiler/compiler.dart'
+import 'package:dev_compiler/src/analyzer/module_compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
 import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat, addModuleFormatOptions, parseModuleFormatOption;
@@ -36,7 +36,6 @@ import 'package:test/test.dart' show expect, isFalse, isTrue, test;
 import 'package:status_file/expectation.dart';
 import 'package:test_dart/path.dart' as test_dart;
 import 'package:test_dart/test_suite.dart' show StandardTestSuite;
-import 'package:test_dart/utils.dart';
 import 'package:test_dart/options.dart';
 
 import '../tool/build_sdk.dart' as build_sdk;
@@ -76,7 +75,7 @@ main(List<String> arguments) {
 
   var sdkDir = path.join(repoDirectory, 'gen', 'patched_sdk');
   var sdkSummaryFile =
-      path.join(testDirectory, '..', 'lib', 'sdk', 'ddc_sdk.sum');
+      path.join(testDirectory, '..', 'gen', 'sdk', 'ddc_sdk.sum');
 
   var summaryPaths = new Directory(path.join(codegenOutputDir, 'pkg'))
       .listSync()
@@ -91,7 +90,6 @@ main(List<String> arguments) {
 
   // Copy all of the test files and expanded multitest files to
   // gen/codegen_tests. We'll compile from there.
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   var testFiles = _setUpTests(testDirs);
   _writeRuntimeStatus(testFiles);
 

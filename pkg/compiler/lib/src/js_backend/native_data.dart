@@ -166,6 +166,8 @@ abstract class NativeDataBuilder {
 }
 
 class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
+  bool _closed = false;
+
   /// Tag info for native JavaScript classes names. See
   /// [setNativeClassTagInfo].
   Map<ClassEntity, NativeClassTag> nativeClassTagInfo =
@@ -189,6 +191,13 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
   /// dispatch tags (having JavaScript identifier syntax) and directives that
   /// begin with `!`.
   void setNativeClassTagInfo(ClassEntity cls, String tagText) {
+    assert(
+        !_closed,
+        failedAt(
+            cls,
+            "NativeBasicDataBuilder is closed. "
+            "Trying to mark $cls as a native class."));
+
     // TODO(johnniwinther): Assert that this is only called once. The memory
     // compiler copies pre-processed elements into a new compiler through
     // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
@@ -206,12 +215,24 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
 
   @override
   void markAsJsInteropLibrary(LibraryEntity element, {String name}) {
+    assert(
+        !_closed,
+        failedAt(
+            element,
+            "NativeBasicDataBuilder is closed. "
+            "Trying to mark $element as a js-interop library."));
     jsInteropLibraries[element] = name;
   }
 
   @override
   void markAsJsInteropClass(ClassEntity element,
       {String name, bool isAnonymous: false}) {
+    assert(
+        !_closed,
+        failedAt(
+            element,
+            "NativeBasicDataBuilder is closed. "
+            "Trying to mark $element as a js-interop class."));
     jsInteropClasses[element] = name;
     if (isAnonymous) {
       anonymousJsInteropClasses.add(element);
@@ -220,10 +241,17 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
 
   @override
   void markAsJsInteropMember(MemberEntity element, String name) {
+    assert(
+        !_closed,
+        failedAt(
+            element,
+            "NativeBasicDataBuilder is closed. "
+            "Trying to mark $element as a js-interop member."));
     jsInteropMembers[element] = name;
   }
 
   NativeBasicData close(ElementEnvironment environment) {
+    _closed = true;
     return new NativeBasicDataImpl(
         environment,
         nativeClassTagInfo,
@@ -231,6 +259,10 @@ class NativeBasicDataBuilderImpl implements NativeBasicDataBuilder {
         jsInteropClasses,
         anonymousJsInteropClasses,
         jsInteropMembers);
+  }
+
+  void reopenForTesting() {
+    _closed = false;
   }
 }
 

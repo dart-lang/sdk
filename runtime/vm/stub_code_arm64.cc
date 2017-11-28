@@ -691,7 +691,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // Check for maximum allowed length.
   const intptr_t max_len =
-      reinterpret_cast<intptr_t>(Smi::New(Array::kMaxElements));
+      reinterpret_cast<intptr_t>(Smi::New(Array::kMaxNewSpaceElements));
   __ CompareImmediate(R2, max_len);
   __ b(&slow_case, GT);
 
@@ -1329,8 +1329,7 @@ static void EmitFastSmiOp(Assembler* assembler,
   __ ldr(R0, Address(SP, +0 * kWordSize));  // Right.
   __ ldr(R1, Address(SP, +1 * kWordSize));  // Left.
   __ orr(TMP, R0, Operand(R1));
-  __ tsti(TMP, Immediate(kSmiTagMask));
-  __ b(not_smi_or_overflow, NE);
+  __ BranchIfNotSmi(TMP, not_smi_or_overflow);
   switch (kind) {
     case Token::kADD: {
       __ adds(R0, R1, Operand(R0));   // Adds.
@@ -1982,10 +1981,8 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
                                                  const Register right) {
   Label reference_compare, done, check_mint, check_bigint;
   // If any of the arguments is Smi do reference compare.
-  __ tsti(left, Immediate(kSmiTagMask));
-  __ b(&reference_compare, EQ);
-  __ tsti(right, Immediate(kSmiTagMask));
-  __ b(&reference_compare, EQ);
+  __ BranchIfSmi(left, &reference_compare);
+  __ BranchIfSmi(right, &reference_compare);
 
   // Value compare for two doubles.
   __ CompareClassId(left, kDoubleCid);
@@ -1996,8 +1993,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   // Double values bitwise compare.
   __ LoadFieldFromOffset(left, left, Double::value_offset());
   __ LoadFieldFromOffset(right, right, Double::value_offset());
-  __ CompareRegisters(left, right);
-  __ b(&done);
+  __ b(&reference_compare);
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid);
@@ -2006,7 +2002,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ b(&done, NE);
   __ LoadFieldFromOffset(left, left, Mint::value_offset());
   __ LoadFieldFromOffset(right, right, Mint::value_offset());
-  __ b(&done);
+  __ b(&reference_compare);
 
   __ Bind(&check_bigint);
   __ CompareClassId(left, kBigintCid);
@@ -2086,8 +2082,7 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   // Jump if receiver is a smi.
   Label smi_case;
-  __ TestImmediate(R0, kSmiTagMask);
-  __ b(&smi_case, EQ);
+  __ BranchIfSmi(R0, &smi_case);
 
   // Loads the cid of the object.
   __ LoadClassId(R0, R0);

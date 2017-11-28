@@ -10,7 +10,7 @@
 import 'package:expect/expect.dart';
 
 class C {
-  var x = 42;
+  dynamic x = 42;
 }
 
 const NeverInline = "NeverInline";

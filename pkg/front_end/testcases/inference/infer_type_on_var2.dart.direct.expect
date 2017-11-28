@@ -5,6 +5,4 @@ static method test2() → dynamic {
   dynamic x = 3;
   x = "hi";
 }
-static method main() → dynamic {
-  self::test2();
-}
+static method main() → dynamic {}

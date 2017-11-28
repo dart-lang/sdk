@@ -190,7 +190,11 @@ typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
 class ActiveClass {
  public:
-  ActiveClass() : klass(NULL), member(NULL) {}
+  ActiveClass()
+      : klass(NULL),
+        member(NULL),
+        enclosing(NULL),
+        local_type_parameters(NULL) {}
 
   bool HasMember() { return member != NULL; }
 
@@ -211,17 +215,21 @@ class ActiveClass {
 
   intptr_t MemberTypeParameterCount(Zone* zone);
 
-  intptr_t ClassTypeParameterCount(Zone* zone) {
-    ASSERT(member != NULL);
-    TypeArguments& class_types =
-        TypeArguments::Handle(zone, klass->type_parameters());
-    return class_types.Length();
+  intptr_t ClassNumTypeArguments() {
+    ASSERT(klass != NULL);
+    return klass->NumTypeArguments();
   }
 
   // The current enclosing class (or the library top-level class).
   const Class* klass;
 
   const Function* member;
+
+  // The innermost enclosing function. This is used for building types, as a
+  // parent for function types.
+  const Function* enclosing;
+
+  const TypeArguments* local_type_parameters;
 };
 
 class ActiveClassScope {
@@ -253,16 +261,43 @@ class ActiveMemberScope {
   ActiveClass saved_;
 };
 
+class ActiveTypeParametersScope {
+ public:
+  // Set the local type parameters of the ActiveClass to be exactly all type
+  // parameters defined by 'innermost' and any enclosing *closures* (but not
+  // enclosing methods/top-level functions/classes).
+  //
+  // Also, the enclosing function is set to 'innermost'.
+  ActiveTypeParametersScope(ActiveClass* active_class,
+                            const Function& innermost,
+                            Zone* Z);
+
+  // Append the list of the local type parameters to the list in ActiveClass.
+  //
+  // Also, the enclosing function is set to 'function'.
+  ActiveTypeParametersScope(ActiveClass* active_class,
+                            const Function* function,
+                            const TypeArguments& new_params,
+                            Zone* Z);
+
+  ~ActiveTypeParametersScope() { *active_class_ = saved_; }
+
+ private:
+  ActiveClass* active_class_;
+  ActiveClass saved_;
+};
+
 class TranslationHelper {
  public:
   explicit TranslationHelper(Thread* thread);
 
-  TranslationHelper(Thread* thread,
-                    RawTypedData* string_offsets,
-                    RawTypedData* string_data,
-                    RawTypedData* canonical_names);
-
   virtual ~TranslationHelper() {}
+
+  void Reset();
+
+  void InitFromScript(const Script& script);
+
+  void InitFromKernelProgramInfo(const KernelProgramInfo& info);
 
   Thread* thread() { return thread_; }
 
@@ -281,6 +316,15 @@ class TranslationHelper {
 
   const TypedData& canonical_names() { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
+
+  const TypedData& metadata_payloads() { return metadata_payloads_; }
+  void SetMetadataPayloads(const TypedData& metadata_payloads);
+
+  const TypedData& metadata_mappings() { return metadata_mappings_; }
+  void SetMetadataMappings(const TypedData& metadata_mappings);
+
+  const Array& constants() { return constants_; }
+  void SetConstants(const Array& constants);
 
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;
@@ -364,11 +408,23 @@ class TranslationHelper {
   RawFunction* LookupConstructorByKernelConstructor(NameIndex constructor);
   RawFunction* LookupConstructorByKernelConstructor(const Class& owner,
                                                     NameIndex constructor);
+  RawFunction* LookupConstructorByKernelConstructor(
+      const Class& owner,
+      StringIndex constructor_name);
 
   Type& GetCanonicalType(const Class& klass);
 
   void ReportError(const char* format, ...);
+  void ReportError(const Script& script,
+                   const TokenPosition position,
+                   const char* format,
+                   ...);
   void ReportError(const Error& prev_error, const char* format, ...);
+  void ReportError(const Error& prev_error,
+                   const Script& script,
+                   const TokenPosition position,
+                   const char* format,
+                   ...);
 
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
@@ -376,6 +432,9 @@ class TranslationHelper {
   // returned.  If the name is private, the canonical name [parent] will be used
   // to get the import URI of the library where the name is visible.
   String& ManglePrivateName(NameIndex parent,
+                            String* name_to_modify,
+                            bool symbolize = true);
+  String& ManglePrivateName(const Library& library,
                             String* name_to_modify,
                             bool symbolize = true);
 
@@ -387,6 +446,9 @@ class TranslationHelper {
   TypedData& string_offsets_;
   TypedData& string_data_;
   TypedData& canonical_names_;
+  TypedData& metadata_payloads_;
+  TypedData& metadata_mappings_;
+  Array& constants_;
 };
 
 struct FunctionScope {
@@ -462,6 +524,7 @@ class FlowGraphBuilder {
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    ZoneGrowableArray<intptr_t>* context_level_array,
                    InlineExitCollector* exit_collector,
+                   bool optimizing,
                    intptr_t osr_id,
                    intptr_t first_block_id = 1);
   virtual ~FlowGraphBuilder();
@@ -485,7 +548,8 @@ class FlowGraphBuilder {
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
 
-  Fragment EnterScope(intptr_t kernel_offset, bool* new_context = NULL);
+  Fragment EnterScope(intptr_t kernel_offset,
+                      intptr_t* num_context_variables = NULL);
   Fragment ExitScope(intptr_t kernel_offset);
 
   Fragment LoadContextAt(int depth);
@@ -525,7 +589,7 @@ class FlowGraphBuilder {
   Fragment TryCatch(int try_handler_index);
   Fragment CheckStackOverflowInPrologue();
   Fragment CheckStackOverflow();
-  Fragment CloneContext();
+  Fragment CloneContext(intptr_t num_context_variables);
   Fragment Constant(const Object& value);
   Fragment CreateArray();
   Fragment Goto(JoinEntryInstr* destination);
@@ -537,7 +601,9 @@ class FlowGraphBuilder {
                         intptr_t argument_count,
                         const Array& argument_names,
                         intptr_t checked_argument_count,
-                        const Function& interface_target);
+                        const Function& interface_target,
+                        intptr_t argument_bits = 0,
+                        intptr_t type_argument_bits = 0);
   Fragment ClosureCall(intptr_t type_args_len,
                        intptr_t argument_count,
                        const Array& argument_names);
@@ -558,14 +624,19 @@ class FlowGraphBuilder {
   Fragment NativeCall(const String* name, const Function* function);
   Fragment PushArgument();
   Fragment Return(TokenPosition position);
+  Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
-                      intptr_t argument_count);
+                      intptr_t argument_count,
+                      ICData::RebindRule rebind_rule);
   Fragment StaticCall(TokenPosition position,
                       const Function& target,
                       intptr_t argument_count,
                       const Array& argument_names,
-                      intptr_t type_args_len = 0);
+                      ICData::RebindRule rebind_rule,
+                      intptr_t type_args_len = 0,
+                      intptr_t argument_bits = 0,
+                      intptr_t type_argument_check_bits = 0);
   Fragment StoreIndexed(intptr_t class_id);
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      bool is_initialization_store);
@@ -592,11 +663,12 @@ class FlowGraphBuilder {
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);
   Fragment CheckBooleanInCheckedMode();
-  Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
-                                        const String& dst_name);
+  Fragment CheckAssignable(const AbstractType& dst_type,
+                           const String& dst_name);
 
   Fragment AssertBool();
-  Fragment AssertAssignable(const AbstractType& dst_type,
+  Fragment AssertAssignable(TokenPosition position,
+                            const AbstractType& dst_type,
                             const String& dst_name);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
@@ -620,6 +692,9 @@ class FlowGraphBuilder {
   Value* Pop();
   Fragment Drop();
 
+  // Drop given number of temps from the stack but preserve top of the stack.
+  Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
+
   bool IsInlining() { return exit_collector_ != NULL; }
 
   void InlineBailout(const char* reason);
@@ -631,6 +706,7 @@ class FlowGraphBuilder {
   intptr_t kernel_offset_;
 
   ParsedFunction* parsed_function_;
+  const bool optimizing_;
   intptr_t osr_id_;
   const ZoneGrowableArray<const ICData*>& ic_data_array_;
   // Contains (deopt_id, context_level) pairs.

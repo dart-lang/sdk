@@ -47,9 +47,10 @@ class Program {
     assert(hasIsolateSupport != null);
   }
 
-  /// A list of metadata expressions.
+  /// Accessor for the list of metadata entries for a given [OutputUnit].
   ///
-  /// This list must be emitted in the `METADATA` embedded global.
+  /// There is one list for each output unit. The list belonging to the main
+  /// unit must be emitted in the `METADATA` embedded global.
   /// The list references constants and must hence be emitted after constants
   /// have been initialized.
   ///
@@ -57,9 +58,11 @@ class Program {
   /// list must not be emitted before all operations on it are done. For
   /// example, the old emitter generates metadata when emitting reflection
   /// data.
-  js.Expression get metadata => _metadataCollector.globalMetadata;
+  js.Expression metadataForOutputUnit(OutputUnit unit) {
+    return _metadataCollector.getMetadataForOutputUnit(unit);
+  }
 
-  /// Accessor for the list of metadata entries for a given [OutputUnit].
+  /// Accessor for the list of type entries for a given [OutputUnit].
   ///
   /// There is one list for each output unit. The list belonging to the main
   /// unit must be emitted in the `TYPES` embedded global. The list references

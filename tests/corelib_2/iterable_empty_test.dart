@@ -12,13 +12,12 @@ main() {
     Expect.isFalse(it.contains(null), name);
     Expect.isFalse(it.any((x) => true), name);
     Expect.isTrue(it.every((x) => false), name);
-    Expect.throws(() => it.first, (e) => e is StateError, name);
-    Expect.throws(() => it.last, (e) => e is StateError, name);
-    Expect.throws(() => it.single, (e) => e is StateError, name);
-    Expect.throws(() => it.elementAt(0), (e) => e is RangeError, name);
-    Expect.throws(() => it.reduce((a, b) => a), (e) => e is StateError, name);
-    Expect.throws(
-        () => it.singleWhere((_) => true), (e) => e is StateError, name);
+    Expect.throwsStateError(() => it.first, name);
+    Expect.throwsStateError(() => it.last, name);
+    Expect.throwsStateError(() => it.single, name);
+    Expect.throwsRangeError(() => it.elementAt(0), name);
+    Expect.throwsStateError(() => it.reduce((a, b) => a), name);
+    Expect.throwsStateError(() => it.singleWhere((_) => true), name);
     Expect.equals(42, it.fold(42, (a, b) => "not 42"), name);
     Expect.equals(42, it.firstWhere((v) => true, orElse: () => 42), name);
     Expect.equals(42, it.lastWhere((v) => true, orElse: () => 42), name);

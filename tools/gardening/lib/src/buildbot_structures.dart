@@ -11,16 +11,25 @@ class BuildUri {
   final String stepName;
 
   factory BuildUri(Uri uri) {
-    List<String> parts = split(Uri.decodeFull(uri.path),
-        ['/builders/', '/builds/', '/steps/', '/logs/']);
-    String botName = parts[1];
-    int buildNumber = int.parse(parts[2]);
-    String stepName = parts[3];
-    return new BuildUri.fromData(botName, buildNumber, stepName);
+    if (uri.host == "logs.chromium.org") {
+      RegExp logdogBuilderRegExp = new RegExp(
+          r"^.*\/client\.dart\/(.*)\/(\d*)\/\+\/recipes\/steps\/(.*)\/0.*$");
+      var match =
+          logdogBuilderRegExp.firstMatch(Uri.decodeFull(uri.toString()));
+      return new BuildUri.fromData(
+          match.group(1), int.parse(match.group(2)), match.group(3));
+    } else {
+      List<String> parts = split(Uri.decodeFull(uri.path),
+          ['/builders/', '/builds/', '/steps/', '/logs/']);
+      String botName = parts[1];
+      int buildNumber = int.parse(parts[2]);
+      String stepName = parts[3];
+      return new BuildUri.fromData(botName, buildNumber, stepName);
+    }
   }
 
   factory BuildUri.fromUrl(String url) {
-    if (!url.endsWith('/text')) {
+    if (!url.endsWith('/text') && !url.contains("logs.chromium.org")) {
       // Use the text version of the stdio log.
       url += '/text';
     }
@@ -50,7 +59,7 @@ class BuildUri {
     if (buildNumber < 0)
       throw new StateError('BuildUri $buildName must have a non-negative build '
           'number to a valid logdog path.');
-    return 'chromium/bb/client.dart/$botName/$buildNumber/+/recipes/steps/'
+    return 'bb/client.dart/$botName/$buildNumber/+/recipes/steps/'
         '${stepName.replaceAll(' ', '_')}/0/stdout';
   }
 

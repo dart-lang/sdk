@@ -12,10 +12,11 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
   method then<S extends core::Object>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
     return null;
 }
-static method main() → void {
+static method test() → void {
   asy::Future<core::double> f = self::foo().{asy::Future::then}<core::double>((dynamic _) → core::double => 2.3);
-  asy::Future<core::int> f2 = f;
+  asy::Future<core::int> f2 = f as{TypeError} asy::Future<core::int>;
   asy::Future<core::num> f3 = self::foo().{asy::Future::then}<core::double>((dynamic _) → core::double => 2.3) as asy::Future<core::double>;
 }
 static method foo() → asy::Future<dynamic>
   return asy::Future::value<core::int>(1);
+static method main() → dynamic {}

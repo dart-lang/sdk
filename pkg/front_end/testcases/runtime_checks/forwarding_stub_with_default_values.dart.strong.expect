@@ -1,0 +1,44 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  field core::Object _x = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f([core::num x = 10]) → void {
+    this.{self::B::_x} = x;
+  }
+  method g({core::num x = 20}) → void {
+    this.{self::B::_x} = x;
+  }
+  method check(core::Object expectedValue) → void {
+    if(!this.{self::B::_x}.{core::Object::==}(expectedValue)) {
+      throw "Expected _x == ${expectedValue}; got ${this.{self::B::_x}}";
+    }
+  }
+}
+abstract class I<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method f([generic-covariant-impl generic-covariant-interface self::I::T x = null]) → void;
+  abstract method g({generic-covariant-impl generic-covariant-interface self::I::T x = null}) → void;
+}
+class C extends self::B implements self::I<core::num> {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+  forwarding-stub method f([generic-covariant-impl core::num x]) → void
+    return super.{self::B::f}(x);
+  forwarding-stub method g({generic-covariant-impl core::num x}) → void
+    return super.{self::B::g}(x: x);
+}
+static method main() → dynamic {
+  self::C c = new self::C::•();
+  c.{self::C::f}();
+  c.{self::B::check}(10);
+  c.{self::C::g}();
+  c.{self::B::check}(20);
+}

@@ -6,9 +6,11 @@
 library stream_join_test;
 
 import 'dart:async';
+
+import 'package:expect/expect.dart';
+import 'package:unittest/unittest.dart';
+
 import 'event_helper.dart';
-import 'package:test/test.dart';
-import "package:expect/expect.dart";
 
 main() {
   testStream("singlesub", () => new StreamController(), (c) => c.stream);

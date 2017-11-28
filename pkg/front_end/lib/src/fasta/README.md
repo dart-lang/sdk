@@ -27,15 +27,6 @@ Fasta sounds like faster, and that's a promise we intend to keep.
 
 This will generate a file named `pkg/compiler/lib/src/dart2js.dart.dill` which contains a serialized representation of the input program excluding method bodies. This is similar to an analyzer summary.
 
-
-## Create a Platform Dill File
-
-A `platform.dill` is a dill file that contains the Dart SDK platform libraries.
-
-```bash
-./pkg/front_end/tool/fasta compile-platform platform.dill
-```
-
 ## Compiling a Program
 
 ```bash

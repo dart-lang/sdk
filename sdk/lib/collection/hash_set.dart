@@ -129,8 +129,7 @@ abstract class HashSet<E> implements Set<E> {
   factory HashSet.from(Iterable elements) {
     HashSet<E> result = new HashSet<E>();
     for (final e in elements) {
-      E element = e as Object/*=E*/;
-      result.add(element);
+      result.add(e);
     }
     return result;
   }

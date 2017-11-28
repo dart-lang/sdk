@@ -2,8 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Note: the VM concatenates all patch files into a single patch file. This
+/// file is the first patch in "dart:isolate" which contains all the imports
+/// used by patches of that library. We plan to change this when we have a
+/// shared front end and simply use parts.
+
+import "dart:_internal" show VMLibraryHooks, patch;
+
+import "dart:async"
+    show Completer, Future, Stream, StreamController, StreamSubscription, Timer;
+
 import "dart:collection" show HashMap;
-import "dart:_internal" hide Symbol;
+
+/// These are the additional parts of this patch library:
+// part "timer_impl.dart";
 
 @patch
 class ReceivePort {
@@ -46,7 +58,7 @@ class RawReceivePort {
    * event is received.
    */
   @patch
-  factory RawReceivePort([void handler(event)]) {
+  factory RawReceivePort([Function handler]) {
     _RawReceivePortImpl result = new _RawReceivePortImpl();
     result.handler = handler;
     return result;
@@ -197,8 +209,8 @@ class _SendPortImpl implements SendPort {
 }
 
 typedef _NullaryFunction();
-typedef _UnaryFunction(args);
-typedef _BinaryFunction(args, message);
+typedef _UnaryFunction(Null args);
+typedef _BinaryFunction(Null args, Null message);
 
 /**
  * Takes the real entry point as argument and invokes it with the
@@ -258,9 +270,9 @@ void _startIsolate(
 
     if (isSpawnUri) {
       if (entryPoint is _BinaryFunction) {
-        entryPoint(args, message);
+        (entryPoint as dynamic)(args, message);
       } else if (entryPoint is _UnaryFunction) {
-        entryPoint(args);
+        (entryPoint as dynamic)(args);
       } else {
         entryPoint();
       }
@@ -561,7 +573,7 @@ class Isolate {
   }
 
   @patch
-  void kill({int priority: BEFORE_NEXT_EVENT}) {
+  void kill({int priority: beforeNextEvent}) {
     var msg = new List(4)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _KILL
@@ -571,7 +583,7 @@ class Isolate {
   }
 
   @patch
-  void ping(SendPort responsePort, {Object response, int priority: IMMEDIATE}) {
+  void ping(SendPort responsePort, {Object response, int priority: immediate}) {
     var msg = new List(5)
       ..[0] = 0 // Make room for OOM message type.
       ..[1] = _PING

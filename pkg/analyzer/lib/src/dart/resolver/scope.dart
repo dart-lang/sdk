@@ -178,7 +178,7 @@ class FunctionScope extends EnclosedScope {
   /**
    * The element representing the function that defines this scope.
    */
-  final ExecutableElement _functionElement;
+  final FunctionTypedElement _functionElement;
 
   /**
    * A flag indicating whether the parameters have already been defined, used to

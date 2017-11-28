@@ -29,8 +29,6 @@ main() {
   Expect.equals(r'Foo a b c', foo.m(a: 'a', b: 'b', c: 'c'));
   Expect.equals(r'Bar z a$b c', bar.m('z', a$b: r'a$b', c: 'c'));
 
-  Expect.throws(
-      () => foo.m('z', a$b: r'a$b', c: 'c'), (e) => e is NoSuchMethodError);
-  Expect.throws(
-      () => bar.m(a: 'a', b: 'b', c: 'c'), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => foo.m('z', a$b: r'a$b', c: 'c'));
+  Expect.throwsNoSuchMethodError(() => bar.m(a: 'a', b: 'b', c: 'c'));
 }

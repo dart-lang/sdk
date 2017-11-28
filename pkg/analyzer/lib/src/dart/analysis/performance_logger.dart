@@ -5,4 +5,4 @@
 // This library re-exports the parts of front_end's performance_logger.dart
 // whose API is stable enough to be relied upon by clients.
 
-export 'package:front_end/src/base/performace_logger.dart' show PerformanceLog;
+export 'package:front_end/src/base/performance_logger.dart' show PerformanceLog;

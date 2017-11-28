@@ -55,6 +55,7 @@ template("application_snapshot") {
     main_file = rebase_path(main_dart)
 
     args = [
+      "--deterministic",
       "--packages=$dot_packages",
       "--snapshot=$abs_output",
     ]

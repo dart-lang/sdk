@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
+import 'package:gardening/src/luci_api.dart';
 import 'package:gardening/src/luci.dart';
-import 'package:gardening/src/luci_services.dart';
 import 'package:gardening/src/logger.dart';
 import 'package:gardening/src/cache_new.dart';
 import 'package:gardening/src/util.dart';
@@ -30,10 +30,7 @@ ArgParser setupArgs() {
     ..addFlag("build-bots-all",
         negatable: false,
         help: "Use this flag to see all build bots for --client.")
-    ..addFlag("master",
-        negatable: false,
-        help: "Use this flag to see information about master for --client.")
-    ..addFlag("build-groups",
+    ..addFlag("builder-groups",
         negatable: false,
         help: "Use this flag to see all builder-groups not -dev, -stable "
             "or -integration for --client.")
@@ -74,147 +71,123 @@ main(List<String> args) async {
     return;
   }
 
-  var luci = new Luci();
+  var luciApi = new LuciApi();
   Logger logger = createLogger(verbose: results[Flags.verbose]);
   CreateCacheFunction createCache =
       createCacheFunction(logger, disableCache: results[Flags.noCache]);
 
   if (results["build-bots"]) {
-    await performBuildBotsPrimary(luci, createCache, results);
+    await performBuildBotsPrimary(luciApi, createCache, results);
   } else if (results["build-bots-all"]) {
-    await performBuildBotsAll(luci, createCache, results);
-  } else if (results["master"]) {
-    await performMaster(luci, createCache, results);
-  } else if (results["build-groups"]) {
-    await performBuilderGroups(luci, createCache, results);
+    await performBuildBotsAll(luciApi, createCache, results);
+  } else if (results["builder-groups"]) {
+    await performBuilderGroups(luciApi, createCache, results);
   } else if (results["builders-in-group"]) {
-    await performBuildersInGroup(luci, createCache, results);
+    await performBuildersInGroup(luciApi, createCache, results);
   } else if (results["build-bot-details"]) {
-    await performBuildBotDetails(luci, createCache, results);
+    await performBuildBotDetails(luciApi, createCache, results);
   } else if (results["build-details"]) {
-    await performBuildDetails(luci, createCache, results);
+    await performBuildDetails(luciApi, createCache, results);
   } else if (results["builds-with-commit"]) {
-    await performFindBuildsForCommit(luci, createCache, logger, results);
+    await performFindBuildsForCommit(luciApi, createCache, logger, results);
   } else {
     printHelp(parser);
   }
 
-  luci.close();
+  luciApi.close();
 }
 
+/// Get the primary build bots for a `results[client]` (not -dev, -stable etc.).
 Future performBuildBotsPrimary(
-    Luci luci, CreateCacheFunction createCache, ArgResults results) async {
-  var res = await getPrimaryBuilders(
-      luci, results['client'], createCache(duration: new Duration(hours: 1)));
-  res.fold((ex, stackTrace) {
-    print(ex);
-    print(stackTrace);
-  }, (bots) => bots.forEach(print));
+    LuciApi luciApi, CreateCacheFunction createCache, ArgResults results) {
+  return getPrimaryBuilders(luciApi, results['client'],
+          createCache(duration: new Duration(hours: 1)))
+      .then((bots) => bots.forEach(print),
+          onError: exceptionPrint("Could not perform command"));
 }
 
+/// Get all build bots for a `results[client]`.
 Future performBuildBotsAll(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
-  var res = await getAllBuilders(
-      luci, results['client'], cache(duration: new Duration(hours: 1)));
-  res.fold((ex, stackTrace) {
-    print(ex);
-    print(stackTrace);
-  }, (bots) => bots.forEach(print));
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) {
+  return getAllBuilders(
+          luciApi, results['client'], cache(duration: new Duration(hours: 1)))
+      .then((bots) => bots.forEach(print),
+          onError: exceptionPrint("Could not perform command"));
 }
 
-Future performMaster(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
-  var res = await luci.getMaster(
-      results['client'], cache(duration: new Duration(minutes: 15)));
-  res.fold((ex, stackTrace) {
-    print(ex);
-    print(stackTrace);
-  }, (res) => print(res));
-}
-
+/// Get build groups for a `results[client]`.
 Future performBuilderGroups(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
-  var res = await getBuilderGroups(
-      luci, results['client'], cache(duration: new Duration(minutes: 15)));
-  res.fold((ex, stackTrace) {
-    print(ex);
-    print(stackTrace);
-  }, (res) => res.forEach(print));
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) {
+  return getBuilderGroups(luciApi, results['client'],
+          cache(duration: new Duration(minutes: 15)))
+      .then((result) => result.forEach(print),
+          onError: exceptionPrint("Could not perform command"));
 }
 
+/// Get builders in a group, passed in [results].
 Future performBuildersInGroup(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) {
   if (results.rest.length == 0) {
     print("No argument given for <group>. To see help, use --help");
-    return;
+    return null;
   }
 
-  var res = await getBuildersInBuilderGroup(luci, results['client'],
-      cache(duration: new Duration(minutes: 15)), results.rest[0]);
-  res.fold((ex, stackTrace) {
-    print(ex);
-    print(stackTrace);
-  }, (res) => res.forEach(print));
+  return getBuildersInBuilderGroup(luciApi, results['client'],
+          cache(duration: new Duration(minutes: 15)), results.rest[0])
+      .then((result) => result.forEach(print),
+          onError: exceptionPrint("Could not perform command"));
 }
 
+/// Get latest details of builds for a buildbot, passed in [results].
 Future performBuildBotDetails(
-    Luci luci, CreateCacheFunction cache, ArgResults results) async {
+    LuciApi luciApi, CreateCacheFunction cache, ArgResults results) {
   if (results.rest.length == 0) {
     print("No argument given for <name>. To see help, use --help");
-    return;
+    return null;
   }
-  var result = await luci.getBuildBotDetails(results['client'], results.rest[0],
-      cache(duration: new Duration(minutes: 15)));
-  result.fold((ex, stackTrace) {
-    print(ex);
-    print(stackTrace);
-  }, (detail) => print(detail));
+  return luciApi
+      .getBuildBotDetails(results['client'], results.rest[0],
+          cache(duration: new Duration(minutes: 15)))
+      .then(print, onError: exceptionPrint("Could not perform command"));
 }
 
+/// Get build details for a build on a buildbot, passed in [results].
 Future performBuildDetails(
-    Luci luci, CreateCacheFunction createCache, ArgResults results) async {
+    LuciApi luciApi, CreateCacheFunction createCache, ArgResults results) {
   if (results.rest.length < 2) {
     print("Missing argument for <name> or <buildNo>. To see help, use --help");
-    return;
+    return null;
   }
   int buildNumber = int.parse(results.rest[1], onError: (source) => 0);
   if (buildNumber <= 0) {
     print("The buildnumber ${results['build-details']} must be a integer "
         "greater than zero");
-    return;
+    return null;
   }
 
-  var result = await luci.getBuildBotBuildDetails(
-      results['client'],
-      results.rest[0],
-      buildNumber,
-      createCache(duration: new Duration(minutes: 15)));
-  result.fold((ex, stackTrace) {
-    print(ex);
-    print(stackTrace);
-  }, (detail) => print(detail));
+  return luciApi
+      .getBuildBotBuildDetails(results['client'], results.rest[0], buildNumber,
+          createCache(duration: new Duration(minutes: 15)))
+      .then(print, onError: exceptionPrint("Could not perform command"));
 }
 
-Future performFindBuildsForCommit(Luci luci, CreateCacheFunction createCache,
-    Logger logger, ArgResults results) async {
+/// Find all builds for a commit hash, passed in [results].
+Future performFindBuildsForCommit(LuciApi luciApi,
+    CreateCacheFunction createCache, Logger logger, ArgResults results) {
   if (results.rest.length == 0) {
     print("Missing argument for <commit>. To see help, use --help");
-    return;
+    return null;
   }
 
   int amount = 25;
 
-  var result = await fetchBuildsForCommmit(
-      luci, logger, results['client'], results.rest[0], createCache, amount);
-  result.fold((ex, st) {
-    print(ex);
-    print(st);
-  }, (List<BuildDetail> details) {
+  return fetchBuildsForCommmit(luciApi, logger, results['client'],
+      results.rest[0], createCache, amount).then((List<BuildDetail> details) {
     print("The commit '${results.rest[0]} is used in the following builds:");
     details.forEach((detail) {
       String url = "https://luci-milo.appspot.com/buildbot/"
           "${detail.client}/${detail.botName}/${detail.buildNumber}";
       print("${detail.botName}: #${detail.buildNumber}\t$url");
     });
-  });
+  }, onError: exceptionPrint("Could not perform command"));
 }

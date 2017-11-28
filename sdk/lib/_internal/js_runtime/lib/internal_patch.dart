@@ -24,6 +24,11 @@ class Symbol implements core.Symbol {
 
   @patch
   toString() => 'Symbol("$_name")';
+
+  @patch
+  static String computeUnmangledName(Symbol symbol) {
+    throw "unsupported operation";
+  }
 }
 
 @patch
@@ -32,11 +37,11 @@ void printToConsole(String line) {
 }
 
 @patch
-List makeListFixedLength(List growableList) {
+List<T> makeListFixedLength<T>(List<T> growableList) {
   return JSArray.markFixedList(growableList);
 }
 
 @patch
-List makeFixedListUnmodifiable(List fixedLengthList) {
+List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
   return JSArray.markUnmodifiableList(fixedLengthList);
 }

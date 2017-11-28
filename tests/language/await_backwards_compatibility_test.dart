@@ -14,13 +14,13 @@ get await => 4;
 test0() async {
   var x = await 7;
   Expect.equals(7, x);
-  var await = 1; // //# await1: compile-time error
+  var await = 1; // //# await1: syntax error
 }
 
 test1() async {
   var x = await 9;
   Expect.equals(9, x);
-  var y = await; // //# await2: compile-time error
+  var y = await; // //# await2: syntax error
 }
 
 // For functions that are not declared with the async modifier we allow await to

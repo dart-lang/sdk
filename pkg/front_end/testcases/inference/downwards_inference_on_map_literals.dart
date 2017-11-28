@@ -12,7 +12,7 @@ void foo(
       /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ "hello":
           "world"
     }]) {}
-void main() {
+void test() {
   {
     Map<int, String> l0 = /*@typeArgs=int, String*/ {};
     Map<int, String> l1 = /*@typeArgs=int, String*/ {3: "hello"};
@@ -90,3 +90,5 @@ void main() {
     };
   }
 }
+
+main() {}

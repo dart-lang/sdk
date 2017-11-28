@@ -11,7 +11,6 @@ import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
-import '../kernel/task.dart';
 import '../native/enqueue.dart';
 import '../options.dart' show CompilerOptions;
 import '../universe/call_structure.dart' show CallStructure;
@@ -33,7 +32,6 @@ import 'runtime_types.dart';
 
 class ResolutionEnqueuerListener extends EnqueuerListener {
   // TODO(johnniwinther): Avoid the need for this.
-  final KernelTask _kernelTask;
   final DeferredLoadTask _deferredLoadTask;
 
   final CompilerOptions _options;
@@ -72,8 +70,7 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
       this._mirrorsAnalysis,
       this._typeVariableResolutionAnalysis,
       this._nativeEnqueuer,
-      this._deferredLoadTask,
-      [this._kernelTask]);
+      this._deferredLoadTask);
 
   void _registerBackendImpact(
       WorldImpactBuilder builder, BackendImpact impact) {
@@ -205,8 +202,8 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
         impactSource: _typeVariableResolutionAnalysis);
 
     for (ClassEntity cls in recentClasses) {
-      MemberEntity element =
-          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+      MemberEntity element = _elementEnvironment.lookupLocalClassMember(
+          cls, Identifiers.noSuchMethod_);
       if (element != null && element.isInstanceMember && element.isFunction) {
         _noSuchMethodRegistry.registerNoSuchMethod(element);
       }
@@ -222,10 +219,6 @@ class ResolutionEnqueuerListener extends EnqueuerListener {
     }
 
     if (!enqueuer.queueIsEmpty) return false;
-
-    if (!_options.useKernel && _options.useKernelInSsa) {
-      _kernelTask?.buildKernelIr();
-    }
 
     _mirrorsAnalysis.onQueueEmpty(enqueuer, recentClasses);
     return true;

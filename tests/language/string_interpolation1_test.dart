@@ -11,7 +11,7 @@ class A {
 
 class StringInterpolation1NegativeTest {
   // Dollar not followed by "{" or identifier.
-  static const DOLLAR = const A("$"); //# 01: compile-time error
+  static const DOLLAR = const A("$"); //# 01: syntax error
   static testMain() {
     print(DOLLAR); //# 01: continued
   }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // NOLINT
-#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_IA32)
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
@@ -15,6 +15,8 @@
 #include "vm/stub_code.h"
 
 namespace dart {
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 DECLARE_FLAG(bool, inline_alloc);
 
@@ -1214,53 +1216,6 @@ void Assembler::xchgl(Register dst, Register src) {
   EmitRegisterOperand(dst, src);
 }
 
-void Assembler::cmpl(Register reg, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(7, Operand(reg), imm);
-}
-
-void Assembler::cmpl(Register reg0, Register reg1) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x3B);
-  EmitOperand(reg0, Operand(reg1));
-}
-
-void Assembler::cmpl(Register reg, const Address& address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x3B);
-  EmitOperand(reg, address);
-}
-
-void Assembler::addl(Register dst, Register src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x03);
-  EmitRegisterOperand(dst, src);
-}
-
-void Assembler::addl(Register reg, const Address& address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x03);
-  EmitOperand(reg, address);
-}
-
-void Assembler::cmpl(const Address& address, Register reg) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x39);
-  EmitOperand(reg, address);
-}
-
-void Assembler::cmpl(const Address& address, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(7, address, imm);
-}
-
-void Assembler::cmpw(Register reg, const Address& address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitOperandSizeOverride();
-  EmitUint8(0x3B);
-  EmitOperand(reg, address);
-}
-
 void Assembler::cmpw(const Address& address, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandSizeOverride();
@@ -1316,123 +1271,52 @@ void Assembler::testb(const Address& address, const Immediate& imm) {
   EmitUint8(imm.value() & 0xFF);
 }
 
-void Assembler::andl(Register dst, Register src) {
+void Assembler::Alu(int bytes, uint8_t opcode, Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x23);
+  if (bytes == 2) {
+    EmitOperandSizeOverride();
+  }
+  ASSERT((opcode & 7) == 3);
+  EmitUint8(opcode);
   EmitOperand(dst, Operand(src));
 }
 
-void Assembler::andl(Register dst, const Immediate& imm) {
+void Assembler::Alu(uint8_t modrm_opcode, Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(4, Operand(dst), imm);
+  EmitComplex(modrm_opcode, Operand(dst), imm);
 }
 
-void Assembler::andl(Register dst, const Address& address) {
+void Assembler::Alu(int bytes,
+                    uint8_t opcode,
+                    Register dst,
+                    const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x23);
-  EmitOperand(dst, address);
+  if (bytes == 2) {
+    EmitOperandSizeOverride();
+  }
+  ASSERT((opcode & 7) == 3);
+  EmitUint8(opcode);
+  EmitOperand(dst, src);
 }
 
-void Assembler::orl(Register dst, Register src) {
+void Assembler::Alu(int bytes,
+                    uint8_t opcode,
+                    const Address& dst,
+                    Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0B);
-  EmitOperand(dst, Operand(src));
+  if (bytes == 2) {
+    EmitOperandSizeOverride();
+  }
+  ASSERT((opcode & 7) == 1);
+  EmitUint8(opcode);
+  EmitOperand(src, dst);
 }
 
-void Assembler::orl(Register dst, const Immediate& imm) {
+void Assembler::Alu(uint8_t modrm_opcode,
+                    const Address& dst,
+                    const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(1, Operand(dst), imm);
-}
-
-void Assembler::orl(Register dst, const Address& address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x0B);
-  EmitOperand(dst, address);
-}
-
-void Assembler::orl(const Address& address, Register reg) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x09);
-  EmitOperand(reg, address);
-}
-
-void Assembler::xorl(Register dst, Register src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x33);
-  EmitOperand(dst, Operand(src));
-}
-
-void Assembler::xorl(Register dst, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(6, Operand(dst), imm);
-}
-
-void Assembler::xorl(Register dst, const Address& address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x33);
-  EmitOperand(dst, address);
-}
-
-void Assembler::addl(Register reg, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(0, Operand(reg), imm);
-}
-
-void Assembler::addl(const Address& address, Register reg) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x01);
-  EmitOperand(reg, address);
-}
-
-void Assembler::addl(const Address& address, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(0, address, imm);
-}
-
-void Assembler::adcl(Register reg, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(2, Operand(reg), imm);
-}
-
-void Assembler::adcl(Register dst, Register src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x13);
-  EmitOperand(dst, Operand(src));
-}
-
-void Assembler::adcl(Register dst, const Address& address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x13);
-  EmitOperand(dst, address);
-}
-
-void Assembler::adcl(const Address& address, Register reg) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x11);
-  EmitOperand(reg, address);
-}
-
-void Assembler::subl(Register dst, Register src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x2B);
-  EmitOperand(dst, Operand(src));
-}
-
-void Assembler::subl(Register reg, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(5, Operand(reg), imm);
-}
-
-void Assembler::subl(Register reg, const Address& address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x2B);
-  EmitOperand(reg, address);
-}
-
-void Assembler::subl(const Address& address, Register reg) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x29);
-  EmitOperand(reg, address);
+  EmitComplex(modrm_opcode, dst, imm);
 }
 
 void Assembler::cdq() {
@@ -1495,29 +1379,6 @@ void Assembler::mull(const Address& address) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xF7);
   EmitOperand(4, address);
-}
-
-void Assembler::sbbl(Register dst, Register src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x1B);
-  EmitOperand(dst, Operand(src));
-}
-
-void Assembler::sbbl(Register reg, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitComplex(3, Operand(reg), imm);
-}
-
-void Assembler::sbbl(Register dst, const Address& address) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x1B);
-  EmitOperand(dst, address);
-}
-
-void Assembler::sbbl(const Address& address, Register dst) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x19);
-  EmitOperand(dst, address);
 }
 
 void Assembler::incl(Register reg) {
@@ -1648,6 +1509,15 @@ void Assembler::bt(Register base, Register offset) {
   EmitUint8(0x0F);
   EmitUint8(0xA3);
   EmitRegisterOperand(offset, base);
+}
+
+void Assembler::bt(Register base, int bit) {
+  ASSERT(bit >= 0 && bit < 32);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xBA);
+  EmitRegisterOperand(4, base);
+  EmitUint8(bit);
 }
 
 void Assembler::enter(const Immediate& imm) {
@@ -1897,10 +1767,16 @@ void Assembler::LoadIsolate(Register dst) {
   movl(dst, Address(THR, Thread::isolate_offset()));
 }
 
-void Assembler::LoadObject(Register dst, const Object& object) {
+void Assembler::LoadObject(Register dst,
+                           const Object& object,
+                           bool movable_referent) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
-  if (object.IsSmi() || object.InVMHeap()) {
+  // movable_referent: some references to VM heap objects may be patched with
+  // references to isolate-local objects (e.g., optimized static calls).
+  // We need to track such references since the latter may move during
+  // compaction.
+  if (object.IsSmi() || (object.InVMHeap() && !movable_referent)) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
     ASSERT(object.IsNotTemporaryScopedHandle());
@@ -2218,9 +2094,9 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   entry.Call(this, argument_count);
 }
 
-void Assembler::Call(const StubEntry& stub_entry) {
+void Assembler::Call(const StubEntry& stub_entry, bool movable_target) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
-  LoadObject(CODE_REG, target);
+  LoadObject(CODE_REG, target, movable_target);
   call(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 
@@ -2339,13 +2215,13 @@ void Assembler::TryAllocate(const Class& cls,
                             Register temp_reg) {
   ASSERT(failure != NULL);
   ASSERT(temp_reg != kNoRegister);
-  if (FLAG_inline_alloc) {
+  const intptr_t instance_size = cls.instance_size();
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(
         MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump));
-    const intptr_t instance_size = cls.instance_size();
     NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     movl(instance_reg, Address(THR, Thread::top_offset()));
     addl(instance_reg, Immediate(instance_size));
@@ -2377,7 +2253,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register temp_reg) {
   ASSERT(failure != NULL);
   ASSERT(temp_reg != kNoRegister);
-  if (FLAG_inline_alloc) {
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
@@ -2695,6 +2571,10 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
   }
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+// Used by disassembler, so it is declared outside of
+// !defined(DART_PRECOMPILED_RUNTIME) section.
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
     "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
 
@@ -2713,4 +2593,4 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_IA32)

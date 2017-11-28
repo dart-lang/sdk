@@ -10,10 +10,10 @@ import '../common.dart';
 import '../options.dart';
 import '../dump_info.dart' show DumpInfoTask;
 import '../io/code_output.dart' show CodeBuffer;
-import '../js_emitter/js_emitter.dart' show USE_LAZY_EMITTER;
 import 'js_source_mapping.dart';
 
 export 'package:js_ast/js_ast.dart';
+export 'js_debug.dart';
 
 String prettyPrint(Node node, CompilerOptions compilerOptions,
     {bool allowVariableMinification: true,
@@ -22,7 +22,6 @@ String prettyPrint(Node node, CompilerOptions compilerOptions,
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: compilerOptions.enableMinification,
       minifyLocalVariables: allowVariableMinification,
-      preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
       renamerForNames: renamerForNames);
   SimpleJavaScriptPrintingContext context =
       new SimpleJavaScriptPrintingContext();
@@ -39,7 +38,6 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: compilerOptions.enableMinification,
       minifyLocalVariables: allowVariableMinification,
-      preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
       renamerForNames: renamerForNames);
   CodeBuffer outBuffer = new CodeBuffer();
   SourceInformationProcessor sourceInformationProcessor =

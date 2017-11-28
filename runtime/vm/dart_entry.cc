@@ -4,6 +4,7 @@
 
 #include "vm/dart_entry.h"
 
+#include "platform/safe_stack.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
@@ -31,8 +32,16 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 
 class ScopedIsolateStackLimits : public ValueObject {
  public:
+  NO_SANITIZE_SAFE_STACK
   explicit ScopedIsolateStackLimits(Thread* thread, uword current_sp)
-      : thread_(thread), saved_stack_limit_(0) {
+      : thread_(thread),
+#if defined(USING_SAFE_STACK)
+        saved_stack_limit_(0),
+        saved_safestack_limit_(0)
+#else
+        saved_stack_limit_(0)
+#endif
+  {
     ASSERT(thread != NULL);
     // Set the thread's stack_base based on the current
     // stack pointer, we keep refining this value as we
@@ -40,14 +49,18 @@ class ScopedIsolateStackLimits : public ValueObject {
     // grows from high to low addresses).
     OSThread* os_thread = thread->os_thread();
     ASSERT(os_thread != NULL);
-    if (current_sp > os_thread->stack_base()) {
-      os_thread->set_stack_base(current_sp);
-    }
+    os_thread->RefineStackBoundsFromSP(current_sp);
+
     // Save the Thread's current stack limit and adjust the stack
     // limit based on the thread's stack_base.
     ASSERT(thread->isolate() == Isolate::Current());
     saved_stack_limit_ = thread->saved_stack_limit();
     thread->SetStackLimitFromStackBase(os_thread->stack_base());
+
+#if defined(USING_SAFE_STACK)
+    saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();
+    thread->set_saved_safestack_limit(saved_safestack_limit_);
+#endif
   }
 
   ~ScopedIsolateStackLimits() {
@@ -56,11 +69,17 @@ class ScopedIsolateStackLimits : public ValueObject {
     // to a stack limit of 0 when all nested invocations are done and
     // we have bottomed out.
     thread_->SetStackLimit(saved_stack_limit_);
+#if defined(USING_SAFE_STACK)
+    thread_->set_saved_safestack_limit(saved_safestack_limit_);
+#endif
   }
 
  private:
   Thread* thread_;
   uword saved_stack_limit_;
+#if defined(USING_SAFE_STACK)
+  uword saved_safestack_limit_;
+#endif
 };
 
 // Clears/restores Thread::long_jump_base on construction/destruction.
@@ -81,6 +100,7 @@ class SuspendLongJumpScope : public StackResource {
   LongJumpScope* saved_long_jump_base_;
 };
 
+NO_SANITIZE_SAFE_STACK
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
                                      const Array& arguments_descriptor,
@@ -169,13 +189,8 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
         Isolate* isolate = thread->isolate();
-        volatile uword c_stack_pos = Thread::GetCurrentStackPointer();
-        volatile uword c_stack_limit = OSThread::Current()->stack_base() -
-                                       OSThread::GetSpecifiedStackSize();
-#if !defined(USING_SIMULATOR)
-        ASSERT(c_stack_limit == thread->saved_stack_limit());
-#endif
-
+        uword c_stack_pos = Thread::GetCurrentStackPointer();
+        uword c_stack_limit = OSThread::Current()->stack_limit_with_headroom();
         if (c_stack_pos < c_stack_limit) {
           const Instance& exception =
               Instance::Handle(zone, isolate->object_store()->stack_overflow());
@@ -264,7 +279,8 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
 ArgumentsDescriptor::ArgumentsDescriptor(const Array& array) : array_(array) {}
 
 intptr_t ArgumentsDescriptor::TypeArgsLen() const {
-  return Smi::Cast(Object::Handle(array_.At(kTypeArgsLenIndex))).Value();
+  return TypeArgsLenField::decode(
+      Smi::Cast(Object::Handle(array_.At(kTypeArgsLenIndex))).Value());
 }
 
 intptr_t ArgumentsDescriptor::Count() const {
@@ -272,7 +288,9 @@ intptr_t ArgumentsDescriptor::Count() const {
 }
 
 intptr_t ArgumentsDescriptor::PositionalCount() const {
-  return Smi::Cast(Object::Handle(array_.At(kPositionalCountIndex))).Value();
+  intptr_t entry =
+      Smi::Cast(Object::Handle(array_.At(kPositionalCountIndex))).Value();
+  return PositionalCountField::decode(entry);
 }
 
 RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
@@ -286,7 +304,8 @@ RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
 intptr_t ArgumentsDescriptor::PositionAt(intptr_t index) const {
   const intptr_t offset =
       kFirstNamedEntryIndex + (index * kNamedEntrySize) + kPositionOffset;
-  return Smi::Value(Smi::RawCast(array_.At(offset)));
+  return NamedPositionField::decode(
+      Smi::Value(Smi::RawCast(array_.At(offset))));
 }
 
 bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
@@ -312,7 +331,9 @@ intptr_t ArgumentsDescriptor::first_named_entry_offset() {
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
                                    intptr_t num_arguments,
-                                   const Array& optional_arguments_names) {
+                                   const Array& optional_arguments_names,
+                                   intptr_t arg_bits,
+                                   intptr_t type_arg_bits) {
   const intptr_t num_named_args =
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   if (num_named_args == 0) {
@@ -321,6 +342,16 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
   const intptr_t num_pos_args = num_arguments - num_named_args;
+
+  intptr_t pos_arg_bits = arg_bits;
+  pos_arg_bits &= Utils::SignedNBitMask(Utils::Minimum<intptr_t>(
+      num_pos_args,
+      ArgumentsDescriptor::PositionalArgumentsChecksField::bitsize()));
+
+  type_arg_bits &= Utils::SignedNBitMask(Utils::Minimum<intptr_t>(
+      type_args_len, ArgumentsDescriptor::TypeArgsChecksField::bitsize()));
+
+  const intptr_t named_arg_bits = arg_bits >> num_pos_args;
 
   // Build the arguments descriptor array, which consists of the the type
   // argument vector length (0 if none); total argument count; the positional
@@ -334,11 +365,19 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
       Array::Handle(zone, Array::New(descriptor_len, Heap::kOld));
 
   // Set length of type argument vector.
-  descriptor.SetAt(kTypeArgsLenIndex, Smi::Handle(Smi::New(type_args_len)));
+  descriptor.SetAt(kTypeArgsLenIndex,
+                   Smi::Handle(PackBitFieldsToSmi(
+                       TypeArgsChecksField::encode(type_arg_bits) |
+                       TypeArgsLenField::encode(type_args_len))));
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, Smi::Handle(Smi::New(num_arguments)));
+
   // Set number of positional arguments.
-  descriptor.SetAt(kPositionalCountIndex, Smi::Handle(Smi::New(num_pos_args)));
+  descriptor.SetAt(kPositionalCountIndex,
+                   Smi::Handle(PackBitFieldsToSmi(
+                       PositionalCountField::encode(num_pos_args) |
+                       PositionalArgumentsChecksField::encode(pos_arg_bits))));
+
   // Set alphabetically sorted entries for named arguments.
   String& name = String::Handle(zone);
   Smi& pos = Smi::Handle(zone);
@@ -346,7 +385,9 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
   Smi& previous_pos = Smi::Handle(zone);
   for (intptr_t i = 0; i < num_named_args; i++) {
     name ^= optional_arguments_names.At(i);
-    pos = Smi::New(num_pos_args + i);
+    pos =
+        PackBitFieldsToSmi(NamedCheckField::encode((named_arg_bits >> i) & 1) |
+                           NamedPositionField::encode(num_pos_args + i));
     intptr_t insert_index = kFirstNamedEntryIndex + (kNamedEntrySize * i);
     // Shift already inserted pairs with "larger" names.
     while (insert_index > kFirstNamedEntryIndex) {
@@ -375,17 +416,31 @@ RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
 }
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,
-                                   intptr_t num_arguments) {
+                                   intptr_t num_arguments,
+                                   intptr_t arg_bits,
+                                   intptr_t type_arg_bits) {
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
-  if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount)) {
+
+  arg_bits &= Utils::NBitMask(Utils::Minimum<intptr_t>(
+      num_arguments, PositionalArgumentsChecksField::bitsize()));
+  type_arg_bits &= Utils::NBitMask(
+      Utils::Minimum<intptr_t>(type_args_len, TypeArgsChecksField::bitsize()));
+
+  // TODO(sjindel): Support caching of argument descriptors for calls with
+  // strong-mode annotations.
+  if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount) &&
+      (arg_bits == 0) && (type_arg_bits == 0)) {
     return cached_args_descriptors_[num_arguments];
   }
-  return NewNonCached(type_args_len, num_arguments);
+  return NewNonCached(type_args_len, num_arguments, arg_bits, type_arg_bits,
+                      false);
 }
 
 RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
                                             intptr_t num_arguments,
+                                            intptr_t pos_arg_bits,
+                                            intptr_t type_arg_bits,
                                             bool canonicalize) {
   // Build the arguments descriptor array, which consists of the length of the
   // type argument vector, total argument count; the positional argument count;
@@ -398,14 +453,20 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
   const Smi& arg_count = Smi::Handle(zone, Smi::New(num_arguments));
 
   // Set type argument vector length.
-  descriptor.SetAt(kTypeArgsLenIndex,
-                   Smi::Handle(zone, Smi::New(type_args_len)));
+  descriptor.SetAt(
+      kTypeArgsLenIndex,
+      Smi::Handle(zone, PackBitFieldsToSmi(
+                            TypeArgsLenField::encode(type_args_len) |
+                            TypeArgsChecksField::encode(type_arg_bits))));
 
   // Set total number of passed arguments.
   descriptor.SetAt(kCountIndex, arg_count);
 
   // Set number of positional arguments.
-  descriptor.SetAt(kPositionalCountIndex, arg_count);
+  descriptor.SetAt(kPositionalCountIndex,
+                   Smi::Handle(PackBitFieldsToSmi(
+                       PositionalCountField::encode(num_arguments) |
+                       PositionalArgumentsChecksField::encode(pos_arg_bits))));
 
   // Set terminating null.
   descriptor.SetAt((descriptor_len - 1), Object::null_object());
@@ -422,7 +483,7 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
 void ArgumentsDescriptor::InitOnce() {
   for (int i = 0; i < kCachedDescriptorCount; i++) {
     cached_args_descriptors_[i] =
-        ArgumentsDescriptor::NewNonCached(/*type_args_len=*/0, i, false);
+        NewNonCached(/*type_args_len=*/0, i, 0, 0, false);
   }
 }
 

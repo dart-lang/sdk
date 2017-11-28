@@ -846,6 +846,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitGenericTypeAlias(GenericTypeAlias node) {
+    if (_hasTypedefSelfReference(node.element)) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, node);
+    }
+    return super.visitGenericTypeAlias(node);
+  }
+
+  @override
   Object visitIfStatement(IfStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitIfStatement(node);
@@ -4587,6 +4596,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     // and not the literal's type arguments because in strong mode, the type
     // arguments may be inferred.
     DartType mapType = literal.staticType;
+    if (mapType == null) {
+      // This is known to happen when the literal is the default value in an
+      // optional parameter in a generic function type alias.
+      return;
+    }
     assert(mapType is InterfaceTypeImpl);
 
     List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
@@ -6508,8 +6522,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * Return `true` if the given [element] has direct or indirect reference to
    * itself from anywhere except a class element or type parameter bounds.
    */
-  bool _hasTypedefSelfReference(Element element) {
-    var visitor = new _HasTypedefSelfReferenceVisitor(element);
+  bool _hasTypedefSelfReference(GenericTypeAliasElement element) {
+    if (element == null) {
+      return false;
+    }
+    var visitor = new _HasTypedefSelfReferenceVisitor(element.function);
     element.accept(visitor);
     return visitor.hasSelfReference;
   }
@@ -7038,7 +7055,7 @@ class RequiredConstantsComputer extends RecursiveAstVisitor {
 
 class _HasTypedefSelfReferenceVisitor
     extends GeneralizingElementVisitor<Object> {
-  final FunctionTypeAliasElement element;
+  final GenericFunctionTypeElement element;
   bool hasSelfReference = false;
 
   _HasTypedefSelfReferenceVisitor(this.element);
@@ -7059,6 +7076,12 @@ class _HasTypedefSelfReferenceVisitor
   Object visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     _addTypeToCheck(element.returnType);
     return super.visitFunctionTypeAliasElement(element);
+  }
+
+  @override
+  Object visitGenericFunctionTypeElement(GenericFunctionTypeElement element) {
+    _addTypeToCheck(element.returnType);
+    return super.visitGenericFunctionTypeElement(element);
   }
 
   @override
@@ -7132,6 +7155,14 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor {
     var element = node.type.element;
     if (element is TypeParameterizedElement &&
         element.typeParameters.any((p) => p.bound != null)) {
+      _errorReporter.reportErrorForNode(
+          StrongModeCode.NOT_INSTANTIATED_BOUND, node, [node.type]);
+    }
+
+    var enclosingElement = element?.enclosingElement;
+    if (element is GenericFunctionTypeElement &&
+        enclosingElement is GenericTypeAliasElement &&
+        enclosingElement.typeParameters.any((p) => p.bound != null)) {
       _errorReporter.reportErrorForNode(
           StrongModeCode.NOT_INSTANTIATED_BOUND, node, [node.type]);
     }

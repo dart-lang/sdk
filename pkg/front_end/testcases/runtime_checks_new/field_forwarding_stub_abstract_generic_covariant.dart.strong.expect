@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B<T extends core::Object> extends core::Object {
+  generic-covariant-impl generic-covariant-interface field self::B::T x = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class C extends self::B<core::num> {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+  abstract forwarding-stub set x(generic-covariant-impl core::num _) → void;
+}
+static method main() → void {}

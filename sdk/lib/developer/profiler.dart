@@ -139,7 +139,7 @@ class Metrics {
     if (metric == null) {
       return null;
     }
-    return JSON.encode(metric._toJSON());
+    return json.encode(metric._toJSON());
   }
 
   static String _printMetrics() {
@@ -151,6 +151,6 @@ class Metrics {
       'type': 'MetricList',
       'metrics': metrics,
     };
-    return JSON.encode(map);
+    return json.encode(map);
   }
 }

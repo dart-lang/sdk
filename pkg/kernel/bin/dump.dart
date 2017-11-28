@@ -8,5 +8,6 @@ import 'package:kernel/kernel.dart';
 main(args) {
   var binary = loadProgramFromBinary(args[0]);
   writeProgramToText(binary,
-      path: args[1], showOffsets: const bool.fromEnvironment("showOffsets"));
+      path: args.length > 1 ? args[1] : null,
+      showOffsets: const bool.fromEnvironment("showOffsets"));
 }

@@ -45,7 +45,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -123,7 +123,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   const intptr_t retval_offset =
       NativeArguments::retval_offset() + native_args_struct_offset;
 
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
@@ -200,7 +200,7 @@ void StubCode::GenerateCallBootstrapNativeStub(Assembler* assembler) {
   const intptr_t retval_offset =
       NativeArguments::retval_offset() + native_args_struct_offset;
 
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
@@ -575,8 +575,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ j(LESS, &slow_case);
 
   // Check for maximum allowed length.
-  const Immediate& max_len =
-      Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
+  const Immediate& max_len = Immediate(
+      reinterpret_cast<int32_t>(Smi::New(Array::kMaxNewSpaceElements)));
   __ cmpl(EDX, max_len);
   __ j(GREATER, &slow_case);
 

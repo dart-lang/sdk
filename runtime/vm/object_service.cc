@@ -617,6 +617,10 @@ void Namespace::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
+void KernelProgramInfo::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
 void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -838,13 +842,11 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_objectPool", object_pool);
   {
     JSONArray jsarr(&jsobj, "_disassembly");
-#if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_alive()) {
       // Only disassemble alive code objects.
       DisassembleToJSONStream formatter(jsarr);
       Disassemble(&formatter);
     }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   if (!descriptors.IsNull()) {

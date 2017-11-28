@@ -15,7 +15,6 @@ import 'test_progress.dart';
 import 'test_runner.dart';
 import 'test_suite.dart';
 import 'utils.dart';
-import 'vm_test_config.dart';
 
 /**
  * The directories that contain test suites which follow the conventions
@@ -36,12 +35,12 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/compiler/dart2js'),
   new Path('tests/compiler/dart2js_extra'),
   new Path('tests/compiler/dart2js_native'),
+  new Path('tests/corelib'),
   new Path('tests/corelib_2'),
   new Path('tests/html'),
   new Path('tests/isolate'),
   new Path('tests/kernel'),
   new Path('tests/language'),
-  new Path('tests/language_strong'),
   new Path('tests/language_2'),
   new Path('tests/lib'),
   new Path('tests/lib_strong'),
@@ -245,7 +244,7 @@ Future testConfigurations(List<Configuration> configurations) async {
   }
 
   if (firstConf.writeResultLog) {
-    eventListener.add(new ResultLogWriter());
+    eventListener.add(new ResultLogWriter(firstConf.outputDirectory));
   }
 
   if (firstConf.copyCoreDumps) {

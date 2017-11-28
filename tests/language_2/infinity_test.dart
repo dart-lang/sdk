@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 main() {
-  var things = [0, double.INFINITY, double.NEGATIVE_INFINITY];
+  var things = [0, double.infinity, double.negativeInfinity];
   var first = things[1];
   var second = things[2];
   Expect.isFalse(first is int);

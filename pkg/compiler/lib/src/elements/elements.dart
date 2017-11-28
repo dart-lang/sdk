@@ -4,17 +4,18 @@
 
 library elements;
 
+import 'package:front_end/src/fasta/scanner.dart'
+    show Token, isUserDefinableOperator, isMinusOperator;
+
 import '../common.dart';
 import '../common/resolution.dart' show Resolution;
+import '../common_elements.dart' show CommonElements;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../common_elements.dart' show CommonElements;
 import '../ordered_typeset.dart' show OrderedTypeSet;
 import '../resolution/scope.dart' show Scope;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../script.dart';
-import 'package:front_end/src/fasta/scanner.dart'
-    show Token, isUserDefinableOperator, isMinusOperator;
 import '../tree/tree.dart' hide AsyncModifier;
 import '../universe/call_structure.dart';
 import '../util/util.dart';
@@ -950,11 +951,12 @@ abstract class CompilationUnitElement extends Element {
   void forEachLocalMember(f(Element element));
 }
 
-abstract class ImportElement extends Element {
+abstract class ImportElement extends Element implements ImportEntity {
   Uri get uri;
   LibraryElement get importedLibrary;
   bool get isDeferred;
   PrefixElement get prefix;
+  String get name;
   // TODO(johnniwinther): Remove this when no longer needed in source mirrors.
   Import get node;
 }
@@ -1283,7 +1285,14 @@ abstract class FunctionElement extends Element
   AsyncMarker get asyncMarker;
 
   /// `true` if this function is external.
+  ///
+  /// Patched methods are _not_ external, but [isMarkedExternal] is `true`.
   bool get isExternal;
+
+  /// `true` if this function is marked as external.
+  ///
+  /// If the function is implemented through a patch [isExternal] is `false`.
+  bool get isMarkedExternal;
 
   /// The structure of the function parameters.
   ParameterStructure get parameterStructure;

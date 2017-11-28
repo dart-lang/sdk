@@ -22,5 +22,5 @@ class B {
 main() {
   Expect.equals(42, new B().foo(0));
   dynamic a = new A();
-  Expect.throws(() => a.foo('foo'), (e) => e is TypeError);
+  Expect.throwsTypeError(() => a.foo('foo'));
 }

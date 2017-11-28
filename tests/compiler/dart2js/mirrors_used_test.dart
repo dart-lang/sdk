@@ -6,6 +6,8 @@
 /// requested elements are retained for reflection.
 library dart2js.test.mirrors_used_test;
 
+import 'package:compiler/src/js/js.dart' as jsAst;
+
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
@@ -75,17 +77,17 @@ void main() {
         '${generatedCode.length} > $expectedMethodCount');
 
     // The following names should be retained:
-    List expectedNames = [
+    List<jsAst.Name> expectedNames = [
       'Foo', // The name of class Foo.
       r'Foo$', // The name of class Foo's constructor.
-      r'get$field'
-    ]; // The (getter) name of Foo.field.
+      r'get$field' // The (getter) name of Foo.field.
+    ].map(backend.namer.asName).toList();
     // TODO(ahe): Check for the following names, currently they are not being
     // recorded correctly, but are being emitted.
     [
       'Foo_staticMethod', // The name of Foo.staticMethod.
-      r'instanceMethod$0'
-    ]; // The name of Foo.instanceMethod.
+      r'instanceMethod$0' // The name of Foo.instanceMethod.
+    ];
 
     // We always include the names of some native classes.
     List<ClassElement> nativeClasses = [
@@ -97,17 +99,14 @@ void main() {
       compiler.resolution.commonElements.nullClass,
       compiler.resolution.commonElements.listClass
     ];
-    Iterable<String> nativeNames =
-        // `backend.namer.className` returns a Name, but a String is required.
-        // ignore: ARGUMENT_TYPE_NOT_ASSIGNABLE
+    Iterable<jsAst.Name> nativeNames =
         nativeClasses.map((c) => backend.namer.className(c));
-    expectedNames = expectedNames.map(backend.namer.asName).toList();
     expectedNames.addAll(nativeNames);
 
     // Mirrors only work in the full emitter. We can thus be certain that the
     // emitter is the full emitter.
     full.Emitter fullEmitter = backend.emitter.emitter;
-    Set recordedNames = new Set()
+    Set<jsAst.Name> recordedNames = new Set()
       ..addAll(fullEmitter.recordedMangledNames)
       ..addAll(fullEmitter.mangledFieldNames.keys)
       ..addAll(fullEmitter.mangledGlobalFieldNames.keys);

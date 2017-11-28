@@ -172,7 +172,7 @@ bool IOHandle::AsyncWaitLocked(zx_handle_t port,
   // The call to __fdio_fd_to_io() in the DescriptorInfo constructor may have
   // returned NULL. If it did, propagate the problem up to Dart.
   if (fdio_ == NULL) {
-    LOG_ERR("__fdio_fd_to_io(%d) returned NULL\n", fd_);
+    LOG_ERR("__fdio_fd_to_io(%ld) returned NULL\n", fd_);
     return false;
   }
 
@@ -340,8 +340,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   msg->id = id;
   msg->dart_port = dart_port;
   msg->data = data;
-  zx_status_t status =
-      zx_port_queue(port_handle_, reinterpret_cast<void*>(&pkt), 0);
+  zx_status_t status = zx_port_queue(port_handle_, &pkt, 0);
   if (status != ZX_OK) {
     // This is a FATAL because the VM won't work at all if we can't send any
     // messages to the EventHandler thread.
@@ -512,7 +511,7 @@ void EventHandlerImplementation::Poll(uword args) {
                                       millis == kInfinityTimeout
                                           ? ZX_TIME_INFINITE
                                           : zx_deadline_after(ZX_MSEC(millis)),
-                                      reinterpret_cast<void*>(&pkt), 0);
+                                      &pkt, 0);
     if (status == ZX_ERR_TIMED_OUT) {
       handler_impl->HandleTimeout();
     } else if (status != ZX_OK) {

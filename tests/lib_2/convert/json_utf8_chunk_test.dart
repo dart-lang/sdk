@@ -8,8 +8,6 @@ import "package:expect/expect.dart";
 import "dart:convert";
 import "unicode_tests.dart" show UNICODE_TESTS;
 
-bool badFormat(e) => e is FormatException;
-
 main() {
   testNumbers();
   testStrings();
@@ -33,7 +31,7 @@ void jsonParse(testName, check, action, [bool allowMalformed = false]) {
     check(value);
   });
   var decoderSink =
-      JSON.decoder.startChunkedConversion(sink).asUtf8Sink(allowMalformed);
+      json.decoder.startChunkedConversion(sink).asUtf8Sink(allowMalformed);
   try {
     action(decoderSink);
   } on FormatException catch (e, s) {
@@ -86,7 +84,7 @@ void testNumbers() {
     "9"
         "1234.56789123456701418035663664340972900390625",
     "1.2345678912345671e-14",
-    "99999999999999999999"
+    "9223372036854775807"
   ]) {
     var expected = num.parse(number);
     for (int i = 1; i < number.length - 1; i++) {
@@ -203,7 +201,7 @@ void jsonMalformedTest(name, expect, codes) {
         Expect.equals(expect, value, tag);
       });
       var decoderSink =
-          JSON.decoder.startChunkedConversion(sink).asUtf8Sink(true);
+          json.decoder.startChunkedConversion(sink).asUtf8Sink(true);
       try {
         action(decoderSink);
       } catch (e, s) {
@@ -216,7 +214,7 @@ void jsonMalformedTest(name, expect, codes) {
         Expect.fail(tag);
       });
       var decoderSink =
-          JSON.decoder.startChunkedConversion(sink).asUtf8Sink(false);
+          json.decoder.startChunkedConversion(sink).asUtf8Sink(false);
       Expect.throws(() {
         action(decoderSink);
       }, null, tag);
@@ -254,7 +252,7 @@ void jsonThrows(String name, String codeString) {
       Expect.fail(tag);
     });
     var decoderSink =
-        JSON.decoder.startChunkedConversion(sink).asUtf8Sink(true);
+        json.decoder.startChunkedConversion(sink).asUtf8Sink(true);
     Expect.throws(() {
       action(decoderSink);
     }, null, tag);

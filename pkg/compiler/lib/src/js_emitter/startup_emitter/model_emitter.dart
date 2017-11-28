@@ -142,7 +142,7 @@ class ModelEmitter {
     return _constantOrdering.compare(a, b);
   }
 
-  js.Expression generateStaticClosureAccess(MethodElement element) {
+  js.Expression generateStaticClosureAccess(FunctionEntity element) {
     return js.js('#.#()', [
       namer.globalObjectForMember(element),
       namer.staticClosureName(element)

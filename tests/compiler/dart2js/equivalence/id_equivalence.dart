@@ -5,6 +5,7 @@
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/kernel/element_map.dart';
+import 'package:compiler/src/js_model/locals.dart';
 import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
@@ -75,6 +76,7 @@ class IdValue {
     if (text.startsWith(elementPrefix)) {
       text = text.substring(elementPrefix.length);
       int colonPos = text.indexOf(':');
+      if (colonPos == -1) throw "Invalid element id: '$text'";
       id = new ElementId(text.substring(0, colonPos));
       expected = text.substring(colonPos + 1);
     } else if (text.startsWith(invokePrefix)) {
@@ -158,6 +160,9 @@ class ActualData {
   final Object object;
 
   ActualData(this.value, this.sourceSpan, this.object);
+
+  String toString() =>
+      'ActualData(value=$value,sourceSpan=$sourceSpan,object=$object)';
 }
 
 abstract class DataRegistry {
@@ -219,6 +224,7 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
     switch (access.kind) {
       case AccessKind.THIS_PROPERTY:
       case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
       case AccessKind.LOCAL_VARIABLE:
       case AccessKind.FINAL_LOCAL_VARIABLE:
       case AccessKind.LOCAL_FUNCTION:
@@ -290,6 +296,9 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
     return new NodeId(node.getBeginToken().charOffset, IdKind.moveNext);
   }
 
+  NodeId createLabeledStatementId(ast.LabeledStatement node) =>
+      computeDefaultNodeId(node.statement);
+
   NodeId createLoopId(ast.Node node) => computeDefaultNodeId(node);
 
   NodeId createGotoId(ast.Node node) => computeDefaultNodeId(node);
@@ -305,12 +314,17 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
         break;
       }
     }
-    return computeDefaultNodeId(position);
+    if (position != null) {
+      return computeDefaultNodeId(position);
+    }
+    return null;
   }
 
   void run() {
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      resolvedAst.node.accept(this);
+      reporter.withCurrentElement(resolvedAst.element.implementation, () {
+        resolvedAst.node.accept(this);
+      });
     } else {
       computeForElement(resolvedAst.element);
     }
@@ -322,11 +336,21 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitVariableDefinitions(ast.VariableDefinitions node) {
     for (ast.Node child in node.definitions) {
+      if (child == null) continue;
       AstElement element = elements[child];
       if (element == null) {
         reportHere(reporter, child, 'No element for variable.');
+      } else if (element.isField) {
+        if (element == elements.analyzedElement) {
+          computeForElement(element);
+        }
       } else if (!element.isLocal) {
         computeForElement(element);
+      } else if (element.isInitializingFormal) {
+        ast.Send send = child;
+        computeForNode(child, computeDefaultNodeId(send.selector), element);
+      } else if (child is ast.FunctionExpression) {
+        computeForNode(child, computeDefaultNodeId(child.name), element);
       } else {
         computeForNode(child, computeDefaultNodeId(child), element);
       }
@@ -336,12 +360,14 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitFunctionExpression(ast.FunctionExpression node) {
     AstElement element = elements.getFunctionDefinition(node);
-    if (!element.isLocal) {
-      computeForElement(element);
-    } else {
-      computeForNode(node, computeDefaultNodeId(node), element);
+    if (element != null) {
+      if (!element.isLocal) {
+        computeForElement(element);
+      } else {
+        computeForNode(node, computeDefaultNodeId(node), element);
+      }
+      visitNode(node);
     }
-    visitNode(node);
   }
 
   visitSend(ast.Send node) {
@@ -356,13 +382,58 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
           }
           break;
         case SendStructureKind.INVOKE:
+        case SendStructureKind.INCOMPATIBLE_INVOKE:
+          switch (sendStructure.semantics.kind) {
+            case AccessKind.EXPRESSION:
+              computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
+            case AccessKind.LOCAL_VARIABLE:
+            case AccessKind.FINAL_LOCAL_VARIABLE:
+            case AccessKind.PARAMETER:
+            case AccessKind.FINAL_PARAMETER:
+              computeForNode(node, createAccessId(node));
+              computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
+            case AccessKind.STATIC_FIELD:
+            case AccessKind.FINAL_STATIC_FIELD:
+            case AccessKind.TOPLEVEL_FIELD:
+            case AccessKind.FINAL_TOPLEVEL_FIELD:
+            case AccessKind.STATIC_GETTER:
+            case AccessKind.SUPER_FIELD:
+            case AccessKind.SUPER_FINAL_FIELD:
+            case AccessKind.SUPER_GETTER:
+              computeForNode(node, createInvokeId(node.argumentsNode));
+              break;
+            case AccessKind.TOPLEVEL_GETTER:
+              if (elements[node].isDeferredLoaderGetter) {
+                computeForNode(node, createInvokeId(node.selector));
+              } else {
+                computeForNode(node, createInvokeId(node.argumentsNode));
+              }
+              break;
+            default:
+              ast.Node position =
+                  computeAccessPosition(node, sendStructure.semantics);
+              if (position != null) {
+                computeForNode(node, createInvokeId(position));
+              }
+          }
+          break;
         case SendStructureKind.BINARY:
+        case SendStructureKind.UNARY:
         case SendStructureKind.EQUALS:
         case SendStructureKind.NOT_EQUALS:
           ast.Node position =
               computeAccessPosition(node, sendStructure.semantics);
           if (position != null) {
             computeForNode(node, createInvokeId(position));
+          }
+          break;
+        case SendStructureKind.INDEX:
+          ast.Node position =
+              computeAccessPosition(node, sendStructure.semantics);
+          if (position != null) {
+            computeForNode(node, createAccessId(position));
           }
           break;
         case SendStructureKind.SET:
@@ -384,12 +455,31 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
             computeForNode(node, createUpdateId(position));
           }
           break;
-        case SendStructureKind.PREFIX:
-        case SendStructureKind.POSTFIX:
-        case SendStructureKind.COMPOUND:
+        case SendStructureKind.INDEX_SET:
+          computeForNode(node, createUpdateId(node.selector));
+          break;
+        case SendStructureKind.COMPOUND_INDEX_SET:
+        case SendStructureKind.INDEX_PREFIX:
+        case SendStructureKind.INDEX_POSTFIX:
           computeForNode(node, createAccessId(node.selector));
           computeForNode(node, createInvokeId(node.assignmentOperator));
           computeForNode(node, createUpdateId(node.selector));
+          break;
+        case SendStructureKind.PREFIX:
+        case SendStructureKind.POSTFIX:
+        case SendStructureKind.COMPOUND:
+          switch (sendStructure.semantics.kind) {
+            case AccessKind.COMPOUND:
+            case AccessKind.TOPLEVEL_FIELD:
+            case AccessKind.STATIC_FIELD:
+              computeForNode(node, createInvokeId(node.assignmentOperator));
+              break;
+            default:
+              computeForNode(node, createAccessId(node.selector));
+              computeForNode(node, createInvokeId(node.assignmentOperator));
+              computeForNode(node, createUpdateId(node.selector));
+              break;
+          }
           break;
         default:
       }
@@ -404,6 +494,13 @@ abstract class AstDataExtractor extends ast.Visitor with DataRegistry {
 
   visitGotoStatement(ast.GotoStatement node) {
     computeForNode(node, createGotoId(node));
+    visitNode(node);
+  }
+
+  visitLabeledStatement(ast.LabeledStatement node) {
+    if (node.statement is! ast.Loop && node.statement is! ast.SwitchStatement) {
+      computeForNode(node, createLabeledStatementId(node));
+    }
     visitNode(node);
   }
 
@@ -507,6 +604,8 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
     return new NodeId(node.fileOffset, IdKind.moveNext);
   }
 
+  NodeId createLabeledStatementId(ir.LabeledStatement node) =>
+      computeDefaultNodeId(node.body);
   NodeId createLoopId(ir.TreeNode node) => computeDefaultNodeId(node);
   NodeId createGotoId(ir.TreeNode node) => computeDefaultNodeId(node);
   NodeId createSwitchId(ir.SwitchStatement node) => computeDefaultNodeId(node);
@@ -527,8 +626,30 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitMethodInvocation(ir.MethodInvocation node) {
+    ir.TreeNode receiver = node.receiver;
+    if (receiver is ir.VariableGet &&
+        receiver.variable.parent is ir.FunctionDeclaration) {
+      // This is an invocation of a named local function.
+      computeForNode(node, createInvokeId(node.receiver));
+      node.arguments.accept(this);
+    } else if (node.name.name == '==' &&
+        receiver is ir.VariableGet &&
+        receiver.variable.name == null) {
+      // This is a desugared `?.`.
+    } else if (node.name.name == '[]') {
+      computeForNode(node, computeDefaultNodeId(node));
+      super.visitMethodInvocation(node);
+    } else if (node.name.name == '[]=') {
+      computeForNode(node, createUpdateId(node));
+      super.visitMethodInvocation(node);
+    } else {
+      computeForNode(node, createInvokeId(node));
+      super.visitMethodInvocation(node);
+    }
+  }
+
+  visitLoadLibrary(ir.LoadLibrary node) {
     computeForNode(node, createInvokeId(node));
-    super.visitMethodInvocation(node);
   }
 
   visitPropertyGet(ir.PropertyGet node) {
@@ -555,7 +676,7 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitVariableGet(ir.VariableGet node) {
-    if (node.variable.name != null) {
+    if (node.variable.name != null && !node.variable.isFieldFormal) {
       // Skip use of synthetic variables.
       computeForNode(node, computeDefaultNodeId(node));
     }
@@ -598,6 +719,14 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
     super.visitWhileStatement(node);
   }
 
+  visitLabeledStatement(ir.LabeledStatement node) {
+    if (!JumpVisitor.canBeBreakTarget(node.body) &&
+        !JumpVisitor.canBeContinueTarget(node.parent)) {
+      computeForNode(node, createLabeledStatementId(node));
+    }
+    super.visitLabeledStatement(node);
+  }
+
   visitBreakStatement(ir.BreakStatement node) {
     computeForNode(node, createGotoId(node));
     super.visitBreakStatement(node);
@@ -609,7 +738,9 @@ abstract class IrDataExtractor extends ir.Visitor with DataRegistry {
   }
 
   visitSwitchCase(ir.SwitchCase node) {
-    computeForNode(node, createSwitchCaseId(node));
+    if (node.expressionOffsets.isNotEmpty) {
+      computeForNode(node, createSwitchCaseId(node));
+    }
     super.visitSwitchCase(node);
   }
 

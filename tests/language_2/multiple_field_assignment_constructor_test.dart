@@ -47,6 +47,6 @@ main() {
 @DontInline()
 bar() {
   // Currently defeat inlining by using a closure.
-  Expect.throws(() => new A().foo + 42, (e) => e is NoSuchMethodError);
-  Expect.throws(() => new B().foo + 42, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => new A().foo + 42);
+  Expect.throwsNoSuchMethodError(() => new B().foo + 42);
 }

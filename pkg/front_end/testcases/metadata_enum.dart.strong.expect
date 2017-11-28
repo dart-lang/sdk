@@ -5,15 +5,16 @@ import "dart:core" as core;
 @self::a
 class E extends core::Object {
   final field core::int index;
+  final field core::String _name;
   static const field core::List<self::E> values = const <self::E>[self::E::E1, self::E::E2, self::E::E3];
-  static const field self::E E1 = const self::E::•(0);
-  static const field self::E E2 = const self::E::•(1);
-  static const field self::E E3 = const self::E::•(2);
-  const constructor •(core::int index) → void
-    : self::E::index = index, super core::Object::•()
+  static const field self::E E1 = const self::E::•(0, "E.E1");
+  static const field self::E E2 = const self::E::•(1, "E.E2");
+  static const field self::E E3 = const self::E::•(2, "E.E3");
+  const constructor •(core::int index, core::String _name) → void
+    : self::E::index = index, self::E::_name = _name, super core::Object::•()
     ;
   method toString() → core::String
-    return const <core::int, core::String>{0: "E.E1", 1: "E.E2", 2: "E.E3"}.[](this.{=self::E::index});
+    return this.{=self::E::_name};
 }
 static const field dynamic a = null;
 static method main() → dynamic {}

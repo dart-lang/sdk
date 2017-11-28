@@ -2,8 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../build/dart_host_sdk_toolchain.gni")
 import("../build/prebuilt_dart_sdk.gni")
-import("../build/dart_host_toolchain.gni")
 
 _dart_root = get_path_info("..", "abspath")
 
@@ -42,12 +42,16 @@ template("generate_patched_sdk") {
 
     depfile = "$root_out_dir/${target_name}.d"
 
-    outputs = [
-      # Instead of listing all outputs we list those consumed by
-      # other BUILD rules.
-      "$root_out_dir/${invoker.patched_sdk_dir}/platform.dill",
-      "$root_out_dir/${invoker.patched_sdk_dir}/outline.dill",
-    ]
+    if (defined(invoker.outputs)) {
+      outputs = invoker.outputs
+    } else {
+      outputs = [
+        # Instead of listing all outputs we list those consumed by
+        # other BUILD rules.
+        "$root_out_dir/${invoker.patched_sdk_dir}/platform.dill",
+        "$root_out_dir/${invoker.patched_sdk_dir}/outline.dill",
+      ]
+    }
 
     args = [ "--quiet" ]
     if (!prebuilt_dart_exe_works) {

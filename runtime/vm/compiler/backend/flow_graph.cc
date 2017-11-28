@@ -954,7 +954,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
   // Check if inlining_parameters include a type argument vector parameter.
   const intptr_t inlined_type_args_param =
-      (FLAG_reify_generic_functions && (inlining_parameters != NULL) &&
+      (isolate()->reify_generic_functions() && (inlining_parameters != NULL) &&
        function().IsGeneric())
           ? 1
           : 0;
@@ -989,7 +989,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   // already been handled as parameters.
   if (!IsCompiledForOsr()) {
     intptr_t i = parameter_count();
-    if (FLAG_reify_generic_functions && function().IsGeneric()) {
+    if (isolate()->reify_generic_functions() && function().IsGeneric()) {
       // The first local is the slot holding the copied passed-in type args.
       // TODO(regis): Do we need the SpecialParameterInstr if the type_args_var
       // is not needed? Add an assert for now:
@@ -1181,6 +1181,11 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           if (load->local().is_captured_parameter()) {
             intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
             captured_parameters_->Add(index);
+          }
+
+          if (FLAG_experimental_strong_mode && (phi != NULL)) {
+            phi->UpdateType(
+                CompileType::FromAbstractType(load->local().type()));
           }
         } else if (drop != NULL) {
           // Drop temps from the environment.
@@ -1857,6 +1862,13 @@ void FlowGraph::WidenSmiToInt32() {
       for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
         Definition* defn = worklist.definitions()[j];
         ASSERT(defn->IsPhi() || defn->IsBinarySmiOp());
+
+        // Since we widen the integer representation we've to clear out type
+        // propagation information (e.g. it might no longer be a _Smi).
+        for (Value::Iterator it(defn->input_use_list()); !it.Done();
+             it.Advance()) {
+          it.Current()->SetReachingType(NULL);
+        }
 
         if (defn->IsBinarySmiOp()) {
           BinarySmiOpInstr* smi_op = defn->AsBinarySmiOp();

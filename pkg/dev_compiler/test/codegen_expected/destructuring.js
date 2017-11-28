@@ -3,8 +3,9 @@ define(['dart_sdk'], function(dart_sdk) {
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
-  const destructuring = Object.create(null);
-  const src__varargs = Object.create(null);
+  const _root = Object.create(null);
+  const destructuring = Object.create(_root);
+  const src__varargs = Object.create(_root);
   let intAnddynamic__Todynamic = () => (intAnddynamic__Todynamic = dart.constFn(dart.fnType(dart.dynamic, [core.int, dart.dynamic], [dart.dynamic])))();
   let intAnddynamic__Todynamic$ = () => (intAnddynamic__Todynamic$ = dart.constFn(dart.fnType(dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic})))();
   let intAnddynamicTodynamic = () => (intAnddynamicTodynamic = dart.constFn(dart.fnType(dart.dynamic, [core.int, dart.dynamic])))();
@@ -18,12 +19,12 @@ define(['dart_sdk'], function(dart_sdk) {
   };
   dart.fn(destructuring.f, intAnddynamic__Todynamic());
   destructuring.f_sync = function(a, b, c) {
-    return dart.syncStar(function*(a = null, b = null, c = 1) {
+    return dart.syncStar(function* f_sync(a = null, b = null, c = 1) {
     }, dart.dynamic, a, b, c);
   };
   dart.fn(destructuring.f_sync, intAnddynamic__Todynamic());
   destructuring.f_async = function(a, b, c) {
-    return dart.asyncStar(function*(stream, a = null, b = null, c = 1) {
+    return dart.asyncStar(function* f_async(stream, a = null, b = null, c = 1) {
     }, dart.dynamic, a, b, c);
   };
   dart.fn(destructuring.f_async, intAnddynamic__Todynamic());
@@ -32,12 +33,12 @@ define(['dart_sdk'], function(dart_sdk) {
   };
   dart.fn(destructuring.g, intAnddynamic__Todynamic$());
   destructuring.g_sync = function(a, b, opts) {
-    return dart.syncStar(function*(a = null, b = null, {c = 1} = {}) {
+    return dart.syncStar(function* g_sync(a = null, b = null, {c = 1} = {}) {
     }, dart.dynamic, a, b, opts);
   };
   dart.fn(destructuring.g_sync, intAnddynamic__Todynamic$());
   destructuring.g_async = function(a, b, opts) {
-    return dart.asyncStar(function*(stream, a = null, b = null, {c = 1} = {}) {
+    return dart.asyncStar(function* g_async(stream, a = null, b = null, {c = 1} = {}) {
     }, dart.dynamic, a, b, opts);
   };
   dart.fn(destructuring.g_async, intAnddynamic__Todynamic$());
@@ -46,12 +47,12 @@ define(['dart_sdk'], function(dart_sdk) {
   };
   dart.fn(destructuring.r, intAnddynamicTodynamic());
   destructuring.r_sync = function(a, ...others) {
-    return dart.syncStar(function*(a = null, ...others = null) {
+    return dart.syncStar(function* r_sync(a = null, ...others = null) {
     }, dart.dynamic, a, ...others);
   };
   dart.fn(destructuring.r_sync, intAnddynamicTodynamic());
   destructuring.r_async = function(a, ...others) {
-    return dart.asyncStar(function*(stream, a = null, ...others = null) {
+    return dart.asyncStar(function* r_async(stream, a = null, ...others = null) {
     }, dart.dynamic, a, ...others);
   };
   dart.fn(destructuring.r_async, intAnddynamicTodynamic());

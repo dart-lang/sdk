@@ -11,19 +11,19 @@ class Foo<T extends core::Object> extends core::Object {
     return new self::Bar::•<self::Foo::T>();
   get v2() → self::Bar<core::List<self::Foo::T>>
     return new self::Bar::•<core::List<self::Foo::T>>();
-  get v3() → self::Bar<(self::Foo::T) → self::Foo::T>
+  generic-contravariant get v3() → self::Bar<(self::Foo::T) → self::Foo::T>
     return new self::Bar::•<(self::Foo::T) → self::Foo::T>();
-  get v4() → self::Bar<((self::Foo::T) → self::Foo::T) → self::Foo::T>
+  generic-contravariant get v4() → self::Bar<((self::Foo::T) → self::Foo::T) → self::Foo::T>
     return new self::Bar::•<((self::Foo::T) → self::Foo::T) → self::Foo::T>();
   get v5() → core::List<self::Foo::T>
     return <self::Foo::T>[];
-  get v6() → core::List<(self::Foo::T) → self::Foo::T>
+  generic-contravariant get v6() → core::List<(self::Foo::T) → self::Foo::T>
     return <(self::Foo::T) → self::Foo::T>[];
   get v7() → core::Map<self::Foo::T, self::Foo::T>
     return <self::Foo::T, self::Foo::T>{};
-  get v8() → core::Map<(self::Foo::T) → self::Foo::T, self::Foo::T>
+  generic-contravariant get v8() → core::Map<(self::Foo::T) → self::Foo::T, self::Foo::T>
     return <(self::Foo::T) → self::Foo::T, self::Foo::T>{};
-  get v9() → core::Map<self::Foo::T, (self::Foo::T) → self::Foo::T>
+  generic-contravariant get v9() → core::Map<self::Foo::T, (self::Foo::T) → self::Foo::T>
     return <self::Foo::T, (self::Foo::T) → self::Foo::T>{};
 }
 class Bar<T extends core::Object> extends core::Object {

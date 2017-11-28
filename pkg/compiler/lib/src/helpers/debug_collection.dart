@@ -6,18 +6,19 @@ typedef void DebugCallback(String methodName, var arg1, var arg2);
 
 class DebugMap<K, V> implements Map<K, V> {
   final Map<K, V> map;
-  DebugCallback indexSetCallBack;
-  DebugCallback putIfAbsentCallBack;
+  DebugCallback indexSetCallback;
+  DebugCallback putIfAbsentCallback;
+  DebugCallback removeCallback;
 
-  DebugMap(this.map, {DebugCallback addCallback}) {
+  DebugMap(this.map, {DebugCallback addCallback, this.removeCallback}) {
     if (addCallback != null) {
       this.addCallback = addCallback;
     }
   }
 
   void set addCallback(DebugCallback value) {
-    indexSetCallBack = value;
-    putIfAbsentCallBack = value;
+    indexSetCallback = value;
+    putIfAbsentCallback = value;
   }
 
   bool containsValue(Object value) {
@@ -29,8 +30,8 @@ class DebugMap<K, V> implements Map<K, V> {
   V operator [](Object key) => map[key];
 
   void operator []=(K key, V value) {
-    if (indexSetCallBack != null) {
-      indexSetCallBack('[]=', key, value);
+    if (indexSetCallback != null) {
+      indexSetCallback('[]=', key, value);
     }
     map[key] = value;
   }
@@ -38,8 +39,8 @@ class DebugMap<K, V> implements Map<K, V> {
   V putIfAbsent(K key, V ifAbsent()) {
     return map.putIfAbsent(key, () {
       V v = ifAbsent();
-      if (putIfAbsentCallBack != null) {
-        putIfAbsentCallBack('putIfAbsent', key, v);
+      if (putIfAbsentCallback != null) {
+        putIfAbsentCallback('putIfAbsent', key, v);
       }
       return v;
     });
@@ -47,9 +48,19 @@ class DebugMap<K, V> implements Map<K, V> {
 
   void addAll(Map<K, V> other) => map.addAll(other);
 
-  V remove(Object key) => map.remove(key);
+  V remove(Object key) {
+    if (removeCallback != null) {
+      removeCallback('remove', key, map[key]);
+    }
+    return map.remove(key);
+  }
 
-  void clear() => map.clear();
+  void clear() {
+    if (removeCallback != null) {
+      removeCallback('clear', map, null);
+    }
+    map.clear();
+  }
 
   void forEach(void f(K key, V value)) => map.forEach(f);
 

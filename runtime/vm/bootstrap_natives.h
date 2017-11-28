@@ -19,7 +19,6 @@ namespace dart {
   V(Object_getHash, 1)                                                         \
   V(Object_setHash, 2)                                                         \
   V(Object_toString, 1)                                                        \
-  V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
   V(Object_haveSameRuntimeType, 2)                                             \
   V(Object_instanceOf, 4)                                                      \
@@ -30,6 +29,7 @@ namespace dart {
   V(Closure_computeHash, 1)                                                    \
   V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
+  V(Type_getHashCode, 1)                                                       \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
   V(Integer_bitOrFromInteger, 2)                                               \
@@ -77,6 +77,7 @@ namespace dart {
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 2)                                                    \
   V(Developer_webServerControl, 2)                                             \
+  V(Double_hashCode, 1)                                                        \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \
@@ -126,7 +127,6 @@ namespace dart {
   V(OneByteString_allocateFromOneByteList, 3)                                  \
   V(OneByteString_setAt, 3)                                                    \
   V(TwoByteString_allocateFromTwoByteList, 3)                                  \
-  V(ExternalOneByteString_getCid, 0)                                           \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \
@@ -315,7 +315,11 @@ namespace dart {
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_inquireIs64Bit, 0)                                                \
   V(Internal_prependTypeArguments, 3)                                          \
+  V(InvocationMirror_decodePositionalCountEntry, 1)                            \
+  V(InvocationMirror_decodeTypeArgsLenEntry, 1)                                \
+  V(InvocationMirror_decodePositionEntry, 1)                                   \
   V(InvocationMirror_unpackTypeArguments, 1)                                   \
+  V(NoSuchMethodError_existingMethodSignature, 3)                              \
   V(LinkedHashMap_getIndex, 1)                                                 \
   V(LinkedHashMap_setIndex, 2)                                                 \
   V(LinkedHashMap_getData, 1)                                                  \

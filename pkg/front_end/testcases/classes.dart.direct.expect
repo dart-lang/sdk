@@ -9,9 +9,9 @@ class A extends core::Object {
     : self::A::y = y, self::A::x = 42, super core::Object::•()
     ;
   method method() → dynamic {
-    core::print("A.method x: ${this.x} y: ${this.y}");
+    core::print("A.method x: ${this.{self::A::x}} y: ${this.{self::A::y}}");
     core::print(this);
-    core::print(this.runtimeType);
+    core::print(this.{core::Object::runtimeType});
   }
 }
 class B extends self::A {
@@ -19,7 +19,7 @@ class B extends self::A {
     : super self::A::•(x)
     ;
   method method() → dynamic {
-    core::print("B.method x: ${this.x} y: ${this.y}");
+    core::print("B.method x: ${this.{self::A::x}} y: ${this.{self::A::y}}");
     super.{self::A::method}();
   }
 }

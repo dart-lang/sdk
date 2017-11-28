@@ -123,7 +123,7 @@ class CommandLine {
     int index = arguments.indexOf("--");
     Set<String> options;
     if (index != -1) {
-      options = new Set<String>.from(arguments.getRange(0, index - 1));
+      options = new Set<String>.from(arguments.getRange(0, index));
       arguments = arguments.sublist(index + 1);
     } else {
       options = arguments.where((argument) => argument.startsWith("-")).toSet();

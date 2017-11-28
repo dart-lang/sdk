@@ -97,13 +97,10 @@ mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 mirrors/regress_26187_test: RuntimeError # Issue 6490
 mirrors/reflected_type_generics_test/01: Fail # Issues in reflecting generic typedefs.
 mirrors/reflected_type_generics_test/02: Fail # Issues in reflecting bounded type variables.
-# The following tests fail because we have disabled a test in
-# `reflectClassByName`. `MirrorsUsed` leads to classes not having the
-# information necessary to correctly handle these checks.
-mirrors/reflected_type_generics_test/03: Fail # Issues in reflecting generic typedefs.
-mirrors/reflected_type_generics_test/04: Fail # Issues in reflecting bounded type variables.
-mirrors/reflected_type_generics_test/05: Fail # Issues in reflecting generic typedefs.
-mirrors/reflected_type_generics_test/06: Fail # Issues in reflecting bounded type variables.
+mirrors/reflected_type_generics_test/03: Fail # Issues in reflecting generic typedefs. The following tests fail because we have disabled a test in `reflectClassByName`. `MirrorsUsed` leads to classes not having the information necessary to correctly handle these checks.
+mirrors/reflected_type_generics_test/04: Fail # Issues in reflecting bounded type variables. The following tests fail because we have disabled a test in `reflectClassByName`. `MirrorsUsed` leads to classes not having the information necessary to correctly handle these checks.
+mirrors/reflected_type_generics_test/05: Fail # Issues in reflecting generic typedefs. The following tests fail because we have disabled a test in `reflectClassByName`. `MirrorsUsed` leads to classes not having the information necessary to correctly handle these checks.
+mirrors/reflected_type_generics_test/06: Fail # Issues in reflecting bounded type variables. The following tests fail because we have disabled a test in `reflectClassByName`. `MirrorsUsed` leads to classes not having the information necessary to correctly handle these checks.
 
 [ $compiler == none && ! $checked ]
 mirrors/reflected_type_generics_test/02: Fail, Ok # Type check for a bounded type argument.
@@ -195,8 +192,7 @@ mirrors/globalized_closures2_test/00: RuntimeError # Issue 17118. Please remove 
 
 
 [ $compiler == dart2js && ( $browser || $runtime == d8 ) ]
-async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
-                                         # implement timer (currently only in jsshell)
+async/timer_not_available_test: Fail, OK # only meant to test when there is no way to implement timer (currently only in jsshell)
 
 # 'js' tests import the dart:js library, so they only make sense in
 # a browser environment.
@@ -220,9 +216,8 @@ mirrors/mirrors_used_get_name_test: RuntimeError
 mirrors/mirrors_used_get_name2_test: RuntimeError
 
 [ $runtime == ff ]
-# FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
-convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
-mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
+convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029, FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
+mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589, FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
 
 [ $runtime == chrome && $system == macos ]
 async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
@@ -263,42 +258,40 @@ mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a
 
 
 [ $runtime == vm && $system == fuchsia ]
-# These use package:unittest
-async/first_regression_test: RuntimeError
-async/future_timeout_test: RuntimeError
-async/multiple_timer_test: RuntimeError
-async/stream_controller_async_test: RuntimeError
-async/stream_first_where_test: RuntimeError
-async/stream_from_iterable_test: RuntimeError
-async/stream_iterator_test: RuntimeError
-async/stream_join_test: RuntimeError
-async/stream_last_where_test: RuntimeError
-async/stream_periodic2_test: RuntimeError
-async/stream_periodic3_test: RuntimeError
-async/stream_periodic4_test: RuntimeError
-async/stream_periodic5_test: RuntimeError
-async/stream_periodic6_test: RuntimeError
-async/stream_periodic_test: RuntimeError
-async/stream_single_test: RuntimeError
-async/stream_single_to_multi_subscriber_test: RuntimeError
-async/stream_state_nonzero_timer_test: RuntimeError
-async/stream_state_test: RuntimeError
-async/stream_subscription_as_future_test: RuntimeError
-async/stream_subscription_cancel_test: RuntimeError
-async/stream_timeout_test: RuntimeError
-async/stream_transform_test: RuntimeError
-async/stream_transformation_broadcast_test: RuntimeError
-async/timer_cancel1_test: RuntimeError
-async/timer_cancel2_test: RuntimeError
-async/timer_cancel_test: RuntimeError
-async/timer_isActive_test: RuntimeError
-async/timer_repeat_test: RuntimeError
-async/timer_test: RuntimeError
-convert/json_lib_test: RuntimeError
-mirrors/library_uri_io_test: RuntimeError
-mirrors/library_uri_package_test: RuntimeError
-# fstat bug, ZX-479.
-mirrors/invocation_fuzz_test: Crash
+async/first_regression_test: RuntimeError # These use package:unittest
+async/future_timeout_test: RuntimeError # These use package:unittest
+async/multiple_timer_test: RuntimeError # These use package:unittest
+async/stream_controller_async_test: RuntimeError # These use package:unittest
+async/stream_first_where_test: RuntimeError # These use package:unittest
+async/stream_from_iterable_test: RuntimeError # These use package:unittest
+async/stream_iterator_test: RuntimeError # These use package:unittest
+async/stream_join_test: RuntimeError # These use package:unittest
+async/stream_last_where_test: RuntimeError # These use package:unittest
+async/stream_periodic2_test: RuntimeError # These use package:unittest
+async/stream_periodic3_test: RuntimeError # These use package:unittest
+async/stream_periodic4_test: RuntimeError # These use package:unittest
+async/stream_periodic5_test: RuntimeError # These use package:unittest
+async/stream_periodic6_test: RuntimeError # These use package:unittest
+async/stream_periodic_test: RuntimeError # These use package:unittest
+async/stream_single_test: RuntimeError # These use package:unittest
+async/stream_single_to_multi_subscriber_test: RuntimeError # These use package:unittest
+async/stream_state_nonzero_timer_test: RuntimeError # These use package:unittest
+async/stream_state_test: RuntimeError # These use package:unittest
+async/stream_subscription_as_future_test: RuntimeError # These use package:unittest
+async/stream_subscription_cancel_test: RuntimeError # These use package:unittest
+async/stream_timeout_test: RuntimeError # These use package:unittest
+async/stream_transform_test: RuntimeError # These use package:unittest
+async/stream_transformation_broadcast_test: RuntimeError # These use package:unittest
+async/timer_cancel1_test: RuntimeError # These use package:unittest
+async/timer_cancel2_test: RuntimeError # These use package:unittest
+async/timer_cancel_test: RuntimeError # These use package:unittest
+async/timer_isActive_test: RuntimeError # These use package:unittest
+async/timer_repeat_test: RuntimeError # These use package:unittest
+async/timer_test: RuntimeError # These use package:unittest
+convert/json_lib_test: RuntimeError # These use package:unittest
+mirrors/library_uri_io_test: RuntimeError # These use package:unittest
+mirrors/library_uri_package_test: RuntimeError # These use package:unittest
+mirrors/invocation_fuzz_test: Crash # fstat bug, ZX-479.
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
@@ -432,25 +425,20 @@ mirrors/invoke_throws_test: Crash
 mirrors/library_declarations_test/none: RuntimeError
 mirrors/library_exports_hidden_test: RuntimeError
 mirrors/library_exports_shown_test: RuntimeError
-mirrors/library_imports_bad_metadata_test/01: MissingCompileTimeError
 mirrors/library_imports_deferred_test: RuntimeError
 mirrors/library_imports_hidden_test: RuntimeError
 mirrors/library_imports_metadata_test: RuntimeError
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError
 mirrors/library_imports_prefixed_test: RuntimeError
 mirrors/library_imports_shown_test: RuntimeError
-mirrors/library_metadata2_test/01: MissingCompileTimeError
 mirrors/library_metadata_test: RuntimeError
 mirrors/list_constructor_test/01: Crash
 mirrors/list_constructor_test/none: Crash
 mirrors/load_library_test: RuntimeError
-mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/13: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/metadata_allowed_values_test/16: Skip # Flaky, crashes.
-mirrors/metadata_allowed_values_test/27: Crash
 mirrors/metadata_constructed_constant_test: Crash
-mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
 mirrors/metadata_scope_test/none: RuntimeError
 mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_source_line_ending_test: Crash
@@ -477,11 +465,9 @@ mirrors/redirecting_factory_test/none: Crash
 mirrors/reflect_class_test/01: RuntimeError
 mirrors/reflect_class_test/02: RuntimeError
 mirrors/reflect_class_test/none: RuntimeError
-mirrors/reflected_type_classes_test/01: RuntimeError
 mirrors/reflected_type_function_type_test: RuntimeError
 mirrors/reflected_type_generics_test/01: RuntimeError
 mirrors/reflected_type_generics_test/02: RuntimeError
-mirrors/reflected_type_test/01: RuntimeError
 mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError

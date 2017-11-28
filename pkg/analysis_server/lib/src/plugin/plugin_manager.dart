@@ -9,6 +9,7 @@ import 'dart:io' show Platform, Process, ProcessResult;
 
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analyzer/context/context_root.dart' as analyzer;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/bazel.dart';
@@ -92,6 +93,9 @@ class DiscoveredPluginInfo extends PluginInfo {
       : super(notificationManager, instrumentationService);
 
   @override
+  bool get canBeStarted => executionPath != null;
+
+  @override
   String get pluginId => path;
 
   @override
@@ -101,6 +105,25 @@ class DiscoveredPluginInfo extends PluginInfo {
         new Uri.file(packagesPath, windows: Platform.isWindows),
         instrumentationService);
   }
+}
+
+/**
+ * An indication of a problem with the execution of a plugin that occurs prior
+ * to the execution of the plugin's entry point in an isolate.
+ */
+class PluginException implements Exception {
+  /**
+   * A message describing the problem.
+   */
+  final String message;
+
+  /**
+   * Initialize a newly created exception to have the given [message].
+   */
+  PluginException(this.message);
+
+  @override
+  String toString() => message;
 }
 
 /**
@@ -130,9 +153,24 @@ abstract class PluginInfo {
   PluginSession currentSession;
 
   /**
+   * The exception that occurred that prevented the plugin from being started,
+   * or `null` if there was no exception (possibly because no attempt has yet
+   * been made to start the plugin).
+   */
+  CaughtException exception;
+
+  /**
    * Initialize the newly created information about a plugin.
    */
   PluginInfo(this.notificationManager, this.instrumentationService);
+
+  /**
+   * Return `true` if this plugin can be started, or `false` if there is a
+   * reason why it cannot be started. For example, a plugin cannot be started if
+   * there was an error with a previous attempt to start running it or if the
+   * plugin is not correctly configured.
+   */
+  bool get canBeStarted => true;
 
   /**
    * Return the data known about this plugin.
@@ -232,7 +270,7 @@ abstract class PluginInfo {
   }
 
   /**
-   * Create the channel used to communicate with the server.
+   * Create and return the channel used to communicate with the server.
    */
   ServerCommunicationChannel _createChannel();
 
@@ -339,18 +377,31 @@ class PluginManager {
     PluginInfo plugin = _pluginMap[path];
     bool isNew = plugin == null;
     if (isNew) {
-      List<String> pluginPaths = pathsFor(path);
-      if (pluginPaths == null) {
+      List<String> pluginPaths;
+      try {
+        pluginPaths = pathsFor(path);
+      } catch (exception, stackTrace) {
+        plugin = new DiscoveredPluginInfo(
+            path, null, null, notificationManager, instrumentationService);
+        plugin.exception = new CaughtException(exception, stackTrace);
+        _pluginMap[path] = plugin;
         return;
       }
       plugin = new DiscoveredPluginInfo(path, pluginPaths[0], pluginPaths[1],
           notificationManager, instrumentationService);
       _pluginMap[path] = plugin;
       if (pluginPaths[0] != null) {
-        PluginSession session = await plugin.start(byteStorePath, sdkPath);
-        session?.onDone?.then((_) {
-          _pluginMap.remove(path);
-        });
+        try {
+          PluginSession session = await plugin.start(byteStorePath, sdkPath);
+          session?.onDone?.then((_) {
+            _pluginMap.remove(path);
+          });
+        } catch (exception, stackTrace) {
+          // Record the exception (for debugging purposes) and record the fact
+          // that we should not try to communicate with the plugin.
+          plugin.exception = new CaughtException(exception, stackTrace);
+          isNew = false;
+        }
       }
     }
     plugin.addContextRoot(contextRoot);
@@ -424,8 +475,8 @@ class PluginManager {
 
   /**
    * Return the execution path and .packages path associated with the plugin at
-   * the given [path], or `null` if there is a problem that prevents us from
-   * executing the plugin.
+   * the given [path]. Throw a [PluginException] if there is a problem that
+   * prevents the plugin from being executing.
    */
   @visibleForTesting
   List<String> pathsFor(String pluginPath) {
@@ -478,6 +529,25 @@ class PluginManager {
       }
     }
     return plugins;
+  }
+
+  /**
+   * Record a failure to run the plugin associated with the host package with
+   * the given [hostPackageName]. The failure is described by the [message], and
+   * is expected to have occurred before a path could be computed, and hence
+   * before [addPluginToContextRoot] could be invoked.
+   */
+  void recordPluginFailure(String hostPackageName, String message) {
+    try {
+      throw new PluginException(message);
+    } catch (exception, stackTrace) {
+      String pluginPath =
+          path.join(hostPackageName, 'tools', 'analyzer_plugin');
+      DiscoveredPluginInfo plugin = new DiscoveredPluginInfo(
+          pluginPath, null, null, notificationManager, instrumentationService);
+      plugin.exception = new CaughtException(exception, stackTrace);
+      _pluginMap[pluginPath] = plugin;
+    }
   }
 
   /**
@@ -606,8 +676,9 @@ class PluginManager {
         .getChildAssumingFolder('bin')
         .getChildAssumingFile('plugin.dart');
     if (!pluginFile.exists) {
-      return null;
+      throw new PluginException('File "${pluginFile.path}" does not exist.');
     }
+    String reason;
     File packagesFile = pluginFolder.getChildAssumingFile('.packages');
     if (!packagesFile.exists) {
       if (runPub) {
@@ -624,20 +695,26 @@ class PluginManager {
           buffer.writeln('  exitCode = ${result.exitCode}');
           buffer.writeln('  stdout = ${result.stdout}');
           buffer.writeln('  stderr = ${result.stderr}');
-          instrumentationService.logError(buffer.toString());
+          reason = buffer.toString();
+          instrumentationService.logError(reason);
         }
         if (!packagesFile.exists) {
+          reason ??= 'File "${packagesFile.path}" does not exist.';
           packagesFile = null;
         }
       } else if (workspace != null) {
         packagesFile =
             _createPackagesFile(pluginFolder, workspace.packageUriResolver);
+        if (packagesFile == null) {
+          reason = 'Could not create .packages file in workspace $workspace.';
+        }
       } else {
+        reason = 'Could not create "${packagesFile.path}".';
         packagesFile = null;
       }
     }
     if (packagesFile == null) {
-      return null;
+      throw new PluginException(reason);
     }
     return <String>[pluginFile.path, packagesFile.path];
   }
@@ -870,9 +947,11 @@ class PluginSession {
    * Handle the fact that an unhandled error has occurred in the plugin.
    */
   void handleOnError(List<String> errorPair) {
-    // TODO(brianwilkerson) Decide how we want to handle errors.
-    info.instrumentationService.logPluginException(
-        info.data, errorPair[0], new StackTrace.fromString(errorPair[1]));
+    StackTrace stackTrace = new StackTrace.fromString(errorPair[1]);
+    info.exception =
+        new CaughtException(new PluginException(errorPair[0]), stackTrace);
+    info.instrumentationService
+        .logPluginException(info.data, errorPair[0], stackTrace);
   }
 
   /**
@@ -939,6 +1018,13 @@ class PluginSession {
       throw new StateError('Missing byte store path');
     }
     if (!isCompatible) {
+      info.exception = new CaughtException(
+          new PluginException('Plugin is not compatible.'), null);
+      return false;
+    }
+    if (!info.canBeStarted) {
+      info.exception = new CaughtException(
+          new PluginException('Plugin cannot be started.'), null);
       return false;
     }
     channel = info._createChannel();
@@ -947,6 +1033,9 @@ class PluginSession {
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
       // handleOnDone, which will cause `channel` to be set to `null`.
+      info.exception ??= new CaughtException(
+          new PluginException('Unrecorded error while starting the plugin.'),
+          null);
       return false;
     }
     Response response = await sendRequest(new PluginVersionCheckParams(
@@ -960,6 +1049,8 @@ class PluginSession {
     version = result.version;
     if (!isCompatible) {
       sendRequest(new PluginShutdownParams());
+      info.exception = new CaughtException(
+          new PluginException('Plugin is not compatible.'), null);
       return false;
     }
     return true;

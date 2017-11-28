@@ -9,8 +9,6 @@ import '../../scanner/token.dart' show Token, TokenType;
 import '../fasta_codes.dart'
     show Message, messageNativeClauseShouldBeAnnotation;
 
-import '../util/link.dart' show Link;
-
 import 'assert.dart' show Assert;
 
 import 'formal_parameter_kind.dart' show FormalParameterKind;
@@ -92,7 +90,19 @@ class Listener {
   /// (or extraneous modifiers in the case of recovery) preceding [name].
   void beginClassDeclaration(Token beginToken, Token name) {}
 
-  /// Handle the end of a class declaration.  Substructures:
+  /// Handle an extends clause in a class declaration. Substructures:
+  /// - supertype (may be a mixin application)
+  void handleClassExtends(Token extendsKeyword) {
+    logEvent("ClassExtends");
+  }
+
+  /// Handle an implements clause in a class declaration. Substructures:
+  /// - implemented types
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    logEvent("ClassImplements");
+  }
+
+  /// Handle the header of a class declaration.  Substructures:
   /// - metadata
   /// - modifiers
   /// - class name
@@ -100,15 +110,25 @@ class Listener {
   /// - supertype (may be a mixin application)
   /// - implemented types
   /// - native clause
+  void handleClassHeader(Token begin, Token classKeyword, Token nativeToken) {
+    logEvent("ClassHeader");
+  }
+
+  /// Handle recovery associated with a class header.
+  /// This may be called multiple times after [handleClassHeader]
+  /// to recover information about the previous class header.
+  /// The substructures are a subset of
+  /// and in the same order as [handleClassHeader]:
+  /// - supertype (may be a mixin application)
+  /// - implemented types
+  void handleRecoverClassHeader() {
+    logEvent("RecoverClassHeader");
+  }
+
+  /// Handle the end of a class declaration.  Substructures:
+  /// - class header
   /// - class body
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void endClassDeclaration(Token beginToken, Token endToken) {
     logEvent("ClassDeclaration");
   }
 
@@ -207,8 +227,8 @@ class Listener {
 
   void beginFormalParameter(Token token, MemberKind kind) {}
 
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     logEvent("FormalParameter");
   }
 
@@ -251,7 +271,7 @@ class Listener {
 
   // One of the two possible corresponding end events for [beginForStatement].
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     logEvent("ForIn");
   }
 
@@ -406,9 +426,7 @@ class Listener {
     logEvent("Hide");
   }
 
-  void beginIdentifierList(Token token) {}
-
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     logEvent("IdentifierList");
   }
 
@@ -438,15 +456,33 @@ class Listener {
 
   void beginImport(Token importKeyword) {}
 
+  /// Signals that the current import is deferred and/or has a prefix
+  /// depending upon whether [deferredKeyword] and [asKeyword]
+  /// are not `null` respectively. Substructures:
+  /// - prefix identifier (only if asKeyword != null)
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    logEvent("ImportPrefix");
+  }
+
   /// Handle the end of an import directive.  Substructures:
   /// - metadata
   /// - uri
   /// - conditional uris
-  /// - prefix identifier (only if asKeyword != null)
+  /// - prefix identifier
   /// - combinators
-  void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void endImport(Token importKeyword, Token semicolon) {
     logEvent("Import");
+  }
+
+  /// Handle recovery associated with an import directive.
+  /// This may be called multiple times after [endImport]
+  /// to recover information about the previous import directive.
+  /// The substructures are a subset of and in the same order as [endImport]:
+  /// - conditional uris
+  /// - prefix identifier
+  /// - combinators
+  void handleRecoverImport(Token semicolon) {
+    logEvent("ImportRecovery");
   }
 
   void beginConditionalUris(Token token) {}
@@ -461,14 +497,11 @@ class Listener {
   /// - Dotted name
   /// - Condition (literal string; only if [equalSign] != null)
   /// - URI (literal string)
-  void endConditionalUri(
-      Token ifKeyword, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifKeyword, Token leftParen, Token equalSign) {
     logEvent("ConditionalUri");
   }
 
-  void beginDottedName(Token token) {}
-
-  void endDottedName(int count, Token firstIdentifier) {
+  void handleDottedName(int count, Token firstIdentifier) {
     logEvent("DottedName");
   }
 
@@ -578,16 +611,17 @@ class Listener {
 
   void beginMember(Token token) {}
 
+  /// Handle an invalid member declaration. Substructures:
+  /// - metadata
+  void handleInvalidMember(Token endToken) {
+    logEvent("InvalidMember");
+  }
+
   /// This event is added for convenience. Normally, one should override
   /// [endMethod] or [endFields] instead.
   void endMember() {
     logEvent("Member");
   }
-
-  /// This event can be used to support non-compliant (with respect to Dart
-  /// Language Specification) Dart VM native clauses. See
-  /// [native_support.dart].
-  Link<Token> handleMemberName(Link<Token> identifiers) => identifiers;
 
   void beginMethod(Token token, Token name) {}
 
@@ -900,7 +934,16 @@ class Listener {
     logEvent("BinaryExpression");
   }
 
-  void handleConditionalExpression(Token question, Token colon) {
+  /// Called when the parser encounters a `?` operator and begins parsing a
+  /// conditional expression.
+  void beginConditionalExpression() {}
+
+  /// Called when the parser encounters a `:` operator in a conditional
+  /// expression.
+  void handleConditionalExpressionColon() {}
+
+  /// Called when the parser finishes processing a conditional expression.
+  void endConditionalExpression(Token question, Token colon) {
     logEvent("ConditionalExpression");
   }
 
@@ -959,7 +1002,7 @@ class Listener {
   void beginAssert(Token assertKeyword, Assert kind) {}
 
   void endAssert(Token assertKeyword, Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     logEvent("Assert");
   }
 
@@ -1046,6 +1089,12 @@ class Listener {
     logEvent("OperatorName");
   }
 
+  /// Handle the end of a construct of the form "operator <token>"
+  /// where <token> is not a valid operator token.
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    logEvent("InvalidOperatorName");
+  }
+
   void handleParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
   }
@@ -1069,8 +1118,14 @@ class Listener {
 
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {}
 
-  void endSwitchCase(int labelCount, int expressionCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     logEvent("SwitchCase");
   }
 
@@ -1124,13 +1179,26 @@ class Listener {
     throw new ParserError.fromTokens(token, token, message);
   }
 
-  /// The parser noticed a syntax error, but was able to recover from it.
-  void handleRecoverableError(Token token, Message message) {
+  /// The parser noticed a syntax error, but was able to recover from it. The
+  /// error should be reported using the [message], and the code between the
+  /// beginning of the [startToken] and the end of the [endToken] should be
+  /// highlighted. The [startToken] and [endToken] can be the same token.
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation) {
       return;
     }
-    recoverableErrors.add(new ParserError.fromTokens(token, token, message));
+    recoverableErrors
+        .add(new ParserError.fromTokens(startToken, endToken, message));
+  }
+
+  /// Signals to the listener that the previous statement contained a semantic
+  /// error (described by the given [message]). This method can also be called
+  /// after [handleExpressionFunctionBody], in which case it signals that the
+  /// implicit return statement of the function contained a semantic error.
+  void handleInvalidStatement(Token token, Message message) {
+    handleRecoverableError(message, token, token);
   }
 
   void handleScript(Token token) {

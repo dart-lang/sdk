@@ -61,6 +61,7 @@ import 'resolution_result.dart';
 import 'signatures.dart';
 import 'tree_elements.dart';
 import 'typedefs.dart';
+import 'type_resolver.dart' show FunctionTypeParameterScope;
 
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
@@ -222,7 +223,7 @@ class ResolverTask extends CompilerTask {
   WorldImpact resolveMethodElementImplementation(
       FunctionElementX element, FunctionExpression tree) {
     return reporter.withCurrentElement(element, () {
-      if (element.isExternal && tree.hasBody) {
+      if (element.isMarkedExternal && tree.hasBody) {
         reporter.reportErrorMessage(element, MessageKind.EXTERNAL_WITH_BODY,
             {'functionName': element.name});
       }
@@ -351,7 +352,7 @@ class ResolverTask extends CompilerTask {
         element.parseNode(resolution.parsingContext);
         element.computeType(resolution);
         FunctionElementX implementation = element;
-        if (element.isExternal) {
+        if (element.isMarkedExternal) {
           implementation = target.resolveExternalFunction(element);
         }
         return resolveMethodElementImplementation(
@@ -1042,6 +1043,7 @@ class ResolverTask extends CompilerTask {
       return measure(() => SignatureResolver.analyze(
           resolution,
           element.enclosingElement.buildScope(),
+          const FunctionTypeParameterScope(),
           node.typeVariables,
           node.parameters,
           node.returnType,

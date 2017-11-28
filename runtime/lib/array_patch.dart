@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 // The _GrowableArrayMarker class is used to signal to the List() factory
 // whether a parameter was passed.
 class _GrowableArrayMarker implements int {
@@ -52,7 +54,7 @@ class List<E> {
 
   @patch
   factory List.unmodifiable(Iterable elements) {
-    List result = new List<E>.from(elements, growable: false);
+    final result = new List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
   }
 

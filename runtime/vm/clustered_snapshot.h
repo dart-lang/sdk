@@ -9,16 +9,13 @@
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/datastream.h"
-#include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 #include "vm/heap.h"
-#include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/snapshot.h"
 #include "vm/version.h"
-#include "vm/visitor.h"
 
 #if defined(DEBUG)
 #define SNAPSHOT_BACKTRACE
@@ -30,6 +27,8 @@ namespace dart {
 class Serializer;
 class Deserializer;
 class ObjectStore;
+class ImageWriter;
+class ImageReader;
 
 // For full snapshots, we use a clustered snapshot format that trades longer
 // serialization time for faster deserialization time and smaller snapshots.
@@ -50,6 +49,8 @@ class ObjectStore;
 
 class SerializationCluster : public ZoneAllocated {
  public:
+  explicit SerializationCluster(const char* name)
+      : name_(name), size_(0), num_objects_(0) {}
   virtual ~SerializationCluster() {}
 
   // Add [object] to the cluster and push its outgoing references.
@@ -62,6 +63,18 @@ class SerializationCluster : public ZoneAllocated {
 
   // Write the byte and reference data of the cluster's objects.
   virtual void WriteFill(Serializer* serializer) = 0;
+
+  void WriteAndMeasureAlloc(Serializer* serializer);
+  void WriteAndMeasureFill(Serializer* serializer);
+
+  const char* name() const { return name_; }
+  intptr_t size() const { return size_; }
+  intptr_t num_objects() const { return num_objects_; }
+
+ protected:
+  const char* name_;
+  intptr_t size_;
+  intptr_t num_objects_;
 };
 
 class DeserializationCluster : public ZoneAllocated {
@@ -173,7 +186,7 @@ class Serializer : public StackResource {
 
   void ReserveHeader() {
     // Make room for recording snapshot buffer size.
-    stream_.set_current(stream_.buffer() + Snapshot::kHeaderSize);
+    stream_.SetPosition(Snapshot::kHeaderSize);
   }
 
   void FillHeader(Snapshot::Kind kind) {
@@ -239,21 +252,13 @@ class Serializer : public StackResource {
     Write<int32_t>(cid);
   }
 
-  int32_t GetTextOffset(RawInstructions* instr, RawCode* code) {
-    intptr_t offset = heap_->GetObjectId(instr);
-    if (offset == 0) {
-      offset = image_writer_->GetTextOffsetFor(instr, code);
-      ASSERT(offset != 0);
-      heap_->SetObjectId(instr, offset);
-    }
-    return offset;
-  }
-
-  int32_t GetDataOffset(RawObject* object) {
-    return image_writer_->GetDataOffsetFor(object);
-  }
+  int32_t GetTextOffset(RawInstructions* instr, RawCode* code) const;
+  int32_t GetDataOffset(RawObject* object) const;
+  intptr_t GetDataSize() const;
+  intptr_t GetTextSize() const;
 
   Snapshot::Kind kind() const { return kind_; }
+  intptr_t next_ref_index() const { return next_ref_index_; }
 
  private:
   Heap* heap_;
@@ -343,13 +348,8 @@ class Deserializer : public StackResource {
     return Read<int32_t>();
   }
 
-  RawInstructions* GetInstructionsAt(int32_t offset) {
-    return image_reader_->GetInstructionsAt(offset);
-  }
-
-  RawObject* GetObjectAt(int32_t offset) {
-    return image_reader_->GetObjectAt(offset);
-  }
+  RawInstructions* GetInstructionsAt(int32_t offset) const;
+  RawObject* GetObjectAt(int32_t offset) const;
 
   RawApiError* VerifyVersionAndFeatures(Isolate* isolate);
 
@@ -430,7 +430,7 @@ class FullSnapshotWriter {
   intptr_t clustered_vm_size_;
   intptr_t clustered_isolate_size_;
   intptr_t mapped_data_size_;
-  intptr_t mapped_instructions_size_;
+  intptr_t mapped_text_size_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };

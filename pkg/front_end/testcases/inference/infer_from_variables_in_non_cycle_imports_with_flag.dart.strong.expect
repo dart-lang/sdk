@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 static field core::int y = inf::x;
 static method test1() → dynamic {
-  inf::x = "hi";
-  self::y = "hi";
+  inf::x = "hi" as{TypeError} core::int;
+  self::y = "hi" as{TypeError} core::int;
 }
 static method main() → dynamic {}

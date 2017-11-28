@@ -448,8 +448,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // bounds check on removeLast). Once we start inlining, the
         // bounds check will become explicit, so we won't need this
         // optimization.
-        HInvokeDynamicMethod result = new HInvokeDynamicMethod(node.selector,
-            node.mask, node.inputs.sublist(1), node.instructionType);
+        HInvokeDynamicMethod result = new HInvokeDynamicMethod(
+            node.selector,
+            node.mask,
+            node.inputs.sublist(1),
+            node.instructionType,
+            node.sourceInformation);
         result.element = target;
         return result;
       }
@@ -583,8 +587,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _nativeData.getNativeMethodBehavior(method);
     TypeMask returnType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
-    HInvokeDynamicMethod result =
-        new HInvokeDynamicMethod(node.selector, node.mask, inputs, returnType);
+    HInvokeDynamicMethod result = new HInvokeDynamicMethod(
+        node.selector, node.mask, inputs, returnType, node.sourceInformation);
     result.element = method;
     return result;
   }
@@ -1024,7 +1028,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
     if (_options.enableTypeAssertions) {
-      // TODO(redemption): Support field entities.
       DartType type = _closedWorld.elementEnvironment.getFieldType(field);
       if (!type.treatAsRaw ||
           type.isTypeVariable ||
@@ -1043,6 +1046,27 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
     return new HFieldSet(field, receiver, value);
+  }
+
+  HInstruction visitInvokeClosure(HInvokeClosure node) {
+    HInstruction closure = node.getDartReceiver(_closedWorld);
+
+    // Replace indirect call to static method tear-off closure with direct call
+    // to static method.
+    if (closure is HConstant) {
+      ConstantValue constant = closure.constant;
+      if (constant is FunctionConstantValue) {
+        FunctionEntity target = constant.element;
+        ParameterStructure parameterStructure = target.parameterStructure;
+        if (parameterStructure.callStructure == node.selector.callStructure) {
+          // TODO(sra): Handle adding optional arguments default values.
+          assert(!node.isInterceptedCall);
+          return new HInvokeStatic(
+              target, node.inputs.skip(1).toList(), node.instructionType);
+        }
+      }
+    }
+    return node;
   }
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
@@ -1173,8 +1197,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
             selector,
             input.instructionType, // receiver mask.
             inputs,
-            toStringType)
-          ..sourceInformation = node.sourceInformation;
+            toStringType,
+            node.sourceInformation);
         return result;
       }
       return null;
@@ -1402,7 +1426,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     TypeMask type = indexArgument.isPositiveInteger(closedWorld)
         ? indexArgument.instructionType
         : closedWorld.commonMasks.positiveIntType;
-    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array, type);
+    HBoundsCheck check = new HBoundsCheck(indexArgument, length, array, type)
+      ..sourceInformation = indexNode.sourceInformation;
     indexNode.block.addBefore(indexNode, check);
     // If the index input to the bounds check was not known to be an integer
     // then we replace its uses with the bounds check, which is known to be an
@@ -2889,6 +2914,30 @@ class MemorySet {
       HBasicBlock block, int predecessorIndex) {
     if (first == null || second == null) return null;
     if (first == second) return first;
+    if (second is HGetLength) {
+      // Don't always create phis for HGetLength. The phi confuses array bounds
+      // check elimination and the resulting variable-heavy code probably is
+      // confusing for JavaScript VMs. In practice, this mostly affects the
+      // expansion of for-in loops on Arrays, so we partially match the
+      // expression
+      //
+      //     checkConcurrentModificationError(array.length == _end, array)
+      //
+      // starting with the HGetLength of the array.length.
+      //
+      // TODO(sra): Figure out a better way ensure 'nice' loop code.
+      // TODO(22407): The phi would not be so bad if it did not confuse bounds
+      // check elimination.
+      // TODO(25437): We could add a phi if we undid the harmful cases.
+      for (var user in second.usedBy) {
+        if (user is HIdentity && user.usedBy.length == 1) {
+          HInstruction user2 = user.usedBy.single;
+          if (user2 is HInvokeStatic) {
+            return null;
+          }
+        }
+      }
+    }
     TypeMask phiType =
         second.instructionType.union(first.instructionType, closedWorld);
     if (first is HPhi && first.block == block) {

@@ -14,6 +14,7 @@ import '../elements/names.dart' show Name;
 import '../elements/types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
+import '../options.dart';
 import '../ssa/type_builder.dart';
 import '../world.dart';
 import 'elements.dart';
@@ -24,7 +25,8 @@ import 'js_strategy.dart' show JsClosedWorldBuilder;
 class KernelClosureAnalysis {
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  static ScopeModel computeScopeModel(MemberEntity entity, ir.Member node) {
+  static ScopeModel computeScopeModel(
+      MemberEntity entity, ir.Member node, CompilerOptions options) {
     if (entity.isAbstract) return null;
     if (entity.isField && !entity.isInstanceMember) {
       ir.Field field = node;
@@ -32,9 +34,17 @@ class KernelClosureAnalysis {
       if (field.initializer == null) return null;
     }
 
+    bool hasThisLocal = false;
+    if (entity.isInstanceMember) {
+      hasThisLocal = true;
+    } else if (entity.isConstructor) {
+      ConstructorEntity constructor = entity;
+      hasThisLocal = !constructor.isFactoryConstructor;
+    }
     ScopeModel model = new ScopeModel();
     CapturedScopeBuilder translator = new CapturedScopeBuilder(model,
-        hasThisLocal: entity.isInstanceMember || entity.isConstructor);
+        hasThisLocal: hasThisLocal,
+        addTypeChecks: options.enableTypeAssertions);
     if (entity.isField) {
       if (node is ir.Field && node.initializer != null) {
         node.accept(translator);
@@ -80,8 +90,12 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   Map<ir.TreeNode, ClosureRepresentationInfo> _localClosureRepresentationMap =
       <ir.TreeNode, ClosureRepresentationInfo>{};
 
-  KernelClosureConversionTask(
-      Measurer measurer, this._elementMap, this._globalLocalsMap)
+  /// If true add type assertions to assert that at runtime the type is in line
+  /// with the stated type.
+  final bool _addTypeChecks;
+
+  KernelClosureConversionTask(Measurer measurer, this._elementMap,
+      this._globalLocalsMap, this._addTypeChecks)
       : super(measurer);
 
   /// The combined steps of generating our intermediate representation of
@@ -94,12 +108,31 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
   void convertClosures(Iterable<MemberEntity> processedEntities,
       ClosedWorldRefiner closedWorldRefiner) {}
 
-  void createClosureEntities(
+  void _updateScopeBasedOnRtiNeed(
+      KernelScopeInfo scope,
+      ir.Node node,
+      Set<ir.Node> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingRti,
+      MemberEntity outermostEntity) {
+    if (localFunctionsNeedingRti.contains(node) ||
+        classesNeedingRti.contains(outermostEntity.enclosingClass) ||
+        _addTypeChecks) {
+      if (outermostEntity is FunctionEntity &&
+          outermostEntity is! ConstructorEntity) {
+        scope.thisUsedAsFreeVariable = scope.thisUsedAsFreeVariableIfNeedsRti ||
+            scope.thisUsedAsFreeVariable;
+      } else {
+        scope.freeVariables.addAll(scope.freeVariablesForRti);
+      }
+    }
+  }
+
+  Iterable<FunctionEntity> createClosureEntities(
       JsClosedWorldBuilder closedWorldBuilder,
       Map<MemberEntity, ScopeModel> closureModels,
-      // TODO(johnniwinther,efortuna): Use this to add needed access to type
-      // variables for RTI.
-      Set<ir.Node> localFunctionsNeedingRti) {
+      Set<ir.Node> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingRti) {
+    List<FunctionEntity> callMethods = <FunctionEntity>[];
     closureModels.forEach((MemberEntity member, ScopeModel model) {
       KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
       Map<Local, JRecordField> allBoxedVariables =
@@ -111,6 +144,9 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
           .forEach((ir.Node node, KernelCapturedScope scope) {
         Map<Local, JRecordField> boxedVariables =
             _elementMap.makeRecordContainer(scope, member, localsMap);
+        _updateScopeBasedOnRtiNeed(
+            scope, node, localFunctionsNeedingRti, classesNeedingRti, member);
+
         if (scope is KernelCapturedLoopScope) {
           _capturedScopesMap[node] = new JsCapturedLoopScope.from(
               boxedVariables, scope, localsMap, _elementMap);
@@ -137,11 +173,15 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
             member,
             functionNode,
             closuresToGenerate[node],
-            allBoxedVariables);
+            allBoxedVariables,
+            localFunctionsNeedingRti,
+            classesNeedingRti);
         // Add also for the call method.
         _scopeMap[closureClass.callMethod] = closureClass;
+        callMethods.add(closureClass.callMethod);
       }
     });
+    return callMethods;
   }
 
   /// Given what variables are captured at each point, construct closure classes
@@ -155,7 +195,11 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       MemberEntity member,
       ir.FunctionNode node,
       KernelScopeInfo info,
-      Map<Local, JRecordField> boxedVariables) {
+      Map<Local, JRecordField> boxedVariables,
+      Set<ir.Node> localFunctionsNeedingRti,
+      Set<ClassEntity> classesNeedingRti) {
+    _updateScopeBasedOnRtiNeed(
+        info, node.parent, localFunctionsNeedingRti, classesNeedingRti, member);
     KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(member);
     KernelClosureClass closureClass = closedWorldBuilder.buildClosureClass(
         member,
@@ -220,18 +264,6 @@ class KernelClosureConversionTask extends ClosureConversionTask<ir.Node> {
       _capturedScopesMap[loopNode] ?? const CapturedLoopScope();
 
   @override
-  ClosureRepresentationInfo getClosureInfoForMember(MemberEntity entity) {
-    var closure = _memberClosureRepresentationMap[entity];
-    // TODO(johnniwinther): Re-insert assertion or remove
-    // [getClosureInfoForMember].
-    /*assert(
-        closure != null,
-        "Corresponding closure class not found for $entity. "
-        "Closures found for ${_memberClosureRepresentationMap.keys}");*/
-    return closure ?? const ClosureRepresentationInfo();
-  }
-
-  @override
   ClosureRepresentationInfo getClosureInfo(ir.Node node) {
     assert(node is ir.FunctionExpression || node is ir.FunctionDeclaration);
     var closure = _localClosureRepresentationMap[node];
@@ -257,10 +289,25 @@ class KernelScopeInfo {
   Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
       freeVariables = new Set<ir.Node>();
 
+  /// A set of type parameters that are defined in another scope and are only
+  /// used if runtime type information is checked. If runtime type information
+  /// needs to be retained, all of these type variables will be added ot the
+  /// freeVariables set. Whether these variables are actually used as
+  /// freeVariables will be set by the time this structure is converted to a
+  /// JsScopeInfo, so JsScopeInfo does not need to use them.
+  Set<TypeParameterTypeWithContext> freeVariablesForRti =
+      new Set<TypeParameterTypeWithContext>();
+
   /// If true, `this` is used as a free variable, in this scope. It is stored
   /// separately from [freeVariables] because there is no single
   /// `VariableDeclaration` node that represents `this`.
   bool thisUsedAsFreeVariable = false;
+
+  /// If true, `this` is used as a free variable, in this scope if we are also
+  /// performing runtime type checks. It is stored
+  /// separately from [thisUsedAsFreeVariable] because we don't know at this
+  /// stage if we will be needing type checks for this scope.
+  bool thisUsedAsFreeVariableIfNeedsRti = false;
 
   KernelScopeInfo(this.hasThisLocal)
       : localsUsedInTryOrSync = new Set<ir.VariableDeclaration>(),
@@ -277,6 +324,9 @@ class KernelScopeInfo {
       this.capturedVariablesAccessor,
       this.localsUsedInTryOrSync,
       this.freeVariables,
+      this.freeVariablesForRti,
+      this.thisUsedAsFreeVariable,
+      this.thisUsedAsFreeVariableIfNeedsRti,
       this.hasThisLocal);
 
   String toString() {
@@ -352,9 +402,19 @@ class KernelCapturedScope extends KernelScopeInfo {
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
           freeVariables,
+      Set<TypeParameterTypeWithContext> freeVariablesForRti,
+      bool thisUsedAsFreeVariable,
+      bool thisUsedAsFreeVariableIfNeedsRti,
       bool hasThisLocal)
-      : super.withBoxedVariables(boxedVariables, capturedVariablesAccessor,
-            localsUsedInTryOrSync, freeVariables, hasThisLocal);
+      : super.withBoxedVariables(
+            boxedVariables,
+            capturedVariablesAccessor,
+            localsUsedInTryOrSync,
+            freeVariables,
+            freeVariablesForRti,
+            thisUsedAsFreeVariable,
+            thisUsedAsFreeVariableIfNeedsRti,
+            hasThisLocal);
 
   bool get requiresContextBox => boxedVariables.isNotEmpty;
 }
@@ -384,9 +444,19 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
       Set<ir.VariableDeclaration> localsUsedInTryOrSync,
       Set<ir.Node /* VariableDeclaration | TypeParameterTypeWithContext */ >
           freeVariables,
+      Set<TypeParameterTypeWithContext> freeVariablesForRti,
+      bool thisUsedAsFreeVariable,
+      bool thisUsedAsFreeVariableIfNeedsRti,
       bool hasThisLocal)
-      : super(boxedVariables, capturedVariablesAccessor, localsUsedInTryOrSync,
-            freeVariables, hasThisLocal);
+      : super(
+            boxedVariables,
+            capturedVariablesAccessor,
+            localsUsedInTryOrSync,
+            freeVariables,
+            freeVariablesForRti,
+            thisUsedAsFreeVariable,
+            thisUsedAsFreeVariableIfNeedsRti,
+            hasThisLocal);
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }
@@ -437,18 +507,11 @@ class KernelClosureClass extends JsScopeInfo
         return local;
       }
     }
-    failedAt(field, "No local for $field.");
+    failedAt(field, "No local for $field. Options: $localToFieldMap");
     return null;
   }
 
   FieldEntity get thisFieldEntity => localToFieldMap[thisLocal];
-
-  void forEachCapturedVariable(f(Local from, JField to)) {
-    for (Local l in localToFieldMap.keys) {
-      var jField = localToFieldMap[l];
-      if (l is! BoxLocal) f(l, jField);
-    }
-  }
 
   @override
   void forEachBoxedVariable(f(Local local, JField field)) {
@@ -485,9 +548,10 @@ class JClosureClass extends JClass {
   String toString() => '${jsElementPrefix}closure_class($name)';
 }
 
-class JClosureField extends JField {
+class JClosureField extends JField implements PrivatelyNamedJSEntity {
+  final Local _declaredEntity;
   JClosureField(String name, KernelClosureClass containingClass, bool isConst,
-      bool isAssignable)
+      bool isAssignable, this._declaredEntity)
       : super(
             containingClass.closureClassEntity.library,
             containingClass.closureClassEntity,
@@ -495,6 +559,12 @@ class JClosureField extends JField {
             isAssignable: isAssignable,
             isConst: isConst,
             isStatic: false);
+
+  @override
+  Local get declaredEntity => _declaredEntity;
+
+  @override
+  Entity get rootOfScope => enclosingClass;
 }
 
 /// A container for variables declared in a particular scope that are accessed
@@ -589,7 +659,7 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
 
     for (int i = 0; i < functionNode.positionalParameters.length; i++) {
       handleParameter(functionNode.positionalParameters[i],
-          isOptional: i < functionNode.requiredParameterCount);
+          isOptional: i >= functionNode.requiredParameterCount);
     }
     functionNode.namedParameters.toList()
       ..sort(namedOrdering)
@@ -603,13 +673,34 @@ class ClosureFunctionData extends ClosureMemberData implements FunctionData {
 }
 
 class ClosureFieldData extends ClosureMemberData implements FieldData {
+  DartType _type;
   ClosureFieldData(MemberDefinition definition, InterfaceType memberThisType)
       : super(definition, memberThisType);
 
   @override
   DartType getFieldType(KernelToElementMap elementMap) {
-    // A closure field doesn't have a Dart type.
-    return null;
+    if (_type != null) return _type;
+    ir.TreeNode sourceNode = definition.node;
+    ir.DartType type;
+    if (sourceNode is ir.Class) {
+      type = sourceNode.thisType;
+    } else if (sourceNode is ir.VariableDeclaration) {
+      type = sourceNode.type;
+    } else if (sourceNode is ir.Field) {
+      type = sourceNode.type;
+    } else if (sourceNode is ir.TypeLiteral) {
+      type = sourceNode.type;
+    } else if (sourceNode is ir.Typedef) {
+      type = sourceNode.type;
+    } else if (sourceNode is ir.TypeParameter) {
+      type = sourceNode.bound;
+    } else {
+      failedAt(
+          definition.member,
+          'Unexpected node type ${sourceNode} in '
+          'ClosureFieldData.getFieldType');
+    }
+    return _type = elementMap.getDartType(type);
   }
 
   @override
@@ -700,4 +791,13 @@ class TypeParameterTypeWithContext implements ir.Node {
   visitChildren(ir.Visitor v) {
     throw new UnsupportedError('TypeParameterTypeWithContext.visitChildren');
   }
+
+  int get hashCode => type.hashCode;
+
+  bool operator ==(other) {
+    if (other is! TypeParameterTypeWithContext) return false;
+    return type == other.type && memberContext == other.memberContext;
+  }
+
+  String toString() => 'TypeParameterTypeWithContext $type $memberContext';
 }

@@ -22,6 +22,7 @@ import 'dart:io' show File;
 export 'package:testing/testing.dart' show Chain, runMe;
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/src/base/processed_options.dart';
+import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/deprecated_problems.dart'
@@ -32,13 +33,12 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/kernel/verifier.dart' show verifyProgram;
 import 'package:front_end/src/fasta/testing/kernel_chain.dart'
     show BytesCollector, runDiff;
-import 'package:front_end/src/fasta/testing/patched_sdk_location.dart';
 import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:kernel/target/vm_fasta.dart' show VmFastaTarget;
+import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
@@ -81,13 +81,31 @@ class TreeShakerContext extends ChainContext {
     environment[ENABLE_FULL_COMPILE] = "";
     environment[AST_KIND_INDEX] = "${AstKind.Kernel.index}";
     bool updateExpectations = environment["updateExpectations"] == "true";
-    Uri sdk = await computePatchedSdk();
-    Uri outlineUri = sdk.resolve('outline.dill');
+
+    Uri platformLocation = _computePlatformBinariesLocation(environment);
+    Uri outlineUri = platformLocation.resolve('vm_outline.dill');
+    List<int> outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
+
     var options = new CompilerOptions()
       ..packagesFileUri = Uri.base.resolve(".packages");
-    List<int> outlineBytes = new File.fromUri(outlineUri).readAsBytesSync();
     return new TreeShakerContext(outlineUri, new ProcessedOptions(options),
         outlineBytes, updateExpectations);
+  }
+
+  /// Return the location of the platform binaries, such as `vm_outline.dill`
+  /// in the physical file system, using the given [environment] or the
+  /// default location in `xcodebuild`, `out`; or in the SDK distribution.
+  static Uri _computePlatformBinariesLocation(Map<String, String> environment) {
+    // Check if `--platformBinaries=/path/to/platform/` is given.
+    String platformBinaries = environment['platformBinaries'];
+    if (platformBinaries != null) {
+      if (!platformBinaries.endsWith('/')) {
+        platformBinaries = '$platformBinaries/';
+        return Uri.base.resolve(platformBinaries);
+      }
+    }
+    // Otherwise use the default mechanism.
+    return computePlatformBinariesLocation();
   }
 }
 
@@ -102,10 +120,9 @@ class BuildProgram
     return await CompilerContext.runWithOptions(context.options, (_) async {
       try {
         var platformOutline = context.loadPlatformOutline();
-        platformOutline.unbindCanonicalNames();
         var uriTranslator = await context.options.getUriTranslator();
         var dillTarget = new DillTarget(context.options.ticker, uriTranslator,
-            new VmFastaTarget(new TargetFlags(strongMode: false)));
+            new VmTarget(new TargetFlags(strongMode: false)));
         dillTarget.loader.appendLibraries(platformOutline);
         var sourceTarget = new KernelTarget(
             context.options.fileSystem, false, dillTarget, uriTranslator);

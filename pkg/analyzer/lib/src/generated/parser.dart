@@ -26,7 +26,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
+import 'package:front_end/src/fasta/parser/identifier_context.dart' as fasta;
+import 'package:front_end/src/fasta/parser/member_kind.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
+import 'package:front_end/src/fasta/scanner.dart' as fasta;
 
 export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -182,7 +185,7 @@ class Parser {
    * A flag indicating whether the analyzer [Parser] factory method
    * will return a fasta based parser or an analyzer based parser.
    */
-  static bool useFasta = const bool.fromEnvironment("useFastaParser");
+  static const bool useFasta = const bool.fromEnvironment("useFastaParser");
 
   /**
    * The source being parsed.
@@ -199,12 +202,6 @@ class Parser {
    * An [_errorListener] lock, if more than `0`, then errors are not reported.
    */
   int _errorListenerLock = 0;
-
-  /**
-   * A flag indicating whether the parser is to parse asserts in the initializer
-   * list of a constructor.
-   */
-  bool _enableAssertInitializer = false;
 
   /**
    * A flag indicating whether the parser is to parse the non-nullable modifier
@@ -274,13 +271,15 @@ class Parser {
    */
   bool parseGenericMethodComments = false;
 
+  bool allowNativeClause;
+
   /**
    * Initialize a newly created parser to parse tokens in the given [_source]
    * and to report any errors that are found to the given [_errorListener].
    */
   factory Parser(Source source, AnalysisErrorListener errorListener,
       {bool useFasta}) {
-    if (useFasta ?? Parser.useFasta) {
+    if ((useFasta ?? false) || Parser.useFasta) {
       return new _Parser2(source, errorListener);
     } else {
       return new Parser.withoutFasta(source, errorListener);
@@ -305,15 +304,15 @@ class Parser {
    * Return `true` if the parser is to parse asserts in the initializer list of
    * a constructor.
    */
-  bool get enableAssertInitializer => _enableAssertInitializer;
+  @deprecated
+  bool get enableAssertInitializer => true;
 
   /**
    * Set whether the parser is to parse asserts in the initializer list of a
    * constructor to match the given [enable] flag.
    */
-  void set enableAssertInitializer(bool enable) {
-    _enableAssertInitializer = enable;
-  }
+  @deprecated
+  void set enableAssertInitializer(bool enable) {}
 
   /**
    * Return `true` if the parser is to parse the non-nullable modifier in type
@@ -4287,6 +4286,7 @@ class Parser {
           _tokenMatchesKeyword(next, Keyword.CONST) ||
           _tokenMatchesKeyword(next, Keyword.VAR) ||
           _tokenMatchesKeyword(next, Keyword.THIS) ||
+          _tokenMatchesKeyword(next, Keyword.VOID) ||
           _tokenMatchesIdentifier(next)) {
         covariantKeyword = getAndAdvance();
       }
@@ -6687,8 +6687,7 @@ class Parser {
         } else if (_matches(TokenType.OPEN_CURLY_BRACKET) ||
             _matches(TokenType.FUNCTION)) {
           _reportErrorForCurrentToken(ParserErrorCode.MISSING_INITIALIZER);
-        } else if (_enableAssertInitializer &&
-            _matchesKeyword(Keyword.ASSERT)) {
+        } else if (_matchesKeyword(Keyword.ASSERT)) {
           initializers.add(_parseAssertInitializer());
         } else {
           initializers.add(parseConstructorFieldInitializer(false));
@@ -7801,7 +7800,6 @@ class Parser {
     BooleanErrorListener listener = new BooleanErrorListener();
     Parser parser = new Parser(_source, listener);
     parser._currentToken = _cloneTokens(startToken);
-    parser._enableAssertInitializer = _enableAssertInitializer;
     parser._enableNnbd = _enableNnbd;
     parser._inAsync = _inAsync;
     parser._inGenerator = _inGenerator;

@@ -7,13 +7,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+// TODO(devoncarew): We should look into not creating any labels until there's
+// at least 2 levels of nesting.
+
 /**
  * A computer for [CompilationUnit] closing labels.
  */
 class DartUnitClosingLabelsComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
-  final Map<int, List<_ClosingLabelWithLineCount>> _closingLabelsByEndLine = {};
+  final List<ClosingLabel> _closingLabels = [];
 
   DartUnitClosingLabelsComputer(this._lineInfo, this._unit);
 
@@ -22,19 +25,8 @@ class DartUnitClosingLabelsComputer {
    */
   List<ClosingLabel> compute() {
     _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
-    return _closingLabelsByEndLine.values
-        .where((l) => l.any((cl) => cl.spannedLines >= 2))
-        .expand((cls) => cls)
-        .map((clwlc) => clwlc.label)
-        .toList();
+    return _closingLabels;
   }
-}
-
-class _ClosingLabelWithLineCount {
-  final ClosingLabel label;
-  final int spannedLines;
-
-  _ClosingLabelWithLineCount(this.label, this.spannedLines);
 }
 
 /**
@@ -52,12 +44,13 @@ class _DartUnitClosingLabelsComputerVisitor
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.argumentList != null) {
       var label = node.constructorName.type.name.name;
-      if (node.constructorName.name != null)
+      if (node.constructorName.name != null) {
         label += ".${node.constructorName.name.name}";
-      // We override the node used for doing line calculations because otherwise constructors
-      // that split over multiple lines (but have parens on same line) would incorrectly
-      // get labels, because node.start on an instance creation expression starts at the start
-      // of the expression.
+      }
+      // We override the node used for doing line calculations because otherwise
+      // constructors that split over multiple lines (but have parens on same
+      // line) would incorrectly get labels, because node.start on an instance
+      // creation expression starts at the start of the expression.
       _addLabel(node, label, checkLinesUsing: node.argumentList);
     }
 
@@ -65,35 +58,19 @@ class _DartUnitClosingLabelsComputerVisitor
   }
 
   @override
-  visitListLiteral(ListLiteral node) {
-    final args = node.typeArguments?.arguments;
-    final typeName = args != null ? args[0]?.toString() : null;
+  Object visitListLiteral(ListLiteral node) {
+    final NodeList<TypeAnnotation> args = node.typeArguments?.arguments;
+    final String typeName = args != null ? args[0]?.toString() : null;
 
     if (typeName != null) {
-      _addLabel(node, "List<$typeName>");
+      _addLabel(node, "<$typeName>[]");
     }
 
     return super.visitListLiteral(node);
   }
 
   @override
-  Object visitMethodInvocation(MethodInvocation node) {
-    if (node.argumentList != null) {
-      final target = node.target;
-      final label = target is Identifier
-          ? "${target.name}.${node.methodName.name}"
-          : node.methodName.name;
-      // We override the node used for doing line calculations because otherwise methods
-      // that chain over multiple lines (but have parens on same line) would incorrectly
-      // get labels, because node.start on a methodInvocation starts at the start of the expression.
-      _addLabel(node, label, checkLinesUsing: node.argumentList);
-    }
-
-    return super.visitMethodInvocation(node);
-  }
-
-  @override
-  visitStringInterpolation(StringInterpolation node) {
+  Object visitStringInterpolation(StringInterpolation node) {
     interpolatedStringsEntered++;
     try {
       return super.visitStringInterpolation(node);
@@ -109,14 +86,20 @@ class _DartUnitClosingLabelsComputerVisitor
     }
 
     checkLinesUsing = checkLinesUsing ?? node;
-    final start = computer._lineInfo.getLocation(checkLinesUsing.offset);
-    final end = computer._lineInfo.getLocation(checkLinesUsing.end - 1);
-    final closingLabel = new ClosingLabel(node.offset, node.length, label);
-    final labelWithSpan = new _ClosingLabelWithLineCount(
-        closingLabel, end.lineNumber - start.lineNumber);
 
-    computer._closingLabelsByEndLine
-        .putIfAbsent(end.lineNumber, () => <_ClosingLabelWithLineCount>[])
-        .add(labelWithSpan);
+    final LineInfo_Location start =
+        computer._lineInfo.getLocation(checkLinesUsing.offset);
+    final LineInfo_Location end =
+        computer._lineInfo.getLocation(checkLinesUsing.end - 1);
+
+    int spannedLines = end.lineNumber - start.lineNumber;
+    if (spannedLines < 1) {
+      return;
+    }
+
+    final ClosingLabel closingLabel =
+        new ClosingLabel(node.offset, node.length, label);
+
+    computer._closingLabels.add(closingLabel);
   }
 }

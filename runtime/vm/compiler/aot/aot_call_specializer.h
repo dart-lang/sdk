@@ -10,13 +10,13 @@
 namespace dart {
 
 class Precompiler;
+class SpeculativeInliningPolicy;
 
 class AotCallSpecializer : public CallSpecializer {
  public:
   AotCallSpecializer(Precompiler* precompiler,
                      FlowGraph* flow_graph,
-                     bool use_speculative_inlining,
-                     GrowableArray<intptr_t>* inlining_black_list);
+                     SpeculativeInliningPolicy* speculative_policy);
 
   virtual ~AotCallSpecializer() {}
 
@@ -45,17 +45,15 @@ class AotCallSpecializer : public CallSpecializer {
 
   bool TryInlineFieldAccess(InstanceCallInstr* call);
 
-  virtual bool IsAllowedForInlining(intptr_t deopt_id) const;
+  Value* PrepareStaticOpInput(Value* input, intptr_t cid, Instruction* call);
+
+  Value* PrepareReceiverOfDevirtualizedCall(Value* input, intptr_t cid);
 
   bool TryOptimizeInstanceCallUsingStaticTypes(InstanceCallInstr* instr);
 
   virtual bool TryOptimizeStaticCallUsingStaticTypes(StaticCallInstr* call);
 
   Precompiler* precompiler_;
-
-  const bool use_speculative_inlining_;
-
-  GrowableArray<intptr_t>* inlining_black_list_;
 
   bool has_unique_no_such_method_;
 

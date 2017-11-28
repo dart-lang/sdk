@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 typedef FunctionReturningNum = () → core::num;
-static method main() → dynamic {
+static method test() → dynamic {
   core::int i = 1;
   core::Object o = 1;
   () → core::num a = () → dynamic => i;
@@ -15,3 +15,4 @@ static method main() → dynamic {
     return o;
   };
 }
+static method main() → dynamic {}

@@ -25,9 +25,10 @@ void main() {
     var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
     Expect.isNotNull(main, "Could not find 'main'");
 
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
 
-    var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     var backend = compiler.backend;
     var classes = backend.emitter.neededClasses;
     var inputElement = classes.where((e) => e.name == 'InputElement').single;

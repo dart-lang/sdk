@@ -150,7 +150,7 @@ Future<List<Map<String, String>>> listFilesCallback(Uri dirPath) async {
   var dir = new Directory.fromUri(dirPath);
   var dirPathStr = dirPath.path;
   var stream = dir.list(recursive: true);
-  var result = [];
+  var result = <Map<String, String>>[];
   await for (var fileEntity in stream) {
     var filePath = new Uri.file(fileEntity.path).path;
     var stat = await fileEntity.stat();

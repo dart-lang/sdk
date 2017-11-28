@@ -19,7 +19,6 @@ import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/resolution/class_hierarchy.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
@@ -383,7 +382,6 @@ Future<ResultKind> runTest(
     bool expectAstEquivalence: false,
     bool expectIdenticalOutput: true}) async {
   enableDebugMode();
-  EnumCreator.matchKernelRepresentationForTesting = true;
   Elements.usePatchedDart2jsSdkSorting = true;
   useOptimizedMixins = true;
 
@@ -397,7 +395,7 @@ Future<ResultKind> runTest(
       outputProvider: collector1,
       options: <String>[]..addAll(commonOptions)..addAll(options));
   ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler1.resolution.retainCachesForTesting = true;
+  compiler1.impactCacheDeleter.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
   if (collector.crashes.isNotEmpty) {
     print('Skipping due to crashes.');

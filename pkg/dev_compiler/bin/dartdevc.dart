@@ -13,7 +13,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/command_line/arguments.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:bazel_worker/bazel_worker.dart';
-import 'package:dev_compiler/src/compiler/command.dart';
+import 'package:dev_compiler/src/analyzer/command.dart';
 
 Future main(List<String> args) async {
   // Always returns a new modifiable list.

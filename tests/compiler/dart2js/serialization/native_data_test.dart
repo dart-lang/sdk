@@ -59,26 +59,26 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
   NativeDataImpl nativeData2 = closedWorld2.nativeData;
 
   checkMaps(nativeData1.jsInteropLibraries, nativeData2.jsInteropLibraries,
-      "NativeData.jsInteropLibraryNames", areElementsEquivalent, equality,
+      "NativeData.jsInteropLibraryNames", areEntitiesEquivalent, equality,
       verbose: verbose);
 
   checkMaps(nativeData1.jsInteropClasses, nativeData2.jsInteropClasses,
-      "NativeData.jsInteropClassNames", areElementsEquivalent, equality,
+      "NativeData.jsInteropClassNames", areEntitiesEquivalent, equality,
       verbose: verbose);
 
   checkMaps(nativeData1.jsInteropMembers, nativeData2.jsInteropMembers,
-      "NativeData.jsInteropMemberNames", areElementsEquivalent, equality,
+      "NativeData.jsInteropMemberNames", areEntitiesEquivalent, equality,
       verbose: verbose);
 
   checkMaps(nativeData1.nativeMemberName, nativeData2.nativeMemberName,
-      "NativeData.nativeMemberName", areElementsEquivalent, equality,
+      "NativeData.nativeMemberName", areEntitiesEquivalent, equality,
       verbose: verbose);
 
   checkMaps(
       nativeBasicData1.nativeClassTagInfo,
       nativeBasicData2.nativeClassTagInfo,
       "NativeData.nativeClassTagInfo",
-      areElementsEquivalent,
+      areEntitiesEquivalent,
       equality,
       verbose: verbose);
 
@@ -86,7 +86,7 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
       nativeData1.nativeMethodBehavior,
       nativeData2.nativeMethodBehavior,
       "NativeData.nativeMethodBehavior",
-      areElementsEquivalent,
+      areEntitiesEquivalent,
       testNativeBehavior,
       verbose: verbose);
 
@@ -94,7 +94,7 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
       nativeData1.nativeFieldLoadBehavior,
       nativeData2.nativeFieldLoadBehavior,
       "NativeData.nativeFieldLoadBehavior",
-      areElementsEquivalent,
+      areEntitiesEquivalent,
       testNativeBehavior,
       verbose: verbose);
 
@@ -102,7 +102,7 @@ Future checkNativeData(Uri uri, {bool verbose: false}) async {
       nativeData1.nativeFieldStoreBehavior,
       nativeData2.nativeFieldStoreBehavior,
       "NativeData.nativeFieldStoreBehavior",
-      areElementsEquivalent,
+      areEntitiesEquivalent,
       testNativeBehavior,
       verbose: verbose);
 }

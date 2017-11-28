@@ -7,8 +7,6 @@ library fasta.type_declaration_builder;
 import 'builder.dart'
     show Builder, LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
 
-import '../util/relativize.dart' show relativizeUri;
-
 abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
   final List<MetadataBuilder> metadata;
@@ -19,16 +17,10 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   Builder parent;
 
-  final Uri fileUri;
-  final String relativeFileUri;
-
   TypeDeclarationBuilder(
       this.metadata, this.modifiers, this.name, this.parent, int charOffset,
       [Uri fileUri])
-      : fileUri = fileUri ?? parent?.fileUri,
-        relativeFileUri =
-            fileUri != null ? relativizeUri(fileUri) : parent?.relativeFileUri,
-        super(parent, charOffset, fileUri ?? parent?.fileUri);
+      : super(parent, charOffset, fileUri);
 
   bool get isTypeDeclaration => true;
 

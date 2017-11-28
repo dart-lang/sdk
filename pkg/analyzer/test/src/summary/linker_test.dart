@@ -820,28 +820,6 @@ var x = {
     expect(libraryCycle.libraries, [testLibrary]);
   }
 
-  void test_malformed_function_reference() {
-    // Create a corrupted package bundle in which the inferred type of `x`
-    // refers to a non-existent local function.
-    var bundle = createPackageBundle('var x = () {}', path: '/a.dart');
-    expect(bundle.linkedLibraries, hasLength(1));
-    expect(bundle.linkedLibraries[0].units, hasLength(1));
-    for (LinkedReferenceBuilder ref
-        in bundle.linkedLibraries[0].units[0].references) {
-      if (ref.kind == ReferenceKind.function) {
-        ref.localIndex = 1234;
-      }
-    }
-    addBundle('/a.ds', bundle);
-    createLinker('''
-import 'a.dart';
-var y = x;
-''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    expect(_getVariable(library.getContainedName('y')).inferredType.toString(),
-        'dynamic');
-  }
-
   void test_multiplyInheritedExecutable_differentSignatures() {
     createLinker('''
 class B {

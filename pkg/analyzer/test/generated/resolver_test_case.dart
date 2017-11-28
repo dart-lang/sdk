@@ -28,7 +28,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:front_end/byte_store.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:test/test.dart';
 
 import '../src/context/mock_sdk.dart';
@@ -662,8 +662,8 @@ class ResolverTestCase extends EngineTestCase {
     if (options != null && packages != null) {
       fail('Only packages or options can be specified.');
     }
+    options ??= defaultAnalysisOptions;
     if (enableNewAnalysisDriver) {
-      options ??= defaultAnalysisOptions;
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
 

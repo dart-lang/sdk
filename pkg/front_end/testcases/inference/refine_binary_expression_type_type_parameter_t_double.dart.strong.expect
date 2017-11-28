@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 class C<T extends core::num> extends core::Object {
-  field self::C::T a = null;
+  generic-covariant-impl generic-covariant-interface field self::C::T a = null;
   default constructor •() → void
     : super core::Object::•()
     ;
   method op(core::double b) → void {
-    core::double r1 = this.{self::C::a}.{core::num::+}(b);
-    core::double r2 = this.{self::C::a}.{core::num::-}(b);
-    core::double r3 = this.{self::C::a}.{core::num::*}(b);
+    core::double r1 = this.{self::C::a}.{core::num::+}(b) as{TypeError} core::double;
+    core::double r2 = this.{self::C::a}.{core::num::-}(b) as{TypeError} core::double;
+    core::double r3 = this.{self::C::a}.{core::num::*}(b) as{TypeError} core::double;
     core::double r4 = this.{self::C::a}.{core::num::/}(b);
   }
 }

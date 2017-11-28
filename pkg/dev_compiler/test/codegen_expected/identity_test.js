@@ -4,7 +4,9 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
   const minitest = expect.minitest;
-  const identity_test = Object.create(null);
+  const _root = Object.create(null);
+  const identity_test = Object.create(_root);
+  const $_equals = dartx._equals;
   const $_get = dartx._get;
   let TToT = () => (TToT = dart.constFn(dart.gFnType(T => [T, [T]])))();
   let VoidToT = () => (VoidToT = dart.constFn(dart.gFnType(T => [T, []])))();
@@ -21,14 +23,15 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   (identity_test.Music.new = function(x) {
     this.index = x;
   }).prototype = identity_test.Music.prototype;
-  dart.setSignature(identity_test.Music, {
-    fields: () => ({index: dart.finalFieldType(core.int)})
-  });
-  dart.defineExtensionMembers(identity_test.Music, ["toString"]);
-  dart.defineEnumValues(identity_test.Music, [
-    'country',
-    'western'
-  ]);
+  dart.addTypeTests(identity_test.Music);
+  dart.setFieldSignature(identity_test.Music, () => ({
+    __proto__: dart.getFields(identity_test.Music.__proto__),
+    index: dart.finalFieldType(core.int)
+  }));
+  dart.defineExtensionMethods(identity_test.Music, ['toString']);
+  identity_test.Music.country = dart.const(new identity_test.Music.new(0));
+  identity_test.Music.western = dart.const(new identity_test.Music.new(1));
+  identity_test.Music.values = dart.constList([identity_test.Music.country, identity_test.Music.western], identity_test.Music);
   identity_test.BluesBrother = class BluesBrother extends core.Object {};
   (identity_test.BluesBrother.new = function() {
   }).prototype = identity_test.BluesBrother.prototype;
@@ -46,31 +49,33 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
   (identity_test._Elwood.new = function() {
   }).prototype = identity_test._Elwood.prototype;
   dart.addTypeTests(identity_test._Elwood);
-  dart.setSignature(identity_test._Elwood, {
-    methods: () => ({_equals: dart.fnType(core.bool, [core.Object])})
-  });
-  dart.defineExtensionMembers(identity_test._Elwood, ['_equals']);
+  dart.setMethodSignature(identity_test._Elwood, () => ({
+    __proto__: dart.getMethods(identity_test._Elwood.__proto__),
+    _equals: dart.fnType(core.bool, [core.Object]),
+    [$_equals]: dart.fnType(core.bool, [core.Object])
+  }));
+  dart.defineExtensionMethods(identity_test._Elwood, ['_equals']);
   identity_test._Norman = class _Norman extends identity_test.BluesBrother {};
   (identity_test._Norman.new = function() {
   }).prototype = identity_test._Norman.prototype;
   dart.addTypeTests(identity_test._Norman);
-  identity_test.hideNull = function(T) {
-    return x => x;
+  identity_test.hideNull = function(T, x) {
+    return x;
   };
   dart.fn(identity_test.hideNull, TToT());
   identity_test.getUndefined = function(T) {
-    return () => T._check(core.List.new(1)[$_get](0));
+    return T._check(core.List.new(1)[$_get](0));
   };
   dart.fn(identity_test.getUndefined, VoidToT());
   identity_test.main = function() {
     minitest.group('Enum identity', dart.fn(() => {
       minitest.test('Identical enum/enum (nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(identity_test.Music)(identity_test.Music.country);
-        let e2 = identity_test.hideNull(identity_test.Music)(identity_test.Music.western);
-        let d1 = identity_test.hideNull(identity_test.Music)(identity_test.Music.country);
-        let d2 = identity_test.hideNull(identity_test.Music)(identity_test.Music.western);
-        let o1 = identity_test.hideNull(core.Object)(identity_test.Music.country);
-        let o2 = identity_test.hideNull(core.Object)(identity_test.Music.western);
+        let e1 = identity_test.hideNull(identity_test.Music, identity_test.Music.country);
+        let e2 = identity_test.hideNull(identity_test.Music, identity_test.Music.western);
+        let d1 = identity_test.hideNull(identity_test.Music, identity_test.Music.country);
+        let d2 = identity_test.hideNull(identity_test.Music, identity_test.Music.western);
+        let o1 = identity_test.hideNull(core.Object, identity_test.Music.country);
+        let o2 = identity_test.hideNull(core.Object, identity_test.Music.western);
         minitest.expect(e1 == e1, true);
         minitest.expect(core.identical(e1, d1), true);
         minitest.expect(core.identical(e1, o1), true);
@@ -119,13 +124,13 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(o1 === o2, false);
       }, VoidToNull()));
       minitest.test('Identical enum/other (static, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(identity_test.Music)(identity_test.Music.country);
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test.BluesBrother)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(identity_test.Music, identity_test.Music.country);
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test.BluesBrother, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -161,14 +166,14 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(b1 === e1, false);
       }, VoidToNull()));
       minitest.test('Identical enum/other (dynamic, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(identity_test.Music)(identity_test.Music.country);
-        let d1 = identity_test.hideNull(identity_test.Music)(identity_test.Music.country);
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test._Norman)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(identity_test.Music, identity_test.Music.country);
+        let d1 = identity_test.hideNull(identity_test.Music, identity_test.Music.country);
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test._Norman, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -231,12 +236,12 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
     }, VoidToNull()));
     minitest.group('String identity', dart.fn(() => {
       minitest.test('Identical string/string (nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.String)("The");
-        let e2 = identity_test.hideNull(core.String)("Band");
-        let d1 = identity_test.hideNull(core.String)("The");
-        let d2 = identity_test.hideNull(core.String)("Band");
-        let o1 = identity_test.hideNull(core.Object)("The");
-        let o2 = identity_test.hideNull(core.Object)("Band");
+        let e1 = identity_test.hideNull(core.String, "The");
+        let e2 = identity_test.hideNull(core.String, "Band");
+        let d1 = identity_test.hideNull(core.String, "The");
+        let d2 = identity_test.hideNull(core.String, "Band");
+        let o1 = identity_test.hideNull(core.Object, "The");
+        let o2 = identity_test.hideNull(core.Object, "Band");
         minitest.expect(e1 == e1, true);
         minitest.expect(core.identical(e1, d1), true);
         minitest.expect(core.identical(e1, o1), true);
@@ -285,13 +290,13 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(o1 === o2, false);
       }, VoidToNull()));
       minitest.test('Identical string/other (static, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.String)("The");
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test.BluesBrother)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(core.String, "The");
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test.BluesBrother, new identity_test._Norman.new());
         minitest.expect(e1 == s1, false);
         minitest.expect(e1 == s2, false);
         minitest.expect(core.identical(e1, i1), false);
@@ -327,14 +332,14 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(b1 === e1, false);
       }, VoidToNull()));
       minitest.test('Identical string/other (dynamic, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.String)("The");
-        let d1 = identity_test.hideNull(core.String)("The");
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test._Norman)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(core.String, "The");
+        let d1 = identity_test.hideNull(core.String, "The");
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test._Norman, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -397,12 +402,12 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
     }, VoidToNull()));
     minitest.group('Boolean identity', dart.fn(() => {
       minitest.test('Identical bool/bool (nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.bool)(true);
-        let e2 = identity_test.hideNull(core.bool)(false);
-        let d1 = identity_test.hideNull(core.bool)(true);
-        let d2 = identity_test.hideNull(core.bool)(false);
-        let o1 = identity_test.hideNull(core.Object)(true);
-        let o2 = identity_test.hideNull(core.Object)(false);
+        let e1 = identity_test.hideNull(core.bool, true);
+        let e2 = identity_test.hideNull(core.bool, false);
+        let d1 = identity_test.hideNull(core.bool, true);
+        let d2 = identity_test.hideNull(core.bool, false);
+        let o1 = identity_test.hideNull(core.Object, true);
+        let o2 = identity_test.hideNull(core.Object, false);
         minitest.expect(e1 == e1, true);
         minitest.expect(core.identical(e1, d1), true);
         minitest.expect(core.identical(e1, o1), true);
@@ -451,13 +456,13 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(o1 === o2, false);
       }, VoidToNull()));
       minitest.test('Identical bool/other (static, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.bool)(true);
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test.BluesBrother)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(core.bool, true);
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test.BluesBrother, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -493,14 +498,14 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(b1 === e1, false);
       }, VoidToNull()));
       minitest.test('Identical bool/other (dynamic, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.bool)(true);
-        let d1 = identity_test.hideNull(core.bool)(true);
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test._Norman)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(core.bool, true);
+        let d1 = identity_test.hideNull(core.bool, true);
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test._Norman, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -563,12 +568,12 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
     }, VoidToNull()));
     minitest.group('String identity', dart.fn(() => {
       minitest.test('Identical string/string (nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.String)("The");
-        let e2 = identity_test.hideNull(core.String)("Band");
-        let d1 = identity_test.hideNull(core.String)("The");
-        let d2 = identity_test.hideNull(core.String)("Band");
-        let o1 = identity_test.hideNull(core.Object)("The");
-        let o2 = identity_test.hideNull(core.Object)("Band");
+        let e1 = identity_test.hideNull(core.String, "The");
+        let e2 = identity_test.hideNull(core.String, "Band");
+        let d1 = identity_test.hideNull(core.String, "The");
+        let d2 = identity_test.hideNull(core.String, "Band");
+        let o1 = identity_test.hideNull(core.Object, "The");
+        let o2 = identity_test.hideNull(core.Object, "Band");
         minitest.expect(e1 == e1, true);
         minitest.expect(core.identical(e1, d1), true);
         minitest.expect(core.identical(e1, o1), true);
@@ -617,13 +622,13 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(o1 === o2, false);
       }, VoidToNull()));
       minitest.test('Identical string/other (static, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.String)("The");
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test.BluesBrother)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(core.String, "The");
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test.BluesBrother, new identity_test._Norman.new());
         minitest.expect(e1 == s1, false);
         minitest.expect(e1 == s2, false);
         minitest.expect(core.identical(e1, i1), false);
@@ -659,14 +664,14 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(b1 === e1, false);
       }, VoidToNull()));
       minitest.test('Identical string/other (dynamic, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.String)("The");
-        let d1 = identity_test.hideNull(core.String)("The");
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test._Norman)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(core.String, "The");
+        let d1 = identity_test.hideNull(core.String, "The");
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test._Norman, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -729,12 +734,12 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
     }, VoidToNull()));
     minitest.group('Number identity', dart.fn(() => {
       minitest.test('Identical int/int (nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.int)(11);
-        let e2 = identity_test.hideNull(core.int)(12);
-        let d1 = identity_test.hideNull(core.int)(11);
-        let d2 = identity_test.hideNull(core.int)(12);
-        let o1 = identity_test.hideNull(core.Object)(11);
-        let o2 = identity_test.hideNull(core.Object)(12);
+        let e1 = identity_test.hideNull(core.int, 11);
+        let e2 = identity_test.hideNull(core.int, 12);
+        let d1 = identity_test.hideNull(core.int, 11);
+        let d2 = identity_test.hideNull(core.int, 12);
+        let o1 = identity_test.hideNull(core.Object, 11);
+        let o2 = identity_test.hideNull(core.Object, 12);
         minitest.expect(e1 == e1, true);
         minitest.expect(core.identical(e1, d1), true);
         minitest.expect(core.identical(e1, o1), true);
@@ -783,13 +788,13 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(o1 === o2, false);
       }, VoidToNull()));
       minitest.test('Identical int/other (static, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.int)(11);
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test.BluesBrother)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(core.int, 11);
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test.BluesBrother, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(e1 == i1, false);
@@ -825,14 +830,14 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(b1 === e1, false);
       }, VoidToNull()));
       minitest.test('Identical int/other (dynamic, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(core.int)(11);
-        let d1 = identity_test.hideNull(core.int)(11);
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test._Norman)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(core.int, 11);
+        let d1 = identity_test.hideNull(core.int, 11);
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test._Norman, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -895,12 +900,12 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
     }, VoidToNull()));
     minitest.group('Object identity', dart.fn(() => {
       minitest.test('Identical object/object (nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(identity_test._Jake)(new identity_test._Jake.new());
-        let e2 = identity_test.hideNull(identity_test._Elwood)(new identity_test._Elwood.new());
-        let d1 = identity_test.hideNull(identity_test._Jake)(e1);
-        let d2 = identity_test.hideNull(identity_test._Elwood)(new identity_test._Elwood.new());
-        let o1 = identity_test.hideNull(core.Object)(e1);
-        let o2 = identity_test.hideNull(core.Object)(new identity_test._Elwood.new());
+        let e1 = identity_test.hideNull(identity_test._Jake, new identity_test._Jake.new());
+        let e2 = identity_test.hideNull(identity_test._Elwood, new identity_test._Elwood.new());
+        let d1 = identity_test.hideNull(identity_test._Jake, e1);
+        let d2 = identity_test.hideNull(identity_test._Elwood, new identity_test._Elwood.new());
+        let o1 = identity_test.hideNull(core.Object, e1);
+        let o2 = identity_test.hideNull(core.Object, new identity_test._Elwood.new());
         minitest.expect(e1 == e1, true);
         minitest.expect(core.identical(e1, d1), true);
         minitest.expect(core.identical(e1, o1), true);
@@ -949,13 +954,13 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(o1 === o2, false);
       }, VoidToNull()));
       minitest.test('Identical object/other (static, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(identity_test._Jake)(new identity_test._Jake.new());
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test.BluesBrother)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(identity_test._Jake, new identity_test._Jake.new());
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test.BluesBrother, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -991,14 +996,14 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(b1 === e1, false);
       }, VoidToNull()));
       minitest.test('Identical object/other (dynamic, nullable)', dart.fn(() => {
-        let e1 = identity_test.hideNull(identity_test._Jake)(new identity_test._Jake.new());
-        let d1 = identity_test.hideNull(identity_test._Jake)(new identity_test._Jake.new());
-        let s1 = identity_test.hideNull(core.String)("hello");
-        let s2 = identity_test.hideNull(core.String)("");
-        let i1 = identity_test.hideNull(core.int)(3);
-        let i2 = identity_test.hideNull(core.int)(0);
-        let l1 = identity_test.hideNull(core.List)(core.List.new(3));
-        let b1 = identity_test.hideNull(identity_test._Norman)(new identity_test._Norman.new());
+        let e1 = identity_test.hideNull(identity_test._Jake, new identity_test._Jake.new());
+        let d1 = identity_test.hideNull(identity_test._Jake, new identity_test._Jake.new());
+        let s1 = identity_test.hideNull(core.String, "hello");
+        let s2 = identity_test.hideNull(core.String, "");
+        let i1 = identity_test.hideNull(core.int, 3);
+        let i2 = identity_test.hideNull(core.int, 0);
+        let l1 = identity_test.hideNull(core.List, core.List.new(3));
+        let b1 = identity_test.hideNull(identity_test._Norman, new identity_test._Norman.new());
         minitest.expect(core.identical(e1, s1), false);
         minitest.expect(core.identical(e1, s2), false);
         minitest.expect(core.identical(e1, i1), false);
@@ -1061,11 +1066,11 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
     }, VoidToNull()));
     minitest.group('Null/undefined identity', dart.fn(() => {
       minitest.test('Identical object/other (static, null)', dart.fn(() => {
-        let n = identity_test.hideNull(identity_test.BluesBrother)(null);
-        let u1 = identity_test.getUndefined(core.String)();
-        let u2 = identity_test.getUndefined(core.int)();
-        let u3 = identity_test.getUndefined(core.bool)();
-        let u4 = identity_test.getUndefined(core.List)();
+        let n = identity_test.hideNull(identity_test.BluesBrother, null);
+        let u1 = identity_test.getUndefined(core.String);
+        let u2 = identity_test.getUndefined(core.int);
+        let u3 = identity_test.getUndefined(core.bool);
+        let u4 = identity_test.getUndefined(core.List);
         minitest.expect(n == n, true);
         minitest.expect(core.identical(n, u1), true);
         minitest.expect(core.identical(n, u2), true);
@@ -1077,11 +1082,11 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(u4 == n, true);
       }, VoidToNull()));
       minitest.test('Identical String/other (static, null)', dart.fn(() => {
-        let u1 = identity_test.getUndefined(identity_test.BluesBrother)();
-        let n = identity_test.hideNull(core.String)(null);
-        let u2 = identity_test.getUndefined(core.int)();
-        let u3 = identity_test.getUndefined(core.bool)();
-        let u4 = identity_test.getUndefined(core.List)();
+        let u1 = identity_test.getUndefined(identity_test.BluesBrother);
+        let n = identity_test.hideNull(core.String, null);
+        let u2 = identity_test.getUndefined(core.int);
+        let u3 = identity_test.getUndefined(core.bool);
+        let u4 = identity_test.getUndefined(core.List);
         minitest.expect(n == n, true);
         minitest.expect(core.identical(n, u1), true);
         minitest.expect(core.identical(n, u2), true);
@@ -1093,11 +1098,11 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(core.identical(u4, n), true);
       }, VoidToNull()));
       minitest.test('Identical int/other (static, null)', dart.fn(() => {
-        let u1 = identity_test.getUndefined(identity_test.BluesBrother)();
-        let u2 = identity_test.getUndefined(core.String)();
-        let n = identity_test.hideNull(core.int)(null);
-        let u3 = identity_test.getUndefined(core.bool)();
-        let u4 = identity_test.getUndefined(core.List)();
+        let u1 = identity_test.getUndefined(identity_test.BluesBrother);
+        let u2 = identity_test.getUndefined(core.String);
+        let n = identity_test.hideNull(core.int, null);
+        let u3 = identity_test.getUndefined(core.bool);
+        let u4 = identity_test.getUndefined(core.List);
         minitest.expect(n == n, true);
         minitest.expect(core.identical(n, u1), true);
         minitest.expect(core.identical(n, u2), true);
@@ -1109,11 +1114,11 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(core.identical(u4, n), true);
       }, VoidToNull()));
       minitest.test('Identical bool/other (static, null)', dart.fn(() => {
-        let u1 = identity_test.getUndefined(identity_test.BluesBrother)();
-        let u2 = identity_test.getUndefined(core.String)();
-        let u3 = identity_test.getUndefined(core.int)();
-        let n = identity_test.hideNull(core.bool)(null);
-        let u4 = identity_test.getUndefined(core.List)();
+        let u1 = identity_test.getUndefined(identity_test.BluesBrother);
+        let u2 = identity_test.getUndefined(core.String);
+        let u3 = identity_test.getUndefined(core.int);
+        let n = identity_test.hideNull(core.bool, null);
+        let u4 = identity_test.getUndefined(core.List);
         minitest.expect(n == n, true);
         minitest.expect(core.identical(n, u1), true);
         minitest.expect(core.identical(n, u2), true);
@@ -1125,11 +1130,11 @@ define(['dart_sdk', 'expect'], function(dart_sdk, expect) {
         minitest.expect(core.identical(u4, n), true);
       }, VoidToNull()));
       minitest.test('Identical List/other (static, null)', dart.fn(() => {
-        let u1 = identity_test.getUndefined(identity_test.BluesBrother)();
-        let u2 = identity_test.getUndefined(core.String)();
-        let u3 = identity_test.getUndefined(core.int)();
-        let u4 = identity_test.getUndefined(core.bool)();
-        let n = identity_test.hideNull(core.List)(null);
+        let u1 = identity_test.getUndefined(identity_test.BluesBrother);
+        let u2 = identity_test.getUndefined(core.String);
+        let u3 = identity_test.getUndefined(core.int);
+        let u4 = identity_test.getUndefined(core.bool);
+        let n = identity_test.hideNull(core.List, null);
         minitest.expect(n == n, true);
         minitest.expect(n == u1, true);
         minitest.expect(core.identical(n, u2), true);

@@ -4,6 +4,6 @@ import "dart:core" as core;
 
 static method f() → void {
   core::List<core::String> y;
-  core::Iterable<core::String> x = y.{core::Iterable::map}<core::String>((core::String z) → core::double => 1.0);
+  core::Iterable<core::String> x = y.{core::Iterable::map}<core::String>(((core::String z) → core::double => 1.0) as{TypeError} (core::String) → core::String);
 }
 static method main() → dynamic {}

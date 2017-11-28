@@ -291,9 +291,13 @@ void ClassHeapStats::ResetAtNewGC() {
   Verify();
   pre_gc.new_count = post_gc.new_count + recent.new_count;
   pre_gc.new_size = post_gc.new_size + recent.new_size;
+  pre_gc.new_external_size =
+      post_gc.new_external_size + recent.new_external_size;
   // Accumulate allocations.
   accumulated.new_count += recent.new_count - last_reset.new_count;
   accumulated.new_size += recent.new_size - last_reset.new_size;
+  accumulated.new_external_size +=
+      recent.new_external_size - last_reset.new_external_size;
   last_reset.ResetNew();
   post_gc.ResetNew();
   recent.ResetNew();
@@ -305,9 +309,13 @@ void ClassHeapStats::ResetAtOldGC() {
   Verify();
   pre_gc.old_count = post_gc.old_count + recent.old_count;
   pre_gc.old_size = post_gc.old_size + recent.old_size;
+  pre_gc.old_external_size =
+      post_gc.old_external_size + recent.old_external_size;
   // Accumulate allocations.
   accumulated.old_count += recent.old_count - last_reset.old_count;
   accumulated.old_size += recent.old_size - last_reset.old_size;
+  accumulated.old_external_size +=
+      recent.old_external_size - last_reset.old_external_size;
   last_reset.ResetOld();
   post_gc.ResetOld();
   recent.ResetOld();
@@ -336,8 +344,10 @@ void ClassHeapStats::ResetAccumulator() {
   // when printing.
   last_reset.new_count = recent.new_count;
   last_reset.new_size = recent.new_size;
+  last_reset.new_external_size = recent.new_external_size;
   last_reset.old_count = recent.old_count;
   last_reset.old_size = recent.old_size;
+  last_reset.old_external_size = recent.old_external_size;
   accumulated.Reset();
 }
 
@@ -356,28 +366,30 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
   {
     JSONArray new_stats(obj, "new");
     new_stats.AddValue(pre_gc.new_count);
-    new_stats.AddValue(pre_gc.new_size);
+    new_stats.AddValue(pre_gc.new_size + pre_gc.new_external_size);
     new_stats.AddValue(post_gc.new_count);
-    new_stats.AddValue(post_gc.new_size);
+    new_stats.AddValue(post_gc.new_size + post_gc.new_external_size);
     new_stats.AddValue(recent.new_count);
-    new_stats.AddValue(recent.new_size);
+    new_stats.AddValue(recent.new_size + recent.new_external_size);
     new_stats.AddValue64(accumulated.new_count + recent.new_count -
                          last_reset.new_count);
-    new_stats.AddValue64(accumulated.new_size + recent.new_size -
-                         last_reset.new_size);
+    new_stats.AddValue64(accumulated.new_size + accumulated.new_external_size +
+                         recent.new_size + recent.new_external_size -
+                         last_reset.new_size - last_reset.new_external_size);
   }
   {
     JSONArray old_stats(obj, "old");
     old_stats.AddValue(pre_gc.old_count);
-    old_stats.AddValue(pre_gc.old_size);
+    old_stats.AddValue(pre_gc.old_size + pre_gc.old_external_size);
     old_stats.AddValue(post_gc.old_count);
-    old_stats.AddValue(post_gc.old_size);
+    old_stats.AddValue(post_gc.old_size + post_gc.old_external_size);
     old_stats.AddValue(recent.old_count);
-    old_stats.AddValue(recent.old_size);
+    old_stats.AddValue(recent.old_size + recent.old_external_size);
     old_stats.AddValue64(accumulated.old_count + recent.old_count -
                          last_reset.old_count);
-    old_stats.AddValue64(accumulated.old_size + recent.old_size -
-                         last_reset.old_size);
+    old_stats.AddValue64(accumulated.old_size + accumulated.old_external_size +
+                         recent.old_size + recent.old_external_size -
+                         last_reset.old_size - last_reset.old_external_size);
   }
   obj->AddProperty("promotedInstances", promoted_count);
   obj->AddProperty("promotedBytes", promoted_size);
@@ -395,6 +407,18 @@ void ClassTable::UpdateAllocatedOld(intptr_t cid, intptr_t size) {
   ASSERT(stats != NULL);
   ASSERT(size != 0);
   stats->recent.AddOld(size);
+}
+
+void ClassTable::UpdateAllocatedExternalNew(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  stats->recent.AddNewExternal(size);
+}
+
+void ClassTable::UpdateAllocatedExternalOld(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  stats->recent.AddOldExternal(size);
 }
 
 bool ClassTable::ShouldUpdateSizeForClassId(intptr_t cid) {
@@ -551,6 +575,20 @@ void ClassTable::UpdateLiveNew(intptr_t cid, intptr_t size) {
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
   stats->post_gc.AddNew(size);
+}
+
+void ClassTable::UpdateLiveOldExternal(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->post_gc.AddOldExternal(size);
+}
+
+void ClassTable::UpdateLiveNewExternal(intptr_t cid, intptr_t size) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  ASSERT(stats != NULL);
+  ASSERT(size >= 0);
+  stats->post_gc.AddNewExternal(size);
 }
 #endif  // !PRODUCT
 

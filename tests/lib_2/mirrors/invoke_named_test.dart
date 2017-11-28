@@ -55,13 +55,12 @@ testSyncInvoke(ObjectMirror om) {
   result = om.invoke(const Symbol('a'), ['X'],
       {const Symbol('c'): 'Z', const Symbol('b'): 'Y'});
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => om.invoke(const Symbol('a'), []), isNoSuchMethodError,
+  Expect.throwsNoSuchMethodError(() => om.invoke(const Symbol('a'), []),
       'Insufficient positional arguments');
-  Expect.throws(() => om.invoke(const Symbol('a'), ['X', 'Y']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(() => om.invoke(const Symbol('a'), ['X', 'Y']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => om.invoke(const Symbol('a'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 
   result = om.invoke(const Symbol('b'), []);
@@ -71,11 +70,10 @@ testSyncInvoke(ObjectMirror om) {
   result = om.invoke(const Symbol('b'), [],
       {const Symbol('b'): 'Y', const Symbol('c'): 'Z', const Symbol('a'): 'X'});
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => om.invoke(const Symbol('b'), ['X']), isNoSuchMethodError,
-      'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(
+      () => om.invoke(const Symbol('b'), ['X']), 'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => om.invoke(const Symbol('b'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 
   result = om.invoke(const Symbol('c'), ['X']);
@@ -84,13 +82,13 @@ testSyncInvoke(ObjectMirror om) {
   Expect.equals('X-Y-C', result.reflectee);
   result = om.invoke(const Symbol('c'), ['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => om.invoke(const Symbol('c'), []), isNoSuchMethodError,
+  Expect.throwsNoSuchMethodError(() => om.invoke(const Symbol('c'), []),
       'Insufficient positional arguments');
-  Expect.throws(() => om.invoke(const Symbol('c'), ['X', 'Y', 'Z', 'W']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(
+      () => om.invoke(const Symbol('c'), ['X', 'Y', 'Z', 'W']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => om.invoke(const Symbol('c'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 
   result = om.invoke(const Symbol('d'), []);
@@ -101,22 +99,22 @@ testSyncInvoke(ObjectMirror om) {
   Expect.equals('X-Y-C', result.reflectee);
   result = om.invoke(const Symbol('d'), ['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => om.invoke(const Symbol('d'), ['X', 'Y', 'Z', 'W']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(
+      () => om.invoke(const Symbol('d'), ['X', 'Y', 'Z', 'W']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => om.invoke(const Symbol('d'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 
   result = om.invoke(const Symbol('e'), ['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => om.invoke(const Symbol('e'), ['X']), isNoSuchMethodError,
+  Expect.throwsNoSuchMethodError(() => om.invoke(const Symbol('e'), ['X']),
       'Insufficient positional arguments');
-  Expect.throws(() => om.invoke(const Symbol('e'), ['X', 'Y', 'Z', 'W']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(
+      () => om.invoke(const Symbol('e'), ['X', 'Y', 'Z', 'W']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => om.invoke(const Symbol('e'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 }
 
@@ -131,14 +129,14 @@ testSyncNewInstance() {
   result = cm.newInstance(const Symbol(''), ['X'],
       {const Symbol('c'): 'Z', const Symbol('b'): 'Y'});
   Expect.equals('X-Y-Z', result.reflectee.field);
-  Expect.throws(() => cm.newInstance(const Symbol(''), []), isNoSuchMethodError,
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(const Symbol(''), []),
       'Insufficient positional arguments');
-  Expect.throws(() => cm.newInstance(const Symbol(''), ['X', 'Y']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(
+      () => cm.newInstance(const Symbol(''), ['X', 'Y']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () =>
           cm.newInstance(const Symbol(''), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 
   result = cm.newInstance(const Symbol('b'), []);
@@ -148,12 +146,11 @@ testSyncNewInstance() {
   result = cm.newInstance(const Symbol('b'), [],
       {const Symbol('b'): 'Y', const Symbol('c'): 'Z', const Symbol('a'): 'X'});
   Expect.equals('X-Y-Z', result.reflectee.field);
-  Expect.throws(() => cm.newInstance(const Symbol('b'), ['X']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(const Symbol('b'), ['X']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => cm
           .newInstance(const Symbol('b'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 
   result = cm.newInstance(const Symbol('c'), ['X']);
@@ -162,14 +159,14 @@ testSyncNewInstance() {
   Expect.equals('X-Y-C', result.reflectee.field);
   result = cm.newInstance(const Symbol('c'), ['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee.field);
-  Expect.throws(() => cm.newInstance(const Symbol('c'), []),
-      isNoSuchMethodError, 'Insufficient positional arguments');
-  Expect.throws(() => cm.newInstance(const Symbol('c'), ['X', 'Y', 'Z', 'W']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(const Symbol('c'), []),
+      'Insufficient positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.newInstance(const Symbol('c'), ['X', 'Y', 'Z', 'W']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => cm
           .newInstance(const Symbol('c'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 
   result = cm.newInstance(const Symbol('d'), []);
@@ -180,24 +177,24 @@ testSyncNewInstance() {
   Expect.equals('X-Y-C', result.reflectee.field);
   result = cm.newInstance(const Symbol('d'), ['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee.field);
-  Expect.throws(() => cm.newInstance(const Symbol('d'), ['X', 'Y', 'Z', 'W']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(
+      () => cm.newInstance(const Symbol('d'), ['X', 'Y', 'Z', 'W']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => cm
           .newInstance(const Symbol('d'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 
   result = cm.newInstance(const Symbol('e'), ['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee.field);
-  Expect.throws(() => cm.newInstance(const Symbol('e'), ['X']),
-      isNoSuchMethodError, 'Insufficient positional arguments');
-  Expect.throws(() => cm.newInstance(const Symbol('e'), ['X', 'Y', 'Z', 'W']),
-      isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(const Symbol('e'), ['X']),
+      'Insufficient positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.newInstance(const Symbol('e'), ['X', 'Y', 'Z', 'W']),
+      'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
       () => cm
           .newInstance(const Symbol('e'), ['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError,
       'Unmatched named argument');
 }
 
@@ -212,12 +209,13 @@ testSyncApply() {
   Expect.equals('X-Y-null', result.reflectee);
   result = cm.apply(['X'], {const Symbol('c'): 'Z', const Symbol('b'): 'Y'});
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => cm.apply([]), isNoSuchMethodError,
-      'Insufficient positional arguments');
-  Expect.throws(() => cm.apply(['X', 'Y']), isNoSuchMethodError,
-      'Extra positional arguments');
-  Expect.throws(() => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError, 'Unmatched named argument');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply([]), 'Insufficient positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X', 'Y']), 'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
+      'Unmatched named argument');
 
   cm = reflect(b);
   result = cm.apply([]);
@@ -227,10 +225,11 @@ testSyncApply() {
   result = cm.apply([],
       {const Symbol('b'): 'Y', const Symbol('c'): 'Z', const Symbol('a'): 'X'});
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(
-      () => cm.apply(['X']), isNoSuchMethodError, 'Extra positional arguments');
-  Expect.throws(() => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError, 'Unmatched named argument');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X']), 'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
+      'Unmatched named argument');
 
   cm = reflect(c);
   result = cm.apply(['X']);
@@ -239,12 +238,13 @@ testSyncApply() {
   Expect.equals('X-Y-C', result.reflectee);
   result = cm.apply(['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => cm.apply([]), isNoSuchMethodError,
-      'Insufficient positional arguments');
-  Expect.throws(() => cm.apply(['X', 'Y', 'Z', 'W']), isNoSuchMethodError,
-      'Extra positional arguments');
-  Expect.throws(() => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError, 'Unmatched named argument');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply([]), 'Insufficient positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X', 'Y', 'Z', 'W']), 'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
+      'Unmatched named argument');
 
   cm = reflect(d);
   result = cm.apply([]);
@@ -255,20 +255,22 @@ testSyncApply() {
   Expect.equals('X-Y-C', result.reflectee);
   result = cm.apply(['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => cm.apply(['X', 'Y', 'Z', 'W']), isNoSuchMethodError,
-      'Extra positional arguments');
-  Expect.throws(() => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError, 'Unmatched named argument');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X', 'Y', 'Z', 'W']), 'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
+      'Unmatched named argument');
 
   cm = reflect(e);
   result = cm.apply(['X', 'Y', 'Z']);
   Expect.equals('X-Y-Z', result.reflectee);
-  Expect.throws(() => cm.apply(['X']), isNoSuchMethodError,
-      'Insufficient positional arguments');
-  Expect.throws(() => cm.apply(['X', 'Y', 'Z', 'W']), isNoSuchMethodError,
-      'Extra positional arguments');
-  Expect.throws(() => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
-      isNoSuchMethodError, 'Unmatched named argument');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X']), 'Insufficient positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X', 'Y', 'Z', 'W']), 'Extra positional arguments');
+  Expect.throwsNoSuchMethodError(
+      () => cm.apply(['X'], {const Symbol('undef'): 'Y'}),
+      'Unmatched named argument');
 }
 
 main() {

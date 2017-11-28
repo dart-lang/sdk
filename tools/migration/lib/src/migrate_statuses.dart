@@ -91,13 +91,12 @@ class EntrySet {
   /// Returns true if successful or false if the header's condition doesn't fit
   /// into a single status file and needs to be manually split by the user.
   bool add(String fromFile, String fromDir, String header, String entry) {
-    var toDir;
-
     // Since we're migrating isolate and html directories into lib_2 instead of
     // isolate_2 and html_2, the status file entries are moved from
     // {isolate,html}.status -> lib_2_*.status. This checks to see if we're
     // handling these special directories and sets the 'to directory' to lib_2
     // instead of isolate_2 or html_2.
+    String toDir;
     if ((fromDir == "isolate") || (fromDir == "html")) {
       toDir = "lib_2";
       entry = p.join(fromDir, entry);
@@ -150,7 +149,11 @@ void _collectEntries(List<Fork> files, EntrySet entriesToMove, {bool isOne}) {
       .toList();
 
   for (var fromDir in isOne ? oneRootDirs : strongRootDirs) {
-    for (var path in listFiles(fromDir, extension: ".status")) {
+    for (var path in listFiles(fromDir, extensions: [".status"])) {
+      // Don't copy entries from the special "_parser" status files because
+      // they use an unsupported compiler name.
+      if (path.contains("_parser.status")) continue;
+
       var editable = new EditableStatusFile(path);
 
       var deleteLines = <int>[];

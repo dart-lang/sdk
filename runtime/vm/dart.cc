@@ -94,7 +94,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Thread::object_null_offset(), 48);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   CHECK_OFFSET(Isolate::object_store_offset(), 28);
-  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
+  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 168));
 #endif
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
@@ -103,7 +103,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Thread::object_null_offset(), 96);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
   CHECK_OFFSET(Isolate::object_store_offset(), 56);
-  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 208));
+  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));
 #endif
 #undef CHECK_OFFSET
 }

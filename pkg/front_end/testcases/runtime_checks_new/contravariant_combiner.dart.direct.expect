@@ -1,0 +1,39 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B<T extends core::Object, U extends (self::B::T) → void> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(dynamic other) → self::B<self::B::T, (self::B::T) → void>
+    return null;
+}
+class C extends core::Object {
+  field self::B<core::num, (core::num) → void> x = null;
+  static field self::B<core::num, (core::num) → void> y = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator [](core::int i) → self::B<core::num, (core::num) → void>
+    return null;
+  operator []=(core::int i, self::B<core::num, (core::num) → void> v) → void {}
+}
+static method test1(self::B<core::num, (core::num) → void> b) → void {
+  b = b.+(1);
+  dynamic x = b = b.+(2);
+}
+static method test2(self::C c) → void {
+  let final dynamic #t1 = c in let final dynamic #t2 = 0 in #t1.[]=(#t2, #t1.[](#t2).+(1));
+  dynamic x = let final dynamic #t3 = c in let final dynamic #t4 = 0 in let final dynamic #t5 = #t3.[](#t4).+(2) in let final dynamic #t6 = #t3.[]=(#t4, #t5) in #t5;
+}
+static method test3(self::C c) → void {
+  let final dynamic #t7 = c in #t7.x = #t7.x.+(1);
+  dynamic x = let final dynamic #t8 = c in #t8.x = #t8.x.+(2);
+}
+static method test4(self::C c) → void {
+  self::C::y = self::C::y.+(1);
+  dynamic x = self::C::y = self::C::y.+(2);
+}
+static method main() → void {}

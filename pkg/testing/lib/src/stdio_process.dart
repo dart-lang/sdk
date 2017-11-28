@@ -6,7 +6,7 @@ library testing.stdio_process;
 
 import 'dart:async' show EventSink, Future, Stream, StreamTransformer, Timer;
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show utf8;
 
 import 'dart:io' show Process, ProcessSignal, Stdout;
 
@@ -67,8 +67,8 @@ class StdioProcess {
       await process.stdin.flush();
     }
     Future closeFuture = process.stdin.close();
-    Stream stdoutStream = process.stdout.transform(UTF8.decoder);
-    Stream stderrStream = process.stderr.transform(UTF8.decoder);
+    Stream stdoutStream = process.stdout.transform(utf8.decoder);
+    Stream stderrStream = process.stderr.transform(utf8.decoder);
     if (!suppressOutput) {
       stdoutStream = stdoutStream.transform(transformToStdio(io.stdout));
       stderrStream = stderrStream.transform(transformToStdio(io.stderr));

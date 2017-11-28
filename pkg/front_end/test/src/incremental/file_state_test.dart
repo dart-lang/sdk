@@ -24,7 +24,7 @@ main() {
 @reflectiveTest
 class FileSystemStateTest {
   final byteStore = new MemoryByteStore();
-  final fileSystem = new MemoryFileSystem(Uri.parse('file:///'));
+  final fileSystem = new MemoryFileSystem(Uri.parse('org-dartlang-test:///'));
   FileSystemState fsState;
 
   Uri _coreUri;
@@ -451,7 +451,7 @@ import 'b.dart';
   /// Write the given [text] of the file with the given [path] into the
   /// virtual filesystem.  Return the URI of the file.
   Uri writeFile(String path, String text) {
-    Uri uri = Uri.parse('file://$path');
+    Uri uri = Uri.parse('org-dartlang-test://$path');
     fileSystem.entityForUri(uri).writeAsStringSync(text);
     return uri;
   }

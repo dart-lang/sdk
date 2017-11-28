@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-
 class Super<T extends num> {}
 class Malbounded1 implements Super<String> {} // //# 01: static type warning
 class Malbounded2 extends Super<String> {} // //# 02: static type warning

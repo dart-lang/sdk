@@ -7,6 +7,7 @@ import 'dart:io';
 import 'command.dart';
 import 'configuration.dart';
 import 'path.dart';
+import 'repository.dart';
 import 'runtime_configuration.dart';
 import 'test_suite.dart';
 import 'utils.dart';
@@ -56,6 +57,9 @@ abstract class CompilerConfiguration {
       case Compiler.dartdevc:
         return new DevCompilerConfiguration(configuration);
 
+      case Compiler.dartdevk:
+        return new DevKernelCompilerConfiguration(configuration);
+
       case Compiler.appJit:
         return new AppJitCompilerConfiguration(configuration);
 
@@ -68,6 +72,9 @@ abstract class CompilerConfiguration {
       case Compiler.dartkp:
         return new PrecompilerCompilerConfiguration(configuration,
             useDfe: true);
+
+      case Compiler.specParser:
+        return new SpecParserCompilerConfiguration(configuration);
 
       case Compiler.none:
         return new NoneCompilerConfiguration(configuration);
@@ -143,12 +150,18 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     var args = <String>[];
     if (useDfe) {
       args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
-      args.add('--kernel-binaries=${buildDir}/patched_sdk');
+      args.add('--kernel-binaries=' +
+          (_useSdk
+              ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+              : '${buildDir}'));
       if (_isDebug) {
         // Temporarily disable background compilation to avoid flaky crashes
         // (see http://dartbug.com/30016 for details).
         args.add('--no-background-compilation');
       }
+    }
+    if (_isStrong) {
+      args.add('--strong');
     }
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -270,7 +283,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Common configuration for dart2js-based tools, such as, dart2js
+/// Common configuration for dart2js-based tools, such as dart2js.
 class Dart2xCompilerConfiguration extends CompilerConfiguration {
   final String moniker;
   static Map<String, List<Uri>> _bootstrapDependenciesCache = {};
@@ -324,7 +337,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-/// Configuration for dart2js compiler.
+/// Configuration for dart2js.
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   Dart2jsCompilerConfiguration(Configuration configuration)
       : super('dart2js', configuration);
@@ -356,14 +369,14 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       CommandArtifact artifact) {
     Uri sdk = _useSdk
         ? new Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : new Uri.directory(TestUtils.dartDir.toNativePath()).resolve('sdk/');
+        : new Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
     Uri preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
   }
 }
 
-/// Configuration for dart2js compiler.
+/// Configuration for dev-compiler.
 class DevCompilerConfiguration extends CompilerConfiguration {
   DevCompilerConfiguration(Configuration configuration)
       : super._subclass(configuration);
@@ -389,11 +402,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var moduleRoot =
         new Path(outputFile).directoryPath.directoryPath.toNativePath();
 
+    var sdkSummary = new Path(_configuration.buildDirectory)
+        .append("/gen/utils/dartdevc/ddc_sdk.sum")
+        .absolute
+        .toNativePath();
+
     var args = _useSdk
         ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
-        // TODO(jmesserly): once we can build DDC's SDK summary+JS as part of
-        // the main build, change this to reflect that output path.
-        : ["--dart-sdk-summary", "pkg/dev_compiler/lib/sdk/ddc_sdk.sum"];
+        : ["--dart-sdk-summary", sdkSummary];
 
     args.addAll(sharedOptions);
     args.addAll([
@@ -444,6 +460,82 @@ class DevCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
+/// Configuration for dev-compiler with the kernel front end.
+class DevKernelCompilerConfiguration extends CompilerConfiguration {
+  DevKernelCompilerConfiguration(Configuration configuration)
+      : super._subclass(configuration);
+
+  String computeCompilerPath() => "pkg/dev_compiler/bin/dartdevk.dart";
+
+  List<String> computeCompilerArguments(
+      List<String> vmOptions, List<String> sharedOptions, List<String> args) {
+    var result = sharedOptions.toList();
+
+    // The file being compiled is the last argument.
+    result.add(args.last);
+    return result;
+  }
+
+  Command createCommand(
+      String inputFile, String outputFile, List<String> sharedOptions,
+      [Map<String, String> environment = const {}]) {
+    var args = sharedOptions.toList();
+
+    var sdkSummary = new Path(_configuration.buildDirectory)
+        .append("/gen/utils/dartdevc/ddc_sdk.dill")
+        .absolute
+        .toNativePath();
+
+    args.addAll([
+      "--dart-sdk-summary",
+      sdkSummary,
+      "-o",
+      outputFile,
+      inputFile,
+    ]);
+
+    // Link to the summaries for the available packages, so that they don't
+    // get recompiled into the test's own module.
+    for (var package in testPackages) {
+      var summary = new Path(_configuration.buildDirectory)
+          .append("/gen/utils/dartdevc/pkg/$package.dill")
+          .absolute
+          .toNativePath();
+      args.add("-s");
+      args.add(summary);
+    }
+
+    // Use the directory containing the test as the working directory. This
+    // ensures dartdevk creates a short module named based on the test name
+    // (like "ackermann_test") and does not include any of the parent
+    // directories in the name (like "tests__language_2__ackermann_test").
+    var inputDir =
+        new Path(inputFile).append("..").canonicalize().toNativePath();
+    var compiler = Repository.dir.append(computeCompilerPath()).toNativePath();
+
+    return Command.compilation(Compiler.dartdevk.name, outputFile,
+        bootstrapDependencies(), compiler, args, environment,
+        workingDirectory: inputDir);
+  }
+
+  CommandArtifact computeCompilationArtifact(
+      String tempDir, List<String> arguments, Map<String, String> environment) {
+    // The list of arguments comes from a call to our own
+    // computeCompilerArguments(). It contains the shared options followed by
+    // the input file path.
+    // TODO(rnystrom): Jamming these into a list in order to pipe them from
+    // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
+    var sharedOptions = arguments.sublist(0, arguments.length - 1);
+    var inputFile = arguments.last;
+    var outputFile = "$tempDir/${inputFile.replaceAll('.dart', '.js')}";
+
+    return new CommandArtifact(
+        [createCommand(inputFile, outputFile, sharedOptions, environment)],
+        outputFile,
+        "application/javascript");
+  }
+}
+
 class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   final bool useDfe;
 
@@ -463,15 +555,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
   }
 
   // TODO(dartbug.com/30480): create a separate option to toggle
-  // strong mode optimizations if we need to test strong mode without
-  // optimizations.
-  bool get _experimentalStrongMode => _isStrong;
+  // strong mode optimizations.
+  bool get _enableStrongModeOptimizations => false;
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var commands = <Command>[];
 
-    if (_experimentalStrongMode) {
+    if (_isStrong) {
       commands.add(computeCompileToKernelCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -479,7 +570,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     commands.add(
         computeCompilationCommand(tempDir, arguments, environmentOverrides));
 
-    if (_experimentalStrongMode) {
+    if (_isStrong) {
       commands.add(computeRemoveKernelFileCommand(
           tempDir, arguments, environmentOverrides));
     }
@@ -504,14 +595,15 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var args = [
       '--packages=.packages',
       'pkg/front_end/tool/_fasta/compile.dart',
-      // TODO(dartbug.com/30480): use strong-mode version of platform.dill
-      '--platform=${buildDir}/patched_sdk/platform.dill',
-      '--target=vm_precompiler',
+      '--platform=${buildDir}/vm_platform_strong.dill',
       '--strong-mode',
       '--fatal=errors',
-      '-o',
-      tempKernelFile(tempDir),
     ];
+    if (_enableStrongModeOptimizations) {
+      args.add('--target-options=strong-aot');
+    }
+    args.add('-o');
+    args.add(tempKernelFile(tempDir));
     args.addAll(arguments.where((name) => name.endsWith('.dart')));
     return Command.compilation('compile_to_kernel', tempDir,
         bootstrapDependencies(), exec, args, environmentOverrides,
@@ -549,11 +641,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
     var args = <String>[];
     if (useDfe) {
-      if (!_experimentalStrongMode) {
-        args.add('--dfe=utils/kernel-service/kernel-service.dart');
+      if (!_isStrong) {
+        args.add('--dfe=pkg/vm/bin/kernel_service.dart');
       }
       // TODO(dartbug.com/30480): avoid using additional kernel binaries
-      args.add('--kernel-binaries=${buildDir}/patched_sdk');
+      args.add('--kernel-binaries=' +
+          (_useSdk
+              ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+              : '${buildDir}'));
     }
 
     args.add("--snapshot-kind=app-aot");
@@ -572,8 +667,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       args.add('--obfuscate');
     }
 
-    if (_experimentalStrongMode) {
+    if (_enableStrongModeOptimizations) {
       args.add('--experimental-strong-mode');
+    }
+
+    if (_isStrong) {
+      args.add('--strong');
       args.addAll(arguments.where((name) => !name.endsWith('.dart')));
       args.add(tempKernelFile(tempDir));
     } else {
@@ -782,6 +881,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
+/// Configuration for dartanalyzer.
 class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   AnalyzerCompilerConfiguration(Configuration configuration)
       : super._subclass(configuration);
@@ -819,6 +919,34 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     // Since this is not a real compilation, no artifacts are produced.
     return new CommandArtifact([
       Command.analysis(computeCompilerPath(), arguments, environmentOverrides)
+    ], null, null);
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    return <String>[];
+  }
+}
+
+/// Configuration for spec_parser.
+class SpecParserCompilerConfiguration extends CompilerConfiguration {
+  SpecParserCompilerConfiguration(Configuration configuration)
+      : super._subclass(configuration);
+
+  String computeCompilerPath() => 'tools/spec_parse.py';
+
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    arguments = arguments.toList();
+
+    // Since this is not a real compilation, no artifacts are produced.
+    return new CommandArtifact([
+      Command.specParse(computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
 

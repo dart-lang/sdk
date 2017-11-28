@@ -344,10 +344,8 @@ class _InstrumentationVisitor extends RecursiveAstVisitor<Null> {
 
   /// Based on DDC code generator's `_recoverTypeArguments`
   Iterable<DartType> _recoverTypeArguments(FunctionType g, FunctionType f) {
-    assert(identical(g.element, f.element));
     assert(g.typeFormals.isNotEmpty && f.typeFormals.isEmpty);
-    assert(g.typeFormals.length + g.typeArguments.length ==
-        f.typeArguments.length);
-    return f.typeArguments.skip(g.typeArguments.length);
+    assert(g.typeFormals.length <= f.typeArguments.length);
+    return f.typeArguments.skip(f.typeArguments.length - g.typeFormals.length);
   }
 }

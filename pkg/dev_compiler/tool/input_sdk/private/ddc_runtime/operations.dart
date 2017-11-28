@@ -45,13 +45,20 @@ class InvocationImpl extends Invocation {
 // TODO(leafp): Consider caching the tearoff on the object?
 bind(obj, name, method) {
   if (obj == null) obj = jsNull;
-
   if (method == null) method = JS('', '#[#]', obj, name);
   var f = JS('', '#.bind(#)', method, obj);
   // TODO(jmesserly): canonicalize tearoffs.
   JS('', '#._boundObject = #', f, obj);
   JS('', '#._boundMethod = #', f, method);
   JS('', '#[#] = #', f, _runtimeType, getMethodType(getType(obj), name));
+  return f;
+}
+
+tagStatic(type, name) {
+  var f = JS('', '#.#', type, name);
+  if (JS('', '#[#]', f, _runtimeType) == null) {
+    JS('', '#[#] = #[#][#]', f, _runtimeType, type, _staticMethodSig, name);
+  }
   return f;
 }
 
@@ -73,7 +80,7 @@ gbind(f, @rest typeArgs) {
 dload(obj, field) {
   var f = _canonicalMember(obj, field);
 
-  _trackCall(obj);
+  trackCall(obj);
   if (f != null) {
     var type = getType(obj);
 
@@ -91,7 +98,7 @@ dload(obj, field) {
 dloadMirror(obj, field) {
   var f = _canonicalMember(obj, field);
 
-  _trackCall(obj);
+  trackCall(obj);
   if (f != null) {
     var type = getType(obj);
 
@@ -116,7 +123,7 @@ _stripGenericArguments(type) {
 // PageLoader code can generate the correct reified generic types.
 dputMirror(obj, field, value) {
   var f = _canonicalMember(obj, field);
-  _trackCall(obj);
+  trackCall(obj);
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
@@ -124,13 +131,14 @@ dputMirror(obj, field, value) {
       return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
     }
   }
-  return noSuchMethod(
+  noSuchMethod(
       obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
+  return value;
 }
 
 dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
-  _trackCall(obj);
+  trackCall(obj);
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
@@ -141,8 +149,9 @@ dput(obj, field, value) {
       return JS('', '#[#] = #', obj, f, value);
     }
   }
-  return noSuchMethod(
+  noSuchMethod(
       obj, new InvocationImpl(field, JS('', '[#]', value), isSetter: true));
+  return value;
 }
 
 /// Check that a function of a given type can be applied to
@@ -215,15 +224,15 @@ _toDisplayName(name) => JS('', '''(() => {
 
 Symbol _dartSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(#, #))', const_, _internal.PrivateSymbol,
+      ? JS('Symbol', '#(new #.new(#, #))', const_, PrivateSymbol,
           _toSymbolName(name), name)
       : JS('Symbol', '#(#.new(#))', const_, Symbol, _toDisplayName(name));
 }
 
 Symbol _setterSymbol(name) {
   return (JS('bool', 'typeof # === "symbol"', name))
-      ? JS('Symbol', '#(new #.new(# + "=", #))', const_,
-          _internal.PrivateSymbol, _toSymbolName(name), name)
+      ? JS('Symbol', '#(new #.new(# + "=", #))', const_, PrivateSymbol,
+          _toSymbolName(name), name)
       : JS('Symbol', '#(#.new(# + "="))', const_, Symbol, _toDisplayName(name));
 }
 
@@ -241,7 +250,7 @@ extractNamedArgs(args) {
 }
 
 _checkAndCall(f, ftype, obj, typeArgs, args, name) => JS('', '''(() => {
-  $_trackCall($obj);
+  $trackCall($obj);
 
   let originalTarget = obj === void 0 ? f : obj;
 
@@ -368,16 +377,16 @@ dloadRepl(obj, field) =>
 dputRepl(obj, field, value) => _dhelperRepl(
     obj, field, (resolvedField) => dput(obj, resolvedField, value));
 
-_callMethodRepl(obj, method, typeArgs, args) => _dhelperRepl(obj, method,
-    (resolvedField) => _callMethod(obj, resolvedField, typeArgs, args, method));
+callMethodRepl(obj, method, typeArgs, args) => _dhelperRepl(obj, method,
+    (resolvedField) => callMethod(obj, resolvedField, typeArgs, args, method));
 
-dsendRepl(obj, method, @rest args) => _callMethodRepl(obj, method, null, args);
+dsendRepl(obj, method, @rest args) => callMethodRepl(obj, method, null, args);
 
 dgsendRepl(obj, typeArgs, method, @rest args) =>
-    _callMethodRepl(obj, method, typeArgs, args);
+    callMethodRepl(obj, method, typeArgs, args);
 
 /// Shared code for dsend, dindex, and dsetindex.
-_callMethod(obj, name, typeArgs, args, displayName) {
+callMethod(obj, name, typeArgs, args, displayName) {
   var symbol = _canonicalMember(obj, name);
   if (symbol == null) {
     return noSuchMethod(
@@ -390,16 +399,15 @@ _callMethod(obj, name, typeArgs, args, displayName) {
   return _checkAndCall(f, ftype, obj, typeArgs, args, displayName);
 }
 
-dsend(obj, method, @rest args) => _callMethod(obj, method, null, args, method);
+dsend(obj, method, @rest args) => callMethod(obj, method, null, args, method);
 
 dgsend(obj, typeArgs, method, @rest args) =>
-    _callMethod(obj, method, typeArgs, args, method);
+    callMethod(obj, method, typeArgs, args, method);
 
-dindex(obj, index) =>
-    _callMethod(obj, '_get', null, JS('', '[#]', index), '[]');
+dindex(obj, index) => callMethod(obj, '_get', null, JS('', '[#]', index), '[]');
 
 dsetindex(obj, index, value) =>
-    _callMethod(obj, '_set', null, JS('', '[#, #]', index, value), '[]=');
+    callMethod(obj, '_set', null, JS('', '[#, #]', index, value), '[]=');
 
 /// TODO(leafp): This duplicates code in types.dart.
 /// I haven't found a way to factor it out that makes the
@@ -534,39 +542,28 @@ notNull(x) {
   return x;
 }
 
-///
-/// Creates a dart:collection LinkedHashMap.
-///
-/// For a map with string keys an object literal can be used, for example
-/// `map({'hi': 1, 'there': 2})`.
-///
-/// Otherwise an array should be used, for example `map([1, 2, 3, 4])` will
-/// create a map with keys [1, 3] and values [2, 4]. Each key-value pair
-/// should be adjacent entries in the array.
-///
-/// For a map with no keys the function can be called with no arguments, for
-/// example `map()`.
-///
-// TODO(jmesserly): this could be faster
-// TODO(jmesserly): we can use default values `= dynamic` once #417 is fixed.
-// TODO(jmesserly): move this to classes for consistency with list literals?
-map(values, [K, V]) => JS('', '''(() => {
-  if ($K == null) $K = $dynamic;
-  if ($V == null) $V = $dynamic;
-  let map = ${getGenericClass(LinkedHashMap)}($K, $V).new();
-  if (Array.isArray($values)) {
-    for (let i = 0, end = $values.length - 1; i < end; i += 2) {
-      let key = $values[i];
-      let value = $values[i + 1];
-      map._set(key, value);
-    }
-  } else if (typeof $values === 'object') {
-    for (let key of $getOwnPropertyNames($values)) {
-      map._set(key, $values[key]);
-    }
+/// The global constant map table.
+final constantMaps = JS('', 'new Map()');
+
+constMap<K, V>(JSArray elements) {
+  Function(Object, Object) lookupNonTerminal = JS('', '''function(map, key) {
+    let result = map.get(key);
+    if (result != null) return result;
+    map.set(key, result = new Map());
+    return result;
+  }''');
+  var count = elements.length;
+  var map = lookupNonTerminal(constantMaps, count);
+  for (var i = 0; i < count; i++) {
+    map = lookupNonTerminal(map, JS('', '#[#]', elements, i));
   }
-  return map;
-})()''');
+  map = lookupNonTerminal(map, K);
+  var result = JS('', '#.get(#)', map, V);
+  if (result != null) return result;
+  result = new ImmutableMap<K, V>.from(elements);
+  JS('', '#.set(#, #)', map, V, result);
+  return result;
+}
 
 bool dassert(value) {
   if (JS('bool', '# != null && #[#] instanceof #', value, value, _runtimeType,
@@ -627,6 +624,11 @@ throw_(obj) {
   // package:stack_trace and tests appear to assume this.  We could fix use
   // cases instead, but we're already on the exceptional path here.
   recordJsError(obj, JS('', 'new Error()'));
+  JS('', 'throw #', obj);
+}
+
+@JSExportName('rethrow')
+rethrow_(obj) {
   JS('', 'throw #', obj);
 }
 
@@ -713,6 +715,8 @@ const_(obj) => JS('', '''(() => {
   // Right now we use the (name,value) pairs in sequence, which prevents
   // an object with incorrect field values being returned, but won't
   // canonicalize correctly if key order is different.
+  //
+  // See issue https://github.com/dart-lang/sdk/issues/30876
   for (let i = 0; i < count; i++) {
     let name = names[i];
     map = lookupNonTerminal(map, name);
@@ -777,6 +781,17 @@ int hashCode(obj) {
   return obj == null ? 0 : JS('int', '#[#]', obj, extensionSymbol('hashCode'));
 }
 
+hashKey(k) {
+  if (k == null) return 0;
+  switch (JS('String', 'typeof #', k)) {
+    case "object":
+    case "function":
+      return JS('int', '#[#] & 0x3ffffff', k, extensionSymbol('hashCode'));
+  }
+  // For primitive types we can store the key directly in an ES6 Map.
+  return k;
+}
+
 @JSExportName('toString')
 String _toString(obj) {
   if (obj == null) return "null";
@@ -791,8 +806,8 @@ noSuchMethod(obj, Invocation invocation) {
 
 /// The default implementation of `noSuchMethod` to match `Object.noSuchMethod`.
 defaultNoSuchMethod(obj, Invocation i) {
-  throwNoSuchMethodError(
-      obj, i.memberName, i.positionalArguments, i.namedArguments);
+  if (JS('bool', 'dart.__trapRuntimeErrors')) JS('', 'debugger');
+  throw new NoSuchMethodError.withInvocation(obj, i);
 }
 
 runtimeType(obj) {
@@ -812,6 +827,7 @@ String str(strings, @rest values) => JS('', '''(() => {
 
 final identityHashCode_ = JS('', 'Symbol("_identityHashCode")');
 
+/// Adapts a Dart `get iterator` into a JS `[Symbol.iterator]`.
 // TODO(jmesserly): instead of an adaptor, we could compile Dart iterators
 // natively implementing the JS iterator protocol. This would allow us to
 // optimize them a bit.
@@ -852,6 +868,6 @@ Future loadLibrary() => new Future.value();
 /// Defines lazy statics.
 void defineLazy(to, from) {
   for (var name in getOwnNamesAndSymbols(from)) {
-    defineLazyProperty(to, name, getOwnPropertyDescriptor(from, name));
+    defineLazyField(to, name, getOwnPropertyDescriptor(from, name));
   }
 }

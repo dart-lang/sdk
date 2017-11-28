@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 void test(List list) {
   if (list.isEmpty) {
-    Expect.throws(() => list.last, (e) => e is StateError);
+    Expect.throwsStateError(() => list.last);
   } else {
     Expect.equals(list[list.length - 1], list.last);
   }

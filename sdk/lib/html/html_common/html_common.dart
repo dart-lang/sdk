@@ -15,8 +15,8 @@ import 'dart:web_gl' as gl;
 
 import 'dart:_js_helper';
 
-import 'metadata.dart';
-export 'metadata.dart';
+import 'dart:_metadata';
+export 'dart:_metadata';
 
 part 'css_class_set.dart';
 part 'device.dart';

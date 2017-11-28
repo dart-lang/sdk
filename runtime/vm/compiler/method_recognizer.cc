@@ -129,13 +129,7 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
-  libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::AsyncLibrary()));
+  Libraries(&libs);
   Function& func = Function::Handle();
 
 #define SET_RECOGNIZED_KIND(class_name, function_name, enum_name, type, fp)    \
@@ -176,6 +170,34 @@ void MethodRecognizer::InitializeState() {
 #undef SET_IS_ALWAYS_INLINE
 #undef SET_IS_POLYMORPHIC_TARGET
 #undef SET_FUNCTION_BIT
+}
+
+void MethodRecognizer::Libraries(GrowableArray<Library*>* libs) {
+  libs->Add(&Library::ZoneHandle(Library::CoreLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::CollectionLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::MathLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::InternalLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::DeveloperLibrary()));
+  libs->Add(&Library::ZoneHandle(Library::AsyncLibrary()));
+}
+
+RawGrowableObjectArray* MethodRecognizer::QueryRecognizedMethods(Zone* zone) {
+  const GrowableObjectArray& methods =
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+  Function& func = Function::Handle(zone);
+
+  GrowableArray<Library*> libs(3);
+  Libraries(&libs);
+
+#define ADD_RECOGNIZED_METHOD(class_name, function_name, enum_name, type, fp)  \
+  func = Library::GetFunction(libs, #class_name, #function_name);              \
+  methods.Add(func);
+
+  RECOGNIZED_LIST(ADD_RECOGNIZED_METHOD);
+#undef ADD_RECOGNIZED_METHOD
+
+  return methods.raw();
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

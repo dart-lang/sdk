@@ -13,7 +13,7 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
     return null;
 }
 static field asy::Future<dynamic> f;
-static field asy::Future<core::int> t1 = self::f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> => asy::Future::value<core::int>("hi"));
+static field asy::Future<core::int> t1 = self::f.{asy::Future::then}<core::int>((dynamic _) → asy::Future<core::int> => asy::Future::value<core::int>("hi" as{TypeError} asy::FutureOr<core::int>));
 static field asy::Future<core::List<core::int>> t2 = self::f.{asy::Future::then}<core::List<core::int>>((dynamic _) → core::List<core::int> => <core::int>[3]);
 static method g2() → asy::Future<core::List<core::int>> async {
   return <core::int>[3];

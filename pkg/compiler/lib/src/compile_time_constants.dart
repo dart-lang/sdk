@@ -21,6 +21,7 @@ import 'elements/modelx.dart' show ConstantVariableMixin;
 import 'elements/operators.dart';
 import 'elements/resolution_types.dart';
 import 'resolution/tree_elements.dart' show TreeElements;
+import 'resolution/deferred_load.dart' show AstDeferredLoadTask;
 import 'tree/tree.dart';
 import 'universe/call_structure.dart' show CallStructure;
 import 'util/util.dart' show Link;
@@ -179,7 +180,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
   void evaluate(ConstantExpression constant) {
     constantValueMap.putIfAbsent(constant, () {
       return constant.evaluate(
-          new _CompilerEnvironment(compiler), constantSystem);
+          new AstEvaluationEnvironment(compiler), constantSystem);
     });
   }
 
@@ -608,8 +609,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
   /// prefix.
   bool isDeferredUse(Send send) {
     if (send == null) return false;
-    return compiler.deferredLoadTask.deferredPrefixElement(send, elements) !=
-        null;
+    AstDeferredLoadTask deferredLoadTask = compiler.deferredLoadTask;
+    return deferredLoadTask.deferredImportElement(send, elements) != null;
   }
 
   AstConstant visitIdentifier(Identifier node) {
@@ -695,15 +696,16 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           reporter.reportErrorMessage(
               send, MessageKind.DEFERRED_COMPILE_TIME_CONSTANT);
         }
-        PrefixElement prefix =
-            compiler.deferredLoadTask.deferredPrefixElement(send, elements);
+        AstDeferredLoadTask deferredLoadTask = compiler.deferredLoadTask;
+        ImportElement import =
+            deferredLoadTask.deferredImportElement(send, elements);
         result = new AstConstant(
             context,
             send,
-            new DeferredConstantExpression(result.expression, prefix),
-            new DeferredConstantValue(result.value, prefix));
+            new DeferredConstantExpression(result.expression, import),
+            new DeferredConstantValue(result.value, import));
         compiler.deferredLoadTask
-            .registerConstantDeferredUse(result.value, prefix);
+            .registerConstantDeferredUse(result.value, import);
       }
       return result;
     } else if (send.isCall) {
@@ -975,7 +977,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
           node,
           expression,
           expression.evaluate(
-              new _CompilerEnvironment(compiler), constantSystem));
+              new AstEvaluationEnvironment(compiler), constantSystem));
     } else {
       return makeConstructedConstant(
           compiler,
@@ -1264,12 +1266,12 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           new ConstructedConstantExpression(
               type, targetConstructor, callStructure, arguments);
 
-      Map<FieldEntity, ConstantExpression> fields =
-          expression.computeInstanceFields(new _CompilerEnvironment(compiler));
+      Map<FieldEntity, ConstantExpression> fields = expression
+          .computeInstanceFields(new AstEvaluationEnvironment(compiler));
       fields.forEach((_field, ConstantExpression expression) {
         FieldElement field = _field;
         ConstantValue value = expression.evaluate(
-            new _CompilerEnvironment(compiler), constantSystem);
+            new AstEvaluationEnvironment(compiler), constantSystem);
         fieldValues[field] = new AstConstant(context, null, expression, value);
       });
     } else {
@@ -1446,10 +1448,11 @@ class ErroneousAstConstant extends AstConstant {
             new NullConstantValue());
 }
 
-class _CompilerEnvironment implements EvaluationEnvironment {
+class AstEvaluationEnvironment extends EvaluationEnvironmentBase {
   final Compiler _compiler;
 
-  _CompilerEnvironment(this._compiler);
+  AstEvaluationEnvironment(this._compiler, {bool constantRequired: true})
+      : super(CURRENT_ELEMENT_SPANNABLE, constantRequired: constantRequired);
 
   @override
   CommonElements get commonElements => _compiler.resolution.commonElements;
@@ -1479,4 +1482,7 @@ class _CompilerEnvironment implements EvaluationEnvironment {
   ConstantExpression getLocalConstant(LocalVariableElement local) {
     return local.constant;
   }
+
+  @override
+  DiagnosticReporter get reporter => _compiler.reporter;
 }

@@ -6,7 +6,7 @@ library testing.run;
 
 import 'dart:async' show Future, Stream;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'dart:io' show Platform;
 
@@ -32,6 +32,8 @@ import 'test_dart.dart' show TestDart;
 
 import 'zone_helper.dart' show acknowledgeControlMessages;
 
+import 'run_tests.dart' show CommandLine;
+
 Future<TestRoot> computeTestRoot(String configurationPath, Uri base) {
   Uri configuration = configurationPath == null
       ? Uri.base.resolve("testing.json")
@@ -52,11 +54,12 @@ Future<Null> runMe(List<String> arguments, CreateContext f,
   return withErrorHandling(() async {
     TestRoot testRoot =
         await computeTestRoot(configurationPath, Platform.script);
+    CommandLine cl = CommandLine.parse(arguments);
     for (Chain suite in testRoot.toolChains) {
       if (Platform.script == suite.source) {
         print("Running suite ${suite.name}...");
-        ChainContext context = await f(suite, <String, String>{});
-        await context.run(suite, new Set<String>());
+        ChainContext context = await f(suite, cl.environment);
+        await context.run(suite, new Set<String>.from(cl.selectors));
       }
     }
   });
@@ -192,7 +195,7 @@ library testing.generated;
 
 import 'dart:async' show Future;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'package:testing/src/run_tests.dart' show runTests;
 
@@ -204,8 +207,8 @@ ${imports.toString().trim()}
 
 Future<Null> main() async {
   if ($isVerbose) enableVerboseOutput();
-  Map<String, String> environment = JSON.decode('${JSON.encode(environment)}');
-  Set<String> selectors = JSON.decode('${JSON.encode(selectors)}').toSet();
+  Map<String, String> environment = json.decode('${json.encode(environment)}');
+  Set<String> selectors = json.decode('${json.encode(selectors)}').toSet();
   await runTests(<String, Function> {
       ${splitLines(dart.toString().trim()).join('      ')}
   });

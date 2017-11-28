@@ -7,18 +7,19 @@ import 'dart:async';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';
 import 'package:front_end/src/fasta/kernel/kernel_target.dart';
+import 'package:front_end/src/fasta/kernel/metadata_collector.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/incremental/file_state.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart' hide Source;
+import 'package:kernel/kernel.dart';
 import 'package:kernel/src/incremental_class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:meta/meta.dart';
@@ -27,7 +28,13 @@ import 'package:meta/meta.dart';
 /// [Future] is awaited before reading the file content.
 typedef Future<Null> KernelDriverFileAddedFn(Uri uri);
 
-/// This class computes [KernelResult]s for Dart files.
+/// This function is invoked to create a new instance of [KernelTarget],
+/// which might be a backend specific subclass.
+typedef KernelTarget KernelTargetFactory(FileSystem fileSystem,
+    bool includeComments, DillTarget dillTarget, UriTranslator uriTranslator,
+    {MetadataCollector metadataCollector});
+
+/// This class computes [KernelSequenceResult]s for Dart files.
 ///
 /// Let the "current file state" represent a map from file URI to the file
 /// contents most recently read from that file. When the driver needs to
@@ -35,17 +42,23 @@ typedef Future<Null> KernelDriverFileAddedFn(Uri uri);
 /// the optional "file added" function, read the file and put it into the
 /// current file state.
 ///
-/// The client invokes [getKernel] to schedule computing the [KernelResult]
-/// for a Dart file. The driver will eventually use the current file state
-/// of the specified file and all files that it transitively depends on to
-/// compute corresponding kernel files (or read them from the [ByteStore]).
+/// The client invokes [getKernelSequence] to schedule computing the
+/// [KernelSequenceResult] for a Dart file. The driver will eventually use the
+/// current file state of the specified file and all files that it transitively
+/// depends on to compute corresponding kernel files (or read them from the
+/// [ByteStore]).
+///
+/// If the client is interested only in the full library for a single Dart
+/// file, it should use [getKernel] instead. This will allow the driver to
+/// compute only single fully resolved library (or the cycle it belongs to),
+/// and provide just outlines of other libraries.
 ///
 /// A call to [invalidate] removes the specified file from the current file
-/// state, so that it will be reread before any following [getKernel] will
-/// return a result.
+/// state, so that it will be reread before any following [getKernel] or
+/// [getKernelSequence] will return a result.
 class KernelDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 1;
+  static const int DATA_VERSION = 2;
 
   /// Options used by the kernel compiler.
   final ProcessedOptions _options;
@@ -64,12 +77,15 @@ class KernelDriver {
   final ByteStore _byteStore;
 
   /// The object that knows how to resolve "package:" and "dart:" URIs.
-  final UriTranslator _uriTranslator;
+  final UriTranslator uriTranslator;
 
   /// The function that is invoked when a new file is about to be added to
   /// the current file state. The [Future] that it returns is awaited before
   /// reading the file contents.
   final KernelDriverFileAddedFn _fileAddedFn;
+
+  /// Factory for working with metadata.
+  final MetadataFactory _metadataFactory;
 
   /// The optional SDK outline loaded from [_sdkOutlineBytes].
   /// Might be `null` if the bytes are not provided, or if not loaded yet.
@@ -88,13 +104,16 @@ class KernelDriver {
   /// The object that provides additional information for tests.
   final _TestView _testView = new _TestView();
 
-  KernelDriver(this._options, this._uriTranslator,
-      {List<int> sdkOutlineBytes, KernelDriverFileAddedFn fileAddedFn})
+  KernelDriver(this._options, this.uriTranslator,
+      {List<int> sdkOutlineBytes,
+      KernelDriverFileAddedFn fileAddedFn,
+      MetadataFactory metadataFactory})
       : _logger = _options.logger,
         _fileSystem = _options.fileSystem,
         _byteStore = _options.byteStore,
         _sdkOutlineBytes = sdkOutlineBytes,
-        _fileAddedFn = fileAddedFn {
+        _fileAddedFn = fileAddedFn,
+        _metadataFactory = metadataFactory {
     _computeSalt();
 
     Future<Null> onFileAdded(Uri uri) {
@@ -105,7 +124,7 @@ class KernelDriver {
     }
 
     _fsState = new FileSystemState(_byteStore, _fileSystem, _options.target,
-        _uriTranslator, _salt, onFileAdded);
+        uriTranslator, _salt, onFileAdded);
   }
 
   /// Return the [FileSystemState] that contains the current file state.
@@ -115,26 +134,25 @@ class KernelDriver {
   @visibleForTesting
   _TestView get test => _testView;
 
-  /// Return the [KernelResult] for the Dart file with the given [uri].
+  /// Compile the library with the given [uri] using the [KernelTarget] that
+  /// is returned by the [kernelTargetFactory].
   ///
-  /// The [uri] must be absolute and normalized.
-  ///
-  /// The driver will update the current file state for any file previously
-  /// reported using [invalidate].
-  ///
-  /// If the driver has the cached result for the file with the current file
-  /// state, it is returned.
-  ///
-  /// Otherwise the driver will compute new kernel files and return them.
-  Future<KernelResult> getKernel(Uri uri) async {
-    return await runWithFrontEndContext('Compute delta', () async {
+  /// TODO(scheglov) I think we don't need the return, or most of it.
+  Future<KernelSequenceResult> compileLibrary(
+      KernelTargetFactory kernelTargetFactory, Uri uri) async {
+    return await runWithFrontEndContext('Compile library $uri', () async {
       await _refreshInvalidatedFiles();
 
       CanonicalName nameRoot = new CanonicalName.root();
 
       // Load the SDK outline before building the graph, so that the file
       // system state is configured to skip SDK libraries.
-      await _loadSdkOutline(nameRoot);
+      await _loadSdkOutline();
+      if (_sdkOutline != null) {
+        for (var library in _sdkOutline.libraries) {
+          nameRoot.adoptChild(library.canonicalName);
+        }
+      }
 
       // Ensure that the graph starting at the entry point is ready.
       FileState entryLibrary =
@@ -149,7 +167,7 @@ class KernelDriver {
       });
 
       DillTarget dillTarget = new DillTarget(
-          new Ticker(isVerbose: false), _uriTranslator, _options.target);
+          new Ticker(isVerbose: false), uriTranslator, _options.target);
 
       // If there is SDK outline, load it.
       if (_sdkOutline != null) {
@@ -158,18 +176,144 @@ class KernelDriver {
       }
 
       List<LibraryCycleResult> results = [];
+
+      // Even if we don't compile SDK libraries, add them to results.
+      // We need to be able to access dart:core and dart:async classes.
+      if (_sdkOutline != null) {
+        results.add(new LibraryCycleResult(
+            new LibraryCycle(), '<sdk>', {}, _sdkOutline.libraries));
+      }
+
+      var lastCycle = cycles.last;
+
+      // Compute results for all, but the very last cycle. We need just
+      // outlines for these cycles, to be able to compile the last one.
+      _testView.compiledCycles.clear();
+      await _logger.runAsync('Compute results for cycles', () async {
+        for (LibraryCycle cycle in cycles) {
+          if (cycle == lastCycle) {
+            break;
+          }
+          LibraryCycleResult result =
+              await _compileCycle(nameRoot, dillTarget, cycle, null);
+          results.add(result);
+        }
+      });
+
+      // Compile the last cycle using the given KernelTargetFactory.
+      LibraryCycleResult lastResult = await _compileCycle(
+          nameRoot, dillTarget, lastCycle, kernelTargetFactory);
+      results.add(lastResult);
+
+      TypeEnvironment types = _buildTypeEnvironment(nameRoot, results);
+
+      return new KernelSequenceResult(nameRoot, types, results);
+    });
+  }
+
+  /// Return the [KernelResult] for the Dart file with the given [uri].
+  ///
+  /// The [uri] must be absolute and normalized.
+  ///
+  /// The driver will update the current file state for any file previously
+  /// reported using [invalidate].
+  ///
+  /// If the driver has cached results for the file and its dependencies for
+  /// the current file state, these cached results are returned.
+  ///
+  /// Otherwise the driver will compute new results and return them.
+  Future<KernelResult> getKernel(Uri uri) async {
+    // TODO(scheglov): Use IKG-like implementation with full program in memory.
+    KernelSequenceResult sequence = await getKernelSequence(uri);
+
+    var dependencies = <Library>[];
+    Library requestedLibrary;
+    for (var i = 0; i < sequence.results.length; i++) {
+      List<Library> libraries = sequence.results[i].kernelLibraries;
+      if (i == sequence.results.length - 1) {
+        for (var library in libraries) {
+          if (library.importUri == uri) {
+            requestedLibrary = library;
+          } else {
+            dependencies.add(library);
+          }
+        }
+      } else {
+        dependencies.addAll(libraries);
+      }
+    }
+
+    return new KernelResult(dependencies, sequence.types, requestedLibrary);
+  }
+
+  /// Return the [KernelSequenceResult] for the Dart file with the given [uri].
+  ///
+  /// The [uri] must be absolute and normalized.
+  ///
+  /// The driver will update the current file state for any file previously
+  /// reported using [invalidate].
+  ///
+  /// If the driver has cached results for the file and its dependencies for
+  /// the current file state, these cached results are returned.
+  ///
+  /// Otherwise the driver will compute new results and return them.
+  Future<KernelSequenceResult> getKernelSequence(Uri uri) async {
+    return await runWithFrontEndContext('Compute kernels', () async {
+      await _refreshInvalidatedFiles();
+
+      CanonicalName nameRoot = new CanonicalName.root();
+
+      // Load the SDK outline before building the graph, so that the file
+      // system state is configured to skip SDK libraries.
+      await _loadSdkOutline();
+      if (_sdkOutline != null) {
+        for (var library in _sdkOutline.libraries) {
+          nameRoot.adoptChild(library.canonicalName);
+        }
+      }
+
+      // Ensure that the graph starting at the entry point is ready.
+      FileState entryLibrary =
+          await _logger.runAsync('Build graph of files', () async {
+        return await _fsState.getFile(uri);
+      });
+
+      List<LibraryCycle> cycles = _logger.run('Compute library cycles', () {
+        List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
+        _logger.writeln('Computed ${cycles.length} cycles.');
+        return cycles;
+      });
+
+      DillTarget dillTarget = new DillTarget(
+          new Ticker(isVerbose: false), uriTranslator, _options.target);
+
+      // If there is SDK outline, load it.
+      if (_sdkOutline != null) {
+        dillTarget.loader.appendLibraries(_sdkOutline);
+        await dillTarget.buildOutlines();
+      }
+
+      List<LibraryCycleResult> results = [];
+
+      // Even if we don't compile SDK libraries, add them to results.
+      // We need to be able to access dart:core and dart:async classes.
+      if (_sdkOutline != null) {
+        results.add(new LibraryCycleResult(
+            new LibraryCycle(), '<sdk>', {}, _sdkOutline.libraries));
+      }
+
       _testView.compiledCycles.clear();
       await _logger.runAsync('Compute results for cycles', () async {
         for (LibraryCycle cycle in cycles) {
           LibraryCycleResult result =
-              await _compileCycle(nameRoot, dillTarget, cycle);
+              await _compileCycle(nameRoot, dillTarget, cycle, null);
           results.add(result);
         }
       });
 
       TypeEnvironment types = _buildTypeEnvironment(nameRoot, results);
 
-      return new KernelResult(nameRoot, types, results);
+      return new KernelSequenceResult(nameRoot, types, results);
     });
   }
 
@@ -179,10 +323,11 @@ class KernelDriver {
   /// The [uri] must be absolute and normalized file URI.
   ///
   /// Schedules the file contents for the [uri] to be read into the current
-  /// file state prior the next invocation of [getKernel] returns the result.
+  /// file state prior the next invocation of [getKernel] or
+  /// [getKernelSequence] returns the result.
   ///
   /// Invocation of this method will not prevent a [Future] returned from
-  /// [getKernel] from completing with a result, but the result is not
+  /// [getKernelSequence] from completing with a result, but the result is not
   /// guaranteed to be consistent with the new current file state after this
   /// [invalidate] invocation.
   void invalidate(Uri uri) {
@@ -210,7 +355,10 @@ class KernelDriver {
   /// contains all the libraries that sorted before the given [cycle] in
   /// topological order.  Return the result with the cycle libraries.
   Future<LibraryCycleResult> _compileCycle(
-      CanonicalName nameRoot, DillTarget dillTarget, LibraryCycle cycle) async {
+      CanonicalName nameRoot,
+      DillTarget dillTarget,
+      LibraryCycle cycle,
+      KernelTargetFactory kernelTargetFactory) async {
     return _logger.runAsync('Compile cycle $cycle', () async {
       String signature = _getCycleSignature(cycle);
 
@@ -226,28 +374,40 @@ class KernelDriver {
         libraryUriToFile[uri] = library;
       }
 
+      // Prepare file URIs for the cycle.
+      var cycleFileUris = new Set<String>();
+      for (FileState library in cycle.libraries) {
+        cycleFileUris.add(library.fileUriStr);
+        for (var partFile in library.partFiles) {
+          cycleFileUris.add(partFile.fileUriStr);
+        }
+      }
+
       Future<Null> appendNewDillLibraries(Program program) async {
         dillTarget.loader.appendLibraries(program, libraryUris.contains);
         await dillTarget.buildOutlines();
       }
 
       // Check if there is already a bundle with these libraries.
-      List<int> bytes = _byteStore.get(kernelKey);
-      if (bytes != null) {
-        return _logger.runAsync('Read serialized libraries', () async {
-          var program = new Program(nameRoot: nameRoot);
-          var reader = new BinaryBuilder(bytes);
-          reader.readProgram(program);
+      if (kernelTargetFactory == null) {
+        kernelTargetFactory = _defaultKernelTargetFactory;
+        List<int> bytes = _byteStore.get(kernelKey);
+        if (bytes != null) {
+          return _logger.runAsync('Read serialized libraries', () async {
+            var program = new Program(nameRoot: nameRoot);
+            _readProgram(program, bytes);
+            await appendNewDillLibraries(program);
 
-          await appendNewDillLibraries(program);
-
-          return new LibraryCycleResult(cycle, signature, program.libraries);
-        });
+            return new LibraryCycleResult(
+                cycle, signature, program.uriToSource, program.libraries);
+          });
+        }
       }
 
       // Create KernelTarget and configure it for compiling the cycle URIs.
-      KernelTarget kernelTarget = new KernelTarget(
-          _fsState.fileSystemView, true, dillTarget, _uriTranslator);
+      KernelTarget kernelTarget = kernelTargetFactory(
+          _fsState.fileSystemView, true, dillTarget, uriTranslator,
+          metadataCollector: _metadataFactory?.newCollector());
       for (FileState library in cycle.libraries) {
         kernelTarget.read(library.uri);
       }
@@ -267,15 +427,26 @@ class KernelDriver {
           .where((library) => libraryUris.contains(library.importUri))
           .toList();
 
+      // Remove source for libraries outside of the cycle.
+      {
+        var urisToRemoveSources = <String>[];
+        for (var uri in program.uriToSource.keys) {
+          if (!cycleFileUris.contains(uri)) {
+            urisToRemoveSources.add(uri);
+          }
+        }
+        urisToRemoveSources.forEach(program.uriToSource.remove);
+      }
+
       _logger.run('Serialize ${kernelLibraries.length} libraries', () {
-        program.uriToSource.clear();
         List<int> bytes =
             serializeProgram(program, filter: kernelLibraries.contains);
         _byteStore.put(kernelKey, bytes);
         _logger.writeln('Stored ${bytes.length} bytes.');
       });
 
-      return new LibraryCycleResult(cycle, signature, kernelLibraries);
+      return new LibraryCycleResult(
+          cycle, signature, program.uriToSource, kernelLibraries);
     });
   }
 
@@ -286,6 +457,9 @@ class KernelDriver {
     saltBuilder.addBool(_options.strongMode);
     if (_sdkOutlineBytes != null) {
       saltBuilder.addBytes(_sdkOutlineBytes);
+    }
+    if (_metadataFactory != null) {
+      saltBuilder.addInt(_metadataFactory.version);
     }
     _salt = saltBuilder.toByteList();
   }
@@ -325,18 +499,32 @@ class KernelDriver {
     return signatureBuilder.toHex();
   }
 
-  /// Load the SDK outline if its bytes are provided, and configure the file
-  /// system state to skip SDK library files.
-  Future<Null> _loadSdkOutline(CanonicalName nameRoot) async {
-    if (_sdkOutlineBytes != null) {
-      await _logger.runAsync('Load SDK outline from bytes.', () async {
-        _sdkOutline = new Program(nameRoot: nameRoot);
-        new BinaryBuilder(_sdkOutlineBytes).readProgram(_sdkOutline);
+  /// If SDK outline bytes are provided, and it is not loaded yet into
+  /// [_sdkOutline], load it and configure the file system state to skip SDK
+  /// library files.
+  Future<Null> _loadSdkOutline() async {
+    if (_sdkOutlineBytes != null && _sdkOutline == null) {
+      await _logger.runAsync('Load SDK outline from bytes', () async {
+        _sdkOutline = loadProgramFromBytes(_sdkOutlineBytes);
         // Configure the file system state to skip the outline libraries.
         for (var outlineLibrary in _sdkOutline.libraries) {
           _fsState.skipSdkLibraries.add(outlineLibrary.importUri);
         }
       });
+    }
+  }
+
+  /// Read libraries from the given [bytes] into the [program], using the
+  /// configured metadata factory.  The [program] must be ready to read these
+  /// libraries, i.e. either the [bytes] represent a full program with all
+  /// dependencies, or the [program] already has all required dependencies.
+  void _readProgram(Program program, List<int> bytes) {
+    if (_metadataFactory != null) {
+      var repository = _metadataFactory.newRepositoryForReading();
+      program.addMetadataRepository(repository);
+      new BinaryBuilderWithMetadata(bytes).readSingleFileProgram(program);
+    } else {
+      new BinaryBuilder(bytes).readProgram(program);
     }
   }
 
@@ -357,15 +545,39 @@ class KernelDriver {
       }
     });
   }
+
+  /// The default [KernelTargetFactory], that creates [KernelTarget].
+  static KernelTarget _defaultKernelTargetFactory(FileSystem fileSystem,
+      bool includeComments, DillTarget dillTarget, UriTranslator uriTranslator,
+      {Map<String, Source> uriToSource, MetadataCollector metadataCollector}) {
+    return new KernelTarget(
+        fileSystem, includeComments, dillTarget, uriTranslator,
+        metadataCollector: metadataCollector);
+  }
 }
 
 /// The result of compiling of a single file.
 class KernelResult {
+  /// The dependencies of the [library].
+  /// Most of them are shaken outlines, but some might be full libraries.
+  final List<Library> dependencies;
+
+  /// The [TypeEnvironment] based on the SDK library outlines.
+  final TypeEnvironment types;
+
+  /// The library of the requested file.
+  final Library library;
+
+  KernelResult(this.dependencies, this.types, this.library);
+}
+
+/// The result of compiling of a sequence of libraries.
+class KernelSequenceResult {
   final CanonicalName nameRoot;
   final TypeEnvironment types;
   final List<LibraryCycleResult> results;
 
-  KernelResult(this.nameRoot, this.types, this.results);
+  KernelSequenceResult(this.nameRoot, this.types, this.results);
 }
 
 /// Compilation result for a library cycle.
@@ -380,11 +592,31 @@ class LibraryCycleResult {
   /// application).
   final String signature;
 
+  /// Map from the [cycle] file URIs to their [Source]s.
+  final Map<String, Source> uriToSource;
+
   /// Kernel libraries for libraries in the [cycle].  Bodies of dependencies
   /// are not included, but but references to those dependencies are included.
   final List<Library> kernelLibraries;
 
-  LibraryCycleResult(this.cycle, this.signature, this.kernelLibraries);
+  LibraryCycleResult(
+      this.cycle, this.signature, this.uriToSource, this.kernelLibraries);
+}
+
+/// Factory for creating [MetadataCollector]s and [MetadataRepository]s.
+abstract class MetadataFactory {
+  /// This version is mixed into the signatures of cached compilation result,
+  /// because content of these results depends on whether we write additional
+  /// metadata or not.
+  int get version;
+
+  /// Return a new [MetadataCollector] to write metadata to while compiling a
+  /// new library cycle.
+  MetadataCollector newCollector();
+
+  /// Return a new [MetadataRepository] instance to read metadata while
+  /// reading a [Program] for a library cycle.
+  MetadataRepository newRepositoryForReading();
 }
 
 @visibleForTesting

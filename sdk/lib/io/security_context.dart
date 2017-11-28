@@ -20,7 +20,21 @@ part of dart.io;
  * be used, by way of [SecurityContext.defaultContext].
  */
 abstract class SecurityContext {
-  external factory SecurityContext();
+  /**
+   * Creates a new [SecurityContext].
+   *
+   * By default, the created [SecurityContext] contains no keys or certificates.
+   * These can be added by calling the methods of this class.
+   *
+   * If `withTrustedRoots` is passed as `true`, the [SecurityContext] will be
+   * seeded by the trusted root certificates provided as explained below. To
+   * obtain a [SecurityContext] containing trusted root certificates,
+   * [SecurityContext.defaultContext] is usually sufficient, and should
+   * be used instead. However, if the [SecurityContext] containing the trusted
+   * root certificates must be modified per-connection, then `withTrustedRoots`
+   * should be used.
+   */
+  external factory SecurityContext({bool withTrustedRoots: false});
 
   /**
    * Secure networking classes with an optional `context` parameter
@@ -240,7 +254,7 @@ abstract class SecurityContext {
   static Uint8List _protocolsToLengthEncodingNonAsciiBailout(
       List<String> protocols) {
     void addProtocol(List<int> outBytes, String protocol) {
-      var protocolBytes = UTF8.encode(protocol);
+      var protocolBytes = utf8.encode(protocol);
       var len = protocolBytes.length;
 
       if (len > 255) {

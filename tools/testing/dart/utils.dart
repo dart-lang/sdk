@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'configuration.dart';
 import 'path.dart';
@@ -192,6 +191,48 @@ String decodeUtf8(List<int> bytes) {
   return UTF8.decode(bytes, allowMalformed: true);
 }
 
+/// Given a chunk of UTF-8 output, splits it into lines, normalizes carriage
+/// returns, and deletes and trailing and leading whitespace.
+List<String> decodeLines(List<int> output) {
+  return decodeUtf8(output)
+      .replaceAll('\r\n', '\n')
+      .replaceAll('\r', '\n')
+      .trim()
+      .split('\n');
+}
+
+String indent(String string, int numSpaces) {
+  var spaces = new List.filled(numSpaces, ' ').join('');
+  return string
+      .replaceAll('\r\n', '\n')
+      .split('\n')
+      .map((line) => "$spaces$line")
+      .join('\n');
+}
+
+/// Convert [duration] to a short but precise human-friendly string.
+String niceTime(Duration duration) {
+  String digits(int count, int n, int period) {
+    n = n.remainder(period).toInt();
+    return n.toString().padLeft(count, "0");
+  }
+
+  var minutes = digits(2, duration.inMinutes, Duration.MINUTES_PER_HOUR);
+  var seconds = digits(2, duration.inSeconds, Duration.SECONDS_PER_MINUTE);
+  var millis =
+      digits(6, duration.inMilliseconds, Duration.MILLISECONDS_PER_SECOND);
+
+  if (duration.inHours >= 1) {
+    return "${duration.inHours}:${minutes}:${seconds}s";
+  } else if (duration.inMinutes >= 1) {
+    return "${minutes}:${seconds}.${millis}s";
+  } else if (duration.inSeconds >= 1) {
+    return "${seconds}.${millis}s";
+  } else {
+    return "${duration.inMilliseconds}ms";
+  }
+}
+
 // This function is pretty stupid and only puts quotes around an argument if
 // it the argument contains a space.
 String escapeCommandLineArgument(String argument) {
@@ -314,28 +355,8 @@ class ExistsCache {
 }
 
 class TestUtils {
-  /**
-   * Any script using TestUtils must set dartDirUri to a file:// URI
-   * pointing to the root of the Dart checkout.
-   */
-  static void setDartDirUri(Uri uri) {
-    dartDirUri = uri;
-    dartDir = new Path(uri.toFilePath());
-  }
-
-  static math.Random rand = new math.Random.secure();
-  static Uri dartDirUri;
-  static Path dartDir;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static ExistsCache existsCache = new ExistsCache();
-  static Path currentWorkingDirectory = new Path(Directory.current.path);
-
-  /**
-   * Generates a random number.
-   */
-  static int getRandomNumber() {
-    return rand.nextInt(0xffffffff);
-  }
 
   /**
    * Creates a directory using a [relativePath] to an existing
@@ -433,8 +454,8 @@ class TestUtils {
 
   static final debugLogFilePath = new Path(".debug.log");
 
-  /// If a flaky test did fail, infos about it (i.e. test name, stdin, stdout)
-  /// will be written to this file.
+  /// If a flaky test failed, information about it (test name, stdin, stdout)
+  /// is written to this file.
   ///
   /// This is useful for debugging flaky tests. When running on a buildbot, the
   /// file can be made visible in the waterfall UI.
@@ -454,17 +475,10 @@ class TestUtils {
     }
   }
 
-  static Path absolutePath(Path path) {
-    if (!path.isAbsolute) {
-      return currentWorkingDirectory.join(path);
-    }
-    return path;
-  }
-
   static int shortNameCounter = 0; // Make unique short file names on Windows.
 
   static String getShortName(String path) {
-    final PATH_REPLACEMENTS = const {
+    const pathReplacements = const {
       "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
           "co19_fn_invoke_",
       "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":
@@ -515,25 +529,27 @@ class TestUtils {
     };
 
     // Some tests are already in [build_dir]/generated_tests.
-    String GEN_TESTS = 'generated_tests/';
-    if (path.contains(GEN_TESTS)) {
-      int index = path.indexOf(GEN_TESTS) + GEN_TESTS.length;
+    var generated = 'generated_tests/';
+    if (path.contains(generated)) {
+      var index = path.indexOf(generated) + generated.length;
       path = 'multitest/${path.substring(index)}';
     }
+
     path = path.replaceAll('/', '_');
-    final int WINDOWS_SHORTEN_PATH_LIMIT = 58;
-    final int WINDOWS_PATH_END_LENGTH = 30;
+    var windowsShortenPathLimit = 58;
+    var windowsPathEndLength = 30;
     if (Platform.operatingSystem == 'windows' &&
-        path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
-      for (var key in PATH_REPLACEMENTS.keys) {
+        path.length > windowsShortenPathLimit) {
+      for (var key in pathReplacements.keys) {
         if (path.startsWith(key)) {
-          path = path.replaceFirst(key, PATH_REPLACEMENTS[key]);
+          path = path.replaceFirst(key, pathReplacements[key]);
           break;
         }
       }
-      if (path.length > WINDOWS_SHORTEN_PATH_LIMIT) {
-        ++shortNameCounter;
-        var pathEnd = path.substring(path.length - WINDOWS_PATH_END_LENGTH);
+
+      if (path.length > windowsShortenPathLimit) {
+        shortNameCounter++;
+        var pathEnd = path.substring(path.length - windowsPathEndLength);
         path = "short${shortNameCounter}_$pathEnd";
       }
     }

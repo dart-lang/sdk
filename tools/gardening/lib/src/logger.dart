@@ -12,16 +12,15 @@ abstract class Logger {
 
   Logger(this.level);
 
-  void info(String msg, [Error, StackTrace]);
-  void warning(String msg, [Error, StackTrace]);
-  void error(String msg, [Error, StackTrace]);
-  void debug(String msg, [Error, StackTrace]);
+  void info(String msg, [error, StackTrace stackTrace]);
+  void warning(String msg, [error, StackTrace stackTrace]);
+  void error(String msg, [error, StackTrace stackTrace]);
+  void debug(String msg, [error, StackTrace stackTrace]);
 
   void destroy();
 }
 
-String _formatErrorMessage(String msg, Exception error,
-    [StackTrace stackTrace]) {
+String _formatMessage(String msg, error, [StackTrace stackTrace]) {
   if (error == null) return msg;
   if (stackTrace == null) return msg + ": $error";
   return msg + ": $error\n$stackTrace";
@@ -32,25 +31,25 @@ class StdOutLogger extends Logger {
 
   @override
   void info(String msg, [error, stackTrace]) {
-    msg = _formatErrorMessage(msg, error, stackTrace);
+    msg = _formatMessage(msg, error, stackTrace);
     _print(Level.info, "$_datetime Info: $msg");
   }
 
   @override
   void warning(String msg, [error, stackTrace]) {
-    msg = _formatErrorMessage(msg, error, stackTrace);
+    msg = _formatMessage(msg, error, stackTrace);
     _print(Level.warning, "$_datetime Warning: $msg");
   }
 
   @override
   void error(String msg, [error, stackTrace]) {
-    msg = _formatErrorMessage(msg, error, stackTrace);
+    msg = _formatMessage(msg, error, stackTrace);
     _print(Level.error, "$_datetime Error: $msg");
   }
 
   @override
   void debug(String msg, [error, stackTrace]) {
-    msg = _formatErrorMessage(msg, error, stackTrace);
+    msg = _formatMessage(msg, error, stackTrace);
     _print(Level.debug, "$_datetime Debug: $msg");
   }
 
@@ -87,25 +86,25 @@ class FileLogger extends Logger {
 
   @override
   void info(String msg, [error, stackTrace]) {
-    msg = _formatErrorMessage(msg, error, stackTrace);
+    msg = _formatMessage(msg, error, stackTrace);
     _print(Level.info, "$_datetime Info: $msg");
   }
 
   @override
   void warning(String msg, [error, stackTrace]) {
-    msg = _formatErrorMessage(msg, error, stackTrace);
+    msg = _formatMessage(msg, error, stackTrace);
     _print(Level.warning, "$_datetime Warning: $msg");
   }
 
   @override
   void error(String msg, [error, stackTrace]) {
-    msg = _formatErrorMessage(msg, error, stackTrace);
+    msg = _formatMessage(msg, error, stackTrace);
     _print(Level.error, "$_datetime Error: $msg");
   }
 
   @override
   void debug(String msg, [error, stackTrace]) {
-    msg = _formatErrorMessage(msg, error, stackTrace);
+    msg = _formatMessage(msg, error, stackTrace);
     _print(Level.debug, "$_datetime Debug: $msg");
   }
 

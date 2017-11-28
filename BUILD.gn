@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-import("build/dart_host_toolchain.gni")
+import("build/dart_host_sdk_toolchain.gni")
 
 # This target will be built if no target is specified when invoking ninja.
 group("default") {
@@ -38,12 +38,11 @@ group("runtime") {
   }
   deps = [
     "runtime/bin:dart",
-    "runtime/bin:dart_bootstrap($dart_host_toolchain)",
+    "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:process_test",
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
-    "runtime/vm:patched_sdk",
   ]
 }
 
@@ -54,6 +53,7 @@ group("runtime_kernel") {
   }
   deps = [
     ":runtime",
+    "runtime/vm:kernel_platform_files($host_toolchain)",
 
     # TODO(rmacnak): Link this into 'dart'.
     "utils/kernel-service:kernel-service",
@@ -62,10 +62,9 @@ group("runtime_kernel") {
 
 group("runtime_precompiled") {
   deps = [
-    "runtime/bin:dart_bootstrap($dart_host_toolchain)",
+    "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:process_test",
-    "runtime/vm:patched_sdk",
   ]
 }
 
@@ -73,6 +72,15 @@ group("create_sdk") {
   deps = [
     "sdk:create_sdk",
   ]
+}
+
+if (defined(dart_host_sdk_toolchain) &&
+    dart_host_sdk_toolchain != host_toolchain) {
+  group("create_host_sdk") {
+    deps = [
+      "sdk:create_sdk($dart_host_sdk_toolchain)",
+    ]
+  }
 }
 
 group("dart2js") {
@@ -121,14 +129,14 @@ group("samples") {
 }
 
 # The rules below build a Fuchsia OS image that includes the Dart tree
-# under /system/test/dart.
+# under /system/test/dart.  To get this into the `user.bootfs` generated
+# by the Fuchsia build, add the GN build argument:
+#   extra_bootdata = [ "//third_party/dart:dart_test_bootfs" ]
 if (is_fuchsia) {
+  import("//build/config/fuchsia/bootdata.gni")
+
   action("generate_dart_test_manifest") {
     testonly = true
-
-    deps = [
-      "//packages/gn:mkbootfs",
-    ]
 
     output_prefix = "$target_gen_dir/dart_test_tree"
     outputs = [
@@ -140,21 +148,16 @@ if (is_fuchsia) {
       mode = "debug"
     }
 
-    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
-    system_manifest = "$mkbootfs_gen/system.bootfs.manifest"
-
     script = "tools/gen_fuchsia_test_manifest.py"
     args = [
       "-m",
       mode,
-      "-u",
-      rebase_path(system_manifest),
       "-o",
       rebase_path(output_prefix),
     ]
   }
 
-  action("generate_dart_test_image") {
+  bootdata("dart_test_bootfs") {
     testonly = true
     deps = [
       ":generate_dart_test_manifest",
@@ -162,46 +165,8 @@ if (is_fuchsia) {
       "runtime/bin:process_test",
       "runtime/bin:run_vm_tests",
     ]
-
-    mkbootfs_gen = get_label_info("//packages/gn:mkbootfs", "target_gen_dir")
-    boot_manifest = "$mkbootfs_gen/boot.bootfs.manifest"
-
-    # Compute path to zircon bootdata.bin
-    if (current_cpu == "arm64") {
-      zircon_bootdata =
-          "//out/build-zircon/build-zircon-qemu-arm64/bootdata.bin"
-    } else if (current_cpu == "x64") {
-      zircon_bootdata = "//out/build-zircon/build-zircon-pc-x86-64/bootdata.bin"
-    } else {
-      assert(false, "unable to determine path to zircon's bootdata.bin")
-    }
-
-    packages_file = "$mkbootfs_gen/packages"
-
-    input = "$target_gen_dir/dart_test_tree.manifest"
     inputs = [
-      zircon_bootdata,
-      input,
+      "$target_gen_dir/dart_test_tree.manifest",
     ]
-
-    output = "$root_out_dir/dart_test_tree.bin"
-    outputs = [
-      output,
-    ]
-
-    script = "//packages/gn/make_bootfs.py"
-    args = [
-      "--boot-manifest",
-      rebase_path(boot_manifest),
-      "--system-manifest",
-      rebase_path(input),
-      "--output-file",
-      rebase_path(output),
-      "--build-id-map",
-      rebase_path("$target_gen_dir/build_id_map"),
-      "--pre-binaries",
-      rebase_path(zircon_bootdata),
-    ]
-    args += read_file(packages_file, "list lines")
   }
 }

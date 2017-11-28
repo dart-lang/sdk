@@ -22,7 +22,7 @@ abstract class C extends core::Object {
     this.assertAOf(<dynamic>[self::_isInt, self::_isString]);
     self::C::assertBOf.call(<dynamic>[self::_isInt, self::_isString]);
     self::C::assertCOf.call(<dynamic>[self::_isInt, self::_isString]);
-    this.assertDOf(<dynamic>[self::_isInt, self::_isString]);
+    this.{self::C::assertDOf}(<dynamic>[self::_isInt, self::_isString]);
     assertEOf.call(<dynamic>[self::_isInt, self::_isString]);
   }
 }
@@ -34,8 +34,8 @@ abstract class G<T extends core::Object> extends core::Object {
   abstract get assertDOf() → (core::List<(self::DartType) → void>) → (self::DartType) → void;
   method method((core::List<(self::DartType) → void>) → (self::DartType) → void assertEOf) → dynamic {
     this.assertAOf(<dynamic>[self::_isInt, self::_isString]);
-    this.assertAOf(<dynamic>[self::_isInt, self::_isString]);
-    this.assertDOf(<dynamic>[self::_isInt, self::_isString]);
+    this.{self::G::assertAOf}(<dynamic>[self::_isInt, self::_isString]);
+    this.{self::G::assertDOf}(<dynamic>[self::_isInt, self::_isString]);
     assertEOf.call(<dynamic>[self::_isInt, self::_isString]);
   }
 }

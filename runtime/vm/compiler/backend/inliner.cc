@@ -456,7 +456,7 @@ class PolymorphicInliner : public ValueObject {
                      const Function& caller_function,
                      intptr_t caller_inlining_id);
 
-  void Inline();
+  bool Inline();
 
  private:
   bool CheckInlinedDuplicate(const Function& target);
@@ -620,37 +620,59 @@ class CallSiteInliner : public ValueObject {
 
   bool trace_inlining() const { return inliner_->trace_inlining(); }
 
+  int inlining_depth() { return inlining_depth_; }
+
+  struct InliningDecision {
+    InliningDecision(bool b, const char* r) : value(b), reason(r) {}
+    bool value;
+    const char* reason;
+    static InliningDecision Yes(const char* reason) {
+      return InliningDecision(true, reason);
+    }
+    static InliningDecision No(const char* reason) {
+      return InliningDecision(false, reason);
+    }
+  };
+
   // Inlining heuristics based on Cooper et al. 2008.
-  bool ShouldWeInline(const Function& callee,
-                      intptr_t instr_count,
-                      intptr_t call_site_count,
-                      intptr_t const_arg_count) {
+  InliningDecision ShouldWeInline(const Function& callee,
+                                  intptr_t instr_count,
+                                  intptr_t call_site_count,
+                                  intptr_t const_arg_count) {
     if (inliner_->AlwaysInline(callee)) {
-      return true;
+      return InliningDecision::Yes("AlwaysInline");
     }
     if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
       // Prevent methods becoming humongous and thus slow to compile.
-      return false;
+      return InliningDecision::No("--inlining-caller-size-threshold");
     }
     if (const_arg_count > 0) {
       if (instr_count > FLAG_inlining_constant_arguments_max_size_threshold) {
-        return false;
+        return InliningDecision(
+            false, "--inlining-constant-arguments-max-size-threshold");
       }
     } else if (instr_count > FLAG_inlining_callee_size_threshold) {
-      return false;
+      return InliningDecision::No("--inlining-callee-size-threshold");
+    }
+    int callee_inlining_depth = callee.inlining_depth();
+    if (callee_inlining_depth > 0 && callee_inlining_depth + inlining_depth_ >
+                                         FLAG_inlining_depth_threshold) {
+      return InliningDecision::No("--inlining-depth-threshold");
     }
     // 'instr_count' can be 0 if it was not computed yet.
     if ((instr_count != 0) && (instr_count <= FLAG_inlining_size_threshold)) {
-      return true;
+      return InliningDecision::Yes("--inlining-size-threshold");
     }
     if (call_site_count <= FLAG_inlining_callee_call_sites_threshold) {
-      return true;
+      return InliningDecision::Yes("--inlining-callee-call-sites-threshold");
     }
     if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
         (instr_count <= FLAG_inlining_constant_arguments_min_size_threshold)) {
-      return true;
+      return InliningDecision(true,
+                              "--inlining-constant-arguments-count and "
+                              "inlining-constant-arguments-min-size-threshold");
     }
-    return false;
+    return InliningDecision::No("default");
   }
 
   void InlineCalls() {
@@ -685,16 +707,18 @@ class CallSiteInliner : public ValueObject {
       inlining_call_sites_ = call_sites_temp;
       collected_call_sites_->Clear();
       // Inline call sites at the current depth.
-      InlineInstanceCalls();
-      InlineStaticCalls();
-      InlineClosureCalls();
-      // Increment the inlining depths. Checked before subsequent inlining.
-      ++inlining_depth_;
-      if (inlined_recursive_call_) {
-        ++inlining_recursion_depth_;
-        inlined_recursive_call_ = false;
+      bool inlined_instance = InlineInstanceCalls();
+      bool inlined_statics = InlineStaticCalls();
+      bool inlined_closures = InlineClosureCalls();
+      if (inlined_instance || inlined_statics || inlined_closures) {
+        // Increment the inlining depths. Checked before subsequent inlining.
+        ++inlining_depth_;
+        if (inlined_recursive_call_) {
+          ++inlining_recursion_depth_;
+          inlined_recursive_call_ = false;
+        }
+        thread()->CheckForSafepoint();
       }
-      thread()->CheckForSafepoint();
     }
 
     collected_call_sites_ = NULL;
@@ -751,7 +775,7 @@ class CallSiteInliner : public ValueObject {
 
     // Do not rely on function type feedback or presence of code to determine
     // if a function was compiled.
-    if (!FLAG_precompiled_mode && !function.was_compiled()) {
+    if (!FLAG_precompiled_mode && !function.WasCompiled()) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
       PRINT_INLINING_TREE("Not compiled", &call_data->caller, &function,
                           call_data->call);
@@ -795,16 +819,19 @@ class CallSiteInliner : public ValueObject {
 
     GrowableArray<Value*>* arguments = call_data->arguments;
     const intptr_t constant_arguments = CountConstants(*arguments);
-    if (!ShouldWeInline(function, function.optimized_instruction_count(),
-                        function.optimized_call_site_count(),
-                        constant_arguments)) {
+    InliningDecision decision = ShouldWeInline(
+        function, function.optimized_instruction_count(),
+        function.optimized_call_site_count(), constant_arguments);
+    if (!decision.value) {
       TRACE_INLINING(
-          THR_Print("     Bailout: early heuristics with "
+          THR_Print("     Bailout: early heuristics (%s) with "
                     "code size:  %" Pd ", "
                     "call sites: %" Pd ", "
+                    "inlining depth of callee: %d, "
                     "const args: %" Pd "\n",
-                    function.optimized_instruction_count(),
-                    function.optimized_call_site_count(), constant_arguments));
+                    decision.reason, function.optimized_instruction_count(),
+                    function.optimized_call_site_count(),
+                    function.inlining_depth(), constant_arguments));
       PRINT_INLINING_TREE("Early heuristic", &call_data->caller, &function,
                           call_data->call);
       return false;
@@ -879,7 +906,8 @@ class CallSiteInliner : public ValueObject {
           kernel::FlowGraphBuilder builder(
               parsed_function->function().kernel_offset(), parsed_function,
               *ic_data_array, /* not building var desc */ NULL, exit_collector,
-              Compiler::kNoOSRDeoptId, caller_graph_->max_block_id() + 1);
+              /* optimized = */ true, Compiler::kNoOSRDeoptId,
+              caller_graph_->max_block_id() + 1);
           {
             CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
             callee_graph = builder.BuildGraph();
@@ -911,7 +939,8 @@ class CallSiteInliner : public ValueObject {
         // TODO(zerny): Put more information in the stubs, eg, type information.
         const intptr_t first_actual_param_index = call_data->first_arg_index;
         const intptr_t inlined_type_args_param =
-            (FLAG_reify_generic_functions && function.IsGeneric()) ? 1 : 0;
+            (isolate->reify_generic_functions() && function.IsGeneric()) ? 1
+                                                                         : 0;
         const intptr_t num_inlined_params =
             inlined_type_args_param + function.NumParameters();
         ZoneGrowableArray<Definition*>* param_stubs =
@@ -984,10 +1013,9 @@ class CallSiteInliner : public ValueObject {
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
 #ifdef DART_PRECOMPILER
-            AotCallSpecializer call_specializer(
-                inliner_->precompiler_, callee_graph,
-                inliner_->use_speculative_inlining_,
-                inliner_->inlining_black_list_);
+            AotCallSpecializer call_specializer(inliner_->precompiler_,
+                                                callee_graph,
+                                                inliner_->speculative_policy_);
 
             call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
@@ -1006,7 +1034,8 @@ class CallSiteInliner : public ValueObject {
             UNREACHABLE();
 #endif  // DART_PRECOMPILER
           } else {
-            JitCallSpecializer call_specializer(callee_graph);
+            JitCallSpecializer call_specializer(callee_graph,
+                                                inliner_->speculative_policy_);
 
             call_specializer.ApplyClassIds();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
@@ -1045,11 +1074,10 @@ class CallSiteInliner : public ValueObject {
         const intptr_t size = function.optimized_instruction_count();
         const intptr_t call_site_count = function.optimized_call_site_count();
 
-        function.set_optimized_instruction_count(size);
-        function.set_optimized_call_site_count(call_site_count);
-
         // Use heuristics do decide if this call should be inlined.
-        if (!ShouldWeInline(function, size, call_site_count, constants_count)) {
+        InliningDecision decision =
+            ShouldWeInline(function, size, call_site_count, constants_count);
+        if (!decision.value) {
           // If size is larger than all thresholds, don't consider it again.
           if ((size > FLAG_inlining_size_threshold) &&
               (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
@@ -1059,11 +1087,13 @@ class CallSiteInliner : public ValueObject {
           }
           thread()->set_deopt_id(prev_deopt_id);
           TRACE_INLINING(
-              THR_Print("     Bailout: heuristics with "
+              THR_Print("     Bailout: heuristics (%s) with "
                         "code size:  %" Pd ", "
                         "call sites: %" Pd ", "
+                        "inlining depth of callee: %d, "
                         "const args: %" Pd "\n",
-                        size, call_site_count, constants_count));
+                        decision.reason, size, call_site_count,
+                        function.inlining_depth(), constants_count));
           PRINT_INLINING_TREE("Heuristic fail", &call_data->caller, &function,
                               call_data->call);
           return false;
@@ -1111,8 +1141,10 @@ class CallSiteInliner : public ValueObject {
                                    call_data->call->token_pos(),
                                    call_data->caller_inlining_id));
         TRACE_INLINING(THR_Print("     Success\n"));
-        TRACE_INLINING(THR_Print("       with size %" Pd "\n",
-                                 function.optimized_instruction_count()));
+        TRACE_INLINING(THR_Print(
+            "       with reason %s, code size %" Pd ", call sites: %" Pd "\n",
+            decision.reason, function.optimized_instruction_count(),
+            call_site_count));
         PRINT_INLINING_TREE(NULL, &call_data->caller, &function, call);
         return true;
       } else {
@@ -1259,12 +1291,21 @@ class CallSiteInliner : public ValueObject {
     return parsed_function;
   }
 
-  void InlineStaticCalls() {
+  bool InlineStaticCalls() {
+    bool inlined = false;
     const GrowableArray<CallSites::StaticCallInfo>& call_info =
         inlining_call_sites_->static_calls();
     TRACE_INLINING(THR_Print("  Static Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       StaticCallInstr* call = call_info[call_idx].call;
+
+      if (FlowGraphInliner::TryReplaceStaticCallWithInline(
+              inliner_->flow_graph(), NULL, call,
+              inliner_->speculative_policy_)) {
+        inlined = true;
+        continue;
+      }
+
       const Function& target = call->function();
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
@@ -1278,6 +1319,7 @@ class CallSiteInliner : public ValueObject {
                             &call->function(), call);
         continue;
       }
+
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->PushArgumentAt(i)->value());
@@ -1287,11 +1329,14 @@ class CallSiteInliner : public ValueObject {
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(call->function(), call->argument_names(), &call_data)) {
         InlineCall(&call_data);
+        inlined = true;
       }
     }
+    return inlined;
   }
 
-  void InlineClosureCalls() {
+  bool InlineClosureCalls() {
+    bool inlined = false;
     const GrowableArray<CallSites::ClosureCallInfo>& call_info =
         inlining_call_sites_->closure_calls();
     TRACE_INLINING(
@@ -1333,11 +1378,14 @@ class CallSiteInliner : public ValueObject {
           call_info[call_idx].caller_graph->inlining_id());
       if (TryInlining(target, call->argument_names(), &call_data)) {
         InlineCall(&call_data);
+        inlined = true;
       }
     }
+    return inlined;
   }
 
-  void InlineInstanceCalls() {
+  bool InlineInstanceCalls() {
+    bool inlined = false;
     const GrowableArray<CallSites::InstanceCallInfo>& call_info =
         inlining_call_sites_->instance_calls();
     TRACE_INLINING(THR_Print("  Polymorphic Instance Calls (%" Pd ")\n",
@@ -1355,8 +1403,9 @@ class CallSiteInliner : public ValueObject {
       intptr_t caller_inlining_id =
           call_info[call_idx].caller_graph->inlining_id();
       PolymorphicInliner inliner(this, call, cl, caller_inlining_id);
-      inliner.Inline();
+      if (inliner.Inline()) inlined = true;
     }
+    return inlined;
   }
 
   bool AdjustForOptionalParameters(const ParsedFunction& parsed_function,
@@ -1570,7 +1619,7 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInliningPoly(const TargetInfo& target_info) {
   if ((!FLAG_precompiled_mode ||
-       owner_->inliner_->use_speculative_inlining()) &&
+       owner_->inliner_->speculative_policy()->AllowsSpeculativeInlining()) &&
       target_info.IsSingleCid() &&
       TryInlineRecognizedMethod(target_info.cid_start, *target_info.target)) {
     owner_->inlined_ = true;
@@ -1623,7 +1672,8 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           owner_->caller_graph(), receiver_cid, target, call_, redefinition,
           call_->instance_call()->token_pos(),
-          *call_->instance_call()->ic_data(), &entry, &last)) {
+          call_->instance_call()->ic_data(), &entry, &last,
+          owner_->inliner_->speculative_policy())) {
     // Create a graph fragment.
     redefinition->InsertAfter(entry);
     InlineExitCollector* exit_collector =
@@ -1911,7 +1961,7 @@ bool PolymorphicInliner::trace_inlining() const {
   return owner_->trace_inlining();
 }
 
-void PolymorphicInliner::Inline() {
+bool PolymorphicInliner::Inline() {
   ASSERT(&variants_ == &call_->targets_);
 
   intptr_t total = call_->total_call_count();
@@ -1984,16 +2034,13 @@ void PolymorphicInliner::Inline() {
   }
 
   // If there are no inlined variants, leave the call in place.
-  if (inlined_variants_.is_empty()) return;
+  if (inlined_variants_.is_empty()) return false;
 
   // Now build a decision tree (a DAG because of shared inline variants) and
   // inline it at the call site.
   TargetEntryInstr* entry = BuildDecisionGraph();
   exit_collector_->ReplaceCall(entry);
-}
-
-static uint16_t ClampUint16(intptr_t v) {
-  return (v > 0xFFFF) ? 0xFFFF : static_cast<uint16_t>(v);
+  return true;
 }
 
 static bool ShouldTraceInlining(FlowGraph* flow_graph) {
@@ -2006,19 +2053,15 @@ FlowGraphInliner::FlowGraphInliner(
     GrowableArray<const Function*>* inline_id_to_function,
     GrowableArray<TokenPosition>* inline_id_to_token_pos,
     GrowableArray<intptr_t>* caller_inline_id,
-    bool use_speculative_inlining,
-    GrowableArray<intptr_t>* inlining_black_list,
+    SpeculativeInliningPolicy* speculative_policy,
     Precompiler* precompiler)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
       trace_inlining_(ShouldTraceInlining(flow_graph)),
-      use_speculative_inlining_(use_speculative_inlining),
-      inlining_black_list_(inlining_black_list),
-      precompiler_(precompiler) {
-  ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
-}
+      speculative_policy_(speculative_policy),
+      precompiler_(precompiler) {}
 
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
   const Function& function = flow_graph->function();
@@ -2026,9 +2069,8 @@ void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph, bool force) {
     GraphInfoCollector info;
     info.Collect(*flow_graph);
 
-    function.set_optimized_instruction_count(
-        ClampUint16(info.instruction_count()));
-    function.set_optimized_call_site_count(ClampUint16(info.call_site_count()));
+    function.SetOptimizedInstructionCountClamped(info.instruction_count());
+    function.SetOptimizedCallSiteCountClamped(info.call_site_count());
   }
 }
 
@@ -2090,7 +2132,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
   return MethodRecognizer::AlwaysInline(function);
 }
 
-void FlowGraphInliner::Inline() {
+int FlowGraphInliner::Inline() {
   // Collect graph info and store it on the function.
   // We might later use it for an early bailout from the inlining.
   CollectGraphInfo(flow_graph_);
@@ -2098,7 +2140,7 @@ void FlowGraphInliner::Inline() {
   const Function& top = flow_graph_->function();
   if ((FLAG_inlining_filter != NULL) &&
       (strstr(top.ToFullyQualifiedCString(), FLAG_inlining_filter) == NULL)) {
-    return;
+    return 0;
   }
 
   if (trace_inlining()) {
@@ -2139,6 +2181,7 @@ void FlowGraphInliner::Inline() {
       }
     }
   }
+  return inliner.inlining_depth();
 }
 
 intptr_t FlowGraphInliner::NextInlineId(const Function& function,
@@ -2188,7 +2231,8 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        intptr_t array_cid,
                                        Definition** array,
                                        Definition* index,
-                                       Instruction** cursor) {
+                                       Instruction** cursor,
+                                       bool can_speculate) {
   // Insert array length load and bounds check.
   LoadFieldInstr* length = new (Z) LoadFieldInstr(
       new (Z) Value(*array), CheckArrayBoundInstr::LengthOffsetFor(array_cid),
@@ -2200,11 +2244,16 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
       LoadFieldInstr::RecognizedKindFromArrayCid(array_cid));
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
-  *cursor = flow_graph->AppendTo(
-      *cursor,
-      new (Z) CheckArrayBoundInstr(new (Z) Value(length), new (Z) Value(index),
-                                   call->deopt_id()),
-      call->env(), FlowGraph::kEffect);
+  Instruction* bounds_check = NULL;
+  if (can_speculate) {
+    bounds_check = new (Z) CheckArrayBoundInstr(
+        new (Z) Value(length), new (Z) Value(index), call->deopt_id());
+  } else {
+    bounds_check = new (Z) GenericCheckBoundInstr(
+        new (Z) Value(length), new (Z) Value(index), call->deopt_id());
+  }
+  *cursor = flow_graph->AppendTo(*cursor, bounds_check, call->env(),
+                                 FlowGraph::kEffect);
 
   if (array_cid == kGrowableObjectArrayCid) {
     // Insert data elements load.
@@ -2230,7 +2279,8 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
                              Instruction* call,
                              Definition* receiver,
                              TargetEntryInstr** entry,
-                             Definition** last) {
+                             Definition** last,
+                             bool can_speculate) {
   intptr_t array_cid = MethodRecognizer::MethodKindToReceiverCid(kind);
 
   Definition* array = receiver;
@@ -2242,7 +2292,7 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   Instruction* cursor = *entry;
 
   array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, index,
-                                     &cursor);
+                                     &cursor, can_speculate);
 
   intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
@@ -2289,7 +2339,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                        call->GetBlock()->try_index(), Thread::kNoDeoptId);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->type_checks()) {
+  if (flow_graph->isolate()->argument_type_checks()) {
     // Only type check for the value. A type check for the index is not
     // needed here because we insert a deoptimizing smi-check for the case
     // the index is not a smi.
@@ -2358,7 +2408,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   }
 
   array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array, index,
-                                     &cursor);
+                                     &cursor, /* can_speculate= */ true);
 
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
@@ -2574,6 +2624,10 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                     TargetEntryInstr** entry,
                                     Definition** last) {
   ASSERT(array_cid != kIllegalCid);
+  if (array_cid == kDynamicCid) {
+    ASSERT(call->IsStaticCall());
+    return false;
+  }
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
   *entry = new (Z)
@@ -2617,6 +2671,10 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                      TargetEntryInstr** entry,
                                      Definition** last) {
   ASSERT(array_cid != kIllegalCid);
+  if (array_cid == kDynamicCid) {
+    ASSERT(call->IsStaticCall());
+    return false;
+  }
   Definition* array = receiver;
   Definition* index = call->ArgumentAt(1);
   *entry = new (Z)
@@ -2802,6 +2860,10 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
                                    intptr_t cid,
                                    TargetEntryInstr** entry,
                                    Definition** last) {
+  if (cid == kDynamicCid) {
+    ASSERT(call->IsStaticCall());
+    return false;
+  }
   ASSERT((cid == kOneByteStringCid) || (cid == kTwoByteStringCid) ||
          (cid == kExternalOneByteStringCid) ||
          (cid == kExternalTwoByteStringCid));
@@ -2822,7 +2884,8 @@ static bool InlineStringCodeUnitAt(FlowGraph* flow_graph,
 bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     FlowGraph* flow_graph,
     ForwardInstructionIterator* iterator,
-    InstanceCallInstr* call) {
+    InstanceCallInstr* call,
+    SpeculativeInliningPolicy* policy) {
   Function& target = Function::Handle(Z);
   GrowableArray<intptr_t> class_ids;
   call->ic_data()->GetCheckAt(0, &class_ids, &target);
@@ -2832,7 +2895,7 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
   Definition* last;
   if (FlowGraphInliner::TryInlineRecognizedMethod(
           flow_graph, receiver_cid, target, call, call->ArgumentAt(0),
-          call->token_pos(), *call->ic_data(), &entry, &last)) {
+          call->token_pos(), call->ic_data(), &entry, &last, policy)) {
     // Insert receiver class check if needed.
     if (MethodRecognizer::PolymorphicTarget(target) ||
         flow_graph->InstanceCallNeedsClassCheck(call, target.kind())) {
@@ -2874,12 +2937,20 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
 bool FlowGraphInliner::TryReplaceStaticCallWithInline(
     FlowGraph* flow_graph,
     ForwardInstructionIterator* iterator,
-    StaticCallInstr* call) {
+    StaticCallInstr* call,
+    SpeculativeInliningPolicy* policy) {
   TargetEntryInstr* entry;
   Definition* last;
+  Definition* receiver = NULL;
+  intptr_t receiver_cid = kIllegalCid;
+  if (!call->function().is_static()) {
+    receiver = call->ArgumentAt(call->FirstArgIndex());
+    receiver_cid =
+        call->PushArgumentAt(call->FirstArgIndex())->value()->Type()->ToCid();
+  }
   if (FlowGraphInliner::TryInlineRecognizedMethod(
-          flow_graph, kIllegalCid, call->function(), call, NULL,
-          call->token_pos(), *call->ic_data(), &entry, &last)) {
+          flow_graph, receiver_cid, call->function(), call, receiver,
+          call->token_pos(), call->ic_data(), &entry, &last, policy)) {
     // Remove the original push arguments.
     for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
       PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -2900,118 +2971,15 @@ bool FlowGraphInliner::TryReplaceStaticCallWithInline(
       last->LinkTo(call);
     }
     // Remove through the iterator.
-    ASSERT(iterator->Current() == call);
-    iterator->RemoveCurrentFromGraph();
-    call->set_previous(NULL);
-    call->set_next(NULL);
+    if (iterator != NULL) {
+      ASSERT(iterator->Current() == call);
+      iterator->RemoveCurrentFromGraph();
+    } else {
+      call->RemoveFromGraph();
+    }
     return true;
   }
   return false;
-}
-
-static bool InlineFloat32x4Method(FlowGraph* flow_graph,
-                                  Instruction* call,
-                                  Definition* receiver,
-                                  MethodRecognizer::Kind kind,
-                                  TargetEntryInstr** entry,
-                                  Definition** last) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-  switch (kind) {
-    case MethodRecognizer::kFloat32x4ShuffleX:
-    case MethodRecognizer::kFloat32x4ShuffleY:
-    case MethodRecognizer::kFloat32x4ShuffleZ:
-    case MethodRecognizer::kFloat32x4ShuffleW: {
-      *last = new (Z) Simd32x4ShuffleInstr(kind, new (Z) Value(receiver),
-                                           0,  // mask ignored.
-                                           call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat32x4GetSignMask: {
-      *last = new (Z) Simd32x4GetSignMaskInstr(kind, new (Z) Value(receiver),
-                                               call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat32x4Equal:
-    case MethodRecognizer::kFloat32x4GreaterThan:
-    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
-    case MethodRecognizer::kFloat32x4LessThan:
-    case MethodRecognizer::kFloat32x4LessThanOrEqual:
-    case MethodRecognizer::kFloat32x4NotEqual: {
-      Definition* left = receiver;
-      Definition* right = call->ArgumentAt(1);
-      *last = new (Z) Float32x4ComparisonInstr(
-          kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat32x4Min:
-    case MethodRecognizer::kFloat32x4Max: {
-      Definition* left = receiver;
-      Definition* right = call->ArgumentAt(1);
-      *last = new (Z) Float32x4MinMaxInstr(
-          kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat32x4Scale: {
-      Definition* left = receiver;
-      Definition* right = call->ArgumentAt(1);
-      // Left and right values are swapped when handed to the instruction,
-      // this is done so that the double value is loaded into the output
-      // register and can be destroyed.
-      *last = new (Z) Float32x4ScaleInstr(
-          kind, new (Z) Value(right), new (Z) Value(left), call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat32x4Sqrt:
-    case MethodRecognizer::kFloat32x4ReciprocalSqrt:
-    case MethodRecognizer::kFloat32x4Reciprocal: {
-      Definition* left = receiver;
-      *last = new (Z)
-          Float32x4SqrtInstr(kind, new (Z) Value(left), call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat32x4WithX:
-    case MethodRecognizer::kFloat32x4WithY:
-    case MethodRecognizer::kFloat32x4WithZ:
-    case MethodRecognizer::kFloat32x4WithW: {
-      Definition* left = receiver;
-      Definition* right = call->ArgumentAt(1);
-      *last = new (Z) Float32x4WithInstr(
-          kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat32x4Absolute:
-    case MethodRecognizer::kFloat32x4Negate: {
-      Definition* left = receiver;
-      *last = new (Z)
-          Float32x4ZeroArgInstr(kind, new (Z) Value(left), call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat32x4Clamp: {
-      Definition* left = receiver;
-      Definition* lower = call->ArgumentAt(1);
-      Definition* upper = call->ArgumentAt(2);
-      *last =
-          new (Z) Float32x4ClampInstr(new (Z) Value(left), new (Z) Value(lower),
-                                      new (Z) Value(upper), call->deopt_id());
-      break;
-    }
-    default:
-      UNREACHABLE();
-      return false;
-  }
-  flow_graph->AppendTo(
-      cursor, *last,
-      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
-      FlowGraph::kValue);
-  return true;
 }
 
 static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
@@ -3027,69 +2995,12 @@ static bool CheckMask(Definition* definition, intptr_t* mask_ptr) {
   return true;
 }
 
-static bool InlineSimdShuffleMethod(FlowGraph* flow_graph,
-                                    Instruction* call,
-                                    Definition* receiver,
-                                    MethodRecognizer::Kind kind,
-                                    TargetEntryInstr** entry,
-                                    Definition** last) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-  Definition* mask_definition = call->ArgumentAt(1);
-  intptr_t mask = 0;
-  if (!CheckMask(mask_definition, &mask)) {
-    return false;
-  }
-  *last = new (Z) Simd32x4ShuffleInstr(kind, new (Z) Value(call->ArgumentAt(0)),
-                                       mask, call->deopt_id());
-  flow_graph->AppendTo(
-      cursor, *last,
-      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
-      FlowGraph::kValue);
-  return true;
-}
-
-static bool InlineSimdShuffleMixMethod(FlowGraph* flow_graph,
-                                       Instruction* call,
-                                       Definition* receiver,
-                                       MethodRecognizer::Kind kind,
-                                       TargetEntryInstr** entry,
-                                       Definition** last) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-  Definition* mask_definition = call->ArgumentAt(2);
-  intptr_t mask = 0;
-  if (!CheckMask(mask_definition, &mask)) {
-    return false;
-  }
-  *last = new (Z) Simd32x4ShuffleMixInstr(kind, new (Z) Value(receiver),
-                                          new (Z) Value(call->ArgumentAt(1)),
-                                          mask, call->deopt_id());
-  flow_graph->AppendTo(
-      cursor, *last,
-      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
-      FlowGraph::kValue);
-  return true;
-}
-
-static bool InlineInt32x4Method(FlowGraph* flow_graph,
-                                Instruction* call,
-                                Definition* receiver,
-                                MethodRecognizer::Kind kind,
-                                TargetEntryInstr** entry,
-                                Definition** last) {
+static bool InlineSimdOp(FlowGraph* flow_graph,
+                         Instruction* call,
+                         Definition* receiver,
+                         MethodRecognizer::Kind kind,
+                         TargetEntryInstr** entry,
+                         Definition** last) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -3099,172 +3010,54 @@ static bool InlineInt32x4Method(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
   switch (kind) {
-    case MethodRecognizer::kInt32x4GetFlagX:
-    case MethodRecognizer::kInt32x4GetFlagY:
-    case MethodRecognizer::kInt32x4GetFlagZ:
-    case MethodRecognizer::kInt32x4GetFlagW: {
-      *last = new (Z)
-          Int32x4GetFlagInstr(kind, new (Z) Value(receiver), call->deopt_id());
+    case MethodRecognizer::kInt32x4Shuffle:
+    case MethodRecognizer::kInt32x4ShuffleMix:
+    case MethodRecognizer::kFloat32x4Shuffle:
+    case MethodRecognizer::kFloat32x4ShuffleMix: {
+      Definition* mask_definition = call->ArgumentAt(call->ArgumentCount() - 1);
+      intptr_t mask = 0;
+      if (!CheckMask(mask_definition, &mask)) {
+        return false;
+      }
+      *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call, mask);
       break;
     }
-    case MethodRecognizer::kInt32x4GetSignMask: {
-      *last = new (Z) Simd32x4GetSignMaskInstr(kind, new (Z) Value(receiver),
-                                               call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kInt32x4Select: {
-      Definition* mask = receiver;
-      Definition* trueValue = call->ArgumentAt(1);
-      Definition* falseValue = call->ArgumentAt(2);
-      *last = new (Z)
-          Int32x4SelectInstr(new (Z) Value(mask), new (Z) Value(trueValue),
-                             new (Z) Value(falseValue), call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kInt32x4WithFlagX:
-    case MethodRecognizer::kInt32x4WithFlagY:
-    case MethodRecognizer::kInt32x4WithFlagZ:
-    case MethodRecognizer::kInt32x4WithFlagW: {
-      *last = new (Z) Int32x4SetFlagInstr(kind, new (Z) Value(receiver),
-                                          new (Z) Value(call->ArgumentAt(1)),
-                                          call->deopt_id());
-      break;
-    }
-    default:
-      return false;
-  }
-  flow_graph->AppendTo(
-      cursor, *last,
-      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
-      FlowGraph::kValue);
-  return true;
-}
 
-static bool InlineFloat64x2Method(FlowGraph* flow_graph,
-                                  Instruction* call,
-                                  Definition* receiver,
-                                  MethodRecognizer::Kind kind,
-                                  TargetEntryInstr** entry,
-                                  Definition** last) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-  switch (kind) {
-    case MethodRecognizer::kFloat64x2GetX:
-    case MethodRecognizer::kFloat64x2GetY: {
-      *last = new (Z) Simd64x2ShuffleInstr(kind, new (Z) Value(receiver),
-                                           0,  // mask is ignored.
-                                           call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat64x2Negate:
-    case MethodRecognizer::kFloat64x2Abs:
-    case MethodRecognizer::kFloat64x2Sqrt:
-    case MethodRecognizer::kFloat64x2GetSignMask: {
-      *last = new (Z) Float64x2ZeroArgInstr(kind, new (Z) Value(receiver),
-                                            call->deopt_id());
-      break;
-    }
-    case MethodRecognizer::kFloat64x2Scale:
-    case MethodRecognizer::kFloat64x2WithX:
-    case MethodRecognizer::kFloat64x2WithY:
-    case MethodRecognizer::kFloat64x2Min:
-    case MethodRecognizer::kFloat64x2Max: {
+    case MethodRecognizer::kFloat32x4WithX:
+    case MethodRecognizer::kFloat32x4WithY:
+    case MethodRecognizer::kFloat32x4WithZ:
+    case MethodRecognizer::kFloat32x4WithW:
+    case MethodRecognizer::kFloat32x4Scale: {
       Definition* left = receiver;
       Definition* right = call->ArgumentAt(1);
-      *last = new (Z) Float64x2OneArgInstr(
-          kind, new (Z) Value(left), new (Z) Value(right), call->deopt_id());
+      // Note: left and right values are swapped when handed to the instruction,
+      // this is done so that the double value is loaded into the output
+      // register and can be destroyed.
+      // TODO(dartbug.com/31035) this swapping is only needed because register
+      // allocator has SameAsFirstInput policy and not SameAsNthInput(n).
+      *last = SimdOpInstr::Create(kind, new (Z) Value(right),
+                                  new (Z) Value(left), call->deopt_id());
       break;
     }
-    default:
-      UNREACHABLE();
-      return false;
-  }
-  flow_graph->AppendTo(
-      cursor, *last,
-      call->deopt_id() != Thread::kNoDeoptId ? call->env() : NULL,
-      FlowGraph::kValue);
-  return true;
-}
 
-static bool InlineSimdConstructor(FlowGraph* flow_graph,
-                                  Instruction* call,
-                                  MethodRecognizer::Kind kind,
-                                  TargetEntryInstr** entry,
-                                  Definition** last) {
-  if (!ShouldInlineSimd()) {
-    return false;
-  }
-  *entry = new (Z)
-      TargetEntryInstr(flow_graph->allocate_block_id(),
-                       call->GetBlock()->try_index(), Thread::kNoDeoptId);
-  (*entry)->InheritDeoptTarget(Z, call);
-  Instruction* cursor = *entry;
-  switch (kind) {
     case MethodRecognizer::kFloat32x4Zero:
-      *last = new (Z) Float32x4ZeroInstr();
-      break;
     case MethodRecognizer::kFloat32x4Splat:
-      *last = new (Z) Float32x4SplatInstr(new (Z) Value(call->ArgumentAt(1)),
-                                          call->deopt_id());
-      break;
     case MethodRecognizer::kFloat32x4Constructor:
-      *last = new (Z) Float32x4ConstructorInstr(
-          new (Z) Value(call->ArgumentAt(1)),
-          new (Z) Value(call->ArgumentAt(2)),
-          new (Z) Value(call->ArgumentAt(3)),
-          new (Z) Value(call->ArgumentAt(4)), call->deopt_id());
-      break;
-    case MethodRecognizer::kFloat32x4FromInt32x4Bits:
-      *last = new (Z) Int32x4ToFloat32x4Instr(
-          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
-      break;
-    case MethodRecognizer::kFloat32x4FromFloat64x2:
-      *last = new (Z) Float64x2ToFloat32x4Instr(
-          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
-      break;
-    case MethodRecognizer::kFloat64x2Zero:
-      *last = new (Z) Float64x2ZeroInstr();
-      break;
-    case MethodRecognizer::kFloat64x2Splat:
-      *last = new (Z) Float64x2SplatInstr(new (Z) Value(call->ArgumentAt(1)),
-                                          call->deopt_id());
-      break;
+    case MethodRecognizer::kFloat32x4ToFloat64x2:
+    case MethodRecognizer::kFloat64x2ToFloat32x4:
+    case MethodRecognizer::kFloat32x4ToInt32x4:
+    case MethodRecognizer::kInt32x4ToFloat32x4:
     case MethodRecognizer::kFloat64x2Constructor:
-      *last = new (Z) Float64x2ConstructorInstr(
-          new (Z) Value(call->ArgumentAt(1)),
-          new (Z) Value(call->ArgumentAt(2)), call->deopt_id());
-      break;
-    case MethodRecognizer::kFloat64x2FromFloat32x4:
-      *last = new (Z) Float32x4ToFloat64x2Instr(
-          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
-      break;
+    case MethodRecognizer::kFloat64x2Zero:
+    case MethodRecognizer::kFloat64x2Splat:
     case MethodRecognizer::kInt32x4BoolConstructor:
-      *last = new (Z) Int32x4BoolConstructorInstr(
-          new (Z) Value(call->ArgumentAt(1)),
-          new (Z) Value(call->ArgumentAt(2)),
-          new (Z) Value(call->ArgumentAt(3)),
-          new (Z) Value(call->ArgumentAt(4)), call->deopt_id());
-      break;
     case MethodRecognizer::kInt32x4Constructor:
-      *last = new (Z) Int32x4ConstructorInstr(
-          new (Z) Value(call->ArgumentAt(1)),
-          new (Z) Value(call->ArgumentAt(2)),
-          new (Z) Value(call->ArgumentAt(3)),
-          new (Z) Value(call->ArgumentAt(4)), call->deopt_id());
+      *last = SimdOpInstr::CreateFromFactoryCall(Z, kind, call);
       break;
-    case MethodRecognizer::kInt32x4FromFloat32x4Bits:
-      *last = new (Z) Float32x4ToInt32x4Instr(
-          new (Z) Value(call->ArgumentAt(1)), call->deopt_id());
-      break;
+
     default:
-      UNREACHABLE();
-      return false;
+      *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
+      break;
   }
   flow_graph->AppendTo(
       cursor, *last,
@@ -3312,16 +3105,20 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
   return true;
 }
 
-bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
-                                                 intptr_t receiver_cid,
-                                                 const Function& target,
-                                                 Definition* call,
-                                                 Definition* receiver,
-                                                 TokenPosition token_pos,
-                                                 const ICData& ic_data,
-                                                 TargetEntryInstr** entry,
-                                                 Definition** last) {
-  MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
+bool FlowGraphInliner::TryInlineRecognizedMethod(
+    FlowGraph* flow_graph,
+    intptr_t receiver_cid,
+    const Function& target,
+    Definition* call,
+    Definition* receiver,
+    TokenPosition token_pos,
+    const ICData* ic_data,
+    TargetEntryInstr** entry,
+    Definition** last,
+    SpeculativeInliningPolicy* policy) {
+  const bool can_speculate = policy->IsAllowedForInlining(call->deopt_id());
+
+  const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
   switch (kind) {
     // Recognized [] operators.
     case MethodRecognizer::kImmutableArrayGetIndexed:
@@ -3334,29 +3131,45 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kExternalUint8ClampedArrayGetIndexed:
     case MethodRecognizer::kInt16ArrayGetIndexed:
     case MethodRecognizer::kUint16ArrayGetIndexed:
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
     case MethodRecognizer::kFloat32ArrayGetIndexed:
     case MethodRecognizer::kFloat64ArrayGetIndexed:
       if (!CanUnboxDouble()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
     case MethodRecognizer::kInt32ArrayGetIndexed:
     case MethodRecognizer::kUint32ArrayGetIndexed:
       if (!CanUnboxInt32()) return false;
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
 
     case MethodRecognizer::kInt64ArrayGetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
       }
-      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last);
+      return InlineGetIndexed(flow_graph, kind, call, receiver, entry, last,
+                              can_speculate);
+
+    default:
+      break;
+  }
+
+  // The following ones need to speculate.
+  if (!can_speculate) {
+    return false;
+  }
+
+  switch (kind) {
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
     case MethodRecognizer::kGrowableArraySetIndexed:
@@ -3370,7 +3183,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kInt16ArraySetIndexed:
     case MethodRecognizer::kUint16ArraySetIndexed: {
       // Optimistically assume Smi.
-      if (ic_data.HasDeoptReason(ICData::kDeoptCheckSmi)) {
+      if (ic_data != NULL && ic_data->HasDeoptReason(ICData::kDeoptCheckSmi)) {
         // Optimistic assumption failed at least once.
         return false;
       }
@@ -3541,95 +3354,86 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
     case MethodRecognizer::kDouble_getIsInfinite:
       return InlineDoubleTestOp(flow_graph, call, receiver, kind, entry, last);
     case MethodRecognizer::kGrowableArraySetData:
-      ASSERT(receiver_cid == kGrowableObjectArrayCid);
-      ASSERT(ic_data.NumberOfChecksIs(1));
+      ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
+             ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
+      ASSERT(call->IsStaticCall() ||
+             (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::data_offset(), kEmitStoreBarrier,
           call, receiver, entry, last);
     case MethodRecognizer::kGrowableArraySetLength:
-      ASSERT(receiver_cid == kGrowableObjectArrayCid);
-      ASSERT(ic_data.NumberOfChecksIs(1));
+      ASSERT((receiver_cid == kGrowableObjectArrayCid) ||
+             ((receiver_cid == kDynamicCid) && call->IsStaticCall()));
+      ASSERT(call->IsStaticCall() ||
+             (ic_data == NULL || ic_data->NumberOfChecksIs(1)));
       return InlineGrowableArraySetter(
           flow_graph, GrowableObjectArray::length_offset(), kNoStoreBarrier,
           call, receiver, entry, last);
     case MethodRecognizer::kSmi_bitAndFromSmi:
       return InlineSmiBitAndFromSmi(flow_graph, call, receiver, entry, last);
 
-    case MethodRecognizer::kFloat32x4ShuffleX:
-    case MethodRecognizer::kFloat32x4ShuffleY:
-    case MethodRecognizer::kFloat32x4ShuffleZ:
-    case MethodRecognizer::kFloat32x4ShuffleW:
-    case MethodRecognizer::kFloat32x4GetSignMask:
+    case MethodRecognizer::kFloat32x4Abs:
+    case MethodRecognizer::kFloat32x4Clamp:
+    case MethodRecognizer::kFloat32x4Constructor:
     case MethodRecognizer::kFloat32x4Equal:
+    case MethodRecognizer::kFloat32x4GetSignMask:
     case MethodRecognizer::kFloat32x4GreaterThan:
     case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
     case MethodRecognizer::kFloat32x4LessThan:
     case MethodRecognizer::kFloat32x4LessThanOrEqual:
-    case MethodRecognizer::kFloat32x4NotEqual:
-    case MethodRecognizer::kFloat32x4Min:
     case MethodRecognizer::kFloat32x4Max:
-    case MethodRecognizer::kFloat32x4Scale:
-    case MethodRecognizer::kFloat32x4Sqrt:
-    case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+    case MethodRecognizer::kFloat32x4Min:
+    case MethodRecognizer::kFloat32x4Negate:
+    case MethodRecognizer::kFloat32x4NotEqual:
     case MethodRecognizer::kFloat32x4Reciprocal:
+    case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+    case MethodRecognizer::kFloat32x4Scale:
+    case MethodRecognizer::kFloat32x4ShuffleW:
+    case MethodRecognizer::kFloat32x4ShuffleX:
+    case MethodRecognizer::kFloat32x4ShuffleY:
+    case MethodRecognizer::kFloat32x4ShuffleZ:
+    case MethodRecognizer::kFloat32x4Splat:
+    case MethodRecognizer::kFloat32x4Sqrt:
+    case MethodRecognizer::kFloat32x4ToFloat64x2:
+    case MethodRecognizer::kFloat32x4ToInt32x4:
+    case MethodRecognizer::kFloat32x4WithW:
     case MethodRecognizer::kFloat32x4WithX:
     case MethodRecognizer::kFloat32x4WithY:
     case MethodRecognizer::kFloat32x4WithZ:
-    case MethodRecognizer::kFloat32x4WithW:
-    case MethodRecognizer::kFloat32x4Absolute:
-    case MethodRecognizer::kFloat32x4Negate:
-    case MethodRecognizer::kFloat32x4Clamp:
-      return InlineFloat32x4Method(flow_graph, call, receiver, kind, entry,
-                                   last);
-
-    case MethodRecognizer::kFloat32x4ShuffleMix:
-    case MethodRecognizer::kInt32x4ShuffleMix:
-      return InlineSimdShuffleMixMethod(flow_graph, call, receiver, kind, entry,
-                                        last);
-
-    case MethodRecognizer::kFloat32x4Shuffle:
-    case MethodRecognizer::kInt32x4Shuffle:
-      return InlineSimdShuffleMethod(flow_graph, call, receiver, kind, entry,
-                                     last);
-
+    case MethodRecognizer::kFloat32x4Zero:
+    case MethodRecognizer::kFloat64x2Abs:
+    case MethodRecognizer::kFloat64x2Constructor:
+    case MethodRecognizer::kFloat64x2GetSignMask:
+    case MethodRecognizer::kFloat64x2GetX:
+    case MethodRecognizer::kFloat64x2GetY:
+    case MethodRecognizer::kFloat64x2Max:
+    case MethodRecognizer::kFloat64x2Min:
+    case MethodRecognizer::kFloat64x2Negate:
+    case MethodRecognizer::kFloat64x2Scale:
+    case MethodRecognizer::kFloat64x2Splat:
+    case MethodRecognizer::kFloat64x2Sqrt:
+    case MethodRecognizer::kFloat64x2ToFloat32x4:
+    case MethodRecognizer::kFloat64x2WithX:
+    case MethodRecognizer::kFloat64x2WithY:
+    case MethodRecognizer::kFloat64x2Zero:
+    case MethodRecognizer::kInt32x4BoolConstructor:
+    case MethodRecognizer::kInt32x4Constructor:
+    case MethodRecognizer::kInt32x4GetFlagW:
     case MethodRecognizer::kInt32x4GetFlagX:
     case MethodRecognizer::kInt32x4GetFlagY:
     case MethodRecognizer::kInt32x4GetFlagZ:
-    case MethodRecognizer::kInt32x4GetFlagW:
     case MethodRecognizer::kInt32x4GetSignMask:
     case MethodRecognizer::kInt32x4Select:
+    case MethodRecognizer::kInt32x4ToFloat32x4:
+    case MethodRecognizer::kInt32x4WithFlagW:
     case MethodRecognizer::kInt32x4WithFlagX:
     case MethodRecognizer::kInt32x4WithFlagY:
     case MethodRecognizer::kInt32x4WithFlagZ:
-    case MethodRecognizer::kInt32x4WithFlagW:
-      return InlineInt32x4Method(flow_graph, call, receiver, kind, entry, last);
-
-    case MethodRecognizer::kFloat64x2GetX:
-    case MethodRecognizer::kFloat64x2GetY:
-    case MethodRecognizer::kFloat64x2Negate:
-    case MethodRecognizer::kFloat64x2Abs:
-    case MethodRecognizer::kFloat64x2Sqrt:
-    case MethodRecognizer::kFloat64x2GetSignMask:
-    case MethodRecognizer::kFloat64x2Scale:
-    case MethodRecognizer::kFloat64x2WithX:
-    case MethodRecognizer::kFloat64x2WithY:
-    case MethodRecognizer::kFloat64x2Min:
-    case MethodRecognizer::kFloat64x2Max:
-      return InlineFloat64x2Method(flow_graph, call, receiver, kind, entry,
-                                   last);
-
-    case MethodRecognizer::kFloat32x4Zero:
-    case MethodRecognizer::kFloat32x4Splat:
-    case MethodRecognizer::kFloat32x4Constructor:
-    case MethodRecognizer::kFloat32x4FromFloat64x2:
-    case MethodRecognizer::kFloat64x2Constructor:
-    case MethodRecognizer::kFloat64x2Zero:
-    case MethodRecognizer::kFloat64x2Splat:
-    case MethodRecognizer::kFloat64x2FromFloat32x4:
-    case MethodRecognizer::kInt32x4BoolConstructor:
-    case MethodRecognizer::kInt32x4Constructor:
-    case MethodRecognizer::kInt32x4FromFloat32x4Bits:
-      return InlineSimdConstructor(flow_graph, call, kind, entry, last);
+    case MethodRecognizer::kFloat32x4ShuffleMix:
+    case MethodRecognizer::kInt32x4ShuffleMix:
+    case MethodRecognizer::kFloat32x4Shuffle:
+    case MethodRecognizer::kInt32x4Shuffle:
+      return InlineSimdOp(flow_graph, call, receiver, kind, entry, last);
 
     case MethodRecognizer::kMathSqrt:
     case MethodRecognizer::kMathDoublePow:
@@ -3677,7 +3481,9 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
 
     case MethodRecognizer::kObjectRuntimeType: {
       Type& type = Type::ZoneHandle(Z);
-      if (RawObject::IsStringClassId(receiver_cid)) {
+      if (receiver_cid == kDynamicCid) {
+        return false;
+      } else if (RawObject::IsStringClassId(receiver_cid)) {
         type = Type::StringType();
       } else if (receiver_cid == kDoubleCid) {
         type = Type::Double();

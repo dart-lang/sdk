@@ -30,17 +30,6 @@ class Try<T> {
     }
   }
 
-  Future<Try<S>> bindAsync<S>(Future<S> f(T x)) async {
-    if (_err != null) {
-      return new Try.fail(_err, _stackTrace);
-    }
-    try {
-      return new Try.from(await f(_val));
-    } catch (ex, stackTrace) {
-      return new Try.fail(ex, stackTrace);
-    }
-  }
-
   void fold(void caseErr(dynamic ex, StackTrace st), void caseVal(T x)) {
     if (_err != null) {
       caseErr(_err, _stackTrace);
@@ -51,7 +40,7 @@ class Try<T> {
 
   bool get isError => _err != null;
 
-  Exception get error => _err;
+  Error get error => _err;
   StackTrace get stackTrace => _stackTrace;
 
   T get value => _val;
@@ -61,8 +50,4 @@ class Try<T> {
 
 Try<T> tryStart<T>(T action()) {
   return new Try<int>.from(0).bind<T>((dummy) => action());
-}
-
-Future<Try<T>> tryStartAsync<T>(Future<T> action()) {
-  return new Try<int>.from(0).bindAsync<T>((dummy) => action());
 }

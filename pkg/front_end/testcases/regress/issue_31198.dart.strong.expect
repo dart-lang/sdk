@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  constructor •() → void
+    : final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_31198.dart:8:8: Error: Super calls can't be used as expressions.\nTo delegate a constructor to a super constructor, put the super call as an initializer.\n  B(): super().foo() {}\n       ^")).foo() {}
+}
+static method bad() → dynamic {
+  new self::B::•();
+}
+static method main() → dynamic {}

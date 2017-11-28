@@ -5,9 +5,10 @@ define(['dart_sdk'], function(dart_sdk) {
   const math = dart_sdk.math;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
-  const sunflower = Object.create(null);
-  const circle = Object.create(null);
-  const painter = Object.create(null);
+  const _root = Object.create(null);
+  const sunflower = Object.create(_root);
+  const circle = Object.create(_root);
+  const painter = Object.create(_root);
   const $getContext = dartx.getContext;
   const $addEventListener = dartx.addEventListener;
   const $text = dartx.text;
@@ -27,7 +28,7 @@ define(['dart_sdk'], function(dart_sdk) {
       return 300;
     },
     get centerX() {
-      return sunflower.MAX_D / 2;
+      return 300 / 2;
     },
     get centerY() {
       return sunflower.centerX;
@@ -65,13 +66,13 @@ define(['dart_sdk'], function(dart_sdk) {
   dart.fn(sunflower.main, VoidTovoid());
   sunflower.draw = function() {
     sunflower.seeds = core.int.parse(sunflower.slider.value);
-    sunflower.context.clearRect(0, 0, sunflower.MAX_D, sunflower.MAX_D);
+    sunflower.context.clearRect(0, 0, 300, 300);
     for (let i = 0; i < dart.notNull(sunflower.seeds); i++) {
       let theta = i * painter.TAU / dart.notNull(sunflower.PHI);
-      let r = math.sqrt(i) * sunflower.SCALE_FACTOR;
+      let r = math.sqrt(i) * 4;
       let x = sunflower.centerX + r * math.cos(theta);
       let y = sunflower.centerY - r * math.sin(theta);
-      new sunflower.SunflowerSeed.new(x, y, sunflower.SEED_RADIUS).draw(sunflower.context);
+      new sunflower.SunflowerSeed.new(x, y, 2).draw(sunflower.context);
     }
     sunflower.notes[$text] = dart.str`${sunflower.seeds} seeds`;
   };
@@ -105,13 +106,12 @@ define(['dart_sdk'], function(dart_sdk) {
   const x$ = Symbol("Circle.x");
   const y$ = Symbol("Circle.y");
   const radius$ = Symbol("Circle.radius");
-  dart.setSignature(circle.Circle, {
-    fields: () => ({
-      x: dart.finalFieldType(core.num),
-      y: dart.finalFieldType(core.num),
-      radius: dart.finalFieldType(core.num)
-    })
-  });
+  dart.setFieldSignature(circle.Circle, () => ({
+    __proto__: dart.getFields(circle.Circle.__proto__),
+    x: dart.finalFieldType(core.num),
+    y: dart.finalFieldType(core.num),
+    radius: dart.finalFieldType(core.num)
+  }));
   painter.CirclePainter = class CirclePainter extends core.Object {
     get color() {
       return this[color];
@@ -131,15 +131,19 @@ define(['dart_sdk'], function(dart_sdk) {
     }
   };
   (painter.CirclePainter.new = function() {
-    this[color] = painter.ORANGE;
+    this[color] = "orange";
   }).prototype = painter.CirclePainter.prototype;
   dart.addTypeTests(painter.CirclePainter);
   const color = Symbol("CirclePainter.color");
   painter.CirclePainter[dart.implements] = () => [circle.Circle];
-  dart.setSignature(painter.CirclePainter, {
-    fields: () => ({color: dart.fieldType(core.String)}),
-    methods: () => ({draw: dart.fnType(dart.void, [html.CanvasRenderingContext2D])})
-  });
+  dart.setMethodSignature(painter.CirclePainter, () => ({
+    __proto__: dart.getMethods(painter.CirclePainter.__proto__),
+    draw: dart.fnType(dart.void, [html.CanvasRenderingContext2D])
+  }));
+  dart.setFieldSignature(painter.CirclePainter, () => ({
+    __proto__: dart.getFields(painter.CirclePainter.__proto__),
+    color: dart.fieldType(core.String)
+  }));
   sunflower.SunflowerSeed = class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {};
   (sunflower.SunflowerSeed.new = function(x, y, radius, color) {
     if (color === void 0) color = null;

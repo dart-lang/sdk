@@ -13,7 +13,7 @@ String decode(List<int> inputBytes) {
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
   inputByteSink.add(inputBytes);
   inputByteSink.close();
-  return UTF8.decode(bytes);
+  return utf8.decode(bytes);
 }
 
 String decode2(List<int> inputBytes) {
@@ -24,7 +24,7 @@ String decode2(List<int> inputBytes) {
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
   inputBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
-  return UTF8.decode(bytes);
+  return utf8.decode(bytes);
 }
 
 String decodeAllowMalformed(List<int> inputBytes) {
@@ -35,7 +35,7 @@ String decodeAllowMalformed(List<int> inputBytes) {
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(true);
   inputByteSink.add(inputBytes);
   inputByteSink.close();
-  return UTF8.decode(bytes);
+  return utf8.decode(bytes);
 }
 
 String decodeAllowMalformed2(List<int> inputBytes) {
@@ -46,7 +46,7 @@ String decodeAllowMalformed2(List<int> inputBytes) {
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(true);
   inputBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
-  return UTF8.decode(bytes);
+  return utf8.decode(bytes);
 }
 
 final TESTS = [
@@ -274,8 +274,8 @@ main() {
 
   for (var test in []..addAll(allTests)..addAll(allTests2)) {
     List<int> bytes = test[0];
-    Expect.throws(() => decode(bytes), (e) => e is FormatException);
-    Expect.throws(() => decode2(bytes), (e) => e is FormatException);
+    Expect.throwsFormatException(() => decode(bytes));
+    Expect.throwsFormatException(() => decode2(bytes));
 
     String expected = test[1];
     Expect.equals(expected, decodeAllowMalformed(bytes));

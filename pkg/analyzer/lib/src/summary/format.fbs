@@ -1453,7 +1453,7 @@ table LinkedReference {
    * to is a local function), the index of the function within
    * [UnlinkedExecutable.localFunctions].  Otherwise zero.
    */
-  localIndex:uint (id: 6);
+  localIndex:uint (id: 6, deprecated);
 
   /**
    * If this [LinkedReference] doesn't have an associated [UnlinkedReference],

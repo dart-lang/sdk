@@ -47,11 +47,10 @@ class Test extends core::Object {
     let final dynamic #t10 = self::f<dynamic>() in this.[]=(#t10, this.[](#t10).-(1));
     dynamic v1 = let final dynamic #t11 = self::f<dynamic>() in let final dynamic #t12 = self::f<dynamic>() in let final dynamic #t13 = this.[]=(#t11, #t12) in #t12;
     dynamic v2 = let final dynamic #t14 = self::f<dynamic>() in let final dynamic #t15 = this.[](#t14) in #t15.==(null) ? let final dynamic #t16 = self::f<dynamic>() in let final dynamic #t17 = this.[]=(#t14, #t16) in #t16 : #t15;
-    dynamic v3 = let final dynamic #t18 = self::f<dynamic>() in let final dynamic #t19 = this.[](#t18).+(self::f<dynamic>()) in let final dynamic #t20 = this.[]=(#t18, #t19) in #t19;
-    dynamic v4 = let final dynamic #t21 = self::f<dynamic>() in let final dynamic #t22 = this.[](#t21).*(self::f<dynamic>()) in let final dynamic #t23 = this.[]=(#t21, #t22) in #t22;
-    dynamic v5 = let final dynamic #t24 = self::f<dynamic>() in let final dynamic #t25 = this.[](#t24).&(self::f<dynamic>()) in let final dynamic #t26 = this.[]=(#t24, #t25) in #t25;
-    dynamic v6 = let final dynamic #t27 = self::f<dynamic>() in let final dynamic #t28 = this.[](#t27).-(1) in let final dynamic #t29 = this.[]=(#t27, #t28) in #t28;
-    dynamic v7 = let final dynamic #t30 = self::f<dynamic>() in let final dynamic #t31 = this.[](#t30) in let final dynamic #t32 = this.[]=(#t30, #t31.-(1)) in #t31;
+    dynamic v4 = let final dynamic #t18 = self::f<dynamic>() in let final dynamic #t19 = this.[](#t18).*(self::f<dynamic>()) in let final dynamic #t20 = this.[]=(#t18, #t19) in #t19;
+    dynamic v5 = let final dynamic #t21 = self::f<dynamic>() in let final dynamic #t22 = this.[](#t21).&(self::f<dynamic>()) in let final dynamic #t23 = this.[]=(#t21, #t22) in #t22;
+    dynamic v6 = let final dynamic #t24 = self::f<dynamic>() in let final dynamic #t25 = this.[](#t24).-(1) in let final dynamic #t26 = this.[]=(#t24, #t25) in #t25;
+    dynamic v7 = let final dynamic #t27 = self::f<dynamic>() in let final dynamic #t28 = this.[](#t27) in let final dynamic #t29 = this.[]=(#t27, #t28.-(1)) in #t28;
   }
 }
 static method f<T extends core::Object>() → self::f::T

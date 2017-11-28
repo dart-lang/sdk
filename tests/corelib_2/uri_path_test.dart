@@ -142,33 +142,31 @@ void testPathCompare() {
 
 testPathSegmentsUnmodifiableList() {
   void test(list) {
-    bool isUnsupported(e) => e is UnsupportedError;
-
     Expect.equals("a", list[0]);
-    Expect.throws(() => list[0] = "c", isUnsupported);
+    Expect.throwsUnsupportedError(() => list[0] = "c");
     Expect.equals(2, list.length);
-    Expect.throws(() => list.length = 1, isUnsupported);
-    Expect.throws(() => list.add("c"), isUnsupported);
-    Expect.throws(() => list.addAll(["c", "d"]), isUnsupported);
+    Expect.throwsUnsupportedError(() => list.length = 1);
+    Expect.throwsUnsupportedError(() => list.add("c"));
+    Expect.throwsUnsupportedError(() => list.addAll(["c", "d"]));
     Expect.listEquals(["b", "a"], list.reversed.toList());
-    Expect.throws(() => list.sort(), isUnsupported);
+    Expect.throws(() => list.sort());
     Expect.equals(0, list.indexOf("a"));
     Expect.equals(0, list.lastIndexOf("a"));
-    Expect.throws(() => list.clear(), isUnsupported);
-    Expect.throws(() => list.insert(1, "c"), isUnsupported);
-    Expect.throws(() => list.insertAll(1, ["c", "d"]), isUnsupported);
-    Expect.throws(() => list.setAll(1, ["c", "d"]), isUnsupported);
-    Expect.throws(() => list.remove("a"), isUnsupported);
-    Expect.throws(() => list.removeAt(0), isUnsupported);
-    Expect.throws(() => list.removeLast(), isUnsupported);
-    Expect.throws(() => list.removeWhere((e) => true), isUnsupported);
-    Expect.throws(() => list.retainWhere((e) => false), isUnsupported);
+    Expect.throwsUnsupportedError(() => list.clear());
+    Expect.throwsUnsupportedError(() => list.insert(1, "c"));
+    Expect.throwsUnsupportedError(() => list.insertAll(1, ["c", "d"]));
+    Expect.throwsUnsupportedError(() => list.setAll(1, ["c", "d"]));
+    Expect.throwsUnsupportedError(() => list.remove("a"));
+    Expect.throwsUnsupportedError(() => list.removeAt(0));
+    Expect.throwsUnsupportedError(() => list.removeLast());
+    Expect.throwsUnsupportedError(() => list.removeWhere((e) => true));
+    Expect.throwsUnsupportedError(() => list.retainWhere((e) => false));
     Expect.listEquals(["a"], list.sublist(0, 1));
     Expect.listEquals(["a"], list.getRange(0, 1).toList());
-    Expect.throws(() => list.setRange(0, 1, ["c"]), isUnsupported);
-    Expect.throws(() => list.removeRange(0, 1), isUnsupported);
-    Expect.throws(() => list.fillRange(0, 1, "c"), isUnsupported);
-    Expect.throws(() => list.replaceRange(0, 1, ["c"]), isUnsupported);
+    Expect.throwsUnsupportedError(() => list.setRange(0, 1, ["c"]));
+    Expect.throwsUnsupportedError(() => list.removeRange(0, 1));
+    Expect.throwsUnsupportedError(() => list.fillRange(0, 1, "c"));
+    Expect.throwsUnsupportedError(() => list.replaceRange(0, 1, ["c"]));
     Map map = new Map();
     map[0] = "a";
     map[1] = "b";

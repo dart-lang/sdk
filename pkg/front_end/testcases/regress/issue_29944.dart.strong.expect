@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic C = null;
+  constructor •() → void
+    : super core::Object::•()
+    ;
+}
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29944.dart:7:7: Error: A class member can't have the same name as the enclosing class.\n  var C;\n      ^"]/* from null */;
+static method main() → dynamic {
+  new self::C::•();
+}

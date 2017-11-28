@@ -7,18 +7,11 @@ import 'package:async_helper/async_helper.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import 'inference_test_helper.dart';
 
-const List<String> skipforKernel = const <String>[
-  'super_get.dart',
-  'super_set.dart',
-];
-
 main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeMemberAstTypeMasks, computeMemberIrTypeMasks,
-        args: args,
-        skipForKernel: skipforKernel,
-        options: [stopAfterTypeInference]);
+        args: args, options: [stopAfterTypeInference]);
   });
 }

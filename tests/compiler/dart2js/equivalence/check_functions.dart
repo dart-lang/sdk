@@ -522,6 +522,9 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
       Uri.parse('dart:js'),
       Uri.parse('dart:js_util'),
       Uri.parse('dart:_chrome'),
+      Uri.parse('dart:io'),
+      Uri.parse('dart:_http'),
+      Uri.parse('dart:developer'),
     ];
     return libraries.where((l) => !skippedLibraries.contains(l.canonicalUri));
   }
@@ -548,6 +551,54 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
       }
       check(member1, member2, 'getFunctionType', env1.getFunctionType(member1),
           env2.getFunctionType(member2), strategy.typeEquivalence);
+    }
+
+    check(
+        member1, member2, "isTopLevel", member1.isTopLevel, member2.isTopLevel);
+    check(member1, member2, "isStatic", member1.isStatic, member2.isStatic);
+    check(member1, member2, "isInstanceMember", member1.isInstanceMember,
+        member2.isInstanceMember);
+    check(member1, member2, "isConstructor", member1.isConstructor,
+        member2.isConstructor);
+    check(member1, member2, "isField", member1.isField, member2.isField);
+    check(
+        member1, member2, "isFunction", member1.isFunction, member2.isFunction);
+    check(member1, member2, "isGetter", member1.isGetter, member2.isGetter);
+    check(member1, member2, "isSetter", member1.isSetter, member2.isSetter);
+    check(member1, member2, "isAssignable", member1.isAssignable,
+        member2.isAssignable);
+    check(member1, member2, "isConst", member1.isConst, member2.isConst);
+    check(
+        member1, member2, "isAbstract", member1.isAbstract, member2.isAbstract);
+
+    if (member1 is FunctionEntity) {
+      FunctionEntity function1 = member1;
+      FunctionEntity function2 = member2;
+      check(function1, function2, "isExternal", function1.isExternal,
+          function2.isExternal);
+      check(function1, function2, "parameterStructure",
+          function1.parameterStructure, function2.parameterStructure);
+      check(function1, function2, "asyncMarker", function1.asyncMarker,
+          function2.asyncMarker);
+    }
+
+    if (member1 is ConstructorEntity) {
+      ConstructorEntity constructor1 = member1;
+      ConstructorEntity constructor2 = member2;
+      check(
+          constructor1,
+          constructor2,
+          "isGenerativeConstructor",
+          constructor1.isGenerativeConstructor,
+          constructor2.isGenerativeConstructor);
+      check(constructor1, constructor2, "isFactoryConstructor",
+          constructor1.isFactoryConstructor, constructor2.isFactoryConstructor);
+      check(
+          constructor1,
+          constructor2,
+          "isFromEnvironmentConstructor",
+          constructor1.isFromEnvironmentConstructor,
+          constructor2.isFromEnvironmentConstructor);
     }
   }
 
@@ -640,15 +691,24 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
           strategy.elementEquivalence);
 
       Map<MemberEntity, ClassEntity> members1 = <MemberEntity, ClassEntity>{};
+      Set<String> memberNames1 = new Set<String>();
       Map<MemberEntity, ClassEntity> members2 = <MemberEntity, ClassEntity>{};
+      Set<String> memberNames2 = new Set<String>();
       env1.forEachClassMember(cls1,
           (ClassEntity declarer1, MemberEntity member1) {
         if (cls1 == declarer1) {
           Expect.identical(
               member1,
+              env1.lookupLocalClassMember(cls1, member1.name,
+                  setter: member1.isSetter));
+        }
+        if (!memberNames1.contains(member1.name)) {
+          Expect.identical(
+              member1,
               env1.lookupClassMember(cls1, member1.name,
                   setter: member1.isSetter));
         }
+        memberNames1.add(member1.name);
         members1[member1] = declarer1;
       });
       env2.forEachClassMember(cls2,
@@ -656,9 +716,16 @@ checkElementEnvironment(ElementEnvironment env1, ElementEnvironment env2,
         if (cls2 == declarer2) {
           Expect.identical(
               member2,
+              env2.lookupLocalClassMember(cls2, member2.name,
+                  setter: member2.isSetter));
+        }
+        if (!memberNames2.contains(member2.name)) {
+          Expect.identical(
+              member2,
               env2.lookupClassMember(cls2, member2.name,
                   setter: member2.isSetter));
         }
+        memberNames2.add(member2.name);
         members2[member2] = declarer2;
       });
       checkMapEquivalence(cls1, cls2, 'members', members1, members2, (a, b) {
@@ -990,7 +1057,8 @@ void checkEmitterPrograms(
     Program program1, Program program2, TestStrategy strategy) {
   checkLists(program1.fragments, program2.fragments, 'fragments',
       (a, b) => a.outputFileName == b.outputFileName,
-      onSameElement: (a, b) => checkEmitterFragments(a, b, strategy));
+      onSameElement: (a, b) =>
+          checkEmitterFragments(program1, program2, a, b, strategy));
   checkLists(
       program1.holders, program2.holders, 'holders', (a, b) => a.name == b.name,
       onSameElement: checkEmitterHolders);
@@ -1020,11 +1088,9 @@ void checkEmitterPrograms(
       program2.typeToInterceptorMap,
       areJsNodesEquivalent,
       js.nodeToString);
-  check(program1, program2, 'metadata', program1.metadata, program2.metadata,
-      areJsNodesEquivalent, js.nodeToString);
 }
 
-void checkEmitterFragments(
+void checkEmitterFragments(Program program1, Program program2,
     Fragment fragment1, Fragment fragment2, TestStrategy strategy) {
   // TODO(johnniwinther): Check outputUnit.
   checkLists(fragment1.libraries, fragment2.libraries, 'libraries',
@@ -1050,6 +1116,24 @@ void checkEmitterFragments(
   } else if (fragment1 is DeferredFragment && fragment2 is DeferredFragment) {
     check(fragment1, fragment2, 'name', fragment1.name, fragment2.name);
   }
+
+  check(
+      program1,
+      program2,
+      'metadataForOutputUnit',
+      program1.metadataForOutputUnit(fragment1.outputUnit),
+      program2.metadataForOutputUnit(fragment2.outputUnit),
+      areJsNodesEquivalent,
+      js.nodeToString);
+
+  check(
+      program1,
+      program2,
+      'metadataTypesForOutputUnit',
+      program1.metadataTypesForOutputUnit(fragment1.outputUnit),
+      program2.metadataTypesForOutputUnit(fragment2.outputUnit),
+      areJsNodesEquivalent,
+      js.nodeToString);
 }
 
 void checkEmitterLibraries(

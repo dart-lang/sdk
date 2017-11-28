@@ -544,6 +544,11 @@ class StringBuffer {
 @patch
 class NoSuchMethodError {
   @patch
+  NoSuchMethodError.withInvocation(Object receiver, Invocation invocation) {
+    // UNIMPLEMENTED
+  }
+
+  @patch
   NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
       [List existingArgumentNames = null])
@@ -632,7 +637,7 @@ class _Uri {
   @patch
   static String _uriEncode(List<int> canonicalTable, String text,
       Encoding encoding, bool spaceToPlus) {
-    if (identical(encoding, UTF8) && _needsNoEncoding.hasMatch(text)) {
+    if (identical(encoding, utf8) && _needsNoEncoding.hasMatch(text)) {
       return text;
     }
 

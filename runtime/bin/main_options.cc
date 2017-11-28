@@ -180,7 +180,6 @@ void Options::PrintUsage() {
 "--enable-vm-service[=<port>[/<bind-address>]]\n"
 "  enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181, default bind address is localhost).\n"
-#if !defined(HOST_OS_MACOS)
 "\n"
 "--root-certs-file=<path>\n"
 "  The path to a file containing the trusted root certificates to use for\n"
@@ -188,8 +187,9 @@ void Options::PrintUsage() {
 "--root-certs-cache=<path>\n"
 "  The path to a cache directory containing the trusted root certificates to\n"
 "  use for secure socket connections.\n"
-#endif  // !defined(HOST_OS_MACOS)
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
+#if defined(HOST_OS_LINUX) || \
+    defined(HOST_OS_ANDROID) || \
+    defined(HOST_OS_FUCHSIA)
 "--namespace=<path>\n"
 "  The path to a directory that dart:io calls will treat as the root of the\n"
 "  filesystem.\n"

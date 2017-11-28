@@ -41,7 +41,6 @@ class AnalysisOptionsImplTest {
     modifiedOptions.dart2jsHint = true;
     modifiedOptions.disableCacheFlushing = true;
     modifiedOptions.enabledPluginNames = ['somePackage'];
-    modifiedOptions.enableAssertInitializer = true;
     modifiedOptions.enableLazyAssignmentOperators = true;
     modifiedOptions.enableStrictCallChecks = true;
     modifiedOptions.enableSuperMixins = true;
@@ -67,8 +66,6 @@ class AnalysisOptionsImplTest {
     expect(modifiedOptions.disableCacheFlushing,
         defaultOptions.disableCacheFlushing);
     expect(modifiedOptions.enabledPluginNames, isEmpty);
-    expect(modifiedOptions.enableAssertInitializer,
-        defaultOptions.enableAssertInitializer);
     expect(modifiedOptions.enableLazyAssignmentOperators,
         defaultOptions.enableLazyAssignmentOperators);
     expect(modifiedOptions.enableStrictCallChecks,

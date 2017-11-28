@@ -4,6 +4,9 @@
 
 library fasta.kernel_procedure_builder;
 
+import 'package:front_end/src/base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueForType;
+
 import 'package:front_end/src/fasta/type_inference/type_inferrer.dart'
     show TypeInferrer;
 
@@ -43,19 +46,18 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         messageConstConstructorWithBody,
-        messageExternalMethodWithBody,
         messageInternalProblemBodyOnAbstractMethod,
         messageNonInstanceTypeVariableUse,
+        messagePatchDeclarationMismatch,
+        messagePatchDeclarationOrigin,
+        messagePatchNonExternal,
         warning;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unexpected;
 
 import '../deprecated_problems.dart' show deprecated_inputError;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-
-import '../type_inference/type_inference_listener.dart'
-    show TypeInferenceListener;
 
 import 'kernel_builder.dart'
     show
@@ -73,7 +75,9 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
-import 'kernel_shadow_ast.dart' show ShadowProcedure;
+import 'kernel_shadow_ast.dart' show ShadowProcedure, ShadowVariableDeclaration;
+
+import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 abstract class KernelFunctionBuilder
     extends ProcedureBuilder<KernelTypeBuilder> {
@@ -84,7 +88,6 @@ abstract class KernelFunctionBuilder
   Statement actualBody;
 
   KernelFunctionBuilder(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -94,18 +97,16 @@ abstract class KernelFunctionBuilder
       KernelLibraryBuilder compilationUnit,
       int charOffset,
       this.nativeMethodName)
-      : super(documentationComment, metadata, modifiers, returnType, name,
-            typeVariables, formals, compilationUnit, charOffset);
+      : super(metadata, modifiers, returnType, name, typeVariables, formals,
+            compilationUnit, charOffset);
+
+  KernelFunctionBuilder get actualOrigin;
 
   void set body(Statement newBody) {
     if (newBody != null) {
       if (isAbstract) {
         return internalProblem(messageInternalProblemBodyOnAbstractMethod,
             newBody.fileOffset, fileUri);
-      }
-      if (isExternal) {
-        return library.addCompileTimeError(
-            messageExternalMethodWithBody, newBody.fileOffset, fileUri);
       }
       if (isConstructor && isConst) {
         return library.addCompileTimeError(
@@ -116,6 +117,18 @@ abstract class KernelFunctionBuilder
     if (function != null) {
       function.body = newBody;
       newBody?.parent = function;
+    }
+  }
+
+  void setRedirectingFactoryBody(Member target) {
+    if (actualBody != null) {
+      unexpected("null", "${actualBody.runtimeType}", charOffset, fileUri);
+    }
+    actualBody = new RedirectingFactoryBody(target);
+    function.body = actualBody;
+    actualBody?.parent = function;
+    if (isPatch) {
+      actualOrigin.setRedirectingFactoryBody(target);
     }
   }
 
@@ -145,6 +158,18 @@ abstract class KernelFunctionBuilder
           result.requiredParameterCount++;
         }
       }
+    }
+    if (isSetter && (formals?.length != 1 || formals[0].isOptional)) {
+      // Replace illegal parameters by single dummy parameter.
+      // Do this after building the parameters, since the diet listener
+      // assumes that parameters are built, even if illegal in number.
+      VariableDeclaration parameter =
+          new ShadowVariableDeclaration("#synthetic", 0);
+      result.positionalParameters.clear();
+      result.positionalParameters.add(parameter);
+      parameter.parent = result;
+      result.namedParameters.clear();
+      result.requiredParameterCount = 1;
     }
     if (returnType != null) {
       result.returnType = returnType.build(library);
@@ -186,7 +211,6 @@ abstract class KernelFunctionBuilder
   Member build(SourceLibraryBuilder library);
 
   void becomeNative(Loader loader) {
-    target.isExternal = true;
     Builder constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
@@ -200,6 +224,24 @@ abstract class KernelFunctionBuilder
     }
     target.addAnnotation(annotation);
   }
+
+  bool checkPatch(KernelFunctionBuilder patch) {
+    if (!isExternal) {
+      patch.library.addCompileTimeError(
+          messagePatchNonExternal, patch.charOffset, patch.fileUri,
+          context:
+              messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+      return false;
+    }
+    return true;
+  }
+
+  void reportPatchMismatch(Builder patch) {
+    library.addCompileTimeError(
+        messagePatchDeclarationMismatch, patch.charOffset, patch.fileUri,
+        context:
+            messagePatchDeclarationOrigin.withLocation(fileUri, charOffset));
+  }
 }
 
 class KernelProcedureBuilder extends KernelFunctionBuilder {
@@ -210,8 +252,10 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
 
   final ConstructorReferenceBuilder redirectionTarget;
 
+  @override
+  KernelProcedureBuilder actualOrigin;
+
   KernelProcedureBuilder(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -221,7 +265,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       ProcedureKind kind,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
-      int nameOffset,
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName,
@@ -229,19 +272,12 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       : procedure = new ShadowProcedure(null, kind, null, returnType == null,
             fileUri: compilationUnit?.relativeFileUri)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..nameOffset = nameOffset,
-        super(
-            documentationComment,
-            metadata,
-            modifiers,
-            returnType,
-            name,
-            typeVariables,
-            formals,
-            compilationUnit,
-            charOffset,
-            nativeMethodName);
+          ..fileEndOffset = charEndOffset,
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
+            compilationUnit, charOffset, nativeMethodName);
+
+  @override
+  KernelProcedureBuilder get origin => actualOrigin ?? this;
 
   ProcedureKind get kind => procedure.kind;
 
@@ -274,8 +310,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
           if (formal.type == null) return true;
         }
       }
-    } else {
-      if (isSetter && returnType == null) return true;
     }
     return false;
   }
@@ -292,24 +326,65 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isExternal = isExternal;
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
-      procedure.documentationComment = documentationComment;
     }
-    if (isEligibleForTopLevelInference) {
-      library.loader.typeInferenceEngine.recordMember(procedure);
+    if (library.loader.target.strongMode && isSetter && returnType == null) {
+      procedure.function.returnType = const VoidType();
     }
     return procedure;
   }
 
-  Procedure get target => procedure;
+  Procedure get target => origin.procedure;
 
   @override
-  void prepareInitializerInference(
-      SourceLibraryBuilder library, ClassBuilder currentClass) {
+  void instrumentTopLevelInference(Instrumentation instrumentation) {
+    bool isEligibleForTopLevelInference = this.isEligibleForTopLevelInference;
+    if ((isEligibleForTopLevelInference || isSetter) && returnType == null) {
+      instrumentation.record(
+          Uri.parse(procedure.fileUri),
+          procedure.fileOffset,
+          'topType',
+          new InstrumentationValueForType(procedure.function.returnType));
+    }
     if (isEligibleForTopLevelInference) {
-      var typeInferenceEngine = library.loader.typeInferenceEngine;
-      var listener = new TypeInferenceListener();
-      typeInferenceEngine.createTopLevelTypeInferrer(
-          listener, procedure.enclosingClass?.thisType, procedure);
+      if (formals != null) {
+        for (var formal in formals) {
+          if (formal.type == null) {
+            VariableDeclaration formalTarget = formal.target;
+            instrumentation.record(
+                Uri.parse(procedure.fileUri),
+                formalTarget.fileOffset,
+                'topType',
+                new InstrumentationValueForType(formalTarget.type));
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+    origin.procedure.isAbstract = procedure.isAbstract;
+    origin.procedure.isExternal = procedure.isExternal;
+    origin.procedure.function = procedure.function;
+    origin.procedure.function.parent = origin.procedure;
+    return 1;
+  }
+
+  @override
+  void becomeNative(Loader loader) {
+    procedure.isExternal = true;
+    super.becomeNative(loader);
+  }
+
+  @override
+  void applyPatch(Builder patch) {
+    if (patch is KernelProcedureBuilder) {
+      if (checkPatch(patch)) {
+        patch.actualOrigin = this;
+      }
+    } else {
+      reportPatchMismatch(patch);
     }
   }
 }
@@ -326,8 +401,10 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   RedirectingInitializer redirectingInitializer;
 
+  @override
+  KernelConstructorBuilder actualOrigin;
+
   KernelConstructorBuilder(
-      String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
       KernelTypeBuilder returnType,
@@ -336,25 +413,17 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       List<FormalParameterBuilder> formals,
       KernelLibraryBuilder compilationUnit,
       int charOffset,
-      int nameOffset,
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
       : constructor = new Constructor(null)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset
-          ..nameOffset = nameOffset,
-        super(
-            documentationComment,
-            metadata,
-            modifiers,
-            returnType,
-            name,
-            typeVariables,
-            formals,
-            compilationUnit,
-            charOffset,
-            nativeMethodName);
+          ..fileEndOffset = charEndOffset,
+        super(metadata, modifiers, returnType, name, typeVariables, formals,
+            compilationUnit, charOffset, nativeMethodName);
+
+  @override
+  KernelConstructorBuilder get origin => actualOrigin ?? this;
 
   bool get isInstanceMember => false;
 
@@ -377,7 +446,6 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       constructor.isConst = isConst;
       constructor.isExternal = isExternal;
       constructor.name = new Name(name, library.target);
-      constructor.documentationComment = documentationComment;
     }
     return constructor;
   }
@@ -387,7 +455,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     return super.buildFunction(library)..returnType = const VoidType();
   }
 
-  Constructor get target => constructor;
+  Constructor get target => origin.constructor;
 
   void checkSuperOrThisInitializer(Initializer initializer) {
     if (superInitializer != null || redirectingInitializer != null) {
@@ -452,5 +520,33 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     }
     initializers.add(initializer);
     initializer.parent = constructor;
+  }
+
+  @override
+  int finishPatch() {
+    if (!isPatch) return 0;
+    origin.constructor.isExternal = constructor.isExternal;
+    origin.constructor.function = constructor.function;
+    origin.constructor.function.parent = constructor.function;
+    origin.constructor.initializers = constructor.initializers;
+    setParents(origin.constructor.initializers, origin.constructor);
+    return 1;
+  }
+
+  @override
+  void becomeNative(Loader loader) {
+    constructor.isExternal = true;
+    super.becomeNative(loader);
+  }
+
+  @override
+  void applyPatch(Builder patch) {
+    if (patch is KernelConstructorBuilder) {
+      if (checkPatch(patch)) {
+        patch.actualOrigin = this;
+      }
+    } else {
+      reportPatchMismatch(patch);
+    }
   }
 }

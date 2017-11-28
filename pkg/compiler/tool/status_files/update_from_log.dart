@@ -7,27 +7,39 @@
 ///
 /// This script is hardcoded to only support this configuration and relies on
 /// a convention for how the status files are structured, In particular,
-/// every status file for dart2js should have 2 sections:
+/// every status file for dart2js should have 3 sections:
 ///
-///   [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
+///     [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 ///
 /// and:
 ///
 ///     [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-library status_files.update_from_log;
+///
+/// and:
+///
+///     [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
+///
+/// and:
+///
+///     [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+library compiler.status_files.update_from_log;
 
 import 'dart:io';
 
 import 'record.dart';
 import 'log_parser.dart';
 
-final configurations = {
-  'checked':
+final dart2jsConfigurations = {
+  'host-checked':
       r'[ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]',
   'minified': r'[ $compiler == dart2js && $dart2js_with_kernel && $minified ]',
+  'fast-startup':
+      r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]',
+  'checked-mode':
+      r'[ $compiler == dart2js && $dart2js_with_kernel && $checked ]',
 };
 
-final statusFiles = {
+final dart2jsStatusFiles = {
   'language': 'tests/language/language_dart2js.status',
   'corelib': 'tests/corelib/corelib.status',
   'language_2': 'tests/language_2/language_2_dart2js.status',
@@ -36,11 +48,19 @@ final statusFiles = {
   'corelib_2': 'tests/corelib_2/corelib_2.status',
   'dart2js_extra': 'tests/compiler/dart2js_extra/dart2js_extra.status',
   'dart2js_native': 'tests/compiler/dart2js_native/dart2js_native.status',
+  'html': 'tests/html/html.status',
 };
 
 main(args) {
+  mainInternal(args, dart2jsConfigurations, dart2jsStatusFiles);
+}
+
+/// Note: this is called above and also from
+/// pkg/front_end/tool/status_files/update_from_log.dart
+mainInternal(List<String> args, Map<String, String> configurations,
+    Map<String, String> statusFiles) {
   if (args.length < 2) {
-    print('usage: udpate_from_log.dart <mode> log.txt');
+    print('usage: update_from_log.dart <mode> log.txt [message-in-quotes]');
     print('  where mode is one of these values: ${configurations.keys}');
     exit(1);
   }
@@ -57,26 +77,34 @@ main(args) {
     exit(1);
   }
 
-  updateLogs(mode, file.readAsStringSync());
+  var globalReason = args.length > 2 ? args[2] : null;
+  updateLogs(
+      mode, file.readAsStringSync(), configurations, statusFiles, globalReason);
 }
 
 /// Update all status files based on the [log] records when running the compiler
-/// in [mode].
-void updateLogs(String mode, String log) {
+/// in [mode]. If provided [globalReason] is added as a comment to new test
+/// failures. If not, an automated reason might be extracted from the test
+/// failure message.
+void updateLogs(String mode, String log, Map<String, String> configurations,
+    Map<String, String> statusFiles, String globalReason) {
   List<Record> records = parse(log);
   records.sort();
   var last;
-  var section;
+  ConfigurationInSuiteSection section;
   for (var record in records) {
     if (last == record) continue; // ignore duplicates
     if (section?.suite != record.suite) {
-      section?.update();
-      section = ConfigurationInSuiteSection.create(record.suite, mode);
+      section?.update(globalReason);
+      var statusFile = statusFiles[record.suite];
+      var condition = configurations[mode];
+      section = ConfigurationInSuiteSection.create(
+          record.suite, mode, statusFile, condition);
     }
     section.add(record);
     last = record;
   }
-  section?.update();
+  section?.update(globalReason);
 }
 
 /// Represents an existing entry in the logs.
@@ -118,7 +146,7 @@ class ConfigurationInSuiteSection {
   /// Update the section in the file.
   ///
   /// This will reflect the new status lines as recorded in [_records].
-  void update() {
+  void update(String providedReason) {
     int changes = 0;
     int ignored = 0;
     var originalEntries = _contents.substring(_begin, _end).split('\n');
@@ -127,14 +155,18 @@ class ConfigurationInSuiteSection {
     // same order: preserving entries that didn't change, and updating entries
     // where the logs show that the test status changed.
 
-    // Records are already sorted, but we sort the file contents in case the
-    // file has been tampered with.
+    // Sort the file contents in case the file has been tampered with.
     originalEntries.sort();
+
+    /// Re-sort records by name (they came sorted by suite and status first, so
+    /// it may be wrong for the merging below).
+    _records.sort((a, b) => a.test.compareTo(b.test));
 
     var newContents = new StringBuffer();
     newContents.write(_contents.substring(0, _begin));
     addFromRecord(Record record) {
-      var comment = record.reason != null ? ' # ${record.reason}' : '';
+      var reason = providedReason ?? record.reason;
+      var comment = reason != null && reason.isNotEmpty ? ' # ${reason}' : '';
       newContents.writeln('${record.test}: ${record.actual}$comment');
     }
 
@@ -205,10 +237,9 @@ class ConfigurationInSuiteSection {
     }
   }
 
-  static ConfigurationInSuiteSection create(String suite, String mode) {
-    var statusFile = statusFiles[suite];
+  static ConfigurationInSuiteSection create(
+      String suite, String mode, String statusFile, String condition) {
     var contents = new File(statusFile).readAsStringSync();
-    var condition = configurations[mode];
     int sectionDeclaration = contents.indexOf(condition);
     if (sectionDeclaration == -1) {
       print('error: unable to find condition $condition in $statusFile');

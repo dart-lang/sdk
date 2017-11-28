@@ -10,12 +10,12 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/flutter_util.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/utilities/flutter.dart' as flutter;
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -642,8 +642,9 @@ class FixProcessor {
           String defaultValue = getDefaultStringParameterValue(element);
           builder.write('$paramName: $defaultValue');
           // Insert a trailing comma after Flutter instance creation params.
-          InstanceCreationExpression newExpr = identifyNewExpression(node);
-          if (newExpr != null && isFlutterInstanceCreationExpression(newExpr)) {
+          InstanceCreationExpression newExpr =
+              flutter.identifyNewExpression(node);
+          if (newExpr != null && flutter.isWidgetCreation(newExpr)) {
             builder.write(',');
           }
         });
@@ -749,15 +750,16 @@ class FixProcessor {
   }
 
   Future<Null> _addFix_convertFlutterChild() async {
-    NamedExpression namedExp = findFlutterNamedExpression(node, 'child');
+    NamedExpression namedExp = flutter.findNamedExpression(node, 'child');
     if (namedExp == null) {
       return;
     }
-    InstanceCreationExpression childArg = getChildWidget(namedExp, false);
+    InstanceCreationExpression childArg =
+        flutter.getChildWidget(namedExp, false);
     if (childArg != null) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-        convertFlutterChildToChildren2(
+        flutter.convertChildToChildren2(
             builder,
             childArg,
             namedExp,
@@ -771,7 +773,7 @@ class FixProcessor {
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_FLUTTER_CHILD);
       return;
     }
-    ListLiteral listArg = getChildList(namedExp);
+    ListLiteral listArg = flutter.getChildList(namedExp);
     if (listArg != null) {
       DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -1475,20 +1477,28 @@ class FixProcessor {
       return 1;
     });
     int numElements = elements.length;
-    int insertOffset = targetClass.end - 1;
+
+    ClassMemberLocation location =
+        utils.prepareNewClassMemberLocation(targetClass, (_) => true);
+
     String prefix = utils.getIndent(1);
     DartChangeBuilder changeBuilder = new DartChangeBuilder(session);
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addInsertion(insertOffset, (DartEditBuilder builder) {
+      builder.addInsertion(location.offset, (DartEditBuilder builder) {
         // TODO(brianwilkerson) Compare with builder.writeOverrideOfInheritedMember
         // The builder method doesn't merge getter/setter pairs into fields.
-        // EOL management
-        bool isFirst = true;
-        void addEolIfNotFirst() {
-          if (!isFirst || utils.isClassWithEmptyBody(targetClass)) {
-            builder.write(eol);
+
+        // Separator management.
+        int numOfMembersWritten = 0;
+        void addSeparatorBetweenDeclarations() {
+          if (numOfMembersWritten == 0) {
+            builder.write(location.prefix);
+          } else {
+            builder.write(eol); // after the previous member
+            builder.write(eol); // empty line separator
+            builder.write(prefix);
           }
-          isFirst = false;
+          numOfMembersWritten++;
         }
 
         // merge getter/setter pairs into fields
@@ -1503,9 +1513,8 @@ class FixProcessor {
               i--;
               numElements--;
               // separator
-              addEolIfNotFirst();
+              addSeparatorBetweenDeclarations();
               // @override
-              builder.write(prefix);
               builder.write('@override');
               builder.write(eol);
               // add field
@@ -1514,19 +1523,19 @@ class FixProcessor {
               builder.write(' ');
               builder.write(element.name);
               builder.write(';');
-              builder.write(eol);
             }
           }
         }
         // add elements
         for (ExecutableElement element in elements) {
-          addEolIfNotFirst();
+          addSeparatorBetweenDeclarations();
           _addFix_createMissingOverridesForBuilder(
               builder, targetClass, element);
         }
+        builder.write(location.suffix);
       });
     });
-    changeBuilder.setSelection(new Position(file, insertOffset));
+    changeBuilder.setSelection(new Position(file, location.offset));
     _addFixFromBuilder(changeBuilder, DartFixKind.CREATE_MISSING_OVERRIDES,
         args: [numElements]);
   }
@@ -1543,7 +1552,6 @@ class FixProcessor {
     bool isSetter = elementKind == ElementKind.SETTER;
     bool isMethod = elementKind == ElementKind.METHOD;
     bool isOperator = isMethod && (element as MethodElement).isOperator;
-    builder.write(prefix);
     if (isGetter) {
       builder.write('// TODO: implement ${element.displayName}');
       builder.write(eol);
@@ -1587,7 +1595,6 @@ class FixProcessor {
       builder.write(prefix);
       builder.write('}');
     }
-    builder.write(eol);
     utils.targetExecutableElement = null;
   }
 
@@ -2638,6 +2645,7 @@ class FixProcessor {
     // add these fields
     List<FieldElement> fields =
         ErrorVerifier.computeNotInitializedFields(constructor);
+    fields.retainWhere((FieldElement field) => field.isFinal);
     // prepare new parameters code
     fields.sort((a, b) => a.nameOffset - b.nameOffset);
     String fieldParametersCode =

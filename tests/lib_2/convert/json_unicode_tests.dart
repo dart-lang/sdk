@@ -6,13 +6,13 @@ library json_unicode_tests;
 
 import 'unicode_tests.dart';
 
-const _QUOTE = 0x22; // "
-const _COLON = 0x3a; // :
-const _COMMA = 0x2c; // ,
-const _BRACE_OPEN = 0x7b; // {
-const _BRACE_CLOSE = 0x7d; // }
-const _BRACKET_OPEN = 0x5b; // [
-const _BRACKET_CLOSE = 0x5d; // ]
+const _quote = 0x22; // "
+const _colon = 0x3a; // :
+const _comma = 0x2c; // ,
+const _braceOpen = 0x7b; // {
+const _braceClose = 0x7d; // }
+const _bracketOpen = 0x5b; // [
+const _bracketClose = 0x5d; // ]
 
 _expandUnicodeTests() {
   return UNICODE_TESTS.expand((test) {
@@ -30,9 +30,9 @@ _expandUnicodeTests() {
     // Put the string into quotes.
     // For example: 'abcd' -> '"abcd"'.
     var inQuotesBytes = <int>[];
-    inQuotesBytes.add(_QUOTE);
+    inQuotesBytes.add(_quote);
     inQuotesBytes.addAll(bytes);
-    inQuotesBytes.add(_QUOTE);
+    inQuotesBytes.add(_quote);
     expanded.add([inQuotesBytes, string]);
 
     // Put the quoted string into a triple nested list.
@@ -43,9 +43,9 @@ _expandUnicodeTests() {
       ]
     ];
     var inListBytes = <int>[];
-    inListBytes.addAll([_BRACKET_OPEN, _BRACKET_OPEN, _BRACKET_OPEN]);
+    inListBytes.addAll([_bracketOpen, _bracketOpen, _bracketOpen]);
     inListBytes.addAll(inQuotesBytes);
-    inListBytes.addAll([_BRACKET_CLOSE, _BRACKET_CLOSE, _BRACKET_CLOSE]);
+    inListBytes.addAll([_bracketClose, _bracketClose, _bracketClose]);
     expanded.add([inListBytes, listExpected]);
 
     // Put the quoted string into a triple nested list and duplicate that
@@ -53,26 +53,26 @@ _expandUnicodeTests() {
     // For example: 'abcd' -> '[[[["abcd"]]],[[["abcd"]]],[[["abcd"]]]]'.
     var listLongerExpected = [listExpected, listExpected, listExpected];
     var listLongerBytes = <int>[];
-    listLongerBytes.add(_BRACKET_OPEN);
+    listLongerBytes.add(_bracketOpen);
     listLongerBytes.addAll(inListBytes);
-    listLongerBytes.add(_COMMA);
+    listLongerBytes.add(_comma);
     listLongerBytes.addAll(inListBytes);
-    listLongerBytes.add(_COMMA);
+    listLongerBytes.add(_comma);
     listLongerBytes.addAll(inListBytes);
-    listLongerBytes.add(_BRACKET_CLOSE);
+    listLongerBytes.add(_bracketClose);
     expanded.add([listLongerBytes, listLongerExpected]);
 
     // Put the previous strings/lists into a map.
     // For example:
     //    'abcd' -> '{"abcd":[[[["abcd"]]],[[["abcd"]]],[[["abcd"]]]]}'.
-    var mapExpected = <String, List>{};
+    var mapExpected = new Map();
     mapExpected[string] = listLongerExpected;
     var mapBytes = <int>[];
-    mapBytes.add(_BRACE_OPEN);
+    mapBytes.add(_braceOpen);
     mapBytes.addAll(inQuotesBytes);
-    mapBytes.add(_COLON);
+    mapBytes.add(_colon);
     mapBytes.addAll(listLongerBytes);
-    mapBytes.add(_BRACE_CLOSE);
+    mapBytes.add(_braceClose);
     expanded.add([mapBytes, mapExpected]);
 
     return expanded;

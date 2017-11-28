@@ -34,21 +34,19 @@ class VirtualMemory {
 
   bool Contains(uword addr) const { return region_.Contains(addr); }
 
-  // Commits the virtual memory area, which is guaranteed to be zeroed. Returns
-  // true on success and false on failure (e.g., out-of-memory). The name
-  // parameter is optional. On systems that support it, it is used to give the
-  // OS a name for the committed memory region.
-  bool Commit(bool is_executable, const char* name) {
-    return Commit(start(), size(), is_executable, name);
-  }
-
   // Changes the protection of the virtual memory area.
   static bool Protect(void* address, intptr_t size, Protection mode);
   bool Protect(Protection mode) { return Protect(address(), size(), mode); }
 
-  // Reserves a virtual memory segment with size. If a segment of the requested
-  // size cannot be allocated NULL is returned.
-  static VirtualMemory* Reserve(intptr_t size) { return ReserveInternal(size); }
+  // Reserves and commits a virtual memory segment with size. If a segment of
+  // the requested size cannot be allocated, NULL is returned.
+  static VirtualMemory* Allocate(intptr_t size,
+                                 bool is_executable,
+                                 const char* name);
+  static VirtualMemory* AllocateAligned(intptr_t size,
+                                        intptr_t alignment,
+                                        bool is_executable,
+                                        const char* name);
 
   static intptr_t PageSize() {
     ASSERT(page_size_ != 0);
@@ -63,44 +61,35 @@ class VirtualMemory {
   // upon destruction.
   void Truncate(intptr_t new_size, bool try_unmap = true);
 
-  // Commit a reserved memory area, so that the memory can be accessed. The name
-  // parameter is optional. On systems that support it, it is used to give the
-  // OS a name for the committed memory region.
-  bool Commit(uword addr, intptr_t size, bool is_executable, const char* name);
-
-  bool vm_owns_region() const { return vm_owns_region_; }
+  // False for a part of a snapshot added directly to the Dart heap, which
+  // belongs to the embedder and must not be deallocated or have its
+  // protection status changed by the VM.
+  bool vm_owns_region() const { return reserved_.pointer() != NULL; }
 
   static VirtualMemory* ForImagePage(void* pointer, uword size);
 
  private:
-  static VirtualMemory* ReserveInternal(intptr_t size);
-
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
   static bool FreeSubSegment(int32_t handle, void* address, intptr_t size);
 
   // This constructor is only used internally when reserving new virtual spaces.
   // It does not reserve any virtual address space on its own.
-  explicit VirtualMemory(const MemoryRegion& region, int32_t handle = 0)
-      : region_(region.pointer(), region.size()),
-        reserved_size_(region.size()),
-        handle_(handle),
-        vm_owns_region_(true) {}
+  VirtualMemory(const MemoryRegion& region,
+                const MemoryRegion& reserved,
+                int32_t handle = 0)
+      : region_(region), reserved_(reserved), handle_(handle) {}
 
   MemoryRegion region_;
 
-  // The size of the underlying reservation not yet given back to the OS.
-  // Its start coincides with region_, but its size might not, due to Truncate.
-  intptr_t reserved_size_;
+  // The underlying reservation not yet given back to the OS.
+  // Its address might disagree with region_ due to aligned allocations.
+  // Its size might disagree with region_ due to Truncate.
+  MemoryRegion reserved_;
 
   int32_t handle_;
 
   static uword page_size_;
-
-  // False for a part of a snapshot added directly to the Dart heap, which
-  // belongs to the embedder and must not be deallocated or have its
-  // protection status changed by the VM.
-  bool vm_owns_region_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };

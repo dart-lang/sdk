@@ -125,10 +125,9 @@ class FieldVisitor {
         if (member.isField) visitField(member);
       });
     } else if (visitStatics) {
-      _elementEnvironment.forEachClassMember(cls,
-          (ClassEntity holder, MemberEntity member) {
-        if (cls == holder && member.isField && member.isStatic) {
-          visitField(member, holder: holder);
+      _elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+        if (member.isField && member.isStatic) {
+          visitField(member, holder: cls);
         }
       });
     } else {

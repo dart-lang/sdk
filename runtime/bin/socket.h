@@ -45,6 +45,9 @@ class Socket : public ReferenceCounted<Socket> {
   Dart_Port port() const { return port_; }
   void set_port(Dart_Port port) { port_ = port; }
 
+  uint8_t* udp_receive_buffer() const { return udp_receive_buffer_; }
+  void set_udp_receive_buffer(uint8_t* buffer) { udp_receive_buffer_ = buffer; }
+
   static bool Initialize();
 
   // Creates a socket which is bound and connected. The port to connect to is
@@ -82,7 +85,11 @@ class Socket : public ReferenceCounted<Socket> {
   }
 
  private:
-  ~Socket() { ASSERT(fd_ == kClosedFd); }
+  ~Socket() {
+    ASSERT(fd_ == kClosedFd);
+    free(udp_receive_buffer_);
+    udp_receive_buffer_ = NULL;
+  }
 
   static const int kClosedFd = -1;
 
@@ -91,6 +98,7 @@ class Socket : public ReferenceCounted<Socket> {
 
   intptr_t fd_;
   Dart_Port port_;
+  uint8_t* udp_receive_buffer_;
 
   friend class ReferenceCounted<Socket>;
   DISALLOW_COPY_AND_ASSIGN(Socket);

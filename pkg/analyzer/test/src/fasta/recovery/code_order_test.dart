@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,6 +13,7 @@ main() {
     defineReflectiveTests(ClassDeclarationTest);
     defineReflectiveTests(CompilationUnitMemberTest);
     defineReflectiveTests(ImportDirectiveTest);
+    defineReflectiveTests(TryStatementTest);
   });
 }
 
@@ -21,9 +23,7 @@ main() {
  */
 @reflectiveTest
 class ClassDeclarationTest extends AbstractRecoveryTest {
-  @failingTest
   void test_implementsBeforeExtends() {
-    // Parser crashes
     testRecovery('''
 class A implements B extends C {}
 ''', [ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS], '''
@@ -31,9 +31,7 @@ class A extends C implements B {}
 ''');
   }
 
-  @failingTest
   void test_implementsBeforeWith() {
-    // Parser crashes
     testRecovery('''
 class A extends B implements C with D {}
 ''', [ParserErrorCode.IMPLEMENTS_BEFORE_WITH], '''
@@ -41,19 +39,18 @@ class A extends B with D implements C {}
 ''');
   }
 
-  @failingTest
   void test_implementsBeforeWithBeforeExtends() {
-    // Parser crashes
     testRecovery('''
 class A implements B with C extends D {}
-''', [ParserErrorCode.IMPLEMENTS_BEFORE_WITH], '''
+''', [
+      ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
+      ParserErrorCode.WITH_BEFORE_EXTENDS
+    ], '''
 class A extends D with C implements B {}
 ''');
   }
 
-  @failingTest
   void test_multipleExtends() {
-    // Parser crashes
     testRecovery('''
 class A extends B extends C {}
 ''', [ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES], '''
@@ -61,9 +58,7 @@ class A extends B {}
 ''');
   }
 
-  @failingTest
   void test_multipleImplements() {
-    // Parser crashes
     testRecovery('''
 class A implements B implements C, D {}
 ''', [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES], '''
@@ -71,9 +66,7 @@ class A implements B, C, D {}
 ''');
   }
 
-  @failingTest
   void test_multipleWith() {
-    // Parser crashes
     testRecovery('''
 class A extends B with C, D with E {}
 ''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
@@ -82,13 +75,45 @@ class A extends B with C, D, E {}
   }
 
   @failingTest
+  void test_typing_extends() {
+    testRecovery('''
+class Foo exte
+class UnrelatedClass extends Bar {}
+''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
+class Foo {}
+class UnrelatedClass extends Bar {}
+''');
+  }
+
+  @failingTest
+  void test_typing_extends_identifier() {
+    testRecovery('''
+class Foo extends CurrentlyTypingHere
+class UnrelatedClass extends Bar {}
+''', [ParserErrorCode.MULTIPLE_WITH_CLAUSES], '''
+class Foo extends CurrentlyTypingHere {}
+class UnrelatedClass extends Bar {}
+''');
+  }
+
   void test_withBeforeExtends() {
-    // Parser crashes
     testRecovery('''
 class A with B extends C {}
 ''', [ParserErrorCode.WITH_BEFORE_EXTENDS], '''
 class A extends C with B {}
 ''');
+  }
+
+  void test_withWithoutExtends() {
+    testRecovery('''
+class A with B, C {}
+''', [ParserErrorCode.WITH_WITHOUT_EXTENDS], '''
+class A extends Object with B, C {}
+''', adjustValidUnitBeforeComparison: (CompilationUnit unit) {
+      ClassDeclaration declaration = unit.declarations[0];
+      declaration.extendsClause = null;
+      return unit;
+    });
   }
 }
 
@@ -98,76 +123,105 @@ class A extends C with B {}
  */
 @reflectiveTest
 class CompilationUnitMemberTest extends AbstractRecoveryTest {
-  @failingTest
-  void test_declarationBeforeDirective() {
-    // Expected 1 errors of type ParserErrorCode.DIRECTIVE_AFTER_DECLARATION, found 0
+  void test_declarationBeforeDirective_export() {
+    testRecovery('''
+class C { }
+export 'bar.dart';
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+export 'bar.dart';
+class C { }
+''', adjustValidUnitBeforeComparison: _updateBeginToken);
+  }
+
+  void test_declarationBeforeDirective_import() {
     testRecovery('''
 class C { }
 import 'bar.dart';
 ''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
 import 'bar.dart';
 class C { }
-''');
+''', adjustValidUnitBeforeComparison: _updateBeginToken);
   }
 
-  @failingTest
+  void test_declarationBeforeDirective_part() {
+    testRecovery('''
+class C { }
+part 'bar.dart';
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+part 'bar.dart';
+class C { }
+''', adjustValidUnitBeforeComparison: _updateBeginToken);
+  }
+
+  void test_declarationBeforeDirective_part_of() {
+    testRecovery('''
+class C { }
+part of foo;
+''', [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION], '''
+part of foo;
+class C { }
+''', adjustValidUnitBeforeComparison: _updateBeginToken);
+  }
+
   void test_exportBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 export 'bar.dart';
 library l;
 ''', [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST], '''
 library l;
 export 'bar.dart';
-''');
+''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
   }
 
-  @failingTest
   void test_importBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 import 'bar.dart';
 library l;
 ''', [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST], '''
 library l;
 import 'bar.dart';
-''');
+''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
   }
 
-  @failingTest
   void test_partBeforeExport() {
-    // Expected 1 errors of type ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, found 0
     testRecovery('''
 part 'foo.dart';
 export 'bar.dart';
 ''', [ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE], '''
 export 'bar.dart';
 part 'foo.dart';
-''');
+''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
   }
 
-  @failingTest
   void test_partBeforeImport() {
-    // Expected 1 errors of type ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, found 0
     testRecovery('''
 part 'foo.dart';
 import 'bar.dart';
 ''', [ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE], '''
 import 'bar.dart';
 part 'foo.dart';
-''');
+''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
   }
 
-  @failingTest
   void test_partBeforeLibrary() {
-    // Expected 1 errors of type ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST, found 0
     testRecovery('''
 part 'foo.dart';
 library l;
 ''', [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST], '''
 library l;
 part 'foo.dart';
-''');
+''', adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd);
+  }
+
+  CompilationUnit _moveFirstDirectiveToEnd(CompilationUnit unit) {
+    unit.directives.add(unit.directives.removeAt(0));
+    unit.beginToken = unit.directives[0].beginToken;
+    return unit;
+  }
+
+  CompilationUnit _updateBeginToken(CompilationUnit unit) {
+    unit.beginToken = unit.declarations[0].beginToken;
+    return unit;
   }
 }
 
@@ -177,23 +231,126 @@ part 'foo.dart';
  */
 @reflectiveTest
 class ImportDirectiveTest extends AbstractRecoveryTest {
-  @failingTest
   void test_combinatorsBeforeAndAfterPrefix() {
-    // Parser crashes
     testRecovery('''
 import 'bar.dart' show A as p show B;
-''', [/*ParserErrorCode.PREFIX_AFTER_COMBINATOR*/], '''
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
 import 'bar.dart' as p show A show B;
 ''');
   }
 
-  @failingTest
   void test_combinatorsBeforePrefix() {
-    // Parser crashes
     testRecovery('''
 import 'bar.dart' show A as p;
-''', [/*ParserErrorCode.PREFIX_AFTER_COMBINATOR*/], '''
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
 import 'bar.dart' as p show A;
+''');
+  }
+
+  void test_combinatorsBeforePrefixAfterDeferred() {
+    testRecovery('''
+import 'bar.dart' deferred show A as p;
+''', [ParserErrorCode.PREFIX_AFTER_COMBINATOR], '''
+import 'bar.dart' deferred as p show A;
+''');
+  }
+
+  void test_deferredAfterPrefix() {
+    testRecovery('''
+import 'bar.dart' as p deferred;
+''', [ParserErrorCode.DEFERRED_AFTER_PREFIX], '''
+import 'bar.dart' deferred as p;
+''');
+  }
+
+  void test_duplicatePrefix() {
+    testRecovery('''
+import 'bar.dart' as p as q;
+''', [ParserErrorCode.DUPLICATE_PREFIX], '''
+import 'bar.dart' as p;
+''');
+  }
+
+  void test_unknownTokenAtEnd() {
+    testRecovery('''
+import 'bar.dart' as p sh;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+import 'bar.dart' as p;
+''');
+  }
+
+  void test_unknownTokenBeforePrefix() {
+    testRecovery('''
+import 'bar.dart' d as p;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+import 'bar.dart' as p;
+''');
+  }
+
+  void test_unknownTokenBeforePrefixAfterCombinatorMissingSemicolon() {
+    testRecovery('''
+import 'bar.dart' d show A as p
+import 'b.dart';
+''', [
+      ParserErrorCode.UNEXPECTED_TOKEN,
+      ParserErrorCode.PREFIX_AFTER_COMBINATOR,
+      ParserErrorCode.EXPECTED_TOKEN
+    ], '''
+import 'bar.dart' as p show A;
+import 'b.dart';
+''');
+  }
+
+  void test_unknownTokenBeforePrefixAfterDeferred() {
+    testRecovery('''
+import 'bar.dart' deferred s as p;
+''', [ParserErrorCode.UNEXPECTED_TOKEN], '''
+import 'bar.dart' deferred as p;
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when the clauses in a try statement are
+ * out of order.
+ */
+@reflectiveTest
+class TryStatementTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_finallyBeforeCatch() {
+    testRecovery('''
+f() {
+  try {
+  } finally {
+  } catch (e) {
+  }
+}
+''', [/*ParserErrorCode.CATCH_AFTER_FINALLY*/], '''
+f() {
+  try {
+  } catch (e) {
+  } finally {
+  }
+}
+''');
+  }
+
+  @failingTest
+  void test_finallyBeforeOn() {
+    testRecovery('''
+f() {
+  try {
+  } finally {
+  } on String {
+  }
+}
+''', [/*ParserErrorCode.CATCH_AFTER_FINALLY*/], '''
+f() {
+  try {
+  } on String {
+  } finally {
+  }
+}
 ''');
   }
 }

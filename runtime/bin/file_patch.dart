@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class _File {
   @patch
@@ -90,6 +92,8 @@ class _WatcherPath {
 
 @patch
 class _FileSystemWatcher {
+  void _pathWatchedEnd();
+
   static int _id;
   static final Map<int, _WatcherPath> _idMap = {};
 

@@ -546,7 +546,7 @@ typedef struct {
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x00000004)
+#define DART_FLAGS_CURRENT_VERSION (0x00000005)
 
 typedef struct {
   int32_t version;
@@ -559,6 +559,8 @@ typedef struct {
   bool use_dart_frontend;
   bool obfuscate;
   Dart_QualifiedFunctionName* entry_points;
+  bool reify_generic_functions;
+  bool strong;
 } Dart_IsolateFlags;
 
 /**
@@ -834,10 +836,11 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
  *   this parent isolate.
- * \param error DOCUMENT
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
  *
- * \return The new isolate is returned. May be NULL if an error
- *   occurs during isolate initialization.
+ * \return The new isolate on success, or NULL if isolate creation failed.
  */
 DART_EXPORT Dart_Isolate
 Dart_CreateIsolate(const char* script_uri,
@@ -868,10 +871,11 @@ Dart_CreateIsolate(const char* script_uri,
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
  *   this parent isolate.
- * \param error DOCUMENT
+ * \param error Returns NULL if creation is successful, an error message
+ *   otherwise. The caller is responsible for calling free() on the error
+ *   message.
  *
- * \return The new isolate is returned. May be NULL if an error
- *   occurs during isolate initialization.
+ * \return The new isolate on success, or NULL if isolate creation failed.
  */
 DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
                                                       const char* main,
@@ -1829,7 +1833,7 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle str,
  */
 
 /**
- * Returns a List of the desired length.
+ * Returns a List<dynamic> of the desired length.
  *
  * \param length The length of the list.
  *
@@ -1837,6 +1841,25 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle str,
  *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length);
+
+typedef enum {
+  Dart_CoreType_Dynamic,
+  Dart_CoreType_Int,
+  Dart_CoreType_String,
+} Dart_CoreType_Id;
+
+/**
+ * Returns a List of the desired length with the desired element type.
+ *
+ * \param element_type_id The type of elements of the list.
+ *
+ * \param length The length of the list.
+ *
+ * \return The List object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
+                                       intptr_t length);
 
 /**
  * Gets the length of a List.

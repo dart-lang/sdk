@@ -18,12 +18,8 @@ void main() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.frontendStrategy.elementEnvironment.mainFunction;
-    Expect.isNotNull(main, "Could not find 'main'");
-    compiler.deferredLoadTask.onResolutionComplete(
-        main, compiler.resolutionWorldBuilder.closedWorldForTesting);
-
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
 
     dynamic lib = lookupLibrary("memory:lib.dart");
     var a = lib.find("a");

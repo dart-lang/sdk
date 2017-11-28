@@ -8,13 +8,14 @@ import '../../compiler_new.dart';
 import '../closure.dart';
 import '../common.dart';
 import '../common_elements.dart';
+import '../common/names.dart';
 import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
-import '../js_backend/annotations.dart';
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
+import '../js_emitter/sorter.dart';
 import '../js_model/locals.dart';
 import '../kernel/element_map.dart';
 import '../options.dart';
@@ -50,7 +51,6 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         _compiler.progress,
         _compiler.reporter,
         _compiler.outputProvider,
-        _compiler.backend.optimizerHints,
         _elementMap,
         _globalLocalsMap,
         _closureDataLookup,
@@ -58,7 +58,8 @@ class KernelTypeGraphInferrer extends TypeGraphInferrer<ir.Node> {
         closedWorldRefiner,
         _compiler.backend.mirrorsData,
         _compiler.backend.noSuchMethodRegistry,
-        main);
+        main,
+        _compiler.backendStrategy.sorter);
   }
 
   @override
@@ -103,7 +104,6 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       Progress progress,
       DiagnosticReporter reporter,
       CompilerOutput compilerOutput,
-      OptimizerHintsForTests optimizerHints,
       this._elementMap,
       this._globalLocalsMap,
       this._closureDataLookup,
@@ -111,18 +111,19 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       ClosedWorldRefiner closedWorldRefiner,
       MirrorsData mirrorsData,
       NoSuchMethodRegistry noSuchMethodRegistry,
-      FunctionEntity mainElement)
+      FunctionEntity mainElement,
+      Sorter sorter)
       : super(
             options,
             progress,
             reporter,
             compilerOutput,
-            optimizerHints,
             closedWorld,
             closedWorldRefiner,
             mirrorsData,
             noSuchMethodRegistry,
             mainElement,
+            sorter,
             new KernelTypeSystemStrategy(
                 _elementMap, _globalLocalsMap, _closureDataLookup));
 
@@ -136,8 +137,22 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
   @override
   bool isFieldInitializerPotentiallyNull(
       FieldEntity field, ir.Node initializer) {
-    // TODO(johnniwinther): Implement the ad-hoc check in ast inferrer?
-    return true;
+    // TODO(13429): We could do better here by using the
+    // constant handler to figure out if it's a lazy field or not.
+    // TODO(johnniwinther): Implement the ad-hoc check in ast inferrer? This
+    // mimicks that ast inferrer which return `true` for [ast.Send] and
+    // non-const [ast.NewExpression].
+    if (initializer is ir.MethodInvocation ||
+        initializer is ir.PropertyGet ||
+        initializer is ir.PropertySet ||
+        initializer is ir.StaticInvocation ||
+        initializer is ir.StaticGet ||
+        initializer is ir.StaticSet ||
+        initializer is ir.Let ||
+        initializer is ir.ConstructorInvocation && !initializer.isConst) {
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -157,7 +172,13 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
 
   @override
   FunctionEntity lookupCallMethod(ClassEntity cls) {
-    throw new UnimplementedError('KernelInferrerEngine.lookupCallMethod');
+    FunctionEntity function =
+        _elementEnvironment.lookupClassMember(cls, Identifiers.call);
+    if (function == null) {
+      function =
+          _elementEnvironment.lookupClassMember(cls, Identifiers.noSuchMethod_);
+    }
+    return function;
   }
 
   @override
@@ -167,12 +188,13 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
       case MemberKind.regular:
         ir.Member node = definition.node;
         if (node is ir.Field) {
-          return node.initializer;
+          return getFieldInitializer(_elementMap, member);
         } else if (node is ir.Procedure) {
           return node.function;
         }
         break;
       case MemberKind.constructor:
+        return definition.node;
       case MemberKind.constructorBody:
         ir.Member node = definition.node;
         if (node is ir.Constructor) {
@@ -182,7 +204,7 @@ class KernelInferrerEngine extends InferrerEngineImpl<ir.Node> {
         }
         break;
       case MemberKind.closureCall:
-        ir.Member node = definition.node;
+        ir.TreeNode node = definition.node;
         if (node is ir.FunctionDeclaration) {
           return node.function;
         } else if (node is ir.FunctionExpression) {
@@ -243,50 +265,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
-
-    void processFunctionNode(ir.FunctionNode node) {
-      for (ir.VariableDeclaration variable in node.positionalParameters) {
-        f(localsMap.getLocalVariable(variable));
-      }
-      for (ir.VariableDeclaration variable in node.namedParameters) {
-        f(localsMap.getLocalVariable(variable));
-      }
-    }
-
-    MemberDefinition definition = _elementMap.getMemberDefinition(function);
-    switch (definition.kind) {
-      case MemberKind.regular:
-        ir.Node node = definition.node;
-        if (node is ir.Procedure) {
-          processFunctionNode(node.function);
-          return;
-        }
-        break;
-      case MemberKind.constructor:
-      case MemberKind.constructorBody:
-        ir.Node node = definition.node;
-        if (node is ir.Procedure) {
-          processFunctionNode(node.function);
-          return;
-        } else if (node is ir.Constructor) {
-          processFunctionNode(node.function);
-          return;
-        }
-        break;
-      case MemberKind.closureCall:
-        ir.Node node = definition.node;
-        if (node is ir.FunctionDeclaration) {
-          processFunctionNode(node.function);
-          return;
-        } else if (node is ir.FunctionExpression) {
-          processFunctionNode(node.function);
-          return;
-        }
-        break;
-      default:
-    }
-    failedAt(function, "Unexpected function definition $definition.");
+    forEachOrderedParameter(_globalLocalsMap, _elementMap, function, f);
   }
 
   @override
@@ -428,7 +407,23 @@ class KernelGlobalTypeInferenceElementData
 
   @override
   TypeMask typeOfGetter(ir.Node node) {
-    throw new UnsupportedError(
-        'KernelGlobalTypeInferenceElementData.typeOfGetter');
+    if (_sendMap == null) return null;
+    return _sendMap[node];
   }
+}
+
+/// Returns the initializer for [field].
+///
+/// If [field] is an instance field with a null literal initializer `null` is
+/// returned, otherwise the initializer of the [ir.Field] is returned.
+ir.Node getFieldInitializer(
+    KernelToElementMapForBuilding elementMap, FieldEntity field) {
+  MemberDefinition definition = elementMap.getMemberDefinition(field);
+  ir.Field node = definition.node;
+  if (node.isInstanceMember &&
+      !node.isFinal &&
+      node.initializer is ir.NullLiteral) {
+    return null;
+  }
+  return node.initializer;
 }

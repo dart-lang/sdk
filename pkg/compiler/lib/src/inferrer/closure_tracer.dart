@@ -5,7 +5,6 @@
 library compiler.src.inferrer.closure_tracer;
 
 import '../common/names.dart' show Names;
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../types/types.dart' show TypeMask;
@@ -130,7 +129,7 @@ class ClosureTracerVisitor extends TracerVisitor {
 
 class StaticTearOffClosureTracerVisitor extends ClosureTracerVisitor {
   StaticTearOffClosureTracerVisitor(
-      MethodElement tracedElement, tracedType, inferrer)
+      FunctionEntity tracedElement, tracedType, inferrer)
       : super([tracedElement], tracedType, inferrer);
 
   @override

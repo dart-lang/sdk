@@ -355,7 +355,13 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
     base = 16;
   }
   errno = 0;
-  *value = _strtoi64(str, &endptr, base);
+  if (FLAG_limit_ints_to_64_bits && (base == 16)) {
+    // Unsigned 64-bit hexadecimal integer literals are allowed but
+    // immediately interpreted as signed 64-bit integers.
+    *value = static_cast<int64_t>(_strtoui64(str, &endptr, base));
+  } else {
+    *value = _strtoi64(str, &endptr, base);
+  }
   return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 

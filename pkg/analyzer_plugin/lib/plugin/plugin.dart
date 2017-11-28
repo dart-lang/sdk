@@ -449,8 +449,11 @@ abstract class ServerPlugin {
     String sdkPath = parameters.sdkPath;
     String versionString = parameters.version;
     Version serverVersion = new Version.parse(versionString);
-    _byteStore =
-        new MemoryCachingByteStore(new FileByteStore(byteStorePath), 64 * M);
+    _byteStore = new MemoryCachingByteStore(
+        new FileByteStore(byteStorePath,
+            tempNameSuffix:
+                new DateTime.now().millisecondsSinceEpoch.toString()),
+        64 * M);
     _sdkManager = new DartSdkManager(sdkPath, true);
     return new PluginVersionCheckResult(
         isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,

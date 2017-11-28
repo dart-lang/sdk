@@ -11,9 +11,8 @@
 
 ### GENERAL FAILURES ###
 
-[ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
-
+[ $runtime == vm || $runtime != vm ]
 Language/Classes/Getters/type_object_t01: Fail # co19 issue 115
 Language/Classes/Getters/type_object_t02: Fail # co19 issue 115
 Language/Classes/Setters/type_object_t01: Fail # co19 issue 115
@@ -28,9 +27,8 @@ LibTest/async/Zone/bindBinaryCallback_A01_t02: Fail # co19 issue 126
 LibTest/async/Zone/bindCallback_A01_t02: Fail # co19 issue 126
 LibTest/async/Zone/bindUnaryCallback_A01_t02: Fail # co19 issue 126
 
-[ $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
-
+[ $compiler != dart2analyzer ]
 Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Expressions/Instance_Creation/Const/abstract_class_t01: Pass, Fail # co19 issue 66

@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 typedef F<T extends core::Object> = (T) → void;
 class C<T extends core::Object> extends core::Object {
-  field self::C::T x = null;
+  generic-covariant-impl generic-covariant-interface field self::C::T x = null;
   default constructor •() → void
     : super core::Object::•()
     ;
-  set y(self::C::T value) → void {}
-  method f(self::C::T value) → void {
+  set y(generic-covariant-impl generic-covariant-interface self::C::T value) → void {}
+  method f(generic-covariant-impl generic-covariant-interface self::C::T value) → void {
     this.{self::C::x} = value;
     this.{self::C::y} = value;
   }

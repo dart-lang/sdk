@@ -11,6 +11,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
+#include "vm/debugger_api_impl_test.h"
 #include "vm/flags.h"
 #include "vm/malloc_hooks.h"
 #include "vm/snapshot.h"
@@ -1312,6 +1313,7 @@ VM_UNIT_TEST_CASE(FullSnapshot) {
 
     // Write snapshot with object content.
     {
+      TransitionNativeToVM transition(thread);
       FullSnapshotWriter writer(
           Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
           &malloc_allocator, NULL, NULL /* image_writer */);
@@ -1368,6 +1370,7 @@ VM_UNIT_TEST_CASE(FullSnapshot1) {
 
     // Write snapshot with object content.
     {
+      TransitionNativeToVM transition(thread);
       FullSnapshotWriter writer(
           Snapshot::kFull, NULL, &isolate_snapshot_data_buffer,
           &malloc_allocator, NULL, NULL /* image_writer */);

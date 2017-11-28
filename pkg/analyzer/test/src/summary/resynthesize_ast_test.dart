@@ -258,13 +258,6 @@ abstract class _ResynthesizeAstTest extends ResynthesizeTest
   }
 
   @override
-  void compareLocalElementsOfExecutable(ExecutableElement resynthesized,
-      ExecutableElement original, String desc) {
-    // We don't resynthesize local elements during link.
-    // So, we should not compare them.
-  }
-
-  @override
   DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
 
   @override

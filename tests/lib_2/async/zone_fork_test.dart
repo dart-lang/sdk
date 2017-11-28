@@ -10,14 +10,14 @@ main() {
   Completer done = new Completer();
   List events = [];
 
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Zone forked;
   forked = Zone.current.fork(specification: new ZoneSpecification(fork:
       (Zone self, ZoneDelegate parent, Zone origin,
           ZoneSpecification zoneSpecification, Map mapValues) {
     // The zone is still the same as when origin.run was invoked, which
     // is the root zone. (The origin zone hasn't been set yet).
-    Expect.identical(Zone.ROOT, Zone.current);
+    Expect.identical(Zone.root, Zone.current);
     events.add("forked.fork");
     var descriptionRun = zoneSpecification.run;
     ZoneSpecification modified = new ZoneSpecification.from(zoneSpecification,
@@ -39,7 +39,7 @@ main() {
   }));
 
   events.add("after child fork");
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
 
   forkedChild.run(() {
     events.add("child run");

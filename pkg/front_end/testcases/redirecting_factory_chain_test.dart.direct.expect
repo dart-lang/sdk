@@ -1,0 +1,14 @@
+library redirecting_factory_constructors.chain_test;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → void
+    : super core::Object::•()
+    ;
+  factory first() = self::A::•;
+  factory second() = self::A::first;
+}
+static method main() → dynamic {
+  new self::A::•();
+}

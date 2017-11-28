@@ -34,7 +34,8 @@ abstract class LoopHandler<T> {
       void initialize(),
       HInstruction condition(),
       void update(),
-      void body()) {
+      void body(),
+      SourceInformation sourceInformation) {
     // Generate:
     //  <initializer>
     //  loop-entry:
@@ -44,7 +45,7 @@ abstract class LoopHandler<T> {
     //    goto loop-entry;
     //  loop-exit:
 
-    builder.localsHandler.startLoop(loopClosureInfo);
+    builder.localsHandler.startLoop(loopClosureInfo, sourceInformation);
 
     // The initializer.
     SubExpression initializerGraph = null;
@@ -79,7 +80,7 @@ abstract class LoopHandler<T> {
     conditionEndBlock.addSuccessor(beginBodyBlock);
     builder.open(beginBodyBlock);
 
-    builder.localsHandler.enterLoopBody(loopClosureInfo);
+    builder.localsHandler.enterLoopBody(loopClosureInfo, sourceInformation);
     body();
 
     SubGraph bodyGraph = new SubGraph(beginBodyBlock, builder.lastOpenedBlock);
@@ -127,7 +128,8 @@ abstract class LoopHandler<T> {
             updateBlock);
       }
 
-      builder.localsHandler.enterLoopUpdates(loopClosureInfo);
+      builder.localsHandler
+          .enterLoopUpdates(loopClosureInfo, sourceInformation);
 
       update();
 
@@ -153,7 +155,7 @@ abstract class LoopHandler<T> {
           builder.wrapExpressionGraph(updateGraph),
           conditionBlock.loopInformation.target,
           conditionBlock.loopInformation.labels,
-          loopSourceInformation(loop));
+          sourceInformation);
 
       startBlock.setBlockFlow(info, builder.current);
       loopInfo.loopBlockInformation = info;
@@ -294,9 +296,6 @@ abstract class LoopHandler<T> {
   /// The result is one of the kinds defined in [HLoopBlockInformation].
   int loopKind(T node);
 
-  /// Returns the source information for the loop [node].
-  SourceInformation loopSourceInformation(T node);
-
   /// Creates a [JumpHandler] for a statement. The node must be a jump
   /// target. If there are no breaks or continues targeting the statement,
   /// a special "null handler" is returned.
@@ -318,10 +317,6 @@ class SsaLoopHandler extends LoopHandler<ast.Node> {
 
   @override
   int loopKind(ast.Node node) => node.accept(const _SsaLoopTypeVisitor());
-
-  @override
-  SourceInformation loopSourceInformation(ast.Node node) =>
-      builder.sourceInformationBuilder.buildLoop(node);
 
   @override
   JumpHandler createJumpHandler(ast.Node node, JumpTarget jumpTarget,
@@ -357,10 +352,6 @@ class KernelLoopHandler extends LoopHandler<ir.TreeNode> {
 
   @override
   int loopKind(ir.TreeNode node) => node.accept(new _KernelLoopTypeVisitor());
-
-  // TODO(het): return the actual source information
-  @override
-  SourceInformation loopSourceInformation(ir.TreeNode node) => null;
 }
 
 class _KernelLoopTypeVisitor extends ir.Visitor<int> {

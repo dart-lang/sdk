@@ -69,12 +69,9 @@ class TypeConstraint {
 }
 
 class TypeSchemaEnvironment extends TypeEnvironment {
-  @override
-  final bool strongMode;
-
   TypeSchemaEnvironment(
-      CoreTypes coreTypes, ClassHierarchy hierarchy, this.strongMode)
-      : super(coreTypes, hierarchy);
+      CoreTypes coreTypes, ClassHierarchy hierarchy, bool strongMode)
+      : super(coreTypes, hierarchy, strongMode: strongMode);
 
   /// Modify the given [constraint]'s lower bound to include [lower].
   void addLowerBound(TypeConstraint constraint, DartType lower) {
@@ -418,9 +415,6 @@ class TypeSchemaEnvironment extends TypeEnvironment {
   @override
   bool isBottom(DartType t) {
     if (t is UnknownType) {
-      return true;
-    } else if (t is InterfaceType &&
-        identical(t.classNode, coreTypes.nullClass)) {
       return true;
     } else {
       return super.isBottom(t);

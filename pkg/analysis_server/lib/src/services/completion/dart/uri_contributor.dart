@@ -17,8 +17,7 @@ import 'package:path/path.dart' show posix;
 import 'package:path/src/context.dart';
 
 /**
- * A contributor for calculating uri suggestions
- * for import and part directives.
+ * A contributor for calculating uri suggestions for import and part directives.
  */
 class UriContributor extends DartCompletionContributor {
   _UriSuggestionBuilder builder;
@@ -175,11 +174,15 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
         for (Resource child in dir.getChildren()) {
           String completion;
           if (child is Folder) {
-            completion = '$uriPrefix${child.shortName}/';
-          } else {
-            completion = '$uriPrefix${child.shortName}';
+            if (!child.shortName.startsWith('.')) {
+              completion = '$uriPrefix${child.shortName}/';
+            }
+          } else if (child is File) {
+            if (child.shortName.endsWith('.dart')) {
+              completion = '$uriPrefix${child.shortName}';
+            }
           }
-          if (completion != source.shortName) {
+          if (completion != null && completion != source.shortName) {
             _addSuggestion(completion);
           }
         }

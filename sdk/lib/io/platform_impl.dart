@@ -116,7 +116,7 @@ class _Platform {
     if (_environmentCache is OSError) {
       throw _environmentCache;
     } else {
-      return _environmentCache as Object/*=Map<String, String>*/;
+      return _environmentCache;
     }
   }
 

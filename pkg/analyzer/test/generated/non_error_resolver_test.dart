@@ -1410,6 +1410,28 @@ typedef Foo(int p);
     expect(ref.staticElement, new isInstanceOf<ParameterElement>());
   }
 
+  test_commentReference_beforeGenericTypeAlias() async {
+    String code = r'''
+/// Can resolve [T], [S], and [p].
+typedef Foo<T> = Function<S>(int p);
+''';
+    Source source = addSource(code);
+    TestAnalysisResult analysisResult = await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = analysisResult.unit;
+
+    Element getElement(String search) {
+      return EngineTestCase
+          .findSimpleIdentifier(unit, code, search)
+          .staticElement;
+    }
+
+    expect(getElement('T]'), new isInstanceOf<TypeParameterElement>());
+    expect(getElement('S]'), new isInstanceOf<TypeParameterElement>());
+    expect(getElement('p]'), new isInstanceOf<ParameterElement>());
+  }
+
   test_commentReference_beforeGetter() async {
     String code = r'''
 abstract class A {
@@ -2187,6 +2209,32 @@ class C {
   final Function field;
 
   C({String this.field(int value)});
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_fieldFormalParameter_genericFunctionTyped() async {
+    Source source = addSource(r'''
+class C {
+  final Object Function(int, double) field;
+
+  C(String Function(num, Object) this.field);
+}
+''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_fieldFormalParameter_genericFunctionTyped_named() async {
+    Source source = addSource(r'''
+class C {
+  final Object Function(int, double) field;
+
+  C({String Function(num, Object) this.field});
 }
 ''');
     await computeAnalysisResult(source);

@@ -10,7 +10,7 @@ void main() {
   var list;
   list = <
       int
-    I //# 00: compile-time error
+    I //# 00: syntax error
     , int //# 01: static type warning
       >[0];
   Expect.equals(1, list.length);
@@ -31,22 +31,22 @@ void main() {
   Expect.equals(1, list.length);
 
   list =
-    <> //# 04: compile-time error
+    <> //# 04: syntax error
       [0];
   Expect.equals(1, list.length);
 
   list =
-    <<>> //# 05: compile-time error
+    <<>> //# 05: syntax error
       [0];
   Expect.equals(1, list.length);
 
   list =
-    <<<>>> //# 06: compile-time error
+    <<<>>> //# 06: syntax error
       [0];
   Expect.equals(1, list.length);
 
   list =
-    <[]> //# 07: compile-time error
+    <[]> //# 07: syntax error
       [0];
   Expect.equals(1, list.length);
 

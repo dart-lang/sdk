@@ -17,12 +17,14 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/library_loader.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
 import '../../../../pkg/compiler/tool/generate_kernel.dart' as generate;
+
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 typedef Future<Compiler> CompileFunction();
 
@@ -52,7 +54,7 @@ Future<List<CompileFunction>> compileMultiple(List<String> sources) async {
             Flags.useKernel
           ]);
       ElementResolutionWorldBuilder.useInstantiationMap = true;
-      compiler.resolution.retainCachesForTesting = true;
+      compiler.impactCacheDeleter.retainCachesForTesting = true;
       await compiler.run(entryPoint);
       return compiler;
     });
@@ -69,12 +71,11 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
   if (printSteps) {
     print('---- analyze-all -------------------------------------------------');
   }
-  EnumCreator.matchKernelRepresentationForTesting = true;
   Compiler compiler = compilerFor(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       options: [Flags.analyzeAll, Flags.enableAssertMessage]);
-  compiler.resolution.retainCachesForTesting = true;
+  compiler.impactCacheDeleter.retainCachesForTesting = true;
   await compiler.run(entryPoint);
 
   if (printSteps) {
@@ -85,7 +86,7 @@ Future<Pair<Compiler, Compiler>> analyzeOnly(
       memorySourceFiles: memorySourceFiles,
       options: [Flags.analyzeOnly, Flags.enableAssertMessage, Flags.useKernel]);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler2.resolution.retainCachesForTesting = true;
+  compiler2.impactCacheDeleter.retainCachesForTesting = true;
   await compiler2.run(entryPoint);
   return new Pair<Compiler, Compiler>(compiler, compiler2);
 }
@@ -127,11 +128,10 @@ Future generateDill(Uri entryPoint, Map<String, String> memorySourceFiles,
   }
 
   Uri dillFile = Uri.parse('$entryPoint.dill');
-  String buildDir = Platform.isMacOS ? 'xcodebuild' : 'out';
-  String configuration =
-      Platform.environment['DART_CONFIGURATION'] ?? 'ReleaseX64';
+  Uri platform =
+      computePlatformBinariesLocation().resolve("dart2js_platform.dill");
   await generate.main([
-    '--platform=$buildDir/$configuration/patched_dart2js_sdk/platform.dill',
+    '--platform=${platform.toFilePath()}',
     '--out=${uriPathToNative(dillFile.path)}',
     '${entryPoint.path}',
   ]);
@@ -156,7 +156,7 @@ Future<Compiler> compileWithDill(
       diagnosticHandler: diagnosticHandler,
       outputProvider: compilerOutput);
   ElementResolutionWorldBuilder.useInstantiationMap = true;
-  compiler.resolution.retainCachesForTesting = true;
+  compiler.impactCacheDeleter.retainCachesForTesting = true;
   if (beforeRun != null) {
     beforeRun(compiler);
   }

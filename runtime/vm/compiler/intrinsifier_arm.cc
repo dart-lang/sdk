@@ -56,7 +56,7 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     return;
   }
 
@@ -122,7 +122,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     return;
   }
   Label fall_through;
@@ -154,7 +154,8 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, R2, &fall_through));             \
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R2, cid));                      \
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(R2, &fall_through));                  \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset)); /* Array length. */        \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
@@ -260,7 +261,7 @@ static int GetScaleFactor(intptr_t size) {
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
   void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {       \
     intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);     \
-    intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);         \
+    intptr_t max_len = TypedData::MaxNewSpaceElements(kTypedData##clazz##Cid); \
     int shift = GetScaleFactor(size);                                          \
     TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, shift); \
   }
@@ -1443,6 +1444,53 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   }
 }
 
+void Intrinsifier::Double_hashCode(Assembler* assembler) {
+  // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
+
+  if (!TargetCPUFeatures::vfp_supported()) return;
+
+  // Load double value and check that it isn't NaN, since ARM gives an
+  // FPU exception if you try to convert NaN to an int.
+  Label double_hash;
+  __ ldr(R1, Address(SP, 0 * kWordSize));
+  __ LoadDFromOffset(D0, R1, Double::value_offset() - kHeapObjectTag);
+  __ vcmpd(D0, D0);
+  __ vmstat();
+  __ b(&double_hash, VS);
+
+  // Convert double value to signed 32-bit int in R0.
+  __ vcvtid(S2, D0);
+  __ vmovrs(R0, S2);
+
+  // Tag the int as a Smi, making sure that it fits; this checks for
+  // overflow in the conversion from double to int. Conversion
+  // overflow is signalled by vcvt through clamping R0 to either
+  // INT32_MAX or INT32_MIN (saturation).
+  Label fall_through;
+  ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
+  __ adds(R0, R0, Operand(R0));
+  __ b(&fall_through, VS);
+
+  // Compare the two double values. If they are equal, we return the
+  // Smi tagged result immediately as the hash code.
+  __ vcvtdi(D1, S2);
+  __ vcmpd(D0, D1);
+  __ vmstat();
+  __ bx(LR, EQ);
+
+  // Convert the double bits to a hash code that fits in a Smi.
+  __ Bind(&double_hash);
+  __ ldr(R0, FieldAddress(R1, Double::value_offset()));
+  __ ldr(R1, FieldAddress(R1, Double::value_offset() + 4));
+  __ eor(R0, R0, Operand(R1));
+  __ AndImmediate(R0, R0, kSmiMax);
+  __ SmiTag(R0);
+  __ Ret();
+
+  // Fall into the native C++ implementation.
+  __ Bind(&fall_through);
+}
+
 void Intrinsifier::MathSqrt(Assembler* assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     Label fall_through, is_smi, double_op;
@@ -1510,6 +1558,8 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ umlal(R3, R8, R0, R2);  // R8:R3 <- R8:R3 + R0 * R2.
   __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
   __ StoreToOffset(kWord, R8, R1, disp_1 - kHeapObjectTag);
+  ASSERT(Smi::RawValue(0) == 0);
+  __ eor(R0, R0, Operand(R0));
   __ Ret();
 }
 
@@ -1672,6 +1722,13 @@ void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ ldr(R0, FieldAddress(R0, String::hash_offset()));
+  __ cmp(R0, Operand(0));
+  __ bx(LR, NE);  // Hash not yet computed.
+}
+
+void Intrinsifier::Type_getHashCode(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R0, FieldAddress(R0, Type::hash_offset()));
   __ cmp(R0, Operand(0));
   __ bx(LR, NE);  // Hash not yet computed.
 }
@@ -1915,7 +1972,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kOneByteStringCid, R0, failure));
+  NOT_IN_PRODUCT(__ LoadAllocationStatsAddress(R0, kOneByteStringCid));
+  NOT_IN_PRODUCT(__ MaybeTraceAllocation(R0, failure));
   __ mov(R8, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);

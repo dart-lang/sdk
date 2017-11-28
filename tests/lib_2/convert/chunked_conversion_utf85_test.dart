@@ -55,7 +55,7 @@ List<int> encode5(String str) {
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  List<int> tmpBytes = UTF8.encode(str);
+  List<int> tmpBytes = utf8.encode(str);
   inputByteSink.add(tmpBytes);
   inputByteSink.close();
   return bytes;
@@ -67,7 +67,7 @@ List<int> encode6(String str) {
       new ByteConversionSink.withCallback((result) => bytes = result);
   var stringConversionSink = new Utf8Encoder().startChunkedConversion(byteSink);
   ByteConversionSink inputByteSink = stringConversionSink.asUtf8Sink(false);
-  List<int> tmpBytes = UTF8.encode(str);
+  List<int> tmpBytes = utf8.encode(str);
   tmpBytes.forEach((b) => inputByteSink.addSlice([0, b, 1], 1, 2, false));
   inputByteSink.close();
   return bytes;

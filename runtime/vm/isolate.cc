@@ -20,6 +20,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/heap.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
@@ -78,6 +79,26 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler,
 
 DEFINE_FLAG_HANDLER(CheckedModeHandler, checked, "Enable checked mode.");
 #endif  // !defined(PRODUCT)
+
+static void DeterministicModeHandler(bool value) {
+  if (value) {
+    FLAG_background_compilation = false;
+    FLAG_collect_code = false;
+    // Parallel marking doesn't introduce non-determinism in the object
+    // iteration order.
+    FLAG_concurrent_sweep = false;
+    FLAG_random_seed = 0x44617274;  // "Dart"
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    FLAG_load_deferred_eagerly = true;
+#else
+    COMPILE_ASSERT(FLAG_load_deferred_eagerly);
+#endif
+  }
+}
+
+DEFINE_FLAG_HANDLER(DeterministicModeHandler,
+                    deterministic,
+                    "Enable deterministic mode.");
 
 // Quick access to the locally defined thread() and isolate() methods.
 #define T (thread())
@@ -175,9 +196,52 @@ void Isolate::RegisterClassAt(intptr_t index, const Class& cls) {
   class_table()->RegisterAt(index, cls);
 }
 
+#if defined(DEBUG)
 void Isolate::ValidateClassTable() {
   class_table()->Validate();
 }
+#endif  // DEBUG
+
+void Isolate::RehashConstants() {
+  StackZone stack_zone(Thread::Current());
+  Zone* zone = stack_zone.GetZone();
+
+  Class& cls = Class::Handle(zone);
+  intptr_t top = class_table()->NumCids();
+  for (intptr_t cid = kInstanceCid; cid < top; cid++) {
+    if (!class_table()->IsValidIndex(cid) ||
+        !class_table()->HasValidClassAt(cid)) {
+      continue;
+    }
+    if ((cid == kTypeArgumentsCid) || RawObject::IsStringClassId(cid)) {
+      // TypeArguments and Symbols have special tables for canonical objects
+      // that aren't based on address.
+      continue;
+    }
+    cls = class_table()->At(cid);
+    cls.RehashConstants(zone);
+  }
+}
+
+#if defined(DEBUG)
+void Isolate::ValidateConstants() {
+  if (FLAG_precompiled_mode) {
+    // TODO(27003)
+    return;
+  }
+  if (HasAttemptedReload()) {
+    return;
+  }
+  // Verify that all canonical instances are correctly setup in the
+  // corresponding canonical tables.
+  StopBackgroundCompiler();
+  heap()->CollectAllGarbage();
+  Thread* thread = Thread::Current();
+  HeapIterationScope iteration(thread);
+  VerifyCanonicalVisitor check_canonical(thread);
+  iteration.IterateObjects(&check_canonical);
+}
+#endif  // DEBUG
 
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   const Array& msg = Array::Handle(Array::New(3));
@@ -645,6 +709,13 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
+  if (FLAG_trace_isolates) {
+    OS::Print(
+        "[!] Unhandled exception in %s:\n"
+        "         exception: %s\n",
+        T->isolate()->name(), result.ToErrorCString());
+  }
+
   NoReloadScope no_reload_scope(T->isolate(), T);
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
@@ -1531,18 +1602,9 @@ static void ShutdownIsolate(uword parameter) {
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
-// TODO(27003): Enable for precompiled.
-#if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
-    if (!isolate->HasAttemptedReload()) {
-      // For this verification we need to stop the background compiler earlier.
-      // This would otherwise happen in Dart::ShowdownIsolate.
-      isolate->StopBackgroundCompiler();
-      isolate->heap()->CollectAllGarbage();
-      HeapIterationScope iteration(thread);
-      VerifyCanonicalVisitor check_canonical(thread);
-      iteration.IterateObjects(&check_canonical);
-    }
-#endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DEBUG)
+    isolate->ValidateConstants();
+#endif  // defined(DEBUG)
     const Error& error = Error::Handle(thread->sticky_error());
     if (!error.IsNull() && !error.IsUnwindError()) {
       OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
@@ -1830,40 +1892,29 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     api_state()->VisitObjectPointers(visitor);
   }
 
-  // Visit the current tag which is stored in the isolate.
+  // Visit the objects directly referenced from the isolate structure.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
-
-  // Visit the default tag which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&default_tag_));
-
-  // Visit the tag table which is stored in the isolate.
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
-
-  if (background_compiler() != NULL) {
-    background_compiler()->VisitPointers(visitor);
-  }
-
-  // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
-
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
-
 #if !defined(PRODUCT)
-  // Visit the pending service extension calls.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
-
-  // Visit the registered service extension handlers.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&registered_service_extension_handlers_));
 #endif  // !defined(PRODUCT)
-
   // Visit the boxed_field_list_.
   // 'boxed_field_list_' access via mutator and background compilation threads
   // is guarded with a monitor. This means that we can visit it only
   // when at safepoint or the field_list_mutex_ lock has been taken.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
+
+  if (background_compiler() != NULL) {
+    background_compiler()->VisitPointers(visitor);
+  }
 
 #if !defined(PRODUCT)
   // Visit objects in the debugger.
@@ -1885,6 +1936,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
     deopt_context()->VisitObjectPointers(visitor);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+#if defined(TARGET_ARCH_DBC)
+  if (simulator() != NULL) {
+    simulator()->VisitObjectPointers(visitor);
+  }
+#endif  // defined(TARGET_ARCH_DBC)
 
   VisitStackPointers(visitor, validate_frames);
 }

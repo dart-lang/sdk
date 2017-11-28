@@ -4,6 +4,7 @@
 
 library dart2js.world;
 
+import 'closure.dart';
 import 'common.dart';
 import 'constants/constant_system.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
@@ -20,6 +21,7 @@ import 'elements/types.dart';
 import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
+import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
 import 'js_backend/runtime_types.dart'
     show RuntimeTypesNeed, RuntimeTypesNeedBuilder;
 import 'ordered_typeset.dart';
@@ -28,7 +30,7 @@ import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
-import 'universe/side_effects.dart' show SideEffects;
+import 'universe/side_effects.dart' show SideEffects, SideEffectsBuilder;
 import 'universe/world_builder.dart';
 import 'util/util.dart' show Link;
 
@@ -61,6 +63,8 @@ abstract class ClosedWorld implements World {
   ConstantSystem get constantSystem;
 
   RuntimeTypesNeed get rtiNeed;
+
+  NoSuchMethodData get noSuchMethodData;
 
   Iterable<ClassEntity> get liveNativeClasses;
 
@@ -350,14 +354,14 @@ abstract class ClosedWorldRefiner {
   /// The closed world being refined.
   ClosedWorld get closedWorld;
 
-  /// Registers the side [effects] of executing [element].
-  void registerSideEffects(FunctionEntity element, SideEffects effects);
-
   /// Registers the executing of [element] as without side effects.
   void registerSideEffectsFree(FunctionEntity element);
 
-  /// Returns the currently known side effects of executing [element].
-  SideEffects getCurrentlyKnownSideEffects(FunctionEntity element);
+  /// Returns the [SideEffectBuilder] associated with [element].
+  SideEffectsBuilder getSideEffectsBuilder(FunctionEntity member);
+
+  /// Compute [SideEffects] for all registered [SideEffectBuilder]s.
+  void computeSideEffects();
 
   /// Registers that [element] might be passed to `Function.apply`.
   // TODO(johnniwinther): Is this 'passed invocation target` or
@@ -383,12 +387,6 @@ abstract class ClosedWorldRefiner {
 }
 
 abstract class OpenWorld implements World {
-  /// Called to add [cls] to the set of known classes.
-  ///
-  /// This ensures that class hierarchy queries can be performed on [cls] and
-  /// classes that extend or implement it.
-  void registerClass(covariant ClassEntity cls);
-
   void registerUsedElement(MemberEntity element);
   void registerTypedef(TypedefEntity typedef);
 
@@ -416,6 +414,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   final NativeData nativeData;
   final InterceptorData interceptorData;
   final BackendUsage backendUsage;
+  final NoSuchMethodData noSuchMethodData;
 
   FunctionSet _allFunctions;
 
@@ -435,8 +434,11 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       <ClassEntity, Map<ClassEntity, bool>>{};
 
   final Set<MemberEntity> _functionsCalledInLoop = new Set<MemberEntity>();
-  final Map<FunctionEntity, SideEffects> _sideEffects =
-      new Map<FunctionEntity, SideEffects>();
+  Map<FunctionEntity, SideEffects> _sideEffects;
+  Map<MemberEntity, SideEffectsBuilder> _sideEffectsBuilders =
+      <MemberEntity, SideEffectsBuilder>{};
+  final Set<FunctionEntity> prematureSideEffectAccesses =
+      new Set<FunctionEntity>();
 
   final Set<FunctionEntity> _sideEffectsFreeElements =
       new Set<FunctionEntity>();
@@ -473,6 +475,7 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
       this.nativeData,
       this.interceptorData,
       this.backendUsage,
+      this.noSuchMethodData,
       Set<ClassEntity> implementedClasses,
       this.liveNativeClasses,
       this.liveInstanceMembers,
@@ -1113,26 +1116,56 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 
   SideEffects getSideEffectsOfElement(FunctionEntity element) {
     assert(checkEntity(element));
+    assert(_sideEffects != null,
+        failedAt(element, "Side effects have not been computed yet."));
+    // TODO(johnniwinther): Check that [_makeSideEffects] is only called if
+    // type inference has been disabled (explicitly or because of compile time
+    // errors).
     return _sideEffects.putIfAbsent(element, _makeSideEffects);
   }
 
   static SideEffects _makeSideEffects() => new SideEffects();
 
   @override
-  SideEffects getCurrentlyKnownSideEffects(FunctionEntity element) {
-    return getSideEffectsOfElement(element);
-  }
-
-  void registerSideEffects(FunctionEntity element, SideEffects effects) {
-    assert(checkEntity(element));
-    if (_sideEffectsFreeElements.contains(element)) return;
-    _sideEffects[element] = effects;
+  SideEffectsBuilder getSideEffectsBuilder(MemberEntity member) {
+    return _sideEffectsBuilders.putIfAbsent(
+        member, () => new SideEffectsBuilder(member));
   }
 
   void registerSideEffectsFree(FunctionEntity element) {
     assert(checkEntity(element));
-    _sideEffects[element] = new SideEffects.empty();
     _sideEffectsFreeElements.add(element);
+    assert(!_sideEffectsBuilders.containsKey(element));
+    _sideEffectsBuilders[element] = new SideEffectsBuilder.free(element);
+  }
+
+  void computeSideEffects() {
+    assert(
+        _sideEffects == null, "Side effects have already been computed yet.");
+    _sideEffects = <FunctionEntity, SideEffects>{};
+    Iterable<SideEffectsBuilder> sideEffectsBuilders =
+        _sideEffectsBuilders.values;
+    emptyWorkList(sideEffectsBuilders);
+    for (SideEffectsBuilder sideEffectsBuilder in sideEffectsBuilders) {
+      _sideEffects[sideEffectsBuilder.member] = sideEffectsBuilder.sideEffects;
+    }
+    _sideEffectsBuilders = null;
+  }
+
+  static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
+    // TODO(johnniwinther): Optimize this algorithm, possibly by using
+    // `pkg/front_end/lib/src/dependency_walker.dart`.
+    Set<SideEffectsBuilder> workList =
+        new Set<SideEffectsBuilder>.from(sideEffectsBuilders);
+    while (workList.isNotEmpty) {
+      SideEffectsBuilder sideEffectsBuilder = workList.first;
+      workList.remove(sideEffectsBuilder);
+      for (SideEffectsBuilder dependent in sideEffectsBuilder.depending) {
+        if (dependent.add(sideEffectsBuilder.sideEffects)) {
+          workList.add(dependent);
+        }
+      }
+    }
   }
 
   void addFunctionCalledInLoop(MemberEntity element) {
@@ -1159,12 +1192,23 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   }
 
   bool getMightBePassedToApply(FunctionEntity element) {
+    // We assume all functions reach Function.apply if no functions are
+    // registered so.  We get an empty set in two circumstances (1) a trivial
+    // program and (2) when compiling without type inference
+    // (i.e. --disable-type-inference). Returning `true` has consequences (extra
+    // metadata for Function.apply) only when Function.apply is also part of the
+    // program. It is an unusual trivial program that includes Function.apply
+    // but does not call it on a function.
+    //
+    // TODO(sra): We should reverse the sense of this set and register functions
+    // that we have proven do not reach Function.apply.
+    if (_functionsThatMightBePassedToApply.isEmpty) return true;
     return _functionsThatMightBePassedToApply.contains(element);
   }
 
   @override
   bool getCurrentlyKnownMightBePassedToApply(FunctionEntity element) {
-    return getMightBePassedToApply(element);
+    return _functionsThatMightBePassedToApply.contains(element);
   }
 
   @override
@@ -1196,6 +1240,8 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
 }
 
 class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
+  final List<MemberEntity> liveInstanceMembers;
+
   ClosedWorldImpl(
       {CompilerOptions options,
       ElementEnvironment elementEnvironment,
@@ -1205,6 +1251,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
       NativeData nativeData,
       InterceptorData interceptorData,
       BackendUsage backendUsage,
+      NoSuchMethodData noSuchMethodData,
       ResolutionWorldBuilder resolutionWorldBuilder,
       RuntimeTypesNeedBuilder rtiNeedBuilder,
       Set<ClassEntity> implementedClasses,
@@ -1217,7 +1264,9 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
       Map<ClassEntity, Set<ClassEntity>> typesImplementedBySubclasses,
       Map<ClassEntity, ClassHierarchyNode> classHierarchyNodes,
       Map<ClassEntity, ClassSet> classSets})
-      : super(
+      : this.liveInstanceMembers =
+            new List<MemberEntity>.from(liveInstanceMembers),
+        super(
             elementEnvironment,
             dartTypes,
             commonElements,
@@ -1225,6 +1274,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
             nativeData,
             interceptorData,
             backendUsage,
+            noSuchMethodData,
             implementedClasses,
             liveNativeClasses,
             liveInstanceMembers,
@@ -1314,7 +1364,7 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
     return selector.appliesUntyped(element);
   }
 
-  void registerClosureClass(covariant ClassElement cls) {
+  void registerClosureClass(covariant ClosureClassElement cls) {
     ClassHierarchyNode parentNode = getClassHierarchyNode(cls.superclass);
     ClassHierarchyNode node = _classHierarchyNodes[cls] =
         new ClassHierarchyNode(parentNode, cls, cls.hierarchyDepth);
@@ -1325,6 +1375,11 @@ class ClosedWorldImpl extends ClosedWorldBase with ClosedWorldRtiNeedMixin {
     _classSets[cls] = new ClassSet(node);
     _updateSuperClassHierarchyNodeForClass(node);
     node.isDirectlyInstantiated = true;
+    MethodElement callMethod = cls.callMethod;
+    assert(callMethod != null, failedAt(cls, "No call method in $cls"));
+    assert(_allFunctions == null,
+        failedAt(cls, "Function set has already be created."));
+    liveInstanceMembers.add(callMethod);
   }
 
   void _updateSuperClassHierarchyNodeForClass(ClassHierarchyNode node) {

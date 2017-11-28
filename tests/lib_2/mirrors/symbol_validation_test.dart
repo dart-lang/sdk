@@ -16,9 +16,9 @@ validSymbol(String string) {
 }
 
 invalidSymbol(String string) {
-  Expect.throws(() => new Symbol(string), (e) => e is ArgumentError,
+  Expect.throwsArgumentError(() => new Symbol(string),
       'Invalid symbol "$string" should be rejected');
-  Expect.throws(() => MirrorSystem.getSymbol(string), (e) => e is ArgumentError,
+  Expect.throwsArgumentError(() => MirrorSystem.getSymbol(string),
       'Invalid symbol "$string" should be rejected');
 }
 

@@ -25,11 +25,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool,
-            i_like_slow_isolate_spawn,
-            false,
-            "Block the parent thread when loading spawned isolates.");
-
 static uint8_t* malloc_allocator(uint8_t* ptr,
                                  intptr_t old_size,
                                  intptr_t new_size) {
@@ -254,15 +249,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
       ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
 
       isolate->IncrementSpawnCount();
-      if (FLAG_i_like_slow_isolate_spawn) {
-        // We block the parent isolate while the child isolate loads.
-        Isolate* saved = Isolate::Current();
-        Thread::ExitIsolate();
-        spawn_task->Run();
-        delete spawn_task;
-        spawn_task = NULL;
-        Thread::EnterIsolate(saved);
-      } else if (!Dart::thread_pool()->Run(spawn_task)) {
+      if (!Dart::thread_pool()->Run(spawn_task)) {
         // Running on the thread pool failed. Clean up everything.
         state->DecrementSpawnCount();
         delete state;
@@ -399,15 +386,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
 
   isolate->IncrementSpawnCount();
-  if (FLAG_i_like_slow_isolate_spawn) {
-    // We block the parent isolate while the child isolate loads.
-    Isolate* saved = Isolate::Current();
-    Thread::ExitIsolate();
-    spawn_task->Run();
-    delete spawn_task;
-    spawn_task = NULL;
-    Thread::EnterIsolate(saved);
-  } else if (!Dart::thread_pool()->Run(spawn_task)) {
+  if (!Dart::thread_pool()->Run(spawn_task)) {
     // Running on the thread pool failed. Clean up everything.
     state->DecrementSpawnCount();
     delete state;

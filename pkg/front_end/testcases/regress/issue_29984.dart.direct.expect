@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_29984.dart:6:16: Error: Previous use of 'i'.\n  for (int i = i;; false) {}\n               ^"]/* from null */;
+static method bad() → dynamic {
+  for (final dynamic #t1 = const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/regress/issue_29984.dart:6:12: Error: Can't declare 'i' because it was already used in this scope.\n  for (int i = i;; false) {}\n           ^")); ; false) {
+  }
+}
+static method main() → dynamic {}

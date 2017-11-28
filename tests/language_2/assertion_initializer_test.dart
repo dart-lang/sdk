@@ -1,8 +1,7 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--assert_initializer
-//
+
 // Dart test program testing assert statements.
 
 import "package:expect/expect.dart";
@@ -89,7 +88,7 @@ void test(int x, int y) {
   assert(assertionsEnabled = true);
 
   bool Function(C Function()) doTest = (assertionsEnabled && x >= y)
-    ? (f) { Expect.throws(f, (e) => e is AssertionError); }
+    ? (f) { Expect.throwsAssertionError(f); }
     : (f) { Expect.equals(x, f().x); };
 
   doTest(() => new C.c01(x, y));

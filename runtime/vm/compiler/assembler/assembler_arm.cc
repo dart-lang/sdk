@@ -73,11 +73,10 @@ void Assembler::EmitType01(Condition cond,
                            Operand o) {
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
-  int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
-                     type << kTypeShift |
-                     static_cast<int32_t>(opcode) << kOpcodeShift |
-                     set_cc << kSShift | static_cast<int32_t>(rn) << kRnShift |
-                     static_cast<int32_t>(rd) << kRdShift | o.encoding();
+  int32_t encoding =
+      static_cast<int32_t>(cond) << kConditionShift | type << kTypeShift |
+      static_cast<int32_t>(opcode) << kOpcodeShift | set_cc << kSShift |
+      ArmEncode::Rn(rn) | ArmEncode::Rd(rd) | o.encoding();
   Emit(encoding);
 }
 
@@ -99,8 +98,8 @@ void Assembler::EmitMemOp(Condition cond,
 
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B26 |
                      (ad.kind() == Address::Immediate ? 0 : B25) |
-                     (load ? L : 0) | (byte ? B : 0) |
-                     (static_cast<int32_t>(rd) << kRdShift) | ad.encoding();
+                     (load ? L : 0) | (byte ? B : 0) | ArmEncode::Rd(rd) |
+                     ad.encoding();
   Emit(encoding);
 }
 
@@ -111,7 +110,7 @@ void Assembler::EmitMemOpAddressMode3(Condition cond,
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | mode |
-                     (static_cast<int32_t>(rd) << kRdShift) | ad.encoding3();
+                     ArmEncode::Rd(rd) | ad.encoding3();
   Emit(encoding);
 }
 
@@ -123,8 +122,7 @@ void Assembler::EmitMultiMemOp(Condition cond,
   ASSERT(base != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
-                     am | (load ? L : 0) |
-                     (static_cast<int32_t>(base) << kRnShift) | regs;
+                     am | (load ? L : 0) | ArmEncode::Rn(base) | regs;
   Emit(encoding);
 }
 
@@ -135,11 +133,11 @@ void Assembler::EmitShiftImmediate(Condition cond,
                                    Operand o) {
   ASSERT(cond != kNoCondition);
   ASSERT(o.type() == 1);
-  int32_t encoding =
-      static_cast<int32_t>(cond) << kConditionShift |
-      static_cast<int32_t>(MOV) << kOpcodeShift |
-      static_cast<int32_t>(rd) << kRdShift | o.encoding() << kShiftImmShift |
-      static_cast<int32_t>(opcode) << kShiftShift | static_cast<int32_t>(rm);
+  int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
+                     static_cast<int32_t>(MOV) << kOpcodeShift |
+                     ArmEncode::Rd(rd) | o.encoding() << kShiftImmShift |
+                     static_cast<int32_t>(opcode) << kShiftShift |
+                     static_cast<int32_t>(rm);
   Emit(encoding);
 }
 
@@ -152,8 +150,7 @@ void Assembler::EmitShiftRegister(Condition cond,
   ASSERT(o.type() == 0);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift |
                      static_cast<int32_t>(MOV) << kOpcodeShift |
-                     static_cast<int32_t>(rd) << kRdShift |
-                     o.encoding() << kShiftRegisterShift |
+                     ArmEncode::Rd(rd) | o.encoding() << kShiftRegisterShift |
                      static_cast<int32_t>(opcode) << kShiftShift | B4 |
                      static_cast<int32_t>(rm);
   Emit(encoding);
@@ -266,25 +263,24 @@ void Assembler::clz(Register rd, Register rm, Condition cond) {
   ASSERT(rd != PC);
   ASSERT(rm != PC);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
-                     B22 | B21 | (0xf << 16) |
-                     (static_cast<int32_t>(rd) << kRdShift) | (0xf << 8) | B4 |
-                     static_cast<int32_t>(rm);
+                     B22 | B21 | (0xf << 16) | ArmEncode::Rd(rd) | (0xf << 8) |
+                     B4 | static_cast<int32_t>(rm);
   Emit(encoding);
 }
 
 void Assembler::movw(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift | B25 | B24 |
-                     ((imm16 >> 12) << 16) |
-                     static_cast<int32_t>(rd) << kRdShift | (imm16 & 0xfff);
+                     ((imm16 >> 12) << 16) | ArmEncode::Rd(rd) |
+                     (imm16 & 0xfff);
   Emit(encoding);
 }
 
 void Assembler::movt(Register rd, uint16_t imm16, Condition cond) {
   ASSERT(cond != kNoCondition);
   int32_t encoding = static_cast<int32_t>(cond) << kConditionShift | B25 | B24 |
-                     B22 | ((imm16 >> 12) << 16) |
-                     static_cast<int32_t>(rd) << kRdShift | (imm16 & 0xfff);
+                     B22 | ((imm16 >> 12) << 16) | ArmEncode::Rd(rd) |
+                     (imm16 & 0xfff);
   Emit(encoding);
 }
 
@@ -300,10 +296,8 @@ void Assembler::EmitMulOp(Condition cond,
   ASSERT(rs != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = opcode | (static_cast<int32_t>(cond) << kConditionShift) |
-                     (static_cast<int32_t>(rn) << kRnShift) |
-                     (static_cast<int32_t>(rd) << kRdShift) |
-                     (static_cast<int32_t>(rs) << kRsShift) | B7 | B4 |
-                     (static_cast<int32_t>(rm) << kRmShift);
+                     ArmEncode::Rn(rn) | ArmEncode::Rd(rd) | ArmEncode::Rs(rs) |
+                     B7 | B4 | ArmEncode::Rm(rm);
   Emit(encoding);
 }
 
@@ -722,7 +716,7 @@ void Assembler::EmitMultiVSMemOp(Condition cond,
 
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
                      B26 | B11 | B9 | am | (load ? L : 0) |
-                     (static_cast<int32_t>(base) << kRnShift) |
+                     ArmEncode::Rn(base) |
                      ((static_cast<int32_t>(start) & 0x1) ? D : 0) |
                      ((static_cast<int32_t>(start) >> 1) << 12) | count;
   Emit(encoding);
@@ -743,7 +737,7 @@ void Assembler::EmitMultiVDMemOp(Condition cond,
 
   int32_t encoding =
       (static_cast<int32_t>(cond) << kConditionShift) | B27 | B26 | B11 | B9 |
-      B8 | am | (load ? L : 0) | (static_cast<int32_t>(base) << kRnShift) |
+      B8 | am | (load ? L : 0) | ArmEncode::Rn(base) |
       ((static_cast<int32_t>(start) & 0x10) ? D : 0) |
       ((static_cast<int32_t>(start) & 0xf) << 12) | (count << 1) | armv5te;
   Emit(encoding);
@@ -1353,8 +1347,7 @@ void Assembler::bx(Register rm, Condition cond) {
   ASSERT(rm != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
-                     B21 | (0xfff << 8) | B4 |
-                     (static_cast<int32_t>(rm) << kRmShift);
+                     B21 | (0xfff << 8) | B4 | ArmEncode::Rm(rm);
   Emit(encoding);
 }
 
@@ -1362,8 +1355,7 @@ void Assembler::blx(Register rm, Condition cond) {
   ASSERT(rm != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B24 |
-                     B21 | (0xfff << 8) | B5 | B4 |
-                     (static_cast<int32_t>(rm) << kRmShift);
+                     B21 | (0xfff << 8) | B5 | B4 | ArmEncode::Rm(rm);
   Emit(encoding);
 }
 
@@ -1790,7 +1782,7 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 
 static bool CanEncodeBranchOffset(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, 4));
-  return Utils::IsInt(Utils::CountOneBits(kBranchOffsetMask), offset);
+  return Utils::IsInt(Utils::CountOneBits32(kBranchOffsetMask), offset);
 }
 
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t inst) {
@@ -3093,13 +3085,12 @@ void Assembler::MonomorphicCheckedEntry() {
 }
 
 #ifndef PRODUCT
-void Assembler::MaybeTraceAllocation(intptr_t cid,
-                                     Register temp_reg,
-                                     Label* trace) {
-  LoadAllocationStatsAddress(temp_reg, cid);
+void Assembler::MaybeTraceAllocation(Register stats_addr_reg, Label* trace) {
+  ASSERT(stats_addr_reg != kNoRegister);
+  ASSERT(stats_addr_reg != TMP);
   const uword state_offset = ClassHeapStats::state_offset();
-  ldr(temp_reg, Address(temp_reg, state_offset));
-  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
+  ldr(TMP, Address(stats_addr_reg, state_offset));
+  tst(TMP, Operand(ClassHeapStats::TraceAllocationMask()));
   b(trace, NE);
 }
 
@@ -3160,15 +3151,12 @@ void Assembler::TryAllocate(const Class& cls,
                             Register instance_reg,
                             Register temp_reg) {
   ASSERT(failure != NULL);
-  if (FLAG_inline_alloc) {
+  const intptr_t instance_size = cls.instance_size();
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
     ASSERT(instance_reg != temp_reg);
     ASSERT(temp_reg != IP);
-    const intptr_t instance_size = cls.instance_size();
     ASSERT(instance_size != 0);
-    // If this allocation is traced, program will jump to failure path
-    // (i.e. the allocation stub) which will allocate the object and trace the
-    // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cls.id(), temp_reg, failure));
+    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cls.id()));
     NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     ldr(instance_reg, Address(THR, Thread::top_offset()));
     // TODO(koda): Protect against unsigned overflow here.
@@ -3180,10 +3168,14 @@ void Assembler::TryAllocate(const Class& cls,
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    NOT_IN_PRODUCT(MaybeTraceAllocation(temp_reg, failure));
+
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(THR, Thread::top_offset()));
-    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp_reg, cls.id()));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3208,11 +3200,8 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register end_address,
                                  Register temp1,
                                  Register temp2) {
-  if (FLAG_inline_alloc) {
-    // If this allocation is traced, program will jump to failure path
-    // (i.e. the allocation stub) which will allocate the object and trace the
-    // allocation call site.
-    NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp1, cid));
     NOT_IN_PRODUCT(Heap::Space space = Heap::kNew);
     // Potential new object start.
     ldr(instance, Address(THR, Thread::top_offset()));
@@ -3226,7 +3215,10 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    NOT_IN_PRODUCT(LoadAllocationStatsAddress(temp2, cid));
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    NOT_IN_PRODUCT(MaybeTraceAllocation(temp1, failure));
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -3238,11 +3230,11 @@ void Assembler::TryAllocateArray(intptr_t cid,
     uint32_t tags = 0;
     tags = RawObject::ClassIdTag::update(cid, tags);
     tags = RawObject::SizeTag::update(instance_size, tags);
-    LoadImmediate(temp1, tags);
-    str(temp1, FieldAddress(instance, Array::tags_offset()));  // Store tags.
+    LoadImmediate(temp2, tags);
+    str(temp2, FieldAddress(instance, Array::tags_offset()));  // Store tags.
 
-    LoadImmediate(temp1, instance_size);
-    NOT_IN_PRODUCT(IncrementAllocationStatsWithSize(temp2, temp1, space));
+    LoadImmediate(temp2, instance_size);
+    NOT_IN_PRODUCT(IncrementAllocationStatsWithSize(temp1, temp2, space));
   } else {
     b(failure);
   }

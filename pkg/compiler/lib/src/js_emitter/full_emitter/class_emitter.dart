@@ -100,7 +100,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     jsAst.Name constructorName = namer.className(classElement);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForEntity(classElement);
+        compiler.backend.outputUnitData.outputUnitForEntity(classElement);
     emitter.assemblePrecompiledConstructor(
         outputUnit, constructorName, constructorAst, fieldNames);
   }
@@ -198,7 +198,11 @@ class ClassEmitter extends CodeEmitterHelper {
             // TODO(redemption): Support field entities.
             FieldElement element = fieldElement;
             ResolutionDartType type = element.type;
-            fieldNameParts.add(task.metadataCollector.reifyType(type));
+            // TODO(sigmund): use output unit for `element` (Issue #31032)
+            OutputUnit outputUnit =
+                compiler.backend.outputUnitData.mainOutputUnit;
+            fieldNameParts
+                .add(task.metadataCollector.reifyType(type, outputUnit));
           }
         }
         jsAst.Literal fieldNameAst = js.concatenateStrings(fieldNameParts);
@@ -372,14 +376,17 @@ class ClassEmitter extends CodeEmitterHelper {
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
       } else {
+        // TODO(sigmund): use output unit for `classEntity` (Issue #31032)
+        OutputUnit outputUnit = compiler.backend.outputUnitData.mainOutputUnit;
         // TODO(redemption): Handle class entities.
         ClassElement classElement = classEntity;
         List<jsAst.Expression> types = <jsAst.Expression>[];
         if (classElement.supertype != null) {
-          types.add(task.metadataCollector.reifyType(classElement.supertype));
+          types.add(task.metadataCollector
+              .reifyType(classElement.supertype, outputUnit));
         }
         for (ResolutionDartType interface in classElement.interfaces) {
-          types.add(task.metadataCollector.reifyType(interface));
+          types.add(task.metadataCollector.reifyType(interface, outputUnit));
         }
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName(
@@ -412,7 +419,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForEntity(member);
+        compiler.backend.outputUnitData.outputUnitForEntity(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, getterName, function]));
@@ -432,7 +439,7 @@ class ClassEmitter extends CodeEmitterHelper {
     ClassEntity cls = member.enclosingClass;
     jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
-        compiler.deferredLoadTask.outputUnitForEntity(member);
+        compiler.backend.outputUnitData.outputUnitForEntity(member);
     emitter
         .cspPrecompiledFunctionFor(outputUnit)
         .add(js('#.prototype.# = #', [className, setterName, function]));

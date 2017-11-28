@@ -84,8 +84,8 @@ static void TestFreeList(VirtualMemory* region,
 TEST_CASE(FreeList) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
-  VirtualMemory* region = VirtualMemory::Reserve(kBlobSize);
-  region->Commit(/* is_executable */ false, NULL);
+  VirtualMemory* region =
+      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, NULL);
 
   TestFreeList(region, free_list, false);
 
@@ -97,8 +97,8 @@ TEST_CASE(FreeList) {
 TEST_CASE(FreeListProtected) {
   FreeList* free_list = new FreeList();
   const intptr_t kBlobSize = 1 * MB;
-  VirtualMemory* region = VirtualMemory::Reserve(kBlobSize);
-  region->Commit(/* is_executable */ false, NULL);
+  VirtualMemory* region =
+      VirtualMemory::Allocate(kBlobSize, /* is_executable */ false, NULL);
 
   TestFreeList(region, free_list, true);
 
@@ -113,9 +113,9 @@ TEST_CASE(FreeListProtectedTinyObjects) {
   const intptr_t kObjectSize = 2 * kWordSize;
   uword* objects = new uword[kBlobSize / kObjectSize];
 
-  VirtualMemory* blob = VirtualMemory::Reserve(kBlobSize);
+  VirtualMemory* blob =
+      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, NULL);
   ASSERT(Utils::IsAligned(blob->start(), 4096));
-  blob->Commit(/* is_executable = */ false, NULL);
   blob->Protect(VirtualMemory::kReadWrite);
 
   // Enqueue the large blob as one free block.
@@ -153,9 +153,9 @@ TEST_CASE(FreeListProtectedVariableSizeObjects) {
     objects[i] = static_cast<uword>(NULL);
   }
 
-  VirtualMemory* blob = VirtualMemory::Reserve(kBlobSize);
+  VirtualMemory* blob =
+      VirtualMemory::Allocate(kBlobSize, /* is_executable = */ false, NULL);
   ASSERT(Utils::IsAligned(blob->start(), 4096));
-  blob->Commit(/* is_executable = */ false, NULL);
   blob->Protect(VirtualMemory::kReadWrite);
 
   // Enqueue the large blob as one free block.

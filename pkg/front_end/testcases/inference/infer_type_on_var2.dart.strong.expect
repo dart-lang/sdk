@@ -4,8 +4,6 @@ import "dart:core" as core;
 
 static method test2() → dynamic {
   core::int x = 3;
-  x = "hi";
+  x = "hi" as{TypeError} core::int;
 }
-static method main() → dynamic {
-  self::test2();
-}
+static method main() → dynamic {}

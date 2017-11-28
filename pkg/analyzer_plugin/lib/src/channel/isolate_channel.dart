@@ -222,7 +222,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   @override
   void kill() {
-    _isolate.kill(priority: Isolate.IMMEDIATE);
+    _isolate.kill(priority: Isolate.immediate);
   }
 
   @override
@@ -253,6 +253,9 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
           RequestErrorCode.PLUGIN_ERROR.toString(),
           exception.toString(),
           stackTrace.toString());
+      if (onError != null) {
+        onError([exception.toString(), stackTrace.toString()]);
+      }
       if (onDone != null) {
         onDone();
       }

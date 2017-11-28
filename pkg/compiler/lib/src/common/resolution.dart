@@ -72,6 +72,7 @@ class ResolutionImpact extends WorldImpact {
   Iterable<String> get constSymbolNames => const <String>[];
   Iterable<ConstantExpression> get constantLiterals =>
       const <ConstantExpression>[];
+  Iterable<ClassEntity> get seenClasses => const <ClassEntity>[];
 
   Iterable<dynamic> get nativeData => const <dynamic>[];
 }
@@ -144,7 +145,6 @@ abstract class Resolution {
 
   void resolveTypedef(TypedefElement typdef);
   void resolveClass(ClassElement cls);
-  void registerClass(ClassElement cls);
   void resolveMetadataAnnotation(MetadataAnnotation metadataAnnotation);
   FunctionSignature resolveSignature(FunctionElement function);
   ResolutionDartType resolveTypeAnnotation(
@@ -205,6 +205,13 @@ abstract class Resolution {
   /// Returns `true` if [value] is the top-level [proxy] annotation from the
   /// core library.
   bool isProxyConstant(ConstantValue value);
+
+  // TODO(het): Remove this once we move to the kernel-based frontend. This is
+  // an escape hatch for types that can't be added to an impact. For example,
+  // resolving a method signature will register the classes seen in the
+  // signature.
+  @deprecated
+  void registerClass(ClassEntity cls);
 }
 
 /// A container of commonly used dependencies for tasks that involve parsing.

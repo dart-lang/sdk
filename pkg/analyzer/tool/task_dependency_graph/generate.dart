@@ -38,7 +38,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:front_end/byte_store.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/codegen/tools.dart';
 import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as path;

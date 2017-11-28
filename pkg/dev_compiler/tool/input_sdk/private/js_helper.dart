@@ -8,7 +8,7 @@ import 'dart:collection';
 
 import 'dart:_debugger' show stackTraceMapper;
 
-import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT;
+import 'dart:_foreign_helper' show JS, JS_STRING_CONCAT, JSExportName;
 
 import 'dart:_interceptors';
 import 'dart:_internal'
@@ -19,6 +19,8 @@ import 'dart:_runtime' as dart;
 
 part 'annotations.dart';
 part 'linked_hash_map.dart';
+part 'identity_hash_map.dart';
+part 'custom_hash_map.dart';
 part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
@@ -30,9 +32,38 @@ class _Patch {
 
 const _Patch patch = const _Patch();
 
-/// Marks the internal map in dart2js, so that internal libraries can is-check
-// them.
-abstract class InternalMap<K, V> implements Map<K, V> {}
+/// Adapts a JS `[Symbol.iterator]` to a Dart `get iterator`.
+/// 
+/// This is the inverse of `JsIterator`, for classes where we can more
+/// efficiently obtain a JS iterator instead of a Dart one.
+/// 
+// TODO(jmesserly): this adapter is to work around
+// https://github.com/dart-lang/sdk/issues/28320
+class DartIterator<E> implements Iterator<E> {
+  final _jsIterator;
+  E _current;
+
+  DartIterator(this._jsIterator);
+
+  E get current => _current;
+
+  bool moveNext() {
+    final ret = JS('', '#.next()', _jsIterator);
+    _current = JS('', '#.value', ret);
+    return JS('bool', '!#.done', ret);
+  }
+}
+
+/// Used to compile `sync*`.
+class SyncIterable<E> extends IterableBase<E> {
+  final Function() _initGenerator;
+  SyncIterable(this._initGenerator);
+
+  @JSExportName('Symbol.iterator')
+  _jsIterator() => _initGenerator();
+
+  get iterator => new DartIterator(_initGenerator());
+}
 
 class Primitives {
   /// Isolate-unique ID for caching [JsClosureMirror.function].
@@ -727,7 +758,7 @@ class TypeErrorImplementation extends Error implements TypeError {
       bool strongModeError)
       : message = "Type '${actualType}' is not a subtype "
             "of type '${expectedType}'" +
-            (strongModeError ? "" : " in strong mode");
+            (strongModeError ? " in strong mode" : "");
 
   TypeErrorImplementation.fromMessage(String this.message);
 
@@ -747,7 +778,7 @@ class CastErrorImplementation extends Error implements CastError {
       bool strongModeError)
       : message = "CastError: Casting value of type '$actualType' to"
             " type '$expectedType' which is incompatible" +
-            (strongModeError ? "" : " in strong mode");
+            (strongModeError ? " in strong mode": "");
 
   String toString() => message;
 }
@@ -787,37 +818,6 @@ int random64() {
   return int32a + int32b * 0x100000000;
 }
 
-// TODO(jmesserly): this adapter is to work around
-// https://github.com/dart-lang/sdk/issues/28320
-class SyncIterator<E> implements Iterator<E> {
-  final dynamic _jsIterator;
-  E _current;
-
-  SyncIterator(this._jsIterator);
-
-  E get current => _current;
-
-  bool moveNext() {
-    final ret = JS('', '#.next()', _jsIterator);
-    _current = JS('', '#.value', ret);
-    return JS('bool', '!#.done', ret);
-  }
-}
-
-class SyncIterable<E> extends IterableBase<E> {
-  final dynamic _generator;
-  final dynamic _args;
-
-  SyncIterable(this._generator, this._args);
-
-  // TODO(jmesserly): this should be [Symbol.iterator]() method. Unfortunately
-  // we have no way of telling the compiler yet, so it will generate an extra
-  // layer of indirection that wraps the SyncIterator.
-  _jsIterator() => JS('', '#(...#)', _generator, _args);
-
-  Iterator<E> get iterator => new SyncIterator<E>(_jsIterator());
-}
-
 class BooleanConversionAssertionError extends AssertionError {
   toString() => 'Failed assertion: boolean expression must not be null';
 }
@@ -835,4 +835,31 @@ void registerGlobalObject(object) {
 
     // TODO(vsm): Detect this more robustly - ideally before we try to polyfill.
   }
+}
+
+/// Used internally by DDC to map ES6 symbols to Dart.
+class PrivateSymbol implements Symbol {
+  // TODO(jmesserly): could also get this off the native symbol instead of
+  // storing it. Mirrors already does this conversion.
+  final String _name;
+  final Object _nativeSymbol;
+
+  const PrivateSymbol(this._name, this._nativeSymbol);
+
+  static String getName(Symbol symbol) => (symbol as PrivateSymbol)._name;
+
+  static Object getNativeSymbol(Symbol symbol) {
+    if (symbol is PrivateSymbol) return symbol._nativeSymbol;
+    return null;
+  }
+
+  bool operator ==(other) =>
+      other is PrivateSymbol &&
+      _name == other._name &&
+      identical(_nativeSymbol, other._nativeSymbol);
+
+  get hashCode => _name.hashCode;
+
+  // TODO(jmesserly): is this equivalent to _nativeSymbol toString?
+  toString() => 'Symbol("$_name")';
 }

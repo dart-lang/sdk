@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/compiler/assembler/disassembler.h"
 
 #include "vm/code_patcher.h"
@@ -98,6 +96,65 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   jsarr_.AddValueNull();
   free(p);
 }
+
+#if !defined(PRODUCT)
+void DisassembleToMemory::ConsumeInstruction(const Code& code,
+                                             char* hex_buffer,
+                                             intptr_t hex_size,
+                                             char* human_buffer,
+                                             intptr_t human_size,
+                                             Object* object,
+                                             uword pc) {
+  if (overflowed_) {
+    return;
+  }
+  intptr_t len = strlen(human_buffer);
+  if (remaining_ < len + 100) {
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '\n';
+    *buffer_++ = '\0';
+    overflowed_ = true;
+    return;
+  }
+  memmove(buffer_, human_buffer, len);
+  buffer_ += len;
+  remaining_ -= len;
+  *buffer_++ = '\n';
+  remaining_--;
+  *buffer_ = '\0';
+}
+
+void DisassembleToMemory::Print(const char* format, ...) {
+  if (overflowed_) {
+    return;
+  }
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+  if (remaining_ < len + 100) {
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '.';
+    *buffer_++ = '\n';
+    *buffer_++ = '\0';
+    overflowed_ = true;
+    return;
+  }
+  va_start(args, format);
+  intptr_t len2 = OS::VSNPrint(buffer_, len, format, args);
+  va_end(args);
+  ASSERT(len == len2);
+  buffer_ += len;
+  remaining_ -= len;
+  *buffer_++ = '\n';
+  remaining_--;
+  *buffer_ = '\0';
+}
+
+#endif
 
 void Disassembler::Disassemble(uword start,
                                uword end,
@@ -195,6 +252,8 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
   THR_Print("%s}\n", descriptors.ToCString());
 
   uword start = Instructions::Handle(zone, code.instructions()).PayloadStart();
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   const Array& deopt_table = Array::Handle(zone, code.deopt_info_array());
   intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
   if (deopt_table_length > 0) {
@@ -214,6 +273,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     }
     THR_Print("}\n");
   }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   THR_Print("StackMaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {
@@ -308,5 +368,3 @@ void Disassembler::DisassembleCode(const Function& function,
 #endif  // !PRODUCT
 
 }  // namespace dart
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)

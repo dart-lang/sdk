@@ -58,8 +58,7 @@ class Point<T extends num> {
    * _runtime_ _error_ in checked mode.
    */
   Point<T> operator *(num /*T|int*/ factor) {
-    return new Point<T>(
-        (x * factor) as dynamic/*=T*/, (y * factor) as dynamic/*=T*/);
+    return new Point<T>((x * factor), (y * factor));
   }
 
   /**

@@ -52,6 +52,10 @@ class CloneVisitor extends TreeVisitor {
     return substitute(type, typeSubstitution);
   }
 
+  Constant visitConstant(Constant constant) {
+    return constant;
+  }
+
   DartType visitOptionalType(DartType type) {
     return type == null ? null : substitute(type, typeSubstitution);
   }
@@ -74,7 +78,8 @@ class CloneVisitor extends TreeVisitor {
 
   visitPropertySet(PropertySet node) {
     return new PropertySet.byReference(clone(node.receiver), node.name,
-        clone(node.value), node.interfaceTargetReference);
+        clone(node.value), node.interfaceTargetReference)
+      ..flags = node.flags;
   }
 
   visitDirectPropertyGet(DirectPropertyGet node) {
@@ -84,7 +89,8 @@ class CloneVisitor extends TreeVisitor {
 
   visitDirectPropertySet(DirectPropertySet node) {
     return new DirectPropertySet.byReference(
-        clone(node.receiver), node.targetReference, clone(node.value));
+        clone(node.receiver), node.targetReference, clone(node.value))
+      ..flags = node.flags;
   }
 
   visitSuperPropertyGet(SuperPropertyGet node) {
@@ -200,6 +206,10 @@ class CloneVisitor extends TreeVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     return new FunctionExpression(clone(node.function));
+  }
+
+  visitConstantExpression(ConstantExpression node) {
+    return new ConstantExpression(visitConstant(node.constant));
   }
 
   visitStringLiteral(StringLiteral node) {
@@ -388,6 +398,7 @@ class CloneVisitor extends TreeVisitor {
         isStatic: node.isStatic,
         isExternal: node.isExternal,
         isConst: node.isConst,
+        isForwardingStub: node.isForwardingStub,
         transformerFlags: node.transformerFlags,
         fileUri: node.fileUri)
       ..fileEndOffset = node.fileEndOffset;
@@ -406,6 +417,20 @@ class CloneVisitor extends TreeVisitor {
         transformerFlags: node.transformerFlags,
         fileUri: node.fileUri)
       ..fileEndOffset = node.fileEndOffset;
+  }
+
+  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    return new RedirectingFactoryConstructor(node.targetReference,
+        name: node.name,
+        isConst: node.isConst,
+        isExternal: node.isExternal,
+        isSyntheticDefault: node.isSyntheticDefault,
+        transformerFlags: node.transformerFlags,
+        typeArguments: node.typeArguments.map(visitType).toList(),
+        typeParameters: node.typeParameters.map(clone).toList(),
+        positionalParameters: node.positionalParameters.map(clone).toList(),
+        namedParameters: node.namedParameters.map(clone).toList(),
+        requiredParameterCount: node.requiredParameterCount);
   }
 
   visitTypeParameter(TypeParameter node) {

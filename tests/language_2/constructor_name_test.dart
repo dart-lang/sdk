@@ -4,8 +4,8 @@
 
 class Foo {
   Bar.Foo(); //# 01: compile-time error
-  factory Bar(); //# 02: compile-time error
-  factory Bar.Baz(); //# 03: compile-time error
+  factory Bar(); //# 02: syntax error
+  factory Bar.Baz(); //# 03: syntax error
 }
 
 void main() {

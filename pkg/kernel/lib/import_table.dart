@@ -81,14 +81,21 @@ class _ImportTableBuilder extends RecursiveVisitor {
     if (targetUri == null) {
       throw '$referenceUri cannot refer to library without an import URI';
     }
-    if (targetUri.scheme == 'file' && referenceUri.scheme == 'file') {
+    // To support using custom-uris in unit tests, we don't check directly
+    // whether the scheme is 'file:', but instead we check that is not 'dart:'
+    // or 'package:'.
+    bool isFileOrCustomScheme(uri) =>
+        uri.scheme != '' && uri.scheme != 'package' && uri.scheme != 'dart';
+    bool isTargetSchemeFileOrCustom = isFileOrCustomScheme(targetUri);
+    bool isReferenceSchemeFileOrCustom = isFileOrCustomScheme(referenceUri);
+    if (isTargetSchemeFileOrCustom && isReferenceSchemeFileOrCustom) {
       var targetDirectory = path.dirname(targetUri.path);
       var currentDirectory = path.dirname(referenceUri.path);
       var relativeDirectory =
           path.relative(targetDirectory, from: currentDirectory);
       var filename = path.basename(targetUri.path);
       table.addImport(target, '$relativeDirectory/$filename');
-    } else if (targetUri.scheme == 'file') {
+    } else if (isTargetSchemeFileOrCustom) {
       // Cannot import a file:URI from a dart:URI or package:URI.
       // We may want to remove this restriction, but for now it's just a sanity
       // check.

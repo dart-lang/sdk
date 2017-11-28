@@ -166,7 +166,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     if (node.factoryKeyword != null) {
       element.factory = true;
     }
-    element.functions = holder.functions;
+    element.encloseElements(holder.functions);
     element.encloseElements(holder.labels);
     element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
@@ -260,7 +260,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         if (node.externalKeyword != null || body is NativeFunctionBody) {
           element.external = true;
         }
-        element.functions = holder.functions;
+        element.encloseElements(holder.functions);
         element.encloseElements(holder.labels);
         element.encloseElements(holder.localVariables);
         element.parameters = holder.parameters;
@@ -301,7 +301,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           if (node.externalKeyword != null || body is NativeFunctionBody) {
             getter.external = true;
           }
-          getter.functions = holder.functions;
+          getter.encloseElements(holder.functions);
           getter.encloseElements(holder.labels);
           getter.encloseElements(holder.localVariables);
           if (body.isAsynchronous) {
@@ -329,7 +329,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           if (node.externalKeyword != null || body is NativeFunctionBody) {
             setter.external = true;
           }
-          setter.functions = holder.functions;
+          setter.encloseElements(holder.functions);
           setter.encloseElements(holder.labels);
           setter.encloseElements(holder.localVariables);
           setter.parameters = holder.parameters;
@@ -370,7 +370,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     FunctionElementImpl element =
         new FunctionElementImpl.forOffset(node.beginToken.offset);
     _setCodeRange(element, node);
-    element.functions = holder.functions;
+    element.encloseElements(holder.functions);
     element.encloseElements(holder.labels);
     element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
@@ -396,12 +396,13 @@ class ApiElementBuilder extends _BaseElementBuilder {
     SimpleIdentifier aliasName = node.name;
     List<ParameterElement> parameters = holder.parameters;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
-    FunctionTypeAliasElementImpl element =
-        new FunctionTypeAliasElementImpl.forNode(aliasName);
+    GenericTypeAliasElementImpl element =
+        new GenericTypeAliasElementImpl.forNode(aliasName);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(element, node);
-    element.parameters = parameters;
+    element.function = new GenericFunctionTypeElementImpl.forOffset(-1)
+      ..parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
     element.type = new FunctionTypeImpl.forTypedef(element);
@@ -472,7 +473,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         if (node.externalKeyword != null || body is NativeFunctionBody) {
           element.external = true;
         }
-        element.functions = holder.functions;
+        element.encloseElements(holder.functions);
         element.encloseElements(holder.labels);
         element.encloseElements(holder.localVariables);
         element.parameters = holder.parameters;
@@ -510,7 +511,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           if (node.externalKeyword != null || body is NativeFunctionBody) {
             getter.external = true;
           }
-          getter.functions = holder.functions;
+          getter.encloseElements(holder.functions);
           getter.encloseElements(holder.labels);
           getter.encloseElements(holder.localVariables);
           if (body.isAsynchronous) {
@@ -538,7 +539,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           if (node.externalKeyword != null || body is NativeFunctionBody) {
             setter.external = true;
           }
-          setter.functions = holder.functions;
+          setter.encloseElements(holder.functions);
           setter.encloseElements(holder.labels);
           setter.encloseElements(holder.localVariables);
           setter.parameters = holder.parameters;
@@ -1190,7 +1191,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     if (node.externalKeyword != null || body is NativeFunctionBody) {
       element.external = true;
     }
-    element.functions = holder.functions;
+    element.encloseElements(holder.functions);
     element.encloseElements(holder.labels);
     element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
@@ -1234,7 +1235,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     FunctionElementImpl element =
         new FunctionElementImpl.forOffset(node.beginToken.offset);
     _setCodeRange(element, node);
-    element.functions = holder.functions;
+    element.encloseElements(holder.functions);
     element.encloseElements(holder.labels);
     element.encloseElements(holder.localVariables);
     element.parameters = holder.parameters;
@@ -1357,7 +1358,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
       initializer.hasImplicitReturnType = true;
-      initializer.functions = holder.functions;
+      initializer.encloseElements(holder.functions);
       initializer.encloseElements(holder.labels);
       initializer.encloseElements(holder.localVariables);
       initializer.parameters = holder.parameters;
@@ -1381,7 +1382,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       FunctionElementImpl initializerElement =
           new FunctionElementImpl.forOffset(initializer.beginToken.offset);
       initializerElement.hasImplicitReturnType = true;
-      initializerElement.functions = holder.functions;
+      initializerElement.encloseElements(holder.functions);
       initializerElement.encloseElements(holder.labels);
       initializerElement.encloseElements(holder.localVariables);
       initializerElement.isSynthetic = true;

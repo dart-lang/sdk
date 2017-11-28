@@ -623,8 +623,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ cmpq(RDI, Immediate(0));
   __ j(LESS, &slow_case);
   // Check for maximum allowed length.
-  const Immediate& max_len =
-      Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
+  const Immediate& max_len = Immediate(
+      reinterpret_cast<int64_t>(Smi::New(Array::kMaxNewSpaceElements)));
   __ cmpq(RDI, max_len);
   __ j(GREATER, &slow_case);
 
@@ -671,7 +671,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ jmp(&done, Assembler::kNearJump);
 
     __ Bind(&size_tag_overflow);
-    __ movq(RDI, Immediate(0));
+    __ LoadImmediate(RDI, Immediate(0));
     __ Bind(&done);
 
     // Get the class index and insert it into the tags.
@@ -820,7 +820,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   Label push_arguments;
   Label done_push_arguments;
   __ j(ZERO, &done_push_arguments, Assembler::kNearJump);
-  __ movq(RAX, Immediate(0));
+  __ LoadImmediate(RAX, Immediate(0));
   __ Bind(&push_arguments);
   __ pushq(Address(RDX, RAX, TIMES_8, 0));
   __ incq(RAX);
@@ -925,7 +925,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
       __ Bind(&size_tag_overflow);
       // Set overflow size tag value.
-      __ movq(R13, Immediate(0));
+      __ LoadImmediate(R13, Immediate(0));
 
       __ Bind(&done);
       // RAX: new object.

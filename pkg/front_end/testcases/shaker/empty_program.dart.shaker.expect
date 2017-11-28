@@ -149,12 +149,20 @@ library dart:math:
 
 library dart:core:
   - member print
-  - typedef _SyncGeneratorCallback
   - class _SyncIterable
     - (default constructor)
     - iterator
-  - class _InvocationMirror
+  - class _SyncIterator
+    - current
+    - moveNext
+  - class _CompileTimeError
     - (default constructor)
+    - toString
+  - class _DuplicatedFieldInitializerError
+    - (default constructor)
+    - toString
+  - class _InvocationMirror
+    - dart.core::_withoutType
     - memberName
     - typeArguments
     - positionalArguments
@@ -210,6 +218,13 @@ library dart:core:
     - isNegative
     - abs
     - unary-
+  - class Error
+    - stackTrace
+  - class FallThroughError
+    - dart.core::_create
+    - toString
+  - class _ConstantExpressionError
+    - (default constructor)
   - class Function
     - hashCode
     - ==
@@ -370,22 +385,20 @@ library dart:core:
   - class Object
     - dart.core::_hashCodeRnd
     - (default constructor)
-    - ==
-    - hashCode
-    - toString
-    - noSuchMethod
-    - runtimeType
     - dart.core::_objectHashCode
     - dart.core::_identityHashCode
     - dart.core::_toString
-    - dart.core::_noSuchMethod
     - dart.core::_haveSameRuntimeType
     - dart.core::_instanceOf
     - dart.core::_simpleInstanceOf
     - dart.core::_simpleInstanceOfTrue
     - dart.core::_simpleInstanceOfFalse
     - dart.core::_as
-    - dart.core::_symbolMapToStringMap
+    - ==
+    - hashCode
+    - toString
+    - noSuchMethod
+    - runtimeType
   - class Pattern
     - allMatches
     - matchAsPrefix

@@ -141,6 +141,10 @@ abstract class Substitution {
     return new _MapSubstitution(map, map);
   }
 
+  static Substitution filtered(Substitution sub, TypeParameterFilter filter) {
+    return new _FilteredSubstitution(sub, filter);
+  }
+
   /// Substitutes all occurrences of the given type parameters with the
   /// corresponding upper or lower bound, depending on the variance of the
   /// context where it occurs.
@@ -309,6 +313,21 @@ class _CombinedSubstitution extends Substitution {
   }
 }
 
+typedef bool TypeParameterFilter(TypeParameter P);
+
+class _FilteredSubstitution extends Substitution {
+  final Substitution base;
+  final TypeParameterFilter filterFn;
+
+  _FilteredSubstitution(this.base, this.filterFn);
+
+  DartType getSubstitute(TypeParameter parameter, bool upperBound) {
+    return filterFn(parameter)
+        ? base.getSubstitute(parameter, upperBound)
+        : _NullSubstitution.instance.getSubstitute(parameter, upperBound);
+  }
+}
+
 class _InnerTypeSubstitutor extends _TypeSubstitutor {
   final Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
 
@@ -321,7 +340,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
   TypeParameter freshTypeParameter(TypeParameter node) {
     var fresh = new TypeParameter(node.name);
     substitution[node] = new TypeParameterType(fresh);
-    fresh.bound = visit(node.bound);
+    fresh.bound = node.bound != null ? visit(node.bound) : null;
     return fresh;
   }
 }

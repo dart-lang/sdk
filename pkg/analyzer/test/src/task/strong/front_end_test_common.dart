@@ -261,8 +261,7 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
   _FrontEndInferenceTest(this._frontEndTestRunner);
 
   @override
-  AnalysisOptionsImpl createAnalysisOptions() =>
-      super.createAnalysisOptions()..enableAssertInitializer = true;
+  AnalysisOptionsImpl createAnalysisOptions() => super.createAnalysisOptions();
 
   Future<String> runTest(String path, String code) {
     return fasta.CompilerContext.runWithDefaultOptions((_) async {

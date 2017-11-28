@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
+    show AbstractScanner;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
@@ -35,8 +37,10 @@ class PrecedenceInfoTest {
     assertLexeme('#!/'); // SCRIPT_TAG
     assertLexeme('"foo"'); // STRING
     assertLexeme('bar'); // IDENTIFIER
-    assertLexeme('&&=');
-    assertLexeme('||=');
+    if (AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
+      assertLexeme('&&=');
+      assertLexeme('||=');
+    }
   }
 
   void test_isOperator() {
@@ -217,6 +221,7 @@ class PrecedenceInfoTest {
       '.',
       '++',
       '?.',
+      '[]',
     ];
     assertInfo((String source, Token token) {
       expect(token.type.isUnaryPostfixOperator,
@@ -228,6 +233,7 @@ class PrecedenceInfoTest {
   void test_isUnaryPrefixOperator() {
     const unaryPrefixLexemes = const [
       '!',
+      '-',
       '--',
       '++',
       '~',

@@ -363,7 +363,7 @@ class CommonElements {
 
   MemberEntity _findClassMember(ClassEntity cls, String name,
       {bool setter: false, bool required: true}) {
-    return _env.lookupClassMember(cls, name,
+    return _env.lookupLocalClassMember(cls, name,
         setter: setter, required: required);
   }
 
@@ -461,9 +461,9 @@ class CommonElements {
     _mapLiteralConstructorEmpty =
         _env.lookupConstructor(mapLiteralClass, '_empty');
     _mapLiteralUntypedMaker =
-        _env.lookupClassMember(mapLiteralClass, '_makeLiteral');
+        _env.lookupLocalClassMember(mapLiteralClass, '_makeLiteral');
     _mapLiteralUntypedEmptyMaker =
-        _env.lookupClassMember(mapLiteralClass, '_makeEmpty');
+        _env.lookupLocalClassMember(mapLiteralClass, '_makeEmpty');
   }
 
   ConstructorEntity get mapLiteralConstructor {
@@ -489,7 +489,7 @@ class CommonElements {
   FunctionEntity _objectNoSuchMethod;
   FunctionEntity get objectNoSuchMethod {
     return _objectNoSuchMethod ??=
-        _env.lookupClassMember(objectClass, Identifiers.noSuchMethod_);
+        _env.lookupLocalClassMember(objectClass, Identifiers.noSuchMethod_);
   }
 
   bool isDefaultNoSuchMethodImplementation(FunctionEntity element) {
@@ -518,13 +518,13 @@ class CommonElements {
   FunctionEntity get wrapBody =>
       _findAsyncHelperFunction("_wrapJsFunctionForAsync");
 
-  FunctionEntity get yieldStar => _env.lookupClassMember(
+  FunctionEntity get yieldStar => _env.lookupLocalClassMember(
       _findAsyncHelperClass("_IterationMarker"), "yieldStar");
 
-  FunctionEntity get yieldSingle => _env.lookupClassMember(
+  FunctionEntity get yieldSingle => _env.lookupLocalClassMember(
       _findAsyncHelperClass("_IterationMarker"), "yieldSingle");
 
-  FunctionEntity get syncStarUncaughtError => _env.lookupClassMember(
+  FunctionEntity get syncStarUncaughtError => _env.lookupLocalClassMember(
       _findAsyncHelperClass("_IterationMarker"), "uncaughtError");
 
   FunctionEntity get asyncStarHelper =>
@@ -533,7 +533,7 @@ class CommonElements {
   FunctionEntity get streamOfController =>
       _findAsyncHelperFunction("_streamOfController");
 
-  FunctionEntity get endOfIteration => _env.lookupClassMember(
+  FunctionEntity get endOfIteration => _env.lookupLocalClassMember(
       _findAsyncHelperClass("_IterationMarker"), "endOfIteration");
 
   ClassEntity get syncStarIterable =>
@@ -857,8 +857,8 @@ class CommonElements {
       _env.lookupConstructor(typeVariableClass, '');
 
   FunctionEntity _invokeOnMethod;
-  FunctionEntity get invokeOnMethod => _invokeOnMethod ??=
-      _env.lookupClassMember(jsInvocationMirrorClass, '_getCachedInvocation');
+  FunctionEntity get invokeOnMethod => _invokeOnMethod ??= _env
+      .lookupLocalClassMember(jsInvocationMirrorClass, '_getCachedInvocation');
 
   FunctionEntity _assertTest;
   FunctionEntity get assertTest =>
@@ -897,6 +897,9 @@ class CommonElements {
 
   FunctionEntity get loadLibraryWrapper =>
       _findHelperFunction("_loadLibraryWrapper");
+
+  FunctionEntity get loadDeferredLibrary =>
+      _findHelperFunction("loadDeferredLibrary");
 
   FunctionEntity get boolConversionCheck =>
       _findHelperFunction('boolConversionCheck');
@@ -1063,6 +1066,12 @@ class CommonElements {
   ClassEntity get symbolImplementationClass =>
       _symbolImplementationClass ??= _findClass(internalLibrary, 'Symbol');
 
+  /// Used to annotate items that have the keyword "native".
+  ClassEntity _externalNameClass;
+  ClassEntity get externalNameClass =>
+      _externalNameClass ??= _findClass(internalLibrary, 'ExternalName');
+  InterfaceType get externalNameType => _getRawType(externalNameClass);
+
   final Selector symbolValidatedConstructorSelector =
       new Selector.call(const PublicName('validated'), CallStructure.ONE_ARG);
 
@@ -1074,7 +1083,7 @@ class CommonElements {
   /// for `Symbol`.
   FieldEntity _symbolImplementationField;
   FieldEntity get symbolImplementationField => _symbolImplementationField ??=
-      _env.lookupClassMember(symbolImplementationClass, '_name',
+      _env.lookupLocalClassMember(symbolImplementationClass, '_name',
           required: true);
 
   ConstructorEntity _symbolValidatedConstructor;
@@ -1166,6 +1175,39 @@ class CommonElements {
     return _expectAssumeDynamicClass;
   }
 
+  static final Uri PACKAGE_META_DART2JS =
+      new Uri(scheme: 'package', path: 'meta/dart2js.dart');
+
+  bool _metaAnnotationChecked = false;
+  ClassEntity _metaNoInlineClass;
+  ClassEntity _metaTryInlineClass;
+
+  void _ensureMetaAnnotations() {
+    if (!_metaAnnotationChecked) {
+      _metaAnnotationChecked = true;
+      LibraryEntity library = _env.lookupLibrary(PACKAGE_META_DART2JS);
+      if (library != null) {
+        _metaNoInlineClass = _env.lookupClass(library, '_NoInline');
+        _metaTryInlineClass = _env.lookupClass(library, '_TryInline');
+        if (_metaNoInlineClass == null || _metaTryInlineClass == null) {
+          // This is not the package you're looking for.
+          _metaNoInlineClass = null;
+          _metaTryInlineClass = null;
+        }
+      }
+    }
+  }
+
+  ClassEntity get metaNoInlineClass {
+    _ensureMetaAnnotations();
+    return _metaNoInlineClass;
+  }
+
+  ClassEntity get metaTryInlineClass {
+    _ensureMetaAnnotations();
+    return _metaTryInlineClass;
+  }
+
   bool isForeign(MemberEntity element) => element.library == foreignLibrary;
 
   /// Returns `true` if the implementation of the 'operator ==' [function] is
@@ -1236,13 +1278,30 @@ abstract class ElementEnvironment {
 
   /// Lookup the member [name] in [cls], fail if the class is missing and
   /// [required].
-  MemberEntity lookupClassMember(ClassEntity cls, String name,
+  MemberEntity lookupLocalClassMember(ClassEntity cls, String name,
       {bool setter: false, bool required: false});
+
+  /// Lookup the member [name] in [cls] and its superclasses.
+  ///
+  /// Return `null` if the member is not found in the class or any superclass.
+  MemberEntity lookupClassMember(ClassEntity cls, String name,
+      {bool setter: false}) {
+    var entity = lookupLocalClassMember(cls, name, setter: setter);
+    if (entity != null) return entity;
+
+    var superclass = getSuperClass(cls);
+    if (superclass == null) return null;
+
+    return lookupClassMember(superclass, name, setter: setter);
+  }
 
   /// Lookup the constructor [name] in [cls], fail if the class is missing and
   /// [required].
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
       {bool required: false});
+
+  /// Calls [f] for each class member declared in [cls].
+  void forEachLocalClassMember(ClassEntity cls, void f(MemberEntity member));
 
   /// Calls [f] for each class member declared or inherited in [cls] together
   /// with the class that declared the member.
@@ -1365,6 +1424,9 @@ abstract class ElementEnvironment {
   /// Returns the metadata constants declared on [library].
   Iterable<ConstantValue> getLibraryMetadata(LibraryEntity library);
 
+  /// Returns the imports seen in [library]
+  Iterable<ImportEntity> getImports(LibraryEntity library);
+
   /// Returns the metadata constants declared on [cls].
   Iterable<ConstantValue> getClassMetadata(ClassEntity cls);
 
@@ -1377,4 +1439,10 @@ abstract class ElementEnvironment {
 
   /// Returns the function type that is an alias of a [typedef].
   FunctionType getFunctionTypeOfTypedef(TypedefEntity typedef);
+
+  /// Returns the typedef type that is declared by a [typedef].
+  TypedefType getTypedefTypeOfTypedef(TypedefEntity typedef);
+
+  /// Returns `true` if [cls] is a Dart enum class.
+  bool isEnumClass(ClassEntity cls);
 }

@@ -9,47 +9,45 @@ import 'builder.dart'
         Builder,
         InvalidTypeBuilder,
         PrefixBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder,
         TypeDeclarationBuilder;
 
 abstract class NamedTypeBuilder<T extends TypeBuilder, R> extends TypeBuilder {
-  final String name;
+  final Object name;
 
   final List<T> arguments;
 
   TypeDeclarationBuilder<T, R> builder;
 
-  NamedTypeBuilder(this.name, this.arguments, int charOffset, Uri fileUri)
-      : super(charOffset, fileUri);
+  NamedTypeBuilder(this.name, this.arguments);
 
-  InvalidTypeBuilder<T, R> buildInvalidType(String name);
+  InvalidTypeBuilder<T, R> buildInvalidType(int charOffset, Uri fileUri);
 
+  @override
   void bind(TypeDeclarationBuilder builder) {
-    this.builder = builder;
+    this.builder = builder?.origin;
   }
 
-  void resolveIn(Scope scope) {
+  @override
+  void resolveIn(Scope scope, int charOffset, Uri fileUri) {
     if (builder != null) return;
-    Builder member = scope.lookup(name, charOffset, fileUri);
+    final name = this.name;
+    Builder member;
+    if (name is QualifiedName) {
+      var prefix = scope.lookup(name.prefix, charOffset, fileUri);
+      if (prefix is PrefixBuilder) {
+        member = prefix.lookup(name.suffix, name.charOffset, fileUri);
+      }
+    } else {
+      member = scope.lookup(name, charOffset, fileUri);
+    }
     if (member is TypeDeclarationBuilder) {
-      builder = member;
+      builder = member.origin;
       return;
     }
-    if (name.contains(".")) {
-      int index = name.lastIndexOf(".");
-      String first = name.substring(0, index);
-      String last = name.substring(name.lastIndexOf(".") + 1);
-      var prefix = scope.lookup(first, charOffset, fileUri);
-      if (prefix is PrefixBuilder) {
-        member = prefix.lookup(last, charOffset, fileUri);
-      }
-      if (member is TypeDeclarationBuilder) {
-        builder = member;
-        return;
-      }
-    }
-    builder = buildInvalidType(name);
+    builder = buildInvalidType(charOffset, fileUri);
   }
 
   String get debugName => "NamedTypeBuilder";

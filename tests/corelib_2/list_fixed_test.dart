@@ -9,21 +9,21 @@ main() {
 
   a = new List(42);
   Expect.equals(42, a.length);
-  Expect.throws(() => a.add(499), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => a.add(499));
   Expect.equals(42, a.length);
   for (int i = 0; i < 42; i++) {
     Expect.equals(null, a[i]);
   }
-  Expect.throws(() => a.clear(), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => a.clear());
   Expect.equals(42, a.length);
 
   a = new List.filled(42, -2);
   Expect.equals(42, a.length);
-  Expect.throws(() => a.add(499), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => a.add(499));
   Expect.equals(42, a.length);
   for (int i = 0; i < 42; i++) {
     Expect.equals(-2, a[i]);
   }
-  Expect.throws(() => a.clear(), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => a.clear());
   Expect.equals(42, a.length);
 }

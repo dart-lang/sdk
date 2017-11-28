@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_XXX.
 
 #include "vm/compiler/backend/flow_graph_compiler.h"
 
 #include "vm/bit_vector.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/cha.h"
@@ -36,6 +35,13 @@
 namespace dart {
 
 DEFINE_FLAG(bool,
+            trace_inlining_intervals,
+            false,
+            "Inlining interval diagnostics");
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+DEFINE_FLAG(bool,
             enable_simd_inline,
             true,
             "Enable inlining of SIMD related method calls.");
@@ -48,10 +54,6 @@ DEFINE_FLAG(int,
             2000,
             "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
-DEFINE_FLAG(bool,
-            trace_inlining_intervals,
-            false,
-            "Inlining interval diagnostics");
 
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(charp, deoptimize_filter);
@@ -61,17 +63,6 @@ DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, trace_compiler);
-
-#ifdef DART_PRECOMPILED_RUNTIME
-
-COMPILE_ASSERT(!FLAG_collect_code);
-COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
-COMPILE_ASSERT(!FLAG_print_stop_message);
-COMPILE_ASSERT(!FLAG_use_osr);
-COMPILE_ASSERT(FLAG_deoptimize_every == 0);  // Used in some tests.
-COMPILE_ASSERT(FLAG_load_deferred_eagerly);
-
-#endif  // DART_PRECOMPILED_RUNTIME
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -106,7 +97,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     FlowGraph* flow_graph,
     const ParsedFunction& parsed_function,
     bool is_optimizing,
-    bool use_speculative_inlining,
+    SpeculativeInliningPolicy* speculative_policy,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id)
@@ -126,7 +117,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       deopt_infos_(),
       static_calls_target_table_(),
       is_optimizing_(is_optimizing),
-      use_speculative_inlining_(use_speculative_inlining),
+      speculative_policy_(speculative_policy),
       may_reoptimize_(false),
       intrinsic_mode_(false),
       double_class_(
@@ -419,13 +410,25 @@ void FlowGraphCompiler::EmitCatchEntryState(Environment* env,
 #endif  // defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 }
 
-void FlowGraphCompiler::EmitCallsiteMetaData(TokenPosition token_pos,
+void FlowGraphCompiler::EmitCallsiteMetadata(TokenPosition token_pos,
                                              intptr_t deopt_id,
                                              RawPcDescriptors::Kind kind,
                                              LocationSummary* locs) {
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
   EmitCatchEntryState();
+  if (deopt_id != Thread::kNoDeoptId) {
+    // Marks either the continuation point in unoptimized code or the
+    // deoptimization point in optimized code, after call.
+    const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id_after);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+    }
+  }
 }
 
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
@@ -818,7 +821,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
           "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
           parsed_function_.function().ToFullyQualifiedCString(), deopt_id);
     }
-    ASSERT(use_speculative_inlining_);
+    ASSERT(speculative_policy_->AllowsSpeculativeInlining());
     ASSERT(deopt_id != 0);  // longjmp must return non-zero value.
     Thread::Current()->long_jump_base()->Jump(
         deopt_id, Object::speculative_inlining_error());
@@ -997,8 +1000,8 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
-  // mode.
-  if (FLAG_intrinsify && !isolate()->type_checks()) {
+  // mode or strong mode.
+  if (FLAG_intrinsify && !isolate()->argument_type_checks()) {
     const Class& owner = Class::Handle(parsed_function().function().Owner());
     String& name = String::Handle(parsed_function().function().name());
 
@@ -1127,7 +1130,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            const Function& function,
                                            ArgumentsInfo args_info,
                                            LocationSummary* locs,
-                                           const ICData& ic_data_in) {
+                                           const ICData& ic_data_in,
+                                           ICData::RebindRule rebind_rule) {
   const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   const Array& arguments_descriptor = Array::ZoneHandle(
       zone(), ic_data.IsNull() ? args_info.ToArgumentsDescriptor()
@@ -1144,7 +1148,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
       const intptr_t kNumArgsChecked = 0;
       call_ic_data =
           GetOrAddStaticCallICData(deopt_id, function, arguments_descriptor,
-                                   kNumArgsChecked)
+                                   kNumArgsChecked, rebind_rule)
               ->raw();
     }
     AddCurrentDescriptor(RawPcDescriptors::kRewind, deopt_id, token_pos);
@@ -1561,10 +1565,10 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
     ASSERT(!res->is_static_call());
     return res;
   }
-  const ICData& ic_data =
-      ICData::ZoneHandle(zone(), ICData::New(parsed_function().function(),
-                                             target_name, arguments_descriptor,
-                                             deopt_id, num_args_tested, false));
+  const ICData& ic_data = ICData::ZoneHandle(
+      zone(), ICData::New(parsed_function().function(), target_name,
+                          arguments_descriptor, deopt_id, num_args_tested,
+                          ICData::kInstance));
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(Instruction::kInstanceCall);
 #endif
@@ -1579,7 +1583,8 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     intptr_t deopt_id,
     const Function& target,
     const Array& arguments_descriptor,
-    intptr_t num_args_tested) {
+    intptr_t num_args_tested,
+    ICData::RebindRule rebind_rule) {
   if ((deopt_id_to_ic_data_ != NULL) &&
       ((*deopt_id_to_ic_data_)[deopt_id] != NULL)) {
     const ICData* res = (*deopt_id_to_ic_data_)[deopt_id];
@@ -1591,11 +1596,12 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
     ASSERT(res->is_static_call());
     return res;
   }
+
   const ICData& ic_data = ICData::ZoneHandle(
       zone(),
       ICData::New(parsed_function().function(),
                   String::Handle(zone(), target.name()), arguments_descriptor,
-                  deopt_id, num_args_tested, true));
+                  deopt_id, num_args_tested, rebind_rule));
   ic_data.AddTarget(target);
 #if defined(TAG_IC_DATA)
   ic_data.set_tag(Instruction::kStaticCall);
@@ -1924,6 +1930,6 @@ void FlowGraphCompiler::FrameStateClear() {
 }
 #endif  // defined(DEBUG) && !defined(TARGET_ARCH_DBC)
 
-}  // namespace dart
-
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+}  // namespace dart

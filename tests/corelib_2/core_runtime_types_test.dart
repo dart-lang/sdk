@@ -40,7 +40,7 @@ class CoreRuntimeTypesTest {
     }
   }
 
-  static assertListContains(List<Comparable> a, List<Comparable> b) {
+  static assertListContains(List a, List b) {
     a.sort((x, y) => x.compareTo(y));
     b.sort((x, y) => x.compareTo(y));
     assertListEquals(a, b);

@@ -219,6 +219,20 @@ String repeat(String s, int n) {
 }
 
 /**
+ * If the [text] length is above the [limit], replace the middle with `...`.
+ */
+String shorten(String text, int limit) {
+  if (text.length > limit) {
+    int headLength = limit ~/ 2 - 1;
+    int tailLength = limit - headLength - 3;
+    return text.substring(0, headLength) +
+        '...' +
+        text.substring(text.length - tailLength);
+  }
+  return text;
+}
+
+/**
  * Gets the substring after the last occurrence of a separator.
  * The separator is not returned.
  */

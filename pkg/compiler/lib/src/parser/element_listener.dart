@@ -149,14 +149,21 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
-    NodeList combinators = popNode();
-    bool isDeferred = deferredKeyword != null;
-    Identifier prefix;
-    if (asKeyword != null) {
-      prefix = popNode();
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    if (asKeyword == null) {
+      // If asKeyword is null, then no prefix has been pushed on the stack.
+      // Push a placeholder indicating that there is no prefix.
+      pushNode(null);
     }
+    pushNode(deferredKeyword != null ? Flag.TRUE : Flag.FALSE);
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
+    NodeList combinators = popNode();
+    Flag flag = popNode();
+    bool isDeferred = flag == Flag.TRUE;
+    Identifier prefix = popNode();
     NodeList conditionalUris = popNode();
     StringNode uri = popLiteralString();
     addLibraryTag(new Import(importKeyword, uri, conditionalUris, prefix,
@@ -165,7 +172,16 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endDottedName(int count, Token token) {
+  void handleRecoverImport(Token semicolon) {
+    popNode(); // combinators
+    popNode(); // isDeferred
+    popNode(); // prefix
+    popNode(); // conditionalUris
+    // TODO(danrubel): recover
+  }
+
+  @override
+  void handleDottedName(int count, Token token) {
     NodeList identifiers = makeNodeList(count, null, null, '.');
     pushNode(new DottedName(token, identifiers));
   }
@@ -180,8 +196,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endConditionalUri(
-      Token ifToken, Token leftParen, Token equalSign, Token rightParen) {
+  void endConditionalUri(Token ifToken, Token leftParen, Token equalSign) {
     StringNode uri = popNode();
     LiteralString conditionValue = (equalSign != null) ? popNode() : null;
     DottedName identifier = popNode();
@@ -230,7 +245,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     pushNode(makeNodeList(count, null, null, ","));
   }
 
@@ -286,15 +301,17 @@ class ElementListener extends Listener {
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {}
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
     makeNodeList(interfacesCount, implementsKeyword, null, ","); // interfaces
+  }
+
+  @override
+  void handleRecoverClassHeader() {
+    popNode(); // superType
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
     popNode(); // superType
     popNode(); // typeParameters
     Identifier name = popNode();
@@ -421,6 +438,9 @@ class ElementListener extends Listener {
 
   @override
   void handleIdentifier(Token token, IdentifierContext context) {
+    if (context == IdentifierContext.enumValueDeclaration) {
+      metadata.clear();
+    }
     pushNode(new Identifier(token));
   }
 
@@ -526,12 +546,13 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleRecoverableError(Token token, Message message) {
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
     if (message == codes.messageNativeClauseShouldBeAnnotation) {
-      native.checkAllowedLibrary(this, token);
+      native.checkAllowedLibrary(this, startToken);
       return;
     }
-    handleError(token, message);
+    handleError(startToken, message);
   }
 
   @override

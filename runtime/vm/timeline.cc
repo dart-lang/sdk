@@ -1170,8 +1170,8 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
   intptr_t size = Utils::RoundUp(num_blocks_ * sizeof(TimelineEventBlock),
                                  VirtualMemory::PageSize());
   const bool kNotExecutable = false;
-  memory_ = VirtualMemory::Reserve(size);
-  if ((memory_ == NULL) || !memory_->Commit(kNotExecutable, "dart-timeline")) {
+  memory_ = VirtualMemory::Allocate(size, kNotExecutable, "dart-timeline");
+  if (memory_ == NULL) {
     OUT_OF_MEMORY();
   }
   blocks_ = reinterpret_cast<TimelineEventBlock*>(memory_->address());

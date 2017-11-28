@@ -51,7 +51,7 @@ void cleanup() {
 void check(ProcessResult result) {
   Expect.notEquals(0, result.exitCode);
   List<int> stdout = result.stdout;
-  String stdoutString = UTF8.decode(stdout);
+  String stdoutString = utf8.decode(stdout);
   Expect.isTrue(stdoutString.contains("Error"));
   // Make sure the "499" from the last line is in the output.
   Expect.isTrue(stdoutString.contains("499"));

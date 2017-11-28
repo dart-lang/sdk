@@ -4,6 +4,8 @@
 
 /// [Configuration] holds information about a specific configuration, parsed
 /// from a JSON result.log file.
+/// TODO(mkroghj): Needs a shared package to keep information in sync with
+/// test.py.
 class Configuration {
   final String mode;
   final String arch;
@@ -21,10 +23,11 @@ class Configuration {
   final bool fastStartup;
   final int timeout;
   final bool dart2JsWithKernel;
-  final bool dart2JsWithKernelInSsa;
   final bool enableAsserts;
   final bool hotReload;
   final bool hotReloadRollback;
+  final bool previewDart2;
+  final List<String> selectors;
 
   Configuration(
       this.mode,
@@ -43,10 +46,11 @@ class Configuration {
       this.fastStartup,
       this.timeout,
       this.dart2JsWithKernel,
-      this.dart2JsWithKernelInSsa,
       this.enableAsserts,
       this.hotReload,
-      this.hotReloadRollback);
+      this.hotReloadRollback,
+      this.previewDart2,
+      this.selectors);
 
   static Configuration getFromJson(dynamic json) {
     return new Configuration(
@@ -66,50 +70,62 @@ class Configuration {
         json["fast_startup"],
         json["timeout"],
         json["dart2js_with_kernel"] ?? false,
-        json["dart2js_with_kernel_in_ssa"] ?? false,
         json["enable_asserts"] ?? false,
         json["hot_reload"] ?? false,
-        json["hot_reload_rollback"] ?? false);
+        json["hot_reload_rollback"] ?? false,
+        json["preview_dart_2"] ?? false,
+        json["selectors"] ?? []);
   }
 
   /// Returns the arguments needed for running test.py with the arguments
   /// corresponding to this configuration.
-  List<String> toArgs() {
-    return [
-      stringToArg("mode", mode),
-      stringToArg("arch", arch),
-      stringToArg("compiler", compiler),
-      stringToArg("runtime", runtime),
-      boolToArg("checked", checked),
-      boolToArg("strong", strong),
-      boolToArg("host-checked", hostChecked),
-      boolToArg("minified", minified),
-      boolToArg("csp", csp),
-      stringToArg("system", system),
-      listToArg("vm-options", vmOptions),
-      boolToArg("use-sdk", useSdk),
-      stringToArg("builder-tag", builderTag),
-      boolToArg("fast-startup", fastStartup),
-      boolToArg("dart2js-with-kernel", dart2JsWithKernel),
-      boolToArg("dart2js-with-kernel-in-ssa", dart2JsWithKernelInSsa),
-      boolToArg("enable-asserts", enableAsserts),
-      boolToArg("hot-reload", hotReload),
-      boolToArg("hot-reload-rollback", hotReloadRollback),
+  List<String> toArgs({includeSelectors: true}) {
+    var args = [
+      _stringToArg("mode", mode),
+      _stringToArg("arch", arch),
+      _stringToArg("compiler", compiler),
+      _stringToArg("runtime", runtime),
+      _boolToArg("checked", checked),
+      _boolToArg("strong", strong),
+      _boolToArg("host-checked", hostChecked),
+      _boolToArg("minified", minified),
+      _boolToArg("csp", csp),
+      _stringToArg("system", system),
+      _listToArg("vm-options", vmOptions),
+      _boolToArg("use-sdk", useSdk),
+      _stringToArg("builder-tag", builderTag),
+      _boolToArg("fast-startup", fastStartup),
+      _boolToArg("dart2js-with-kernel", dart2JsWithKernel),
+      _boolToArg("enable-asserts", enableAsserts),
+      _boolToArg("hot-reload", hotReload),
+      _boolToArg("hot-reload-rollback", hotReloadRollback),
+      _boolToArg("preview-dart-2", previewDart2)
     ].where((x) => x != null).toList();
+    if (includeSelectors && selectors != null && selectors.length > 0) {
+      args.addAll(selectors);
+    }
+    return args;
   }
 
-  String stringToArg(String name, String value) {
+  String toCsvString() {
+    return "$mode;$arch;$compiler;$runtime;$checked;$strong;$hostChecked;"
+        "$minified;$csp;$system;$vmOptions;$useSdk;$builderTag;$fastStartup;"
+        "$dart2JsWithKernel;$enableAsserts;$hotReload;"
+        "$hotReloadRollback;$previewDart2;$selectors";
+  }
+
+  String _stringToArg(String name, String value) {
     if (value == null || value.length == 0) {
       return null;
     }
     return "--$name=$value";
   }
 
-  String boolToArg(String name, bool value) {
+  String _boolToArg(String name, bool value) {
     return value ? "--$name" : null;
   }
 
-  String listToArg(String name, List<String> strings) {
+  String _listToArg(String name, List<String> strings) {
     if (strings == null || strings.length == 0) {
       return null;
     }
@@ -120,17 +136,23 @@ class Configuration {
 /// [Result] contains the [result] of executing a single test on a specified
 /// [configuration].
 class Result {
-  final String configuration;
+  // Not final since we have to update it when combining test results.
+  String configuration;
   final String name;
   final String result;
+  final bool flaky;
+  final bool negative;
+  final List<String> testExpectations;
   final List<Command> commands;
 
-  Result(this.configuration, this.name, this.result, this.commands);
+  Result(this.configuration, this.name, this.result, this.flaky, this.negative,
+      this.testExpectations, this.commands);
 
   static Result getFromJson(dynamic json) {
     var commands = json["commands"].map((x) => Command.getFromJson(x)).toList();
-    return new Result(
-        json["configuration"], json["name"], json["result"], commands);
+    var testExpectations = json["test_expectation"];
+    return new Result(json["configuration"], json["name"], json["result"],
+        json["flaky"], json["negative"], testExpectations, commands);
   }
 }
 
@@ -154,7 +176,12 @@ class Command {
 class TestResult {
   final dynamic jsonObject;
 
-  TestResult(this.jsonObject);
+  TestResult() : jsonObject = null {
+    _configurations = {};
+    _results = [];
+  }
+
+  TestResult.fromJson(this.jsonObject);
 
   Map<String, Configuration> _configurations;
   Map<String, Configuration> get configurations {
@@ -172,5 +199,37 @@ class TestResult {
   List<Result> get results {
     return _results ??=
         this.jsonObject["results"].map((x) => Result.getFromJson(x)).toList();
+  }
+
+  /// Combines multiple test-results into a single test-result, potentially by
+  /// giving new names to later configurations.
+  void combineWith(Iterable<TestResult> results) {
+    results.forEach((tr) {
+      Map<String, String> translatedConfigurations = {};
+      for (var confKey in tr.configurations.keys) {
+        var newKey = _findExistingConfiguration(
+            tr.configurations[confKey], this.configurations);
+        newKey ??= "conf${this.configurations.length + 1}";
+        translatedConfigurations[confKey] = newKey;
+        this.configurations[newKey] = tr.configurations[confKey];
+      }
+      this.results.addAll(tr.results.map((res) {
+        res.configuration = translatedConfigurations[res.configuration];
+        return res;
+      }));
+    });
+  }
+
+  /// Finds an existing configuration based on the arguments passed to test.py.
+  String _findExistingConfiguration(Configuration configurationToFind,
+      Map<String, Configuration> existingConfigurations) {
+    String thisArgs = configurationToFind.toArgs().join();
+    for (var confKey in existingConfigurations.keys) {
+      String confArgs = existingConfigurations[confKey].toArgs().join();
+      if (confArgs == thisArgs) {
+        return confKey;
+      }
+    }
+    return null;
   }
 }

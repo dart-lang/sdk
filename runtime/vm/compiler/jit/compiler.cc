@@ -116,6 +116,7 @@ static void PrecompilationModeHandler(bool value) {
 #endif
 
     FLAG_background_compilation = false;
+    FLAG_collect_code = false;
     FLAG_enable_mirrors = false;
     FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
@@ -136,7 +137,6 @@ static void PrecompilationModeHandler(bool value) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_bootstrap.
     // These flags are constants with PRODUCT and DART_PRECOMPILED_RUNTIME.
-    FLAG_collect_code = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
     FLAG_load_deferred_eagerly = true;
@@ -170,13 +170,14 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
-    intptr_t osr_id) {
+    intptr_t osr_id,
+    bool optimized) {
   if (UseKernelFrontEndFor(parsed_function)) {
     kernel::FlowGraphBuilder builder(
         parsed_function->function().kernel_offset(), parsed_function,
         ic_data_array,
         /* not building var desc */ NULL,
-        /* not inlining */ NULL, osr_id);
+        /* not inlining */ NULL, optimized, osr_id);
     FlowGraph* graph = builder.BuildGraph();
     ASSERT(graph != NULL);
     return graph;
@@ -222,7 +223,8 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
-    intptr_t osr_id) {
+    intptr_t osr_id,
+    bool optimized) {
   // Compile to the dart IR.
   RegExpEngine::CompilationResult result =
       RegExpEngine::CompileIR(parsed_function->regexp_compile_data(),
@@ -279,8 +281,9 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
   if (isolate->debugger()->IsStepping() ||
       isolate->debugger()->HasBreakpoint(function, thread->zone())) {
     // We cannot set breakpoints and single step in optimized code,
-    // so do not optimize the function.
-    function.set_usage_counter(0);
+    // so do not optimize the function. Bump usage counter down to avoid
+    // repeatedly entering the runtime for an optimization attempt.
+    function.SetUsageCounter(0);
     return false;
   }
 #endif
@@ -297,7 +300,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     // The function will not be optimized any longer. This situation can occur
     // mostly with small optimization counter thresholds.
     function.SetIsOptimizable(false);
-    function.set_usage_counter(INT_MIN);
+    function.SetUsageCounter(INT_MIN);
     return false;
   }
   if (FLAG_optimization_filter != NULL) {
@@ -319,7 +322,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     }
     delete[] filter;
     if (!found) {
-      function.set_usage_counter(INT_MIN);
+      function.SetUsageCounter(INT_MIN);
       return false;
     }
   }
@@ -329,7 +332,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
     if (FLAG_trace_failed_optimization_attempts) {
       THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
     }
-    function.set_usage_counter(INT_MIN);
+    function.SetUsageCounter(INT_MIN);
     return false;
   }
   return true;
@@ -484,18 +487,21 @@ RawError* Compiler::CompileClass(const Class& cls) {
       AddRelatedClassesToList(parse_list.At(i), &parse_list, &patch_list);
     }
 
-    // Parse all the classes that have been added above.
-    for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
-      const Class& parse_class = parse_list.At(i);
-      ASSERT(!parse_class.IsNull());
-      Parser::ParseClass(parse_class);
-    }
+    // Classes loaded from a kernel should not be parsed.
+    if (cls.kernel_offset() <= 0) {
+      // Parse all the classes that have been added above.
+      for (intptr_t i = (parse_list.length() - 1); i >= 0; i--) {
+        const Class& parse_class = parse_list.At(i);
+        ASSERT(!parse_class.IsNull());
+        Parser::ParseClass(parse_class);
+      }
 
-    // Parse all the patch classes that have been added above.
-    for (intptr_t i = 0; i < patch_list.length(); i++) {
-      const Class& parse_class = patch_list.At(i);
-      ASSERT(!parse_class.IsNull());
-      Parser::ParseClass(parse_class);
+      // Parse all the patch classes that have been added above.
+      for (intptr_t i = 0; i < patch_list.length(); i++) {
+        const Class& parse_class = patch_list.At(i);
+        ASSERT(!parse_class.IsNull());
+        Parser::ParseClass(parse_class);
+      }
     }
 
     // Finalize these classes.
@@ -623,7 +629,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
-    function.set_usage_counter(INT_MIN);
+    function.SetUsageCounter(INT_MIN);
   }
 
   graph_compiler->FinalizePcDescriptors(code);
@@ -694,10 +700,10 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
       if (function.usage_counter() < 0) {
         // Reset to 0 so that it can be recompiled if needed.
         if (code_is_valid) {
-          function.set_usage_counter(0);
+          function.SetUsageCounter(0);
         } else {
           // Trigger another optimization pass soon.
-          function.set_usage_counter(FLAG_optimization_counter_threshold - 100);
+          function.SetUsageCounter(FLAG_optimization_counter_threshold - 100);
         }
       }
     }
@@ -768,7 +774,10 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   volatile bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
-  const bool use_speculative_inlining = false;
+
+  // In the JIT case we allow speculative inlining and have no need for a
+  // blacklist, since we don't restart optimization.
+  SpeculativeInliningPolicy speculative_policy(/* enable_blacklist= */ false);
 
   Code* volatile result = &Code::ZoneHandle(zone);
   while (!done) {
@@ -821,8 +830,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
                                                  "BuildFlowGraph"));
-        flow_graph = pipeline->BuildFlowGraph(zone, parsed_function(),
-                                              *ic_data_array, osr_id());
+        flow_graph = pipeline->BuildFlowGraph(
+            zone, parsed_function(), *ic_data_array, osr_id(), optimized());
       }
 
       const bool print_flow_graph =
@@ -882,7 +891,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
-        JitCallSpecializer call_specializer(flow_graph);
+        JitCallSpecializer call_specializer(flow_graph, &speculative_policy);
 
         {
           NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
@@ -899,6 +908,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         FlowGraphInliner::SetInliningId(flow_graph, 0);
 
+        int inlining_depth = 0;
+
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(thread(), compiler_timeline,
@@ -914,10 +925,9 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           FlowGraphInliner inliner(flow_graph, &inline_id_to_function,
                                    &inline_id_to_token_pos, &caller_inline_id,
-                                   use_speculative_inlining,
-                                   /*inlining_black_list=*/NULL,
+                                   &speculative_policy,
                                    /*precompiler=*/NULL);
-          inliner.Inline();
+          inlining_depth = inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
           thread()->CheckForSafepoint();
@@ -1152,6 +1162,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Compute and store graph informations (call & instruction counts)
         // to be later used by the inliner.
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
+        function.set_inlining_depth(inlining_depth);
 
         flow_graph->RemoveRedefinitions();
         {
@@ -1178,8 +1189,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       Assembler assembler(use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
-          use_speculative_inlining, inline_id_to_function,
-          inline_id_to_token_pos, caller_inline_id);
+          &speculative_policy, inline_id_to_function, inline_id_to_token_pos,
+          caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
         NOT_IN_PRODUCT(TimelineDurationScope tds(thread(), compiler_timeline,
@@ -1262,7 +1273,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         bool optimized,
                                         intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
-  ASSERT(!optimized || function.was_compiled());
+  ASSERT(!optimized || function.WasCompiled());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
@@ -1319,7 +1330,7 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
     const Code& result = Code::Handle(helper.Compile(pipeline));
     if (!result.IsNull()) {
       if (!optimized) {
-        function.set_was_compiled(true);
+        function.SetWasCompiled(true);
       }
     } else {
       if (optimized) {
@@ -1427,7 +1438,7 @@ static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
                                      bool optimized,
                                      intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
-  ASSERT(!optimized || function.was_compiled());
+  ASSERT(!optimized || function.WasCompiled());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
@@ -1642,7 +1653,7 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
       kernel::FlowGraphBuilder builder(
           parsed_function->function().kernel_offset(), parsed_function,
           *ic_data_array, context_level_array,
-          /* not inlining */ NULL, Compiler::kNoOSRDeoptId);
+          /* not inlining */ NULL, false, Compiler::kNoOSRDeoptId);
       builder.BuildGraph();
     }
 

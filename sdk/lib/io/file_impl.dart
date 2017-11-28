@@ -488,7 +488,7 @@ class _File extends FileSystemEntity implements File {
     return new _FileStream(path, start, end);
   }
 
-  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: UTF8}) {
+  IOSink openWrite({FileMode mode: FileMode.WRITE, Encoding encoding: utf8}) {
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND &&
         mode != FileMode.WRITE_ONLY &&
@@ -560,16 +560,16 @@ class _File extends FileSystemEntity implements File {
     }
   }
 
-  Future<String> readAsString({Encoding encoding: UTF8}) =>
+  Future<String> readAsString({Encoding encoding: utf8}) =>
       readAsBytes().then((bytes) => _tryDecode(bytes, encoding));
 
-  String readAsStringSync({Encoding encoding: UTF8}) =>
+  String readAsStringSync({Encoding encoding: utf8}) =>
       _tryDecode(readAsBytesSync(), encoding);
 
-  Future<List<String>> readAsLines({Encoding encoding: UTF8}) =>
+  Future<List<String>> readAsLines({Encoding encoding: utf8}) =>
       readAsString(encoding: encoding).then(const LineSplitter().convert);
 
-  List<String> readAsLinesSync({Encoding encoding: UTF8}) =>
+  List<String> readAsLinesSync({Encoding encoding: utf8}) =>
       const LineSplitter().convert(readAsStringSync(encoding: encoding));
 
   Future<File> writeAsBytes(List<int> bytes,
@@ -595,7 +595,7 @@ class _File extends FileSystemEntity implements File {
 
   Future<File> writeAsString(String contents,
       {FileMode mode: FileMode.WRITE,
-      Encoding encoding: UTF8,
+      Encoding encoding: utf8,
       bool flush: false}) {
     try {
       return writeAsBytes(encoding.encode(contents), mode: mode, flush: flush);
@@ -606,7 +606,7 @@ class _File extends FileSystemEntity implements File {
 
   void writeAsStringSync(String contents,
       {FileMode mode: FileMode.WRITE,
-      Encoding encoding: UTF8,
+      Encoding encoding: utf8,
       bool flush: false}) {
     writeAsBytesSync(encoding.encode(contents), mode: mode, flush: flush);
   }
@@ -726,7 +726,8 @@ class _RandomAccessFile implements RandomAccessFile {
         throw _exceptionFromResponse(response, "read failed", path);
       }
       _resourceInfo.addRead(response[1].length);
-      return response[1] as Object/*=List<int>*/;
+      List<int> result = response[1];
+      return result;
     });
   }
 
@@ -740,7 +741,7 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new FileSystemException("readSync failed", path, result);
     }
     _resourceInfo.addRead(result.length);
-    return result as Object/*=List<int>*/;
+    return result;
   }
 
   Future<int> readInto(List<int> buffer, [int start = 0, int end]) {
@@ -758,8 +759,8 @@ class _RandomAccessFile implements RandomAccessFile {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "readInto failed", path);
       }
-      var read = response[1];
-      var data = response[2] as Object/*=List<int>*/;
+      int read = response[1];
+      List<int> data = response[2];
       buffer.setRange(start, start + read, data);
       _resourceInfo.addRead(read);
       return read;
@@ -865,7 +866,7 @@ class _RandomAccessFile implements RandomAccessFile {
   }
 
   Future<RandomAccessFile> writeString(String string,
-      {Encoding encoding: UTF8}) {
+      {Encoding encoding: utf8}) {
     if (encoding is! Encoding) {
       throw new ArgumentError(encoding);
     }
@@ -873,7 +874,7 @@ class _RandomAccessFile implements RandomAccessFile {
     return writeFrom(data, 0, data.length);
   }
 
-  void writeStringSync(String string, {Encoding encoding: UTF8}) {
+  void writeStringSync(String string, {Encoding encoding: utf8}) {
     if (encoding is! Encoding) {
       throw new ArgumentError(encoding);
     }
@@ -968,11 +969,11 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
-  static final int LOCK_UNLOCK = 0;
-  static final int LOCK_SHARED = 1;
-  static final int LOCK_EXCLUSIVE = 2;
-  static final int LOCK_BLOCKING_SHARED = 3;
-  static final int LOCK_BLOCKING_EXCLUSIVE = 4;
+  static const int LOCK_UNLOCK = 0;
+  static const int LOCK_SHARED = 1;
+  static const int LOCK_EXCLUSIVE = 2;
+  static const int LOCK_BLOCKING_SHARED = 3;
+  static const int LOCK_BLOCKING_EXCLUSIVE = 4;
 
   int _fileLockValue(FileLock fl) {
     switch (fl) {

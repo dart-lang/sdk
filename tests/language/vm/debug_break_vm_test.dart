@@ -5,16 +5,16 @@
 // A debug break is not valid Dart syntax unless --enable-debug-break.
 
 test(i) {
-  break "outside_loop"; // //# 02: compile-time error
+  break "outside_loop"; // //# 02: syntax error
   do {
     if (i > 15) {
-      break "inside_loop"; // //# 03: compile-time error
+      break "inside_loop"; // //# 03: syntax error
     }
   } while (false);
 }
 
 void main() {
-  break "gdb"; //  //# 01: compile-time error
+  break "gdb"; //  //# 01: syntax error
   for (var i = 0; i < 20; i++) {
     test(i);
   }

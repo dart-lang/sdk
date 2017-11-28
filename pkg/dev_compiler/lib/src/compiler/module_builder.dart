@@ -46,30 +46,32 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults argResults) {
 /// [allowMultiple] formats to be specified, with each emitted into a separate
 /// file.
 void addModuleFormatOptions(ArgParser argParser,
-    {bool allowMultiple: false, bool hide: true}) {
-  argParser
-    ..addOption('modules',
-        help: 'module pattern to emit',
-        allowed: [
-          'es6',
-          'common',
-          'amd',
-          'legacy', // deprecated
-          'node', // renamed to commonjs
-          'all' // to emit all flavors for the SDK
-        ],
-        allowedHelp: {
-          'es6': 'ECMAScript 6 modules',
-          'common': 'CommonJS/Node.js modules',
-          'amd': 'AMD/RequireJS modules'
-        },
-        allowMultiple: allowMultiple,
-        defaultsTo: 'amd')
-    ..addFlag('single-out-file',
+    {bool allowMultiple: false, bool hide: true, bool singleOutFile: true}) {
+  argParser.addOption('modules',
+      help: 'module pattern to emit',
+      allowed: [
+        'es6',
+        'common',
+        'amd',
+        'legacy', // deprecated
+        'node', // renamed to commonjs
+        'all' // to emit all flavors for the SDK
+      ],
+      allowedHelp: {
+        'es6': 'ECMAScript 6 modules',
+        'common': 'CommonJS/Node.js modules',
+        'amd': 'AMD/RequireJS modules'
+      },
+      allowMultiple: allowMultiple,
+      defaultsTo: 'amd');
+
+  if (singleOutFile) {
+    argParser.addFlag('single-out-file',
         help: 'emit modules that can be concatenated into one file.\n'
             'Only compatible with legacy and amd module formats.',
         defaultsTo: false,
         hide: hide);
+  }
 }
 
 /// Transforms an ES6 [module] into a given module [format].

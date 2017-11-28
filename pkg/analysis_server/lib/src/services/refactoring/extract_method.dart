@@ -336,13 +336,36 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         String asyncKeyword = _hasAwait ? ' async' : '';
         // expression
         if (_selectionExpression != null) {
-          // add return type
-          if (returnType.isNotEmpty) {
-            annotations += '$returnType ';
+          bool isMultiLine = returnExpressionSource.contains(eol);
+
+          // We generate the method body using the shorthand syntax if it fits
+          // into a single line and use the regular method syntax otherwise.
+          if (!isMultiLine) {
+            // add return type
+            if (returnType.isNotEmpty) {
+              annotations += '$returnType ';
+            }
+            // just return expression
+            declarationSource = '$annotations$signature$asyncKeyword => ';
+            declarationSource += '$returnExpressionSource;';
+          } else {
+            // Left indent once; returnExpressionSource was indented for method
+            // shorthands.
+            returnExpressionSource = utils
+                .indentSourceLeftRight('${returnExpressionSource.trim()};')
+                .trim();
+
+            // add return type
+            if (returnType.isNotEmpty) {
+              annotations += '$returnType ';
+            }
+            declarationSource = '$annotations$signature$asyncKeyword {$eol';
+            declarationSource += '$prefix  ';
+            if (returnType.isNotEmpty) {
+              declarationSource += 'return ';
+            }
+            declarationSource += '$returnExpressionSource$eol$prefix}';
           }
-          // just return expression
-          declarationSource = '$annotations$signature$asyncKeyword => ';
-          declarationSource += '$returnExpressionSource;';
         }
         // statements
         if (_selectionStatements != null) {
@@ -818,9 +841,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     names.clear();
     if (_selectionExpression != null) {
       names.addAll(getVariableNameSuggestionsForExpression(
-          _selectionExpression.staticType,
-          _selectionExpression,
-          _excludedNames));
+          _selectionExpression.staticType, _selectionExpression, _excludedNames,
+          isMethod: true));
     }
   }
 

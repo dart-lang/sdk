@@ -109,7 +109,7 @@ main(p) {
 """;
     await resolveTestUnit(code);
     expectIdentifierType("p()", DynamicTypeImpl.instance,
-        predicate((type) => type.name == 'Foo'));
+        predicate((type) => type.displayName == '() → dynamic'));
   }
 
   test_staticMethods_classTypeParameters() async {

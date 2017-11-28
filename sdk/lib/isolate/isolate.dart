@@ -67,9 +67,13 @@ class IsolateSpawnException implements Exception {
  */
 class Isolate {
   /** Argument to `ping` and `kill`: Ask for immediate action. */
-  static const int IMMEDIATE = 0;
+  static const int immediate = 0;
+  /** Deprecated. Use [immediate] instead. */
+  static const int IMMEDIATE = immediate;
   /** Argument to `ping` and `kill`: Ask for action before the next event. */
-  static const int BEFORE_NEXT_EVENT = 1;
+  static const int beforeNextEvent = 1;
+  /** Deprecated. Use [beforeNextEvent] instead. */
+  static const int BEFORE_NEXT_EVENT = beforeNextEvent;
 
   /**
    * Control port used to send control messages to the isolate.
@@ -451,18 +455,18 @@ class Isolate {
    * The isolate is requested to terminate itself.
    * The [priority] argument specifies when this must happen.
    *
-   * The [priority], when provided, must be one of [IMMEDIATE] or
-   * [BEFORE_NEXT_EVENT] (the default).
+   * The [priority], when provided, must be one of [immediate] or
+   * [beforeNextEvent] (the default).
    * The shutdown is performed at different times depending on the priority:
    *
-   * * `IMMEDIATE`: The isolate shuts down as soon as possible.
+   * * `immediate`: The isolate shuts down as soon as possible.
    *     Control messages are handled in order, so all previously sent control
    *     events from this isolate will all have been processed.
    *     The shutdown should happen no later than if sent with
-   *     `BEFORE_NEXT_EVENT`.
+   *     `beforeNextEvent`.
    *     It may happen earlier if the system has a way to shut down cleanly
    *     at an earlier time, even during the execution of another event.
-   * * `BEFORE_NEXT_EVENT`: The shutdown is scheduled for the next time
+   * * `beforeNextEvent`: The shutdown is scheduled for the next time
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
@@ -471,7 +475,7 @@ class Isolate {
    * of the isolate identified by [controlPort],
    * the kill request is ignored by the receiving isolate.
    */
-  external void kill({int priority: BEFORE_NEXT_EVENT});
+  external void kill({int priority: beforeNextEvent});
 
   /**
    * Requests that the isolate send [response] on the [responsePort].
@@ -484,20 +488,20 @@ class Isolate {
    * If the isolate is alive, it will eventually send `response`
    * (defaulting to `null`) on the response port.
    *
-   * The [priority] must be one of [IMMEDIATE] or [BEFORE_NEXT_EVENT].
+   * The [priority] must be one of [immediate] or [beforeNextEvent].
    * The response is sent at different times depending on the ping type:
    *
-   * * `IMMEDIATE`: The isolate responds as soon as it receives the
+   * * `immediate`: The isolate responds as soon as it receives the
    *     control message. This is after any previous control message
    *     from the same isolate has been received and processed,
    *     but may be during execution of another event.
-   * * `BEFORE_NEXT_EVENT`: The response is scheduled for the next time
+   * * `beforeNextEvent`: The response is scheduled for the next time
    *     control returns to the event loop of the receiving isolate,
    *     after the current event, and any already scheduled control events,
    *     are completed.
    */
   external void ping(SendPort responsePort,
-      {Object response, int priority: IMMEDIATE});
+      {Object response, int priority: immediate});
 
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
@@ -692,12 +696,12 @@ abstract class RawReceivePort {
    * can not be paused. The data-handler must be set before the first
    * event is received.
    */
-  external factory RawReceivePort([void handler(event)]);
+  external factory RawReceivePort([Function handler]);
 
   /**
    * Sets the handler that is invoked for every incoming message.
    *
-   * The handler is invoked in the root-zone ([Zone.ROOT]).
+   * The handler is invoked in the root-zone ([Zone.root]).
    */
   void set handler(Function newHandler);
 

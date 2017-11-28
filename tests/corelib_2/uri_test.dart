@@ -49,24 +49,24 @@ testEncodeDecodeQueryComponent(String orig, String encodedUTF8,
   d = Uri.decodeQueryComponent(encodedUTF8);
   Expect.stringEquals(orig, d);
 
-  e = Uri.encodeQueryComponent(orig, encoding: UTF8);
+  e = Uri.encodeQueryComponent(orig, encoding: utf8);
   Expect.stringEquals(encodedUTF8, e);
-  d = Uri.decodeQueryComponent(encodedUTF8, encoding: UTF8);
+  d = Uri.decodeQueryComponent(encodedUTF8, encoding: utf8);
   Expect.stringEquals(orig, d);
 
-  e = Uri.encodeQueryComponent(orig, encoding: LATIN1);
+  e = Uri.encodeQueryComponent(orig, encoding: latin1);
   Expect.stringEquals(encodedLatin1, e);
-  d = Uri.decodeQueryComponent(encodedLatin1, encoding: LATIN1);
+  d = Uri.decodeQueryComponent(encodedLatin1, encoding: latin1);
   Expect.stringEquals(orig, d);
 
   if (encodedAscii != null) {
-    e = Uri.encodeQueryComponent(orig, encoding: ASCII);
+    e = Uri.encodeQueryComponent(orig, encoding: ascii);
     Expect.stringEquals(encodedAscii, e);
-    d = Uri.decodeQueryComponent(encodedAscii, encoding: ASCII);
+    d = Uri.decodeQueryComponent(encodedAscii, encoding: ascii);
     Expect.stringEquals(orig, d);
   } else {
-    Expect.throws(() => Uri.encodeQueryComponent(orig, encoding: ASCII),
-        (e) => e is ArgumentError);
+    Expect.throwsArgumentError(
+        () => Uri.encodeQueryComponent(orig, encoding: ascii));
   }
 }
 
@@ -524,10 +524,9 @@ main() {
       Uri.parse("http://example.com:1234/a/b/c").origin);
   Expect.stringEquals("https://example.com:1234",
       Uri.parse("https://example.com:1234/a/b/c").origin);
-  Expect.throws(() => Uri.parse("http:").origin, (e) {
-    return e is StateError;
-  }, "origin for uri with empty host should fail");
-  Expect.throws(
+  Expect.throwsStateError(() => Uri.parse("http:").origin,
+      "origin for uri with empty host should fail");
+  Expect.throwsStateError(
       () => new Uri(
               scheme: "http",
               userInfo: null,
@@ -536,10 +535,9 @@ main() {
               path: "/a/b/c",
               query: "query",
               fragment: "fragment")
-          .origin, (e) {
-    return e is StateError;
-  }, "origin for uri with empty host should fail");
-  Expect.throws(
+          .origin,
+      "origin for uri with empty host should fail");
+  Expect.throwsStateError(
       () => new Uri(
               scheme: null,
               userInfo: null,
@@ -548,10 +546,9 @@ main() {
               path: "/a/b/c",
               query: "query",
               fragment: "fragment")
-          .origin, (e) {
-    return e is StateError;
-  }, "origin for uri with empty scheme should fail");
-  Expect.throws(
+          .origin,
+      "origin for uri with empty scheme should fail");
+  Expect.throwsStateError(
       () => new Uri(
               scheme: "http",
               userInfo: null,
@@ -560,19 +557,16 @@ main() {
               path: "/a/b/c",
               query: "query",
               fragment: "fragment")
-          .origin, (e) {
-    return e is StateError;
-  }, "origin for uri with empty host should fail");
-  Expect.throws(() => Uri.parse("http://:80").origin, (e) {
-    return e is StateError;
-  }, "origin for uri with empty host should fail");
-  Expect.throws(() => Uri.parse("file://localhost/test.txt").origin, (e) {
-    return e is StateError;
-  }, "origin for non-http/https uri should fail");
+          .origin,
+      "origin for uri with empty host should fail");
+  Expect.throwsStateError(() => Uri.parse("http://:80").origin,
+      "origin for uri with empty host should fail");
+  Expect.throwsStateError(() => Uri.parse("file://localhost/test.txt").origin,
+      "origin for non-http/https uri should fail");
 
   // URI encode tests
   // Create a string with code point 0x10000 encoded as a surrogate pair.
-  var s = UTF8.decode([0xf0, 0x90, 0x80, 0x80]);
+  var s = utf8.decode([0xf0, 0x90, 0x80, 0x80]);
 
   Expect.stringEquals("\u{10000}", s);
 
@@ -621,8 +615,8 @@ main() {
   testEncodeDecodeComponent(nonAscii, nonAsciiEncoding);
 
   // Invalid URI - : and @ is swapped, port ("host") should be numeric.
-  Expect.throws(() => Uri.parse("file://user@password:host/path"),
-      (e) => e is FormatException);
+  Expect.throwsFormatException(
+      () => Uri.parse("file://user@password:host/path"));
 
   testValidCharacters();
   testInvalidUrls();

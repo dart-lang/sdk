@@ -471,7 +471,7 @@ testSingleController() {
     var subscription = stream.listen((data) {
       counter += data;
     });
-    Expect.throws(() => stream.listen(null), (e) => e is StateError);
+    Expect.throwsStateError(() => stream.listen(null));
     sink.add(1);
     Expect.equals(1, counter);
     c.close();
@@ -1056,12 +1056,8 @@ void testBroadcastSettingCallbacks() {
   var stream = controller.stream;
   var state = initial;
 
-  Expect.throws(() {
-    controller.onPause = () {};
-  }, (e) => e is UnsupportedError);
-  Expect.throws(() {
-    controller.onResume = () {};
-  }, (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => controller.onPause = () {});
+  Expect.throwsUnsupportedError(() => controller.onResume = () {});
 
   controller
     ..onListen = () {

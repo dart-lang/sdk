@@ -94,11 +94,11 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
     if (cachedNode != null) return cachedNode;
     parseFunction(Parser p) {
       if (isClassMember && modifiers.isFactory) {
-        p.parseFactoryMethod(beginToken);
+        p.parseFactoryMethod(p.syntheticPreviousToken(beginToken));
       } else if (isClassMember) {
         p.parseMember(beginToken);
       } else {
-        p.parseTopLevelMember(beginToken);
+        p.parseTopLevelMember(p.syntheticPreviousToken(beginToken));
       }
     }
 
@@ -331,7 +331,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
   Node parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     var metadata = parse(parsing, annotatedElement, declarationSite,
-        (p) => p.parseMetadata(beginToken));
+        (p) => p.parseMetadata(p.syntheticPreviousToken(beginToken)).next);
     if (metadata is Metadata) {
       cachedNode = metadata.expression;
       return cachedNode;

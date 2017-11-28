@@ -12,7 +12,13 @@ abstract class Link implements FileSystemEntity {
   /**
    * Creates a Link object.
    */
-  factory Link(String path) => new _Link(path);
+  factory Link(String path) {
+    final IOOverrides overrides = IOOverrides.current;
+    if (overrides == null) {
+      return new _Link(path);
+    }
+    return overrides.createLink(path);
+  }
 
   /**
    * Creates a [Link] object.

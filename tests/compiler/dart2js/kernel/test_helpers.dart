@@ -4,24 +4,18 @@
 
 library dart2js.kernel.equivalence;
 
-import 'package:compiler/src/common/backend_api.dart';
-import 'package:compiler/src/common/resolution.dart';
-import 'package:compiler/src/common/work.dart';
+import 'dart:io';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/resolution_types.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/indexed.dart';
 import 'package:compiler/src/kernel/kelements.dart' show KLocalFunction;
 import 'package:compiler/src/serialization/equivalence.dart';
-import 'package:compiler/src/ssa/kernel_impact.dart';
-import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/util/util.dart';
 
 class KernelEquivalence {
@@ -43,6 +37,9 @@ class KernelEquivalence {
       typeEquivalence: typeEquivalence,
       constantEquivalence: constantEquivalence,
       constantValueEquivalence: constantValueEquivalence);
+
+  bool entityEntityEquivalence(Entity a, Entity b, {TestStrategy strategy}) =>
+      entityEquivalence(a, b, strategy: strategy);
 
   bool entityEquivalence(Element a, Entity b, {TestStrategy strategy}) {
     if (identical(a, b)) return true;
@@ -171,6 +168,9 @@ class KernelEquivalence {
     }
   }
 
+  bool typeTypeEquivalence(DartType a, DartType b, {TestStrategy strategy}) =>
+      typeEquivalence(a, b, strategy: strategy);
+
   bool typeEquivalence(ResolutionDartType a, DartType b,
       {TestStrategy strategy}) {
     if (identical(a, b)) return true;
@@ -228,32 +228,6 @@ class KernelEquivalence {
       {TestStrategy strategy}) {
     strategy ??= defaultStrategy;
     return areConstantValuesEquivalent(value1, value2, strategy: strategy);
-  }
-}
-
-class KernelTestWorkItemBuilder implements WorkItemBuilder {
-  final Compiler _compiler;
-
-  KernelTestWorkItemBuilder(this._compiler);
-
-  @override
-  WorkItem createWorkItem(MemberEntity entity) {
-    return new KernelTestWorkItem(
-        _compiler, _compiler.backend.impactTransformer, entity);
-  }
-}
-
-class KernelTestWorkItem implements ResolutionWorkItem {
-  final Compiler _compiler;
-  final ImpactTransformer _impactTransformer;
-  final MemberElement element;
-
-  KernelTestWorkItem(this._compiler, this._impactTransformer, this.element);
-
-  @override
-  WorldImpact run() {
-    ResolutionImpact resolutionImpact = build(_compiler, element.resolvedAst);
-    return _impactTransformer.transformResolutionImpact(resolutionImpact);
   }
 }
 
@@ -315,4 +289,18 @@ bool elementFilter(Entity element) {
     return false;
   }
   return true;
+}
+
+/// Create an absolute uri from the [uri] created by fasta.
+Uri resolveFastaUri(Uri uri) {
+  if (!uri.isAbsolute) {
+    // TODO(johnniwinther): Remove this when fasta uses patching.
+    if (uri.path.startsWith('patched_dart2js_sdk/')) {
+      Uri executable = new File(Platform.resolvedExecutable).uri;
+      uri = executable.resolve(uri.path);
+    } else {
+      uri = Uri.base.resolveUri(uri);
+    }
+  }
+  return uri;
 }

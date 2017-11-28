@@ -740,43 +740,48 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
         subKind: schema.LOCAL_PARAMETER_SUBKIND,
         completeFact: schema.DEFINITION);
 
-    // The anchor and anchor edges generation are broken into two cases, the
-    // first case is "method(parameter_name) ...", where the the parameter
-    // character range only includes a parameter name.  The second case is for
-    // parameter declarations which are prefixed with a type, 'var', or
-    // 'dynamic', as in "method(var parameter_name) ...".
-    //
-    // With the first case a single anchor range is created, for the second
-    // case an anchor is created on parameter_name, as well as the range
-    // including any prefixes.
-    if (node.offset == node.identifier.offset &&
-        node.length == node.identifier.length) {
-      // anchor- defines/binding, defines
-      addAnchorEdgesContainingEdge(
-          syntacticEntity: node.identifier,
-          edges: [
-            schema.DEFINES_BINDING_EDGE,
-            schema.DEFINES_EDGE,
-          ],
-          target: paramVName,
-          enclosingTarget: _enclosingVName);
-    } else {
-      // anchor- defines/binding
-      addAnchorEdgesContainingEdge(
-          syntacticEntity: node.identifier,
-          edges: [
-            schema.DEFINES_BINDING_EDGE,
-          ],
-          target: paramVName,
-          enclosingTarget: _enclosingVName);
+    // node.identifier can be null in cases with the new generic function type
+    // syntax
+    // TODO(jwren) add test cases for this situation
+    if (node.identifier != null) {
+      // The anchor and anchor edges generation are broken into two cases, the
+      // first case is "method(parameter_name) ...", where the the parameter
+      // character range only includes a parameter name.  The second case is for
+      // parameter declarations which are prefixed with a type, 'var', or
+      // 'dynamic', as in "method(var parameter_name) ...".
+      //
+      // With the first case a single anchor range is created, for the second
+      // case an anchor is created on parameter_name, as well as the range
+      // including any prefixes.
+      if (node.offset == node.identifier.offset &&
+          node.length == node.identifier.length) {
+        // anchor- defines/binding, defines
+        addAnchorEdgesContainingEdge(
+            syntacticEntity: node.identifier,
+            edges: [
+              schema.DEFINES_BINDING_EDGE,
+              schema.DEFINES_EDGE,
+            ],
+            target: paramVName,
+            enclosingTarget: _enclosingVName);
+      } else {
+        // anchor- defines/binding
+        addAnchorEdgesContainingEdge(
+            syntacticEntity: node.identifier,
+            edges: [
+              schema.DEFINES_BINDING_EDGE,
+            ],
+            target: paramVName,
+            enclosingTarget: _enclosingVName);
 
-      // anchor- defines
-      addAnchorEdgesContainingEdge(
-          syntacticEntity: node,
-          edges: [
-            schema.DEFINES_EDGE,
-          ],
-          target: paramVName);
+        // anchor- defines
+        addAnchorEdgesContainingEdge(
+            syntacticEntity: node,
+            edges: [
+              schema.DEFINES_EDGE,
+            ],
+            target: paramVName);
+      }
     }
 
     // type

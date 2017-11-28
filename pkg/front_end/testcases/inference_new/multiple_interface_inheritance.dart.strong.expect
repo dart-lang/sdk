@@ -18,6 +18,7 @@ abstract class C extends core::Object implements self::I1, self::I2 {
   default constructor •() → void
     : super core::Object::•()
     ;
+  abstract forwarding-stub method f(core::Object o) → void;
 }
 class D extends self::C {
   default constructor •() → void
@@ -37,7 +38,7 @@ class F extends self::E {
   method f(core::Object o) → void {}
 }
 static method g1(self::C c) → void {
-  c.{self::I2::f}("hi");
+  c.{self::C::f}("hi");
 }
 static method g2(self::E e) → void {
   e.{self::I2::f}("hi");

@@ -10,13 +10,14 @@ import 'builder.dart'
         ClassBuilder,
         LibraryBuilder,
         PrefixBuilder,
+        QualifiedName,
         Scope,
         TypeBuilder;
 
 import '../messages.dart' show templateConstructorNotFound, warning;
 
 class ConstructorReferenceBuilder extends Builder {
-  final String name;
+  final Object name;
 
   final List<TypeBuilder> typeArguments;
 
@@ -32,26 +33,26 @@ class ConstructorReferenceBuilder extends Builder {
   String get fullNameForErrors => "$name${suffix == null ? '' : '.$suffix'}";
 
   void resolveIn(Scope scope, LibraryBuilder accessingLibrary) {
-    int index = name.indexOf(".");
+    final name = this.name;
     Builder builder;
-    if (index == -1) {
-      builder = scope.lookup(name, charOffset, fileUri);
-    } else {
-      String prefix = name.substring(0, index);
-      String middle = name.substring(index + 1);
+    if (name is QualifiedName) {
+      String prefix = name.prefix;
+      String middle = name.suffix;
       builder = scope.lookup(prefix, charOffset, fileUri);
       if (builder is PrefixBuilder) {
         PrefixBuilder prefix = builder;
-        builder = prefix.lookup(middle, charOffset, fileUri);
+        builder = prefix.lookup(middle, name.charOffset, fileUri);
       } else if (builder is ClassBuilder) {
         ClassBuilder cls = builder;
         builder = cls.findConstructorOrFactory(
-            middle, charOffset, fileUri, accessingLibrary);
+            middle, name.charOffset, fileUri, accessingLibrary);
         if (suffix == null) {
           target = builder;
           return;
         }
       }
+    } else {
+      builder = scope.lookup(name, charOffset, fileUri);
     }
     if (builder is ClassBuilder) {
       target = builder.findConstructorOrFactory(

@@ -20,7 +20,7 @@ import 'package:kernel/ast.dart'
 
 import '../fasta_codes.dart' show templateUnspecified;
 
-import '../problems.dart' show unhandled, unimplemented;
+import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
 import '../kernel/kernel_builder.dart'
     show
@@ -60,6 +60,9 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   Uri get fileUri => uri;
 
   @override
+  String get name => library.name;
+
+  @override
   Library get target => library;
 
   void addClass(Class cls) {
@@ -73,7 +76,6 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
         for (StaticGet get in initializer.expressions) {
           RedirectingFactoryBody.restoreFromDill(get.target);
         }
-        initializer.expressions.clear();
       } else {
         classBulder.addMember(field);
       }
@@ -182,7 +184,13 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
       } else {
         unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
       }
-      var library = loader.read(libraryUri, -1);
+      DillLibraryBuilder library = loader.builders[libraryUri];
+      if (library == null) {
+        internalProblem(
+            templateUnspecified.withArguments("No builder for '$libraryUri'."),
+            -1,
+            fileUri);
+      }
       Builder builder;
       if (isSetter) {
         builder = library.exportScope.setters[name];
@@ -190,6 +198,13 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
       } else {
         builder = library.exportScope.local[name];
         exportScopeBuilder.addMember(name, builder);
+      }
+      if (builder == null) {
+        internalProblem(
+            templateUnspecified.withArguments(
+                "Exported element '$name' not found in '$libraryUri'."),
+            -1,
+            fileUri);
       }
       assert(node == builder.target);
     }

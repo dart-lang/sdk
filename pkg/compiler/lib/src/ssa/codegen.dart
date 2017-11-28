@@ -816,7 +816,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     currentContainer = oldContainer;
 
-    js.Statement result = new js.Switch(key, cases);
+    js.Statement result =
+        new js.Switch(key, cases).withSourceInformation(info.sourceInformation);
     pushStatement(wrapIntoLabels(result, info.labels));
     return true;
   }
@@ -1912,11 +1913,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // more optimizations available to the loop.  This form is 50% faster on
       // some small loop, almost as fast as loops with no concurrent
       // modification check.
-      push(js.js('# || (0, #)(#)', [
-        arguments[0],
+
+      // Create [right] as a separate JS node to give the call a source
+      // location.
+      js.Expression right = js.js('(0, #)(#)', [
         _emitter.staticFunctionAccess(throwFunction),
         arguments[1]
-      ]));
+      ]).withSourceInformation(node.sourceInformation);
+      push(js.js('# || #', [arguments[0], right]).withSourceInformation(
+          node.sourceInformation));
     } else {
       CallStructure callStructure = new CallStructure.unnamed(arguments.length);
       _registry.registerStaticUse(element.isConstructor
@@ -2333,7 +2338,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
       generateThrowWithHelper(_commonElements.throwIndexOutOfRangeException,
-          [node.array, node.reportedIndex]);
+          [node.array, node.reportedIndex],
+          sourceInformation: node.sourceInformation);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
       pushStatement(new js.If.noElse(underOver, thenBody)
@@ -2517,15 +2523,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(input);
     js.Expression right = pop();
     // TODO(4984): Deal with infinity and -0.0.
-    push(js.js('Math.floor(#) $cmp #',
-        <js.Expression>[left, right]).withSourceInformation(sourceInformation));
+    js.Expression mathFloorCall = js.js('Math.floor(#)',
+        <js.Expression>[left]).withSourceInformation(sourceInformation);
+    push(js.js('# $cmp #', <js.Expression>[
+      mathFloorCall,
+      right
+    ]).withSourceInformation(sourceInformation));
   }
 
   void checkTypeOf(HInstruction input, String cmp, String typeName,
       SourceInformation sourceInformation) {
     use(input);
     js.Expression typeOf = new js.Prefix("typeof", pop());
-    push(new js.Binary(cmp, typeOf, js.string(typeName)));
+    push(new js.Binary(cmp, typeOf, js.string(typeName))
+        .withSourceInformation(sourceInformation));
   }
 
   void checkNum(
@@ -2910,8 +2921,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         use(node.checkedInput);
         js.Name methodName =
             _namer.invocationName(node.receiverTypeCheckSelector);
-        js.Expression call = js.propertyCall(pop(), methodName, []);
-        pushStatement(new js.Return(call));
+        js.Expression call = js.propertyCall(pop(), methodName,
+            []).withSourceInformation(node.sourceInformation);
+        pushStatement(
+            new js.Return(call).withSourceInformation(node.sourceInformation));
       }
       currentContainer = oldContainer;
       body = unwrapStatement(body);
@@ -2937,18 +2950,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.isBooleanConversionCheck) {
       helper = const CheckedModeHelper('boolConversionCheck');
     } else {
-      helper = _checkedModeHelpers.getCheckedModeHelper(type,
+      helper = _checkedModeHelpers.getCheckedModeHelper(
+          type, _closedWorld.commonElements,
           typeCast: node.isCastTypeCheck);
     }
 
-    StaticUse staticUse = helper.getStaticUse(_commonElements);
+    StaticUse staticUse = helper.getStaticUse(_closedWorld.commonElements);
     _registry.registerStaticUse(staticUse);
     List<js.Expression> arguments = <js.Expression>[];
     use(node.checkedInput);
     arguments.add(pop());
     helper.generateAdditionalArguments(this, _namer, node, arguments);
-    push(new js.Call(
-        _emitter.staticFunctionAccess(staticUse.element), arguments));
+    push(
+        new js.Call(_emitter.staticFunctionAccess(staticUse.element), arguments)
+            .withSourceInformation(node.sourceInformation));
   }
 
   void visitTypeKnown(HTypeKnown node) {
@@ -2977,14 +2992,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       _registry.registerStaticUse(
           new StaticUse.staticInvoke(helperElement, CallStructure.THREE_ARGS));
       js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      push(js.js(
-          r'#(#, #, #)', [helper, receiver, typeName, js.js.number(index)]));
+      push(js.js(r'#(#, #, #)', [
+        helper,
+        receiver,
+        typeName,
+        js.js.number(index)
+      ]).withSourceInformation(node.sourceInformation));
     } else {
       FunctionEntity helperElement = _commonElements.getTypeArgumentByIndex;
       _registry.registerStaticUse(
           new StaticUse.staticInvoke(helperElement, CallStructure.TWO_ARGS));
       js.Expression helper = _emitter.staticFunctionAccess(helperElement);
-      push(js.js(r'#(#, #)', [helper, receiver, js.js.number(index)]));
+      push(js.js(r'#(#, #)', [
+        helper,
+        receiver,
+        js.js.number(index)
+      ]).withSourceInformation(node.sourceInformation));
     }
   }
 

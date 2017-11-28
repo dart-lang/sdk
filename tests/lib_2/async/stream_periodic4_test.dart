@@ -5,8 +5,9 @@
 // Test merging streams.
 library dart.test.stream_from_iterable;
 
-import "dart:async";
-import 'package:test/test.dart';
+import 'dart:async';
+
+import 'package:unittest/unittest.dart';
 
 void runTest(period, maxElapsed, pauseDuration) {
   Function done = expectAsync(() {});

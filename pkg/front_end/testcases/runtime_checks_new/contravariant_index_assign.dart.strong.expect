@@ -1,0 +1,28 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  operator +(generic-covariant-impl generic-covariant-interface self::B<self::B::T> other) → self::B<self::B::T>
+    return null;
+}
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  generic-contravariant operator [](core::int i) → self::B<(self::C::T) → void>
+    return null;
+  operator []=(core::int i, self::B<(self::C::T) → void> x) → void {}
+}
+static method test(self::C<core::num> c) → void {
+  c.{self::C::[]=}(0, new self::B::•<(core::num) → void>());
+  let final self::C<core::num> #t1 = c in let final core::int #t2 = 0 in #t1.{self::C::[]=}(#t2, (#t1.{self::C::[]}(#t2) as{TypeError} self::B<(core::num) → void>).{self::B::+}(new self::B::•<(core::num) → void>()));
+  self::B<(core::num) → void> x = let final self::C<core::num> #t3 = c in let final core::int #t4 = 0 in let final self::B<(core::num) → void> #t5 = (#t3.{self::C::[]}(#t4) as{TypeError} self::B<(core::num) → void>).{self::B::+}(new self::B::•<(core::num) → void>()) in let final void #t6 = #t3.{self::C::[]=}(#t4, #t5) in #t5;
+  let final self::C<core::num> #t7 = c in let final core::int #t8 = 0 in (#t7.{self::C::[]}(#t8) as{TypeError} self::B<(core::num) → void>).{core::Object::==}(null) ?{self::B<(core::num) → void>} let final self::B<(core::num) → void> #t9 = new self::B::•<(core::num) → void>() in let final void #t10 = #t7.{self::C::[]=}(#t8, #t9) in #t9 : null;
+  self::B<(core::num) → void> y = let final self::C<core::num> #t11 = c in let final core::int #t12 = 0 in let final self::B<(core::num) → void> #t13 = #t11.{self::C::[]}(#t12) as{TypeError} self::B<(core::num) → void> in #t13.{core::Object::==}(null) ?{self::B<(core::num) → void>} let final self::B<(core::num) → void> #t14 = new self::B::•<(core::num) → void>() in let final void #t15 = #t11.{self::C::[]=}(#t12, #t14) in #t14 : #t13;
+}
+static method main() → dynamic {}

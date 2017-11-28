@@ -2,24 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Tool for running co19 tests. Used when updating co19.
- *
- * Currently, this tool is merely a convenience around multiple
- * invocations of test.dart. Long term, we hope to evolve this into a
- * script that can automate most of the tasks necessary when updating
- * co19.
- *
- * Usage:
- * [: dart tools/testing/dart/co19_test.dart :]
- */
-
-import 'dart:io';
-
+/// Tool for running co19 tests. Used when updating co19.
+///
+/// Currently, this tool is merely a convenience around multiple
+/// invocations of test.dart. Long term, we hope to evolve this into a
+/// script that can automate most of the tasks necessary when updating
+/// co19.
+///
+/// Usage:
+/// [: dart tools/testing/dart/co19_test.dart :]
 import 'configuration.dart';
 import 'options.dart';
 import 'test_configurations.dart';
-import 'utils.dart';
 
 const List<String> COMMON_ARGUMENTS = const <String>[
   '--report',
@@ -57,7 +51,6 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
 ];
 
 void main(List<String> args) {
-  TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   var optionsParser = new OptionsParser();
   var configurations = <Configuration>[];
   for (var commandLine in COMMAND_LINES) {

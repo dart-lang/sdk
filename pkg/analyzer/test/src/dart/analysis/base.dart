@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:front_end/byte_store.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -67,6 +67,11 @@ class BaseAnalysisDriverTest {
 
   bool get disableChangesAndCacheAllResults => false;
 
+  /**
+   * Whether to enable the Dart 2.0 Front End.
+   */
+  bool get previewDart2 => false;
+
   void addTestFile(String content, {bool priority: false}) {
     testCode = content;
     provider.newFile(testFile, content);
@@ -94,12 +99,14 @@ class BaseAnalysisDriverTest {
         ], null, provider),
         createAnalysisOptions(),
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
-        externalSummaries: externalSummaries);
+        externalSummaries: externalSummaries,
+        enableKernelDriver: previewDart2);
   }
 
   AnalysisOptionsImpl createAnalysisOptions() => new AnalysisOptionsImpl()
     ..strongMode = true
-    ..enableUriInPartOf = true;
+    ..enableUriInPartOf = true
+    ..useFastaParser = previewDart2;
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);

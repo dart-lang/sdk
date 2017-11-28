@@ -11,8 +11,10 @@ import '../target/targets.dart' show Target;
 import '../type_algebra.dart';
 
 void transformLibraries(Target targetInfo, CoreTypes coreTypes,
-    ClassHierarchy hierarchy, List<Library> libraries) {
-  new MixinFullResolution(targetInfo, coreTypes, hierarchy)
+    ClassHierarchy hierarchy, List<Library> libraries,
+    {bool doSuperResolution: true}) {
+  new MixinFullResolution(targetInfo, coreTypes, hierarchy,
+          doSuperResolution: doSuperResolution)
       .transform(libraries);
 }
 
@@ -20,8 +22,9 @@ void transformLibraries(Target targetInfo, CoreTypes coreTypes,
 /// and procedures from the mixed-in class, cloning all constructors from the
 /// base class.
 ///
-/// Super calls (as well as super initializer invocations) are also resolved
-/// to their targets in this pass.
+/// When [doSuperResolution] constructor parameter is [true], super calls
+/// (as well as super initializer invocations) are also resolved to their
+/// targets in this pass.
 class MixinFullResolution {
   final Target targetInfo;
   final CoreTypes coreTypes;
@@ -33,7 +36,13 @@ class MixinFullResolution {
   /// valid anymore.
   ClassHierarchy hierarchy;
 
-  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy);
+  // This enables `super` resolution transformation, which is not compatible
+  // with Dart VM's requirements around incremental compilation and has been
+  // moved to Dart VM itself.
+  final bool doSuperResolution;
+
+  MixinFullResolution(this.targetInfo, this.coreTypes, this.hierarchy,
+      {this.doSuperResolution: true});
 
   /// Transform the given new [libraries].  It is expected that all other
   /// libraries have already been transformed.
@@ -56,6 +65,9 @@ class MixinFullResolution {
     // We might need to update the class hierarchy.
     hierarchy = hierarchy.applyChanges(transformedClasses);
 
+    if (!doSuperResolution) {
+      return;
+    }
     // Resolve all super call expressions and super initializers.
     for (var library in libraries) {
       if (library.isExternal) continue;
@@ -121,8 +133,43 @@ class MixinFullResolution {
     for (var field in class_.mixin.fields) {
       class_.addMember(cloner.clone(field));
     }
+
+    // Existing procedures in the class should only be forwarding stubs.
+    // Replace them with methods from the mixin class if they have the same
+    // name, but keep their parameter flags.
+    int originalLength = class_.procedures.length;
+    outer:
     for (var procedure in class_.mixin.procedures) {
-      class_.addMember(cloner.clone(procedure));
+      // Forwarding stubs in the mixin class are used when calling through the
+      // mixin class's interface, not when calling through the mixin
+      // application.  They should not be copied.
+      if (procedure.isForwardingStub) continue;
+
+      Procedure clone = cloner.clone(procedure);
+      // Linear search for a forwarding stub with the same name.
+      for (int i = 0; i < originalLength; ++i) {
+        var originalProcedure = class_.procedures[i];
+        if (originalProcedure.name == clone.name &&
+            originalProcedure.kind == clone.kind) {
+          FunctionNode src = originalProcedure.function;
+          FunctionNode dst = clone.function;
+          assert(src.typeParameters.length == dst.typeParameters.length);
+          for (int j = 0; j < src.typeParameters.length; ++j) {
+            dst.typeParameters[j].flags = src.typeParameters[i].flags;
+          }
+          for (int j = 0; j < src.positionalParameters.length; ++j) {
+            dst.positionalParameters[j].flags =
+                src.positionalParameters[j].flags;
+          }
+          for (int j = 0; j < src.namedParameters.length; ++j) {
+            dst.namedParameters[j].flags = src.namedParameters[j].flags;
+          }
+
+          class_.procedures[i] = clone;
+          continue outer;
+        }
+      }
+      class_.addMember(clone);
     }
     // For each generative constructor in the superclass we make a
     // corresponding forwarding constructor in the subclass.

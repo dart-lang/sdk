@@ -42,7 +42,6 @@ void applyToAnalysisOptions(
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
-  static const String enableAssertInitializer = 'enableAssertInitializer';
   static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableInitializingFormalAccess =
@@ -86,7 +85,6 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
-    enableAssertInitializer,
     enableAsync,
     enableGenericMethods,
     enableStrictCallChecks,
@@ -108,6 +106,7 @@ class AnalyzerOptionsValidator extends CompositeValidator {
 /// Convenience class for composing validators.
 class CompositeValidator extends OptionsValidator {
   final List<OptionsValidator> validators;
+
   CompositeValidator(this.validators);
 
   @override
@@ -131,6 +130,7 @@ class ErrorBuilder {
       code = singularProposalCode;
     }
   }
+
   AnalysisOptionsWarningCode get pluralProposalCode =>
       AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
 
@@ -438,6 +438,9 @@ class StrongModeOptionValueValidator extends OptionsValidator {
         if (!AnalyzerOptions.trueOrFalse.contains(value)) {
           trueOrFalseBuilder.reportError(
               reporter, AnalyzerOptions.strong_mode, v);
+        } else if (value == 'false') {
+          reporter.reportErrorForSpan(
+              AnalysisOptionsHintCode.SPEC_MODE_DEPRECATED, v.span);
         }
       }
     }
@@ -458,6 +461,7 @@ class TopLevelOptionValidator extends OptionsValidator {
   final List<String> supportedOptions;
   String _valueProposal;
   AnalysisOptionsWarningCode _warningCode;
+
   TopLevelOptionValidator(this.pluginName, this.supportedOptions) {
     assert(supportedOptions != null && !supportedOptions.isEmpty);
     if (supportedOptions.length > 1) {
@@ -491,6 +495,7 @@ class TopLevelOptionValidator extends OptionsValidator {
 /// An error-builder that knows about `true` and `false` legal values.
 class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
   TrueOrFalseValueErrorBuilder() : super(AnalyzerOptions.trueOrFalse);
+
   @override
   AnalysisOptionsWarningCode get pluralProposalCode =>
       AnalysisOptionsWarningCode.UNSUPPORTED_VALUE;
@@ -569,9 +574,7 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
-      if (feature == AnalyzerOptions.enableAssertInitializer) {
-        options.enableAssertInitializer = boolValue;
-      } else if (feature == AnalyzerOptions.enableStrictCallChecks) {
+      if (feature == AnalyzerOptions.enableStrictCallChecks) {
         options.enableStrictCallChecks = boolValue;
       } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;

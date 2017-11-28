@@ -1,0 +1,25 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class B<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f((self::B::T) → void x, core::int y) → void {}
+}
+abstract class I<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method f((self::I::T) → void x, core::Object y) → void;
+}
+class C<T extends core::Object> extends self::B<(self::C::T) → void> implements self::I<(self::C::T) → void> {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+  forwarding-stub method f(generic-covariant-impl generic-covariant-interface ((self::C::T) → void) → void x, core::Object y) → void
+    return super.{self::B::f}(x, y);
+}
+static method main() → void {}

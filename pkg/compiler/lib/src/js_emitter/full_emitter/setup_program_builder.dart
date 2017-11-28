@@ -77,7 +77,8 @@ jsAst.Statement buildSetupProgram(
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
       namer.methodsWithOptionalArgumentsField;
-  String unmangledNameIndex = backend.mirrorsData.mustRetainMetadata
+  bool retainMetadata = backend.mirrorsData.mustRetainMetadata;
+  String unmangledNameIndex = retainMetadata
       ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
       : ' 2 * optionalParameterCount + requiredParameterCount + 3';
   String receiverParamName =
@@ -150,7 +151,7 @@ jsAst.Statement buildSetupProgram(
     'deferredActionString': js.string(namer.deferredAction)
   };
   String skeleton = '''
-function $setupProgramName(programData, typesOffset) {
+function $setupProgramName(programData, metadataOffset, typesOffset) {
   "use strict";
   if (#needsClassSupport) {
 
@@ -695,11 +696,35 @@ function $setupProgramName(programData, typesOffset) {
       var optionalParameterInfo = ${readInt("array", "1")};
       var optionalParameterCount = optionalParameterInfo >> 1;
       var optionalParametersAreNamed = (optionalParameterInfo & 1) === 1;
-      var isIntercepted =
-             requiredParameterCount + optionalParameterCount != funcs[0].length;
+      var totalParameterCount = requiredParameterCount + optionalParameterCount;
+      var isIntercepted = totalParameterCount != funcs[0].length;
       var functionTypeIndex = ${readFunctionType("array", "2")};
       if (typeof functionTypeIndex == "number")
         ${readFunctionType("array", "2")} = functionTypeIndex + typesOffset;
+      if (metadataOffset > 0) {
+        var position = 3;
+        // Update index that refers to the parameter default value.
+        for (var i = 0; i < optionalParameterCount; i++) {
+          if (typeof ${readInt("array", "position")} == "number")
+          ${readInt("array", "position")} =
+              ${readInt("array", "position")} + metadataOffset;
+          position++;
+        }
+        for (var i = 0; i < totalParameterCount; i++) {
+          // Update index that refers to the parameter name.
+          ${readInt("array", "position")} =
+              ${readInt("array", "position")} + metadataOffset;
+          position++;
+          if ($retainMetadata) {
+            var metaArray = ${readInt("array", "position")};
+            for (var j = 0; j < metaArray.length; j++) {
+              ${readInt("metaArray", "j")} =
+                ${readInt("metaArray", "j")} + metadataOffset;
+            }
+            position++;
+          }
+        }
+      }
       var unmangledNameIndex = $unmangledNameIndex;
 
       if (getterStubName) {
@@ -745,6 +770,10 @@ function $setupProgramName(programData, typesOffset) {
           }
           mangledNames[name] = reflectionName;
           funcs[0].$reflectionNameField = reflectionName;
+          for (var i = unmangledNameIndex + 1; i < array.length; i++) {
+            ${readInt("array", "i")} =
+                ${readInt("array", "i")} + metadataOffset;
+          }
           funcs[0].$metadataIndexField = unmangledNameIndex + 1;
           // The following line installs the [${JsGetName.CALL_CATCH_ALL}]
           // property for closures.

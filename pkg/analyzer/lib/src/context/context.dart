@@ -280,8 +280,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
         this._options.useFastaParser != options.useFastaParser ||
-        this._options.enableAssertInitializer !=
-            options.enableAssertInitializer ||
         this._options.enableLazyAssignmentOperators !=
             options.enableLazyAssignmentOperators ||
         ((options is AnalysisOptionsImpl)
@@ -308,7 +306,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
-    this._options.enableAssertInitializer = options.enableAssertInitializer;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableLazyAssignmentOperators =
         options.enableLazyAssignmentOperators;

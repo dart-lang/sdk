@@ -15,8 +15,9 @@ void main() {
     CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     Compiler compiler = result.compiler;
-    var outputUnitForConstant = compiler.deferredLoadTask.outputUnitForConstant;
-    var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+    var outputUnitForConstant =
+        compiler.backend.outputUnitData.outputUnitForConstant;
+    var mainOutputUnit = compiler.backend.outputUnitData.mainOutputUnit;
     List<ConstantValue> allConstants = [];
 
     addConstantWithDependendencies(ConstantValue c) {

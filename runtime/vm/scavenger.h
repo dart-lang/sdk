@@ -217,7 +217,7 @@ class Scavenger {
   void PrintToJSONObject(JSONObject* object) const;
 #endif  // !PRODUCT
 
-  void AllocateExternal(intptr_t size);
+  void AllocateExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
   void FlushTLS() const;

@@ -26,8 +26,8 @@ import 'package:front_end/src/fasta/get_dependencies.dart' show getDependencies;
 import 'package:front_end/src/fasta/kernel/utils.dart' show writeProgramToFile;
 
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm_fasta.dart';
-import 'package:kernel/target/flutter_fasta.dart';
+import 'package:kernel/target/vm.dart' show VmTarget;
+import 'package:kernel/target/flutter.dart' show FlutterTarget;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 
 /// Set of input files that were read by this script to generate patched SDK.
@@ -83,11 +83,10 @@ void usage(String mode) {
   exit(1);
 }
 
-const validModes = const ['vm', 'dart2js', 'flutter', 'flutter_release'];
+const validModes = const ['vm', 'dart2js', 'flutter'];
 String mode;
 bool get forVm => mode == 'vm';
-bool get forFlutter => mode == 'flutter' || mode == 'flutter_release';
-bool get forFlutterRelease => mode == 'flutter_release';
+bool get forFlutter => mode == 'flutter';
 bool get forDart2js => mode == 'dart2js';
 
 Future _main(List<String> argv) async {
@@ -103,6 +102,8 @@ Future _main(List<String> argv) async {
   var outDirUri = Uri.base.resolveUri(new Uri.directory(outDir));
   var sdkOut = path.join(outDir, 'lib');
   var packagesFile = argv[4];
+
+  await new Directory.fromUri(outDirUri).delete(recursive: true);
 
   // Parse libraries.dart
   var libContents = readInputFile(path.join(
@@ -121,10 +122,29 @@ Future _main(List<String> argv) async {
 
   _copyExtraLibraries(sdkOut, locations);
 
-  Uri platform = outDirUri.resolve('platform.dill.tmp');
-  Uri outline = outDirUri.resolve('outline.dill');
-  Uri librariesJson = outDirUri.resolve("lib/libraries.json");
-  Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
+  final Uri platform = outDirUri.resolve('platform.dill.tmp');
+  final Uri librariesJson = outDirUri.resolve("lib/libraries.json");
+  final Uri packages = Uri.base.resolveUri(new Uri.file(packagesFile));
+  TargetFlags flags = new TargetFlags();
+  Target target;
+
+  switch (mode) {
+    case 'vm':
+      target = new VmTarget(flags);
+      break;
+
+    case 'flutter':
+    case 'flutter_release':
+      target = new FlutterTarget(flags);
+      break;
+
+    case 'dart2js':
+      target = new Dart2jsTarget(flags);
+      break;
+
+    default:
+      throw "Unknown mode: $mode";
+  }
 
   await _writeSync(
       librariesJson.toFilePath(),
@@ -132,50 +152,7 @@ Future _main(List<String> argv) async {
         mode: {"libraries": locations}
       }));
 
-  var flags = new TargetFlags();
-  var target = forVm
-      ? new VmFastaTarget(flags)
-      : (forFlutter ? new FlutterFastaTarget(flags) : new Dart2jsTarget(flags));
-  var platformDeps =
-      await compilePlatform(outDirUri, target, packages, platform, outline);
-  deps.addAll(platformDeps);
-
-  if (forVm) {
-    // TODO(sigmund): add support for the flutter vmservice_sky as well.
-    var vmserviceName = 'vmservice_io';
-    var base = path.fromUri(Platform.script);
-    Uri dartDir =
-        new Uri.directory(path.dirname(path.dirname(path.absolute(base))));
-
-    String vmserviceJson = JSON.encode({
-      'vm': {
-        "libraries": {
-          '_vmservice': {
-            'uri': '${dartDir.resolve('sdk/lib/vmservice/vmservice.dart')}'
-          },
-          'vmservice_io': {
-            'uri':
-                '${dartDir.resolve('runtime/bin/vmservice/vmservice_io.dart')}'
-          },
-        }
-      }
-    });
-    Uri vmserviceJsonUri = outDirUri.resolve("lib/vmservice_libraries.json");
-    await _writeSync(vmserviceJsonUri.toFilePath(), vmserviceJson);
-    var program = await kernelForProgram(
-        Uri.parse('dart:$vmserviceName'),
-        new CompilerOptions()
-          ..setExitCodeOnProblem = true
-          // TODO(sigmund): investigate. This should be outline, but it breaks
-          // vm-debug tests. Issue #30111
-          ..sdkSummary = platform
-          ..librariesSpecificationUri = vmserviceJsonUri
-          ..packagesFileUri = packages);
-    Uri vmserviceUri = outDirUri.resolve('$vmserviceName.dill');
-    await writeProgramToFile(program, vmserviceUri);
-  }
-
-  Uri platformFinalLocation = outDirUri.resolve('platform.dill');
+  await compilePlatform(outDirUri, target, packages, platform);
 
   // We generate a dependency file for GN to properly regenerate the patched sdk
   // folder, outline.dill and platform.dill files when necessary: either when
@@ -198,17 +175,16 @@ Future _main(List<String> argv) async {
   var platformForDeps = platform;
   var sdkDir = outDirUri;
   if (forDart2js || forFlutter) {
-    // Note: this would fail if `../patched_sdk/platform.dill` doesn't exist. We
-    // added an explicit dependency in the .GN rules so patched_dart2js_sdk (and
-    // patched_flutter_sdk) depend on patched_sdk to ensure that it exists.
-    platformForDeps = outDirUri.resolve('../patched_sdk/platform.dill');
-    sdkDir = outDirUri.resolve('../patched_sdk/');
+    // Note: this fails if `$root_out_dir/vm_platform.dill` doesn't exist.  The
+    // target //utils/compiler:patched_dart2js_sdk depends on
+    // //runtime/vm:kernel_platform_files to ensure this file exists.
+    platformForDeps = outDirUri.resolve('../vm_platform.dill');
+    sdkDir = null;
   }
   deps.addAll(await getDependencies(Platform.script,
       sdk: sdkDir, packages: packages, platform: platformForDeps));
-  await writeDepsFile(platformFinalLocation,
-      Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
-  await new File.fromUri(platform).rename(platformFinalLocation.toFilePath());
+  await writeDepsFile(
+      librariesJson, Uri.base.resolveUri(new Uri.file("$outDir.d")), deps);
 }
 
 /// Generates an outline.dill and platform.dill file containing the result of
@@ -216,8 +192,8 @@ Future _main(List<String> argv) async {
 ///
 /// Returns a list of dependencies read by the compiler. This list can be used
 /// to create GN dependency files.
-Future<List<Uri>> compilePlatform(Uri patchedSdk, Target target, Uri packages,
-    Uri fullOutput, Uri outlineOutput) async {
+Future<List<Uri>> compilePlatform(
+    Uri patchedSdk, Target target, Uri packages, Uri output) async {
   var options = new CompilerOptions()
     ..setExitCodeOnProblem = true
     ..strongMode = false
@@ -228,9 +204,6 @@ Future<List<Uri>> compilePlatform(Uri patchedSdk, Target target, Uri packages,
     ..target = target;
 
   var inputs = [Uri.parse('dart:core')];
-  if (forFlutter && !forFlutterRelease) {
-    inputs.add(Uri.parse('dart:vmservice_sky'));
-  }
   var result = await generateKernel(
       new ProcessedOptions(
           options,
@@ -240,8 +213,7 @@ Future<List<Uri>> compilePlatform(Uri patchedSdk, Target target, Uri packages,
           inputs),
       buildSummary: true,
       buildProgram: true);
-  new File.fromUri(outlineOutput).writeAsBytesSync(result.summary);
-  await writeProgramToFile(result.program, fullOutput);
+  await writeProgramToFile(result.program, output);
   return result.deps;
 }
 
@@ -301,6 +273,20 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
       "profiler/profiler.dart",
       maturity: Maturity.DEPRECATED,
       documented: false),
+
+  "_vmservice": const LibraryInfo(
+      "vmservice/vmservice.dart",
+      categories: "Client,Server",
+      implementation: true,
+      documented: false,
+      platforms: VM_PLATFORM),
+
+  "vmservice_io": const LibraryInfo(
+      "vmservice_io/vmservice_io.dart",
+      categories: "Client,Server",
+      implementation: true,
+      documented: false,
+      platforms: VM_PLATFORM),
   ''');
 
   if (forFlutter) {
@@ -311,27 +297,7 @@ String _updateLibraryMetadata(String sdkOut, String libContents) {
           implementation: true,
           documented: false,
           platforms: VM_PLATFORM),
-    ''');
-
-    if (!forFlutterRelease) {
-      // vmservice should be present unless we build release flavor of Flutter.
-      extraLibraries.write('''
-       "_vmservice": const LibraryInfo(
-           "vmservice/vmservice.dart",
-           categories: "Client,Server",
-           implementation: true,
-           documented: false,
-           platforms: VM_PLATFORM),
-
-        "vmservice_sky": const LibraryInfo(
-            "vmservice_sky/vmservice_io.dart",
-            categories: "Client,Server",
-            implementation: true,
-            documented: false,
-            platforms: VM_PLATFORM),
-
-      ''');
-    }
+  ''');
   }
 
   libContents = libContents.replaceAll(
@@ -355,37 +321,36 @@ _copyExtraLibraries(String sdkOut, Map<String, Map<String, String>> locations) {
   var builtinLibraryOut = path.join(sdkOut, '_builtin', '_builtin.dart');
   _writeSync(builtinLibraryOut, readInputFile(builtinLibraryIn));
   addLocation(locations, '_builtin', path.join('_builtin', '_builtin.dart'));
+  for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
+    var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
+    var libraryOut = path.join(sdkOut, 'vmservice_io', file);
+    _writeSync(libraryOut, readInputFile(libraryIn));
+  }
+  addLocation(locations, 'vmservice_io',
+      path.join('vmservice_io', 'vmservice_io.dart'));
+  addLocation(
+      locations, '_vmservice', path.join('vmservice', 'vmservice.dart'));
 
   if (forFlutter) {
     // Flutter repo has this layout:
     //  engine/src/
-    //       dart/
-    //       flutter/
-    var srcDir = path.dirname(path.dirname(path.dirname(path.absolute(base))));
-    var uiLibraryInDir = path.join(srcDir, 'flutter', 'lib', 'ui');
-    for (var file in new Directory(uiLibraryInDir).listSync()) {
+    //       third_party/dart/
+    //       [third_party/]flutter/
+    var srcDir = path
+        .dirname(path.dirname(path.dirname(path.dirname(path.absolute(base)))));
+    var flutterDir = new Directory(path.join(srcDir, 'flutter'));
+    if (!flutterDir.existsSync()) {
+      // In Fuchsia Flutter is under 'third_party'.
+      flutterDir = new Directory(path.join(srcDir, 'third_party', 'flutter'));
+    }
+    var uiLibraryInDir = new Directory(path.join(flutterDir.path, 'lib', 'ui'));
+    for (var file in uiLibraryInDir.listSync()) {
       if (!file.path.endsWith('.dart')) continue;
       var name = path.basename(file.path);
       var uiLibraryOut = path.join(sdkOut, 'ui', name);
       _writeSync(uiLibraryOut, readInputFile(file.path));
     }
     addLocation(locations, 'ui', path.join('ui', 'ui.dart'));
-
-    if (!forFlutterRelease) {
-      // vmservice should be present unless we build release flavor of Flutter.
-      //
-      // TODO(dartbug.com/30158): Consider producing separate Flutter
-      // vmservice.dill with these vmservice libraries.
-      for (var file in ['loader.dart', 'server.dart', 'vmservice_io.dart']) {
-        var libraryIn = path.join(dartDir, 'runtime', 'bin', 'vmservice', file);
-        var libraryOut = path.join(sdkOut, 'vmservice_io', file);
-        _writeSync(libraryOut, readInputFile(libraryIn));
-      }
-      addLocation(locations, 'vmservice_sky',
-          path.join('vmservice_io', 'vmservice_io.dart'));
-      addLocation(
-          locations, '_vmservice', path.join('vmservice', 'vmservice.dart'));
-    }
   }
 }
 

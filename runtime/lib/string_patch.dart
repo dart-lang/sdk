@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 const int _maxAscii = 0x7f;
 const int _maxLatin1 = 0xff;
 const int _maxUtf16 = 0xffff;
@@ -47,13 +49,18 @@ class String {
   @patch
   const factory String.fromEnvironment(String name, {String defaultValue})
       native "String_fromEnvironment";
+
+  bool get _isOneByte;
+  String _substringUnchecked(int startIndex, int endIndex);
 }
 
 /**
  * [_StringBase] contains common methods used by concrete String
  * implementations, e.g., _OneByteString.
  */
-abstract class _StringBase {
+abstract class _StringBase implements String {
+  bool _isWhitespace(int codeUnit);
+
   // Constants used by replaceAll encoding of string slices between matches.
   // A string slice (start+length) is encoded in a single Smi to save memory
   // overhead in the common case.
@@ -162,8 +169,8 @@ abstract class _StringBase {
     if (charCodes is EfficientLengthIterable) {
       int length = charCodes.length;
       end = RangeError.checkValidRange(start, end, length);
-      List charCodeList =
-          new List.from(charCodes.take(end).skip(start), growable: false);
+      final charCodeList =
+          new List<int>.from(charCodes.take(end).skip(start), growable: false);
       return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
     }
     // Don't know length of iterable, so iterate and see if all the values
@@ -175,31 +182,30 @@ abstract class _StringBase {
         throw new RangeError.range(start, 0, i);
       }
     }
-    List charCodeList;
+    List<int> charCodeList;
     int bits = 0; // Bitwise-or of all char codes in list.
     if (end == null) {
-      var list = [];
+      var list = <int>[];
       while (it.moveNext()) {
         int code = it.current;
         bits |= code;
         list.add(code);
       }
-      charCodeList = makeListFixedLength(list);
+      charCodeList = makeListFixedLength<int>(list);
     } else {
       if (end < start) {
         throw new RangeError.range(end, start, charCodes.length);
       }
       int len = end - start;
-      var list = new List(len);
+      charCodeList = new List<int>(len);
       for (int i = 0; i < len; i++) {
         if (!it.moveNext()) {
           throw new RangeError.range(end, start, start + i);
         }
         int code = it.current;
         bits |= code;
-        list[i] = code;
+        charCodeList[i] = code;
       }
-      charCodeList = list;
     }
     int length = charCodeList.length;
     if (bits < 0) {
@@ -246,16 +252,16 @@ abstract class _StringBase {
     if (identical(this, other)) {
       return true;
     }
-    if ((other is! String) || (this.length != other.length)) {
-      return false;
-    }
-    final len = this.length;
-    for (int i = 0; i < len; i++) {
-      if (this.codeUnitAt(i) != other.codeUnitAt(i)) {
-        return false;
+    if (other is String && this.length == other.length) {
+      final len = this.length;
+      for (int i = 0; i < len; i++) {
+        if (this.codeUnitAt(i) != other.codeUnitAt(i)) {
+          return false;
+        }
       }
+      return true;
     }
-    return true;
+    return false;
   }
 
   int compareTo(String other) {
@@ -901,8 +907,7 @@ abstract class _StringBase {
 
   String toLowerCase() native "String_toLowerCase";
 
-  // Concatenate ['start', 'end'[ elements of 'strings'. 'strings' must contain
-  // String elements. TODO(srdjan): optimize it.
+  // Concatenate ['start', 'end'[ elements of 'strings'.
   static String _concatRange(List<String> strings, int start, int end) {
     if ((end - start) == 1) {
       return strings[start];
@@ -910,13 +915,13 @@ abstract class _StringBase {
     return _concatRangeNative(strings, start, end);
   }
 
-  // Call this method if not all list elements are known to be OneByteString(s).
-  // 'strings' must be an _List or _GrowableList.
-  static String _concatRangeNative(List<String> strings, int start, int end)
+  // Call this method if all elements of [strings] are known to be strings
+  // but not all are known to be OneByteString(s).
+  static String _concatRangeNative(List strings, int start, int end)
       native "String_concatRange";
 }
 
-class _OneByteString extends _StringBase implements String {
+class _OneByteString extends _StringBase {
   factory _OneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_OneByteString can only be allocated by the VM");
@@ -941,16 +946,20 @@ class _OneByteString extends _StringBase implements String {
       native "OneByteString_splitWithCharCode";
 
   List<String> split(Pattern pattern) {
-    if ((ClassID.getID(pattern) == ClassID.cidOneByteString) &&
-        (pattern.length == 1)) {
-      return _splitWithCharCode(pattern.codeUnitAt(0));
+    // TODO(vegorov) investigate if this can be rewritten as `is _OneByteString`
+    // check without performance penalty. Front-end would then promote
+    // pattern variable to _OneByteString.
+    if (ClassID.getID(pattern) == ClassID.cidOneByteString) {
+      final String patternAsString = pattern;
+      if (patternAsString.length == 1) {
+        return _splitWithCharCode(patternAsString.codeUnitAt(0));
+      }
     }
     return super.split(pattern);
   }
 
   // All element of 'strings' must be OneByteStrings.
-  static _concatAll(List<String> strings, int totalLength) {
-    // TODO(srdjan): Improve code below and raise or eliminate the limit.
+  static _concatAll(List strings, int totalLength) {
     if (totalLength > 128) {
       // Native is quicker.
       return _StringBase._concatRangeNative(strings, 0, strings.length);
@@ -974,9 +983,10 @@ class _OneByteString extends _StringBase implements String {
     if ((pCid == ClassID.cidOneByteString) ||
         (pCid == ClassID.cidTwoByteString) ||
         (pCid == ClassID.cidExternalOneByteString)) {
+      final String patternAsString = pattern;
       final len = this.length;
-      if ((pattern.length == 1) && (start >= 0) && (start < len)) {
-        final patternCu0 = pattern.codeUnitAt(0);
+      if ((patternAsString.length == 1) && (start >= 0) && (start < len)) {
+        final patternCu0 = patternAsString.codeUnitAt(0);
         if (patternCu0 > 0xFF) {
           return -1;
         }
@@ -996,9 +1006,10 @@ class _OneByteString extends _StringBase implements String {
     if ((pCid == ClassID.cidOneByteString) ||
         (pCid == ClassID.cidTwoByteString) ||
         (pCid == ClassID.cidExternalOneByteString)) {
+      final String patternAsString = pattern;
       final len = this.length;
-      if ((pattern.length == 1) && (start >= 0) && (start < len)) {
-        final patternCu0 = pattern.codeUnitAt(0);
+      if ((patternAsString.length == 1) && (start >= 0) && (start < len)) {
+        final patternCu0 = patternAsString.codeUnitAt(0);
         if (patternCu0 > 0xFF) {
           return false;
         }
@@ -1213,13 +1224,13 @@ class _OneByteString extends _StringBase implements String {
   }
 }
 
-class _TwoByteString extends _StringBase implements String {
+class _TwoByteString extends _StringBase {
   factory _TwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_TwoByteString can only be allocated by the VM");
   }
 
-  static String _allocateFromTwoByteList(List list, int start, int end)
+  static String _allocateFromTwoByteList(List<int> list, int start, int end)
       native "TwoByteString_allocateFromTwoByteList";
 
   bool _isWhitespace(int codeUnit) {
@@ -1233,7 +1244,7 @@ class _TwoByteString extends _StringBase implements String {
   }
 }
 
-class _ExternalOneByteString extends _StringBase implements String {
+class _ExternalOneByteString extends _StringBase {
   factory _ExternalOneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalOneByteString can only be allocated by the VM");
@@ -1248,11 +1259,9 @@ class _ExternalOneByteString extends _StringBase implements String {
   bool operator ==(Object other) {
     return super == other;
   }
-
-  static int _getCid() native "ExternalOneByteString_getCid";
 }
 
-class _ExternalTwoByteString extends _StringBase implements String {
+class _ExternalTwoByteString extends _StringBase {
   factory _ExternalTwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalTwoByteString can only be allocated by the VM");

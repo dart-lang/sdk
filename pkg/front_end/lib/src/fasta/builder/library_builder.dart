@@ -6,7 +6,7 @@ library fasta.library_builder;
 
 import '../combinator.dart' show Combinator;
 
-import '../problems.dart' show internalProblem;
+import '../problems.dart' show internalProblem, unsupported;
 
 import '../export.dart' show Export;
 
@@ -14,27 +14,32 @@ import '../loader.dart' show Loader;
 
 import '../messages.dart'
     show
+        LocatedMessage,
         Message,
+        error,
         nit,
+        report,
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
         templateInternalProblemPrivateConstructorAccess,
         warning;
 
-import '../util/relativize.dart' show relativizeUri;
+import '../severity.dart' show Severity;
 
 import 'builder.dart'
     show
         Builder,
         ClassBuilder,
         DynamicTypeBuilder,
+        ModifierBuilder,
         PrefixBuilder,
         Scope,
         ScopeBuilder,
         TypeBuilder,
         VoidTypeBuilder;
 
-abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
+abstract class LibraryBuilder<T extends TypeBuilder, R>
+    extends ModifierBuilder {
   final Scope scope;
 
   final Scope exportScope;
@@ -45,10 +50,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   final List<Export> exporters = <Export>[];
 
-  final Uri fileUri;
-
-  final String relativeFileUri;
-
   LibraryBuilder partOfLibrary;
 
   /// True if a compile-time error has been reported in this library.
@@ -57,20 +58,22 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   bool mayImplementRestrictedTypes = false;
 
   LibraryBuilder(Uri fileUri, this.scope, this.exportScope)
-      : fileUri = fileUri,
-        relativeFileUri = relativizeUri(fileUri),
-        scopeBuilder = new ScopeBuilder(scope),
+      : scopeBuilder = new ScopeBuilder(scope),
         exportScopeBuilder = new ScopeBuilder(exportScope),
         super(null, -1, fileUri);
 
+  @override
+  String get debugName => "LibraryBuilder";
+
   Loader get loader;
+
+  @override
+  int get modifiers => 0;
 
   @override
   R get target;
 
   Uri get uri;
-
-  bool get isPatch => false;
 
   Builder addBuilder(String name, Builder builder, int charOffset);
 
@@ -84,16 +87,29 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   ///
   /// If [fileUri] is null, it defaults to `this.fileUri`.
   void addCompileTimeError(Message message, int charOffset, Uri uri,
-      {bool silent: false, bool wasHandled: false}) {
+      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
     hasCompileTimeErrors = true;
     loader.addCompileTimeError(message, charOffset, uri,
-        silent: silent, wasHandled: wasHandled);
+        silent: silent, wasHandled: wasHandled, context: context);
   }
 
   void addWarning(Message message, int charOffset, Uri uri,
-      {bool silent: false}) {
+      {bool silent: false, LocatedMessage context}) {
     if (!silent) {
       warning(message, charOffset, uri);
+      if (context != null) {
+        report(context, Severity.warning);
+      }
+    }
+  }
+
+  void addError(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    if (!silent) {
+      error(message, charOffset, uri);
+      if (context != null) {
+        report(context, Severity.error);
+      }
     }
   }
 
@@ -128,9 +144,13 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
       String name, Builder builder, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false});
 
+  int finishDeferredLoadTearoffs() => 0;
+
   int finishStaticInvocations() => 0;
 
   int finishNativeMethods() => 0;
+
+  int finishPatchMethods() => 0;
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -187,7 +207,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
   }
 
   void forEach(void f(String name, Builder builder)) {
-    scope.forEach(f);
+    scope.forEach((String name, Builder builder) {
+      if (builder.parent == this) {
+        f(name, builder);
+      }
+    });
   }
 
   /// Don't use for scope lookup. Only use when an element is known to exist
@@ -203,5 +227,11 @@ abstract class LibraryBuilder<T extends TypeBuilder, R> extends Builder {
 
   Builder lookup(String name, int charOffset, Uri fileUri) {
     return scope.lookup(name, charOffset, fileUri);
+  }
+
+  /// If this is a patch library, apply its patches to [origin].
+  void applyPatches() {
+    if (!isPatch) return;
+    unsupported("${runtimeType}.applyPatches", -1, fileUri);
   }
 }

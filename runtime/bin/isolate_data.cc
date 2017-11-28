@@ -17,7 +17,6 @@ IsolateData::IsolateData(const char* url,
     : script_url((url != NULL) ? strdup(url) : NULL),
       package_root(NULL),
       packages_file(NULL),
-      udp_receive_buffer(NULL),
       kernel_program(NULL),
       builtin_lib_(NULL),
       loader_(NULL),
@@ -45,8 +44,6 @@ IsolateData::~IsolateData() {
   package_root = NULL;
   free(packages_file);
   packages_file = NULL;
-  free(udp_receive_buffer);
-  udp_receive_buffer = NULL;
   if (kernel_program != NULL) {
     delete reinterpret_cast<kernel::Program*>(kernel_program);
     kernel_program = NULL;

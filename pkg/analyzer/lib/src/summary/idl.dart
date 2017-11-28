@@ -833,6 +833,7 @@ abstract class LinkedReference extends base.SummaryClass {
    * to is a local function), the index of the function within
    * [UnlinkedExecutable.localFunctions].  Otherwise zero.
    */
+  @deprecated
   @Id(6)
   int get localIndex;
 

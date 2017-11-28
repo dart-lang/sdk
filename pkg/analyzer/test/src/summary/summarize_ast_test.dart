@@ -315,7 +315,6 @@ abstract class SummaryLinkerTest {
         new Scanner(null, reader, AnalysisErrorListener.NULL_LISTENER);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, AnalysisErrorListener.NULL_LISTENER);
-    parser.enableAssertInitializer = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = new LineInfo(scanner.lineStarts);
     return unit;

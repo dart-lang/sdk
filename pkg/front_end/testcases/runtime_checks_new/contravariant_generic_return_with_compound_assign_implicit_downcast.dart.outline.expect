@@ -1,0 +1,31 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object> extends core::Object {
+  final field (self::C::T) → core::num plusResult;
+  constructor •((self::C::T) → core::num plusResult) → void
+    ;
+  operator +(core::int i) → (self::C::T) → core::num
+    ;
+}
+class D extends core::Object {
+  final field self::C<core::num> getValue;
+  field (core::int) → core::int setValue;
+  constructor •(self::C<core::num> getValue) → void
+    ;
+  get value() → self::C<core::num>
+    ;
+  set value((core::int) → core::int value) → void
+    ;
+}
+static method expectTypeError(() → void callback) → void
+  ;
+static method expect(core::Object value, core::Object expected) → void
+  ;
+static method numToInt(core::num n) → core::int
+  ;
+static method numToNum(core::num n) → core::num
+  ;
+static method main() → void
+  ;

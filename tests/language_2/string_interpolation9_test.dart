@@ -7,29 +7,29 @@
 main() {
   var x;
 
-  x = "$"; //   //# 1: compile-time error
-  x = "x$"; //  //# 2: compile-time error
-  x = "$x$"; // //# 3: compile-time error
-  x = "$$x"; // //# 4: compile-time error
-  x = "$ "; //  //# 5: compile-time error
+  x = "$"; //   //# 1: syntax error
+  x = "x$"; //  //# 2: syntax error
+  x = "$x$"; // //# 3: syntax error
+  x = "$$x"; // //# 4: syntax error
+  x = "$ "; //  //# 5: syntax error
 
-  x = '$'; //   //# 6: compile-time error
-  x = 'x$'; //  //# 7: compile-time error
-  x = '$x$'; // //# 8: compile-time error
-  x = '$$x'; // //# 9: compile-time error
-  x = '$ '; //  //# 10: compile-time error
+  x = '$'; //   //# 6: syntax error
+  x = 'x$'; //  //# 7: syntax error
+  x = '$x$'; // //# 8: syntax error
+  x = '$$x'; // //# 9: syntax error
+  x = '$ '; //  //# 10: syntax error
 
-  x = """$"""; //   //# 11: compile-time error
-  x = """x$"""; //  //# 12: compile-time error
-  x = """$x$"""; // //# 13: compile-time error
-  x = """$$x"""; // //# 14: compile-time error
-  x = """$ """; //  //# 15: compile-time error
+  x = """$"""; //   //# 11: syntax error
+  x = """x$"""; //  //# 12: syntax error
+  x = """$x$"""; // //# 13: syntax error
+  x = """$$x"""; // //# 14: syntax error
+  x = """$ """; //  //# 15: syntax error
 
-  x = '''$'''; //   //# 16: compile-time error
-  x = '''x$'''; //  //# 17: compile-time error
-  x = '''$x$'''; // //# 18: compile-time error
-  x = '''$$x'''; // //# 19: compile-time error
-  x = '''$ '''; //  //# 20: compile-time error
+  x = '''$'''; //   //# 16: syntax error
+  x = '''x$'''; //  //# 17: syntax error
+  x = '''$x$'''; // //# 18: syntax error
+  x = '''$$x'''; // //# 19: syntax error
+  x = '''$ '''; //  //# 20: syntax error
 
   return x;
 }

@@ -271,10 +271,10 @@ main() {
 
   for (var test in []..addAll(allTests)..addAll(allTests2)) {
     List<int> bytes = test[0];
-    Expect.throws(() => decode(bytes, 1), (e) => e is FormatException);
-    Expect.throws(() => decode(bytes, 2), (e) => e is FormatException);
-    Expect.throws(() => decode(bytes, 3), (e) => e is FormatException);
-    Expect.throws(() => decode(bytes, 4), (e) => e is FormatException);
+    Expect.throwsFormatException(() => decode(bytes, 1));
+    Expect.throwsFormatException(() => decode(bytes, 2));
+    Expect.throwsFormatException(() => decode(bytes, 3));
+    Expect.throwsFormatException(() => decode(bytes, 4));
 
     String expected = test[1];
     Expect.equals(expected, decodeAllowMalformed(bytes, 1));

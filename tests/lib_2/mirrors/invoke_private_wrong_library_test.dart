@@ -11,33 +11,30 @@ import "package:async_helper/async_helper.dart";
 
 import 'invoke_private_test.dart' show C;
 
-expectThrowsNSM(f) {
-  Expect.throws(f, (e) => e is NoSuchMethodError);
-}
-
 main() {
   var result;
 
   C c = new C();
   InstanceMirror im = reflect(c);
-  expectThrowsNSM(() => im.invoke(#_method, [2, 4, 8]));
-  expectThrowsNSM(() => im.getField(#_getter));
-  expectThrowsNSM(() => im.getField(#_field));
-  expectThrowsNSM(() => im.setField(#_setter, 'foo'));
-  expectThrowsNSM(() => im.setField(#_field, 'bar'));
+  Expect.throwsNoSuchMethodError(() => im.invoke(#_method, [2, 4, 8]));
+  Expect.throwsNoSuchMethodError(() => im.getField(#_getter));
+  Expect.throwsNoSuchMethodError(() => im.getField(#_field));
+  Expect.throwsNoSuchMethodError(() => im.setField(#_setter, 'foo'));
+  Expect.throwsNoSuchMethodError(() => im.setField(#_field, 'bar'));
 
   ClassMirror cm = reflectClass(C);
-  expectThrowsNSM(() => cm.invoke(#_staticFunction, [3, 4]));
-  expectThrowsNSM(() => cm.getField(#_staticGetter));
-  expectThrowsNSM(() => cm.getField(#_staticField));
-  expectThrowsNSM(() => cm.setField(#_staticSetter, 'sfoo'));
-  expectThrowsNSM(() => cm.setField(#_staticField, 'sbar'));
-  expectThrowsNSM(() => cm.newInstance(#_named, ['my value']));
+  Expect.throwsNoSuchMethodError(() => cm.invoke(#_staticFunction, [3, 4]));
+  Expect.throwsNoSuchMethodError(() => cm.getField(#_staticGetter));
+  Expect.throwsNoSuchMethodError(() => cm.getField(#_staticField));
+  Expect.throwsNoSuchMethodError(() => cm.setField(#_staticSetter, 'sfoo'));
+  Expect.throwsNoSuchMethodError(() => cm.setField(#_staticField, 'sbar'));
+  Expect.throwsNoSuchMethodError(() => cm.newInstance(#_named, ['my value']));
 
   LibraryMirror lm = cm.owner;
-  expectThrowsNSM(() => lm.invoke(#_libraryFunction, [':', ')']));
-  expectThrowsNSM(() => lm.getField(#_libraryGetter));
-  expectThrowsNSM(() => lm.getField(#_libraryField));
-  expectThrowsNSM(() => lm.setField(#_librarySetter, 'lfoo'));
-  expectThrowsNSM(() => lm.setField(#_libraryField, 'lbar'));
+  Expect.throwsNoSuchMethodError(
+      () => lm.invoke(#_libraryFunction, [':', ')']));
+  Expect.throwsNoSuchMethodError(() => lm.getField(#_libraryGetter));
+  Expect.throwsNoSuchMethodError(() => lm.getField(#_libraryField));
+  Expect.throwsNoSuchMethodError(() => lm.setField(#_librarySetter, 'lfoo'));
+  Expect.throwsNoSuchMethodError(() => lm.setField(#_libraryField, 'lbar'));
 }

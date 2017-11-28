@@ -84,12 +84,12 @@ class FileStat {
 @patch
 class FileSystemEntity {
   @patch
-  static _getType(_Namespace namespace, String path, bool followLinks) {
+  static _getTypeNative(_Namespace namespace, String path, bool followLinks) {
     throw new UnsupportedError("FileSystemEntity._getType");
   }
 
   @patch
-  static _identical(_Namespace namespace, String path1, String path2) {
+  static _identicalNative(_Namespace namespace, String path1, String path2) {
     throw new UnsupportedError("FileSystemEntity._identical");
   }
 
@@ -485,7 +485,7 @@ class RawSynchronousSocket {
 @patch
 class SecurityContext {
   @patch
-  factory SecurityContext() {
+  factory SecurityContext({bool withTrustedRoots: false}) {
     throw new UnsupportedError("SecurityContext constructor");
   }
 
@@ -565,15 +565,21 @@ class _WindowsCodePageEncoder {
 }
 
 @patch
-class _Filter {
+class RawZLibFilter {
   @patch
-  static _Filter _newZLibDeflateFilter(bool gzip, int level, int windowBits,
-      int memLevel, int strategy, List<int> dictionary, bool raw) {
+  static RawZLibFilter _makeZLibDeflateFilter(
+      bool gzip,
+      int level,
+      int windowBits,
+      int memLevel,
+      int strategy,
+      List<int> dictionary,
+      bool raw) {
     throw new UnsupportedError("_newZLibDeflateFilter");
   }
 
   @patch
-  static _Filter _newZLibInflateFilter(
+  static RawZLibFilter _makeZLibInflateFilter(
       int windowBits, List<int> dictionary, bool raw) {
     throw new UnsupportedError("_newZLibInflateFilter");
   }

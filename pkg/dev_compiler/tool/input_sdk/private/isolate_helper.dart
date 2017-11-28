@@ -4,6 +4,7 @@
 
 library dart._isolate_helper;
 
+import 'dart:_runtime' as dart;
 import 'dart:_js_embedded_names'
     show
         CLASS_ID_EXTRACTOR,
@@ -111,11 +112,11 @@ void startRootIsolate(entry, args) {
   _globalState.currentContext = rootContext;
   if (entry is _MainFunctionArgs) {
     rootContext.eval(() {
-      entry(args);
+      (entry as dynamic)(args);
     });
   } else if (entry is _MainFunctionArgsMessage) {
     rootContext.eval(() {
-      entry(args, null);
+      (entry as dynamic)(args, null);
     });
   } else {
     rootContext.eval(entry);
@@ -384,8 +385,8 @@ class _IsolateContext implements IsolateContext {
   }
 
   void handlePing(SendPort responsePort, int pingType) {
-    if (pingType == Isolate.IMMEDIATE ||
-        (pingType == Isolate.BEFORE_NEXT_EVENT && !_isExecutingEvent)) {
+    if (pingType == Isolate.immediate ||
+        (pingType == Isolate.beforeNextEvent && !_isExecutingEvent)) {
       responsePort.send(null);
       return;
     }
@@ -393,7 +394,7 @@ class _IsolateContext implements IsolateContext {
       responsePort.send(null);
     }
 
-    assert(pingType == Isolate.BEFORE_NEXT_EVENT);
+    assert(pingType == Isolate.beforeNextEvent);
     if (_scheduledControlEvents == null) {
       _scheduledControlEvents = new Queue();
     }
@@ -402,12 +403,12 @@ class _IsolateContext implements IsolateContext {
 
   void handleKill(Capability authentification, int priority) {
     if (this.terminateCapability != authentification) return;
-    if (priority == Isolate.IMMEDIATE ||
-        (priority == Isolate.BEFORE_NEXT_EVENT && !_isExecutingEvent)) {
+    if (priority == Isolate.immediate ||
+        (priority == Isolate.beforeNextEvent && !_isExecutingEvent)) {
       kill();
       return;
     }
-    assert(priority == Isolate.BEFORE_NEXT_EVENT);
+    assert(priority == Isolate.beforeNextEvent);
     if (_scheduledControlEvents == null) {
       _scheduledControlEvents = new Queue();
     }
@@ -697,14 +698,9 @@ class _IsolateEvent {
   }
 }
 
-// "self" is a way to refer to the global context object that
-// works in HTML pages and in Web Workers.  It does not work in d8, iojs
-// and Firefox jsshell, because that would have been too easy. In iojs
-// "global" works.
-//
-// See: http://www.w3.org/TR/workers/#the-global-scope
-// and: http://www.w3.org/TR/Window/#dfn-self-attribute
-final global = JS("", "typeof global == 'undefined' ? self : global");
+// TODO(vsm): Other libraries import global from here.  Consider replacing
+// those uses to just refer to the one in dart:runtime.
+final global = dart.global_;
 
 /** A stub for interacting with the main manager. */
 class _MainManagerStub {
@@ -729,8 +725,8 @@ bool get globalPostMessageDefined {
 }
 
 typedef _MainFunction();
-typedef _MainFunctionArgs(args);
-typedef _MainFunctionArgsMessage(args, message);
+typedef _MainFunctionArgs(Null args);
+typedef _MainFunctionArgsMessage(Null args, Null message);
 
 /// Note: IsolateNatives depends on _globalState which is only set up correctly
 /// when 'dart:isolate' has been imported.
@@ -764,7 +760,8 @@ class IsolateNatives {
   static String computeThisScript() {
     // See: https://github.com/dart-lang/dev_compiler/issues/164
     // var currentScript = JS_EMBEDDED_GLOBAL('', CURRENT_SCRIPT);
-    var currentScript = JS('var', 'document.currentScript');
+    var currentScript = JS(
+        'var', '#.document ? #.document.currentScript : null', global, global);
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }
@@ -1072,9 +1069,9 @@ class IsolateNatives {
       if (!isSpawnUri) {
         topLevel(message);
       } else if (topLevel is _MainFunctionArgsMessage) {
-        topLevel(args, message);
+        (topLevel as dynamic)(args, message);
       } else if (topLevel is _MainFunctionArgs) {
-        topLevel(args);
+        (topLevel as dynamic)(args);
       } else {
         topLevel();
       }

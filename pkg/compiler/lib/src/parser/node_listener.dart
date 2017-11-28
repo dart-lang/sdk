@@ -19,6 +19,7 @@ import 'package:front_end/src/fasta/parser.dart' as fasta show Assert;
 
 class NodeListener extends ElementListener {
   int invalidTopLevelDeclarationCount = 0;
+  int invalidMemberCount = 0;
 
   NodeListener(ScannerOptions scannerOptions, DiagnosticReporter reporter,
       CompilationUnitElement element)
@@ -46,10 +47,11 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void endImport(Token importKeyword, Token semicolon) {
     NodeList combinators = popNode();
-    Identifier prefix = asKeyword != null ? popNode() : null;
+    Flag flag = popNode();
+    bool isDeferred = flag == Flag.TRUE;
+    Identifier prefix = popNode();
     NodeList conditionalUris = popNode();
     StringNode uri = popLiteralString();
     pushNode(new Import(
@@ -61,7 +63,7 @@ class NodeListener extends ElementListener {
         // TODO(sigmund): Import AST nodes have pointers to MetadataAnnotation
         // (element) instead of Metatada (node).
         null,
-        isDeferred: deferredKeyword != null));
+        isDeferred: isDeferred));
   }
 
   @override
@@ -103,23 +105,34 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  void handleClassExtends(Token extendsKeyword) {
+    pushNode(new TokenNode(extendsKeyword));
+  }
+
+  @override
+  void handleClassImplements(Token implementsKeyword, int interfacesCount) {
+    pushNode(makeNodeList(interfacesCount, implementsKeyword, null, ","));
+  }
+
+  @override
+  void handleRecoverClassHeader() {
+    popNode(); // interfaces
+    popNode(); // extendsNode
+    popNode(); // supertype
+  }
+
+  @override
+  void endClassDeclaration(Token beginToken, Token endToken) {
     NodeList body = popNode();
-    NodeList interfaces =
-        makeNodeList(interfacesCount, implementsKeyword, null, ",");
+    NodeList interfaces = popNode();
+    TokenNode extendsNode = popNode();
     Node supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     Modifiers modifiers = popNode();
+    // TODO(danrubel): can we remove the extends keyword from ClassNode ?
     pushNode(new ClassNode(modifiers, name, typeParameters, supertype,
-        interfaces, beginToken, extendsKeyword, body, endToken));
+        interfaces, beginToken, extendsNode.token, body, endToken));
   }
 
   @override
@@ -219,7 +232,9 @@ class NodeListener extends ElementListener {
 
   @override
   void endClassBody(int memberCount, Token beginToken, Token endToken) {
-    pushNode(makeNodeList(memberCount, beginToken, endToken, null));
+    pushNode(makeNodeList(
+        memberCount - invalidMemberCount, beginToken, endToken, null));
+    invalidMemberCount = 0;
   }
 
   @override
@@ -244,8 +259,8 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     Expression name = popNode();
     if (thisKeyword != null) {
       Identifier thisIdentifier = new Identifier(thisKeyword);
@@ -445,6 +460,13 @@ class NodeListener extends ElementListener {
     if (send == null || !(send.isPropertyAccess || send.isIndex)) {
       reportNotAssignable(node);
     }
+    var tokenString = token.stringValue;
+    if (tokenString == '||=' || tokenString == '&&=') {
+      reporter.reportErrorMessage(reporter.spanFromToken(token),
+          MessageKind.UNSUPPORTED_OPERATOR, {'operator': tokenString});
+      pushNode(arg);
+      return;
+    }
     if (send.asSendSet() != null) internalError(node: send);
     NodeList arguments;
     if (send.isIndex) {
@@ -466,7 +488,7 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void handleConditionalExpression(Token question, Token colon) {
+  void endConditionalExpression(Token question, Token colon) {
     Node elseExpression = popNode();
     Node thenExpression = popNode();
     Node condition = popNode();
@@ -698,6 +720,12 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleInvalidMember(Token endToken) {
+    popNode(); // Discard metadata
+    ++invalidMemberCount;
+  }
+
+  @override
   void endMember() {
     // TODO(sigmund): consider moving metadata into each declaration
     // element instead.
@@ -792,6 +820,12 @@ class NodeListener extends ElementListener {
   }
 
   @override
+  void handleInvalidOperatorName(Token operatorKeyword, Token token) {
+    Operator op = new Operator(token);
+    pushNode(new Send(new Identifier(operatorKeyword), op, null));
+  }
+
+  @override
   void handleNamedArgument(Token colon) {
     Expression expression = popNode();
     Identifier name = popNode();
@@ -825,6 +859,8 @@ class NodeListener extends ElementListener {
       } else {
         pushNode(typeAnnotation);
       }
+    } else if (context == IdentifierContext.enumValueDeclaration) {
+      popNode();
     }
     pushNode(new Identifier(token));
   }
@@ -893,8 +929,14 @@ class NodeListener extends ElementListener {
   }
 
   @override
-  void endSwitchCase(int labelCount, int caseCount, Token defaultKeyword,
-      int statementCount, Token firstToken, Token endToken) {
+  void endSwitchCase(
+      int labelCount,
+      int caseCount,
+      Token defaultKeyword,
+      Token colonAfterDefault,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {
     NodeList statements = makeNodeList(statementCount, null, null, null);
     NodeList labelsAndCases =
         makeNodeList(labelCount + caseCount, null, null, null);
@@ -935,26 +977,34 @@ class NodeListener extends ElementListener {
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
     Node name = popNode();
-    popNode(); // Discard modifiers. They're recomputed below.
-
-    // TODO(ahe): Move this parsing to the parser.
-    int modifierCount = 0;
-    Token modifier = beginToken;
-    if (modifier.stringValue == "external") {
-      handleModifier(modifier);
-      modifierCount++;
-      modifier = modifier.next;
-    }
-    if (modifier.stringValue == "const") {
-      handleModifier(modifier);
-      modifierCount++;
-      modifier = modifier.next;
-    }
-    assert(modifier.stringValue == "factory");
-    handleModifier(modifier);
-    modifierCount++;
-    handleModifiers(modifierCount);
     Modifiers modifiers = popNode();
+
+    // The parser does not report `factory` as a modifier,
+    // but NodeListener considers it to be a modifier.
+    // We cannot simply add all tokens from beginToken to factoryToken
+    // inclusive because there may be invalid tokens that the parser
+    // has skipped and the factoryKeyword may itself be out of order.
+    // Because modifiers may be out of order, and some code relies
+    // on the order of the nodes in modifiers, we must insert the factory
+    // keyword in the correct place by rebuilding the modifiers.
+    int modifierCount = 0;
+    Identifier factoryNode = new Identifier(factoryKeyword);
+    modifiers.nodes.nodes.forEach((Node node) {
+      if (factoryNode != null &&
+          factoryNode.token.charOffset < node.getBeginToken().charOffset) {
+        pushNode(factoryNode);
+        ++modifierCount;
+        factoryNode = null;
+      }
+      pushNode(node);
+      ++modifierCount;
+    });
+    if (factoryNode != null) {
+      pushNode(factoryNode);
+      ++modifierCount;
+    }
+    handleModifiers(modifierCount);
+    modifiers = popNode();
 
     pushNode(new FunctionExpression(
         name, null, formals, body, null, modifiers, null, null, asyncModifier));
@@ -962,7 +1012,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endForIn(Token awaitToken, Token forToken, Token leftParenthesis,
-      Token inKeyword, Token rightParenthesis, Token endToken) {
+      Token inKeyword, Token endToken) {
     Statement body = popNode();
     Expression expression = popNode();
     Node declaredIdentifier = popNode();
@@ -1023,7 +1073,7 @@ class NodeListener extends ElementListener {
 
   @override
   void endAssert(Token assertKeyword, fasta.Assert kind, Token leftParenthesis,
-      Token commaToken, Token rightParenthesis, Token semicolonToken) {
+      Token commaToken, Token semicolonToken) {
     Node message;
     Node condition;
     if (commaToken != null) {

@@ -124,11 +124,11 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   return 0;
 }
 
-void Heap::AllocateExternal(intptr_t size, Space space) {
+void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
     isolate()->AssertCurrentThreadIsMutator();
-    new_space_.AllocateExternal(size);
+    new_space_.AllocateExternal(cid, size);
     if (new_space_.ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
       // Attempt to free some external allocation by a scavenge. (If the total
       // remains above the limit, next external alloc will trigger another.)
@@ -136,7 +136,7 @@ void Heap::AllocateExternal(intptr_t size, Space space) {
     }
   } else {
     ASSERT(space == kOld);
-    old_space_.AllocateExternal(size);
+    old_space_.AllocateExternal(cid, size);
     if (old_space_.NeedsGarbageCollection()) {
       CollectAllGarbage();
     }
@@ -152,9 +152,9 @@ void Heap::FreeExternal(intptr_t size, Space space) {
   }
 }
 
-void Heap::PromoteExternal(intptr_t size) {
+void Heap::PromoteExternal(intptr_t cid, intptr_t size) {
   new_space_.FreeExternal(size);
-  old_space_.AllocateExternal(size);
+  old_space_.AllocateExternal(cid, size);
 }
 
 bool Heap::Contains(uword addr) const {
@@ -361,10 +361,17 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 #endif
 
 void Heap::NotifyIdle(int64_t deadline) {
+  Thread* thread = Thread::Current();
   if (new_space_.ShouldPerformIdleScavenge(deadline)) {
-    Thread* thread = Thread::Current();
     TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
     CollectNewSpaceGarbage(thread, kIdle);
+  }
+  // Because we use a deadline instead of a timeout, we automatically take any
+  // time used up by a scavenge into account when deciding if we can complete
+  // a mark-sweep on time.
+  if (old_space_.ShouldPerformIdleMarkSweep(deadline)) {
+    TIMELINE_FUNCTION_GC_DURATION(thread, "IdleGC");
+    CollectOldSpaceGarbage(thread, kIdle);
   }
 }
 
@@ -401,7 +408,6 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
       EndNewSpaceGC();
     }
     if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
-      // Old collections should call the API callbacks.
       CollectOldSpaceGarbage(thread, kPromotion);
     }
   }
@@ -679,6 +685,30 @@ void Heap::SetWeakEntry(RawObject* raw_obj, WeakSelector sel, intptr_t val) {
   } else {
     ASSERT(raw_obj->IsOldObject());
     old_weak_tables_[sel]->SetValue(raw_obj, val);
+  }
+}
+
+void Heap::ForwardWeakEntries(RawObject* before_object,
+                              RawObject* after_object) {
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    WeakTable* before_table =
+        GetWeakTable(before_object->IsNewObject() ? Heap::kNew : Heap::kOld,
+                     static_cast<Heap::WeakSelector>(sel));
+    intptr_t entry = before_table->RemoveValue(before_object);
+    if (entry != 0) {
+      WeakTable* after_table =
+          GetWeakTable(after_object->IsNewObject() ? Heap::kNew : Heap::kOld,
+                       static_cast<Heap::WeakSelector>(sel));
+      after_table->SetValue(after_object, entry);
+    }
+  }
+}
+
+void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    WeakSelector selector = static_cast<Heap::WeakSelector>(sel);
+    GetWeakTable(Heap::kNew, selector)->Forward(visitor);
+    GetWeakTable(Heap::kOld, selector)->Forward(visitor);
   }
 }
 

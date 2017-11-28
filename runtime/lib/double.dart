@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 class _Double implements double {
   factory _Double.fromInteger(int value) native "Double_doubleFromInteger";
 
-  // TODO: Make a stared static method for hashCode and _identityHashCode
-  //       when semantics are corrected as described in:
-  //       https://github.com/dart-lang/sdk/issues/2884
-  int get hashCode => (isNaN || isInfinite) ? 0 : toInt();
-  int get _identityHashCode => (isNaN || isInfinite) ? 0 : toInt();
+  int get hashCode native "Double_hashCode";
+  int get _identityHashCode native "Double_hashCode";
 
   double operator +(num other) {
     return _add(other.toDouble());
@@ -56,8 +55,7 @@ class _Double implements double {
   double operator -() native "Double_flipSignBit";
 
   bool operator ==(other) {
-    if (!(other is num)) return false;
-    return _equal(other.toDouble());
+    return (other is num) && _equal(other.toDouble());
   }
 
   bool _equal(double other) native "Double_equal";
@@ -237,8 +235,8 @@ class _Double implements double {
     }
 
     if (isNaN) return "NaN";
-    if (this == double.INFINITY) return "Infinity";
-    if (this == -double.INFINITY) return "-Infinity";
+    if (this == double.infinity) return "Infinity";
+    if (this == -double.infinity) return "-Infinity";
 
     // The dart function prints the shortest representation when fractionDigits
     // equals null. The native function wants -1 instead.
@@ -266,8 +264,8 @@ class _Double implements double {
     }
 
     if (isNaN) return "NaN";
-    if (this == double.INFINITY) return "Infinity";
-    if (this == -double.INFINITY) return "-Infinity";
+    if (this == double.infinity) return "Infinity";
+    if (this == -double.infinity) return "-Infinity";
 
     return _toStringAsPrecision(precision);
   }

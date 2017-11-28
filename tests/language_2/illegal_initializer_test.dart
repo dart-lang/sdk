@@ -10,7 +10,7 @@ class A {
 class B extends A {
   B.c1()
       : super.foo
-  /* //# 01: compile-time error
+  /* //# 01: syntax error
         ()
   */ //# 01: continued
   ;
@@ -18,14 +18,14 @@ class B extends A {
   B.foo();
   B.c2()
       : this.foo
-  /* //# 02: compile-time error
+  /* //# 02: syntax error
         ()
   */ //# 02: continued
   ;
 
   B.c3()
       : super
-  /* //# 03: compile-time error
+  /* //# 03: syntax error
         ()
   */ //# 03: continued
   ;
@@ -33,7 +33,7 @@ class B extends A {
   B();
   B.c4()
       : this
-  /* //# 04: compile-time error
+  /* //# 04: syntax error
         ()
   */ //# 04: continued
   ;

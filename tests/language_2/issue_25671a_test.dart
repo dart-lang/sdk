@@ -19,5 +19,5 @@ class C extends A {
 
 main() {
   C c = new C();
-  Expect.throws(() => c.test(), (e) => e is NoSuchMethodError); //# 01: continued
+  Expect.throwsNoSuchMethodError(() => c.test()); //# 01: continued
 }

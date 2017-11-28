@@ -328,7 +328,7 @@ String _argumentsAsJson(Map arguments) {
     // Fast path no arguments. Avoid calling JSON.encode.
     return '{}';
   }
-  return JSON.encode(arguments);
+  return json.encode(arguments);
 }
 
 /// Returns true if the Dart Timeline stream is enabled.

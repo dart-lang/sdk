@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
 import 'dart:typed_data';
-import 'package:test/test.dart';
+import 'package:expect/minitest.dart';
 
 /**
  * Verifies that [actual] has the same graph structure as [expected].
@@ -89,7 +89,8 @@ verifyGraph(expected, actual) {
     }
 
     if (expected is List) {
-      expect(actual, isList, reason: message(path, '$actual is List'));
+      expect(actual, predicate((v) => v is List),
+          reason: message(path, '$actual is List'));
       expect(actual.length, expected.length,
           reason: message(path, 'different list lengths'));
       for (var i = 0; i < expected.length; i++) {
@@ -99,7 +100,8 @@ verifyGraph(expected, actual) {
     }
 
     if (expected is Map) {
-      expect(actual, isMap, reason: message(path, '$actual is Map'));
+      expect(actual, predicate((v) => v is Map),
+          reason: message(path, '$actual is Map'));
       for (var key in expected.keys) {
         if (!actual.containsKey(key)) {
           expect(false, isTrue, reason: message(path, 'missing key "$key"'));

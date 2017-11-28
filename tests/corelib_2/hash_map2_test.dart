@@ -20,8 +20,8 @@ testMap(Map newMap(), Map newMapFrom(Map map)) {
     return map;
   }
 
-  bool odd(int n) => (n & 1) == 1;
-  bool even(int n) => (n & 1) == 0;
+  bool odd(Object n) => ((n as int) & 1) == 1;
+  bool even(Object n) => ((n as int) & 1) == 0;
   void addAll(Map toMap, Map fromMap) {
     fromMap.forEach((k, v) {
       toMap[k] = v;

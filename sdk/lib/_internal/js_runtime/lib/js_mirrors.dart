@@ -1296,7 +1296,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
  * ClassMirror for generic classes where the type parameters are bound.
  *
  * [typeArguments] will return a list of the type arguments, in contrast
- * to JsCLassMirror that returns an empty list since it represents original
+ * to JsClassMirror that returns an empty list since it represents original
  * declarations and classes that are not generic.
  */
 class JsTypeBoundClassMirror extends JsDeclarationMirror

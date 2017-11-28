@@ -19,6 +19,7 @@
 #include "bin/loader.h"
 #include "bin/log.h"
 #include "bin/options.h"
+#include "bin/platform.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
@@ -454,6 +455,9 @@ static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
   if (DartUtils::IsDartIOLibURL(url)) {
     return Builtin::kIOLibrary;
   }
+  if (DartUtils::IsDartHttpLibURL(url)) {
+    return Builtin::kHttpLibrary;
+  }
   return Builtin::kInvalidLibrary;
 }
 
@@ -650,9 +654,16 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (libraryBuiltinId != Builtin::kInvalidLibrary) {
     // Special case for parting sources of a builtin library.
     if (tag == Dart_kSourceTag) {
-      return Dart_LoadSource(library, url, Dart_Null(),
-                             Builtin::PartSource(libraryBuiltinId, url_string),
-                             0, 0);
+      intptr_t len = snprintf(NULL, 0, "%s/%s", library_url_string, url_string);
+      char* patch_filename = reinterpret_cast<char*>(malloc(len + 1));
+      snprintf(patch_filename, len + 1, "%s/%s", library_url_string,
+               url_string);
+      Dart_Handle prefixed_url = Dart_NewStringFromCString(patch_filename);
+      Dart_Handle result = Dart_LoadSource(
+          library, prefixed_url, Dart_Null(),
+          Builtin::PartSource(libraryBuiltinId, patch_filename), 0, 0);
+      free(patch_filename);
+      return result;
     }
     ASSERT(tag == Dart_kImportTag);
     return DartUtils::NewError("Unable to import '%s' ", url_string);
@@ -749,8 +760,7 @@ static void PrintUsage() {
 "                                                                            \n"
 " To create an AOT application snapshot as assembly suitable for compilation \n"
 " as a static or dynamic library:                                            \n"
-" mmap:                                                                      \n"
-"   --snapshot_kind=app-aot-blobs                                            \n"
+"   --snapshot_kind=app-aot-assembly                                         \n"
 "   --assembly=<output-file>                                                 \n"
 "   {--embedder_entry_points_manifest=<input-file>}                          \n"
 "   [--obfuscate]                                                            \n"
@@ -1386,6 +1396,10 @@ int main(int argc, char** argv) {
     return kErrorExitCode;
   }
 
+  if (!Platform::Initialize()) {
+    Log::PrintErr("Initialization failed\n");
+    return kErrorExitCode;
+  }
   Thread::InitOnce();
   Loader::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();

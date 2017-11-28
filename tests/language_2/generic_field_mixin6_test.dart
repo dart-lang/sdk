@@ -23,10 +23,6 @@ main() {
   new C2();
 
   // type error: 0 is not a string
-  Expect.throws(() {
-    new C1<String>();
-  }, (e) => e is TypeError);
-  Expect.throws(() {
-    new C3();
-  }, (e) => e is TypeError);
+  Expect.throwsTypeError(() => new C1<String>());
+  Expect.throws(() => new C3());
 }

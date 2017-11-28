@@ -9,7 +9,6 @@ import '../common_elements.dart' show CommonElements;
 import '../constants/values.dart' show PrimitiveConstantValue;
 import '../elements/entities.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
-import '../tree/tree.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart'
     show

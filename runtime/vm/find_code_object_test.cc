@@ -141,7 +141,7 @@ ISOLATE_UNIT_TEST_CASE(FindCodeObject) {
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.PayloadStart() + 16;
-  EXPECT(code.Size() > (PageSpace::kPageSizeInWords << kWordSizeLog2));
+  EXPECT(code.Size() > kPageSize);
   EXPECT(Code::LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
   pc = code.PayloadStart() + (1 * MB);

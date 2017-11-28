@@ -23,7 +23,7 @@ import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'common_elements.dart' show CommonElements, ElementEnvironment;
-import 'deferred_load.dart' show DeferredLoadTask;
+import 'deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'diagnostics/invariant.dart' show REPORT_EXCESS_RESOLUTION;
@@ -89,6 +89,8 @@ abstract class Compiler {
   BackendStrategy backendStrategy;
   CompilerDiagnosticReporter _reporter;
   CompilerResolution _resolution;
+  Map<Entity, WorldImpact> _impactCache;
+  ImpactCacheDeleter _impactCacheDeleter;
   ParsingContext _parsingContext;
 
   ImpactStrategy impactStrategy = const ImpactStrategy();
@@ -122,6 +124,8 @@ abstract class Compiler {
 
   DiagnosticReporter get reporter => _reporter;
   Resolution get resolution => _resolution;
+  Map<Entity, WorldImpact> get impactCache => _impactCache;
+  ImpactCacheDeleter get impactCacheDeleter => _impactCacheDeleter;
   ParsingContext get parsingContext => _parsingContext;
 
   // TODO(zarah): Remove this map and incorporate compile-time errors
@@ -192,7 +196,14 @@ abstract class Compiler {
     backendStrategy = options.useKernel
         ? new KernelBackendStrategy(this)
         : new ElementBackendStrategy(this);
-    _resolution = createResolution();
+    if (options.useKernel) {
+      _impactCache = <Entity, WorldImpact>{};
+      _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
+    } else {
+      _resolution = createResolution();
+      _impactCache = _resolution._worldImpactCache;
+      _impactCacheDeleter = _resolution;
+    }
 
     if (options.verbose) {
       progress = new ProgressImpl(_reporter);
@@ -224,7 +235,7 @@ abstract class Compiler {
       checker = new TypeCheckerTask(this),
       globalInference = new GlobalTypeInferenceTask(this),
       constants = backend.constantCompilerTask,
-      deferredLoadTask = new DeferredLoadTask(this),
+      deferredLoadTask = frontendStrategy.createDeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       // [enqueuer] is created earlier because it contains the resolution world
       // objects needed by other tasks.
@@ -575,8 +586,7 @@ abstract class Compiler {
         _reporter.reportSuppressedMessagesSummary();
 
         if (compilationFailed) {
-          if (!options.generateCodeWithCompileTimeErrors ||
-              options.useKernelInSsa) {
+          if (!options.generateCodeWithCompileTimeErrors) {
             return;
           }
           if (mainFunction == null) return;
@@ -606,10 +616,9 @@ abstract class Compiler {
         reporter.log('Inferring types...');
         globalInference.runGlobalTypeInference(
             mainFunction, closedWorld, closedWorldRefiner);
+        closedWorldRefiner.computeSideEffects();
 
         if (stopAfterTypeInference) return;
-
-        backend.onTypeInferenceComplete(globalInference.results);
 
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
@@ -656,7 +665,8 @@ abstract class Compiler {
     // require the information computed in [world.closeWorld].)
     backend.onResolutionClosedWorld(closedWorld, closedWorldRefiner);
 
-    deferredLoadTask.onResolutionComplete(mainFunction, closedWorld);
+    OutputUnitData result = deferredLoadTask.run(mainFunction, closedWorld);
+    backend.onDeferredLoadComplete(result);
 
     // TODO(johnniwinther): Move this after rti computation but before
     // reflection members computation, and (re-)close the world afterwards.
@@ -895,11 +905,11 @@ abstract class Compiler {
   ///
   /// If [assumeInUserCode] is `true`, [element] is assumed to be in user code
   /// if no entrypoints have been set.
-  bool inUserCode(Element element, {bool assumeInUserCode: false}) {
-    if (element == null) return false;
+  bool inUserCode(Entity element, {bool assumeInUserCode: false}) {
+    Uri libraryUri = _uriFromElement(element);
+    if (libraryUri == null) return false;
     Iterable<CodeLocation> userCodeLocations =
         computeUserCodeLocations(assumeInUserCode: assumeInUserCode);
-    Uri libraryUri = element.library.canonicalUri;
     return userCodeLocations.any(
         (CodeLocation codeLocation) => codeLocation.inSameLocation(libraryUri));
   }
@@ -926,9 +936,9 @@ abstract class Compiler {
   /// For a package library with canonical URI 'package:foo/bar/baz.dart' the
   /// return URI is 'package:foo'. For non-package libraries the returned URI is
   /// the canonical URI of the library itself.
-  Uri getCanonicalUri(Element element) {
-    if (element == null) return null;
-    Uri libraryUri = element.library.canonicalUri;
+  Uri getCanonicalUri(Entity element) {
+    Uri libraryUri = _uriFromElement(element);
+    if (libraryUri == null) return null;
     if (libraryUri.scheme == 'package') {
       int slashPos = libraryUri.path.indexOf('/');
       if (slashPos != -1) {
@@ -937,6 +947,19 @@ abstract class Compiler {
       }
     }
     return libraryUri;
+  }
+
+  Uri _uriFromElement(Entity element) {
+    if (element is LibraryEntity) {
+      return element.canonicalUri;
+    } else if (element is ClassEntity) {
+      return element.library.canonicalUri;
+    } else if (element is MemberEntity) {
+      return element.library.canonicalUri;
+    } else if (element is Element) {
+      return element.library.canonicalUri;
+    }
+    return null;
   }
 
   /// Returns [true] if a compile-time error has been reported for element.
@@ -1046,7 +1069,7 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
       switch (kind) {
         case api.Diagnostic.WARNING:
         case api.Diagnostic.HINT:
-          Element element = elementFromSpannable(message.spannable);
+          Entity element = elementFromSpannable(message.spannable);
           if (!compiler.inUserCode(element, assumeInUserCode: true)) {
             Uri uri = compiler.getCanonicalUri(element);
             if (options.showPackageWarningsFor(uri)) {
@@ -1213,9 +1236,9 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 
   /// Finds the approximate [Element] for [node]. [currentElement] is used as
   /// the default value.
-  Element elementFromSpannable(Spannable node) {
-    Element element;
-    if (node is Element) {
+  Entity elementFromSpannable(Spannable node) {
+    Entity element;
+    if (node is Entity) {
       element = node;
     } else if (node is HInstruction) {
       element = _elementFromHInstruction(node);
@@ -1289,11 +1312,11 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
 }
 
 // TODO(johnniwinther): Move [ResolverTask] here.
-class CompilerResolution implements Resolution {
+class CompilerResolution implements Resolution, ImpactCacheDeleter {
   final Compiler _compiler;
   final Map<Element, ResolutionImpact> _resolutionImpactCache =
       <Element, ResolutionImpact>{};
-  final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
+  final Map<Entity, WorldImpact> _worldImpactCache = <Entity, WorldImpact>{};
   bool retainCachesForTesting = false;
   Types _types;
 
@@ -1345,11 +1368,6 @@ class CompilerResolution implements Resolution {
 
   @override
   bool get wasProxyConstantComputedTestingOnly => _proxyConstant != null;
-
-  @override
-  void registerClass(ClassElement cls) {
-    enqueuer.worldBuilder.registerClass(cls);
-  }
 
   @override
   void resolveClass(ClassElement cls) {
@@ -1516,7 +1534,7 @@ class CompilerResolution implements Resolution {
   }
 
   @override
-  void uncacheWorldImpact(Element element) {
+  void uncacheWorldImpact(covariant Element element) {
     assert(element.isDeclaration,
         failedAt(element, "Element $element must be the declaration."));
     if (retainCachesForTesting) return;
@@ -1562,6 +1580,28 @@ class CompilerResolution implements Resolution {
           .getConstantValue(resolver.constantCompiler.compileConstant(field));
     }
     return _proxyConstant == value;
+  }
+
+  @override
+  void registerClass(ClassEntity cls) {
+    enqueuer.worldBuilder.registerClass(cls);
+  }
+}
+
+class _MapImpactCacheDeleter implements ImpactCacheDeleter {
+  final Map<Entity, WorldImpact> _impactCache;
+  _MapImpactCacheDeleter(this._impactCache);
+
+  bool retainCachesForTesting = false;
+
+  void uncacheWorldImpact(Entity element) {
+    if (retainCachesForTesting) return;
+    _impactCache.remove(element);
+  }
+
+  void emptyCache() {
+    if (retainCachesForTesting) return;
+    _impactCache.clear();
   }
 }
 

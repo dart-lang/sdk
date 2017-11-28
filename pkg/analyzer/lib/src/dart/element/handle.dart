@@ -478,9 +478,6 @@ abstract class ExecutableElementHandle extends ElementHandle
       super.actualElement as ExecutableElement;
 
   @override
-  List<FunctionElement> get functions => actualElement.functions;
-
-  @override
   bool get hasImplicitReturnType => actualElement.hasImplicitReturnType;
 
   @override

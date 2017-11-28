@@ -74,6 +74,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         visiting_old_object_(NULL) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
+    ASSERT(Utils::IsAligned(first, sizeof(*first)));
+    ASSERT(Utils::IsAligned(last, sizeof(*last)));
     if (FLAG_verify_gc_contains) {
       ASSERT((visiting_old_object_ != NULL) ||
              scavenger_->Contains(reinterpret_cast<uword>(first)) ||
@@ -192,7 +194,9 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
   ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
-      : HandleVisitor(thread), scavenger_(scavenger) {
+      : HandleVisitor(thread),
+        scavenger_(scavenger),
+        class_table_(thread->isolate()->class_table()) {
     ASSERT(scavenger->heap_->isolate() == thread->isolate());
   }
 
@@ -204,11 +208,21 @@ class ScavengerWeakVisitor : public HandleVisitor {
       handle->UpdateUnreachable(thread()->isolate());
     } else {
       handle->UpdateRelocated(thread()->isolate());
+#ifndef PRODUCT
+      intptr_t cid = (*p)->GetClassIdMayBeSmi();
+      intptr_t size = handle->external_size();
+      if ((*p)->IsSmiOrOldObject()) {
+        class_table_->UpdateLiveOldExternal(cid, size);
+      } else {
+        class_table_->UpdateLiveNewExternal(cid, size);
+      }
+#endif  // !PRODUCT
     }
   }
 
  private:
   Scavenger* scavenger_;
+  ClassTable* class_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -275,17 +289,17 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words, const char* name) {
     return new SemiSpace(NULL);
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
-    VirtualMemory* reserved = VirtualMemory::Reserve(size_in_bytes);
     const bool kExecutable = false;
-    if ((reserved == NULL) || !reserved->Commit(kExecutable, name)) {
+    VirtualMemory* memory =
+        VirtualMemory::Allocate(size_in_bytes, kExecutable, name);
+    if (memory == NULL) {
       // TODO(koda): If cache_ is not empty, we could try to delete it.
-      delete reserved;
       return NULL;
     }
 #if defined(DEBUG)
-    memset(reserved->address(), Heap::kZapByte, size_in_bytes);
+    memset(memory->address(), Heap::kZapByte, size_in_bytes);
 #endif  // defined(DEBUG)
-    return new SemiSpace(reserved);
+    return new SemiSpace(memory);
   }
 }
 
@@ -313,6 +327,12 @@ void SemiSpace::WriteProtect(bool read_only) {
   }
 }
 
+// The initial estimate of how many words we can scavenge per microsecond (usage
+// before / scavenge time). This is a conservative value observed running
+// Flutter on a Nexus 4. After the first scavenge, we instead use a value based
+// on the device's actual speed.
+static const intptr_t kConservativeInitialScavengeSpeed = 40;
+
 Scavenger::Scavenger(Heap* heap,
                      intptr_t max_semi_capacity_in_words,
                      uword object_alignment)
@@ -323,7 +343,7 @@ Scavenger::Scavenger(Heap* heap,
       delayed_weak_properties_(NULL),
       gc_time_micros_(0),
       collections_(0),
-      scavenge_words_per_micro_(400),
+      scavenge_words_per_micro_(kConservativeInitialScavengeSpeed),
       idle_scavenge_threshold_in_words_(0),
       external_size_(0),
       failed_to_promote_(false) {
@@ -451,7 +471,7 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   // Update amount of new-space we must allocate before performing an idle
   // scavenge. This is based on the amount of work we expect to be able to
   // complete in a typical idle period.
-  intptr_t average_idle_task_micros = 4000;
+  intptr_t average_idle_task_micros = 6000;
   idle_scavenge_threshold_in_words_ =
       scavenge_words_per_micro_ * average_idle_task_micros;
   // Even if the scavenge speed is slow, make sure we don't scavenge too
@@ -490,6 +510,10 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
 }
 
 bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
+  // To make a consistent decision, we should not yeild for a safepoint in the
+  // middle of deciding whether to perform an idle GC.
+  NoSafepointScope no_safepoint;
+
   // TODO(rmacnak): Investigate collecting a history of idle period durations.
   intptr_t used_in_words = UsedInWords();
   if (used_in_words < idle_scavenge_threshold_in_words_) {
@@ -515,11 +539,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     total_count += count;
     while (!pending->IsEmpty()) {
       RawObject* raw_object = pending->Pop();
-      if (raw_object->IsForwardingCorpse()) {
-        // A source object in a become was a remembered object, but we do
-        // not visit the store buffer during become to remove it.
-        continue;
-      }
+      ASSERT(!raw_object->IsForwardingCorpse());
       ASSERT(raw_object->IsRemembered());
       raw_object->ClearRememberedBit();
       visitor->VisitingOldObject(raw_object);
@@ -934,9 +954,11 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
 }
 #endif  // !PRODUCT
 
-void Scavenger::AllocateExternal(intptr_t size) {
+void Scavenger::AllocateExternal(intptr_t cid, intptr_t size) {
   ASSERT(size >= 0);
   external_size_ += size;
+  NOT_IN_PRODUCT(
+      heap_->isolate()->class_table()->UpdateAllocatedExternalNew(cid, size));
 }
 
 void Scavenger::FreeExternal(intptr_t size) {

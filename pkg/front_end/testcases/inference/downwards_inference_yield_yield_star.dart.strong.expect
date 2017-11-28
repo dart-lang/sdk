@@ -9,14 +9,14 @@ abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStre
 }
 static method foo() → asy::Stream<core::List<core::int>> async* {
   yield<core::int>[];
-  yield self::MyStream::•<dynamic>();
-  yield*<dynamic>[];
+  yield self::MyStream::•<dynamic>() as{TypeError} core::List<core::int>;
+  yield*<dynamic>[] as{TypeError} asy::Stream<core::List<core::int>>;
   yield* self::MyStream::•<core::List<core::int>>();
 }
 static method bar() → core::Iterable<core::Map<core::int, core::int>> sync* {
   yield<core::int, core::int>{};
-  yield core::List::_internal<dynamic>();
-  yield*<dynamic, dynamic>{};
+  yield core::List::_internal<dynamic>() as{TypeError} core::Map<core::int, core::int>;
+  yield*<dynamic, dynamic>{} as{TypeError} core::Iterable<core::Map<core::int, core::int>>;
   yield* core::List::_internal<core::Map<core::int, core::int>>();
 }
 static method main() → dynamic {}

@@ -1,8 +1,8 @@
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// VMOptions=--generic-method-syntax,--error-on-bad-type
+
+// VMOptions=--error-on-bad-type
 
 // Verify that function type parameter S can be resolved in bar's result type.
 // Verify that generic function types are not allowed as type arguments.
@@ -24,5 +24,5 @@ List<int Function
 void main() {
   var list = bar<int>();
   print(list[0].runtimeType);
-  Expect.equals(123, list[1]<int>(100, 23));
+  Expect.equals(123, list[1](100, 23));
 }

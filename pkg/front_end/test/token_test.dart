@@ -168,7 +168,6 @@ class Foo {
     for (Keyword keyword in Keyword.values) {
       var isBuiltIn = builtInKeywords.contains(keyword);
       expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
-      expect(keyword.isBuiltIn, isBuiltIn, reason: keyword.name);
     }
   }
 

@@ -11,7 +11,7 @@ returnStringOrNull() {
 }
 
 main() {
-  Expect.throws(() => 'foo' + returnStringOrNull(), (e) => e is ArgumentError);
+  Expect.throwsArgumentError(() => 'foo' + returnStringOrNull());
   Expect.throws(() => 'foo'.split(returnStringOrNull()),
       (e) => e is ArgumentError || e is NoSuchMethodError);
 }

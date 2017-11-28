@@ -7,7 +7,7 @@
 class StringInterpolation2NegativeTest {
   static testMain() {
     // Dollar followed by "/".
-    print('C;Y1;X4;K"$/Month"'); //# 01: compile-time error
+    print('C;Y1;X4;K"$/Month"'); //# 01: syntax error
   }
 }
 

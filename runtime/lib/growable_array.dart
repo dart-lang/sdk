@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "core_patch.dart";
+
 class _GrowableList<T> extends ListBase<T> {
   void insert(int index, T element) {
     if ((index < 0) || (index > length)) {
@@ -171,8 +173,9 @@ class _GrowableList<T> extends ListBase<T> {
           throw new ConcurrentModificationError(this);
         }
         this._setLength(newLen);
+        final ListBase<T> iterableAsList = iterable;
         for (int i = 0; i < iterLen; i++) {
-          this[len++] = iterable[i];
+          this[len++] = iterableAsList[i];
         }
         return;
       }
@@ -278,9 +281,8 @@ class _GrowableList<T> extends ListBase<T> {
     var codeUnitCount = 0;
     while (i < length) {
       final element = this[i];
-      final int cid = ClassID.getID(element);
       // While list contains one-byte strings.
-      if (ClassID.cidOneByteString == cid) {
+      if (element is _OneByteString) {
         codeUnitCount += element.length;
         i++;
         // Loop back while strings are one-byte strings.

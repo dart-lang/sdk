@@ -6,13 +6,15 @@ library kernel.target.vm;
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
-import '../transformations/continuation.dart' as cont;
-import '../transformations/erasure.dart';
-import '../transformations/insert_covariance_checks.dart';
-import '../transformations/insert_type_checks.dart';
-import '../transformations/mixin_full_resolution.dart' as mix;
-import '../transformations/sanitize_for_vm.dart';
-import '../transformations/treeshaker.dart';
+
+import '../transformations/mixin_full_resolution.dart' as transformMixins
+    show transformLibraries;
+import '../transformations/continuation.dart' as transformAsync
+    show transformLibraries;
+import '../transformations/precompiler.dart' as transformPrecompiler
+    show transformProgram;
+
+import 'implementation_option.dart' show VmOptions;
 import 'targets.dart';
 
 /// Specializes the kernel IR to the Dart VM.
@@ -21,17 +23,21 @@ class VmTarget extends Target {
 
   VmTarget(this.flags);
 
+  @override
   bool get strongMode => flags.strongMode;
 
   /// The VM patch files are not strong mode clean, so we adopt a hybrid mode
   /// where the SDK is internally unchecked, but trusted to satisfy the types
   /// declared on its interface.
+  @override
   bool get strongModeSdk => false;
 
+  @override
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to
   // `runtime/vm/object_store.h`.
+  @override
   List<String> get extraRequiredLibraries => const <String>[
         'dart:async',
         'dart:collection',
@@ -47,52 +53,34 @@ class VmTarget extends Target {
 
         'dart:profiler',
         'dart:typed_data',
+        'dart:vmservice_io',
+        'dart:_vmservice',
         'dart:_builtin',
         'dart:nativewrappers',
         'dart:io',
       ];
 
-  ClassHierarchy _hierarchy;
-
+  @override
   void performModularTransformationsOnLibraries(
       CoreTypes coreTypes, ClassHierarchy hierarchy, List<Library> libraries,
       {void logger(String msg)}) {
-    var mixins = new mix.MixinFullResolution(this, coreTypes, hierarchy)
-      ..transform(libraries);
+    transformMixins.transformLibraries(this, coreTypes, hierarchy, libraries,
+        doSuperResolution: false /* resolution is done in Dart VM */);
+    logger?.call("Transformed mixin applications");
 
-    _hierarchy = mixins.hierarchy;
+    // TODO(kmillikin): Make this run on a per-method basis.
+    transformAsync.transformLibraries(coreTypes, libraries);
+    logger?.call("Transformed async methods");
   }
 
+  @override
   void performGlobalTransformations(CoreTypes coreTypes, Program program,
       {void logger(String msg)}) {
-    if (strongMode) {
-      new InsertTypeChecks(coreTypes, _hierarchy).transformProgram(program);
-      new InsertCovarianceChecks(coreTypes, _hierarchy)
-          .transformProgram(program);
+    if (strongMode &&
+        (flags.implementationOptions != null) &&
+        flags.implementationOptions.contains(VmOptions.strongAOT)) {
+      transformPrecompiler.transformProgram(coreTypes, program);
     }
-
-    if (flags.treeShake) {
-      performTreeShaking(coreTypes, program);
-    }
-
-    cont.transformProgram(coreTypes, program);
-
-    if (strongMode) {
-      performErasure(program);
-    }
-
-    new SanitizeForVM().transform(program);
-  }
-
-  void performTreeShaking(CoreTypes coreTypes, Program program) {
-    new TreeShaker(coreTypes, _hierarchy, program,
-            strongMode: strongMode, programRoots: flags.programRoots)
-        .transform(program);
-    _hierarchy = null; // Hierarchy must be recomputed.
-  }
-
-  void performErasure(Program program) {
-    new Erasure().transform(program);
   }
 
   @override
@@ -100,48 +88,36 @@ class VmTarget extends Target {
       String name, Arguments arguments, int offset, bool isSuper) {
     // See [_InvocationMirror]
     // (../../../../runtime/lib/invocation_mirror_patch.dart).
-    // The _InvocationMirror constructor takes the following arguments:
+    // The _InvocationMirror._withoutType constructor takes the following arguments:
     // * Method name (a string).
-    // * An arguments descriptor - a list consisting of:
-    //   - length of passed type argument vector, 0 if none passed.
-    //   - number of arguments (including receiver).
-    //   - number of positional arguments (including receiver).
-    //   - pairs (2 entries in the list) of
-    //     * named arguments name.
-    //     * index of named argument in arguments list.
-    // * A list of arguments, where the first ones are the positional arguments.
+    // * List of type arguments.
+    // * List of positional arguments.
+    // * List of named arguments.
     // * Whether it's a super invocation or not.
-
-    int typeArgsLen = 0; // TODO(regis): Type arguments of generic function.
-    int numPositionalArguments = arguments.positional.length;
-    numPositionalArguments++; // Include the receiver.
-    int numArguments = numPositionalArguments + arguments.named.length;
-    List<Expression> argumentsDescriptor = [
-      new IntLiteral(typeArgsLen)..fileOffset = offset,
-      new IntLiteral(numArguments)..fileOffset = offset,
-      new IntLiteral(numPositionalArguments)..fileOffset = offset,
-    ];
-
-    List<Expression> argumentsList = <Expression>[receiver];
-    argumentsList.addAll(arguments.positional);
-
-    for (NamedExpression argument in arguments.named) {
-      argumentsDescriptor.add(
-          new StringLiteral(argument.name)..fileOffset = argument.fileOffset);
-      argumentsDescriptor.add(new IntLiteral(argumentsList.length)
-        ..fileOffset = argument.fileOffset);
-      argumentsList.add(argument.value);
-    }
-
-    Arguments constructorArguments = new Arguments([
-      new StringLiteral(name)..fileOffset = offset,
-      _fixedLengthList(argumentsDescriptor, arguments.fileOffset),
-      _fixedLengthList(argumentsList, arguments.fileOffset),
-      new BoolLiteral(isSuper)..fileOffset = arguments.fileOffset,
-    ]);
-
     return new ConstructorInvocation(
-        coreTypes.invocationMirrorDefaultConstructor, constructorArguments)
+        coreTypes.invocationMirrorWithoutTypeConstructor,
+        new Arguments(<Expression>[
+          new StringLiteral(name)..fileOffset = offset,
+          _fixedLengthList(
+              arguments.types.map((t) => new TypeLiteral(t)).toList(),
+              arguments.fileOffset),
+          _fixedLengthList(arguments.positional, arguments.fileOffset),
+          new StaticInvocation(
+              coreTypes.mapUnmodifiable,
+              new Arguments([
+                new MapLiteral(new List<MapEntry>.from(
+                    arguments.named.map((NamedExpression arg) {
+                  return new MapEntry(
+                      new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
+                      arg.value)
+                    ..fileOffset = arg.fileOffset;
+                })))
+                  ..isConst = (arguments.named.length == 0)
+                  ..fileOffset = arguments.fileOffset
+              ]))
+            ..fileOffset = arguments.fileOffset,
+          new BoolLiteral(isSuper)..fileOffset = arguments.fileOffset
+        ]))
       ..fileOffset = offset;
   }
 
@@ -170,21 +146,37 @@ class VmTarget extends Target {
         isConstructor: isConstructor,
         isTopLevel: isTopLevel);
     return new ConstructorInvocation(
-        coreTypes.noSuchMethodErrorImplementationConstructor,
+        coreTypes.noSuchMethodErrorDefaultConstructor,
         new Arguments(<Expression>[
           receiver,
-          new SymbolLiteral(name)..fileOffset = offset,
-          new IntLiteral(type)..fileOffset = offset,
-          _fixedLengthList(arguments.positional, arguments.fileOffset),
-          new MapLiteral(new List<MapEntry>.from(
-              arguments.named.map((NamedExpression arg) {
-            return new MapEntry(
-                new SymbolLiteral(arg.name)..fileOffset = arg.fileOffset,
-                arg.value)
-              ..fileOffset = arg.fileOffset;
-          })))
-            ..fileOffset = arguments.fileOffset,
-          new NullLiteral()
+          new ConstructorInvocation(
+              coreTypes.invocationMirrorWithTypeConstructor,
+              new Arguments(<Expression>[
+                new SymbolLiteral(name)..fileOffset = offset,
+                new IntLiteral(type)..fileOffset = offset,
+                _fixedLengthList(
+                    arguments.types.map((t) => new TypeLiteral(t)).toList(),
+                    arguments.fileOffset),
+                _fixedLengthList(arguments.positional, arguments.fileOffset),
+                new StaticInvocation(
+                    coreTypes.mapUnmodifiable,
+                    new Arguments([
+                      new MapLiteral(new List<MapEntry>.from(
+                          arguments.named.map((NamedExpression arg) {
+                        return new MapEntry(
+                            new SymbolLiteral(arg.name)
+                              ..fileOffset = arg.fileOffset,
+                            arg.value)
+                          ..fileOffset = arg.fileOffset;
+                      })))
+                        ..isConst = (arguments.named.length == 0)
+                        ..fileOffset = arguments.fileOffset
+                    ], types: [
+                      new DynamicType(),
+                      new DynamicType()
+                    ]))
+                  ..fileOffset = offset
+              ]))
         ]));
   }
 
@@ -210,10 +202,10 @@ class VmTarget extends Target {
     const int _FIELD = 3;
     const int _LOCAL_VAR = 4;
     // ignore: UNUSED_LOCAL_VARIABLE
-    const int _TYPE_SHIFT = 0;
-    const int _TYPE_BITS = 3;
+    const int _KIND_SHIFT = 0;
+    const int _KIND_BITS = 3;
     // ignore: UNUSED_LOCAL_VARIABLE
-    const int _TYPE_MASK = (1 << _TYPE_BITS) - 1;
+    const int _KIND_MASK = (1 << _KIND_BITS) - 1;
 
     // These values, except _DYNAMIC and _SUPER, are only used when throwing
     // NoSuchMethodError for compile-time resolution failures.
@@ -222,10 +214,10 @@ class VmTarget extends Target {
     const int _STATIC = 2;
     const int _CONSTRUCTOR = 3;
     const int _TOP_LEVEL = 4;
-    const int _CALL_SHIFT = _TYPE_BITS;
-    const int _CALL_BITS = 3;
+    const int _LEVEL_SHIFT = _KIND_BITS;
+    const int _LEVEL_BITS = 3;
     // ignore: UNUSED_LOCAL_VARIABLE
-    const int _CALL_MASK = (1 << _CALL_BITS) - 1;
+    const int _LEVEL_MASK = (1 << _LEVEL_BITS) - 1;
 
     int type = -1;
     // For convenience, [isGetter] and [isSetter] takes precedence over
@@ -243,15 +235,15 @@ class VmTarget extends Target {
     }
 
     if (isDynamic) {
-      type |= (_DYNAMIC << _CALL_SHIFT);
+      type |= (_DYNAMIC << _LEVEL_SHIFT);
     } else if (isSuper) {
-      type |= (_SUPER << _CALL_SHIFT);
+      type |= (_SUPER << _LEVEL_SHIFT);
     } else if (isStatic) {
-      type |= (_STATIC << _CALL_SHIFT);
+      type |= (_STATIC << _LEVEL_SHIFT);
     } else if (isConstructor) {
-      type |= (_CONSTRUCTOR << _CALL_SHIFT);
+      type |= (_CONSTRUCTOR << _LEVEL_SHIFT);
     } else if (isTopLevel) {
-      type |= (_TOP_LEVEL << _CALL_SHIFT);
+      type |= (_TOP_LEVEL << _LEVEL_SHIFT);
     }
 
     return type;
@@ -262,6 +254,12 @@ class VmTarget extends Target {
     // list first, and then populate it. That would create fewer objects. But as
     // this is currently only used in (statically resolved) no-such-method
     // handling, the current approach seems sufficient.
+
+    // The 0-element list must be exactly 'const[]'.
+    if (elements.length == 0) {
+      return new ListLiteral([])..isConst = true;
+    }
+
     return new MethodInvocation(
         new ListLiteral(elements)..fileOffset = offset,
         new Name("toList"),

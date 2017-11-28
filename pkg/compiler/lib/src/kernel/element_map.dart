@@ -81,7 +81,8 @@ abstract class KernelToElementMap {
   /// The IR doesn't always resolve super accesses to the corresponding
   /// [target]. If not, the target is computed using [name] and [setter] from
   /// the enclosing class of [context].
-  MemberEntity getSuperMember(ir.Member context, ir.Name name, ir.Member target,
+  MemberEntity getSuperMember(
+      MemberEntity context, ir.Name name, ir.Member target,
       {bool setter: false});
 
   /// Returns the `noSuchMethod` [FunctionEntity] call from a
@@ -172,6 +173,15 @@ abstract class KernelToElementMapForImpact extends KernelToElementMap {
   /// Returns the [Local] corresponding to the [node]. The node must be either
   /// a [ir.FunctionDeclaration] or [ir.FunctionExpression].
   Local getLocalFunction(ir.TreeNode node);
+
+  /// Returns the [ir.Library] corresponding to [library].
+  ir.Library getLibraryNode(LibraryEntity library);
+
+  /// Returns the definition information for [member].
+  MemberDefinition getMemberDefinition(covariant MemberEntity member);
+
+  /// Return the [ImportEntity] corresponding to [node].
+  ImportEntity getImport(ir.LibraryDependency node);
 }
 
 /// Interface that translates between Kernel IR nodes and entities used for

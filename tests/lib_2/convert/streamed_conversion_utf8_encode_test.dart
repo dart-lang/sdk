@@ -22,7 +22,7 @@ Stream<List<int>> encode(String string, int chunkSize) {
     }
     controller.close();
   });
-  return controller.stream.transform(UTF8.encoder);
+  return controller.stream.transform(utf8.encoder);
 }
 
 void testUnpaused(List<int> expected, Stream stream) {
@@ -42,7 +42,7 @@ void testWithPauses(List<int> expected, Stream stream) {
   var sub;
   sub = stream.listen((x) {
     combined.addAll(x);
-    sub.pause(new Future.delayed(Duration.ZERO));
+    sub.pause(new Future.delayed(Duration.zero));
   }, onDone: () {
     Expect.listEquals(expected, combined);
     asyncEnd();

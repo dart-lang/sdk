@@ -21,11 +21,14 @@ void testListFunctions(list, first, last, toElementType) {
   }
 
   // Typed lists are fixed length.
-  Expect.throws(() => list.add(0), (e) => e is UnsupportedError);
-  Expect.throws(() => list.addAll([1, 2]), (e) => e is UnsupportedError);
+  Expect.throws(() => list.add(toElementType(0)), (e) => e is UnsupportedError);
+  Expect.throws(() => list.addAll([toElementType(1), toElementType(2)]),
+      (e) => e is UnsupportedError);
   Expect.throws(() => list.clear(), (e) => e is UnsupportedError);
-  Expect.throws(() => list.insert(0, 0), (e) => e is UnsupportedError);
-  Expect.throws(() => list.insertAll(0, [1, 2]), (e) => e is UnsupportedError);
+  Expect.throws(
+      () => list.insert(0, toElementType(0)), (e) => e is UnsupportedError);
+  Expect.throws(() => list.insertAll(0, [toElementType(1), toElementType(2)]),
+      (e) => e is UnsupportedError);
   Expect.throws(() => list.remove(0), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeAt(0), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeLast(), (e) => e is UnsupportedError);
@@ -56,7 +59,7 @@ void testListFunctions(list, first, last, toElementType) {
 
   Expect.equals(0, list.lastIndexOf(first));
   Expect.equals(list.length - 1, list.lastIndexOf(last));
-  Expect.equals(-1, list.lastIndexOf(-1));
+  Expect.equals(-1, list.lastIndexOf(toElementType(-1)));
 
   var copy = list.toList();
   list.fillRange(1, list.length - 1, toElementType(0));
@@ -114,7 +117,7 @@ void testListFunctions(list, first, last, toElementType) {
   Expect.throws(() => list.sublist(1, 0), (e) => e is RangeError);
 }
 
-void emptyChecks(list) {
+void emptyChecks(list, toElementType) {
   assert(list.length == 0);
 
   Expect.isTrue(list.isEmpty);
@@ -123,11 +126,14 @@ void emptyChecks(list) {
   Expect.listEquals(list, reversed.toList().reversed.toList());
 
   // Typed lists are fixed length. Even when they are empty.
-  Expect.throws(() => list.add(0), (e) => e is UnsupportedError);
-  Expect.throws(() => list.addAll([1, 2]), (e) => e is UnsupportedError);
+  Expect.throws(() => list.add(toElementType(0)), (e) => e is UnsupportedError);
+  Expect.throws(() => list.addAll([toElementType(1), toElementType(2)]),
+      (e) => e is UnsupportedError);
   Expect.throws(() => list.clear(), (e) => e is UnsupportedError);
-  Expect.throws(() => list.insert(0, 0), (e) => e is UnsupportedError);
-  Expect.throws(() => list.insertAll(0, [1, 2]), (e) => e is UnsupportedError);
+  Expect.throws(
+      () => list.insert(0, toElementType(0)), (e) => e is UnsupportedError);
+  Expect.throws(() => list.insertAll(0, [toElementType(1), toElementType(2)]),
+      (e) => e is UnsupportedError);
   Expect.throws(() => list.remove(0), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeAt(0), (e) => e is UnsupportedError);
   Expect.throws(() => list.removeLast(), (e) => e is UnsupportedError);
@@ -148,14 +154,14 @@ void emptyChecks(list) {
   }
 
   Expect.listEquals(list, list.getRange(0, list.length).toList());
-  Expect.equals(-1, list.lastIndexOf(-1));
+  Expect.equals(-1, list.lastIndexOf(toElementType(-1)));
 
   var copy = list.toList();
   // Make sure we are allowed to call range-functions if they are 0..0.
   list.fillRange(0, 0);
   Expect.listEquals([], list.getRange(0, 0).toList());
 
-  list.setRange(0, 0, [1, 2]);
+  list.setRange(0, 0, [toElementType(1), toElementType(2)]);
 
   list.sort();
 
@@ -177,12 +183,12 @@ main() {
   testListFunctions(new Uint16List.fromList([3, 5, 9]), 3, 9, toInt);
   testListFunctions(new Uint32List.fromList([3, 5, 9]), 3, 9, toInt);
 
-  emptyChecks(new Float32List(0));
-  emptyChecks(new Float64List(0));
-  emptyChecks(new Int8List(0));
-  emptyChecks(new Int16List(0));
-  emptyChecks(new Int32List(0));
-  emptyChecks(new Uint8List(0));
-  emptyChecks(new Uint16List(0));
-  emptyChecks(new Uint32List(0));
+  emptyChecks(new Float32List(0), toDouble);
+  emptyChecks(new Float64List(0), toDouble);
+  emptyChecks(new Int8List(0), toInt);
+  emptyChecks(new Int16List(0), toInt);
+  emptyChecks(new Int32List(0), toInt);
+  emptyChecks(new Uint8List(0), toInt);
+  emptyChecks(new Uint16List(0), toInt);
+  emptyChecks(new Uint32List(0), toInt);
 }

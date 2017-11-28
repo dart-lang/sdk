@@ -10,15 +10,15 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../lib/src/analyzer/context.dart';
-import '../../lib/src/compiler/command.dart';
-import '../../lib/src/compiler/compiler.dart';
+import '../../lib/src/analyzer/command.dart';
+import '../../lib/src/analyzer/module_compiler.dart';
 import '../testing.dart' show repoDirectory, testDirectory;
 
 /// The `test/options` directory.
 final optionsDir = path.join(testDirectory, 'options');
 
 /// Summary file for testing.
-final sdkSummaryFile = path.join(repoDirectory, 'lib', 'sdk', 'ddc_sdk.sum');
+final sdkSummaryFile = path.join(repoDirectory, 'gen', 'sdk', 'ddc_sdk.sum');
 
 final sdkSummaryArgs = ['--$sdkSummaryPathOption', sdkSummaryFile];
 

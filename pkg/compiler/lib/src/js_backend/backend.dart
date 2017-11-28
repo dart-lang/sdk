@@ -11,12 +11,12 @@ import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/names.dart' show Uris;
 import '../common/resolution.dart' show Resolution, Target;
 import '../common/tasks.dart' show CompilerTask;
+import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../common_elements.dart' show CommonElements, ElementEnvironment;
-import '../deferred_load.dart' show DeferredLoadTask;
+import '../deferred_load.dart' show DeferredLoadTask, OutputUnitData;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/entities.dart';
@@ -31,13 +31,14 @@ import '../enqueue.dart'
         ResolutionEnqueuer,
         TreeShakingEnqueuerStrategy;
 import '../frontend_strategy.dart';
-import '../io/source_information.dart' show SourceInformationStrategy;
+import '../io/source_information.dart'
+    show SourceInformation, SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../js_model/elements.dart';
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
-import '../kernel/task.dart';
 import '../library_loader.dart' show LoadedLibraries;
 import '../native/native.dart' as native;
 import '../native/resolver.dart';
@@ -46,13 +47,15 @@ import '../tracer.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/class_hierarchy_builder.dart'
+    show ClassHierarchyBuilder, ClassQueries;
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart';
 import '../universe/world_impact.dart'
     show ImpactStrategy, ImpactUseCase, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld, ClosedWorldRefiner;
-import 'annotations.dart';
+import 'annotations.dart' as optimizerHints;
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'backend_usage.dart';
@@ -111,20 +114,23 @@ class FunctionInlineCache {
   ///
   /// For a [MethodElement] this means it must be the declaration element.
   bool checkFunction(FunctionEntity method) {
-    if (method is MethodElement) return method.isDeclaration;
-    return true;
+    if (method is MethodElement) {
+      return method.isDeclaration;
+    } else {
+      return '$method'.startsWith(jsElementPrefix);
+    }
   }
 
   /// Returns the current cache decision. This should only be used for testing.
   int getCurrentCacheDecisionForTesting(FunctionEntity element) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     return _cachedDecisions[element];
   }
 
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
   bool canInline(FunctionEntity element, {bool insideLoop}) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
@@ -180,7 +186,7 @@ class FunctionInlineCache {
   }
 
   void markAsInlinable(FunctionEntity element, {bool insideLoop}) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -236,7 +242,7 @@ class FunctionInlineCache {
   }
 
   void markAsNonInlinable(FunctionEntity element, {bool insideLoop: true}) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -295,7 +301,7 @@ class FunctionInlineCache {
   }
 
   void markAsMustInline(FunctionEntity element) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     _cachedDecisions[element] = _mustInline;
   }
 }
@@ -312,6 +318,7 @@ class JavaScriptBackend {
   static const String JS_BUILTIN = 'JS_BUILTIN';
   static const String JS_EMBEDDED_GLOBAL = 'JS_EMBEDDED_GLOBAL';
   static const String JS_INTERCEPTOR_CONSTANT = 'JS_INTERCEPTOR_CONSTANT';
+  static const String JS_STRING_CONCAT = 'JS_STRING_CONCAT';
 
   final Compiler compiler;
 
@@ -319,8 +326,6 @@ class JavaScriptBackend {
 
   /// Returns true if the backend supports reflection.
   bool get supportsReflection => emitter.supportsReflection;
-
-  final OptimizerHintsForTests optimizerHints;
 
   FunctionCompiler functionCompiler;
 
@@ -359,7 +364,6 @@ class JavaScriptBackend {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
     result.add(patchResolverTask);
-    result.add(kernelTask);
     return result;
   }
 
@@ -393,9 +397,6 @@ class JavaScriptBackend {
   /// Codegen support for computing reflectable elements.
   MirrorsCodegenAnalysis _mirrorsCodegenAnalysis;
 
-  /// Builds kernel representation for the program.
-  KernelTask kernelTask;
-
   /// The compiler task responsible for the compilation of constants for both
   /// the frontend and the backend.
   final JavaScriptConstantTask constantCompilerTask;
@@ -419,6 +420,8 @@ class JavaScriptBackend {
   OneShotInterceptorData _oneShotInterceptorData;
   BackendUsageBuilder _backendUsageBuilder;
   MirrorsDataImpl _mirrorsData;
+  OutputUnitData _outputUnitData;
+
   CheckedModeHelpers _checkedModeHelpers;
 
   final SuperMemberData superMemberData = new SuperMemberData();
@@ -434,12 +437,8 @@ class JavaScriptBackend {
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
       bool useMultiSourceInfo: false,
-      bool useNewSourceInfo: false,
-      bool useKernelInSsa: false})
-      : optimizerHints = new OptimizerHintsForTests(
-            compiler.frontendStrategy.elementEnvironment,
-            compiler.frontendStrategy.commonElements),
-        this.sourceInformationStrategy =
+      bool useNewSourceInfo: false})
+      : this.sourceInformationStrategy =
             compiler.backendStrategy.sourceInformationStrategy,
         constantCompilerTask = new JavaScriptConstantTask(compiler),
         _nativeDataResolver = new NativeDataResolverImpl(compiler) {
@@ -447,16 +446,15 @@ class JavaScriptBackend {
     _target = new JavaScriptBackendTarget(this);
     _mirrorsData = compiler.frontendStrategy.createMirrorsDataBuilder();
     _backendUsageBuilder = new BackendUsageBuilderImpl(commonElements);
-    _checkedModeHelpers = new CheckedModeHelpers(commonElements);
+    _checkedModeHelpers = new CheckedModeHelpers();
     emitter =
         new CodeEmitterTask(compiler, generateSourceMap, useStartupEmitter);
     jsInteropAnalysis = new JsInteropAnalysis(this);
     _mirrorsResolutionAnalysis =
         compiler.frontendStrategy.createMirrorsResolutionAnalysis(this);
 
-    noSuchMethodRegistry = new NoSuchMethodRegistry(
+    noSuchMethodRegistry = new NoSuchMethodRegistryImpl(
         commonElements, compiler.frontendStrategy.createNoSuchMethodResolver());
-    kernelTask = new KernelTask(compiler);
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = new SsaFunctionCompiler(
         this, compiler.measurer, sourceInformationStrategy);
@@ -470,6 +468,8 @@ class JavaScriptBackend {
   DiagnosticReporter get reporter => compiler.reporter;
 
   Resolution get resolution => compiler.resolution;
+
+  ImpactCacheDeleter get impactCacheDeleter => compiler.impactCacheDeleter;
 
   Target get target => _target;
 
@@ -505,6 +505,8 @@ class JavaScriptBackend {
   MirrorsData get mirrorsData => _mirrorsData;
 
   MirrorsDataBuilder get mirrorsDataBuilder => _mirrorsData;
+
+  OutputUnitData get outputUnitData => _outputUnitData;
 
   /// Resolution support for computing reflectable elements.
   MirrorsResolutionAnalysis get mirrorsResolutionAnalysis =>
@@ -603,9 +605,8 @@ class JavaScriptBackend {
     ClassEntity objectClass = frontendStrategy.commonElements.objectClass;
     frontendStrategy.elementEnvironment.forEachClassMember(objectClass,
         (_, MemberEntity member) {
-      if (member.isConstructor) return;
       MemberEntity interceptorMember = frontendStrategy.elementEnvironment
-          .lookupClassMember(interceptorClass, member.name);
+          .lookupLocalClassMember(interceptorClass, member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
       assert(
@@ -644,18 +645,14 @@ class JavaScriptBackend {
   /// Called when the closed world from resolution has been computed.
   void onResolutionClosedWorld(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
-    for (MemberEntity entity
-        in compiler.enqueuer.resolution.processedEntities) {
-      processAnnotations(closedWorld.elementEnvironment,
-          closedWorld.commonElements, entity, closedWorldRefiner);
-    }
+    processAnnotations(closedWorldRefiner);
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     mirrorsResolutionAnalysis.onResolutionComplete();
   }
 
-  void onTypeInferenceComplete(GlobalTypeInferenceResults results) {
-    noSuchMethodRegistry.onTypeInferenceComplete(results);
+  void onDeferredLoadComplete(OutputUnitData data) {
+    _outputUnitData = compiler.backendStrategy.convertOutputUnitData(data);
   }
 
   /// Called when resolving a call to a foreign function.
@@ -698,8 +695,7 @@ class JavaScriptBackend {
     NativeBasicData nativeBasicData = compiler.frontendStrategy.nativeBasicData;
     RuntimeTypesNeedBuilder rtiNeedBuilder =
         compiler.frontendStrategy.createRuntimeTypesNeedBuilder();
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     TypeVariableResolutionAnalysis typeVariableResolutionAnalysis =
         new TypeVariableResolutionAnalysis(
             compiler.frontendStrategy.elementEnvironment,
@@ -719,6 +715,9 @@ class JavaScriptBackend {
         commonElements,
         nativeBasicData,
         _backendUsageBuilder);
+    ClassQueries classQueries = compiler.frontendStrategy.createClassQueries();
+    ClassHierarchyBuilder classHierarchyBuilder =
+        new ClassHierarchyBuilder(commonElements, classQueries);
     impactTransformer = new JavaScriptImpactTransformer(
         compiler.options,
         elementEnvironment,
@@ -729,7 +728,8 @@ class JavaScriptBackend {
         _backendUsageBuilder,
         mirrorsDataBuilder,
         customElementsResolutionAnalysis,
-        rtiNeedBuilder);
+        rtiNeedBuilder,
+        classHierarchyBuilder);
     InterceptorDataBuilder interceptorDataBuilder =
         new InterceptorDataBuilderImpl(
             nativeBasicData, elementEnvironment, commonElements);
@@ -755,8 +755,7 @@ class JavaScriptBackend {
             mirrorsResolutionAnalysis,
             typeVariableResolutionAnalysis,
             _nativeResolutionEnqueuer,
-            compiler.deferredLoadTask,
-            kernelTask),
+            compiler.deferredLoadTask),
         compiler.frontendStrategy.createResolutionWorldBuilder(
             nativeBasicData,
             _nativeDataBuilder,
@@ -764,9 +763,15 @@ class JavaScriptBackend {
             _backendUsageBuilder,
             rtiNeedBuilder,
             _nativeResolutionEnqueuer,
-            const OpenWorldStrategy()),
+            noSuchMethodRegistry,
+            const OpenWorldStrategy(),
+            classHierarchyBuilder,
+            classQueries),
         compiler.frontendStrategy.createResolutionWorkItemBuilder(
-            nativeBasicData, _nativeDataBuilder, impactTransformer));
+            nativeBasicData,
+            _nativeDataBuilder,
+            impactTransformer,
+            compiler.impactCache));
   }
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
@@ -774,8 +779,7 @@ class JavaScriptBackend {
       CompilerTask task, Compiler compiler, ClosedWorld closedWorld) {
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, commonElements);
+    BackendImpacts impacts = new BackendImpacts(commonElements);
     _typeVariableCodegenAnalysis = new TypeVariableCodegenAnalysis(
         closedWorld.elementEnvironment, this, commonElements, mirrorsData);
     _mirrorsCodegenAnalysis = mirrorsResolutionAnalysis.close();
@@ -811,6 +815,9 @@ class JavaScriptBackend {
             nativeCodegenEnqueuer));
   }
 
+  static bool cacheCodegenImpactForTesting = false;
+  Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
+
   WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
     MemberEntity element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
@@ -840,6 +847,10 @@ class JavaScriptBackend {
       }
       generatedCode[element] = function;
     }
+    if (cacheCodegenImpactForTesting) {
+      codegenImpactsForTesting ??= <MemberEntity, WorldImpact>{};
+      codegenImpactsForTesting[element] = work.registry.worldImpact;
+    }
     WorldImpact worldImpact = _codegenImpactTransformer
         .transformCodegenImpact(work.registry.worldImpact);
     compiler.dumpInfoTask.registerImpact(element, worldImpact);
@@ -865,7 +876,7 @@ class JavaScriptBackend {
   /// Generates the output and returns the total size of the generated code.
   int assembleProgram(ClosedWorld closedWorld) {
     int programSize = emitter.assembleProgram(namer, closedWorld);
-    noSuchMethodRegistry.emitDiagnostic(reporter);
+    closedWorld.noSuchMethodData.emitDiagnostic(reporter);
     int totalMethodCount = generatedCode.length;
     // TODO(redemption): Support `preMirrorsMethodCount` for entities.
     if (mirrorsCodegenAnalysis.preMirrorsMethodCount != null &&
@@ -948,10 +959,6 @@ class JavaScriptBackend {
       assert(loadedLibraries.containsLibrary(Uris.dart_core));
       assert(loadedLibraries.containsLibrary(Uris.dart__interceptors));
       assert(loadedLibraries.containsLibrary(Uris.dart__js_helper));
-
-      // These methods are overwritten with generated versions.
-      inlineCache.markAsNonInlinable(commonElements.getInterceptorMethod,
-          insideLoop: true);
     }
   }
 
@@ -969,8 +976,7 @@ class JavaScriptBackend {
     emitter.createEmitter(namer, closedWorld, codegenWorldBuilder, sorter);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
-    BackendImpacts impacts =
-        new BackendImpacts(compiler.options, closedWorld.commonElements);
+    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
     _rti = new RuntimeTypesImpl(
         closedWorld.elementEnvironment, closedWorld.dartTypes);
     _codegenImpactTransformer = new CodegenImpactTransformer(
@@ -1016,7 +1022,19 @@ class JavaScriptBackend {
   /// Process backend specific annotations.
   // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
   // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
-  void processAnnotations(
+  void processAnnotations(ClosedWorldRefiner closedWorldRefiner) {
+    ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
+    // These methods are overwritten with generated versions.
+    inlineCache.markAsNonInlinable(
+        closedWorld.commonElements.getInterceptorMethod,
+        insideLoop: true);
+    for (MemberEntity entity in closedWorld.processedMembers) {
+      _processMemberAnnotations(closedWorld.elementEnvironment,
+          closedWorld.commonElements, entity, closedWorldRefiner);
+    }
+  }
+
+  void _processMemberAnnotations(
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       MemberEntity element,
@@ -1027,11 +1045,27 @@ class JavaScriptBackend {
       return;
     }
 
+    bool hasNoInline = false;
+    bool hasForceInline = false;
+
     if (element.isFunction || element.isConstructor) {
-      if (optimizerHints.noInline(element)) {
+      if (optimizerHints.noInline(
+          elementEnvironment, commonElements, element)) {
+        hasNoInline = true;
         inlineCache.markAsNonInlinable(element);
       }
+      if (optimizerHints.tryInline(
+          elementEnvironment, commonElements, element)) {
+        hasForceInline = true;
+        if (hasNoInline) {
+          reporter.reportErrorMessage(element, MessageKind.GENERIC,
+              {'text': '@tryInline must not be used with @noInline.'});
+        } else {
+          inlineCache.markAsMustInline(element);
+        }
+      }
     }
+
     if (element.isField) return;
     FunctionEntity method = element;
 
@@ -1040,8 +1074,7 @@ class JavaScriptBackend {
         !canLibraryUseNative(library)) {
       return;
     }
-    bool hasNoInline = false;
-    bool hasForceInline = false;
+
     bool hasNoThrows = false;
     bool hasNoSideEffects = false;
     for (ConstantValue constantValue
@@ -1107,16 +1140,16 @@ class JavaScriptBackend {
     }
   }
 
-  /// Enable deferred loading. Returns `true` if the backend supports deferred
-  /// loading.
-  bool enableDeferredLoadingIfSupported(Spannable node) => true;
-
   /// Enable compilation of code with compile time errors. Returns `true` if
   /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
-  jsAst.Expression rewriteAsync(CommonElements commonElements,
-      FunctionEntity element, jsAst.Expression code) {
+  jsAst.Expression rewriteAsync(
+      CommonElements commonElements,
+      FunctionEntity element,
+      jsAst.Expression code,
+      SourceInformation bodySourceInformation,
+      SourceInformation exitSourceInformation) {
     AsyncRewriterBase rewriter = null;
     jsAst.Name name = namer.methodPropertyName(element);
     switch (element.asyncMarker) {
@@ -1169,7 +1202,7 @@ class JavaScriptBackend {
         assert(element.asyncMarker == AsyncMarker.SYNC);
         return code;
     }
-    return rewriter.rewrite(code);
+    return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
   }
 
   /// Creates an impact strategy to use for compilation.
@@ -1177,7 +1210,8 @@ class JavaScriptBackend {
       {bool supportDeferredLoad: true,
       bool supportDumpInfo: true,
       bool supportSerialization: true}) {
-    return new JavaScriptImpactStrategy(resolution, compiler.dumpInfoTask,
+    return new JavaScriptImpactStrategy(
+        impactCacheDeleter, compiler.dumpInfoTask,
         supportDeferredLoad: supportDeferredLoad,
         supportDumpInfo: supportDumpInfo,
         supportSerialization: supportSerialization);
@@ -1187,13 +1221,13 @@ class JavaScriptBackend {
 }
 
 class JavaScriptImpactStrategy extends ImpactStrategy {
-  final Resolution resolution;
+  final ImpactCacheDeleter impactCacheDeleter;
   final DumpInfoTask dumpInfoTask;
   final bool supportDeferredLoad;
   final bool supportDumpInfo;
   final bool supportSerialization;
 
-  JavaScriptImpactStrategy(this.resolution, this.dumpInfoTask,
+  JavaScriptImpactStrategy(this.impactCacheDeleter, this.dumpInfoTask,
       {this.supportDeferredLoad,
       this.supportDumpInfo,
       this.supportSerialization});
@@ -1208,7 +1242,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       } else {
         impact.apply(visitor);
         if (impactSource is Element) {
-          resolution.uncacheWorldImpact(impactSource);
+          impactCacheDeleter.uncacheWorldImpact(impactSource);
         }
       }
     } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
@@ -1227,7 +1261,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
     if (impactUse == DeferredLoadTask.IMPACT_USE && !supportSerialization) {
       // TODO(johnniwinther): Allow emptying when serialization has been
       // performed.
-      resolution.emptyCache();
+      impactCacheDeleter.emptyCache();
     }
   }
 }

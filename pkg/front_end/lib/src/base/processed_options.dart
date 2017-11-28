@@ -8,7 +8,7 @@ import 'package:front_end/compilation_message.dart';
 import 'package:front_end/byte_store.dart';
 import 'package:front_end/compiler_options.dart';
 import 'package:front_end/file_system.dart';
-import 'package:front_end/src/base/performace_logger.dart';
+import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/problems.dart' show unimplemented;
 import 'package:front_end/src/fasta/severity.dart';
@@ -16,10 +16,9 @@ import 'package:front_end/src/fasta/ticker.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
-import 'package:kernel/kernel.dart'
-    show Program, loadProgramFromBytes, CanonicalName;
+import 'package:kernel/kernel.dart' show Program, CanonicalName;
 import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm_fasta.dart';
+import 'package:kernel/target/vm.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/src/packages_impl.dart'
     show NonFilePackagesDirectoryPackages, MapPackages;
@@ -27,6 +26,8 @@ import 'package:package_config/packages_file.dart' as package_config;
 import 'package:source_span/source_span.dart' show SourceSpan, SourceLocation;
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
+
+import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'libraries_specification.dart';
 
@@ -196,7 +197,7 @@ class ProcessedOptions {
       // TODO(sigmund): consider validating dart/packages uri right after we
       // build the uri translator.
       if (source.scheme != 'dart' &&
-          source.scheme != 'packages' &&
+          source.scheme != 'package' &&
           !await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
             templateInputFileNotFound.withArguments(source), Severity.error);
@@ -245,7 +246,7 @@ class ProcessedOptions {
 
   Target _target;
   Target get target => _target ??=
-      _raw.target ?? new VmFastaTarget(new TargetFlags(strongMode: strongMode));
+      _raw.target ?? new VmTarget(new TargetFlags(strongMode: strongMode));
 
   /// Get an outline program that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
@@ -291,7 +292,11 @@ class ProcessedOptions {
 
   /// Helper to load a .dill file from [uri] using the existing [nameRoot].
   Program loadProgram(List<int> bytes, CanonicalName nameRoot) {
-    return loadProgramFromBytes(bytes, new Program(nameRoot: nameRoot));
+    Program program = new Program(nameRoot: nameRoot);
+    // TODO(ahe): Pass file name to BinaryBuilder.
+    // TODO(ahe): Control lazy loading via an option.
+    new BinaryBuilder(bytes, null, false).readProgram(program);
+    return program;
   }
 
   /// Get the [UriTranslator] which resolves "package:" and "dart:" URIs.
@@ -477,7 +482,7 @@ class ProcessedOptions {
       // Infer based on the sdkRoot, but only when `compileSdk` is false,
       // otherwise the default intent was to compile the sdk from sources and
       // not to load an sdk summary file.
-      _sdkSummary = root?.resolve('outline.dill');
+      _sdkSummary = root?.resolve("vm_outline.dill");
     }
 
     if (_raw.librariesSpecificationUri != null) {
@@ -608,6 +613,8 @@ class _CompilationMessage implements CompilationMessage {
   String get message => _original.message;
 
   String get tip => _original.tip;
+
+  String get code => _original.code.name;
 
   String get analyzerCode => _original.code.analyzerCode;
 

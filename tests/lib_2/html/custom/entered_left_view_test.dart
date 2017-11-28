@@ -7,7 +7,8 @@ library entered_left_view_test;
 import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
-import 'package:test/test.dart';
+import 'package:unittest/html_individual_config.dart';
+import 'package:unittest/unittest.dart';
 import '../utils.dart';
 
 var invocations = [];
@@ -62,6 +63,8 @@ class FooOldCallbacks extends HtmlElement {
 }
 
 main() {
+  useHtmlIndividualConfiguration();
+
   // Adapted from Blink's
   // fast/dom/custom/attached-detached-document.html test.
 

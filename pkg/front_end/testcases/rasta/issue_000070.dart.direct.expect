@@ -20,7 +20,7 @@ class A<N extends core::Object, S extends core::Object, U extends core::Object> 
     return new self::A::empty<dynamic, dynamic, dynamic>();
   }
   get getter() → core::List<self::A::U> {
-    return this.field;
+    return this.{self::A::field};
   }
   set setter(self::A::S s) → void {}
 }

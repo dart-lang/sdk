@@ -12,9 +12,13 @@ import '../common/tasks.dart';
 import '../common_elements.dart';
 import '../compiler.dart';
 import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../deferred_load.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
+import '../io/kernel_source_information.dart'
+    show KernelSourceInformationStrategy;
 import '../io/source_information.dart';
 import '../inferrer/kernel_inferrer_engine.dart';
 import '../js_emitter/sorter.dart';
@@ -24,6 +28,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/constant_system_javascript.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
+import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types.dart';
 import '../kernel/element_map.dart';
 import '../kernel/element_map_impl.dart';
@@ -67,12 +72,44 @@ class JsBackendStrategy implements KernelBackendStrategy {
         _compiler.reporter, _compiler.environment, strategy.elementMap);
     _elementEnvironment = _elementMap.elementEnvironment;
     _commonElements = _elementMap.commonElements;
-    _closureDataLookup = new KernelClosureConversionTask(
-        _compiler.measurer, _elementMap, _globalLocalsMap);
+    _closureDataLookup = new KernelClosureConversionTask(_compiler.measurer,
+        _elementMap, _globalLocalsMap, _compiler.options.enableTypeAssertions);
     JsClosedWorldBuilder closedWorldBuilder =
         new JsClosedWorldBuilder(_elementMap, _closureDataLookup);
     return closedWorldBuilder._convertClosedWorld(
         closedWorld, strategy.closureModels);
+  }
+
+  @override
+  OutputUnitData convertOutputUnitData(OutputUnitData data) {
+    JsToFrontendMapImpl map = new JsToFrontendMapImpl(_elementMap);
+
+    // TODO(sigmund): make this more flexible to support scenarios where we have
+    // a 1-n mapping (a k-entity that maps to multiple j-entities).
+    Entity toBackendEntity(Entity entity) {
+      if (entity is ClassEntity) return map.toBackendClass(entity);
+      if (entity is MemberEntity) return map.toBackendMember(entity);
+      if (entity is TypeVariableEntity) {
+        return map.toBackendTypeVariable(entity);
+      }
+      if (entity is Local) {
+        // TODO(sigmund): ensure we don't store locals in OuputUnitData
+        return entity;
+      }
+      assert(
+          entity is LibraryEntity, 'unexpected entity ${entity.runtimeType}');
+      return map.toBackendLibrary(entity);
+    }
+
+    ConstantValue toBackendConstant(ConstantValue constant) {
+      return constant.accept(new ConstantConverter(toBackendEntity), null);
+    }
+
+    return new OutputUnitData.from(
+        data,
+        (m) => convertMap<Entity, OutputUnit>(m, toBackendEntity, (v) => v),
+        (m) => convertMap<ConstantValue, OutputUnit>(
+            m, toBackendConstant, (v) => v));
   }
 
   @override
@@ -84,8 +121,12 @@ class JsBackendStrategy implements KernelBackendStrategy {
   ClosureConversionTask get closureDataLookup => _closureDataLookup;
 
   @override
-  SourceInformationStrategy get sourceInformationStrategy =>
-      const JavaScriptSourceInformationStrategy();
+  SourceInformationStrategy get sourceInformationStrategy {
+    if (!_compiler.options.generateSourceMap) {
+      return const JavaScriptSourceInformationStrategy();
+    }
+    return new KernelSourceInformationStrategy(this);
+  }
 
   @override
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
@@ -217,8 +258,14 @@ class JsClosedWorldBuilder {
       localFunctionsNodes.add(localFunction.node);
     }
 
-    _closureConversionTask.createClosureEntities(this,
-        map.toBackendMemberMap(closureModels, identity), localFunctionsNodes);
+    var classesNeedingRti =
+        map.toBackendClassSet(kernelRtiNeed.classesNeedingRti);
+    Iterable<FunctionEntity> callMethods =
+        _closureConversionTask.createClosureEntities(
+            this,
+            map.toBackendMemberMap(closureModels, identity),
+            localFunctionsNodes,
+            classesNeedingRti);
 
     List<FunctionEntity> callMethodsNeedingRti = <FunctionEntity>[];
     for (ir.Node node in localFunctionsNodes) {
@@ -226,8 +273,14 @@ class JsClosedWorldBuilder {
           .add(_closureConversionTask.getClosureInfo(node).callMethod);
     }
 
-    RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(
-        map, backendUsage, kernelRtiNeed, callMethodsNeedingRti);
+    RuntimeTypesNeed rtiNeed = _convertRuntimeTypesNeed(map, backendUsage,
+        kernelRtiNeed, callMethodsNeedingRti, classesNeedingRti);
+
+    NoSuchMethodDataImpl oldNoSuchMethodData = closedWorld.noSuchMethodData;
+    NoSuchMethodData noSuchMethodData = new NoSuchMethodDataImpl(
+        map.toBackendFunctionSet(oldNoSuchMethodData.throwingImpls),
+        map.toBackendFunctionSet(oldNoSuchMethodData.otherImpls),
+        map.toBackendFunctionSet(oldNoSuchMethodData.forwardingSyntaxImpls));
 
     return new JsClosedWorld(_elementMap,
         elementEnvironment: _elementEnvironment,
@@ -235,6 +288,7 @@ class JsClosedWorldBuilder {
         commonElements: _commonElements,
         constantSystem: const JavaScriptConstantSystem(),
         backendUsage: backendUsage,
+        noSuchMethodData: noSuchMethodData,
         nativeData: nativeData,
         interceptorData: interceptorData,
         rtiNeed: rtiNeed,
@@ -242,7 +296,7 @@ class JsClosedWorldBuilder {
         classSets: _classSets,
         implementedClasses: implementedClasses,
         liveNativeClasses: liveNativeClasses,
-        liveInstanceMembers: liveInstanceMembers,
+        liveInstanceMembers: liveInstanceMembers..addAll(callMethods),
         assignedInstanceMembers: assignedInstanceMembers,
         processedMembers: processedMembers,
         mixinUses: mixinUses,
@@ -390,9 +444,8 @@ class JsClosedWorldBuilder {
       JsToFrontendMap map,
       BackendUsage backendUsage,
       RuntimeTypesNeedImpl rtiNeed,
-      List<FunctionEntity> callMethodsNeedingRti) {
-    Set<ClassEntity> classesNeedingRti =
-        map.toBackendClassSet(rtiNeed.classesNeedingRti);
+      List<FunctionEntity> callMethodsNeedingRti,
+      Set<ClassEntity> classesNeedingRti) {
     Set<FunctionEntity> methodsNeedingRti =
         map.toBackendFunctionSet(rtiNeed.methodsNeedingRti);
     methodsNeedingRti.addAll(callMethodsNeedingRti);
@@ -455,6 +508,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
       InterceptorData interceptorData,
       BackendUsage backendUsage,
       this.rtiNeed,
+      NoSuchMethodData noSuchMethodData,
       Set<ClassEntity> implementedClasses,
       Iterable<ClassEntity> liveNativeClasses,
       Iterable<MemberEntity> liveInstanceMembers,
@@ -473,6 +527,7 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
             nativeData,
             interceptorData,
             backendUsage,
+            noSuchMethodData,
             implementedClasses,
             liveNativeClasses,
             liveInstanceMembers,
@@ -487,5 +542,101 @@ class JsClosedWorld extends ClosedWorldBase with KernelClosedWorldMixin {
   @override
   void registerClosureClass(ClassEntity cls) {
     throw new UnsupportedError('JsClosedWorld.registerClosureClass');
+  }
+}
+
+class ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
+  final Entity Function(Entity) toBackendEntity;
+
+  ConstantConverter(this.toBackendEntity);
+
+  ConstantValue visitNull(NullConstantValue constant, _) => constant;
+  ConstantValue visitInt(IntConstantValue constant, _) => constant;
+  ConstantValue visitDouble(DoubleConstantValue constant, _) => constant;
+  ConstantValue visitBool(BoolConstantValue constant, _) => constant;
+  ConstantValue visitString(StringConstantValue constant, _) => constant;
+  ConstantValue visitSynthetic(SyntheticConstantValue constant, _) => constant;
+  ConstantValue visitNonConstant(NonConstantValue constant, _) => constant;
+
+  ConstantValue visitFunction(FunctionConstantValue constant, _) {
+    return new FunctionConstantValue(
+        toBackendEntity(constant.element), _handleType(constant.type));
+  }
+
+  ConstantValue visitList(ListConstantValue constant, _) {
+    var type = _handleType(constant.type);
+    List<ConstantValue> entries = _handleValues(constant.entries);
+    if (identical(entries, constant.entries) && type == constant.type) {
+      return constant;
+    }
+    return new ListConstantValue(type, entries);
+  }
+
+  ConstantValue visitMap(MapConstantValue constant, _) {
+    var type = _handleType(constant.type);
+    List<ConstantValue> keys = _handleValues(constant.keys);
+    List<ConstantValue> values = _handleValues(constant.values);
+    if (identical(keys, constant.keys) &&
+        identical(values, constant.values) &&
+        type == constant.type) {
+      return constant;
+    }
+    return new MapConstantValue(type, keys, values);
+  }
+
+  ConstantValue visitConstructed(ConstructedConstantValue constant, _) {
+    var type = _handleType(constant.type);
+    if (type == constant.type && constant.fields.isEmpty) {
+      return constant;
+    }
+    var fields = <FieldEntity, ConstantValue>{};
+    constant.fields.forEach((f, v) {
+      fields[toBackendEntity(f)] = v.accept(this, null);
+    });
+    return new ConstructedConstantValue(type, fields);
+  }
+
+  ConstantValue visitType(TypeConstantValue constant, _) {
+    var type = _handleType(constant.type);
+    var representedType = _handleType(constant.representedType);
+    if (type == constant.type && representedType == constant.representedType) {
+      return constant;
+    }
+    return new TypeConstantValue(representedType, type);
+  }
+
+  ConstantValue visitInterceptor(InterceptorConstantValue constant, _) {
+    return new InterceptorConstantValue(toBackendEntity(constant.cls));
+  }
+
+  ConstantValue visitDeferred(DeferredConstantValue constant, _) {
+    var referenced = constant.referenced.accept(this, null);
+    if (referenced == constant.referenced) return constant;
+    // TODO(sigmund): do we need a JImport entity?
+    return new DeferredConstantValue(referenced, constant.import);
+  }
+
+  DartType _handleType(DartType type) {
+    if (type is InterfaceType) {
+      var element = toBackendEntity(type.element);
+      var args = type.typeArguments.map(_handleType).toList();
+      return new InterfaceType(element, args);
+    }
+
+    // TODO(redemption): handle other types.
+    return type;
+  }
+
+  List<ConstantValue> _handleValues(List<ConstantValue> values) {
+    List<ConstantValue> result;
+    for (int i = 0; i < values.length; i++) {
+      var value = values[i];
+      var newValue = value.accept(this, null);
+      if (newValue != value && result == null) {
+        result = values.sublist(0, i).toList();
+      }
+      result?.add(newValue);
+    }
+    return result ?? values;
   }
 }

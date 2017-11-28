@@ -337,7 +337,8 @@ void testMissingCloseParen() {
     parseMember(source, reporter: new Collector());
   }
 
-  check(Collector c) {
+  check(exn) {
+    Collector c = exn;
     Expect.equals(OPEN_CURLY_BRACKET_TOKEN, c.token);
     return true;
   }
@@ -351,7 +352,8 @@ void testMissingCloseBraceInClass() {
     fullParseUnit(source, reporter: new Collector());
   }
 
-  check(Collector c) {
+  check(exn) {
+    Collector c = exn;
     Expect.equals(BAD_INPUT_TOKEN, c.token);
     return true;
   }
@@ -365,7 +367,8 @@ void testUnmatchedAngleBracket() {
     fullParseUnit(source, reporter: new Collector());
   }
 
-  check(Collector c) {
+  check(exn) {
+    Collector c = exn;
     Expect.equals(LT_TOKEN, c.token);
     return true;
   }

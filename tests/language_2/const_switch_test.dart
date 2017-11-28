@@ -16,9 +16,9 @@ const c4 = const C(1);
 
 main() {
   Expect.equals('0.0', test(c1)); //# 01: ok
-  Expect.equals('0', test(c2)); //  //# 02: ok
+  Expect.equals('0', test(c2)); //# 02: ok
   Expect.equals('1.0', test(c3)); //# 03: ok
-  Expect.equals('1', test(c4)); //  //# 04: ok
+  Expect.equals('1', test(c4)); //# 04: ok
 }
 
 String test(C c) {

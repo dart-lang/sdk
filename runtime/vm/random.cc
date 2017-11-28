@@ -9,7 +9,10 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, random_seed, 0, "Override the random seed for debugging.");
+DEFINE_FLAG(uint64_t,
+            random_seed,
+            0,
+            "Override the random seed for debugging.");
 
 Random::Random() {
   uint64_t seed = FLAG_random_seed;

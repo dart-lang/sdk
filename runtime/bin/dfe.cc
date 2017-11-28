@@ -12,23 +12,24 @@
 namespace dart {
 namespace bin {
 
-const char kPlatformBinaryName[] = "platform.dill";
-const char kVMServiceIOBinaryName[] = "vmservice_io.dill";
+const char kPlatformBinaryName[] = "vm_platform.dill";
+const char kPlatformStrongBinaryName[] = "vm_platform_strong.dill";
 
 DFE::DFE()
     : frontend_filename_(NULL),
+      kernel_binaries_path_(NULL),
       platform_binary_filename_(NULL),
-      vmservice_io_binary_filename_(NULL),
       kernel_platform_(NULL),
       kernel_file_specified_(false) {}
 
 DFE::~DFE() {
   frontend_filename_ = NULL;
 
-  if (platform_binary_filename_ != NULL) {
-    delete platform_binary_filename_;
-    platform_binary_filename_ = NULL;
-  }
+  free(kernel_binaries_path_);
+  kernel_binaries_path_ = NULL;
+
+  free(platform_binary_filename_);
+  platform_binary_filename_ = NULL;
 
   if (kernel_platform_ != NULL) {
     delete reinterpret_cast<kernel::Program*>(kernel_platform_);
@@ -37,19 +38,16 @@ DFE::~DFE() {
 }
 
 void DFE::SetKernelBinaries(const char* name) {
-  intptr_t len = snprintf(NULL, 0, "%s%s%s", name, File::PathSeparator(),
-                          kPlatformBinaryName) +
-                 1;
-  platform_binary_filename_ = new char[len];
-  snprintf(platform_binary_filename_, len, "%s%s%s", name,
-           File::PathSeparator(), kPlatformBinaryName);
+  kernel_binaries_path_ = strdup(name);
+}
 
-  len = snprintf(NULL, 0, "%s%s%s", name, File::PathSeparator(),
-                 kVMServiceIOBinaryName) +
-        1;
-  vmservice_io_binary_filename_ = new char[len];
-  snprintf(vmservice_io_binary_filename_, len, "%s%s%s", name,
-           File::PathSeparator(), kVMServiceIOBinaryName);
+const char* DFE::GetPlatformBinaryFilename() {
+  if (platform_binary_filename_ == NULL) {
+    platform_binary_filename_ = OS::SCreate(
+        /*zone=*/NULL, "%s%s%s", kernel_binaries_path_, File::PathSeparator(),
+        FLAG_strong ? kPlatformStrongBinaryName : kPlatformBinaryName);
+  }
+  return platform_binary_filename_;
 }
 
 static void ReleaseFetchedBytes(uint8_t* buffer) {
@@ -68,10 +66,10 @@ Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
     // TODO(asiva): We will have to change this API to pass in a list of files
     // that have changed. For now just pass in the main url_string and have it
     // recompile the script.
-    // TODO(aam): When Frontend is ready, VM should be passing outline.dill
-    // instead of platform.dill to Frontend for compilation.
+    // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
+    // instead of vm_platform.dill to Frontend for compilation.
     Dart_KernelCompilationResult kresult =
-        Dart_CompileToKernel(url_string, platform_binary_filename_);
+        Dart_CompileToKernel(url_string, GetPlatformBinaryFilename());
     if (kresult.status != Dart_KernelCompilationStatus_Ok) {
       return Dart_NewApiError(kresult.error);
     }
@@ -87,10 +85,10 @@ Dart_Handle DFE::ReadKernelBinary(Dart_Isolate isolate,
 void* DFE::CompileAndReadScript(const char* script_uri,
                                 char** error,
                                 int* exit_code) {
-  // TODO(aam): When Frontend is ready, VM should be passing outline.dill
-  // instead of platform.dill to Frontend for compilation.
+  // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
+  // instead of vm_platform.dill to Frontend for compilation.
   Dart_KernelCompilationResult result =
-      Dart_CompileToKernel(script_uri, platform_binary_filename_);
+      Dart_CompileToKernel(script_uri, GetPlatformBinaryFilename());
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       return Dart_ReadKernelBinary(result.kernel, result.kernel_size,
@@ -111,12 +109,8 @@ void* DFE::CompileAndReadScript(const char* script_uri,
   return NULL;
 }
 
-void* DFE::ReadPlatform() const {
-  return ReadScript(platform_binary_filename_);
-}
-
-void* DFE::ReadVMServiceIO() const {
-  return ReadScript(vmservice_io_binary_filename_);
+void* DFE::ReadPlatform() {
+  return ReadScript(GetPlatformBinaryFilename());
 }
 
 void* DFE::ReadScript(const char* script_uri) const {

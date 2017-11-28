@@ -78,11 +78,8 @@ void testConstructor() {
     Expect.equals(length, list.length);
   }
 
-  bool checked = false;
-  assert((checked = true));
-  testThrowsOrTypeError(fn, test, [name]) {
-    Expect.throws(
-        fn, checked ? null : test, checked ? name : "$name w/ TypeError");
+  testThrowsOrTypeError(fn, [name]) {
+    Expect.throws(fn, null, name);
   }
 
   testFixedLength(new List<int>(0));
@@ -91,17 +88,14 @@ void testConstructor() {
   testGrowable(new List<int>());
   testGrowable(new List<int>()..length = 5);
   testGrowable(new List<int>.filled(5, null, growable: true));
-  Expect.throws(() => new List<int>(-1), (e) => e is ArgumentError, "-1");
+  Expect.throwsArgumentError(() => new List<int>(-1), "-1");
   // There must be limits. Fix this test if we ever allow 10^30 elements.
-  Expect.throws(() => new List<int>(0x7fffffffffffffff),
-      (e) => e is ArgumentError, "bignum");
-  Expect.throws(() => new List<int>(null), (e) => e is ArgumentError, "null");
+  Expect.throwsArgumentError(() => new List<int>(0x7fffffffffffffff), "bignum");
+  Expect.throwsArgumentError(() => new List<int>(null), "null");
   testThrowsOrTypeError(
       () => new List([] as Object), // Cast to avoid warning.
-      (e) => e is ArgumentError,
       'list');
-  testThrowsOrTypeError(
-      () => new List([42] as Object), (e) => e is ArgumentError, "list2");
+  testThrowsOrTypeError(() => new List([42] as Object), "list2");
 }
 
 void testConcurrentModification() {

@@ -4,7 +4,7 @@
 
 library simple_types_inferrer;
 
-import '../closure.dart' show ClosureRepresentationInfo;
+import '../closure.dart' show ClosureRepresentationInfo, ScopeInfo;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Selectors;
 import '../compiler.dart' show Compiler;
@@ -27,7 +27,7 @@ import '../types/constants.dart' show computeTypeMask;
 import '../types/types.dart' show TypeMask, GlobalTypeInferenceElementData;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/side_effects.dart' show SideEffects;
+import '../universe/side_effects.dart' show SideEffectsBuilder;
 import '../util/util.dart' show Link, Setlet;
 import '../world.dart' show ClosedWorld;
 import 'inferrer_engine.dart';
@@ -71,7 +71,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
   bool seenSuperConstructorCall = false;
-  SideEffects sideEffects = new SideEffects.empty();
+  final SideEffectsBuilder sideEffectsBuilder;
   final MemberElement outermostElement;
   final InferrerEngine inferrer;
   final Setlet<Entity> capturedVariables = new Setlet<Entity>();
@@ -87,7 +87,10 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       : this.analyzedElement = analyzedElement,
         this.inferrer = inferrer,
         this.types = inferrer.types,
-        this.memberData = inferrer.dataOfMember(analyzedElement.memberContext) {
+        this.memberData = inferrer.dataOfMember(analyzedElement.memberContext),
+        this.sideEffectsBuilder = analyzedElement is MethodElement
+            ? inferrer.closedWorldRefiner.getSideEffectsBuilder(analyzedElement)
+            : new SideEffectsBuilder.free(analyzedElement) {
     assert(analyzedElement.isDeclaration);
     assert(outermostElement != null);
     assert(outermostElement.isDeclaration);
@@ -239,9 +242,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   }
 
   TypeInformation visitLiteralSymbol(ast.LiteralSymbol node) {
-    // TODO(kasperl): We should be able to tell that the type of a literal
-    // symbol is always a non-null exact symbol implementation -- not just
-    // any non-null subtype of the symbol interface.
     return types
         .nonNullSubtype(closedWorld.commonElements.symbolImplementationClass);
   }
@@ -698,8 +698,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       visit(node.body);
       List<ast.Send> tests = <ast.Send>[];
       handleCondition(node.condition, tests);
-      // TODO(29309): This condition appears to stengthen both the back-edge and
-      // exit-edge. For now, avoid strengthening on the condition until the
+      // TODO(29309): This condition appears to strengthen both the back-edge
+      // and exit-edge. For now, avoid strengthening on the condition until the
       // proper fix is found.
       //
       //     updateIsChecks(tests, usePositive: true);
@@ -893,15 +893,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     return cascadeReceiverStack.removeLast();
   }
 
-  void analyzeSuperConstructorCall(
-      ConstructorElement target, ArgumentsTypes arguments) {
+  void analyzeSuperConstructorCall(ConstructorElement target) {
     assert(target.isDeclaration);
-    ResolvedAst resolvedAst = target.resolvedAst;
-    ast.Node body;
-    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
-      body = resolvedAst.node;
-    }
-    inferrer.analyze(target, body, arguments);
+    inferrer.analyze(target);
     isThisExposed = isThisExposed || inferrer.checkIfExposesThis(target);
   }
 
@@ -923,13 +917,9 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureRepresentationInfo closureData = compiler
-        .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(analyzedElement);
-    closureData.forEachCapturedVariable((variable, field) {
-      locals.setCaptured(variable, field);
-    });
-    closureData.forEachBoxedVariable((variable, field) {
+    ScopeInfo scopeInfo = compiler.backendStrategy.closureDataLookup
+        .getScopeInfo(analyzedElement);
+    scopeInfo.forEachBoxedVariable((variable, field) {
       locals.setCapturedAndBoxed(variable, field);
     });
     if (analyzedElement.isField) {
@@ -1027,21 +1017,23 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
             !cls.isObject) {
           ConstructorElement target = cls.superclass.lookupDefaultConstructor();
           ArgumentsTypes arguments = new ArgumentsTypes([], {});
-          analyzeSuperConstructorCall(target, arguments);
+          analyzeSuperConstructorCall(target);
           inferrer.registerCalledMember(node, null, null, outermostElement,
-              target, arguments, sideEffects, inLoop);
+              target, arguments, sideEffectsBuilder, inLoop);
         }
         visit(node.body);
         inferrer.recordExposesThis(analyzedConstructor, isThisExposed);
       }
       if (!isConstructorRedirect) {
         // Iterate over all instance fields, and give a null type to
-        // fields that we haven'TypeInformation initialized for sure.
+        // fields that we haven't initialized for sure.
         cls.forEachInstanceField((_, FieldElement field) {
           if (field.isFinal) return;
           TypeInformation type = locals.fieldScope.readField(field);
           ResolvedAst resolvedAst = field.resolvedAst;
-          if (type == null && resolvedAst.body == null) {
+          if (type == null &&
+              (resolvedAst.body == null ||
+                  resolvedAst.body is ast.LiteralNull)) {
             inferrer.recordTypeOfField(field, types.nullType);
           }
         });
@@ -1072,7 +1064,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
                 ? types.nonNullEmpty() // Body always throws.
                 : types.nullType;
           } else if (!locals.seenReturnOrThrow) {
-            // We haven'TypeInformation seen returns on all branches. So the method may
+            // We haven't seen returns on all branches. So the method may
             // also return null.
             recordReturnType(types.nullType);
           }
@@ -1094,8 +1086,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       }
     }
 
-    MethodElement declaration = analyzedElement.declaration;
-    inferrer.closedWorldRefiner.registerSideEffects(declaration, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;
@@ -1108,7 +1098,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // TODO(herhut): Analyze whether closure exposes this.
     isThisExposed = true;
     LocalFunctionElement element = elements.getFunctionDefinition(node);
-    // We don'TypeInformation put the closure in the work queue of the
+    // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
     LocalsHandler closureLocals =
@@ -1123,7 +1113,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // a previous closure.
     ClosureRepresentationInfo nestedClosureData =
         compiler.backendStrategy.closureDataLookup.getClosureInfo(node);
-    nestedClosureData.forEachCapturedVariable((variable, field) {
+    nestedClosureData.forEachFreeVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
         if (variable == nestedClosureData.thisLocal) {
           inferrer.recordTypeOfField(field, thisType);
@@ -1161,13 +1151,13 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // code in the toString methods for intercepted primitive types is assumed
     // to have all effects.  Effect annotations on JS code would be needed to
     // get the benefit.
-    sideEffects.setAllSideEffects();
+    sideEffectsBuilder.setAllSideEffects();
     node.visitChildren(this);
     return types.stringType;
   }
 
   TypeInformation visitLiteralList(ast.LiteralList node) {
-    // We only set the type once. We don'TypeInformation need to re-visit the children
+    // We only set the type once. We don't need to re-visit the children
     // when re-analyzing the node.
     return inferrer.concreteTypes.putIfAbsent(node, () {
       TypeInformation elementType;
@@ -1365,7 +1355,17 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
             isSetIfNull: node.isIfNullAssignment);
       }
 
-      return node.isPostfix ? getterType : newType;
+      if (node.isPostfix) {
+        if (node.isConditional) {
+          return getterType;
+        } else {
+          // We have just successfully performed a `+ 1` operation on the getter
+          // so we know it to be not `null`.
+          return types.narrowNotNull(getterType);
+        }
+      } else {
+        return newType;
+      }
     }
   }
 
@@ -2086,8 +2086,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         inferrer.typeOfMember(element),
         outermostElement,
         argumentTypes,
-        sideEffects,
-        inLoop);
+        sideEffectsBuilder,
+        inLoop: inLoop);
   }
 
   /// Handle an invocation of super [method].
@@ -2333,7 +2333,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         isConstructorRedirect = true;
       } else if (ast.Initializers.isSuperConstructorCall(node)) {
         seenSuperConstructorCall = true;
-        analyzeSuperConstructorCall(constructor, arguments);
+        analyzeSuperConstructorCall(constructor);
       }
     }
     // If we are looking at a new expression on a forwarding factory, we have to
@@ -2351,7 +2351,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     TypeMask mask = memberData.typeOfSend(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
-    // TODO(polux): return nonNullEmpty and check it doesn'TypeInformation break anything
+    // TODO(polux): return nonNullEmpty and check it doesn't break anything
     if (target.isMalformed ||
         !callStructure.signatureApplies(target.parameterStructure)) {
       return types.dynamicType;
@@ -2424,8 +2424,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         inferrer.typeOfMember(element),
         outermostElement,
         arguments,
-        sideEffects,
-        inLoop);
+        sideEffectsBuilder,
+        inLoop: inLoop);
   }
 
   /// Handle invocation of a top level or static [function].
@@ -2539,12 +2539,12 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         name == JavaScriptBackend.JS_EMBEDDED_GLOBAL ||
         name == JavaScriptBackend.JS_BUILTIN) {
       native.NativeBehavior nativeBehavior = elements.getNativeData(node);
-      sideEffects.add(nativeBehavior.sideEffects);
+      sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == 'JS_OPERATOR_AS_PREFIX' || name == 'JS_STRING_CONCAT') {
+    } else if (name == JavaScriptBackend.JS_STRING_CONCAT) {
       return types.stringType;
     } else {
-      sideEffects.setAllSideEffects();
+      sideEffectsBuilder.setAllSideEffects();
       return types.dynamicType;
     }
   }
@@ -2685,8 +2685,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
     TypeMask mask = memberData.typeOfSend(node);
-    return inferrer.registerCalledClosure(node, selector, mask, closure,
-        outermostElement, arguments, sideEffects, inLoop);
+    return handleDynamicSend(
+        CallType.access, node, selector, mask, closure, arguments);
   }
 
   @override
@@ -2735,7 +2735,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // more sophisticated type system with function types to support
     // more.
     return inferrer.registerCalledMember(node, selector, mask, outermostElement,
-        function.callMethod, argumentTypes, sideEffects, inLoop);
+        function.callMethod, argumentTypes, sideEffectsBuilder, inLoop);
   }
 
   @override
@@ -2760,7 +2760,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // need to pay attention if the constructor is pointing to an erroneous
     // element.
     return inferrer.registerCalledMember(node, selector, mask, outermostElement,
-        element, arguments, sideEffects, inLoop);
+        element, arguments, sideEffectsBuilder, inLoop);
   }
 
   TypeInformation handleDynamicSend(
@@ -2786,20 +2786,32 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     bool isConditional = false;
     if (send != null) {
       isConditional = send.isConditional;
-      ast.Node receiver = send.receiver;
-      if (receiver != null) {
-        Element element = elements[receiver];
-        if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
-          TypeInformation refinedType = types.refineReceiver(
-              selector, mask, receiverType, send.isConditional);
-          LocalElement local = element;
-          locals.update(local, refinedType, node, local.type);
-        }
+      ast.Send receiver = send.receiver?.asSend();
+      Element element;
+      if (receiver != null && receiver.isPropertyAccess) {
+        // We have `local.method()` || `local?.method()`.
+        element = elements[receiver];
+      } else if (send.receiver == null) {
+        // We have `local()`.
+        element = elements[send];
       }
+      if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
+        TypeInformation refinedType = types.refineReceiver(
+            selector, mask, receiverType,
+            isConditional: send.isConditional);
+        LocalElement local = element;
+        locals.update(local, refinedType, node, local.type);
+      }
+      // TODO(johnniwinther): Enable this to improve precision of conditional
+      // access. This cannot currently be done because the receiver and the
+      // call shares type mask.
+      /*if (isConditional) {
+      receiverType = types.narrowNotNull(receiverType);
+      }*/
     }
 
     return inferrer.registerCalledSelector(callType, node, selector, mask,
-        receiverType, outermostElement, arguments, sideEffects,
+        receiverType, outermostElement, arguments, sideEffectsBuilder,
         inLoop: inLoop, isConditional: isConditional);
   }
 
@@ -2886,7 +2898,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
     ArgumentsTypes arguments = new ArgumentsTypes(unnamed, named);
     return inferrer.registerCalledMember(node, null, null, outermostElement,
-        element, arguments, sideEffects, inLoop);
+        element, arguments, sideEffectsBuilder, inLoop);
   }
 
   TypeInformation visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
@@ -2894,7 +2906,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     if (Elements.isMalformed(element)) {
       recordReturnType(types.dynamicType);
     } else {
-      // We don'TypeInformation create a selector for redirecting factories, and
+      // We don't create a selector for redirecting factories, and
       // the send is just a property access. Therefore we must
       // manually create the [ArgumentsTypes] of the call, and
       // manually register [analyzedElement] as a caller of [element].

@@ -172,16 +172,19 @@ DEFINE_RUNTIME_ENTRY(RangeError, 2) {
 DEFINE_RUNTIME_ENTRY(NullError, 0) {
   // TODO(dartbug.com/30480): Fill in arguments of NoSuchMethodError.
 
+  const String& member_name = String::Handle(String::New("???"));
+
   const Smi& invocation_type =
       Smi::Handle(Smi::New(InvocationMirror::EncodeType(
           InvocationMirror::kDynamic, InvocationMirror::kMethod)));
 
   const Array& args = Array::Handle(Array::New(6));
   args.SetAt(0, /* instance */ Object::null_object());
-  args.SetAt(1, /* member_name */ Object::null_object());
+  args.SetAt(1, member_name);
   args.SetAt(2, invocation_type);
-  args.SetAt(3, /* func_args */ Object::null_object());
-  args.SetAt(4, /* func_named_args */ Object::null_object());
+  args.SetAt(3, /* func_type_args */ Object::null_object());
+  args.SetAt(4, /* func_args */ Object::null_object());
+  args.SetAt(5, /* func_arg_names */ Object::null_object());
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
 }
 
@@ -291,7 +294,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 3) {
   Error& bound_error = Error::Handle(zone);
   type =
       type.InstantiateFrom(instantiator_type_arguments, function_type_arguments,
-                           &bound_error, NULL, NULL, Heap::kOld);
+                           kAllFree, &bound_error, NULL, NULL, Heap::kOld);
   if (!bound_error.IsNull()) {
     // Throw a dynamic type error.
     const TokenPosition location = GetCallerLocation();
@@ -406,8 +409,8 @@ static void PrintTypeCheck(const char* message,
     Error& bound_error = Error::Handle();
     const AbstractType& instantiated_type =
         AbstractType::Handle(type.InstantiateFrom(
-            instantiator_type_arguments, function_type_arguments, &bound_error,
-            NULL, NULL, Heap::kOld));
+            instantiator_type_arguments, function_type_arguments, kAllFree,
+            &bound_error, NULL, NULL, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message, String::Handle(instance_type.Name()).ToCString(),
                  (result.raw() == Bool::True().raw()) ? "is" : "is !",
@@ -452,30 +455,19 @@ static void UpdateTypeTestCache(
     return;
   }
   // If the type is uninstantiated and refers to parent function type
-  // parameters, the function_type_arguments may not have been canonicalized
-  // when concatenated. The optimization still works, but the cache could grow
-  // uncontrollably. For now, do not update the cache in this case.
-  // TODO(regis): Revisit.
-  if (!function_type_arguments.IsNull() &&
-      !function_type_arguments.IsCanonical()) {
-    if (FLAG_trace_type_checks) {
-      OS::Print(
-          "UpdateTypeTestCache: function_type_arguments is not canonical\n");
-    }
-    return;
-  }
+  // parameters, the function_type_arguments have been canonicalized
+  // when concatenated.
+  ASSERT(function_type_arguments.IsNull() ||
+         function_type_arguments.IsCanonical());
   const Class& instance_class = Class::Handle(instance.clazz());
   Object& instance_class_id_or_function = Object::Handle();
   TypeArguments& instance_type_arguments = TypeArguments::Handle();
   if (instance_class.IsClosureClass()) {
-    // If the closure instance is generic, we cannot perform the optimization,
-    // because one more input (function_type_arguments) would need to be
-    // considered. For now, only perform the optimization if the closure's
-    // function_type_arguments is null, meaning the closure function is not
-    // generic.
-    // TODO(regis): In addition to null (non-generic closure), we should also
-    // accept Object::empty_type_arguments() (non-nested generic closure).
-    // In that case, update stubs and simulator_dbc accordingly.
+    // If the closure instance has a generic parent, we cannot perform the
+    // optimization, because one more input (closure.function_type_arguments)
+    // would need to be considered. For now, only perform the optimization if
+    // the closure's function_type_arguments field is null, meaning the closure
+    // function has no generic parent.
     if (Closure::Cast(instance).function_type_arguments() !=
         TypeArguments::null()) {
       if (FLAG_trace_type_checks) {
@@ -538,8 +530,8 @@ static void UpdateTypeTestCache(
     if (!test_type.IsInstantiated()) {
       Error& bound_error = Error::Handle();
       test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                       function_type_arguments, &bound_error,
-                                       NULL, NULL, Heap::kNew);
+                                       function_type_arguments, kAllFree,
+                                       &bound_error, NULL, NULL, Heap::kNew);
       ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
     }
     OS::PrintErr(
@@ -660,8 +652,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       dst_type = dst_type.InstantiateFrom(instantiator_type_arguments,
-                                          function_type_arguments, NULL, NULL,
-                                          NULL, Heap::kNew);
+                                          function_type_arguments, kAllFree,
+                                          NULL, NULL, NULL, Heap::kNew);
       // Note that instantiated dst_type may be malbounded.
     }
     String& bound_error_message = String::Handle(zone);
@@ -1133,7 +1125,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 1) {
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        Thread::kNoDeoptId, 1, /* args_tested */
-                                       false /* static_call */));
+                                       ICData::kInstance));
 
   // Maybe add the new target.
   Class& cls = Class::Handle(zone, receiver.clazz());
@@ -1209,7 +1201,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 2) {
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        Thread::kNoDeoptId, 1, /* args_tested */
-                                       false /* static_call */));
+                                       ICData::kInstance));
 
   Class& cls = Class::Handle(zone, receiver.clazz());
   ArgumentsDescriptor args_desc(descriptor);
@@ -1289,7 +1281,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 1) {
   const ICData& ic_data =
       ICData::Handle(zone, ICData::New(caller_function, name, descriptor,
                                        Thread::kNoDeoptId, 1, /* args_tested */
-                                       false /* static_call */));
+                                       ICData::kInstance));
 
   // Add the first target.
   ic_data.AddReceiverCheck(old_expected_cid.Value(), old_target);
@@ -1495,44 +1487,9 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 
   const bool is_getter = Field::IsGetterName(target_name);
   if (is_getter) {
-    // o.foo (o.get:foo) failed, closurize o.foo() if it exists. Or,
-    // o#foo (o.get:#foo) failed, closurizee o.foo or o.foo(), whichever is
-    // encountered first on the inheritance chain. Or,
-    // o#foo= (o.get:#set:foo) failed, closurize o.foo= if it exists.
+    // o.foo (o.get:foo) failed, closurize o.foo() if it exists.
     String& field_name =
         String::Handle(zone, Field::NameFromGetter(target_name));
-
-    const bool is_extractor = field_name.CharAt(0) == '#';
-    if (is_extractor) {
-      field_name = String::SubString(field_name, 1);
-      ASSERT(!Field::IsGetterName(field_name));
-      field_name = Symbols::New(thread, field_name);
-
-      if (!Field::IsSetterName(field_name)) {
-        const String& getter_name =
-            String::Handle(Field::GetterName(field_name));
-
-        // Zigzagged lookup: closure either a regular method or a getter.
-        while (!cls.IsNull()) {
-          function ^= cls.LookupDynamicFunction(field_name);
-          if (!function.IsNull()) {
-            CLOSURIZE(function);
-            return;
-          }
-          function ^= cls.LookupDynamicFunction(getter_name);
-          if (!function.IsNull()) {
-            CLOSURIZE(function);
-            return;
-          }
-          cls = cls.SuperClass();
-        }
-        NO_SUCH_METHOD();
-        return;
-      } else {
-        // Fall through for non-ziggaged lookup for o#foo=.
-      }
-    }
-
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(field_name);
       if (!function.IsNull()) {
@@ -1862,7 +1819,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // being optimized in the background. INT_MIN should ensure that it
         // takes long time to trigger optimization.
         // Note that the background compilation queue rejects duplicate entries.
-        function.set_usage_counter(INT_MIN);
+        function.SetUsageCounter(INT_MIN);
         BackgroundCompiler::EnsureInit(thread);
         ASSERT(isolate->background_compiler() != NULL);
         isolate->background_compiler()->CompileOptimized(function);
@@ -1874,7 +1831,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
-    function.set_usage_counter(0);
+    function.SetUsageCounter(0);
     if (FLAG_trace_compiler || FLAG_trace_optimizing_compiler) {
       if (function.HasOptimizedCode()) {
         THR_Print("ReCompiling function: '%s' \n",

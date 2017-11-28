@@ -14,9 +14,10 @@ import '../elements/elements.dart'
     show ConstructorElement, Elements, MemberElement, ParameterElement;
 import '../elements/entities.dart';
 import '../elements/names.dart';
-import '../js_backend/annotations.dart';
+import '../js_backend/annotations.dart' as optimizerHints;
 import '../js_backend/mirrors_data.dart';
 import '../js_backend/no_such_method_registry.dart';
+import '../js_emitter/sorter.dart';
 import '../native/behavior.dart' as native;
 import '../options.dart';
 import '../types/constants.dart';
@@ -58,14 +59,13 @@ abstract class InferrerEngine<T> {
   CompilerOptions get options;
   ClosedWorld get closedWorld;
   ClosedWorldRefiner get closedWorldRefiner;
-  OptimizerHintsForTests get optimizerHints;
   DiagnosticReporter get reporter;
   CommonMasks get commonMasks => closedWorld.commonMasks;
   CommonElements get commonElements => closedWorld.commonElements;
 
   // TODO(johnniwinther): This should be part of [ClosedWorld] or
   // [ClosureWorldRefiner].
-  NoSuchMethodRegistry get noSuchMethodRegistry;
+  NoSuchMethodData get noSuchMethodData => closedWorld.noSuchMethodData;
 
   TypeSystem<T> get types;
   Map<T, TypeInformation> get concreteTypes;
@@ -74,7 +74,7 @@ abstract class InferrerEngine<T> {
 
   void runOverAllElements();
 
-  void analyze(MemberEntity member, T node, ArgumentsTypes arguments);
+  void analyze(MemberEntity member);
   void analyzeListAndEnqueue(ListTypeInformation info);
   void analyzeMapAndEnqueue(MapTypeInformation info);
 
@@ -142,8 +142,8 @@ abstract class InferrerEngine<T> {
 
   /// Registers that [caller] calls [closure] with [arguments].
   ///
-  /// [sideEffects] will be updated to incorporate the potential callees' side
-  /// effects.
+  /// [sideEffectsBuilder] will be updated to incorporate the potential callees'
+  /// side effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledClosure(
@@ -153,14 +153,15 @@ abstract class InferrerEngine<T> {
       TypeInformation closure,
       MemberEntity caller,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
-      bool inLoop);
+      SideEffectsBuilder sideEffectsBuilder,
+      {bool inLoop});
 
   /// Registers that [caller] calls [callee] at location [node], with
   /// [selector], and [arguments]. Note that [selector] is null for forwarding
   /// constructors.
   ///
-  /// [sideEffects] will be updated to incorporate [callee]'s side effects.
+  /// [sideEffectsBuilder] will be updated to incorporate [callee]'s side
+  /// effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledMember(
@@ -170,14 +171,14 @@ abstract class InferrerEngine<T> {
       MemberEntity caller,
       MemberEntity callee,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
+      SideEffectsBuilder sideEffectsBuilder,
       bool inLoop);
 
   /// Registers that [caller] calls [selector] with [receiverType] as receiver,
   /// and [arguments].
   ///
-  /// [sideEffects] will be updated to incorporate the potential callees' side
-  /// effects.
+  /// [sideEffectsBuilder] will be updated to incorporate the potential callees'
+  /// side effects.
   ///
   /// [inLoop] tells whether the call happens in a loop.
   TypeInformation registerCalledSelector(
@@ -188,7 +189,7 @@ abstract class InferrerEngine<T> {
       TypeInformation receiverType,
       MemberEntity caller,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
+      SideEffectsBuilder sideEffectsBuilder,
       {bool inLoop,
       bool isConditional});
 
@@ -239,6 +240,13 @@ abstract class InferrerEngine<T> {
   /// backend calls, but the optimizations don't see those calls.
   bool canFunctionParametersBeUsedForGlobalOptimizations(
       FunctionEntity function);
+
+  /// Returns `true` if parameter and returns types should be trusted for
+  /// [member].
+  bool trustTypeAnnotations(MemberEntity member);
+
+  /// Returns `true` if inference of parameter types is disabled for [member].
+  bool assumeDynamic(MemberEntity member);
 }
 
 abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
@@ -260,7 +268,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   final Progress progress;
   final DiagnosticReporter reporter;
   final CompilerOutput _compilerOutput;
-  final OptimizerHintsForTests optimizerHints;
 
   /// The [ClosedWorld] on which inference reasoning is based.
   final ClosedWorld closedWorld;
@@ -284,17 +291,19 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
 
   final NoSuchMethodRegistry noSuchMethodRegistry;
 
+  final Sorter sorter;
+
   InferrerEngineImpl(
       this.options,
       this.progress,
       this.reporter,
       this._compilerOutput,
-      this.optimizerHints,
       this.closedWorld,
       this.closedWorldRefiner,
       this.mirrorsData,
       this.noSuchMethodRegistry,
       this.mainElement,
+      this.sorter,
       TypeSystemStrategy<T> typeSystemStrategy)
       : this.types = new TypeSystem<T>(closedWorld, typeSystemStrategy);
 
@@ -319,34 +328,32 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
    * Update [sideEffects] with the side effects of [callee] being
    * called with [selector].
    */
-  void updateSideEffects(
-      SideEffects sideEffects, Selector selector, MemberEntity callee) {
+  void updateSideEffects(SideEffectsBuilder sideEffectsBuilder,
+      Selector selector, MemberEntity callee) {
     assert(!(callee is MemberElement && !callee.isDeclaration));
     if (callee.isField) {
       if (callee.isInstanceMember) {
         if (selector.isSetter) {
-          sideEffects.setChangesInstanceProperty();
+          sideEffectsBuilder.setChangesInstanceProperty();
         } else if (selector.isGetter) {
-          sideEffects.setDependsOnInstancePropertyStore();
+          sideEffectsBuilder.setDependsOnInstancePropertyStore();
         } else {
-          sideEffects.setAllSideEffects();
-          sideEffects.setDependsOnSomething();
+          sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
         }
       } else {
         if (selector.isSetter) {
-          sideEffects.setChangesStaticProperty();
+          sideEffectsBuilder.setChangesStaticProperty();
         } else if (selector.isGetter) {
-          sideEffects.setDependsOnStaticPropertyStore();
+          sideEffectsBuilder.setDependsOnStaticPropertyStore();
         } else {
-          sideEffects.setAllSideEffects();
-          sideEffects.setDependsOnSomething();
+          sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
         }
       }
     } else if (callee.isGetter && !selector.isGetter) {
-      sideEffects.setAllSideEffects();
-      sideEffects.setDependsOnSomething();
+      sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     } else {
-      sideEffects.add(closedWorldRefiner.getCurrentlyKnownSideEffects(callee));
+      sideEffectsBuilder
+          .addInput(closedWorldRefiner.getSideEffectsBuilder(callee));
     }
   }
 
@@ -655,16 +662,23 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     processLoopInformation();
   }
 
+  static bool useSorterForTesting = false;
+
   /// Call [analyze] for all live members.
   void analyzeAllElements() {
-    sortMembers(closedWorld.processedMembers, computeMemberSize)
-        .forEach((MemberEntity member) {
+    Iterable<MemberEntity> processedMembers = closedWorld.processedMembers
+        .where((MemberEntity member) => !member.isAbstract);
+
+    Iterable<MemberEntity> members = useSorterForTesting
+        ? sorter.sortMembers(processedMembers)
+        : sortMembers(processedMembers, computeMemberSize);
+
+    members.forEach((MemberEntity member) {
       progress.showProgress(
           'Added ', addedInGraph, ' elements in inferencing graph.');
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
-      T body = computeMemberBody(member);
-      types.withMember(member, () => analyze(member, body, null));
+      types.withMember(member, () => analyze(member));
     });
     reporter.log('Added $addedInGraph elements in inferencing graph.');
   }
@@ -680,10 +694,12 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   /// implement `call`.
   FunctionEntity lookupCallMethod(ClassEntity cls);
 
-  void analyze(MemberEntity element, T body, ArgumentsTypes arguments) {
+  void analyze(MemberEntity element) {
     assert(!(element is MemberElement && !element.isDeclaration));
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
+
+    T body = computeMemberBody(element);
 
     TypeInformation type;
     reporter.withCurrentElement(element, () {
@@ -758,8 +774,12 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   bool hasCallType(ClassEntity cls);
 
   void processLoopInformation() {
-    types.allocatedCalls.forEach((dynamic info) {
+    types.allocatedCalls.forEach((CallSiteTypeInformation info) {
       if (!info.inLoop) return;
+      // We can't compute the callees of closures, no new information to add.
+      if (info is ClosureCallSiteTypeInformation) {
+        return;
+      }
       if (info is StaticCallSiteTypeInformation) {
         MemberEntity member = info.calledElement;
         closedWorldRefiner.addFunctionCalledInLoop(member);
@@ -768,7 +788,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.targets.forEach((MemberEntity element) {
+        info.callees.forEach((MemberEntity element) {
           closedWorldRefiner.addFunctionCalledInLoop(element);
         });
       }
@@ -877,6 +897,8 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
   void setDefaultTypeOfParameter(Local parameter, TypeInformation type,
       {bool isInstanceMember}) {
     assert(!(parameter is ParameterElement && !parameter.isImplementation));
+    assert(
+        type != null, failedAt(parameter, "No default type for $parameter."));
     TypeInformation existing = defaultTypeOfParameter[parameter];
     defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOfParameter(parameter);
@@ -962,7 +984,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       MemberEntity caller,
       MemberEntity callee,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
+      SideEffectsBuilder sideEffectsBuilder,
       bool inLoop) {
     CallSiteTypeInformation info = new StaticCallSiteTypeInformation(
         types.currentMember,
@@ -989,7 +1011,7 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
     }
     info.addToGraph(this);
     types.allocatedCalls.add(info);
-    updateSideEffects(sideEffects, selector, callee);
+    updateSideEffects(sideEffectsBuilder, selector, callee);
     return info;
   }
 
@@ -1001,16 +1023,17 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       TypeInformation receiverType,
       MemberEntity caller,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
+      SideEffectsBuilder sideEffectsBuilder,
       {bool inLoop,
       bool isConditional}) {
     if (selector.isClosureCall) {
       return registerCalledClosure(node, selector, mask, receiverType, caller,
-          arguments, sideEffects, inLoop);
+          arguments, sideEffectsBuilder,
+          inLoop: inLoop);
     }
 
     closedWorld.locateMembers(selector, mask).forEach((callee) {
-      updateSideEffects(sideEffects, selector, callee);
+      updateSideEffects(sideEffectsBuilder, selector, callee);
     });
 
     CallSiteTypeInformation info = new DynamicCallSiteTypeInformation(
@@ -1053,10 +1076,9 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       TypeInformation closure,
       MemberEntity caller,
       ArgumentsTypes arguments,
-      SideEffects sideEffects,
-      bool inLoop) {
-    sideEffects.setDependsOnSomething();
-    sideEffects.setAllSideEffects();
+      SideEffectsBuilder sideEffectsBuilder,
+      {bool inLoop}) {
+    sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
     CallSiteTypeInformation info = new ClosureCallSiteTypeInformation(
         types.currentMember,
         node,
@@ -1157,6 +1179,18 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
         !mirrorsData.isMemberAccessibleByReflection(function);
   }
 
+  @override
+  bool trustTypeAnnotations(MemberEntity member) {
+    return optimizerHints.trustTypeAnnotations(
+        closedWorld.elementEnvironment, commonElements, member);
+  }
+
+  @override
+  bool assumeDynamic(MemberEntity member) {
+    return optimizerHints.assumeDynamic(
+        closedWorld.elementEnvironment, commonElements, member);
+  }
+
   // Sorts the resolved elements by size. We do this for this inferrer
   // to get the same results for [ListTracer] compared to the
   // [SimpleTypesInferrer].
@@ -1177,7 +1211,6 @@ abstract class InferrerEngineImpl<T> extends InferrerEngine<T> {
       Iterable<MemberEntity> members, int computeSize(MemberEntity member)) {
     Map<int, Set<MemberEntity>> methodSizes = <int, Set<MemberEntity>>{};
     members.forEach((MemberEntity element) {
-      if (element.isAbstract) return;
       // Put the other operators in buckets by size, later to be added in
       // size order.
       int size = computeSize(element);

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
+
 import 'causal_async_exception_stack_helper.dart' as h;
 
 thrower() async {
@@ -33,11 +34,11 @@ main() async {
     } catch (e, st) {
       expect(
           h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:9', //
+            'thrower', '.dart:10', //
             '<asynchronous suspension>', //
-            'generator', '.dart:18', //
+            'generator', '.dart:19', //
             '<asynchronous suspension>', //
-            'foo', '.dart:22', //
+            'foo', '.dart:23', //
             '<asynchronous suspension>', //
             'main', //
           ]),
@@ -76,9 +77,9 @@ main() async {
     } catch (e, st) {
       expect(
           h.stringContainsInOrder(st.toString(), [
-            'thrower', '.dart:9', //
+            'thrower', '.dart:10', //
             '<asynchronous suspension>', //
-            'main.<anonymous closure>', '.dart:75', //
+            'main.<anonymous closure>', '.dart:76', //
           ]),
           isTrue);
     }

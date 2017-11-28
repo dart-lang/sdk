@@ -9,7 +9,7 @@ class C<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
   method f(self::C::T value) → void {
-    this.y(value);
+    this.{self::C::y}(value);
   }
 }
 static method g(self::C<core::num> c) → void {

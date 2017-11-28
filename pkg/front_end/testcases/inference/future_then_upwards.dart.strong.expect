@@ -14,7 +14,7 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
 }
 static method main() → void {
   self::MyFuture<core::double> f = self::foo().{self::MyFuture::then}<core::double>((dynamic _) → core::double => 2.3);
-  asy::Future<core::int> f2 = f;
+  asy::Future<core::int> f2 = f as{TypeError} asy::Future<core::int>;
   asy::Future<core::num> f3 = self::foo().{self::MyFuture::then}<core::double>((dynamic _) → core::double => 2.3) as asy::Future<core::double>;
 }
 static method foo() → self::MyFuture<dynamic>

@@ -232,7 +232,7 @@ class ArithmeticTest {
     Expect.equals(0, (0.0).ceil());
     Expect.equals(false, (0.0).ceil().isNegative);
     Expect.equals(1, (0.1).ceil());
-    Expect.equals(1, double.MIN_POSITIVE.ceil());
+    Expect.equals(1, double.minPositive.ceil());
     Expect.equals(1, (0.49999999999999994).ceil());
     Expect.equals(0, (-0.0).ceil());
     Expect.equals(0, (-0.3).ceil());
@@ -254,7 +254,7 @@ class ArithmeticTest {
     Expect.equals(0, (0.0).floor());
     Expect.equals(0, (0.1).floor());
     Expect.equals(0, (0.49999999999999994).floor());
-    Expect.equals(0, double.MIN_POSITIVE.floor());
+    Expect.equals(0, double.minPositive.floor());
     Expect.isTrue((0.0).floor() is int);
     Expect.isTrue((0.1).floor() is int);
     Expect.equals(0, (-0.0).floor());
@@ -403,8 +403,10 @@ class ArithmeticTest {
 
     Expect.equals(12, int.parse("12"));
     Expect.equals(-12, int.parse("-12"));
-    Expect.equals(12345678901234567890, int.parse("12345678901234567890"));
-    Expect.equals(-12345678901234567890, int.parse("-12345678901234567890"));
+    Expect.equals(1234567890123456789, int.parse("1234567890123456789"));
+    Expect.equals(-1234567890123456789, int.parse("-1234567890123456789"));
+    Expect.equals(9223372036854775807, int.parse("9223372036854775807"));
+    Expect.equals(-9223372036854775808, int.parse("-9223372036854775808"));
     // Type checks.
     {
       int i = int.parse("12");
@@ -413,10 +415,16 @@ class ArithmeticTest {
       int i = int.parse("-12");
     }
     {
-      int i = int.parse("12345678901234567890");
+      int i = int.parse("1234567890123456789");
     }
     {
-      int i = int.parse("-12345678901234567890");
+      int i = int.parse("-1234567890123456789");
+    }
+    {
+      int i = int.parse("9223372036854775807");
+    }
+    {
+      int i = int.parse("-9223372036854775808");
     }
 
     Expect.equals(1.2, double.parse("1.2"));
@@ -533,11 +541,11 @@ class ArithmeticTest {
   }
 
   static testDoubleEquality() {
-    Expect.isFalse(self_equality(double.NAN));
+    Expect.isFalse(self_equality(double.nan));
     for (int i = 0; i < 20; i++) {
       self_equality(3.0);
     }
-    Expect.isFalse(self_equality(double.NAN));
+    Expect.isFalse(self_equality(double.nan));
   }
 
   static testMain() {

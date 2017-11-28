@@ -10,13 +10,13 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   method test1() → dynamic {
-    dynamic a = this.x;
+    dynamic a = this.{self::A::x};
     a = "hi";
     a = 3;
-    dynamic b = this.y;
+    dynamic b = this.{self::A::y};
     b = "hi";
     b = 4;
-    dynamic c = this.z;
+    dynamic c = this.{self::A::z};
     c = "hi";
     c = 4;
   }

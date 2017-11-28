@@ -19,7 +19,11 @@
 namespace dart {
 namespace bin {
 
-Socket::Socket(intptr_t fd) : ReferenceCounted(), fd_(fd), port_(ILLEGAL_PORT) {
+Socket::Socket(intptr_t fd)
+    : ReferenceCounted(),
+      fd_(fd),
+      port_(ILLEGAL_PORT),
+      udp_receive_buffer_(NULL) {
   ASSERT(fd_ != kClosedFd);
   Handle* handle = reinterpret_cast<Handle*>(fd_);
   ASSERT(handle != NULL);

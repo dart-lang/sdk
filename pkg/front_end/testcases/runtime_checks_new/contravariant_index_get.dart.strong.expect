@@ -1,0 +1,16 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+typedef F<T extends core::Object> = (T) → void;
+class C<T extends core::Object> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  generic-contravariant operator [](core::int i) → (self::C::T) → void
+    return null;
+}
+static method test(self::C<core::num> c) → (core::num) → void {
+  return c.{self::C::[]}(0) as{TypeError} (core::num) → void;
+}
+static method main() → dynamic {}

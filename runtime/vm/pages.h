@@ -24,6 +24,12 @@ class Heap;
 class JSONObject;
 class ObjectPointerVisitor;
 class ObjectSet;
+class ForwardingPage;
+
+// TODO(iposva): Determine heap sizes and tune the page size accordingly.
+static const intptr_t kPageSize = 256 * KB;
+static const intptr_t kPageSizeInWords = kPageSize / kWordSize;
+static const intptr_t kPageMask = ~(kPageSize - 1);
 
 // A page containing old generation objects.
 class HeapPage {
@@ -43,6 +49,10 @@ class HeapPage {
     used_in_bytes_ = value;
   }
 
+  ForwardingPage* forwarding_page() const { return forwarding_page_; }
+  ForwardingPage* AllocateForwardingPage();
+  void FreeForwardingPage();
+
   PageType type() const { return type_; }
 
   bool is_image_page() const { return !memory_->vm_owns_region(); }
@@ -58,16 +68,22 @@ class HeapPage {
     return Utils::RoundUp(sizeof(HeapPage), OS::kMaxPreferredCodeAlignment);
   }
 
+  // Warning: This does not work for objects on image pages because image pages
+  // are not aligned.
+  static HeapPage* Of(RawObject* obj) {
+    ASSERT(obj->IsHeapObject());
+    ASSERT(obj->IsOldObject());
+    return reinterpret_cast<HeapPage*>(reinterpret_cast<uword>(obj) &
+                                       kPageMask);
+  }
+
  private:
   void set_object_end(uword value) {
     ASSERT((value & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
     object_end_ = value;
   }
 
-  // These return NULL on OOM.
-  static HeapPage* Initialize(VirtualMemory* memory,
-                              PageType type,
-                              const char* name);
+  // Returns NULL on OOM.
   static HeapPage* Allocate(intptr_t size_in_words,
                             PageType type,
                             const char* name);
@@ -80,9 +96,11 @@ class HeapPage {
   HeapPage* next_;
   uword object_end_;
   uword used_in_bytes_;
+  ForwardingPage* forwarding_page_;
   PageType type_;
 
   friend class PageSpace;
+  friend class GCCompactor;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(HeapPage);
@@ -128,6 +146,9 @@ class PageSpaceController {
   // This method can be called before allocation (e.g., pretenuring) or after
   // (e.g., promotion), as it does not change the state of the controller.
   bool NeedsGarbageCollection(SpaceUsage after) const;
+
+  // Returns whether an idle GC is worthwhile.
+  bool NeedsIdleGarbageCollection(SpaceUsage current) const;
 
   // Should be called after each collection to update the controller state.
   void EvaluateGarbageCollection(SpaceUsage before,
@@ -176,6 +197,9 @@ class PageSpaceController {
   // code.
   int64_t last_code_collection_in_us_;
 
+  // We start considering idle mark-sweeps when old space crosses this size.
+  intptr_t idle_gc_threshold_in_words_;
+
   PageSpaceGarbageCollectionHistory history_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpaceController);
@@ -183,9 +207,6 @@ class PageSpaceController {
 
 class PageSpace {
  public:
-  // TODO(iposva): Determine heap sizes and tune the page size accordingly.
-  static const intptr_t kPageSizeInWords = 256 * KBInWords;
-
   enum GrowthPolicy { kControlGrowth, kForceGrowth };
 
   PageSpace(Heap* heap,
@@ -279,6 +300,8 @@ class PageSpace {
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only);
 
+  bool ShouldPerformIdleMarkSweep(int64_t deadline);
+
   void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
 
   int64_t gc_time_micros() const { return gc_time_micros_; }
@@ -292,7 +315,7 @@ class PageSpace {
   void PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) const;
 #endif  // PRODUCT
 
-  void AllocateExternal(intptr_t size);
+  void AllocateExternal(intptr_t cid, intptr_t size);
   void FreeExternal(intptr_t size);
 
   // Bulk data allocation.
@@ -318,12 +341,6 @@ class PageSpace {
   uword TryAllocateDataBumpLocked(intptr_t size, GrowthPolicy growth_policy);
   // Prefer small freelist blocks, then chip away at the bump block.
   uword TryAllocatePromoLocked(intptr_t size, GrowthPolicy growth_policy);
-
-  // Bump block allocation from generated code.
-  uword* TopAddress() { return &bump_top_; }
-  uword* EndAddress() { return &bump_end_; }
-  static intptr_t top_offset() { return OFFSET_OF(PageSpace, bump_top_); }
-  static intptr_t end_offset() { return OFFSET_OF(PageSpace, bump_end_); }
 
   void SetupImagePage(void* pointer, uword size, bool is_executable);
 
@@ -369,14 +386,10 @@ class PageSpace {
   void TruncateLargePage(HeapPage* page, intptr_t new_object_size_in_bytes);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
-  HeapPage* NextPageAnySize(HeapPage* page) const {
-    ASSERT((pages_tail_ == NULL) || (pages_tail_->next() == NULL));
-    ASSERT((exec_pages_tail_ == NULL) || (exec_pages_tail_->next() == NULL));
-    if (page == pages_tail_) {
-      return (exec_pages_ != NULL) ? exec_pages_ : large_pages_;
-    }
-    return page == exec_pages_tail_ ? large_pages_ : page->next();
-  }
+
+  void BlockingSweep();
+  void ConcurrentSweep(Isolate* isolate);
+  void Compact(Thread* thread);
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
 
@@ -405,6 +418,7 @@ class PageSpace {
   HeapPage* exec_pages_;
   HeapPage* exec_pages_tail_;
   HeapPage* large_pages_;
+  HeapPage* image_pages_;
 
   // A block of memory in a data page, managed by bump allocation. The remainder
   // is kept formatted as a FreeListElement, but is not in any freelist.
@@ -428,6 +442,7 @@ class PageSpace {
 
   int64_t gc_time_micros_;
   intptr_t collections_;
+  intptr_t mark_sweep_words_per_micro_;
 
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;
@@ -435,6 +450,7 @@ class PageSpace {
   friend class HeapIterationScope;
   friend class PageSpaceController;
   friend class SweeperTask;
+  friend class GCCompactor;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

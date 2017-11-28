@@ -31,6 +31,7 @@ class MultitestTransformer
 
   static const List<String> validOutcomesList = const <String>[
     "ok",
+    "syntax error",
     "compile-time error",
     "runtime error",
     "static type warning",

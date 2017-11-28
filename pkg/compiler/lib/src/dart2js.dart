@@ -8,6 +8,9 @@ import 'dart:async' show Future;
 import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io' show exit, File, FileMode, Platform, stdin, stderr;
 
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
+
 import 'package:package_config/discovery.dart' show findPackages;
 
 import '../compiler_new.dart' as api;
@@ -40,14 +43,18 @@ String BUILD_ID = null;
  * string argument, or the arguments iterator for multiple arguments
  * handlers.
  */
-typedef void HandleOption(data);
+typedef void HandleOption(Null data);
 
 class OptionHandler {
   final String pattern;
-  final HandleOption handle;
+  final HandleOption _handle;
   final bool multipleArguments;
 
-  OptionHandler(this.pattern, this.handle, {this.multipleArguments: false});
+  void handle(argument) {
+    (_handle as dynamic)(argument);
+  }
+
+  OptionHandler(this.pattern, this._handle, {this.multipleArguments: false});
 }
 
 /**
@@ -132,6 +139,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool showHints;
   bool enableColors;
   bool useKernel = false;
+  Uri platformBinaries = computePlatformBinariesLocation();
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
   bool hasDisallowUnsafeEval = false;
@@ -280,11 +288,14 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   void setUseKernel(String argument) {
     useKernel = true;
-    // TODO(sigmund): remove once we support inlining and type-inference
-    // with `useKernel`.
+    // TODO(sigmund): remove once we support inlining with `useKernel`.
     options.add(Flags.disableInlining);
-    options.add(Flags.disableTypeInference);
     passThrough(argument);
+  }
+
+  void setPlatformBinaries(String argument) {
+    platformBinaries =
+        currentDirectory.resolve(extractPath(argument, isDirectory: true));
   }
 
   void handleThrowOnError(String argument) {
@@ -335,8 +346,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
-    new OptionHandler(Flags.useKernelInSsa, passThrough),
     new OptionHandler(Flags.useKernel, setUseKernel),
+    new OptionHandler(Flags.platformBinaries, setPlatformBinaries),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -579,7 +590,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   Uri script = currentDirectory.resolve(arguments[0]);
-  if (useKernel && script.path.endsWith('.dill')) {
+  if (useKernel) {
     diagnosticHandler.autoReadFileUri = true;
   }
   CompilerOptions compilerOptions = new CompilerOptions.parse(
@@ -587,6 +598,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       libraryRoot: libraryRoot,
       packageRoot: packageRoot,
       packageConfig: packageConfig,
+      platformBinaries: platformBinaries,
       packagesDiscoveryProvider: findPackages,
       resolutionInputs: resolutionInputs,
       resolutionOutput: resolveOnly ? resolutionOutput : null,

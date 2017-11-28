@@ -88,6 +88,27 @@ class WeakTable {
     return 0;
   }
 
+  // Removes and returns the value associated with |key|. Returns 0 if there is
+  // no value associated with |key|.
+  intptr_t RemoveValue(RawObject* key) {
+    intptr_t mask = size() - 1;
+    intptr_t idx = Hash(key) & mask;
+    RawObject* obj = ObjectAt(idx);
+    while (obj != NULL) {
+      if (obj == key) {
+        intptr_t result = ValueAt(idx);
+        InvalidateAt(idx);
+        return result;
+      }
+      idx = (idx + 1) & mask;
+      obj = ObjectAt(idx);
+    }
+    ASSERT(ValueAt(idx) == 0);
+    return 0;
+  }
+
+  void Forward(ObjectPointerVisitor* visitor);
+
   void Reset();
 
  private:
@@ -123,6 +144,12 @@ class WeakTable {
   intptr_t ObjectIndex(intptr_t i) const { return index(i) + kObjectOffset; }
 
   intptr_t ValueIndex(intptr_t i) const { return index(i) + kValueOffset; }
+
+  RawObject** ObjectPointerAt(intptr_t i) const {
+    ASSERT(i >= 0);
+    ASSERT(i < size());
+    return reinterpret_cast<RawObject**>(&data_[ObjectIndex(i)]);
+  }
 
   void SetObjectAt(intptr_t i, RawObject* key) {
     ASSERT(i >= 0);

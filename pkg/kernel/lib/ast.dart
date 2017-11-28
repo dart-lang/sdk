@@ -173,6 +173,11 @@ abstract class NamedNode extends TreeNode {
   CanonicalName get canonicalName => reference?.canonicalName;
 }
 
+abstract class FileUriNode extends TreeNode {
+  /// The uri of the source file this node was loaded from.
+  String get fileUri;
+}
+
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
@@ -248,10 +253,7 @@ class Reference {
 // ------------------------------------------------------------------------
 
 @coq
-class Library extends NamedNode implements Comparable<Library> {
-  /// Offset of the declaration, set and used when writing the binary.
-  int binaryOffset = -1;
-
+class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -272,10 +274,6 @@ class Library extends NamedNode implements Comparable<Library> {
   /// If the libary is non-external, then its classes are at [ClassLevel.Body]
   /// and all members are loaded.
   bool isExternal;
-
-  /// Documentation comment of the library, or `null`.
-  @informative
-  String documentationComment;
 
   String name;
 
@@ -344,19 +342,29 @@ class Library extends NamedNode implements Comparable<Library> {
     }
   }
 
+  void addAnnotation(Expression node) {
+    node.parent = this;
+    annotations.add(node);
+  }
+
   void addClass(Class class_) {
     class_.parent = this;
     classes.add(class_);
   }
 
+  void addField(Field field) {
+    field.parent = this;
+    fields.add(field);
+  }
+
+  void addProcedure(Procedure procedure) {
+    procedure.parent = this;
+    procedures.add(procedure);
+  }
+
   void addTypedef(Typedef typedef_) {
     typedef_.parent = this;
     typedefs.add(typedef_);
-  }
-
-  void addAnnotation(Expression node) {
-    node.parent = this;
-    annotations.add(node);
   }
 
   void computeCanonicalNames() {
@@ -414,7 +422,7 @@ class Library extends NamedNode implements Comparable<Library> {
   String toString() => debugLibraryName(this);
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
   }
 }
 
@@ -501,7 +509,7 @@ class LibraryDependency extends TreeNode {
 ///     part <url>;
 ///
 /// optionally with metadata.
-class LibraryPart extends TreeNode {
+class LibraryPart extends TreeNode implements FileUriNode {
   final List<Expression> annotations;
   final String fileUri;
 
@@ -552,7 +560,7 @@ class Combinator extends TreeNode {
 }
 
 /// Declaration of a type alias.
-class Typedef extends NamedNode {
+class Typedef extends NamedNode implements FileUriNode {
   /// The uri of the source file that contains the declaration of this typedef.
   String fileUri;
   List<Expression> annotations = const <Expression>[];
@@ -650,7 +658,7 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 @coq
-class Class extends NamedNode {
+class Class extends NamedNode implements FileUriNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
@@ -658,10 +666,6 @@ class Class extends NamedNode {
 
   /// The degree to which the contents of the class have been loaded.
   ClassLevel level = ClassLevel.Body;
-
-  /// Documentation comment of the class, or `null`.
-  @informative
-  String documentationComment;
 
   /// List of metadata annotations on the class.
   ///
@@ -682,7 +686,6 @@ class Class extends NamedNode {
   bool isAbstract;
 
   /// Whether this class is an enum.
-  @informative
   bool isEnum = false;
 
   /// Whether this class is a synthetic implementation created for each
@@ -724,8 +727,13 @@ class Class extends NamedNode {
 
   /// Procedures declared in the class.
   ///
-  /// For mixin applications this should be empty.
+  /// For mixin applications this should only contain forwarding stubs.
   final List<Procedure> procedures;
+
+  /// Redirecting factory constructors declared in the class.
+  ///
+  /// For mixin applications this should be empty.
+  final List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
 
   Class(
       {this.name,
@@ -738,6 +746,7 @@ class Class extends NamedNode {
       List<Constructor> constructors,
       List<Procedure> procedures,
       List<Field> fields,
+      List<RedirectingFactoryConstructor> redirectingFactoryConstructors,
       this.fileUri,
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -745,11 +754,14 @@ class Class extends NamedNode {
         this.fields = fields ?? <Field>[],
         this.constructors = constructors ?? <Constructor>[],
         this.procedures = procedures ?? <Procedure>[],
+        this.redirectingFactoryConstructors =
+            redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
     setParents(this.constructors, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+    setParents(this.redirectingFactoryConstructors, this);
   }
 
   void computeCanonicalNames() {
@@ -761,6 +773,9 @@ class Class extends NamedNode {
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
     for (var member in constructors) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var member in redirectingFactoryConstructors) {
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
   }
@@ -783,8 +798,12 @@ class Class extends NamedNode {
   ///
   /// This getter is for convenience, not efficiency.  Consider manually
   /// iterating the members to speed up code in production.
-  Iterable<Member> get members =>
-      <Iterable<Member>>[fields, constructors, procedures].expand((x) => x);
+  Iterable<Member> get members => <Iterable<Member>>[
+        fields,
+        constructors,
+        procedures,
+        redirectingFactoryConstructors
+      ].expand((x) => x);
 
   /// The immediately extended, mixed-in, and implemented types.
   ///
@@ -811,6 +830,8 @@ class Class extends NamedNode {
       procedures.add(member);
     } else if (member is Field) {
       fields.add(member);
+    } else if (member is RedirectingFactoryConstructor) {
+      redirectingFactoryConstructors.add(member);
     } else {
       throw new ArgumentError(member);
     }
@@ -874,6 +895,7 @@ class Class extends NamedNode {
     visitList(constructors, v);
     visitList(procedures, v);
     visitList(fields, v);
+    visitList(redirectingFactoryConstructors, v);
   }
 
   transformChildren(Transformer v) {
@@ -889,10 +911,11 @@ class Class extends NamedNode {
     transformList(constructors, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
+    transformList(redirectingFactoryConstructors, v, this);
   }
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
   }
 }
 
@@ -906,10 +929,6 @@ abstract class Member extends NamedNode {
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
   int fileEndOffset = TreeNode.noOffset;
-
-  /// Documentation comment of the member, or `null`.
-  @informative
-  String documentationComment;
 
   /// List of metadata annotations on the member.
   ///
@@ -1001,9 +1020,10 @@ abstract class Member extends NamedNode {
 ///
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
-class Field extends Member {
+class Field extends Member implements FileUriNode {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
+  int flags2 = 0;
   Expression initializer; // May be null.
 
   /// The uri of the source file this field was loaded from.
@@ -1041,6 +1061,9 @@ class Field extends Member {
   static const int FlagCovariant = 1 << 5;
   static const int FlagGenericCovariantImpl = 1 << 6;
   static const int FlagGenericCovariantInterface = 1 << 7;
+
+  // Must match serialized bit positions
+  static const int Flag2GenericContravariant = 1 << 0;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1084,6 +1107,14 @@ class Field extends Member {
   bool get isGenericCovariantInterface =>
       flags & FlagGenericCovariantInterface != 0;
 
+  /// Indicates whether getter invocations using this interface target may need
+  /// to perform a runtime type check to deal with generic covariance.
+  ///
+  /// Note that the appropriate runtime checks are inserted by the front end, so
+  /// back ends need not consult this flag; this flag exists merely to reduce
+  /// front end computational overhead.
+  bool get isGenericContravariant => flags2 & Flag2GenericContravariant != 0;
+
   void set isCovariant(bool value) {
     flags = value ? (flags | FlagCovariant) : (flags & ~FlagCovariant);
   }
@@ -1124,6 +1155,12 @@ class Field extends Member {
         : (flags & ~FlagGenericCovariantInterface);
   }
 
+  void set isGenericContravariant(bool value) {
+    flags2 = value
+        ? (flags2 | Flag2GenericContravariant)
+        : (flags & ~Flag2GenericContravariant);
+  }
+
   /// True if the field is neither final nor const.
   bool get isMutable => flags & (FlagFinal | FlagConst) == 0;
   bool get isInstanceMember => !isStatic;
@@ -1159,7 +1196,7 @@ class Field extends Member {
   DartType get setterType => isMutable ? type : const BottomType();
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
   }
 }
 
@@ -1172,12 +1209,6 @@ class Field extends Member {
 ///
 /// For unnamed constructors, the name is an empty string (in a [Name]).
 class Constructor extends Member {
-  /// Offset of the name in the source file it comes from.
-  ///
-  /// Valid values are from `-1` and up, where `-1` means that the node does
-  /// not have an explicit name (i.e. unnamed constructor).
-  int nameOffset = TreeNode.noOffset;
-
   int flags = 0;
   FunctionNode function;
   List<Initializer> initializers;
@@ -1254,6 +1285,148 @@ class Constructor extends Member {
   DartType get setterType => const BottomType();
 }
 
+/// Residue of a redirecting factory constructor for the linking phase.
+///
+/// In the following example, `bar` is a redirecting factory constructor.
+///
+///     class A {
+///       A.foo();
+///       factory A.bar() = A.foo;
+///     }
+///
+/// An invocation of `new A.bar()` has the same effect as an invocation of
+/// `new A.foo()`.  In Kernel, the invocations of `bar` are replaced with
+/// invocations of `foo`, and after it is done, the redirecting constructor can
+/// be removed from the class.  However, it is needed during the linking phase,
+/// because other modules can refer to that constructor.
+///
+/// [RedirectingFactoryConstructor]s contain the necessary information for
+/// linking and are treated as non-runnable members of classes that merely serve
+/// as containers for that information.
+///
+/// Existing transformers may easily ignore [RedirectingFactoryConstructor]s,
+/// because the class is implemented as a subclass of [Member], and not as a
+/// subclass of, for example, [Constructor] or [Procedure].
+///
+/// Redirecting factory constructors can be unnamed.  In this case, the name is
+/// an empty string (in a [Name]).
+class RedirectingFactoryConstructor extends Member {
+  int flags = 0;
+
+  /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
+  /// of instantiated generic types, that is, generic types with supplied type
+  /// arguments.  The supplied type arguments are stored in this field.
+  final List<DartType> typeArguments;
+
+  /// Reference to the constructor or the factory that this
+  /// [RedirectingFactoryConstructor] redirects to.
+  Reference targetReference;
+
+  /// [typeParameters] are duplicates of the type parameters of the enclosing
+  /// class.  Because [RedirectingFactoryConstructor]s aren't instance members,
+  /// references to the type parameters of the enclosing class in the
+  /// redirection target description are encoded with references to the elements
+  /// of [typeParameters].
+  List<TypeParameter> typeParameters;
+
+  /// Positional parameters of [RedirectingFactoryConstructor]s should be
+  /// compatible with that of the target constructor.
+  List<VariableDeclaration> positionalParameters;
+  int requiredParameterCount;
+
+  /// Named parameters of [RedirectingFactoryConstructor]s should be compatible
+  /// with that of the target constructor.
+  List<VariableDeclaration> namedParameters;
+
+  RedirectingFactoryConstructor(this.targetReference,
+      {Name name,
+      bool isConst: false,
+      bool isExternal: false,
+      bool isSyntheticDefault: false,
+      int transformerFlags: 0,
+      List<DartType> typeArguments,
+      List<TypeParameter> typeParameters,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters,
+      int requiredParameterCount,
+      Reference reference})
+      : this.typeArguments = typeArguments ?? <DartType>[],
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.positionalParameters =
+            positionalParameters ?? <VariableDeclaration>[],
+        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
+        this.requiredParameterCount =
+            requiredParameterCount ?? positionalParameters?.length ?? 0,
+        super(name, reference) {
+    setParents(this.typeParameters, this);
+    setParents(this.positionalParameters, this);
+    setParents(this.namedParameters, this);
+    this.isConst = isConst;
+    this.isExternal = isExternal;
+    this.isSyntheticDefault = isSyntheticDefault;
+    this.transformerFlags = transformerFlags;
+  }
+
+  static const int FlagConst = 1 << 0; // Must match serialized bit positions.
+  static const int FlagExternal = 1 << 1;
+  static const int FlagSyntheticDefault = 1 << 2;
+
+  bool get isConst => flags & FlagConst != 0;
+  bool get isExternal => flags & FlagExternal != 0;
+
+  /// True if this is a synthetic default constructor inserted in a class that
+  /// does not otherwise declare any constructors.
+  bool get isSyntheticDefault => flags & FlagSyntheticDefault != 0;
+
+  void set isConst(bool value) {
+    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  void set isExternal(bool value) {
+    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
+  }
+
+  void set isSyntheticDefault(bool value) {
+    flags = value
+        ? (flags | FlagSyntheticDefault)
+        : (flags & ~FlagSyntheticDefault);
+  }
+
+  bool get isInstanceMember => false;
+  bool get hasGetter => false;
+  bool get hasSetter => false;
+
+  bool get isUnresolved => targetReference == null;
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member member) {
+    assert(member is Constructor ||
+        (member is Procedure && member.kind == ProcedureKind.Factory));
+    targetReference = getMemberReference(member);
+  }
+
+  accept(MemberVisitor v) => v.visitRedirectingFactoryConstructor(this);
+
+  acceptReference(MemberReferenceVisitor v) =>
+      v.visitRedirectingFactoryConstructorReference(this);
+
+  visitChildren(Visitor v) {
+    visitList(annotations, v);
+    target?.acceptReference(v);
+    visitList(typeArguments, v);
+    name?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(annotations, v, this);
+    transformTypeList(typeArguments, v);
+  }
+
+  DartType get getterType => const BottomType();
+  DartType get setterType => const BottomType();
+}
+
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
 /// or factory.
 ///
@@ -1270,17 +1443,12 @@ class Constructor extends Member {
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
 @coq
-class Procedure extends Member {
+class Procedure extends Member implements FileUriNode {
   ProcedureKind kind;
-
-  /// Offset of the name in the source file it comes from.
-  ///
-  /// Valid values are from `-1` and up, where `-1` means that the node does
-  /// not have an explicit name (i.e. unnamed constructor).
-  int nameOffset = TreeNode.noOffset;
-
   int flags = 0;
-  FunctionNode function; // Body is null if and only if abstract or external.
+  // function is null if and only if abstract, external,
+  // or builder (below) is set.
+  FunctionNode function;
 
   /// The uri of the source file this procedure was loaded from.
   String fileUri;
@@ -1290,6 +1458,7 @@ class Procedure extends Member {
       bool isStatic: false,
       bool isExternal: false,
       bool isConst: false,
+      bool isForwardingStub: false,
       int transformerFlags: 0,
       this.fileUri,
       Reference reference})
@@ -1299,6 +1468,7 @@ class Procedure extends Member {
     this.isStatic = isStatic;
     this.isExternal = isExternal;
     this.isConst = isConst;
+    this.isForwardingStub = isForwardingStub;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1306,6 +1476,8 @@ class Procedure extends Member {
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
+  static const int FlagForwardingStub = 1 << 4;
+  static const int FlagGenericContravariant = 1 << 5;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1314,6 +1486,16 @@ class Procedure extends Member {
   /// True if this has the `const` modifier.  This is only possible for external
   /// constant factories, such as `String.fromEnvironment`.
   bool get isConst => flags & FlagConst != 0;
+
+  bool get isForwardingStub => flags & FlagForwardingStub != 0;
+
+  /// Indicates whether invocations using this interface target may need to
+  /// perform a runtime type check to deal with generic covariance.
+  ///
+  /// Note that the appropriate runtime checks are inserted by the front end, so
+  /// back ends need not consult this flag; this flag exists merely to reduce
+  /// front end computational overhead.
+  bool get isGenericContravariant => flags & FlagGenericContravariant != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1329,6 +1511,17 @@ class Procedure extends Member {
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  void set isForwardingStub(bool value) {
+    flags =
+        value ? (flags | FlagForwardingStub) : (flags & ~FlagForwardingStub);
+  }
+
+  void set isGenericContravariant(bool value) {
+    flags = value
+        ? (flags | FlagGenericContravariant)
+        : (flags & ~FlagGenericContravariant);
   }
 
   bool get isInstanceMember => !isStatic;
@@ -1368,7 +1561,7 @@ class Procedure extends Member {
   }
 
   Location _getLocationInEnclosingFile(int offset) {
-    return enclosingProgram.getLocation(fileUri, offset);
+    return _getLocationInProgram(enclosingProgram, fileUri, offset);
   }
 }
 
@@ -1590,9 +1783,29 @@ class FunctionNode extends TreeNode {
   @nocoq
   List<VariableDeclaration> namedParameters;
   DartType returnType; // Not null.
-  Statement body;
+  Statement _body;
 
-  FunctionNode(this.body,
+  void Function() lazyBuilder;
+
+  void _buildLazy() {
+    if (lazyBuilder != null) {
+      var lazyBuilderLocal = lazyBuilder;
+      lazyBuilder = null;
+      lazyBuilderLocal();
+    }
+  }
+
+  Statement get body {
+    _buildLazy();
+    return _body;
+  }
+
+  void set body(Statement body) {
+    _buildLazy();
+    _body = body;
+  }
+
+  FunctionNode(this._body,
       {List<TypeParameter> typeParameters,
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
@@ -1610,7 +1823,7 @@ class FunctionNode extends TreeNode {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
-    body?.parent = this;
+    _body?.parent = this;
     dartAsyncMarker ??= asyncMarker;
   }
 
@@ -1907,6 +2120,7 @@ class PropertySet extends Expression {
   Expression receiver;
   Name name;
   Expression value;
+  int flags = 0;
 
   Reference interfaceTargetReference;
 
@@ -1919,6 +2133,19 @@ class PropertySet extends Expression {
       this.receiver, this.name, this.value, this.interfaceTargetReference) {
     receiver?.parent = this;
     value?.parent = this;
+    this.dispatchCategory = DispatchCategory.dynamicDispatch;
+  }
+
+  // Must match serialized bit positions.
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
@@ -2013,6 +2240,7 @@ class DirectPropertySet extends Expression {
   Expression receiver;
   Reference targetReference;
   Expression value;
+  int flags = 0;
 
   DirectPropertySet(Expression receiver, Member target, Expression value)
       : this.byReference(receiver, getMemberReference(target), value);
@@ -2021,6 +2249,18 @@ class DirectPropertySet extends Expression {
       this.receiver, this.targetReference, this.value) {
     receiver?.parent = this;
     value?.parent = this;
+  }
+
+  // Must match serialized bit positions
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get target => targetReference?.asMember;
@@ -2784,11 +3024,25 @@ class IsExpression extends Expression {
 
 /// Expression of form `x as T`.
 class AsExpression extends Expression {
+  int flags = 0;
   Expression operand;
   DartType type;
 
   AsExpression(this.operand, this.type) {
     operand?.parent = this;
+  }
+
+  // Must match serialized bit positions.
+  static const int FlagTypeError = 1 << 0;
+
+  /// Indicates the type of error that should be thrown if the check fails.
+  ///
+  /// `true` means that a TypeError should be thrown.  `false` means that a
+  /// CastError should be thrown.
+  bool get isTypeError => flags & FlagTypeError != 0;
+
+  void set isTypeError(bool value) {
+    flags = value ? (flags | FlagTypeError) : (flags & ~FlagTypeError);
   }
 
   DartType getStaticType(TypeEnvironment types) => type;
@@ -3094,6 +3348,28 @@ class FunctionExpression extends Expression {
   }
 }
 
+class ConstantExpression extends Expression {
+  Constant constant;
+
+  ConstantExpression(this.constant) {
+    assert(constant != null);
+  }
+
+  DartType getStaticType(TypeEnvironment types) =>
+      throw 'ConstantExpression.staticType() is unimplemented';
+
+  accept(ExpressionVisitor v) => v.visitConstantExpression(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitConstantExpression(this, arg);
+
+  visitChildren(Visitor v) {
+    constant?.acceptReference(v);
+  }
+
+  transformChildren(Transformer v) {
+    constant = v.visitConstant(constant);
+  }
+}
+
 /// Synthetic expression of form `let v = x in y`
 class Let extends Expression {
   VariableDeclaration variable; // Must have an initializer.
@@ -3384,6 +3660,8 @@ class Block extends Statement {
 
   Block(this.statements) {
     setParents(statements, this);
+    statements.add(null);
+    statements.removeLast();
   }
 
   accept(StatementVisitor v) => v.visitBlock(this);
@@ -4033,6 +4311,12 @@ class VariableDeclaration extends Statement {
   /// (this is the default if none is specifically set).
   int fileEqualsOffset = TreeNode.noOffset;
 
+  /// List of metadata annotations on the variable declaration.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
+
   /// For named parameters, this is the name of the parameter. No two named
   /// parameters (in the same parameter list) can have the same name.
   ///
@@ -4148,6 +4432,13 @@ class VariableDeclaration extends Statement {
     flags = value
         ? (flags | FlagGenericCovariantInterface)
         : (flags & ~FlagGenericCovariantInterface);
+  }
+
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
   }
 
   accept(StatementVisitor v) => v.visitVariableDeclaration(this);
@@ -4365,7 +4656,7 @@ class BottomType extends DartType {
 
 @coq
 class InterfaceType extends DartType {
-  final Reference className;
+  Reference className;
   @nocoq
   final List<DartType> typeArguments;
 
@@ -4711,6 +5002,12 @@ class TypeParameterType extends DartType {
 class TypeParameter extends TreeNode {
   int flags = 0;
 
+  /// List of metadata annotations on the type parameter.
+  ///
+  /// This defaults to an immutable empty list. Use [addAnnotation] to add
+  /// annotations if needed.
+  List<Expression> annotations = const <Expression>[];
+
   String name; // Cosmetic name.
 
   /// The bound on the type variable.
@@ -4754,6 +5051,13 @@ class TypeParameter extends TreeNode {
         : (flags & ~FlagGenericCovariantInterface);
   }
 
+  void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(annotation..parent = this);
+  }
+
   accept(TreeVisitor v) => v.visitTypeParameter(this);
 
   visitChildren(Visitor v) {
@@ -4770,7 +5074,7 @@ class TypeParameter extends TreeNode {
 }
 
 class Supertype extends Node {
-  final Reference className;
+  Reference className;
   final List<DartType> typeArguments;
 
   Supertype(Class classNode, List<DartType> typeArguments)
@@ -4815,6 +5119,277 @@ class Supertype extends Node {
 }
 
 // ------------------------------------------------------------------------
+//                             CONSTANTS
+// ------------------------------------------------------------------------
+
+abstract class Constant extends Node {
+  /// Calls the `visit*ConstantReference()` method on visitor [v] for all
+  /// constants referenced in this constant.
+  ///
+  /// (Note that a constant can be seen as a DAG (directed acyclic graph) and
+  ///  not a tree!)
+  visitChildren(Visitor v);
+
+  /// Calls the `visit*Constant()` method on the visitor [v].
+  accept(ConstantVisitor v);
+
+  /// Calls the `visit*ConstantReference()` method on the visitor [v].
+  acceptReference(Visitor v);
+
+  /// The Kernel AST will reference [Constant]s via [ConstantExpression]s.  The
+  /// constants are not required to be canonicalized, but they have to be deeply
+  /// comparable via hashCode/==!
+  int get hashCode;
+  bool operator ==(Object other);
+}
+
+abstract class PrimitiveConstant<T> extends Constant {
+  final T value;
+
+  PrimitiveConstant(this.value);
+
+  String toString() => '${this.runtimeType}($value)';
+
+  int get hashCode => value.hashCode;
+
+  bool operator ==(Object other) =>
+      other is PrimitiveConstant<T> && other.value == value;
+}
+
+class NullConstant extends PrimitiveConstant<Null> {
+  NullConstant() : super(null);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitNullConstant(this);
+  acceptReference(Visitor v) => v.visitNullConstantReference(this);
+}
+
+class BoolConstant extends PrimitiveConstant<bool> {
+  BoolConstant(bool value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitBoolConstant(this);
+  acceptReference(Visitor v) => v.visitBoolConstantReference(this);
+}
+
+class IntConstant extends PrimitiveConstant<int> {
+  IntConstant(int value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitIntConstant(this);
+  acceptReference(Visitor v) => v.visitIntConstantReference(this);
+}
+
+class DoubleConstant extends PrimitiveConstant<double> {
+  DoubleConstant(double value) : super(value);
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitDoubleConstant(this);
+  acceptReference(Visitor v) => v.visitDoubleConstantReference(this);
+
+  int get hashCode => value.isNaN ? 199 : super.hashCode;
+  bool operator ==(Object other) =>
+      other is DoubleConstant &&
+      (other.value == value || identical(value, other.value) /* For NaN */);
+}
+
+class StringConstant extends PrimitiveConstant<String> {
+  StringConstant(String value) : super(value) {
+    assert(value != null);
+  }
+
+  visitChildren(Visitor v) {}
+  accept(ConstantVisitor v) => v.visitStringConstant(this);
+  acceptReference(Visitor v) => v.visitStringConstantReference(this);
+}
+
+class MapConstant extends Constant {
+  final DartType keyType;
+  final DartType valueType;
+  final List<ConstantMapEntry> entries;
+
+  MapConstant(this.keyType, this.valueType, this.entries);
+
+  visitChildren(Visitor v) {
+    keyType.accept(v);
+    valueType.accept(v);
+    for (final ConstantMapEntry entry in entries) {
+      entry.key.acceptReference(v);
+      entry.value.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitMapConstant(this);
+  acceptReference(Visitor v) => v.visitMapConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
+
+  // TODO(kustermann): Consider combining the hash codes in a better way (also
+  // below and in [listHashCode]/[mapHashCode].
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??=
+        keyType.hashCode ^ valueType.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MapConstant &&
+          other.keyType == keyType &&
+          other.valueType == valueType &&
+          listEquals(other.entries, entries));
+}
+
+class ConstantMapEntry {
+  final Constant key;
+  final Constant value;
+  ConstantMapEntry(this.key, this.value);
+
+  String toString() => '$key: $value';
+
+  int get hashCode => key.hashCode ^ value.hashCode;
+
+  bool operator ==(Object other) =>
+      other is ConstantMapEntry && other.key == key && other.value == value;
+}
+
+class ListConstant extends Constant {
+  final DartType typeArgument;
+  final List<Constant> entries;
+
+  ListConstant(this.typeArgument, this.entries);
+
+  visitChildren(Visitor v) {
+    typeArgument.accept(v);
+    for (final Constant constant in entries) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitListConstant(this);
+  acceptReference(Visitor v) => v.visitListConstantReference(this);
+
+  String toString() => '${this.runtimeType}<$typeArgument>($entries)';
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+  }
+
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListConstant &&
+          other.typeArgument == typeArgument &&
+          listEquals(other.entries, entries));
+}
+
+class InstanceConstant extends Constant {
+  final Reference classReference;
+  final List<DartType> typeArguments;
+  final Map<Reference, Constant> fieldValues;
+
+  InstanceConstant(this.classReference, this.typeArguments, this.fieldValues);
+
+  Class get klass => classReference.asClass;
+
+  visitChildren(Visitor v) {
+    classReference.asClass.acceptReference(v);
+    visitList(typeArguments, v);
+    for (final Reference reference in fieldValues.keys) {
+      reference.asField.acceptReference(v);
+    }
+    for (final Constant constant in fieldValues.values) {
+      constant.acceptReference(v);
+    }
+  }
+
+  accept(ConstantVisitor v) => v.visitInstanceConstant(this);
+  acceptReference(Visitor v) => v.visitInstanceConstantReference(this);
+
+  String toString() {
+    final sb = new StringBuffer();
+    sb.write('${classReference.asClass}');
+    if (!classReference.asClass.typeParameters.isEmpty) {
+      sb.write('<');
+      sb.write(typeArguments.map((type) => type.toString()).join(', '));
+      sb.write('>');
+    }
+    sb.write(' {');
+    fieldValues.forEach((Reference fieldRef, Constant constant) {
+      sb.write('${fieldRef.asField.name}: $constant, ');
+    });
+    sb.write('}');
+    return sb.toString();
+  }
+
+  int _cachedHashCode;
+  int get hashCode {
+    return _cachedHashCode ??= classReference.hashCode ^
+        listHashCode(typeArguments) ^
+        mapHashCode(fieldValues);
+  }
+
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is InstanceConstant &&
+            other.classReference == classReference &&
+            listEquals(other.typeArguments, typeArguments) &&
+            mapEquals(other.fieldValues, fieldValues));
+  }
+}
+
+class TearOffConstant extends Constant {
+  final Reference procedureReference;
+
+  TearOffConstant(Procedure procedure)
+      : procedureReference = procedure.reference {
+    assert(procedure.isStatic);
+  }
+
+  TearOffConstant.byReference(this.procedureReference);
+
+  Procedure get procedure => procedureReference?.asProcedure;
+
+  visitChildren(Visitor v) {
+    procedureReference.asProcedure.acceptReference(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitTearOffConstant(this);
+  acceptReference(Visitor v) => v.visitTearOffConstantReference(this);
+
+  String toString() {
+    return '${runtimeType}(${procedure})';
+  }
+
+  int get hashCode => procedure.hashCode;
+
+  bool operator ==(Object other) {
+    return other is TearOffConstant && other.procedure == procedure;
+  }
+}
+
+class TypeLiteralConstant extends Constant {
+  final DartType type;
+
+  TypeLiteralConstant(this.type);
+
+  visitChildren(Visitor v) {
+    type.accept(v);
+  }
+
+  accept(ConstantVisitor v) => v.visitTypeLiteralConstant(this);
+  acceptReference(Visitor v) => v.visitTypeLiteralConstantReference(this);
+
+  String toString() => '${runtimeType}(${type})';
+
+  int get hashCode => type.hashCode;
+
+  bool operator ==(Object other) {
+    return other is TypeLiteralConstant && other.type == type;
+  }
+}
+
+// ------------------------------------------------------------------------
 //                                PROGRAM
 // ------------------------------------------------------------------------
 
@@ -4829,6 +5404,11 @@ class Program extends TreeNode {
   /// it to a line:column position in that file.
   final Map<String, Source> uriToSource;
 
+  /// Mapping between string tags and [MetadataRepository] corresponding to
+  /// those tags.
+  final Map<String, MetadataRepository<dynamic>> metadata =
+      <String, MetadataRepository<dynamic>>{};
+
   /// Reference to the main method in one of the libraries.
   Reference mainMethodName;
 
@@ -4839,7 +5419,18 @@ class Program extends TreeNode {
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
         uriToSource = uriToSource ?? <String, Source>{} {
-    setParents(this.libraries, this);
+    if (libraries != null) {
+      for (int i = 0; i < libraries.length; ++i) {
+        // The libraries are owned by this program, and so are their canonical
+        // names if they exist.
+        Library library = libraries[i];
+        library.parent = this;
+        CanonicalName name = library.reference.canonicalName;
+        if (name != null && name.parent != root) {
+          root.adoptChild(name);
+        }
+      }
+    }
   }
 
   void computeCanonicalNames() {
@@ -4876,6 +5467,10 @@ class Program extends TreeNode {
   Location getLocation(String file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
   }
+
+  void addMetadataRepository(MetadataRepository repository) {
+    metadata[repository.tag] = repository;
+  }
 }
 
 /// A tuple with file, line, and column number, for displaying human-readable
@@ -4888,6 +5483,67 @@ class Location {
   Location(this.file, this.line, this.column);
 
   String toString() => '$file:$line:$column';
+}
+
+abstract class MetadataRepository<T> {
+  /// Unique string tag associated with this repository.
+  String get tag;
+
+  /// Mutable mapping between nodes and their metadata.
+  Map<TreeNode, T> get mapping;
+
+  /// Write the given metadata object into the given [BinarySink].
+  ///
+  /// Note: [metadata] must be an object owned by this repository.
+  void writeToBinary(T metadata, BinarySink sink);
+
+  /// Construct a metadata object from its binary payload read from the
+  /// given [BinarySource].
+  T readFromBinary(BinarySource source);
+
+  /// Method to check whether a node can have metadata attached to it
+  /// or referenced from the metadata payload.
+  ///
+  /// Currently due to binary format specifics Catch and MapEntry nodes
+  /// can't have metadata attached to them.
+  static bool isSupported(TreeNode node) {
+    return !(node is MapEntry || node is Catch);
+  }
+}
+
+abstract class BinarySink {
+  void writeByte(int byte);
+  void writeBytes(List<int> bytes);
+  void writeUInt32(int value);
+  void writeUInt30(int value);
+
+  /// Write List<Byte> into the sink.
+  void writeByteList(List<int> bytes);
+
+  void writeCanonicalNameReference(CanonicalName name);
+  void writeStringReference(String str);
+
+  /// Write a reference to a given node into the sink.
+  ///
+  /// Note: node must not be [MapEntry] because [MapEntry] and [MapEntry.key]
+  /// have the same offset in the binary and can't be distinguished.
+  void writeNodeReference(Node node);
+}
+
+abstract class BinarySource {
+  int get currentOffset;
+  List<int> get bytes;
+
+  int readByte();
+  int readUInt();
+  int readUint32();
+
+  /// Read List<Byte> from the source.
+  List<int> readByteList();
+
+  CanonicalName readCanonicalNameReference();
+  String readStringReference();
+  Node readNodeReference();
 }
 
 // ------------------------------------------------------------------------
@@ -5084,6 +5740,33 @@ CanonicalName getCanonicalNameOfLibrary(Library library) {
   return library.canonicalName;
 }
 
+int listHashCode(List list) {
+  return list.fold(0, (int value, Object item) => value ^ item.hashCode);
+}
+
+int mapHashCode(Map map) {
+  int value = 0;
+  for (final Object x in map.keys) value ^= x.hashCode;
+  for (final Object x in map.values) value ^= x.hashCode;
+  return value;
+}
+
+bool listEquals(List a, List b) {
+  if (a.length != b.length) return false;
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
+bool mapEquals(Map a, Map b) {
+  if (a.length != b.length) return false;
+  for (final Object key in a.keys) {
+    if (!b.containsKey(key) || a[key] != b[key]) return false;
+  }
+  return true;
+}
+
 /// Returns the canonical name of [typedef_], or throws an exception if the
 /// typedef has not been assigned a canonical name yet.
 ///
@@ -5100,3 +5783,11 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 /// other words, if this information (or any information it refers to) changes,
 /// static analysis and runtime behavior of the library are unaffected.
 const informative = null;
+
+Location _getLocationInProgram(Program program, String fileUri, int offset) {
+  if (program != null) {
+    return program.getLocation(fileUri, offset);
+  } else {
+    return new Location(fileUri, TreeNode.noOffset, TreeNode.noOffset);
+  }
+}

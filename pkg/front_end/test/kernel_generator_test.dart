@@ -31,7 +31,8 @@ main() {
     test('compiler fails if it cannot find sdk summary', () async {
       var errors = [];
       var options = new CompilerOptions()
-        ..sdkSummary = Uri.parse('file:///not_existing_summary_file')
+        ..sdkSummary =
+            Uri.parse('org-dartlang-test:///not_existing_summary_file')
         ..onError = (e) => errors.add(e);
 
       var program =
@@ -85,7 +86,8 @@ main() {
       // Kernel always store an empty '' key in the map, so there is always at
       // least one. Having more means that source-info is added.
       expect(program.uriToSource.keys.length, greaterThan(1));
-      expect(program.uriToSource['file:///a/b/c/a.dart'], isNotNull);
+      expect(
+          program.uriToSource['org-dartlang-test:///a/b/c/a.dart'], isNotNull);
     });
 
     test('code from summary dependencies are marked external', () async {

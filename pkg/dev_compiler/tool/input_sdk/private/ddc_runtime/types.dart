@@ -331,13 +331,13 @@ class FunctionType extends AbstractFunctionType {
     // identical function types that don't canonicalize
     // to the same object since we won't fall into this
     // fast path.
-    if (JS('bool', '# === void 0', extra) && JS('bool', '#.length < 3', args)) {
+    if (extra == null && JS('bool', '#.length < 3', args)) {
       return _createSmall(JS('', '#.length', args), definite, returnType, args);
     }
     args = _canonicalizeArray(definite, args, _fnTypeArrayArgMap);
     var keys;
     var create;
-    if (JS('bool', '# === void 0', extra)) {
+    if (extra == null) {
       keys = [returnType, args];
       create = () => new FunctionType(returnType, args, [], JS('', '{}'));
     } else if (JS('bool', '# instanceof Array', extra)) {
@@ -406,13 +406,13 @@ class FunctionType extends AbstractFunctionType {
           buffer += ', ';
         }
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
-        buffer += '${JS('', '#[#]', names, i)}: $typeNameString';
+        buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
       buffer += '}';
     }
 
     var returnTypeName = typeName(returnType);
-    buffer += ') -> $returnTypeName';
+    buffer += ') => $returnTypeName';
     _stringValue = buffer;
     return buffer;
   }
@@ -428,6 +428,13 @@ class FunctionType extends AbstractFunctionType {
     return false;
   }
 
+  static final void Function(Object, Object) _logIgnoredCast =
+      JS('', '''(() => $_ignoreMemo((actual, expected) => {
+        console.warn('Ignoring cast fail from ' + $typeName(actual) +
+                     ' to ' + $typeName(expected));
+        return null;
+        }))()''');
+
   @JSExportName('as')
   as_T(obj, [bool typeError]) {
     if (obj == null) return obj;
@@ -439,8 +446,7 @@ class FunctionType extends AbstractFunctionType {
       var result = isSubtype(actual, this);
       if (result == true) return obj;
       if (result == null && JS('bool', 'dart.__ignoreWhitelistedErrors')) {
-        JS('', "console.warn(#)",
-            'Ignoring cast fail from ${typeName(actual)} to ${typeName(this)}');
+        _logIgnoredCast(actual, this);
         return obj;
       }
     }
@@ -458,9 +464,23 @@ class Typedef extends AbstractFunctionType {
 
   Typedef(this._name, this._closure) {}
 
-  toString() =>
-      JS('String', '# + "(" + #.toString() + ")"', _name, functionType);
-  get name => _name;
+  toString() {
+    var typeArgs = getGenericArgs(this);
+    if (typeArgs == null) return name;
+
+    var result = name + '<';
+    var allDynamic = true;
+    for (var i = 0, n = JS('int', '#.length', typeArgs); i < n; ++i) {
+      if (i > 0) result += ', ';
+      var typeArg = JS('', '#[#]', typeArgs, i);
+      if (JS('bool', '# !== #', typeArg, _dynamic)) allDynamic = false;
+      result += typeName(typeArg);
+    }
+    result += '>';
+    return allDynamic ? name : result;
+  }
+
+  String get name => JS('String', '#', _name);
 
   AbstractFunctionType get functionType {
     var ft = _functionType;
@@ -674,13 +694,13 @@ typedef(name, AbstractFunctionType Function() closure) =>
 /// Create a definite function type.
 ///
 /// No substitution of dynamic for bottom occurs.
-fnType(returnType, List args, extra) =>
+fnType(returnType, List args, [extra = undefined]) =>
     FunctionType.create(true, returnType, args, extra);
 
 /// Create a "fuzzy" function type.
 ///
 /// If any arguments are dynamic they will be replaced with bottom.
-fnTypeFuzzy(returnType, List args, extra) =>
+fnTypeFuzzy(returnType, List args, [extra = undefined]) =>
     FunctionType.create(false, returnType, args, extra);
 
 /// Creates a definite generic function type.
@@ -1062,21 +1082,17 @@ isClassSubType(t1, t2, isCovariant) => JS('', '''(() => {
 
   if (definitive($t1.__proto__, $t2)) return true;
 
-  // Check mixins.
-  let mixins = $getMixins($t1);
-  if (mixins) {
-    for (let m1 of mixins) {
-      // TODO(jmesserly): remove the != null check once we can load core libs.
-      if (m1 != null && definitive(m1, $t2)) return true;
-    }
+  // Check mixin.
+  let m1 = $getMixin($t1);
+  if (m1 != null) {
+    if (definitive(m1, $t2)) return true;
   }
 
   // Check interfaces.
   let getInterfaces = $getImplements($t1);
   if (getInterfaces) {
     for (let i1 of getInterfaces()) {
-      // TODO(jmesserly): remove the != null check once we can load core libs.
-      if (i1 != null && definitive(i1, $t2)) return true;
+      if (definitive(i1, $t2)) return true;
     }
   }
 

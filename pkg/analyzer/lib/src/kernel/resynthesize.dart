@@ -11,13 +11,17 @@ import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:front_end/src/base/resolve_relative_uri.dart';
 import 'package:front_end/src/base/source.dart';
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart' as kernel;
 import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:kernel/kernel.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
+import 'package:path/path.dart' as pathos;
 
 /**
  * Object that can resynthesize analyzer [LibraryElement] from Kernel.
@@ -26,6 +30,7 @@ class KernelResynthesizer implements ElementResynthesizer {
   final AnalysisContextImpl _analysisContext;
   final kernel.TypeEnvironment _types;
   final Map<String, kernel.Library> _kernelMap;
+  final Map<String, bool> _libraryExistMap;
   final Map<String, LibraryElementImpl> _libraryMap = {};
 
   /**
@@ -36,7 +41,8 @@ class KernelResynthesizer implements ElementResynthesizer {
   /// The type provider for this resynthesizer.
   SummaryTypeProvider _typeProvider;
 
-  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap) {
+  KernelResynthesizer(this._analysisContext, this._types, this._kernelMap,
+      this._libraryExistMap) {
     _buildTypeProvider();
     _analysisContext.typeProvider = _typeProvider;
   }
@@ -57,63 +63,41 @@ class KernelResynthesizer implements ElementResynthesizer {
   @override
   Element getElement(ElementLocation location) {
     List<String> components = location.components;
-    if (components.length != 1) {
-      throw new ArgumentError('Only library access is implemented.');
+
+    LibraryElementImpl library = getLibrary(components[0]);
+    if (components.length == 1) {
+      return library;
     }
-    return getLibrary(components[0]);
-  }
 
-  /**
-   * Return the [LibraryElementImpl] for the given [uriStr], or `null` if
-   * the library is not part of the Kernel libraries bundle.
-   */
-  LibraryElementImpl getLibrary(String uriStr) {
-    return _libraryMap.putIfAbsent(uriStr, () {
-      var kernel = _kernelMap[uriStr];
-      if (kernel == null) return null;
-
-      var libraryContext =
-          new _KernelLibraryResynthesizerContextImpl(this, kernel);
-      LibraryElementImpl libraryElement = libraryContext._buildLibrary(uriStr);
-
-      // Build the defining unit.
-      var definingUnit = libraryContext._buildUnit(null).unit;
-      libraryElement.definingCompilationUnit = definingUnit;
-
-      // Build units for parts.
-      var parts = new List<CompilationUnitElementImpl>(kernel.parts.length);
-      for (int i = 0; i < kernel.parts.length; i++) {
-        var fileUri = kernel.parts[i].fileUri;
-        var unitContext = libraryContext._buildUnit(fileUri);
-        parts[i] = unitContext.unit;
+    CompilationUnitElement unit;
+    for (var libraryUnit in library.units) {
+      if (libraryUnit.source.uri.toString() == components[1]) {
+        unit = libraryUnit;
+        break;
       }
-      libraryElement.parts = parts;
+    }
+    if (unit == null) {
+      throw new ArgumentError('Unable to find unit: $location');
+    }
+    if (components.length == 2) {
+      return unit;
+    }
 
-      // Create the required `loadLibrary` function.
-      if (uriStr != 'dart:core' && uriStr != 'dart:async') {
-        libraryElement.createLoadLibraryFunction(_typeProvider);
+    ElementImpl element = unit as ElementImpl;
+    for (int i = 2; i < components.length; i++) {
+      if (element == null) {
+        throw new ArgumentError('Unable to find element: $location');
       }
-
-      return libraryElement;
-    });
-  }
-
-  void _buildTypeProvider() {
-    var coreLibrary = getLibrary('dart:core');
-    var asyncLibrary = getLibrary('dart:async');
-    _typeProvider = new SummaryTypeProvider();
-    _typeProvider.initializeCore(coreLibrary);
-    _typeProvider.initializeAsync(asyncLibrary);
-    // Now, when TypeProvider is ready, we can finalize core/async.
-    coreLibrary.createLoadLibraryFunction(_typeProvider);
-    asyncLibrary.createLoadLibraryFunction(_typeProvider);
+      element = element.getChild(components[i]);
+    }
+    return element;
   }
 
   /**
    * Return the [ElementImpl] that corresponds to the given [name], or `null`
    * if the corresponding element cannot be found.
    */
-  ElementImpl _getElement(kernel.CanonicalName name) {
+  ElementImpl getElementFromCanonicalName(kernel.CanonicalName name) {
     if (name == null) return null;
 
     var components = new List<String>(5);
@@ -166,6 +150,9 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
     if (classElement == null) return null;
 
+    // If no more component, the class is the element.
+    if (componentPtr == 0) return classElement;
+
     String kind = components[--componentPtr];
     String elementName = takeElementName();
     if (kind == '@methods') {
@@ -187,12 +174,158 @@ class KernelResynthesizer implements ElementResynthesizer {
   }
 
   /**
+   * Return the [LibraryElementImpl] for the given [uriStr], or `null` if
+   * the library is not part of the Kernel libraries bundle.
+   */
+  LibraryElementImpl getLibrary(String uriStr) {
+    return _libraryMap.putIfAbsent(uriStr, () {
+      var kernel = _kernelMap[uriStr];
+      if (kernel == null) return null;
+
+      if (_libraryExistMap[uriStr] != true) {
+        return _newSyntheticLibrary(uriStr);
+      }
+
+      var libraryContext =
+          new _KernelLibraryResynthesizerContextImpl(this, kernel);
+
+      // Build the library.
+      LibraryElementImpl libraryElement = libraryContext._buildLibrary(uriStr);
+      if (libraryElement == null) return null;
+
+      // Build the defining unit.
+      var definingUnit = libraryContext._buildUnit(null).unit;
+      libraryElement.definingCompilationUnit = definingUnit;
+
+      // Build units for parts.
+      var parts = new List<CompilationUnitElementImpl>(kernel.parts.length);
+      for (int i = 0; i < kernel.parts.length; i++) {
+        var fileUri = kernel.parts[i].fileUri;
+        var unitContext = libraryContext._buildUnit(fileUri);
+        parts[i] = unitContext.unit;
+      }
+      libraryElement.parts = parts;
+
+      // Create the required `loadLibrary` function.
+      if (uriStr != 'dart:core' && uriStr != 'dart:async') {
+        libraryElement.createLoadLibraryFunction(_typeProvider);
+      }
+
+      return libraryElement;
+    });
+  }
+
+  DartType getType(ElementImpl context, kernel.DartType kernelType) {
+    if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
+    if (kernelType is kernel.InvalidType) return UndefinedTypeImpl.instance;
+    if (kernelType is kernel.BottomType) return BottomTypeImpl.instance;
+    if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
+
+    if (kernelType is kernel.InterfaceType) {
+      var name = kernelType.className.canonicalName;
+      if (!strongMode &&
+          name.name == 'FutureOr' &&
+          name.parent.name == 'dart:async') {
+        return DynamicTypeImpl.instance;
+      }
+      return _getInterfaceType(context, name, kernelType.typeArguments);
+    }
+
+    if (kernelType is kernel.TypeParameterType) {
+      kernel.TypeParameter kTypeParameter = kernelType.parameter;
+      return _getTypeParameter(context, kTypeParameter).type;
+    }
+
+    if (kernelType is kernel.FunctionType) {
+      var typeElement =
+          new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
+      return typeElement.type;
+    }
+
+    // TODO(scheglov) Support other kernel types.
+    throw new UnimplementedError('For ${kernelType.runtimeType}');
+  }
+
+  void _buildTypeProvider() {
+    var coreLibrary = getLibrary('dart:core');
+    var asyncLibrary = getLibrary('dart:async');
+    _typeProvider = new SummaryTypeProvider();
+    _typeProvider.initializeCore(coreLibrary);
+    _typeProvider.initializeAsync(asyncLibrary);
+    // Now, when TypeProvider is ready, we can finalize core/async.
+    coreLibrary.createLoadLibraryFunction(_typeProvider);
+    asyncLibrary.createLoadLibraryFunction(_typeProvider);
+  }
+
+  InterfaceType _getInterfaceType(ElementImpl context,
+      kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
+    var libraryName = className.parent;
+    var libraryElement = getLibrary(libraryName.name);
+    ClassElement classElement = libraryElement.getType(className.name);
+    classElement ??= libraryElement.getEnum(className.name);
+
+    if (kernelArguments.isEmpty) {
+      return classElement.type;
+    }
+
+    return new InterfaceTypeImpl.elementWithNameAndArgs(
+        classElement, classElement.name, () {
+      List<DartType> arguments = kernelArguments
+          .map((kernel.DartType k) => getType(context, k))
+          .toList(growable: false);
+      return arguments;
+    });
+  }
+
+  /**
    * Get the [Source] object for the given [uri].
    */
   Source _getSource(String uri) {
     return _sources.putIfAbsent(
         uri, () => _analysisContext.sourceFactory.forUri(uri));
   }
+
+  /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
+  TypeParameterElement _getTypeParameter(
+      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
+    String name = kernelTypeParameter.name;
+    for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
+      if (ctx is TypeParameterizedElementMixin) {
+        for (var typeParameter in ctx.typeParameters) {
+          if (typeParameter.name == name) {
+            return typeParameter;
+          }
+        }
+      }
+    }
+    throw new StateError('Not found $kernelTypeParameter in $context');
+  }
+
+  LibraryElementImpl _newSyntheticLibrary(String uriStr) {
+    Source librarySource = _getSource(uriStr);
+    if (librarySource == null) return null;
+
+    LibraryElementImpl libraryElement =
+        new LibraryElementImpl(context, '', -1, 0);
+    libraryElement.isSynthetic = true;
+    CompilationUnitElementImpl unitElement =
+        new CompilationUnitElementImpl(librarySource.shortName);
+    libraryElement.definingCompilationUnit = unitElement;
+    unitElement.source = librarySource;
+    unitElement.librarySource = librarySource;
+    libraryElement.createLoadLibraryFunction(_typeProvider);
+    libraryElement.publicNamespace = new Namespace({});
+    libraryElement.exportNamespace = new Namespace({});
+    return libraryElement;
+  }
+}
+
+/**
+ * This exception is thrown when we detect that the Kernel has a compilation
+ * error, so we cannot resynthesize the constant expression.
+ */
+class _CompilationErrorFound {
+  const _CompilationErrorFound();
 }
 
 /**
@@ -205,184 +338,11 @@ class _ExprBuilder {
   _ExprBuilder(this._context, this._contextElement);
 
   Expression build(kernel.Expression expr) {
-    if (expr is kernel.NullLiteral) {
-      return AstTestFactory.nullLiteral();
+    try {
+      return _build(expr);
+    } on _CompilationErrorFound {
+      return AstTestFactory.identifier3('#invalidConst');
     }
-    if (expr is kernel.BoolLiteral) {
-      return AstTestFactory.booleanLiteral(expr.value);
-    }
-    if (expr is kernel.IntLiteral) {
-      return AstTestFactory.integer(expr.value);
-    }
-    if (expr is kernel.DoubleLiteral) {
-      return AstTestFactory.doubleLiteral(expr.value);
-    }
-    if (expr is kernel.StringLiteral) {
-      return AstTestFactory.string2(expr.value);
-    }
-    if (expr is kernel.StringConcatenation) {
-      List<InterpolationElement> elements = expr.expressions
-          .map(build)
-          .map(_newInterpolationElement)
-          .toList(growable: false);
-      return AstTestFactory.string(elements);
-    }
-    if (expr is kernel.SymbolLiteral) {
-      List<String> components = expr.value.split('.').toList();
-      return AstTestFactory.symbolLiteral(components);
-    }
-
-    if (expr is kernel.ListLiteral) {
-      Keyword keyword = expr.isConst ? Keyword.CONST : null;
-      var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
-      var elements = expr.expressions.map(build).toList();
-      return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
-    }
-
-    if (expr is kernel.MapLiteral) {
-      Keyword keyword = expr.isConst ? Keyword.CONST : null;
-      var typeArguments =
-          _buildTypeArgumentList([expr.keyType, expr.valueType]);
-
-      int numberOfEntries = expr.entries.length;
-      var entries = new List<MapLiteralEntry>(numberOfEntries);
-      for (int i = 0; i < numberOfEntries; i++) {
-        var entry = expr.entries[i];
-        Expression key = build(entry.key);
-        Expression value = build(entry.value);
-        entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
-      }
-
-      return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
-    }
-
-    if (expr is kernel.StaticGet) {
-      return _buildIdentifier(expr.targetReference, isGet: true);
-    }
-
-    if (expr is kernel.PropertyGet) {
-      Expression target = build(expr.receiver);
-      kernel.Reference reference = expr.interfaceTargetReference;
-      SimpleIdentifier identifier = _buildSimpleIdentifier(reference);
-      return AstTestFactory.propertyAccess(target, identifier);
-    }
-
-    if (expr is kernel.VariableGet) {
-      String name = expr.variable.name;
-      Element contextConstructor = _contextElement;
-      if (contextConstructor is ConstructorElement) {
-        SimpleIdentifier identifier = AstTestFactory.identifier3(name);
-        ParameterElement parameter = contextConstructor.parameters.firstWhere(
-            (parameter) => parameter.name == name,
-            orElse: () => null);
-        identifier.staticElement = parameter;
-        return identifier;
-      }
-    }
-
-    if (expr is kernel.ConditionalExpression) {
-      var condition = build(expr.condition);
-      var then = build(expr.then);
-      var otherwise = build(expr.otherwise);
-      return AstTestFactory.conditionalExpression(condition, then, otherwise);
-    }
-
-    if (expr is kernel.Not) {
-      kernel.Expression kernelOperand = expr.operand;
-      var operand = build(kernelOperand);
-      return AstTestFactory.prefixExpression(TokenType.BANG, operand);
-    }
-
-    if (expr is kernel.LogicalExpression) {
-      var operator = _toBinaryOperatorTokenType(expr.operator);
-      var left = build(expr.left);
-      var right = build(expr.right);
-      return AstTestFactory.binaryExpression(left, operator, right);
-    }
-
-    if (expr is kernel.Let) {
-      var body = expr.body;
-      if (body is kernel.ConditionalExpression) {
-        var condition = body.condition;
-        var otherwiseExpr = body.otherwise;
-        if (condition is kernel.MethodInvocation) {
-          var equalsReceiver = condition.receiver;
-          if (equalsReceiver is kernel.VariableGet &&
-              condition.name.name == '==' &&
-              condition.arguments.positional.length == 1 &&
-              condition.arguments.positional[0] is kernel.NullLiteral &&
-              otherwiseExpr is kernel.VariableGet &&
-              otherwiseExpr.variable == equalsReceiver.variable) {
-            var left = build(expr.variable.initializer);
-            var right = build(body.then);
-            return AstTestFactory.binaryExpression(
-                left, TokenType.QUESTION_QUESTION, right);
-          }
-        }
-      }
-    }
-
-    if (expr is kernel.MethodInvocation) {
-      kernel.Member member = expr.interfaceTarget;
-      if (member is kernel.Procedure) {
-        if (member.kind == kernel.ProcedureKind.Operator) {
-          var left = build(expr.receiver);
-          String operatorName = expr.name.name;
-          List<kernel.Expression> args = expr.arguments.positional;
-          if (args.isEmpty) {
-            if (operatorName == 'unary-') {
-              return AstTestFactory.prefixExpression(TokenType.MINUS, left);
-            }
-            if (operatorName == '~') {
-              return AstTestFactory.prefixExpression(TokenType.TILDE, left);
-            }
-          } else if (args.length == 1) {
-            var operator = _toBinaryOperatorTokenType(operatorName);
-            var right = build(args.single);
-            return AstTestFactory.binaryExpression(left, operator, right);
-          }
-        }
-      }
-    }
-
-    if (expr is kernel.StaticInvocation) {
-      kernel.Procedure target = expr.target;
-      String name = target.name.name;
-      List<Expression> arguments = _toArguments(expr.arguments);
-      MethodInvocation invocation =
-          AstTestFactory.methodInvocation3(null, name, null, arguments);
-      invocation.methodName.staticElement = _getElement(target.reference);
-      return invocation;
-    }
-
-    if (expr is kernel.ConstructorInvocation) {
-      var element = _getElement(expr.targetReference);
-
-      var kernelType =
-          expr.getStaticType(_context.libraryContext.resynthesizer._types);
-      var type = _context.getType(_contextElement, kernelType);
-      TypeName typeName = _buildType(type);
-
-      var constructorName = AstTestFactory.constructorName(
-          typeName, element.name.isNotEmpty ? element.name : null);
-      constructorName?.name?.staticElement = element;
-
-      var keyword = expr.isConst ? Keyword.CONST : Keyword.NEW;
-      var arguments = _toArguments(expr.arguments);
-      return AstTestFactory.instanceCreationExpression(
-          keyword, constructorName, arguments);
-    }
-
-    if (expr is kernel.TypeLiteral) {
-      var type = _context.getType(_contextElement, expr.type);
-      var identifier = AstTestFactory.identifier3(type.element.name);
-      identifier.staticElement = type.element;
-      identifier.staticType = _context.libraryContext.resynthesizer.typeType;
-      return identifier;
-    }
-
-    // TODO(scheglov): complete getExpression
-    throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
   }
 
   ConstructorInitializer buildInitializer(kernel.Initializer k) {
@@ -449,6 +409,212 @@ class _ExprBuilder {
     throw new UnimplementedError('For ${k.runtimeType}');
   }
 
+  Expression _build(kernel.Expression expr) {
+    if (expr is kernel.NullLiteral) {
+      return AstTestFactory.nullLiteral();
+    }
+    if (expr is kernel.BoolLiteral) {
+      return AstTestFactory.booleanLiteral(expr.value);
+    }
+    if (expr is kernel.IntLiteral) {
+      return AstTestFactory.integer(expr.value);
+    }
+    if (expr is kernel.DoubleLiteral) {
+      return AstTestFactory.doubleLiteral(expr.value);
+    }
+    if (expr is kernel.StringLiteral) {
+      return AstTestFactory.string2(expr.value);
+    }
+    if (expr is kernel.StringConcatenation) {
+      List<InterpolationElement> elements = expr.expressions
+          .map(_build)
+          .map(_newInterpolationElement)
+          .toList(growable: false);
+      return AstTestFactory.string(elements);
+    }
+    if (expr is kernel.SymbolLiteral) {
+      List<String> components = expr.value.split('.').toList();
+      return AstTestFactory.symbolLiteral(components);
+    }
+
+    if (expr is kernel.ListLiteral) {
+      Keyword keyword = expr.isConst ? Keyword.CONST : null;
+      var typeArguments = _buildTypeArgumentList([expr.typeArgument]);
+      var elements = expr.expressions.map(_build).toList();
+      return AstTestFactory.listLiteral2(keyword, typeArguments, elements);
+    }
+
+    if (expr is kernel.MapLiteral) {
+      Keyword keyword = expr.isConst ? Keyword.CONST : null;
+      var typeArguments =
+          _buildTypeArgumentList([expr.keyType, expr.valueType]);
+
+      int numberOfEntries = expr.entries.length;
+      var entries = new List<MapLiteralEntry>(numberOfEntries);
+      for (int i = 0; i < numberOfEntries; i++) {
+        var entry = expr.entries[i];
+        Expression key = _build(entry.key);
+        Expression value = _build(entry.value);
+        entries[i] = AstTestFactory.mapLiteralEntry2(key, value);
+      }
+
+      return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
+    }
+
+    if (expr is kernel.StaticGet) {
+      return _buildIdentifier(expr.targetReference, isGet: true);
+    }
+
+    if (expr is kernel.ThisExpression) {
+      return AstTestFactory.thisExpression();
+    }
+
+    if (expr is kernel.PropertyGet) {
+      Expression target = _build(expr.receiver);
+      kernel.Reference reference = expr.interfaceTargetReference;
+      SimpleIdentifier identifier = _buildSimpleIdentifier(reference);
+      return AstTestFactory.propertyAccess(target, identifier);
+    }
+
+    if (expr is kernel.VariableGet) {
+      String name = expr.variable.name;
+      Element contextConstructor = _contextElement;
+      if (contextConstructor is ConstructorElement) {
+        SimpleIdentifier identifier = AstTestFactory.identifier3(name);
+        ParameterElement parameter = contextConstructor.parameters.firstWhere(
+            (parameter) => parameter.name == name,
+            orElse: () => null);
+        identifier.staticElement = parameter;
+        return identifier;
+      }
+    }
+
+    if (expr is kernel.ConditionalExpression) {
+      var condition = _build(expr.condition);
+      var then = _build(expr.then);
+      var otherwise = _build(expr.otherwise);
+      return AstTestFactory.conditionalExpression(condition, then, otherwise);
+    }
+
+    if (expr is kernel.Not) {
+      kernel.Expression kernelOperand = expr.operand;
+      var operand = _build(kernelOperand);
+      return AstTestFactory.prefixExpression(TokenType.BANG, operand);
+    }
+
+    if (expr is kernel.LogicalExpression) {
+      var operator = _toBinaryOperatorTokenType(expr.operator);
+      var left = _build(expr.left);
+      var right = _build(expr.right);
+      return AstTestFactory.binaryExpression(left, operator, right);
+    }
+
+    if (expr is kernel.Let) {
+      var body = expr.body;
+      if (body is kernel.ConditionalExpression) {
+        var condition = body.condition;
+        var otherwiseExpr = body.otherwise;
+        if (condition is kernel.MethodInvocation) {
+          var equalsReceiver = condition.receiver;
+          if (equalsReceiver is kernel.VariableGet &&
+              condition.name.name == '==' &&
+              condition.arguments.positional.length == 1 &&
+              condition.arguments.positional[0] is kernel.NullLiteral &&
+              otherwiseExpr is kernel.VariableGet &&
+              otherwiseExpr.variable == equalsReceiver.variable) {
+            var left = _build(expr.variable.initializer);
+            var right = _build(body.then);
+            return AstTestFactory.binaryExpression(
+                left, TokenType.QUESTION_QUESTION, right);
+          }
+        }
+      }
+    }
+
+    if (expr is kernel.MethodInvocation) {
+      kernel.Member member = expr.interfaceTarget;
+      if (member is kernel.Procedure) {
+        if (member.kind == kernel.ProcedureKind.Operator) {
+          var left = _build(expr.receiver);
+          String operatorName = expr.name.name;
+          List<kernel.Expression> args = expr.arguments.positional;
+          if (args.isEmpty) {
+            if (operatorName == 'unary-') {
+              return AstTestFactory.prefixExpression(TokenType.MINUS, left);
+            }
+            if (operatorName == '~') {
+              return AstTestFactory.prefixExpression(TokenType.TILDE, left);
+            }
+          } else if (args.length == 1) {
+            var operator = _toBinaryOperatorTokenType(operatorName);
+            var right = _build(args.single);
+            return AstTestFactory.binaryExpression(left, operator, right);
+          }
+        }
+      }
+    }
+
+    if (expr is kernel.StaticInvocation) {
+      kernel.Procedure target = expr.target;
+      String name = target.name.name;
+      List<Expression> arguments = _toArguments(expr.arguments);
+      MethodInvocation invocation =
+          AstTestFactory.methodInvocation3(null, name, null, arguments);
+      invocation.methodName.staticElement = _getElement(target.reference);
+      return invocation;
+    }
+
+    if (expr is kernel.ConstructorInvocation) {
+      var element = _getElement(expr.targetReference);
+
+      var kernelType =
+          expr.getStaticType(_context.libraryContext.resynthesizer._types);
+      var type = _context.getType(_contextElement, kernelType);
+      TypeName typeName = _buildType(type);
+
+      var constructorName = AstTestFactory.constructorName(
+          typeName, element.name.isNotEmpty ? element.name : null);
+      constructorName?.name?.staticElement = element;
+
+      var keyword = expr.isConst ? Keyword.CONST : Keyword.NEW;
+      var arguments = _toArguments(expr.arguments);
+      return AstTestFactory.instanceCreationExpression(
+          keyword, constructorName, arguments);
+    }
+
+    if (expr is kernel.TypeLiteral) {
+      ElementImpl element;
+      var kernelType = expr.type;
+      if (kernelType is kernel.FunctionType) {
+        element = _getElement(kernelType.typedefReference);
+      } else {
+        var type = _context.getType(_contextElement, kernelType);
+        element = type.element;
+      }
+      var identifier = AstTestFactory.identifier3(element.name);
+      identifier.staticElement = element;
+      identifier.staticType = _context.libraryContext.resynthesizer.typeType;
+      return identifier;
+    }
+
+    // Invalid annotations are represented as Let.
+    if (expr is kernel.Let) {
+      kernel.Let let = expr;
+      if (_isConstantExpressionErrorThrow(let.variable.initializer) ||
+          _isConstantExpressionErrorThrow(let.body)) {
+        throw const _CompilationErrorFound();
+      }
+    }
+
+    // Stop if there is an error.
+    if (_isConstantExpressionErrorThrow(expr)) {
+      throw const _CompilationErrorFound();
+    }
+
+    // TODO(scheglov): complete getExpression
+    throw new UnimplementedError('kernel: (${expr.runtimeType}) $expr');
+  }
+
   Identifier _buildIdentifier(kernel.Reference reference, {bool isGet: false}) {
     Element element = _getElement(reference);
     if (isGet && element is PropertyInducingElement) {
@@ -468,6 +634,9 @@ class _ExprBuilder {
   }
 
   SimpleIdentifier _buildSimpleIdentifier(kernel.Reference reference) {
+    if (reference == null) {
+      throw const _CompilationErrorFound();
+    }
     String name = reference.canonicalName.name;
     SimpleIdentifier identifier = AstTestFactory.identifier3(name);
     Element element = _getElement(reference);
@@ -511,7 +680,7 @@ class _ExprBuilder {
 
   ElementImpl _getElement(kernel.Reference reference) {
     return _context.libraryContext.resynthesizer
-        ._getElement(reference?.canonicalName);
+        .getElementFromCanonicalName(reference?.canonicalName);
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {
@@ -530,11 +699,11 @@ class _ExprBuilder {
 
     int i = 0;
     for (kernel.Expression k in kernelArguments.positional) {
-      arguments[i++] = build(k);
+      arguments[i++] = _build(k);
     }
 
     for (kernel.NamedExpression k in kernelArguments.named) {
-      var value = build(k.value);
+      var value = _build(k.value);
       arguments[i++] = AstTestFactory.namedExpression2(k.name, value);
     }
 
@@ -564,6 +733,24 @@ class _ExprBuilder {
     if (name == 'unary-') return TokenType.MINUS;
     throw new ArgumentError(name);
   }
+
+  /**
+   * Return `true` if the given [expr] throws an instance of
+   * `_ConstantExpressionError` defined in `dart:core`.
+   */
+  static bool _isConstantExpressionErrorThrow(kernel.Expression expr) {
+    if (expr is kernel.MethodInvocation) {
+      if (expr.name.name == '_throw') {
+        var receiver = expr.receiver;
+        if (receiver is kernel.ConstructorInvocation) {
+          kernel.Class targetClass = receiver.target.enclosingClass;
+          return targetClass.name == '_ConstantExpressionError' &&
+              targetClass.enclosingLibrary.importUri.toString() == 'dart:core';
+        }
+      }
+    }
+    return false;
+  }
 }
 
 /**
@@ -576,13 +763,57 @@ class _KernelLibraryResynthesizerContextImpl
   @override
   final kernel.Library library;
 
+  /**
+   * The relative URI of the directory with the [library] file.
+   * E.g. `sdk/lib/core` for `sdk/lib/core/core.dart`.
+   */
+  String libraryDirectoryUri;
+
   Source librarySource;
   LibraryElementImpl libraryElement;
 
-  _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library);
+  _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library) {
+    libraryDirectoryUri = pathos.url.dirname(library.fileUri);
+  }
 
   @override
   kernel.Library get coreLibrary => resynthesizer._kernelMap['dart:core'];
+
+  @override
+  bool get hasExtUri {
+    for (var dependency in library.dependencies) {
+      if (dependency.isImport &&
+          dependency.targetLibrary.importUri.isScheme('dart-ext')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  Namespace buildExportNamespace() {
+    Namespace publicNamespace = buildPublicNamespace();
+    if (library.additionalExports.isEmpty) {
+      return publicNamespace;
+    }
+
+    Map<String, Element> definedNames = publicNamespace.definedNames;
+    for (kernel.Reference additionalExport in library.additionalExports) {
+      var element = resynthesizer
+          .getElementFromCanonicalName(additionalExport.canonicalName);
+      if (element != null) {
+        definedNames[element.name] = element;
+      }
+    }
+
+    return new Namespace(definedNames);
+  }
+
+  @override
+  Namespace buildPublicNamespace() {
+    return new NamespaceBuilder()
+        .createPublicNamespaceForLibrary(libraryElement);
+  }
 
   @override
   LibraryElementImpl getLibrary(String uriStr) {
@@ -591,6 +822,7 @@ class _KernelLibraryResynthesizerContextImpl
 
   LibraryElementImpl _buildLibrary(String uriStr) {
     librarySource = resynthesizer._getSource(uriStr);
+    if (librarySource == null) return null;
     return libraryElement =
         new LibraryElementImpl.forKernel(resynthesizer._analysisContext, this);
   }
@@ -602,8 +834,23 @@ class _KernelLibraryResynthesizerContextImpl
         libraryElement, unitContext, '<no name>');
     unitContext.unit = unitElement;
     unitElement.librarySource = librarySource;
-    unitElement.source =
-        fileUri != null ? resynthesizer._getSource(fileUri) : librarySource;
+
+    if (fileUri != null) {
+      // Compute the URI relative to the library directory.
+      // E.g. when the library directory URI is `sdk/lib/core`, and the unit
+      // URI is `sdk/lib/core/bool.dart`, the result is `bool.dart`.
+      var relativeUri = pathos.url.relative(fileUri, from: libraryDirectoryUri);
+      // Compute the absolute URI.
+      // When the absolute library URI is `dart:core`, and the relative
+      // URI is `bool.dart`, the result is `dart:core/bool.dart`.
+      Uri absoluteUri =
+          resolveRelativeUri(librarySource.uri, Uri.parse(relativeUri));
+      String absoluteUriStr = absoluteUri.toString();
+      unitElement.source = resynthesizer._getSource(absoluteUriStr);
+    } else {
+      unitElement.source = librarySource;
+    }
+
     unitContext.unit = unitElement;
     return unitContext;
   }
@@ -615,12 +862,25 @@ class _KernelLibraryResynthesizerContextImpl
 class _KernelUnitImpl implements KernelUnit {
   final _KernelUnitResynthesizerContextImpl context;
 
+  List<kernel.Expression> _annotations;
   List<kernel.Class> _classes;
   List<kernel.Field> _fields;
   List<kernel.Procedure> _procedures;
   List<kernel.Typedef> _typedefs;
 
   _KernelUnitImpl(this.context);
+
+  @override
+  List<kernel.Expression> get annotations {
+    if (_annotations == null) {
+      for (var part in context.libraryContext.library.parts) {
+        if (part.fileUri == context.fileUri) {
+          return _annotations = part.annotations;
+        }
+      }
+    }
+    return _annotations ?? const <kernel.Expression>[];
+  }
 
   @override
   List<kernel.Class> get classes =>
@@ -652,6 +912,8 @@ class _KernelUnitImpl implements KernelUnit {
  */
 class _KernelUnitResynthesizerContextImpl
     implements KernelUnitResynthesizerContext {
+  static final Uri dartInternalUri = Uri.parse('dart:_internal');
+
   final _KernelLibraryResynthesizerContextImpl libraryContext;
   final String fileUri;
 
@@ -667,9 +929,11 @@ class _KernelUnitResynthesizerContextImpl
       List<kernel.Expression> expressions) {
     int length = expressions.length;
     if (length != 0) {
-      var annotations = new List<ElementAnnotation>(length);
-      for (int i = 0; i < length; i++) {
-        annotations[i] = _buildAnnotation(unit, expressions[i]);
+      var annotations = <ElementAnnotation>[];
+      for (var expression in expressions) {
+        if (_isSyntheticExternalNameAnnotation(expression)) continue;
+        var annotation = _buildAnnotation(unit, expression);
+        annotations.add(annotation);
       }
       return annotations;
     } else {
@@ -786,7 +1050,7 @@ class _KernelUnitResynthesizerContextImpl
     if (kernelType.classNode.isEnum) {
       return null;
     }
-    return _getInterfaceType(
+    return libraryContext.resynthesizer._getInterfaceType(
         context, kernelType.className.canonicalName, kernelType.typeArguments);
   }
 
@@ -809,8 +1073,8 @@ class _KernelUnitResynthesizerContextImpl
     if (kernelConstructor != null) {
       for (var initializer in kernelConstructor.initializers) {
         if (initializer is kernel.RedirectingInitializer) {
-          return libraryContext.resynthesizer
-                  ._getElement(initializer.targetReference.canonicalName)
+          return libraryContext.resynthesizer.getElementFromCanonicalName(
+                  initializer.targetReference.canonicalName)
               as ConstructorElementImpl;
         }
       }
@@ -821,7 +1085,7 @@ class _KernelUnitResynthesizerContextImpl
         kernel.Member target = body.target;
         if (target != null) {
           return libraryContext.resynthesizer
-                  ._getElement(target.reference.canonicalName)
+                  .getElementFromCanonicalName(target.reference.canonicalName)
               as ConstructorElementImpl;
         }
       }
@@ -829,60 +1093,9 @@ class _KernelUnitResynthesizerContextImpl
     return null;
   }
 
-  DartType getType(ElementImpl context, kernel.DartType kernelType) {
-    if (kernelType is kernel.DynamicType) return DynamicTypeImpl.instance;
-    if (kernelType is kernel.InvalidType) return DynamicTypeImpl.instance;
-    if (kernelType is kernel.VoidType) return VoidTypeImpl.instance;
-
-    if (kernelType is kernel.InterfaceType) {
-      var name = kernelType.className.canonicalName;
-      if (!libraryContext.resynthesizer.strongMode &&
-          name.name == 'FutureOr' &&
-          name.parent.name == 'dart:async') {
-        return DynamicTypeImpl.instance;
-      }
-      return _getInterfaceType(context, name, kernelType.typeArguments);
-    }
-
-    if (kernelType is kernel.TypeParameterType) {
-      kernel.TypeParameter kTypeParameter = kernelType.parameter;
-      return _getTypeParameter(context, kTypeParameter).type;
-    }
-
-    if (kernelType is kernel.FunctionType) {
-      if (kernelType.typedef != null) {
-        FunctionTypeAliasElementImpl element = libraryContext.resynthesizer
-            ._getElement(kernelType.typedef.canonicalName);
-        return element.type;
-      }
-
-      if (context is ParameterElementImpl) {
-        var typeElement =
-            new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
-        return typeElement.type;
-      } else {
-        var functionElement = new FunctionElementImpl.synthetic([], null);
-        functionElement.enclosingElement = context;
-
-        functionElement.typeParameters = kernelType.typeParameters.map((k) {
-          return new TypeParameterElementImpl.forKernel(functionElement, k);
-        }).toList(growable: false);
-
-        var parameters = getFunctionTypeParameters(kernelType);
-        functionElement.parameters = ParameterElementImpl.forKernelParameters(
-            functionElement,
-            kernelType.requiredParameterCount,
-            parameters[0],
-            parameters[1]);
-
-        functionElement.returnType =
-            getType(functionElement, kernelType.returnType);
-        return functionElement.type;
-      }
-    }
-
-    // TODO(scheglov) Support other kernel types.
-    throw new UnimplementedError('For ${kernelType.runtimeType}');
+  @override
+  DartType getType(ElementImpl context, kernel.DartType type) {
+    return libraryContext.resynthesizer.getType(context, type);
   }
 
   ElementAnnotationImpl _buildAnnotation(
@@ -906,39 +1119,16 @@ class _KernelUnitResynthesizerContextImpl
     return elementAnnotation;
   }
 
-  InterfaceType _getInterfaceType(ElementImpl context,
-      kernel.CanonicalName className, List<kernel.DartType> kernelArguments) {
-    var libraryName = className.parent;
-    var libraryElement = libraryContext.getLibrary(libraryName.name);
-    ClassElement classElement = libraryElement.getType(className.name);
-    classElement ??= libraryElement.getEnum(className.name);
-
-    if (kernelArguments.isEmpty) {
-      return classElement.type;
+  /// Fasta converts `native 'name'` clauses to `@ExternalName('name')`
+  /// annotations. But we don't actually have these annotations in code. So,
+  /// we need to skip them to avoid mismatch with AST.
+  static bool _isSyntheticExternalNameAnnotation(kernel.Expression expr) {
+    if (expr is kernel.ConstructorInvocation) {
+      kernel.Constructor target = expr.target;
+      return target != null &&
+          target.enclosingClass.name == 'ExternalName' &&
+          target.enclosingLibrary.importUri == dartInternalUri;
     }
-
-    return new InterfaceTypeImpl.elementWithNameAndArgs(
-        classElement, classElement.name, () {
-      List<DartType> arguments = kernelArguments
-          .map((kernel.DartType k) => getType(context, k))
-          .toList(growable: false);
-      return arguments;
-    });
-  }
-
-  /// Return the [TypeParameterElement] for the given [kernelTypeParameter].
-  TypeParameterElement _getTypeParameter(
-      ElementImpl context, kernel.TypeParameter kernelTypeParameter) {
-    String name = kernelTypeParameter.name;
-    for (var ctx = context; ctx != null; ctx = ctx.enclosingElement) {
-      if (ctx is TypeParameterizedElementMixin) {
-        for (var typeParameter in ctx.typeParameters) {
-          if (typeParameter.name == name) {
-            return typeParameter;
-          }
-        }
-      }
-    }
-    throw new StateError('Not found $kernelTypeParameter in $context');
+    return false;
   }
 }

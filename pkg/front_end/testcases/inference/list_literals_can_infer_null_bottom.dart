@@ -10,6 +10,4 @@ test1() {
   x. /*@target=List::add*/ add(/*error:INVALID_CAST_LITERAL*/ 42);
 }
 
-main() {
-  test1();
-}
+main() {}

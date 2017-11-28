@@ -7,10 +7,10 @@ import 'dart:io';
 import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
+import 'repository.dart';
 // TODO(ahe): Remove this import, we can precompute all the values required
 // from TestSuite once the refactoring is complete.
 import 'test_suite.dart';
-import 'utils.dart';
 
 /// Describes the commands to run a given test case or its compiled output.
 ///
@@ -312,7 +312,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
   }
 
   void searchForSelfCheckers() {
-    Uri pkg = TestUtils.dartDirUri.resolve('pkg');
+    Uri pkg = Repository.uri.resolve('pkg');
     for (var entry in new Directory.fromUri(pkg).listSync(recursive: true)) {
       if (entry is File && entry.path.endsWith('_self_check.dart')) {
         selfCheckers.add(entry.path);

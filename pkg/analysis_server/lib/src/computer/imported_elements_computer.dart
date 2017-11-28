@@ -90,7 +90,8 @@ class _Visitor extends UnifyingAstVisitor<Object> {
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     if (!node.inDeclarationContext() &&
         node.offset <= endOffset &&
-        node.end >= startOffset) {
+        node.end >= startOffset &&
+        !_isConstructorDeclarationReturnType(node)) {
       Element nodeElement = node.staticElement;
       if (nodeElement != null &&
           nodeElement.enclosingElement is CompilationUnitElement) {
@@ -119,5 +120,10 @@ class _Visitor extends UnifyingAstVisitor<Object> {
       }
     }
     return null;
+  }
+
+  static bool _isConstructorDeclarationReturnType(SimpleIdentifier node) {
+    AstNode parent = node.parent;
+    return parent is ConstructorDeclaration && parent.returnType == node;
   }
 }

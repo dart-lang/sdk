@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 main() {
   // dart2js knows that this list is int or null.
-  var b = [null, 10000000000000000000000000000000000000];
+  var b = [null, 9223372036854775806];
 
   // Use b[1] twice to ensure dart2js realizes it's the same value
   // after type propagation.

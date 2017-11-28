@@ -352,9 +352,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       if (node == user.interceptor) {
         if (interceptorData.mayGenerateInstanceofCheck(
             user.typeExpression, closedWorld)) {
-          HInstruction instanceofCheck = new HIs.instanceOf(
-              user.typeExpression, user.expression, user.instructionType);
-          instanceofCheck.sourceInformation = user.sourceInformation;
+          HInstruction instanceofCheck = new HIs.instanceOf(user.typeExpression,
+              user.expression, user.instructionType, user.sourceInformation);
           instanceofCheck.sourceElement = user.sourceElement;
           return replaceUserWith(instanceofCheck);
         }
@@ -406,20 +405,26 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     TypeMask mask = node.mask;
     HInstruction instruction;
     if (selector.isGetter) {
-      instruction = new HInvokeDynamicGetter(selector, mask, node.element,
-          <HInstruction>[constant, node.inputs[1]], node.instructionType);
+      instruction = new HInvokeDynamicGetter(
+          selector,
+          mask,
+          node.element,
+          <HInstruction>[constant, node.inputs[1]],
+          node.instructionType,
+          node.sourceInformation);
     } else if (selector.isSetter) {
       instruction = new HInvokeDynamicSetter(
           selector,
           mask,
           node.element,
           <HInstruction>[constant, node.inputs[1], node.inputs[2]],
-          node.instructionType);
+          node.instructionType,
+          node.sourceInformation);
     } else {
       List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
       inputs[0] = constant;
-      instruction = new HInvokeDynamicMethod(
-          selector, mask, inputs, node.instructionType, true);
+      instruction = new HInvokeDynamicMethod(selector, mask, inputs,
+          node.instructionType, node.sourceInformation, true);
     }
 
     HBasicBlock block = node.block;

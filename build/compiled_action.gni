@@ -66,7 +66,7 @@
 # saves unnecessarily compiling your tool for the target platform. But if you
 # need a target build of your tool as well, just leave off the if statement.
 
-import("dart_host_toolchain.gni")
+import("dart_host_sdk_toolchain.gni")
 
 if (host_os == "win") {
   _host_executable_suffix = ".exe"
@@ -123,9 +123,9 @@ template("compiled_action") {
     # The script takes as arguments the binary to run, and then the arguments
     # to pass it.
     args = [
-      "compiled_action",
-      rebase_path(host_executable, root_build_dir)
-    ] + invoker.args
+             "compiled_action",
+             rebase_path(host_executable, root_build_dir),
+           ] + invoker.args
   }
 }
 
@@ -176,8 +176,8 @@ template("compiled_action_foreach") {
     # The script takes as arguments the binary to run, and then the arguments
     # to pass it.
     args = [
-      "compiled_action",
-      rebase_path(host_executable, root_build_dir)
-    ] + invoker.args
+             "compiled_action",
+             rebase_path(host_executable, root_build_dir),
+           ] + invoker.args
   }
 }

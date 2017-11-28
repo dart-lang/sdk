@@ -31,8 +31,9 @@
 ///   * On another terminal (terminal B), start the program on the VM, with the
 ///   service-protocol enabled and provide the precompiled platform libraries:
 ///
+/// TODO(ahe): This documentation is out of date.
 /// ```
-///    out/ReleaseX64/dart --enable-vm-service --platform=out/ReleaseX64/patched_sdk/platform.dill out.dill
+///    out/ReleaseX64/dart --enable-vm-service --platform=out/ReleaseX64/platform.dill out.dill
 /// ```
 ///
 ///   * Modify the orginal program
@@ -49,7 +50,7 @@ import 'dart:convert' show ASCII;
 import 'package:args/args.dart';
 import 'package:kernel/target/targets.dart';
 
-import '../../tool/vm/reload.dart';
+import '../../test/tool/reload.dart';
 
 import 'compiler_with_invalidation.dart';
 
@@ -58,8 +59,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('output',
       help: 'Output dill file', defaultsTo: 'out.dill', abbr: 'o')
   ..addOption('target',
-      help: 'One of none, vm, vm_fasta, vmcc, vmreify, flutter, flutter_fasta',
-      defaultsTo: 'vm');
+      help: 'One of none, vm, vmcc, vmreify, flutter', defaultsTo: 'vm');
 
 String usage = '''
 Usage: dart [options] input.dart

@@ -22,13 +22,13 @@ class B extends core::Object implements self::A {
 static method foo() → dynamic {
   core::String s;
   core::int i;
-  s = new self::B::•().{self::B::x};
-  s = new self::B::•().{self::B::y};
+  s = new self::B::•().{self::B::x} as{TypeError} core::String;
+  s = new self::B::•().{self::B::y} as{TypeError} core::String;
   s = new self::B::•().{self::B::z};
-  s = new self::B::•().{self::B::w};
-  i = new self::B::•().{self::B::x};
+  s = new self::B::•().{self::B::w} as{TypeError} core::String;
+  i = new self::B::•().{self::B::x} as{TypeError} core::int;
   i = new self::B::•().{self::B::y};
-  i = new self::B::•().{self::B::z};
+  i = new self::B::•().{self::B::z} as{TypeError} core::int;
   i = new self::B::•().{self::B::w};
 }
 static method main() → dynamic {}

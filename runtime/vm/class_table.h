@@ -28,12 +28,15 @@ class AllocStats {
  public:
   T new_count;
   T new_size;
+  T new_external_size;
   T old_count;
   T old_size;
+  T old_external_size;
 
   void ResetNew() {
     new_count = 0;
     new_size = 0;
+    new_external_size = 0;
   }
 
   void AddNew(T size) {
@@ -41,9 +44,14 @@ class AllocStats {
     AtomicOperations::IncrementBy(&new_size, size);
   }
 
+  void AddNewExternal(T size) {
+    AtomicOperations::IncrementBy(&new_external_size, size);
+  }
+
   void ResetOld() {
     old_count = 0;
     old_size = 0;
+    old_external_size = 0;
   }
 
   void AddOld(T size, T count = 1) {
@@ -51,11 +59,13 @@ class AllocStats {
     AtomicOperations::IncrementBy(&old_size, size);
   }
 
+  void AddOldExternal(T size) {
+    AtomicOperations::IncrementBy(&old_external_size, size);
+  }
+
   void Reset() {
-    new_count = 0;
-    new_size = 0;
-    old_count = 0;
-    old_size = 0;
+    ResetNew();
+    ResetOld();
   }
 
   // For classes with fixed instance size we do not emit code to update
@@ -69,8 +79,10 @@ class AllocStats {
   void Verify() {
     ASSERT(new_count >= 0);
     ASSERT(new_size >= 0);
+    ASSERT(new_external_size >= 0);
     ASSERT(old_count >= 0);
     ASSERT(old_size >= 0);
+    ASSERT(old_external_size >= 0);
   }
 };
 
@@ -204,6 +216,9 @@ class ClassTable {
   void UpdateAllocatedNew(intptr_t cid, intptr_t size);
   void UpdateAllocatedOld(intptr_t cid, intptr_t size);
 
+  void UpdateAllocatedExternalNew(intptr_t cid, intptr_t size);
+  void UpdateAllocatedExternalOld(intptr_t cid, intptr_t size);
+
   // Called whenever a old GC occurs.
   void ResetCountersOld();
   // Called whenever a new GC occurs.
@@ -241,7 +256,9 @@ class ClassTable {
 
  private:
   friend class GCMarker;
+  friend class MarkingWeakVisitor;
   friend class ScavengerVisitor;
+  friend class ScavengerWeakVisitor;
   friend class ClassHeapStatsTestHelper;
   static const int initial_capacity_ = 512;
   static const int capacity_increment_ = 256;
@@ -263,6 +280,8 @@ class ClassTable {
   ClassHeapStats* PreliminaryStatsAt(intptr_t cid);
   void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
   void UpdateLiveNew(intptr_t cid, intptr_t size);
+  void UpdateLiveOldExternal(intptr_t cid, intptr_t size);
+  void UpdateLiveNewExternal(intptr_t cid, intptr_t size);
 #endif  // !PRODUCT
 
   DISALLOW_COPY_AND_ASSIGN(ClassTable);

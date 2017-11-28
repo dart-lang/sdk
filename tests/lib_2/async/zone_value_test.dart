@@ -8,14 +8,14 @@ import 'dart:async';
 
 main() {
   // Unique object.
-  var baz = new Object();
+  var baz = new Mimic(new Object());
   // Not so unique object that thinks it's the same as baz.
-  var mimic = new Mimic(baz);
+  var mimic = new Mimic(baz.original);
 
   // runGuarded calls run, captures the synchronous error (if any) and
   // gives that one to handleUncaughtError.
 
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
 
   // Create a map with various key types.
   Map zoneValues = new Map();
@@ -28,7 +28,7 @@ main() {
   Zone forked = Zone.current.fork(zoneValues: zoneValues);
 
   // Values are not present when not inside the zone.
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Expect.isNull(Zone.current[#foo]);
   Expect.isNull(Zone.current["bar"]);
   Expect.isNull(Zone.current[baz]);
@@ -44,7 +44,7 @@ main() {
   Expect.equals(499, forked[#foo]);
   Expect.listEquals([], forked["bar"]);
   Expect.equals("baz", forked[baz]);
-  Expect.isNull(Zone.current[mimic]);
+  Expect.equals("baz", forked[mimic]);
   Expect.equals("zero!", forked[0]);
   Expect.equals("zero!", forked[0.0]); // Lookup uses equality.
   Expect.equals("zero!", forked[-0.0]);
@@ -57,7 +57,7 @@ main() {
     Expect.equals(499, Zone.current[#foo]);
     Expect.listEquals([], Zone.current["bar"]);
     Expect.equals("baz", Zone.current[baz]);
-    Expect.isNull(Zone.current[mimic]);
+    Expect.equals("baz", Zone.current[mimic]);
     Expect.equals("zero!", Zone.current[0]);
     Expect.equals("zero!", Zone.current[0.0]); // Lookup uses equality.
     Expect.equals("zero!", Zone.current[-0.0]);
@@ -66,7 +66,7 @@ main() {
   });
 
   // Values are still not present when not inside the zone.
-  Expect.identical(Zone.ROOT, Zone.current);
+  Expect.identical(Zone.root, Zone.current);
   Expect.isNull(Zone.current[#foo]);
   Expect.isNull(Zone.current["bar"]);
   Expect.isNull(Zone.current[baz]);
@@ -84,7 +84,7 @@ main() {
     Expect.equals(499, Zone.current[#foo]);
     Expect.listEquals([42], Zone.current["bar"]);
     Expect.equals("baz", Zone.current[baz]);
-    Expect.isNull(Zone.current[mimic]);
+    Expect.equals("baz", Zone.current[mimic]);
     Expect.equals("zero!", Zone.current[0]);
     Expect.equals(baz, Zone.current[null]);
     Expect.isNull(Zone.current["qux"]);
@@ -129,7 +129,7 @@ main() {
   Expect.equals(499, forked[#foo]);
   Expect.listEquals([42], forked["bar"]);
   Expect.equals("baz", forked[baz]);
-  Expect.isNull(Zone.current[mimic]);
+  Expect.equals("baz", forked[mimic]);
   Expect.equals("zero!", forked[0]);
   Expect.equals("zero!", forked[0.0]); // Lookup uses equality.
   Expect.equals("zero!", forked[-0.0]);

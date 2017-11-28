@@ -1,0 +1,5 @@
+library lib;
+import self as self;
+
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/regress/issue_30994.dart:6:7: Error: Can't use string interpolation in a URI.\npart '\$foo';\n      ^", "pkg/front_end/testcases/regress/issue_30994.dart:7:7: Error: Can't use string interpolation in a URI.\npart '\$foo/bar';\n      ^", "pkg/front_end/testcases/regress/issue_30994.dart:8:7: Error: Can't use string interpolation in a URI.\npart '\$for/bar';\n      ^", "pkg/front_end/testcases/regress/issue_30994.dart:9:7: Error: Can't use string interpolation in a URI.\npart '\${true}';\n      ^", "pkg/front_end/testcases/regress/issue_30994.dart:10:10: Error: Can't use string interpolation in a URI.\npart 'the\${1}thing';\n         ^", "pkg/front_end/testcases/regress/issue_30994.dart:11:12: Error: Can't use string interpolation in a URI.\npart 'part_\$foo\${'a'}.dart';\n           ^", "pkg/front_end/testcases/regress/issue_30994.dart:12:12: Error: Can't use string interpolation in a URI.\npart 'part_\${'a'}_\$foo.dart';\n           ^"]/* from null */;
+static method main() → dynamic {}

@@ -79,5 +79,7 @@ class MultiRootFileSystemEntity implements FileSystemEntity {
   Future<String> readAsString() async => (await delegate).readAsString();
 }
 
-_normalize(Uri uri) =>
-    uri.path.endsWith('/') ? uri : uri.replace(path: '${uri.path}/');
+_normalize(root) {
+  Uri uri = root;
+  return uri.path.endsWith('/') ? uri : uri.replace(path: '${uri.path}/');
+}

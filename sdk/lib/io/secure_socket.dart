@@ -364,17 +364,17 @@ class _FilterStatus {
 class _RawSecureSocket extends Stream<RawSocketEvent>
     implements RawSecureSocket {
   // Status states
-  static final int HANDSHAKE = 201;
-  static final int CONNECTED = 202;
-  static final int CLOSED = 203;
+  static const int HANDSHAKE = 201;
+  static const int CONNECTED = 202;
+  static const int CLOSED = 203;
 
   // Buffer identifiers.
   // These must agree with those in the native C++ implementation.
-  static final int READ_PLAINTEXT = 0;
-  static final int WRITE_PLAINTEXT = 1;
-  static final int READ_ENCRYPTED = 2;
-  static final int WRITE_ENCRYPTED = 3;
-  static final int NUM_BUFFERS = 4;
+  static const int READ_PLAINTEXT = 0;
+  static const int WRITE_PLAINTEXT = 1;
+  static const int READ_ENCRYPTED = 2;
+  static const int WRITE_ENCRYPTED = 3;
+  static const int NUM_BUFFERS = 4;
 
   // Is a buffer identifier for an encrypted buffer?
   static bool _isBufferEncrypted(int identifier) =>

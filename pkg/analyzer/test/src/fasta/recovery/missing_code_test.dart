@@ -10,6 +10,7 @@ import 'recovery_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MissingCodeTest);
+    defineReflectiveTests(ParameterListTest);
   });
 }
 
@@ -30,7 +31,16 @@ class MissingCodeTest extends AbstractRecoveryTest {
     testUserDefinableOperatorWithSuper('&');
   }
 
-  void test_asExpression() {
+  @failingTest
+  void test_asExpression_missingLeft() {
+    testRecovery('''
+convert(x) => as T;
+''', [ParserErrorCode.EXPECTED_TYPE_NAME], '''
+convert(x) => _s_ as T;
+''');
+  }
+
+  void test_asExpression_missingRight() {
     testRecovery('''
 convert(x) => x as ;
 ''', [ParserErrorCode.EXPECTED_TYPE_NAME], '''
@@ -64,6 +74,14 @@ f() {
   void test_bar_super() {
     // Parser crashes
     testUserDefinableOperatorWithSuper('|');
+  }
+
+  void test_classDeclaration_missingName() {
+    testRecovery('''
+class {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+class _s_ {}
+''');
   }
 
   @failingTest
@@ -156,7 +174,21 @@ f() => x ? _s_ : z;
     testUserDefinableOperatorWithSuper('^');
   }
 
-  void test_isExpression() {
+  void test_isExpression_missingLeft() {
+    testRecovery('''
+f() {
+  if (is String) {
+  }
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f() {
+  if (_s_ is String) {
+  }
+}
+''');
+  }
+
+  void test_isExpression_missingRight() {
     testRecovery('''
 f(x) {
   if (x is ) {}
@@ -240,6 +272,20 @@ f(x) {
     testUserDefinableOperatorWithSuper('+');
   }
 
+  void test_prefixedIdentifier() {
+    testRecovery('''
+f() {
+  var v = 'String';
+  v.
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+f() {
+  var v = 'String';
+  v._s_;
+}
+''');
+  }
+
   @failingTest
   void test_slash() {
     // Parser crashes
@@ -293,6 +339,266 @@ class C {
 class C {
   int operator $operator(x) => super $operator _s_;
 }
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when tokens are missing in a parameter
+ * list.
+ */
+@reflectiveTest
+class ParameterListTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_extraComma_named_last() {
+    testRecovery('''
+f({a, }) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f({a, _s_}) {}
+''');
+  }
+
+  @failingTest
+  void test_extraComma_named_noLast() {
+    testRecovery('''
+f({a, , b}) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f({a, _s_, b}) {}
+''');
+  }
+
+  @failingTest
+  void test_extraComma_positional_last() {
+    testRecovery('''
+f([a, ]) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f([a, _s_]) {}
+''');
+  }
+
+  @failingTest
+  void test_extraComma_positional_noLast() {
+    testRecovery('''
+f([a, , b]) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f([a, _s_, b]) {}
+''');
+  }
+
+  @failingTest
+  void test_extraComma_required_last() {
+    testRecovery('''
+f(a, ) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f(a, _s_) {}
+''');
+  }
+
+  @failingTest
+  void test_extraComma_required_noLast() {
+    testRecovery('''
+f(a, , b) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f(a, _s_, b) {}
+''');
+  }
+
+  void test_fieldFormalParameter_noPeriod_last() {
+    testRecovery('''
+class C {
+  int f;
+  C(this);
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+class C {
+  int f;
+  C(this._s_);
+}
+''');
+  }
+
+  void test_fieldFormalParameter_noPeriod_notLast() {
+    testRecovery('''
+class C {
+  int f;
+  C(this, p);
+}
+''', [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.MISSING_IDENTIFIER], '''
+class C {
+  int f;
+  C(this._s_, p);
+}
+''');
+  }
+
+  void test_fieldFormalParameter_period_last() {
+    testRecovery('''
+class C {
+  int f;
+  C(this.);
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+class C {
+  int f;
+  C(this._s_);
+}
+''');
+  }
+
+  void test_fieldFormalParameter_period_notLast() {
+    testRecovery('''
+class C {
+  int f;
+  C(this., p);
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+class C {
+  int f;
+  C(this._s_, p);
+}
+''');
+  }
+
+  @failingTest
+  void test_incorrectlyTerminatedGroup_named_none() {
+    testRecovery('''
+f({a: 0) {}
+''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
+f({a: 0}) {}
+''');
+  }
+
+  @failingTest
+  void test_incorrectlyTerminatedGroup_named_positional() {
+    testRecovery('''
+f({a: 0]) {}
+''', [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP], '''
+f({a: 0}) {}
+''');
+  }
+
+  @failingTest
+  void test_incorrectlyTerminatedGroup_none_named() {
+    testRecovery('''
+f(a}) {}
+''', [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP], '''
+f(a) {}
+''');
+  }
+
+  @failingTest
+  void test_incorrectlyTerminatedGroup_none_positional() {
+    testRecovery('''
+f(a]) {}
+''', [ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP], '''
+f(a) {}
+''');
+  }
+
+  @failingTest
+  void test_incorrectlyTerminatedGroup_positional_named() {
+    testRecovery('''
+f([a = 0}) {}
+''', [ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP], '''
+f([a = 0]) {}
+''');
+  }
+
+  @failingTest
+  void test_incorrectlyTerminatedGroup_positional_none() {
+    // Maybe put in paired_tokens_test.dart.
+    testRecovery('''
+f([a = 0) {}
+''', [ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP], '''
+f([a = 0]) {}
+''');
+  }
+
+  void test_missingDefault_named_last() {
+    testRecovery('''
+f({a: }) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f({a: _s_}) {}
+''');
+  }
+
+  void test_missingDefault_named_notLast() {
+    testRecovery('''
+f({a: , b}) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f({a: _s_, b}) {}
+''');
+  }
+
+  void test_missingDefault_positional_last() {
+    testRecovery('''
+f([a = ]) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f([a = _s_]) {}
+''');
+  }
+
+  void test_missingDefault_positional_notLast() {
+    testRecovery('''
+f([a = , b]) {}
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f([a = _s_, b]) {}
+''');
+  }
+
+  @failingTest
+  void test_multipleGroups_mixed() {
+    // TODO(brianwilkerson) Figure out the best way to recover from this.
+    testRecovery('''
+f([a = 0], {b: 1}) {}
+''', [ParserErrorCode.MIXED_PARAMETER_GROUPS], '''
+f([a = 0]) {}
+''');
+  }
+
+  @failingTest
+  void test_multipleGroups_mixedAndMultiple() {
+    // TODO(brianwilkerson) Figure out the best way to recover from this.
+    testRecovery('''
+f([a = 0], {b: 1}, [c = 2]) {}
+''', [ParserErrorCode.MIXED_PARAMETER_GROUPS], '''
+f([a = 0, c = 2]) {}
+''');
+  }
+
+  @failingTest
+  void test_multipleGroups_named() {
+    testRecovery('''
+f({a: 0}, {b: 1}) {}
+''', [ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS], '''
+f({a: 0, b: 1}) {}
+''');
+  }
+
+  @failingTest
+  void test_multipleGroups_positional() {
+    testRecovery('''
+f([a = 0], [b = 1]) {}
+''', [ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS], '''
+f([a = 0, b = 1]) {}
+''');
+  }
+
+  @failingTest
+  void test_namedOutsideGroup() {
+    testRecovery('''
+f(a: 0) {}
+''', [ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP], '''
+f({a: 0}) {}
+''');
+  }
+
+  @failingTest
+  void test_positionalOutsideGroup() {
+    testRecovery('''
+f(a = 0) {}
+''', [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP], '''
+f([a = 0]) {}
 ''');
   }
 }

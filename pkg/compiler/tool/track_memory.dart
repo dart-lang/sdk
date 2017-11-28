@@ -76,7 +76,7 @@ Future _sendMessage(String method, [Map args = const {}]) {
 }
 
 /// Handle all responses
-_handleResponse(String s) {
+void _handleResponse(Object s) {
   var json = JSON.decode(s);
   if (json['method'] != 'streamNotify') {
     var id = json['id'];

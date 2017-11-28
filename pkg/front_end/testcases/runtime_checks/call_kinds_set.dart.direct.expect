@@ -9,10 +9,10 @@ class C extends core::Object {
     ;
   set x(dynamic value) → void {}
   method test() → void {
-    this.x = null;
-    this.x = null;
-    this.y = null;
-    this.y = null;
+    this.{self::C::x} = null;
+    this.{self::C::x} = null;
+    this.{self::C::y} = null;
+    this.{self::C::y} = null;
   }
 }
 static method test(self::C c, dynamic d) → void {

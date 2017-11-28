@@ -6,7 +6,7 @@
 
 use(x) {}
 
-class Class<T> implements Superclass {
+class Class<T> implements Supertype, GenericSupertype<T> {
   const Class();
   const Class.named();
 
@@ -14,77 +14,76 @@ class Class<T> implements Superclass {
     use(const []);
     use(const <Class>[]);
     use(const <Class<int>>[]);
-    use(const <Class<Unresolved>>[]); /*@compile-error=unspecified*/
-    use(const <Unresolved>[]); /*@compile-error=unspecified*/
+    use(const <Class<Unresolved>>[]); //# 01: compile-time error
+    use(const <Unresolved>[]); //# 02: compile-time error
 
     use(const {});
-    use(const <Class>{}); /*@compile-error=unspecified*/
+    use(const <Class>{}); //# 03: compile-time error
     use(const <String, Class>{});
     use(const <String, Class<int>>{});
-    use(const <String, Class<Unresolved>>{}); /*@compile-error=unspecified*/
-    use(const <String, Unresolved>{}); /*@compile-error=unspecified*/
+    use(const <String, Class<Unresolved>>{}); //# 04: compile-time error
+    use(const <String, Unresolved>{}); //# 05: compile-time error
 
     use(const Class());
     use(const Class<int>());
-    use(const Class<Unresolved>()); /*@compile-error=unspecified*/
-    use(const Class<T>()); /*@compile-error=unspecified*/
-    use(const Class<Class<T>>()); /*@compile-error=unspecified*/
+    use(const Class<Unresolved>()); //# 06: compile-time error
+    use(const Class<T>()); //# 07: compile-time error
+    use(const Class<Class<T>>()); //# 08: compile-time error
 
-    use(const Unresolved()); /*@compile-error=unspecified*/
-    use(const Unresolved<int>()); /*@compile-error=unspecified*/
-    use(const prefix.Unresolved()); /*@compile-error=unspecified*/
-    use(const prefix.Unresolved<int>()); /*@compile-error=unspecified*/
+    use(const Unresolved()); //# 09: compile-time error
+    use(const Unresolved<int>()); //# 10: compile-time error
+    use(const prefix.Unresolved()); //# 11: compile-time error
+    use(const prefix.Unresolved<int>()); //# 12: compile-time error
 
     use(const Class.named());
     use(const Class<int>.named());
-    use(const Class<Unresolved>.named()); /*@compile-error=unspecified*/
-    use(const Class<T>.named()); /*@compile-error=unspecified*/
-    use(const Class<Class<T>>.named()); /*@compile-error=unspecified*/
+    use(const Class<Unresolved>.named()); //# 13: compile-time error
+    use(const Class<T>.named()); //# 14: compile-time error
+    use(const Class<Class<T>>.named()); //# 15: compile-time error
 
-    use(const Class.nonamed()); /*@compile-error=unspecified*/
-    use(const Class<int>.nonamed()); /*@compile-error=unspecified*/
-    use(const Class<Unresolved>.nonamed()); /*@compile-error=unspecified*/
-    use(const Class<T>.nonamed()); /*@compile-error=unspecified*/
-    use(const Class<Class<T>>.nonamed()); /*@compile-error=unspecified*/
+    use(const Class.nonamed()); //# 16: compile-time error
+    use(const Class<int>.nonamed()); //# 17: compile-time error
+    use(const Class<Unresolved>.nonamed()); //# 18: compile-time error
+    use(const Class<T>.nonamed()); //# 19: compile-time error
+    use(const Class<Class<T>>.nonamed()); //# 20: compile-time error
 
-    use(const Unresolved.named()); /*@compile-error=unspecified*/
-    use(const Unresolved<int>.named()); /*@compile-error=unspecified*/
+    use(const Unresolved.named()); //# 21: compile-time error
+    use(const Unresolved<int>.named()); //# 22: compile-time error
   }
 }
 
-class Superclass<T> {
-  const factory Superclass() = Unresolved; /*@compile-error=unspecified*/
-  const factory Superclass() = Unresolved<int>; /*@compile-error=unspecified*/
-  const factory Superclass() = Unresolved.named; /*@compile-error=unspecified*/
-  const factory Superclass() =
-      Unresolved<int>.named; /*@compile-error=unspecified*/
+class Supertype {
+  const factory Supertype() = Unresolved; //# 23: compile-time error
+  const factory Supertype() = Unresolved<int>; //# 24: compile-time error
+  const factory Supertype() = Unresolved.named; //# 25: compile-time error
+  const factory Supertype() = Unresolved<int>.named; //# 26: compile-time error
 
-  const factory Superclass() = prefix.Unresolved; /*@compile-error=unspecified*/
-  const factory Superclass() =
-      prefix.Unresolved<int>; /*@compile-error=unspecified*/
-  const factory Superclass() =
-      prefix.Unresolved.named; /*@compile-error=unspecified*/
-  const factory Superclass() =
-      prefix.Unresolved<int>.named; /*@compile-error=unspecified*/
+  const factory Supertype() = prefix.Unresolved; //# 27: compile-time error
+  const factory Supertype() = prefix.Unresolved<int>; //# 28: compile-time error
+  const factory Supertype() = prefix.Unresolved.named; //# 29: compile-time error
+  const factory Supertype() = prefix.Unresolved<int>.named; //# 30: compile-time error
 
-  const factory Superclass() = Class; /*@compile-error=unspecified*/
-  const factory Superclass() = Class<int>; /*@compile-error=unspecified*/
-  const factory Superclass() = Class<T>; /*@compile-error=unspecified*/
-  const factory Superclass() = Class<Class<T>>; /*@compile-error=unspecified*/
-  const factory Superclass() = Class<Unresolved>; /*@compile-error=unspecified*/
+  const factory Supertype() = Class; //# 31: ok
+  const factory Supertype() = Class<int>; //# 32: ok
+  const factory Supertype() = Class<Unresolved>; //# 35: compile-time error
 
-  const factory Superclass() = Class.named; /*@compile-error=unspecified*/
-  const factory Superclass() = Class<int>.named; /*@compile-error=unspecified*/
-  const factory Superclass() = Class<T>.named; /*@compile-error=unspecified*/
-  const factory Superclass() =
-      Class<Class<T>>.named; /*@compile-error=unspecified*/
-  const factory Superclass() =
-      Class<Unresolved>.named; /*@compile-error=unspecified*/
+  const factory Supertype() = Class.named; //# 36: ok
+  const factory Supertype() = Class<int>.named; //# 37: ok
+  const factory Supertype() = Class<Unresolved>.named; //# 40: compile-time error
+}
 
-  const factory Superclass() = T; /*@compile-error=unspecified*/
+class GenericSupertype<T> {
+  const factory GenericSupertype() = Class<T>; //# 33: ok
+  const factory GenericSupertype() = Class<Class<T>>; //# 34: compile-time error
+
+  const factory GenericSupertype() = Class<T>.named; //# 38: ok
+  const factory GenericSupertype() = Class<Class<T>>.named; //# 39: compile-time error
+
+  const factory GenericSupertype() = T; //# 41: compile-time error
 }
 
 void main() {
   new Class().test();
-  new Superclass();
+  new Supertype();
+  new GenericSupertype();
 }

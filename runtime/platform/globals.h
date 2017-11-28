@@ -48,6 +48,7 @@
 
 #include <Rpc.h>
 #include <VersionHelpers.h>
+#include <intrin.h>
 #include <shellapi.h>
 #include <windows.h>
 #include <winsock2.h>
@@ -386,6 +387,10 @@ typedef simd128_value_t fpu_register_t;
 #define Pu PRIuPTR
 #define Px PRIxPTR
 #define PX PRIXPTR
+#define Pd32 PRId32
+#define Pu32 PRIu32
+#define Px32 PRIx32
+#define PX32 PRIX32
 #define Pd64 PRId64
 #define Pu64 PRIu64
 #define Px64 PRIx64
@@ -419,6 +424,9 @@ typedef simd128_value_t fpu_register_t;
   (((static_cast<uint64_t>(a) << 32) + 0x##b##u))
 
 // Integer constants.
+const int16_t kMinInt16 = 0x8000;
+const int16_t kMaxInt16 = 0x7FFF;
+const uint16_t kMaxUint16 = 0xFFFF;
 const int32_t kMinInt32 = 0x80000000;
 const int32_t kMaxInt32 = 0x7FFFFFFF;
 const uint32_t kMaxUint32 = 0xFFFFFFFF;
@@ -682,7 +690,7 @@ static inline void StoreUnaligned(T* ptr, T value) {
 #endif  // defined(TEMP_FAILURE_RETRY)
 #endif  // !defined(HOST_OS_WINDOWS)
 
-#if defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS)
+#if __GNUC__
 // Tell the compiler to do printf format string checking if the
 // compiler supports it; see the 'format' attribute in
 // <http://gcc.gnu.org/onlinedocs/gcc-4.3.0/gcc/Function-Attributes.html>.

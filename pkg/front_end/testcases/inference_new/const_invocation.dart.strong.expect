@@ -11,19 +11,19 @@ class Foo<T extends core::Object> extends core::Object {
     return const self::Bar::•<core::Null>();
   get v2() → self::Bar<core::List<self::Foo::T>>
     return const self::Bar::•<core::List<core::Null>>();
-  get v3() → self::Bar<(self::Foo::T) → self::Foo::T>
+  generic-contravariant get v3() → self::Bar<(self::Foo::T) → self::Foo::T>
     return const self::Bar::•<(core::Object) → core::Null>();
-  get v4() → self::Bar<((self::Foo::T) → self::Foo::T) → self::Foo::T>
+  generic-contravariant get v4() → self::Bar<((self::Foo::T) → self::Foo::T) → self::Foo::T>
     return const self::Bar::•<((core::Null) → core::Object) → core::Null>();
   get v5() → core::List<self::Foo::T>
     return const <core::Null>[];
-  get v6() → core::List<(self::Foo::T) → self::Foo::T>
+  generic-contravariant get v6() → core::List<(self::Foo::T) → self::Foo::T>
     return const <(core::Object) → core::Null>[];
   get v7() → core::Map<self::Foo::T, self::Foo::T>
     return const <core::Null, core::Null>{};
-  get v8() → core::Map<(self::Foo::T) → self::Foo::T, self::Foo::T>
+  generic-contravariant get v8() → core::Map<(self::Foo::T) → self::Foo::T, self::Foo::T>
     return const <(core::Object) → core::Null, core::Null>{};
-  get v9() → core::Map<self::Foo::T, (self::Foo::T) → self::Foo::T>
+  generic-contravariant get v9() → core::Map<self::Foo::T, (self::Foo::T) → self::Foo::T>
     return const <core::Null, (core::Object) → core::Null>{};
 }
 class Bar<T extends core::Object> extends core::Object {

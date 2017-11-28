@@ -6,14 +6,14 @@ part of dart.dom.html;
 
 void Function(T) _wrapZone<T>(void Function(T) callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
-  if (Zone.current == Zone.ROOT) return callback;
+  if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
 void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
-  if (Zone.current == Zone.ROOT) return callback;
+  if (Zone.current == Zone.root) return callback;
   if (callback == null) return null;
   return Zone.current.bindBinaryCallbackGuarded(callback);
 }

@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Foo<T extends core::Object> = <T extends core::Object>(T) → T;
+static field <T extends core::Object>(T) → T x;
+static method main() → dynamic
+  ;

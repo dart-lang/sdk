@@ -257,6 +257,7 @@ class ErroneousElementX extends ElementX
   get memberContext => unsupported();
   get executableContext => unsupported();
   get isExternal => unsupported();
+  get isMarkedExternal => unsupported();
   get constantConstructor => null;
 
   bool get isRedirectingGenerative => unsupported();
@@ -324,6 +325,16 @@ class ErroneousConstructorElementX extends ErroneousElementX
 
   @override
   bool get isRedirectingFactory => false;
+
+  @override
+  get isMarkedNative {
+    throw new UnsupportedError("isMarkedNative");
+  }
+
+  @override
+  set isMarkedNative(_) {
+    throw new UnsupportedError("isMarkedNative=");
+  }
 
   @override
   get definingElement {
@@ -998,6 +1009,9 @@ class ImportElementX extends LibraryDependencyElementX
 
   @override
   bool get isDeferred => node.isDeferred;
+
+  @override
+  String get name => prefix?.name;
 }
 
 class SyntheticImportElement extends ImportElementX {
@@ -2053,6 +2067,7 @@ abstract class BaseFunctionElementX extends ElementX
     implements FunctionElement {
   ResolutionDartType typeCache;
   final Modifiers modifiers;
+  bool isMarkedNative = false;
 
   List<MethodElement> nestedClosures = new List<MethodElement>();
 
@@ -2082,7 +2097,9 @@ abstract class BaseFunctionElementX extends ElementX
     }
   }
 
-  bool get isExternal => modifiers.isExternal;
+  bool get isMarkedExternal => modifiers.isExternal;
+
+  bool get isExternal => (isMarkedExternal && !isPatched) || isMarkedNative;
 
   bool get isInstanceMember {
     return isClassMember && !isConstructor && !isStatic;

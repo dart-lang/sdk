@@ -1,0 +1,54 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f(core::int x) → core::int {
+    self::expect(x, 1);
+    return 2;
+  }
+}
+abstract class I extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  abstract method f(covariant core::Object x) → core::int;
+}
+class C extends self::B implements self::I {
+  default constructor •() → void
+    : super self::B::•()
+    ;
+}
+static method expectTypeError(() → void callback) → void {
+  try {
+    callback.call();
+    throw "Expected TypeError, did not occur";
+  }
+  on core::TypeError catch(no-exception-var) {
+  }
+}
+static method expect(core::Object value, core::Object expected) → void {
+  if(!value.==(expected)) {
+    throw "Expected ${expected}, got ${value}";
+  }
+}
+static method g(self::C c) → void {
+  c.f("hello");
+}
+static method test(self::C c, self::I i) → void {
+  self::expectTypeError(() → dynamic {
+    i.f("hello");
+  });
+  self::expect(i.f(1), 2);
+  self::expectTypeError(() → dynamic {
+    c.f("hello");
+  });
+  self::expect(c.f(1), 2);
+}
+static method main() → dynamic {
+  dynamic c = new self::C::•();
+  self::test(c, c);
+}

@@ -1,6 +1,6 @@
 library;
 import self as self;
 
-static method main() → dynamic {
+static method #main() → dynamic {
   throw "dart:_foreign_helper: Error: Not found: dart:_foreign_helper.";
 }

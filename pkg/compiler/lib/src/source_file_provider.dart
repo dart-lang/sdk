@@ -275,8 +275,11 @@ class FormattingDiagnosticHandler implements CompilerDiagnostics {
       api.Input file = provider.getUtf8SourceFile(uri);
       if (file == null &&
           autoReadFileUri &&
-          uri.scheme == 'file' &&
+          (uri.scheme == 'file' || !uri.isAbsolute) &&
           uri.path.endsWith('.dart')) {
+        if (!uri.isAbsolute) {
+          uri = provider.cwd.resolveUri(uri);
+        }
         // When reading from .dill files, the original source files haven't been
         // loaded. Load the file if possible to provide a better error message.
         file = provider.autoReadFromFile(uri);

@@ -205,7 +205,7 @@ class ExitCodeHandler {
   static void SendShutdownMessage() {
     zx_port_packet_t pkt;
     pkt.key = kShutdownPacketKey;
-    zx_status_t status = zx_port_queue(port_, reinterpret_cast<void*>(&pkt), 0);
+    zx_status_t status = zx_port_queue(port_, &pkt, 0);
     if (status != ZX_OK) {
       Log::PrintErr("ExitCodeHandler: zx_port_queue failed: %s\n",
                     zx_status_get_string(status));
@@ -219,8 +219,7 @@ class ExitCodeHandler {
 
     zx_port_packet_t pkt;
     while (true) {
-      zx_status_t status = zx_port_wait(port_, ZX_TIME_INFINITE,
-                                        reinterpret_cast<void*>(&pkt), 0);
+      zx_status_t status = zx_port_wait(port_, ZX_TIME_INFINITE, &pkt, 0);
       if (status != ZX_OK) {
         FATAL1("ExitCodeHandler: zx_port_wait failed: %s\n",
                zx_status_get_string(status));
@@ -271,7 +270,7 @@ class ExitCodeHandler {
       ASSERT((result == -1) || (result == sizeof(exit_code_fd)));
       if ((result == -1) && (errno != EPIPE)) {
         int err = errno;
-        Log::PrintErr("Failed to write exit code for process %ld: errno=%d\n",
+        Log::PrintErr("Failed to write exit code for process %d: errno=%d\n",
                       process, err);
       }
       LOG_INFO("ExitCodeHandler thread wrote %ld bytes to fd %ld\n", result,
@@ -398,8 +397,7 @@ bool Process::Wait(intptr_t pid,
   }
   while ((out_tmp != NULL) || (err_tmp != NULL) || (exit_tmp != NULL)) {
     zx_port_packet_t pkt;
-    status =
-        zx_port_wait(port, ZX_TIME_INFINITE, reinterpret_cast<void*>(&pkt), 0);
+    status = zx_port_wait(port, ZX_TIME_INFINITE, &pkt, 0);
     if (status != ZX_OK) {
       Log::PrintErr("Process::Wait: zx_port_wait failed: %s\n",
                     zx_status_get_string(status));
@@ -662,7 +660,7 @@ class ProcessStarter {
     launchpad_create(ZX_HANDLE_INVALID, program_arguments_[0], &lp);
     launchpad_set_args(lp, program_arguments_count_, program_arguments_);
     launchpad_set_environ(lp, program_environment_);
-    launchpad_clone(lp, LP_CLONE_FDIO_NAMESPACE | LP_CLONE_FDIO_CWD);
+    launchpad_clone(lp, LP_CLONE_FDIO_NAMESPACE);
     launchpad_add_pipe(lp, &write_out_, 0);
     launchpad_add_pipe(lp, &read_in_, 1);
     launchpad_add_pipe(lp, &read_err_, 2);

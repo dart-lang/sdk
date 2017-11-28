@@ -8,7 +8,7 @@ class C<T extends core::Object> extends core::Object {
     : self::C::t = t, super core::Object::•()
     ;
 }
-static method main() → dynamic {
+static method test() → dynamic {
   dynamic x = new self::C::•<dynamic>(42);
   core::num y;
   self::C<core::int> c_int = new self::C::•<dynamic>(y);
@@ -17,3 +17,4 @@ static method main() → dynamic {
   dynamic c_dynamic = new self::C::•<dynamic>(42);
   x.t = "hello";
 }
+static method main() → dynamic {}

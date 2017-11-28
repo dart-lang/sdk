@@ -67,7 +67,7 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   Label fall_through;
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     const intptr_t type_args_field_offset =
         ComputeObjectArrayTypeArgumentsOffset();
     // Inline simple tests (Smi, null), fallthrough if not positive.
@@ -157,7 +157,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+2), value (+1), return-address (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->type_checks()) return;
+  if (Isolate::Current()->argument_type_checks()) return;
 
   Label fall_through;
   __ movl(EAX, Address(ESP, +2 * kWordSize));  // Array.
@@ -294,7 +294,7 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
   void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {       \
     intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);     \
-    intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);         \
+    intptr_t max_len = TypedData::MaxNewSpaceElements(kTypedData##clazz##Cid); \
     ScaleFactor scale = GetScaleFactor(size);                                  \
     TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale); \
   }
@@ -1558,6 +1558,44 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ Bind(&fall_through);
 }
 
+void Intrinsifier::Double_hashCode(Assembler* assembler) {
+  // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
+
+  // Convert double value to signed 32-bit int in EAX and
+  // back to a double in XMM1.
+  __ movl(ECX, Address(ESP, +1 * kWordSize));
+  __ movsd(XMM0, FieldAddress(ECX, Double::value_offset()));
+  __ cvttsd2si(EAX, XMM0);
+  __ cvtsi2sd(XMM1, EAX);
+
+  // Tag the int as a Smi, making sure that it fits; this checks for
+  // overflow and NaN in the conversion from double to int. Conversion
+  // overflow from cvttsd2si is signalled with an INT32_MIN value.
+  Label fall_through;
+  ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
+  __ addl(EAX, EAX);
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+
+  // Compare the two double values. If they are equal, we return the
+  // Smi tagged result immediately as the hash code.
+  Label double_hash;
+  __ comisd(XMM0, XMM1);
+  __ j(NOT_EQUAL, &double_hash, Assembler::kNearJump);
+  __ ret();
+
+  // Convert the double bits to a hash code that fits in a Smi.
+  __ Bind(&double_hash);
+  __ movl(EAX, FieldAddress(ECX, Double::value_offset()));
+  __ movl(ECX, FieldAddress(ECX, Double::value_offset() + 4));
+  __ xorl(EAX, ECX);
+  __ andl(EAX, Immediate(kSmiMax));
+  __ SmiTag(EAX);
+  __ ret();
+
+  // Fall into the native C++ implementation.
+  __ Bind(&fall_through);
+}
+
 // Argument type is not known
 void Intrinsifier::MathSqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
@@ -1622,6 +1660,8 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ adcl(EDX, Immediate(0));
   __ movl(addr_1, EDX);
   __ movl(addr_0, EAX);
+  ASSERT(Smi::RawValue(0) == 0);
+  __ xorl(EAX, EAX);
   __ ret();
 }
 
@@ -1796,6 +1836,17 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ movl(EAX, Address(ESP, +1 * kWordSize));  // String object.
   __ movl(EAX, FieldAddress(EAX, String::hash_offset()));
   __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ ret();
+  __ Bind(&fall_through);
+  // Hash not yet computed.
+}
+
+void Intrinsifier::Type_getHashCode(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EAX, Address(ESP, +1 * kWordSize));  // Type object.
+  __ movl(EAX, FieldAddress(EAX, Type::hash_offset()));
+  __ testl(EAX, EAX);
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
   __ ret();
   __ Bind(&fall_through);

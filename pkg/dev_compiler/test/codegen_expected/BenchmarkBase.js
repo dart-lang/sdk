@@ -3,7 +3,8 @@ define(['dart_sdk'], function(dart_sdk) {
   const core = dart_sdk.core;
   const dart = dart_sdk.dart;
   const dartx = dart_sdk.dartx;
-  const BenchmarkBase$ = Object.create(null);
+  const _root = Object.create(null);
+  const BenchmarkBase$ = Object.create(_root);
   const $length = dartx.length;
   const $_get = dartx._get;
   let VoidToNull = () => (VoidToNull = dart.constFn(dart.fnType(core.Null, [])))();
@@ -28,14 +29,14 @@ define(['dart_sdk'], function(dart_sdk) {
   (BenchmarkBase$.Expect.new = function() {
   }).prototype = BenchmarkBase$.Expect.prototype;
   dart.addTypeTests(BenchmarkBase$.Expect);
-  dart.setSignature(BenchmarkBase$.Expect, {
-    methods: () => ({fail: dart.fnType(dart.dynamic, [dart.dynamic])}),
-    statics: () => ({
-      equals: dart.fnType(dart.void, [dart.dynamic, dart.dynamic]),
-      listEquals: dart.fnType(dart.void, [core.List, core.List])
-    }),
-    names: ['equals', 'listEquals']
-  });
+  dart.setMethodSignature(BenchmarkBase$.Expect, () => ({
+    __proto__: dart.getMethods(BenchmarkBase$.Expect.__proto__),
+    fail: dart.fnType(dart.dynamic, [dart.dynamic])
+  }));
+  dart.setStaticMethodSignature(BenchmarkBase$.Expect, () => ({
+    equals: dart.fnType(dart.void, [dart.dynamic, dart.dynamic]),
+    listEquals: dart.fnType(dart.void, [core.List, core.List])
+  }));
   BenchmarkBase$.BenchmarkBase = class BenchmarkBase extends core.Object {
     get name() {
       return this[name$];
@@ -88,20 +89,21 @@ define(['dart_sdk'], function(dart_sdk) {
   }).prototype = BenchmarkBase$.BenchmarkBase.prototype;
   dart.addTypeTests(BenchmarkBase$.BenchmarkBase);
   const name$ = Symbol("BenchmarkBase.name");
-  dart.setSignature(BenchmarkBase$.BenchmarkBase, {
-    fields: () => ({name: dart.finalFieldType(core.String)}),
-    methods: () => ({
-      run: dart.fnType(dart.void, []),
-      warmup: dart.fnType(dart.void, []),
-      exercise: dart.fnType(dart.void, []),
-      setup: dart.fnType(dart.void, []),
-      teardown: dart.fnType(dart.void, []),
-      measure: dart.fnType(core.double, []),
-      report: dart.fnType(dart.void, [])
-    }),
-    statics: () => ({measureFor: dart.fnType(core.double, [core.Function, core.int])}),
-    names: ['measureFor']
-  });
+  dart.setMethodSignature(BenchmarkBase$.BenchmarkBase, () => ({
+    __proto__: dart.getMethods(BenchmarkBase$.BenchmarkBase.__proto__),
+    run: dart.fnType(dart.void, []),
+    warmup: dart.fnType(dart.void, []),
+    exercise: dart.fnType(dart.void, []),
+    setup: dart.fnType(dart.void, []),
+    teardown: dart.fnType(dart.void, []),
+    measure: dart.fnType(core.double, []),
+    report: dart.fnType(dart.void, [])
+  }));
+  dart.setStaticMethodSignature(BenchmarkBase$.BenchmarkBase, () => ({measureFor: dart.fnType(core.double, [core.Function, core.int])}));
+  dart.setFieldSignature(BenchmarkBase$.BenchmarkBase, () => ({
+    __proto__: dart.getFields(BenchmarkBase$.BenchmarkBase.__proto__),
+    name: dart.finalFieldType(core.String)
+  }));
   dart.trackLibraries("BenchmarkBase", {
     "BenchmarkBase.dart": BenchmarkBase$
   }, null);

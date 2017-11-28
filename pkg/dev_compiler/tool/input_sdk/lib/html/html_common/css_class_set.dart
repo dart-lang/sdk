@@ -55,12 +55,12 @@ abstract class CssClassSetImpl implements CssClassSet {
 
   String join([String separator = ""]) => readClasses().join(separator);
 
-  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(String e)) => readClasses().map/*<T>*/(f);
+  Iterable<T> map<T>(T f(String e)) => readClasses().map<T>(f);
 
   Iterable<String> where(bool f(String element)) => readClasses().where(f);
 
-  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(String element)) =>
-      readClasses().expand/*<T>*/(f);
+  Iterable<T> expand<T>(Iterable<T> f(String element)) =>
+      readClasses().expand<T>(f);
 
   bool every(bool f(String element)) => readClasses().every(f);
 
@@ -76,9 +76,8 @@ abstract class CssClassSetImpl implements CssClassSet {
     return readClasses().reduce(combine);
   }
 
-  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
-      dynamic/*=T*/ combine(var/*=T*/ previousValue, String element)) {
-    return readClasses().fold/*<T>*/(initialValue, combine);
+  T fold<T>(T initialValue, T combine(T previousValue, String element)) {
+    return readClasses().fold<T>(initialValue, combine);
   }
 
   // interface Collection - END

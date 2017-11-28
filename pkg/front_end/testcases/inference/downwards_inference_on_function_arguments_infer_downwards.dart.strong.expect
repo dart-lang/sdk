@@ -7,25 +7,26 @@ static method f1({core::List<core::int> a = null}) → void {}
 static method f2(core::Iterable<core::int> a) → void {}
 static method f3(core::Iterable<core::Iterable<core::int>> a) → void {}
 static method f4({core::Iterable<core::Iterable<core::int>> a = null}) → void {}
-static method main() → void {
+static method test() → void {
   self::f0(<core::int>[]);
   self::f0(<core::int>[3]);
-  self::f0(<core::int>["hello"]);
-  self::f0(<core::int>["hello", 3]);
+  self::f0(<core::int>["hello" as{TypeError} core::int]);
+  self::f0(<core::int>["hello" as{TypeError} core::int, 3]);
   self::f1(a: <core::int>[]);
   self::f1(a: <core::int>[3]);
-  self::f1(a: <core::int>["hello"]);
-  self::f1(a: <core::int>["hello", 3]);
+  self::f1(a: <core::int>["hello" as{TypeError} core::int]);
+  self::f1(a: <core::int>["hello" as{TypeError} core::int, 3]);
   self::f2(<core::int>[]);
   self::f2(<core::int>[3]);
-  self::f2(<core::int>["hello"]);
-  self::f2(<core::int>["hello", 3]);
+  self::f2(<core::int>["hello" as{TypeError} core::int]);
+  self::f2(<core::int>["hello" as{TypeError} core::int, 3]);
   self::f3(<core::Iterable<core::int>>[]);
   self::f3(<core::Iterable<core::int>>[<core::int>[3]]);
-  self::f3(<core::Iterable<core::int>>[<core::int>["hello"]]);
-  self::f3(<core::Iterable<core::int>>[<core::int>["hello"], <core::int>[3]]);
+  self::f3(<core::Iterable<core::int>>[<core::int>["hello" as{TypeError} core::int]]);
+  self::f3(<core::Iterable<core::int>>[<core::int>["hello" as{TypeError} core::int], <core::int>[3]]);
   self::f4(a: <core::Iterable<core::int>>[]);
   self::f4(a: <core::Iterable<core::int>>[<core::int>[3]]);
-  self::f4(a: <core::Iterable<core::int>>[<core::int>["hello"]]);
-  self::f4(a: <core::Iterable<core::int>>[<core::int>["hello"], <core::int>[3]]);
+  self::f4(a: <core::Iterable<core::int>>[<core::int>["hello" as{TypeError} core::int]]);
+  self::f4(a: <core::Iterable<core::int>>[<core::int>["hello" as{TypeError} core::int], <core::int>[3]]);
 }
+static method main() → dynamic {}

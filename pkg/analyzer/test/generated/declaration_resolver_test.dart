@@ -589,12 +589,11 @@ var v = (() {
 });
 ''';
     CompilationUnit unit = await resolveSource(code);
-    FunctionElement getterElement =
-        _findSimpleIdentifier(unit, code, 'zzz =>').staticElement;
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier getterName = _findSimpleIdentifier(unit2, code, 'zzz =>');
-    expect(getterName.staticElement, same(getterElement));
+    // Local getters are not allowed, so a FunctionElement is created.
+    expect(getterName.staticElement, new isInstanceOf<FunctionElement>());
   }
 
   test_invalid_functionDeclaration_setter_inFunction() async {
@@ -606,12 +605,11 @@ var v = (() {
 });
 ''';
     CompilationUnit unit = await resolveSource(code);
-    FunctionElement setterElement =
-        _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
     SimpleIdentifier setterName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
-    expect(setterName.staticElement, same(setterElement));
+    // Local getters are not allowed, so a FunctionElement is created.
+    expect(setterName.staticElement, new isInstanceOf<FunctionElement>());
   }
 
   test_visitExportDirective_notExistingSource() async {

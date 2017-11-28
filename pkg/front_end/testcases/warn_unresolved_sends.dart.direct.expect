@@ -1,0 +1,65 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic superField = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method superMethod() → dynamic {}
+  get setterOnly() → dynamic
+    return null;
+  set setterOnly(dynamic _) → void {}
+  get getterOnly() → dynamic
+    return null;
+  set getterOnly(dynamic _) → void {}
+}
+class D extends self::C {
+  field dynamic field = null;
+  default constructor •() → void
+    : super self::C::•()
+    ;
+  set setterOnly(dynamic _) → void {}
+  get getterOnly() → dynamic
+    return null;
+  method method() → dynamic {}
+  method test() → void {
+    this.{self::D::field};
+    this.{self::C::superField};
+    this.{self::D::field} = 0;
+    this.{self::C::superField} = 0;
+    this.{self::D::method}();
+    this.{self::C::superMethod}();
+    this.{self::C::setterOnly};
+    this.{self::D::setterOnly} = 0;
+    this.{self::D::getterOnly};
+    this.{self::C::getterOnly} = 0;
+    this.{self::D::field};
+    this.{self::C::superField};
+    this.{self::D::field} = 0;
+    this.{self::C::superField} = 0;
+    this.{self::D::method}();
+    this.{self::C::superMethod}();
+    this.{self::C::setterOnly};
+    this.{self::D::setterOnly} = 0;
+    this.{self::D::getterOnly};
+    this.{self::C::getterOnly} = 0;
+    this.missingField;
+    this.missingField = 0;
+    this.missingMethod();
+    this.missingField;
+    this.missingField = 0;
+    this.missingMethod();
+  }
+}
+class E extends self::D {
+  field dynamic missingField = null;
+  default constructor •() → void
+    : super self::D::•()
+    ;
+  method missingMethod() → void {}
+}
+static method main() → dynamic {
+  new self::E::•().test();
+}

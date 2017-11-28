@@ -14,7 +14,5 @@ test(x, y) {
 }
 
 main() {
-  Expect.throws(() {
-    test(null, 2);
-  }, (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => test(null, 2));
 }

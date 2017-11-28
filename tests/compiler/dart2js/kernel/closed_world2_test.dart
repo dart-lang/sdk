@@ -19,7 +19,6 @@ import 'package:compiler/src/js_backend/backend_usage.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/resolution/class_hierarchy.dart';
-import 'package:compiler/src/resolution/enum_creator.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
@@ -194,7 +193,6 @@ Future<ResultKind> mainInternal(List<String> args,
   enableDebugMode();
   useOptimizedMixins = true;
   ElementResolutionWorldBuilder.useInstantiationMap = true;
-  EnumCreator.matchKernelRepresentationForTesting = true;
 
   print('---- analyze-only ------------------------------------------------');
   DiagnosticCollector collector = new DiagnosticCollector();
@@ -203,7 +201,7 @@ Future<ResultKind> mainInternal(List<String> args,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: collector,
       options: [Flags.analyzeOnly, Flags.enableAssertMessage]);
-  compiler1.resolution.retainCachesForTesting = true;
+  compiler1.impactCacheDeleter.retainCachesForTesting = true;
   await compiler1.run(entryPoint);
   if (collector.crashes.isNotEmpty) {
     print('Skipping due to crashes.');

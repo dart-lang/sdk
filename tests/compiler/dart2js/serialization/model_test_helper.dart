@@ -69,7 +69,7 @@ Future checkModels(Uri entryPoint,
   Compiler compilerNormal = await measure(title, 'compile normal', () async {
     Compiler compilerNormal = compilerFor(
         memorySourceFiles: sourceFiles, options: [Flags.analyzeOnly]);
-    compilerNormal.resolution.retainCachesForTesting = true;
+    compilerNormal.impactCacheDeleter.retainCachesForTesting = true;
     await compilerNormal.run(entryPoint);
     ElementEnvironment elementEnvironment =
         compilerNormal.frontendStrategy.elementEnvironment;
@@ -83,7 +83,7 @@ Future checkModels(Uri entryPoint,
         memorySourceFiles: sourceFiles,
         resolutionInputs: resolutionInputs,
         options: [Flags.analyzeOnly]);
-    compilerDeserialized.resolution.retainCachesForTesting = true;
+    compilerDeserialized.impactCacheDeleter.retainCachesForTesting = true;
     await compilerDeserialized.run(entryPoint);
     ElementEnvironment elementEnvironment =
         compilerDeserialized.frontendStrategy.elementEnvironment;
@@ -117,7 +117,7 @@ void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
       compilerNormal.enqueuer.resolution.processedEntities,
       compilerDeserialized.enqueuer.resolution.processedEntities,
       "Processed element mismatch",
-      areElementsEquivalent, onSameElement: (a, b) {
+      areEntitiesEquivalent, onSameElement: (a, b) {
     checkElements(compilerNormal, compilerDeserialized, a, b, verbose: verbose);
   }, verbose: verbose);
   Expect.equals(
@@ -126,9 +126,9 @@ void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
       "isProgramSplit mismatch");
 
   Iterable<ConstantValue> constants1 =
-      compilerNormal.deferredLoadTask.constantsForTesting;
+      compilerNormal.backend.outputUnitData.constantsForTesting;
   Iterable<ConstantValue> constants2 =
-      compilerDeserialized.deferredLoadTask.constantsForTesting;
+      compilerDeserialized.backend.outputUnitData.constantsForTesting;
   checkSets(
       constants1,
       constants2,
@@ -140,24 +140,26 @@ void checkBackendInfo(Compiler compilerNormal, Compiler compilerDeserialized,
     checkOutputUnits(
         compilerNormal,
         compilerDeserialized,
-        compilerNormal.deferredLoadTask.outputUnitForConstant(value1),
-        compilerDeserialized.deferredLoadTask.outputUnitForConstant(value2),
+        compilerNormal.backend.outputUnitData.outputUnitForConstant(value1),
+        compilerDeserialized.backend.outputUnitData
+            .outputUnitForConstant(value2),
         'for ${value1.toStructuredText()} '
         'vs ${value2.toStructuredText()}');
   }, onUnfoundElement: (ConstantValue value1) {
     OutputUnit outputUnit1 =
-        compilerNormal.deferredLoadTask.outputUnitForConstant(value1);
+        compilerNormal.backend.outputUnitData.outputUnitForConstant(value1);
     Expect.isTrue(outputUnit1.isMainOutput,
         "Missing deferred constant: ${value1.toStructuredText()}");
   }, onExtraElement: (ConstantValue value2) {
-    OutputUnit outputUnit2 =
-        compilerDeserialized.deferredLoadTask.outputUnitForConstant(value2);
+    OutputUnit outputUnit2 = compilerDeserialized.backend.outputUnitData
+        .outputUnitForConstant(value2);
     Expect.isTrue(outputUnit2.isMainOutput,
         "Extra deferred constant: ${value2.toStructuredText()}");
   }, elementToString: (a) {
-    OutputUnit o1 = compilerNormal.deferredLoadTask.outputUnitForConstant(a);
+    OutputUnit o1 =
+        compilerNormal.backend.outputUnitData.outputUnitForConstant(a);
     OutputUnit o2 =
-        compilerDeserialized.deferredLoadTask.outputUnitForConstant(a);
+        compilerDeserialized.backend.outputUnitData.outputUnitForConstant(a);
     return '${a.toStructuredText()} -> ${o1}/${o2}';
   });
 }
@@ -169,12 +171,12 @@ void checkElements(
   if (element1.isFunction ||
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
-    ClosureRepresentationInfo closureData1 = compiler1
-        .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(element1 as MemberElement);
-    ClosureRepresentationInfo closureData2 = compiler2
-        .backendStrategy.closureDataLookup
-        .getClosureInfoForMember(element2 as MemberElement);
+    ClosureTask closureTask1 = compiler1.backendStrategy.closureDataLookup;
+    ClosureRepresentationInfo closureData1 =
+        closureTask1.getClosureInfoForMember(element1 as MemberElement);
+    ClosureTask closureTask2 = compiler2.backendStrategy.closureDataLookup;
+    ClosureRepresentationInfo closureData2 =
+        closureTask2.getClosureInfoForMember(element2 as MemberElement);
 
     checkElementIdentities(
         closureData1,
@@ -205,7 +207,7 @@ void checkElements(
         '$element1.thisFieldEntity',
         closureData1.thisFieldEntity,
         closureData2.thisFieldEntity,
-        areLocalsEquivalent);
+        areCapturedVariablesEquivalent);
     if (element1 is MemberElement && element2 is MemberElement) {
       MemberElement member1 = element1.implementation;
       MemberElement member2 = element2.implementation;
@@ -233,7 +235,9 @@ void checkElements(
   checkElementOutputUnits(compiler1, compiler2, element1, element2);
 }
 
-bool areLocalsEquivalent(LocalVariable a, LocalVariable b) {
+bool areLocalsEquivalent(Local a, Local b) => areLocalVariablesEquivalent(a, b);
+
+bool areLocalVariablesEquivalent(LocalVariable a, LocalVariable b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
 
@@ -250,10 +254,10 @@ bool areCapturedVariablesEquivalent(FieldEntity a, FieldEntity b) {
   if (a == null || b == null) return false;
   if (a is ClosureFieldElement && b is ClosureFieldElement) {
     return areElementsEquivalent(a.closureClass, b.closureClass) &&
-        areLocalsEquivalent(a.local, b.local);
+        areLocalVariablesEquivalent(a.local, b.local);
   } else if (a is BoxFieldElement && b is BoxFieldElement) {
     return areElementsEquivalent(a.variableElement, b.variableElement) &&
-        areLocalsEquivalent(a.box, b.box);
+        areLocalVariablesEquivalent(a.box, b.box);
   }
   return false;
 }
@@ -261,18 +265,18 @@ bool areCapturedVariablesEquivalent(FieldEntity a, FieldEntity b) {
 bool areCapturedScopesEquivalent(CapturedScope a, CapturedScope b) {
   if (a == b) return true;
   if (a == null || b == null) return false;
-  if (!areLocalsEquivalent(a.context, b.context)) {
+  if (!areLocalVariablesEquivalent(a.context, b.context)) {
     return false;
   }
-  if (!areLocalsEquivalent(a.thisLocal, b.thisLocal)) {
+  if (!areLocalVariablesEquivalent(a.thisLocal, b.thisLocal)) {
     return false;
   }
-  var aBoxed = {};
+  var aBoxed = <LocalVariable, Entity>{};
   a.forEachBoxedVariable((k, v) => aBoxed[k] = v);
-  var bBoxed = {};
+  var bBoxed = <LocalVariable, Entity>{};
   b.forEachBoxedVariable((k, v) => bBoxed[k] = v);
-  checkMaps(aBoxed, bBoxed, 'CapturedScope.boxedVariables', areLocalsEquivalent,
-      areElementsEquivalent);
+  checkMaps(aBoxed, bBoxed, 'CapturedScope.boxedVariables',
+      areLocalVariablesEquivalent, areEntitiesEquivalent);
   return true;
 }
 
@@ -287,9 +291,9 @@ String nodeToString(Node node) {
 void checkElementOutputUnits(Compiler compiler1, Compiler compiler2,
     Element element1, Element element2) {
   OutputUnit outputUnit1 =
-      compiler1.deferredLoadTask.getOutputUnitForElementForTesting(element1);
+      compiler1.backend.outputUnitData.outputUnitForEntityForTesting(element1);
   OutputUnit outputUnit2 =
-      compiler2.deferredLoadTask.getOutputUnitForElementForTesting(element2);
+      compiler2.backend.outputUnitData.outputUnitForEntityForTesting(element2);
   checkOutputUnits(compiler1, compiler2, outputUnit1, outputUnit2,
       'for $element1 vs $element2');
 }

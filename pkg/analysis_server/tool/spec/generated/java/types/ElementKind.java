@@ -31,6 +31,8 @@ public class ElementKind {
 
   public static final String CONSTRUCTOR = "CONSTRUCTOR";
 
+  public static final String CONSTRUCTOR_INVOCATION = "CONSTRUCTOR_INVOCATION";
+
   public static final String ENUM = "ENUM";
 
   public static final String ENUM_CONSTANT = "ENUM_CONSTANT";
@@ -40,6 +42,8 @@ public class ElementKind {
   public static final String FILE = "FILE";
 
   public static final String FUNCTION = "FUNCTION";
+
+  public static final String FUNCTION_INVOCATION = "FUNCTION_INVOCATION";
 
   public static final String FUNCTION_TYPE_ALIAS = "FUNCTION_TYPE_ALIAS";
 
@@ -63,14 +67,8 @@ public class ElementKind {
 
   public static final String TYPE_PARAMETER = "TYPE_PARAMETER";
 
-  /**
-   * Deprecated: support for tests was removed.
-   */
   public static final String UNIT_TEST_GROUP = "UNIT_TEST_GROUP";
 
-  /**
-   * Deprecated: support for tests was removed.
-   */
   public static final String UNIT_TEST_TEST = "UNIT_TEST_TEST";
 
   public static final String UNKNOWN = "UNKNOWN";

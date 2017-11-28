@@ -34,6 +34,9 @@ class ProgramVisitor : public AllStatic {
   static void DedupStackMaps();
   static void DedupPcDescriptors();
   NOT_IN_PRECOMPILED(static void DedupDeoptEntries());
+#if defined(DART_PRECOMPILER)
+  static void DedupCatchEntryStateMaps();
+#endif
   static void DedupCodeSourceMaps();
   static void DedupLists();
   static void DedupInstructions();

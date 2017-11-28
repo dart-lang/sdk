@@ -20,51 +20,33 @@ class CallThroughNullGetterTest {
 
   static void testTopLevel() {
     topLevel = null;
-    Expect.throwsNoSuchMethodError(() {
-      topLevel();
-    });
-    Expect.throwsNoSuchMethodError(() {
-      (topLevel)();
-    });
-    Expect.throwsNoSuchMethodError(() {
-      TOP_LEVEL_NULL();
-    });
-    Expect.throwsNoSuchMethodError(() {
-      (TOP_LEVEL_NULL)();
-    });
+    Expect.throwsNoSuchMethodError(() => topLevel());
+    Expect.throwsNoSuchMethodError(() => (topLevel)());
+    Expect.throwsNoSuchMethodError(() => TOP_LEVEL_NULL());
+    Expect.throwsNoSuchMethodError(() => (TOP_LEVEL_NULL)());
   }
 
   static void testField() {
     A a = new A();
 
     a.field = null;
-    Expect.throwsNoSuchMethodError(() {
-      a.field();
-    });
-    Expect.throwsNoSuchMethodError(() {
-      (a.field)();
-    });
+    Expect.throwsNoSuchMethodError(() => a.field());
+    Expect.throwsNoSuchMethodError(() => (a.field)());
   }
 
   static void testGetter() {
     A a = new A();
 
     a.field = null;
-    Expect.throwsNoSuchMethodError(() {
-      a.getter();
-    });
-    Expect.throwsNoSuchMethodError(() {
-      (a.getter)();
-    });
+    Expect.throwsNoSuchMethodError(() => a.getter());
+    Expect.throwsNoSuchMethodError(() => (a.getter)());
   }
 
   static void testMethod() {
     A a = new A();
 
     a.field = null;
-    Expect.throwsNoSuchMethodError(() {
-      a.method()();
-    });
+    Expect.throwsNoSuchMethodError(() => a.method()());
   }
 }
 

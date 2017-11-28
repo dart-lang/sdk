@@ -37,6 +37,23 @@ void defineTests() {
         expect(r.exitCode, 0,
             reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
       });
+
+      test('$benchmarkId-preview-dart-2', () {
+        ProcessResult r = Process.runSync(
+          Platform.resolvedExecutable,
+          [
+            path.join('benchmark', 'benchmarks.dart'),
+            'run',
+            '--repeat=1',
+            '--quick',
+            '--preview-dart-2',
+            benchmarkId
+          ],
+          workingDirectory: _serverSourcePath,
+        );
+        expect(r.exitCode, 0,
+            reason: 'exit: ${r.exitCode}\n${r.stdout}\n${r.stderr}');
+      });
     }
   });
 }

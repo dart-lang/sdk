@@ -24,6 +24,10 @@ part of dart.core;
  * during a [forEach] or [putIfAbsent] call.
  * Modifying the map while iterating the keys or values
  * may also break the iteration.
+ *
+ * It is generally not allowed to modify the equality of keys (and thus not
+ * their hashcode) while they are in the map. Some specialized subtypes may be
+ * more permissive, in which case they should document this behavior.
  */
 abstract class Map<K, V> {
   /**

@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
-import '../../correction/flutter_util.dart';
+import '../../../src/utilities/flutter_util.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();

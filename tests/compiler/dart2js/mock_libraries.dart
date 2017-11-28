@@ -48,7 +48,7 @@ import 'dart:_internal' as internal;
   'deprecated': 'const Object deprecated = const Deprecated("next release");',
   'double': r'''
       abstract class double extends num {
-        static var NAN = 0;
+        static var nan = 0;
         static parse(s) {}
       }''',
   'Function': r'''
@@ -102,8 +102,8 @@ import 'dart:_internal' as internal;
   'StackTrace': 'abstract class StackTrace {}',
   'String': 'class String implements Pattern {}',
   'Symbol': '''
-      abstract class Symbol { 
-        const factory Symbol(String name) = internal.Symbol; 
+      abstract class Symbol {
+        const factory Symbol(String name) = internal.Symbol;
       }
       ''',
   'Type': 'class Type {}',
@@ -118,9 +118,9 @@ const Map<String, String> DEFAULT_INTERNAL_LIBRARY = const <String, String>{
 import 'dart:core' as core;
 ''',
   'Symbol': '''
-class Symbol implements core.Symbol { 
-  final core.String _name; 
-  
+class Symbol implements core.Symbol {
+  final core.String _name;
+
   const Symbol(this._name);
   Symbol.validated(this._name);
 }

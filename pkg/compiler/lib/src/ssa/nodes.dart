@@ -273,14 +273,15 @@ class HGraph {
 
   HConstant addDeferredConstant(
       ConstantValue constant,
-      Entity prefix,
+      ImportEntity import,
       SourceInformation sourceInformation,
       Compiler compiler,
       ClosedWorld closedWorld) {
     // TODO(sigurdm,johnniwinther): These deferred constants should be created
     // by the constant evaluator.
-    ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
-    compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
+    ConstantValue wrapper = new DeferredConstantValue(constant, import);
+    compiler.backend.outputUnitData
+        .registerConstantDeferredUse(wrapper, import);
     return addConstant(wrapper, closedWorld,
         sourceInformation: sourceInformation);
   }
@@ -1344,21 +1345,21 @@ abstract class HInstruction implements Spannable {
     if (type.isVoid) return this;
     if (type == closedWorld.commonElements.objectType) return this;
     if (type.isFunctionType || type.isMalformed) {
-      return new HTypeConversion(
-          type, kind, closedWorld.commonMasks.dynamicType, this);
+      return new HTypeConversion(type, kind,
+          closedWorld.commonMasks.dynamicType, this, sourceInformation);
     }
     assert(type.isInterfaceType);
     if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
-      return new HTypeConversion(
-          type, kind, closedWorld.commonMasks.boolType, this);
+      return new HTypeConversion(type, kind, closedWorld.commonMasks.boolType,
+          this, sourceInformation);
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       InterfaceType interfaceType = type;
       TypeMask subtype =
           new TypeMask.subtype(interfaceType.element, closedWorld);
-      return new HTypeConversion(type, kind, subtype, this);
+      return new HTypeConversion(type, kind, subtype, this, sourceInformation);
     }
   }
 
@@ -1726,10 +1727,16 @@ class HInvokeClosure extends HInvokeDynamic {
 }
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
-  HInvokeDynamicMethod(Selector selector, TypeMask mask,
-      List<HInstruction> inputs, TypeMask type,
+  HInvokeDynamicMethod(
+      Selector selector,
+      TypeMask mask,
+      List<HInstruction> inputs,
+      TypeMask type,
+      SourceInformation sourceInformation,
       [bool isIntercepted = false])
-      : super(selector, mask, null, inputs, type, isIntercepted);
+      : super(selector, mask, null, inputs, type, isIntercepted) {
+    this.sourceInformation = sourceInformation;
+  }
 
   String toString() => 'invoke dynamic method: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
@@ -1739,14 +1746,22 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
   HInvokeDynamicField(Selector selector, TypeMask mask, MemberEntity element,
       List<HInstruction> inputs, TypeMask type)
       : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic field: selector=$selector, mask=$mask';
+
+  String toString() => 'invoke dynamic field: selector=$selector, mask=$mask';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(Selector selector, TypeMask mask, MemberEntity element,
-      List<HInstruction> inputs, TypeMask type)
-      : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
+  HInvokeDynamicGetter(
+      Selector selector,
+      TypeMask mask,
+      MemberEntity element,
+      List<HInstruction> inputs,
+      TypeMask type,
+      SourceInformation sourceInformation)
+      : super(selector, mask, element, inputs, type) {
+    this.sourceInformation = sourceInformation;
+  }
+  String toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 
   bool get isTearOff => element != null && element.isFunction;
@@ -1756,10 +1771,17 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(Selector selector, TypeMask mask, MemberEntity element,
-      List<HInstruction> inputs, TypeMask type)
-      : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
+  HInvokeDynamicSetter(
+      Selector selector,
+      TypeMask mask,
+      MemberEntity element,
+      List<HInstruction> inputs,
+      TypeMask type,
+      SourceInformation sourceInformation)
+      : super(selector, mask, element, inputs, type) {
+    this.sourceInformation = sourceInformation;
+  }
+  String toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
 
@@ -1781,7 +1803,7 @@ class HInvokeStatic extends HInvoke {
       {this.targetCanThrow: true})
       : super(inputs, type);
 
-  toString() => 'invoke static: $element';
+  String toString() => 'invoke static: $element';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
 }
@@ -2647,8 +2669,10 @@ class HAwait extends HInstruction {
 }
 
 class HYield extends HInstruction {
-  HYield(HInstruction value, this.hasStar)
-      : super(<HInstruction>[value], const TypeMask.nonNullEmpty());
+  HYield(HInstruction value, this.hasStar, SourceInformation sourceInformation)
+      : super(<HInstruction>[value], const TypeMask.nonNullEmpty()) {
+    this.sourceInformation = sourceInformation;
+  }
   bool hasStar;
   toString() => 'yield';
   accept(HVisitor visitor) => visitor.visitYield(this);
@@ -2669,7 +2693,8 @@ class HThrow extends HControlFlow {
 
 class HStatic extends HInstruction {
   final MemberEntity element;
-  HStatic(this.element, type) : super(<HInstruction>[], type) {
+  HStatic(this.element, TypeMask type, SourceInformation sourceInformation)
+      : super(<HInstruction>[], type) {
     assert(element != null);
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -2677,6 +2702,7 @@ class HStatic extends HInstruction {
       sideEffects.setDependsOnStaticPropertyStore();
     }
     setUseGvn();
+    this.sourceInformation = sourceInformation;
   }
   toString() => 'static ${element.name}';
   accept(HVisitor visitor) => visitor.visitStatic(this);
@@ -2758,11 +2784,14 @@ class HOneShotInterceptor extends HInvokeDynamic {
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */
 class HLazyStatic extends HInstruction {
   final FieldEntity element;
-  HLazyStatic(this.element, type) : super(<HInstruction>[], type) {
+
+  HLazyStatic(this.element, TypeMask type, SourceInformation sourceInformation)
+      : super(<HInstruction>[], type) {
     // TODO(4931): The first access has side-effects, but we afterwards we
     // should be able to GVN.
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
+    this.sourceInformation = sourceInformation;
   }
 
   toString() => 'lazy static ${element.name}';
@@ -2877,34 +2906,44 @@ class HIs extends HInstruction {
   final int kind;
   final bool useInstanceOf;
 
-  HIs.direct(DartType typeExpression, HInstruction expression, TypeMask type)
-      : this.internal(typeExpression, [expression], RAW_CHECK, type);
+  HIs.direct(DartType typeExpression, HInstruction expression, TypeMask type,
+      SourceInformation sourceInformation)
+      : this.internal(
+            typeExpression, [expression], RAW_CHECK, type, sourceInformation);
 
   // Pre-verified that the check can be done using 'instanceof'.
-  HIs.instanceOf(
-      DartType typeExpression, HInstruction expression, TypeMask type)
-      : this.internal(typeExpression, [expression], RAW_CHECK, type,
+  HIs.instanceOf(DartType typeExpression, HInstruction expression,
+      TypeMask type, SourceInformation sourceInformation)
+      : this.internal(
+            typeExpression, [expression], RAW_CHECK, type, sourceInformation,
             useInstanceOf: true);
 
-  HIs.raw(DartType typeExpression, HInstruction expression,
-      HInterceptor interceptor, TypeMask type)
-      : this.internal(
-            typeExpression, [expression, interceptor], RAW_CHECK, type);
+  HIs.raw(
+      DartType typeExpression,
+      HInstruction expression,
+      HInterceptor interceptor,
+      TypeMask type,
+      SourceInformation sourceInformation)
+      : this.internal(typeExpression, [expression, interceptor], RAW_CHECK,
+            type, sourceInformation);
 
   HIs.compound(DartType typeExpression, HInstruction expression,
-      HInstruction call, TypeMask type)
-      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK, type);
+      HInstruction call, TypeMask type, SourceInformation sourceInformation)
+      : this.internal(typeExpression, [expression, call], COMPOUND_CHECK, type,
+            sourceInformation);
 
   HIs.variable(DartType typeExpression, HInstruction expression,
-      HInstruction call, TypeMask type)
-      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type);
+      HInstruction call, TypeMask type, SourceInformation sourceInformation)
+      : this.internal(typeExpression, [expression, call], VARIABLE_CHECK, type,
+            sourceInformation);
 
-  HIs.internal(
-      this.typeExpression, List<HInstruction> inputs, this.kind, TypeMask type,
+  HIs.internal(this.typeExpression, List<HInstruction> inputs, this.kind,
+      TypeMask type, SourceInformation sourceInformation,
       {bool this.useInstanceOf: false})
       : super(inputs, type) {
     assert(kind >= RAW_CHECK && kind <= VARIABLE_CHECK);
     setUseGvn();
+    this.sourceInformation = sourceInformation;
   }
 
   HInstruction get expression => inputs[0];
@@ -2981,14 +3020,15 @@ class HTypeConversion extends HCheck {
   TypeMask checkedType; // Not final because we refine it.
   TypeMask inputType; // Holds input type for codegen after HTypeKnown removal.
 
-  HTypeConversion(
-      this.typeExpression, this.kind, TypeMask type, HInstruction input,
+  HTypeConversion(this.typeExpression, this.kind, TypeMask type,
+      HInstruction input, SourceInformation sourceInformation,
       {this.receiverTypeCheckSelector})
       : checkedType = type,
         super(<HInstruction>[input], type) {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     assert(typeExpression == null || !typeExpression.isTypedef);
     sourceElement = input.sourceElement;
+    this.sourceInformation = sourceInformation;
   }
 
   HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
@@ -3398,9 +3438,10 @@ class HSwitchBlockInformation implements HStatementInformation {
   final List<HStatementInformation> statements;
   final JumpTarget target;
   final List<LabelDefinition> labels;
+  final SourceInformation sourceInformation;
 
-  HSwitchBlockInformation(
-      this.expression, this.statements, this.target, this.labels);
+  HSwitchBlockInformation(this.expression, this.statements, this.target,
+      this.labels, this.sourceInformation);
 
   HBasicBlock get start => expression.start;
   HBasicBlock get end {

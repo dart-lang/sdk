@@ -1,8 +1,6 @@
 // Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-//
-// VMOptions=--generic-method-syntax
 
 /// Dart test verifying that the parser can handle type parameterization of
 /// method declarations and method invocations. Slightly adjusted version of
@@ -105,5 +103,5 @@ main() {
 
   BinaryTree<num, num> iT = sT.map<num>((String s) => s.length);
 
-  Expect.equals(iT.foldPre<num>(0, (int i, num s) => i + s), 6);
+  Expect.equals(iT.foldPre<num>(0, (num i, num s) => i + s), 6);
 }

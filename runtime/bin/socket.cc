@@ -323,12 +323,17 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
   int64_t length = 0;
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length)) {
+  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &length) &&
+      (length >= 0)) {
     if (Socket::short_socket_read()) {
       length = (length + 1) / 2;
     }
     uint8_t* buffer = NULL;
     Dart_Handle result = IOBuffer::Allocate(length, &buffer);
+    if (Dart_IsNull(result)) {
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      return;
+    }
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
@@ -340,6 +345,10 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
     } else if (bytes_read > 0) {
       uint8_t* new_buffer = NULL;
       Dart_Handle new_result = IOBuffer::Allocate(bytes_read, &new_buffer);
+      if (Dart_IsNull(new_result)) {
+        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+        return;
+      }
       if (Dart_IsError(new_result)) {
         Dart_PropagateError(new_result);
       }
@@ -361,21 +370,24 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
 }
 
 void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
+  // TODO(sgjesse): Use a MTU value here. Only the loopback adapter can
+  // handle 64k datagrams.
+  const int kReceiveBufferLen = 65536;
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
 
-  // TODO(sgjesse): Use a MTU value here. Only the loopback adapter can
-  // handle 64k datagrams.
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  if (isolate_data->udp_receive_buffer == NULL) {
-    isolate_data->udp_receive_buffer =
-        reinterpret_cast<uint8_t*>(malloc(65536));
+  // Ensure that a receive buffer for the UDP socket exists.
+  ASSERT(socket != NULL);
+  uint8_t* recv_buffer = socket->udp_receive_buffer();
+  if (recv_buffer == NULL) {
+    recv_buffer = reinterpret_cast<uint8_t*>(malloc(kReceiveBufferLen));
+    socket->set_udp_receive_buffer(recv_buffer);
   }
+
+  // Read data into the buffer.
   RawAddr addr;
-  intptr_t bytes_read =
-      SocketBase::RecvFrom(socket->fd(), isolate_data->udp_receive_buffer,
-                           65536, &addr, SocketBase::kAsync);
+  const intptr_t bytes_read = SocketBase::RecvFrom(
+      socket->fd(), recv_buffer, kReceiveBufferLen, &addr, SocketBase::kAsync);
   if (bytes_read == 0) {
     Dart_SetReturnValue(args, Dart_Null());
     return;
@@ -385,15 +397,20 @@ void FUNCTION_NAME(Socket_RecvFrom)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     return;
   }
+
   // Datagram data read. Copy into buffer of the exact size,
   ASSERT(bytes_read > 0);
   uint8_t* data_buffer = NULL;
   Dart_Handle data = IOBuffer::Allocate(bytes_read, &data_buffer);
+  if (Dart_IsNull(data)) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+    return;
+  }
   if (Dart_IsError(data)) {
     Dart_PropagateError(data);
   }
   ASSERT(data_buffer != NULL);
-  memmove(data_buffer, isolate_data->udp_receive_buffer, bytes_read);
+  memmove(data_buffer, recv_buffer, bytes_read);
 
   // Get the port and clear it in the sockaddr structure.
   int port = SocketAddress::GetAddrPort(addr);

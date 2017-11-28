@@ -322,6 +322,31 @@ ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToOld) {
   TestBecomeForward(Heap::kNew, Heap::kOld);
 }
 
+ISOLATE_UNIT_TEST_CASE(BecomeForwardPeer) {
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  const Array& before_obj = Array::Handle(Array::New(0, Heap::kOld));
+  const Array& after_obj = Array::Handle(Array::New(0, Heap::kOld));
+  EXPECT(before_obj.raw() != after_obj.raw());
+
+  void* peer = reinterpret_cast<void*>(42);
+  void* no_peer = reinterpret_cast<void*>(0);
+  heap->SetPeer(before_obj.raw(), peer);
+  EXPECT_EQ(peer, heap->GetPeer(before_obj.raw()));
+  EXPECT_EQ(no_peer, heap->GetPeer(after_obj.raw()));
+
+  const Array& before = Array::Handle(Array::New(1, Heap::kOld));
+  before.SetAt(0, before_obj);
+  const Array& after = Array::Handle(Array::New(1, Heap::kOld));
+  after.SetAt(0, after_obj);
+  Become::ElementsForwardIdentity(before, after);
+
+  EXPECT(before_obj.raw() == after_obj.raw());
+  EXPECT_EQ(peer, heap->GetPeer(before_obj.raw()));
+  EXPECT_EQ(peer, heap->GetPeer(after_obj.raw()));
+}
+
 ISOLATE_UNIT_TEST_CASE(BecomeForwardRememberedObject) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();

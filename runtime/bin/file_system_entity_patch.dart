@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class FileStat {
   @patch
@@ -11,10 +13,10 @@ class FileStat {
 @patch
 class FileSystemEntity {
   @patch
-  static _getType(_Namespace namespace, String path, bool followLinks)
+  static _getTypeNative(_Namespace namespace, String path, bool followLinks)
       native "File_GetType";
   @patch
-  static _identical(_Namespace namespace, String path1, String path2)
+  static _identicalNative(_Namespace namespace, String path1, String path2)
       native "File_AreIdentical";
   @patch
   static _resolveSymbolicLinks(_Namespace namespace, String path)

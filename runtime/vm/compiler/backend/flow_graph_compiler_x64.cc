@@ -716,6 +716,11 @@ void FlowGraphCompiler::CheckTypeArgsLen(bool expect_type_args,
     // If expect_type_args, a non-zero length must match the declaration length.
     __ movq(RAX,
             FieldAddress(R10, ArgumentsDescriptor::type_args_len_offset()));
+    if (isolate()->strong()) {
+      __ andq(RAX,
+              Immediate(Smi::RawValue(
+                  ArgumentsDescriptor::TypeArgsLenField::mask_in_place())));
+    }
     __ CompareImmediate(RAX, Immediate(Smi::RawValue(0)));
     __ j(EQUAL, &correct_type_args_len, Assembler::kNearJump);
     __ CompareImmediate(RAX,
@@ -754,6 +759,13 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
 
   __ movq(RCX,
           FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
+
+  if (isolate()->strong()) {
+    __ andq(RCX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+  }
+
   // Check that min_num_pos_args <= num_pos_args.
   __ CompareImmediate(RCX, Immediate(Smi::RawValue(min_num_pos_args)));
   __ j(LESS, &wrong_num_arguments);
@@ -841,6 +853,12 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
       // Load RAX with passed-in argument at provided arg_pos, i.e. at
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ movq(RAX, Address(RDI, ArgumentsDescriptor::position_offset()));
+      if (isolate()->strong()) {
+        __ andq(
+            RAX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+      }
       // RAX is arg_pos as Smi.
       // Point to next named entry.
       __ AddImmediate(RDI, Immediate(ArgumentsDescriptor::named_entry_size()));
@@ -875,7 +893,15 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
     ASSERT(num_opt_pos_params > 0);
     __ movq(RCX,
             FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
+
     __ SmiUntag(RCX);
+
+    if (isolate()->strong()) {
+      __ andq(RCX,
+              Immediate(
+                  ArgumentsDescriptor::PositionalCountField::mask_in_place()));
+    }
+
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
       // Handle this optional positional parameter only if k or fewer positional
@@ -1018,7 +1044,7 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_locals = parsed_function().num_stack_locals();
 
   // The prolog of OSR functions is never executed, hence greatly simplified.
-  const bool expect_type_args = FLAG_reify_generic_functions &&
+  const bool expect_type_args = isolate()->reify_generic_functions() &&
                                 function.IsGeneric() &&
                                 !flow_graph().IsCompiledForOsr();
 
@@ -1039,8 +1065,20 @@ void FlowGraphCompiler::CompileGraph() {
       __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
       __ CompareImmediate(RAX, Immediate(Smi::RawValue(num_fixed_params)));
       __ j(NOT_EQUAL, &wrong_num_arguments, Assembler::kNearJump);
-      __ cmpq(RAX, FieldAddress(
-                       R10, ArgumentsDescriptor::positional_count_offset()));
+
+      if (isolate()->strong()) {
+        __ movq(RCX, FieldAddress(
+                         R10, ArgumentsDescriptor::positional_count_offset()));
+        __ andq(
+            RCX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+        __ cmpq(RAX, RCX);
+      } else {
+        __ cmpq(RAX, FieldAddress(
+                         R10, ArgumentsDescriptor::positional_count_offset()));
+      }
+
       __ j(EQUAL, &correct_num_arguments, Assembler::kNearJump);
 
       __ Bind(&wrong_num_arguments);
@@ -1139,7 +1177,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ Call(stub_entry);
-  EmitCallsiteMetaData(token_pos, Thread::kNoDeoptId, kind, locs);
+  EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, kind, locs);
 }
 
 void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
@@ -1147,7 +1185,7 @@ void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
   __ CallPatchable(stub_entry);
-  EmitCallsiteMetaData(token_pos, Thread::kNoDeoptId, kind, locs);
+  EmitCallsiteMetadata(token_pos, Thread::kNoDeoptId, kind, locs);
 }
 
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
@@ -1156,17 +1194,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs) {
   __ CallPatchable(stub_entry);
-  EmitCallsiteMetaData(token_pos, deopt_id, kind, locs);
-  // Marks either the continuation point in unoptimized code or the
-  // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
-  } else {
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-  }
+  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
 
 void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
@@ -1180,18 +1208,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   // and the unoptimized code with IC calls for static calls is patched instead.
   ASSERT(is_optimizing());
   __ CallWithEquivalence(stub_entry, target);
-
-  EmitCallsiteMetaData(token_pos, deopt_id, kind, locs);
-  // Marks either the continuation point in unoptimized code or the
-  // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
-  } else {
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-  }
+  EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
   AddStaticCallTarget(target);
 }
 
@@ -1201,19 +1218,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
                                             intptr_t argument_count,
                                             LocationSummary* locs) {
   __ CallRuntime(entry, argument_count);
-  EmitCallsiteMetaData(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
-  if (deopt_id != Thread::kNoDeoptId) {
-    // Marks either the continuation point in unoptimized code or the
-    // deoptimization point in optimized code, after call.
-    const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-    if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after);
-    } else {
-      // Add deoptimization continuation point after the call and before the
-      // arguments are removed.
-      AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-    }
-  }
+  EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
 }
 
 void FlowGraphCompiler::EmitUnoptimizedStaticCall(intptr_t count_with_type_args,
@@ -1332,15 +1337,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   __ LoadUniqueObject(RBX, ic_data);
   __ call(RCX);
 
-  EmitCallsiteMetaData(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after);
-  } else {
-    // Add deoptimization continuation point after the call and before the
-    // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
-  }
+  EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);
   __ Drop(ic_data.CountWithTypeArgs(), RCX);
 }
 
@@ -1353,10 +1350,10 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
     LocationSummary* locs) {
   ASSERT(!function.IsClosureFunction());
   if (function.HasOptionalParameters() ||
-      (FLAG_reify_generic_functions && function.IsGeneric())) {
+      (isolate()->reify_generic_functions() && function.IsGeneric())) {
     __ LoadObject(R10, arguments_descriptor);
   } else {
-    __ xorq(R10, R10);  // GC safe smi zero because of stub.
+    __ xorl(R10, R10);  // GC safe smi zero because of stub.
   }
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
@@ -1546,7 +1543,7 @@ void ParallelMoveResolver::EmitMove(int index) {
     const Object& constant = source.constant();
     if (destination.IsRegister()) {
       if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
-        __ xorq(destination.reg(), destination.reg());
+        __ xorl(destination.reg(), destination.reg());
       } else if (constant.IsSmi() &&
                  (source.constant_instruction()->representation() ==
                   kUnboxedInt32)) {

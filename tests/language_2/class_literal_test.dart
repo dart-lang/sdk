@@ -30,30 +30,30 @@ main() {
   //
   // Remove the legacy Expect.throws and namespaces around statements that don't
   // need it after a careful examination of each case.
-  Expect.throws(() { Class(); }, (e) => e is NoSuchMethodError); //# 01: compile-time error
-  Expect.throws(() { Class[0]; }, (e) => e is NoSuchMethodError); //# 02: compile-time error
-  Expect.throws(() { var x = Class();}, (e) => e is NoSuchMethodError); //# 03: compile-time error
-  Expect.throws(() { var x = Class[0]; }, (e) => e is NoSuchMethodError); //# 04: compile-time error
-  Expect.throws(() { var x = Class[0].field; }, (e) => e is NoSuchMethodError); //# 05: compile-time error
-  Expect.throws(() { var x = Class[0].method(); }, (e) => e is NoSuchMethodError); //# 06: compile-time error
-  Expect.throws(() { foo(Class()); }, (e) => e is NoSuchMethodError); //# 07: compile-time error
-  Expect.throws(() { foo(Class[0]); }, (e) => e is NoSuchMethodError); //# 08: compile-time error
-  Expect.throws(() { foo(Class[0].field); }, (e) => e is NoSuchMethodError); //# 09: compile-time error
-  Expect.throws(() { foo(Class[0].method()); }, (e) => e is NoSuchMethodError); //# 10: compile-time error
-  Expect.throws(() { Class[0] = 91; }, (e) => e is NoSuchMethodError); //# 11: compile-time error
-  Expect.throws(() { Class++; }, (e) => e is NoSuchMethodError); //# 12: compile-time error
-  Expect.throws(() { ++Class; }, (e) => e is NoSuchMethodError); //# 13: compile-time error
-  Expect.throws(() { Class[0] += 3; }, (e) => e is NoSuchMethodError); //# 14: compile-time error
-  Expect.throws(() { ++Class[0]; }, (e) => e is NoSuchMethodError); //# 15: compile-time error
-  Expect.throws(() { Class[0]++; }, (e) => e is NoSuchMethodError); //# 16: compile-time error
-  Expect.throws(() { Class.method(); }, (e) => e is NoSuchMethodError); //# 17: compile-time error
-  Expect.throws(() { Class.field; }, (e) => e is NoSuchMethodError); //# 18: compile-time error
-  Expect.throws(() { var x = Class.method(); }, (e) => e is NoSuchMethodError); //# 19: compile-time error
-  Expect.throws(() { var x = Class.field; }, (e) => e is NoSuchMethodError); //# 20: compile-time error
-  Expect.throws(() { foo(Class.method()); }, (e) => e is NoSuchMethodError); //# 21: compile-time error
-  Expect.throws(() { foo(Class.field); }, (e) => e is NoSuchMethodError); //# 22: compile-time error
-  Expect.throws(() { Class / 3; }, (e) => e is NoSuchMethodError); //# 23: compile-time error
-  Expect.throws(() { Class += 3; }, (e) => e is NoSuchMethodError); //# 24: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class(); }); //# 01: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class[0]; }); //# 02: compile-time error
+  Expect.throwsNoSuchMethodError(() { var x = Class();}); //# 03: compile-time error
+  Expect.throwsNoSuchMethodError(() { var x = Class[0]; }); //# 04: compile-time error
+  Expect.throwsNoSuchMethodError(() { var x = Class[0].field; }); //# 05: compile-time error
+  Expect.throwsNoSuchMethodError(() { var x = Class[0].method(); }); //# 06: compile-time error
+  Expect.throwsNoSuchMethodError(() { foo(Class()); }); //# 07: compile-time error
+  Expect.throwsNoSuchMethodError(() { foo(Class[0]); }); //# 08: compile-time error
+  Expect.throwsNoSuchMethodError(() { foo(Class[0].field); }); //# 09: compile-time error
+  Expect.throwsNoSuchMethodError(() { foo(Class[0].method()); }); //# 10: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class[0] = 91; }); //# 11: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class++; }); //# 12: compile-time error
+  Expect.throwsNoSuchMethodError(() { ++Class; }); //# 13: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class[0] += 3; }); //# 14: compile-time error
+  Expect.throwsNoSuchMethodError(() { ++Class[0]; }); //# 15: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class[0]++; }); //# 16: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class.method(); }); //# 17: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class.field; }); //# 18: compile-time error
+  Expect.throwsNoSuchMethodError(() { var x = Class.method(); }); //# 19: compile-time error
+  Expect.throwsNoSuchMethodError(() { var x = Class.field; }); //# 20: compile-time error
+  Expect.throwsNoSuchMethodError(() { foo(Class.method()); }); //# 21: compile-time error
+  Expect.throwsNoSuchMethodError(() { foo(Class.field); }); //# 22: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class / 3; }); //# 23: compile-time error
+  Expect.throwsNoSuchMethodError(() { Class += 3; }); //# 24: compile-time error
 
   // Verify that a class literal isn't a string literal.
   Expect.notEquals(Class, "Class");
@@ -63,5 +63,5 @@ main() {
   var y = Class;
   Expect.isTrue(y.toString() is String);
 
-  Expect.throws(() { Class.toString(); }, (e) => e is NoSuchMethodError); //# 25: compile-time error
+  Expect.throwsNoSuchMethodError(() => Class.toString()); //# 25: compile-time error
 }

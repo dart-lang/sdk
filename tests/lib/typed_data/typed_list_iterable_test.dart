@@ -5,7 +5,7 @@
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
-void testIterableFunctions(list, first, last) {
+void testIterableFunctions(list, first, last, toElementType) {
   assert(list.length > 0);
 
   Expect.equals(first, list.first);
@@ -75,8 +75,9 @@ void testIterableFunctions(list, first, last) {
   Expect.equals(list.length, whereCount);
 
   if (list.length > 1) {
-    int reduceResult = 1;
-    Expect.equals(list.length, list.reduce((x, y) => ++reduceResult));
+    var reduceResult = toElementType(1);
+    Expect.equals(
+        toElementType(list.length), list.reduce((x, y) => reduceResult + 1));
   } else {
     Expect.equals(first, list.reduce((x, y) {
       throw "should not be called";
@@ -166,14 +167,19 @@ void emptyChecks(list) {
 }
 
 main() {
-  testIterableFunctions(new Float32List.fromList([1.5, 9.5]), 1.5, 9.5);
-  testIterableFunctions(new Float64List.fromList([1.5, 9.5]), 1.5, 9.5);
-  testIterableFunctions(new Int8List.fromList([3, 9]), 3, 9);
-  testIterableFunctions(new Int16List.fromList([3, 9]), 3, 9);
-  testIterableFunctions(new Int32List.fromList([3, 9]), 3, 9);
-  testIterableFunctions(new Uint8List.fromList([3, 9]), 3, 9);
-  testIterableFunctions(new Uint16List.fromList([3, 9]), 3, 9);
-  testIterableFunctions(new Uint32List.fromList([3, 9]), 3, 9);
+  toDouble(x) => x.toDouble();
+  toInt(x) => x.toInt();
+
+  testIterableFunctions(
+      new Float32List.fromList([1.5, 9.5]), 1.5, 9.5, toDouble);
+  testIterableFunctions(
+      new Float64List.fromList([1.5, 9.5]), 1.5, 9.5, toDouble);
+  testIterableFunctions(new Int8List.fromList([3, 9]), 3, 9, toInt);
+  testIterableFunctions(new Int16List.fromList([3, 9]), 3, 9, toInt);
+  testIterableFunctions(new Int32List.fromList([3, 9]), 3, 9, toInt);
+  testIterableFunctions(new Uint8List.fromList([3, 9]), 3, 9, toInt);
+  testIterableFunctions(new Uint16List.fromList([3, 9]), 3, 9, toInt);
+  testIterableFunctions(new Uint32List.fromList([3, 9]), 3, 9, toInt);
 
   emptyChecks(new Float32List(0));
   emptyChecks(new Float64List(0));

@@ -22,7 +22,8 @@ void main() {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var outputUnitForEntity = compiler.deferredLoadTask.outputUnitForEntity;
+    var outputUnitForEntity =
+        compiler.backend.outputUnitData.outputUnitForEntity;
 
     dynamic lib1 = lookupLibrary("memory:lib1.dart");
     var inlineMeAway = lib1.find("inlineMeAway");

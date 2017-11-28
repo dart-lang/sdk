@@ -81,6 +81,7 @@ DEFINE_FLAG(bool,
             "Remove script timestamps to allow for deterministic testing.");
 
 DECLARE_FLAG(bool, show_invisible_frames);
+DECLARE_FLAG(bool, strong);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
@@ -110,7 +111,6 @@ String* Object::null_string_ = NULL;
 Instance* Object::null_instance_ = NULL;
 Function* Object::null_function_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
-TypeArguments* Object::empty_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
 Context* Object::empty_context_ = NULL;
@@ -157,6 +157,8 @@ RawClass* Object::token_stream_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::script_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::kernel_program_info_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -505,7 +507,6 @@ void Object::InitOnce(Isolate* isolate) {
   null_instance_ = Instance::ReadOnlyHandle();
   null_function_ = Function::ReadOnlyHandle();
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
-  empty_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
   empty_context_ = Context::ReadOnlyHandle();
@@ -654,6 +655,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<Namespace>();
   namespace_class_ = cls.raw();
 
+  cls = Class::New<KernelProgramInfo>();
+  kernel_program_info_class_ = cls.raw();
+
   cls = Class::New<Code>();
   code_class_ = cls.raw();
 
@@ -748,22 +752,6 @@ void Object::InitOnce(Isolate* isolate) {
 
   // Needed for object pools of VM isolate stubs.
   Class::NewTypedDataClass(kTypedDataInt8ArrayCid);
-
-  // Allocate and initialize the empty_type_arguments instance.
-  {
-    uword address = heap->Allocate(TypeArguments::InstanceSize(0), Heap::kOld);
-    InitializeObject(address, TypeArguments::kClassId,
-                     TypeArguments::InstanceSize(0), true);
-    TypeArguments::initializeHandle(
-        empty_type_arguments_,
-        reinterpret_cast<RawTypeArguments*>(address + kHeapObjectTag));
-    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->length_,
-                                    Smi::New(0));
-    empty_type_arguments_->StoreSmi(&empty_type_arguments_->raw_ptr()->hash_,
-                                    Smi::New(0));
-    // instantiations_ field is initialized to null and should not be used.
-    empty_type_arguments_->SetCanonical();
-  }
 
   // Allocate and initialize the empty_array instance.
   {
@@ -962,8 +950,6 @@ void Object::InitOnce(Isolate* isolate) {
   ASSERT(null_function_->IsFunction());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
-  ASSERT(!empty_type_arguments_->IsSmi());
-  ASSERT(empty_type_arguments_->IsTypeArguments());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
@@ -1093,6 +1079,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(script, Script);
   SET_CLASS_NAME(library, LibraryClass);
   SET_CLASS_NAME(namespace, Namespace);
+  SET_CLASS_NAME(kernel_program_info, KernelProgramInfo);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(object_pool, ObjectPool);
@@ -1271,6 +1258,7 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     Type& type = Type::Handle(zone);
     Array& array = Array::Handle(zone);
     Library& lib = Library::Handle(zone);
+    TypeArguments& type_args = TypeArguments::Handle(zone);
 
     // All RawArray fields will be initialized to an empty array, therefore
     // initialize array class first.
@@ -1463,25 +1451,26 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
                          core_lib);
     pending_classes.Add(library_prefix_cls);
 
-    RegisterPrivateClass(type_cls, Symbols::Type(), core_lib);
+    RegisterPrivateClass(type_cls, Symbols::_Type(), core_lib);
     pending_classes.Add(type_cls);
 
-    RegisterPrivateClass(type_ref_cls, Symbols::TypeRef(), core_lib);
+    RegisterPrivateClass(type_ref_cls, Symbols::_TypeRef(), core_lib);
     pending_classes.Add(type_ref_cls);
 
-    RegisterPrivateClass(type_parameter_cls, Symbols::TypeParameter(),
+    RegisterPrivateClass(type_parameter_cls, Symbols::_TypeParameter(),
                          core_lib);
     pending_classes.Add(type_parameter_cls);
 
-    RegisterPrivateClass(bounded_type_cls, Symbols::BoundedType(), core_lib);
+    RegisterPrivateClass(bounded_type_cls, Symbols::_BoundedType(), core_lib);
     pending_classes.Add(bounded_type_cls);
 
-    RegisterPrivateClass(mixin_app_type_cls, Symbols::MixinAppType(), core_lib);
+    RegisterPrivateClass(mixin_app_type_cls, Symbols::_MixinAppType(),
+                         core_lib);
     pending_classes.Add(mixin_app_type_cls);
 
     cls = Class::New<Integer>();
     object_store->set_integer_implementation_class(cls);
-    RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
+    RegisterPrivateClass(cls, Symbols::_IntegerImplementation(), core_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<Smi>();
@@ -1656,6 +1645,17 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     type = object_store->object_type();
     stacktrace_cls.set_super_type(type);
 
+    // Abstract class that represents the Dart class Type.
+    // Note that this class is implemented by Dart class _AbstractType.
+    cls = Class::New<Instance>(kIllegalCid);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    RegisterClass(cls, Symbols::Type(), core_lib);
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_type_type(type);
+
     // Abstract class that represents the Dart class Function.
     cls = Class::New<Instance>(kIllegalCid);
     cls.set_num_type_arguments(0);
@@ -1734,6 +1734,19 @@ RawError* Object::Init(Isolate* isolate, kernel::Program* kernel_program) {
     // Consider removing when/if Null becomes an ordinary class.
     type = object_store->object_type();
     cls.set_super_type(type);
+
+    // Create and cache commonly used type arguments <int> and <String>
+    type_args = TypeArguments::New(1);
+    type = object_store->int_type();
+    type_args.SetTypeAt(0, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_int(type_args);
+
+    type_args = TypeArguments::New(1);
+    type = object_store->string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.Canonicalize();
+    object_store->set_type_argument_string(type_args);
 
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
@@ -2086,10 +2099,15 @@ RawClass* Class::New() {
   }
   FakeObject fake;
   result.set_handle_vtable(fake.vtable());
+  result.set_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeObject::InstanceSize());
+  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_next_field_offset(FakeObject::NextFieldOffset());
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
+  result.set_num_type_arguments(0);
+  result.set_num_own_type_arguments(0);
+  result.set_num_native_fields(0);
   result.set_state_bits(0);
   if ((FakeObject::kClassId < kInstanceCid) ||
       (FakeObject::kClassId == kTypeArgumentsCid)) {
@@ -2101,11 +2119,7 @@ RawClass* Class::New() {
     // references, but do not recompute size.
     result.set_is_prefinalized();
   }
-  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
-  result.set_num_type_arguments(0);
-  result.set_num_own_type_arguments(0);
-  result.set_num_native_fields(0);
-  result.set_token_pos(TokenPosition::kNoSource);
+  result.set_kernel_offset(-1);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -2680,7 +2694,9 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
     // Make dispatcher function generic, since type arguments are passed.
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, TypeArguments::New(desc.TypeArgsLen()));
-    // TODO(regis): Can we leave the array uninitialized to save memory?
+    // The presence of a type parameter array is enough to mark this dispatcher
+    // as generic. To save memory, we do not copy the type parameters to the
+    // array (they are not accessed), but leave it as an array of null objects.
     invocation.set_type_parameters(type_params);
   }
 
@@ -2751,7 +2767,6 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Object::dynamic_type());
   extractor.set_kernel_offset(kernel_offset());
-  extractor.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -3200,9 +3215,9 @@ void Class::InjectCIDFields() const {
 
 #define ADD_SET_FIELD(clazz)                                                   \
   field_name = Symbols::New(thread, "cid" #clazz);                             \
-  field =                                                                      \
-      Field::New(field_name, true, false, true, false, *this,                  \
-                 Type::Handle(Type::IntType()), TokenPosition::kMinSource);    \
+  field = Field::New(field_name, true, false, true, false, *this,              \
+                     Type::Handle(Type::IntType()), TokenPosition::kMinSource, \
+                     TokenPosition::kMinSource);                               \
   value = Smi::New(k##clazz##Cid);                                             \
   field.SetStaticValue(value, true);                                           \
   AddField(field);
@@ -3225,15 +3240,15 @@ RawClass* Class::NewCommon(intptr_t index) {
   FakeInstance fake;
   ASSERT(fake.IsInstance());
   result.set_handle_vtable(fake.vtable());
+  result.set_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeInstance::InstanceSize());
+  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_next_field_offset(FakeInstance::NextFieldOffset());
   result.set_id(index);
-  result.set_state_bits(0);
-  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_own_type_arguments(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
-  result.set_token_pos(TokenPosition::kNoSource);
+  result.set_state_bits(0);
   result.InitEmptyFields();
   return result.raw();
 }
@@ -3241,6 +3256,7 @@ RawClass* Class::NewCommon(intptr_t index) {
 template <class FakeInstance>
 RawClass* Class::New(intptr_t index) {
   Class& result = Class::Handle(NewCommon<FakeInstance>(index));
+  result.set_kernel_offset(-1);
   Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
@@ -3254,6 +3270,7 @@ RawClass* Class::New(const Library& lib,
   result.set_name(name);
   result.set_script(script);
   result.set_token_pos(token_pos);
+  result.set_kernel_offset(-1);
   Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
@@ -3282,6 +3299,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
     cls.set_is_cycle_free();
+    cls.set_kernel_offset(-1);
     library.AddClass(cls);
     return cls.raw();
   } else {
@@ -3446,6 +3464,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::LibraryPrefix().raw();
     case kNamespaceCid:
       return Symbols::Namespace().raw();
+    case kKernelProgramInfoCid:
+      return Symbols::KernelProgramInfo().raw();
     case kCodeCid:
       return Symbols::Code().raw();
     case kInstructionsCid:
@@ -3562,6 +3582,11 @@ TokenPosition Class::ComputeEndTokenPos() const {
   }
   UNREACHABLE();
   return TokenPosition::kNoSource;
+}
+
+int32_t Class::SourceFingerprint() const {
+  return Script::Handle(script()).SourceFingerprint(token_pos(),
+                                                    ComputeEndTokenPos());
 }
 
 void Class::set_is_implemented() const {
@@ -3758,7 +3783,9 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  Heap::Space space) {
   // Use the thsi object as if it was the receiver of this method, but instead
   // of recursing reset it to the super class and loop.
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   Class& thsi = Class::Handle(zone, cls.raw());
   while (true) {
     // Check for DynamicType.
@@ -3773,10 +3800,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       return true;
     }
     // In the case of a subtype test, each occurrence of DynamicType in type S
-    // is interpreted as the bottom type, a subtype of all types.
+    // is interpreted as the bottom type, a subtype of all types, but not in
+    // strong mode.
     // However, DynamicType is not more specific than any type.
     if (thsi.IsDynamicClass()) {
-      return test_kind == Class::kIsSubtypeOf;
+      return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
     // (already checked above), is more specific than ObjectType/VoidType.
@@ -3808,7 +3836,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return test_kind == Class::kIsSubtypeOf;
+        return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
@@ -3863,8 +3891,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // The index of the type parameters is adjusted upon finalization.
         error = Error::null();
         interface_args = interface_args.InstantiateFrom(
-            type_arguments, Object::null_type_arguments(), &error, NULL,
-            bound_trail, space);
+            type_arguments, Object::null_type_arguments(), kNoneFree, &error,
+            NULL, bound_trail, space);
         if (!error.IsNull()) {
           // Return the first bound error to the caller if it requests it.
           if ((bound_error != NULL) && bound_error->IsNull()) {
@@ -4906,11 +4934,12 @@ bool TypeArguments::IsBounded() const {
 RawTypeArguments* TypeArguments::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
     Heap::Space space) const {
-  ASSERT(!IsInstantiated());
+  ASSERT(!IsInstantiated(kAny, num_free_fun_type_params));
   if (!instantiator_type_arguments.IsNull() && IsUninstantiatedIdentity() &&
       (instantiator_type_arguments.Length() == Length())) {
     return instantiator_type_arguments.raw();
@@ -4927,9 +4956,11 @@ RawTypeArguments* TypeArguments::InstantiateFrom(
     // during finalization of V, which is also the instantiator. T depends
     // solely on the type parameters of A and will be replaced by a non-null
     // type before A is marked as finalized.
-    if (!type.IsNull() && !type.IsInstantiated()) {
+    if (!type.IsNull() &&
+        !type.IsInstantiated(kAny, num_free_fun_type_params)) {
       type = type.InstantiateFrom(instantiator_type_arguments,
-                                  function_type_arguments, bound_error,
+                                  function_type_arguments,
+                                  num_free_fun_type_params, bound_error,
                                   instantiation_trail, bound_trail, space);
     }
     instantiated_array.SetTypeAt(i, type);
@@ -4944,9 +4975,6 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(!IsInstantiated());
   ASSERT(instantiator_type_arguments.IsNull() ||
          instantiator_type_arguments.IsCanonical());
-  // TODO(regis): It is not clear yet whether we will canonicalize the result
-  // of the concatenation of function_type_arguments in a nested generic
-  // function. Leave the assert for now to be safe, but plan on revisiting.
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
   // Lookup instantiator and, if found, return paired instantiated result.
@@ -4969,7 +4997,7 @@ RawTypeArguments* TypeArguments::InstantiateAndCanonicalizeFrom(
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle();
   result = InstantiateFrom(instantiator_type_arguments, function_type_arguments,
-                           bound_error, NULL, NULL, Heap::kOld);
+                           kAllFree, bound_error, NULL, NULL, Heap::kOld);
   if ((bound_error != NULL) && !bound_error->IsNull()) {
     return result.raw();
   }
@@ -5184,6 +5212,7 @@ RawPatchClass* PatchClass::New(const Class& patched_class,
   result.set_patched_class(patched_class);
   result.set_origin_class(origin_class);
   result.set_script(Script::Handle(origin_class.script()));
+  result.set_library_kernel_offset(-1);
   return result.raw();
 }
 
@@ -5193,6 +5222,7 @@ RawPatchClass* PatchClass::New(const Class& patched_class,
   result.set_patched_class(patched_class);
   result.set_origin_class(patched_class);
   result.set_script(script);
+  result.set_library_kernel_offset(-1);
   return result.raw();
 }
 
@@ -5213,6 +5243,10 @@ void PatchClass::set_origin_class(const Class& value) const {
 
 void PatchClass::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
+}
+
+void PatchClass::set_library_kernel_data(const TypedData& data) const {
+  StorePointer(&raw_ptr()->library_kernel_data_, data.raw());
 }
 
 intptr_t Function::Hash() const {
@@ -5507,14 +5541,20 @@ RawFunction* Function::implicit_closure_function() const {
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction() && !IsSignatureFunction() &&
          !IsConvertedClosureFunction());
+  const Object& old_data = Object::Handle(raw_ptr()->data_);
   if (is_native()) {
-    const Object& obj = Object::Handle(raw_ptr()->data_);
-    ASSERT(obj.IsArray());
-    ASSERT((Array::Cast(obj).At(1) == Object::null()) || value.IsNull());
-    Array::Cast(obj).SetAt(1, value);
+    ASSERT(old_data.IsArray());
+    ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
+    Array::Cast(old_data).SetAt(1, value);
   } else {
-    ASSERT((raw_ptr()->data_ == Object::null()) || value.IsNull());
-    set_data(value);
+    // Maybe this function will turn into a native later on :-/
+    if (old_data.IsArray()) {
+      ASSERT((Array::Cast(old_data).At(1) == Object::null()) || value.IsNull());
+      Array::Cast(old_data).SetAt(1, value);
+    } else {
+      ASSERT(old_data.IsNull() || value.IsNull());
+      set_data(value);
+    }
   }
 }
 
@@ -5795,11 +5835,26 @@ RawString* Function::native_name() const {
 }
 
 void Function::set_native_name(const String& value) const {
+  Zone* zone = Thread::Current()->zone();
   ASSERT(is_native());
-  ASSERT(raw_ptr()->data_ == Object::null());
-  const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
+
+  // Due to the fact that kernel needs to read in the constant table before the
+  // annotation data is available, we don't know at function creation time
+  // whether the function is a native or not.
+  //
+  // Reading the constant table can cause a static function to get an implicit
+  // closure function.
+  //
+  // We therefore handle both cases.
+  const Object& old_data = Object::Handle(zone, raw_ptr()->data_);
+  ASSERT(old_data.IsNull() ||
+         (old_data.IsFunction() &&
+          Function::Handle(zone, Function::RawCast(old_data.raw()))
+              .IsImplicitClosureFunction()));
+
+  const Array& pair = Array::Handle(zone, Array::New(2, Heap::kOld));
   pair.SetAt(0, value);
-  // pair[1] will be the implicit closure function if needed.
+  pair.SetAt(1, old_data);  // will be the implicit closure function if needed.
   set_data(pair);
 }
 
@@ -5971,10 +6026,6 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
   set_num_optional_parameters(are_optional_positional
                                   ? num_optional_parameters
                                   : -num_optional_parameters);
-}
-
-void Function::set_kernel_data(const TypedData& data) const {
-  StorePointer(&raw_ptr()->kernel_data_, data.raw());
 }
 
 bool Function::IsOptimizable() const {
@@ -6306,15 +6357,30 @@ bool Function::HasCompatibleParametersWith(const Function& other,
   // in the signature to dynamic before the test.
   // Note that type parameters declared by a generic signature are preserved.
   Function& this_fun = Function::Handle(raw());
-  if (!this_fun.HasInstantiatedSignature()) {
-    this_fun = this_fun.InstantiateSignatureFrom(Object::null_type_arguments(),
-                                                 Object::null_type_arguments(),
-                                                 Heap::kOld);
+  if (!this_fun.HasInstantiatedSignature(kCurrentClass)) {
+    // HasCompatibleParametersWith is called at compile time to check for bad
+    // overrides and can only detect some obviously wrong overrides, but it
+    // should never give false negatives.
+    if (Isolate::Current()->strong()) {
+      // Instantiating all type parameters to dynamic is not the right thing
+      // to do in strong mode, because of contravariance of parameter types.
+      // It is better to skip the test than to give a false negative.
+      return true;
+    }
+    this_fun = this_fun.InstantiateSignatureFrom(
+        Object::null_type_arguments(), Object::null_type_arguments(),
+        kNoneFree,  // Keep function type parameters, do not map to dynamic.
+        Heap::kOld);
   }
   Function& other_fun = Function::Handle(other.raw());
-  if (!other_fun.HasInstantiatedSignature()) {
+  if (!other_fun.HasInstantiatedSignature(kCurrentClass)) {
+    if (Isolate::Current()->strong()) {
+      // See comment above.
+      return true;
+    }
     other_fun = other_fun.InstantiateSignatureFrom(
         Object::null_type_arguments(), Object::null_type_arguments(),
+        kNoneFree,  // Keep function type parameters, do not map to dynamic.
         Heap::kOld);
   }
   if (!this_fun.TypeTest(kIsSubtypeOf, other_fun, bound_error, NULL,
@@ -6345,13 +6411,29 @@ bool Function::HasCompatibleParametersWith(const Function& other,
 RawFunction* Function::InstantiateSignatureFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Heap::Space space) const {
   Zone* zone = Thread::Current()->zone();
   const Object& owner = Object::Handle(zone, RawOwner());
   // Note that parent pointers in newly instantiated signatures still points to
   // the original uninstantiated parent signatures. That is not a problem.
   const Function& parent = Function::Handle(zone, parent_function());
-  ASSERT(!HasInstantiatedSignature());
+  ASSERT(!HasInstantiatedSignature(kAny, num_free_fun_type_params));
+
+  // A generic typedef may declare a non-generic function type and get
+  // instantiated with unrelated function type parameters. In that case, its
+  // signature is still uninstantiated, because these type parameters are
+  // free (they are not declared by the typedef).
+  // For that reason, we only adjust num_free_fun_type_params if this
+  // signature is generic or has a generic parent.
+  if (IsGeneric() || HasGenericParent()) {
+    // We only consider the function type parameters declared by the parents
+    // of this signature function as free.
+    const int num_parent_type_params = NumParentTypeParameters();
+    if (num_parent_type_params < num_free_fun_type_params) {
+      num_free_fun_type_params = num_parent_type_params;
+    }
+  }
 
   Function& sig = Function::Handle(zone, Function::null());
   if (IsConvertedClosureFunction()) {
@@ -6369,10 +6451,10 @@ RawFunction* Function::InstantiateSignatureFrom(
   }
 
   AbstractType& type = AbstractType::Handle(zone, result_type());
-  if (!type.IsInstantiated()) {
-    type =
-        type.InstantiateFrom(instantiator_type_arguments,
-                             function_type_arguments, NULL, NULL, NULL, space);
+  if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
+    type = type.InstantiateFrom(
+        instantiator_type_arguments, function_type_arguments,
+        num_free_fun_type_params, NULL, NULL, NULL, space);
   }
   sig.set_result_type(type);
   const intptr_t num_params = NumParameters();
@@ -6382,10 +6464,10 @@ RawFunction* Function::InstantiateSignatureFrom(
   sig.set_parameter_types(Array::Handle(Array::New(num_params, space)));
   for (intptr_t i = 0; i < num_params; i++) {
     type = ParameterTypeAt(i);
-    if (!type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments,
-                                  function_type_arguments, NULL, NULL, NULL,
-                                  space);
+    if (!type.IsInstantiated(kAny, num_free_fun_type_params)) {
+      type = type.InstantiateFrom(
+          instantiator_type_arguments, function_type_arguments,
+          num_free_fun_type_params, NULL, NULL, NULL, space);
     }
     sig.SetParameterTypeAt(i, type);
   }
@@ -6395,12 +6477,14 @@ RawFunction* Function::InstantiateSignatureFrom(
 
 // If test_kind == kIsSubtypeOf, checks if the type of the specified parameter
 // of this function is a subtype or a supertype of the type of the specified
-// parameter of the other function.
+// parameter of the other function. In strong mode, we only check for supertype,
+// i.e. contravariance.
+// Note that types marked as covariant are already dealt with in the front-end.
 // If test_kind == kIsMoreSpecificThan, checks if the type of the specified
 // parameter of this function is more specific than the type of the specified
 // parameter of the other function.
-// Note that we do not apply contravariance of parameter types, but covariance
-// of both parameter types and result type.
+// Note that for kIsMoreSpecificThan, we do not apply contravariance of
+// parameter types, but covariance of both parameter types and result type.
 bool Function::TestParameterType(TypeTestKind test_kind,
                                  intptr_t parameter_position,
                                  intptr_t other_parameter_position,
@@ -6408,9 +6492,10 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) const {
+  Isolate* isolate = Isolate::Current();
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (other_param_type.IsDynamicType()) {
+  if (!isolate->strong() && other_param_type.IsDynamicType()) {
     return true;
   }
   const AbstractType& param_type =
@@ -6419,10 +6504,11 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
-                                space) &&
-        !other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
-                                      space)) {
+    if (!((!isolate->strong() &&
+           param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
+                                  space)) ||
+          other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                       space))) {
       return false;
     }
   } else {
@@ -6494,7 +6580,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
-  if (FLAG_reify_generic_functions) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->reify_generic_functions()) {
     // Check the type parameters and bounds of generic functions.
     if (!HasSameTypeParametersAndBounds(other)) {
       return false;
@@ -6511,10 +6598,11 @@ bool Function::TypeTest(TypeTestKind test_kind,
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
-      if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
-                                space) &&
-          !other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
-                                      space)) {
+      if (!(res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                 space) ||
+            (!isolate->strong() &&
+             other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
+                                        space)))) {
         return false;
       }
     } else {
@@ -6543,7 +6631,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
   // function type, there exists an optional named parameter of this function
   // type with an identical name and with a type S that is a either a subtype
   // or supertype of T (if test_kind == kIsSubtypeOf) or that is more specific
-  // than T (if test_kind == kIsMoreSpecificThan).
+  // than T (if test_kind == kIsMoreSpecificThan). In strong mode, we only check
+  // for supertype, i.e. contravariance.
   // Note that SetParameterNameAt() guarantees that names are symbols, so we
   // can compare their raw pointers.
   const int num_params = num_fixed_params + num_opt_named_params;
@@ -6588,11 +6677,6 @@ bool Function::IsImplicitStaticClosureFunction(RawFunction* func) {
          StaticBit::decode(kind_tag);
 }
 
-bool Function::IsConstructorClosureFunction() const {
-  return IsClosureFunction() &&
-         String::Handle(name()).StartsWith(Symbols::ConstructorClosurePrefix());
-}
-
 RawFunction* Function::New(Heap::Space space) {
   ASSERT(Object::function_class() != Class::null());
   RawObject* raw =
@@ -6631,7 +6715,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
-  NOT_IN_PRECOMPILED(result.set_was_compiled(false));
+  NOT_IN_PRECOMPILED(result.set_state_bits(0));
   result.set_owner(owner);
   NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
   NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
@@ -6641,7 +6725,8 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
-  result.set_kernel_offset(0);
+  NOT_IN_PRECOMPILED(result.set_inlining_depth(0));
+  NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
@@ -6681,9 +6766,9 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
+  clone.set_inlining_depth(0);
   clone.set_optimized_call_site_count(0);
   clone.set_kernel_offset(kernel_offset());
-  clone.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
@@ -6868,7 +6953,6 @@ RawFunction* Function::ImplicitClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
-  closure_function.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
@@ -7026,7 +7110,6 @@ RawFunction* Function::ConvertedClosureFunction() const {
     closure_function.SetParameterNameAt(i, param_name);
   }
   closure_function.set_kernel_offset(kernel_offset());
-  closure_function.set_kernel_data(TypedData::Handle(zone, kernel_data()));
 
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
@@ -7046,16 +7129,6 @@ void Function::DropUncompiledConvertedClosureFunction() const {
       set_converted_closure_function(Function::Handle());
     }
   }
-}
-
-RawString* Function::UserVisibleFormalParameters() const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  // Typically 3, 5,.. elements in 'pieces', e.g.:
-  // '_LoadRequest', CommaSpace, '_LoadError'.
-  GrowableHandlePtrArray<const String> pieces(zone, 5);
-  BuildSignatureParameters(thread, zone, kUserVisibleName, &pieces);
-  return Symbols::FromConcatAll(thread, pieces);
 }
 
 void Function::BuildSignatureParameters(
@@ -7121,14 +7194,10 @@ RawInstance* Function::ImplicitStaticClosure() const {
   if (implicit_static_closure() == Instance::null()) {
     Zone* zone = Thread::Current()->zone();
     const Context& context = Object::empty_context();
-    TypeArguments& function_type_arguments = TypeArguments::Handle(zone);
-    if (!HasInstantiatedSignature(kFunctions)) {
-      function_type_arguments = Object::empty_type_arguments().raw();
-    }
     Instance& closure =
         Instance::Handle(zone, Closure::New(Object::null_type_arguments(),
-                                            function_type_arguments, *this,
-                                            context, Heap::kOld));
+                                            Object::null_type_arguments(),
+                                            *this, context, Heap::kOld));
     set_implicit_static_closure(closure);
   }
   return implicit_static_closure();
@@ -7140,15 +7209,12 @@ RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
   const Context& context = Context::Handle(zone, Context::New(1));
   context.SetAt(0, receiver);
   TypeArguments& instantiator_type_arguments = TypeArguments::Handle(zone);
-  TypeArguments& function_type_arguments = TypeArguments::Handle(zone);
   if (!HasInstantiatedSignature(kCurrentClass)) {
     instantiator_type_arguments = receiver.GetTypeArguments();
   }
-  if (!HasInstantiatedSignature(kFunctions)) {
-    function_type_arguments = Object::empty_type_arguments().raw();
-  }
-  return Closure::New(instantiator_type_arguments, function_type_arguments,
-                      *this, context);
+  ASSERT(HasInstantiatedSignature(kFunctions));  // No generic parent function.
+  return Closure::New(instantiator_type_arguments,
+                      Object::null_type_arguments(), *this, context);
 }
 
 intptr_t Function::ComputeClosureHash() const {
@@ -7165,7 +7231,7 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
   Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   String& name = String::Handle(zone);
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     const TypeArguments& type_params =
         TypeArguments::Handle(zone, type_parameters());
     if (!type_params.IsNull()) {
@@ -7221,9 +7287,10 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
   //     }
   //
   // The signature of `fn` as a converted closure will in both cases look like
-  // `<T>(T) => dynamic`, because the signaute of the converted closure function
-  // is the same as it's top-level target function. However, in the first case
-  // the closure's type is instantiated, and in the second case it's not.
+  // `<T>(T) => dynamic`, because the signature of the converted closure
+  // function is the same as its top-level target function. However, in the
+  // first case the closure's type is instantiated, and in the second case
+  // it's not.
   //
   // Since we can never assume a converted closure is instantiated if it has any
   // type parameters, we always return true in these cases.
@@ -7246,8 +7313,6 @@ bool Function::HasInstantiatedSignature(Genericity genericity,
         num_free_fun_type_params = num_parent_type_params;
       }
     }
-    // TODO(regis): Should we check the owners of the function type parameters
-    // in addition to their indexes to decide if they are free or not?
   }
   AbstractType& type = AbstractType::Handle(result_type());
   if (!type.IsInstantiated(genericity, num_free_fun_type_params, trail)) {
@@ -7313,6 +7378,38 @@ RawScript* Function::script() const {
   }
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).script();
+}
+
+RawTypedData* Function::KernelData() const {
+  if (IsClosureFunction()) {
+    Function& parent = Function::Handle(parent_function());
+    ASSERT(!parent.IsNull());
+    return parent.KernelData();
+  }
+
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    Library& lib = Library::Handle(Class::Cast(obj).library());
+    return lib.kernel_data();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).library_kernel_data();
+}
+
+intptr_t Function::KernelDataProgramOffset() const {
+  if (IsClosureFunction()) {
+    Function& parent = Function::Handle(parent_function());
+    ASSERT(!parent.IsNull());
+    return parent.KernelDataProgramOffset();
+  }
+
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    Library& lib = Library::Handle(Class::Cast(obj).library());
+    return lib.kernel_offset();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).library_kernel_offset();
 }
 
 bool Function::HasOptimizedCode() const {
@@ -7516,7 +7613,7 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
-      // sed -i.bak -f /tmp/newkeys runtime/vm/method_recognizer.h
+      // sed -i.bak -f /tmp/newkeys runtime/vm/compiler/method_recognizer.h
       THR_Print("s/0x%08x/0x%08x/\n", fp, SourceFingerprint());
     } else {
       THR_Print(
@@ -7770,10 +7867,6 @@ void Field::set_name(const String& value) const {
   StorePointer(&raw_ptr()->name_, value.raw());
 }
 
-void Field::set_kernel_data(const TypedData& data) const {
-  StorePointer(&raw_ptr()->kernel_data_, data.raw());
-}
-
 RawObject* Field::RawOwner() const {
   if (IsOriginal()) {
     return raw_ptr()->owner_;
@@ -7820,6 +7913,26 @@ RawScript* Field::Script() const {
   return PatchClass::Cast(obj).script();
 }
 
+RawTypedData* Field::KernelData() const {
+  const Object& obj = Object::Handle(this->raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    Library& library = Library::Handle(Class::Cast(obj).library());
+    return library.kernel_data();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).library_kernel_data();
+}
+
+intptr_t Field::KernelDataProgramOffset() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    Library& lib = Library::Handle(Class::Cast(obj).library());
+    return lib.kernel_offset();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).library_kernel_offset();
+}
+
 // Called at finalization time
 void Field::SetFieldType(const AbstractType& value) const {
   ASSERT(Thread::Current()->IsMutatorThread());
@@ -7844,7 +7957,8 @@ void Field::InitializeNew(const Field& result,
                           bool is_const,
                           bool is_reflectable,
                           const Object& owner,
-                          TokenPosition token_pos) {
+                          TokenPosition token_pos,
+                          TokenPosition end_token_pos) {
   result.set_name(name);
   result.set_is_static(is_static);
   if (!is_static) {
@@ -7856,8 +7970,10 @@ void Field::InitializeNew(const Field& result,
   result.set_is_double_initialized(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
+  result.set_end_token_pos(end_token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
+  result.set_initializer_changed_after_initialization(false);
   result.set_kernel_offset(0);
   Isolate* isolate = Isolate::Current();
 
@@ -7890,11 +8006,12 @@ RawField* Field::New(const String& name,
                      bool is_reflectable,
                      const Object& owner,
                      const AbstractType& type,
-                     TokenPosition token_pos) {
+                     TokenPosition token_pos,
+                     TokenPosition end_token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, is_static, is_final, is_const, is_reflectable,
-                owner, token_pos);
+                owner, token_pos, end_token_pos);
   result.SetFieldType(type);
   return result.raw();
 }
@@ -7903,12 +8020,13 @@ RawField* Field::NewTopLevel(const String& name,
                              bool is_final,
                              bool is_const,
                              const Object& owner,
-                             TokenPosition token_pos) {
+                             TokenPosition token_pos,
+                             TokenPosition end_token_pos) {
   ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   InitializeNew(result, name, true,       /* is_static */
                 is_final, is_const, true, /* is_reflectable */
-                owner, token_pos);
+                owner, token_pos, end_token_pos);
   return result.raw();
 }
 
@@ -7941,6 +8059,11 @@ RawField* Field::Clone(const Field& original) const {
   clone.SetOriginal(original);
   clone.set_kernel_offset(original.kernel_offset());
   return clone.raw();
+}
+
+int32_t Field::SourceFingerprint() const {
+  return Script::Handle(Script()).SourceFingerprint(token_pos(),
+                                                    end_token_pos());
 }
 
 RawString* Field::InitializingExpression() const {
@@ -8061,13 +8184,13 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
   // the result here, since Object::Clone() is a private method.
   result = Object::Clone(result, Heap::kOld);
 
-  closure_field =
-      Field::New(closure_name,
-                 true,   // is_static
-                 true,   // is_final
-                 true,   // is_const
-                 false,  // is_reflectable
-                 field_owner, Object::dynamic_type(), this->token_pos());
+  closure_field = Field::New(closure_name,
+                             true,   // is_static
+                             true,   // is_final
+                             true,   // is_const
+                             false,  // is_reflectable
+                             field_owner, Object::dynamic_type(),
+                             this->token_pos(), this->end_token_pos());
   closure_field.SetStaticValue(Instance::Cast(result), true);
   field_owner.AddField(closure_field);
 
@@ -9069,20 +9192,19 @@ void Script::set_compile_time_constants(const Array& value) const {
   StorePointer(&raw_ptr()->compile_time_constants_, value.raw());
 }
 
+void Script::set_kernel_program_info(const KernelProgramInfo& info) const {
+  StorePointer(&raw_ptr()->kernel_program_info_, info.raw());
+}
+
 void Script::set_kernel_script_index(const intptr_t kernel_script_index) const {
   StoreNonPointer(&raw_ptr()->kernel_script_index_, kernel_script_index);
 }
 
-void Script::set_kernel_string_offsets(const TypedData& offsets) const {
-  StorePointer(&raw_ptr()->kernel_string_offsets_, offsets.raw());
-}
-
-void Script::set_kernel_string_data(const TypedData& data) const {
-  StorePointer(&raw_ptr()->kernel_string_data_, data.raw());
-}
-
-void Script::set_kernel_canonical_names(const TypedData& names) const {
-  StorePointer(&raw_ptr()->kernel_canonical_names_, names.raw());
+RawTypedData* Script::kernel_string_offsets() const {
+  KernelProgramInfo& program_info =
+      KernelProgramInfo::Handle(kernel_program_info());
+  ASSERT(!program_info.IsNull());
+  return program_info.string_offsets();
 }
 
 RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
@@ -9095,27 +9217,25 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
   Smi& value = Smi::Handle(zone);
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       // A well-formed line number array has a leading null.
       info.Add(line_separator);  // New line.
       return info.raw();
     }
-    intptr_t line_count = line_starts_array.Length();
+    intptr_t line_count = line_starts_data.Length();
     ASSERT(line_count > 0);
     const Array& debug_positions_array = Array::Handle(debug_positions());
     intptr_t token_count = debug_positions_array.Length();
     int token_index = 0;
 
     for (int line_index = 0; line_index < line_count; ++line_index) {
-      value ^= line_starts_array.At(line_index);
-      intptr_t start = value.Value();
+      intptr_t start = line_starts_data.GetInt32(line_index * 4);
       // Output the rest of the tokens if we have no next line.
       intptr_t end = TokenPosition::kMaxSourcePos;
       if (line_index + 1 < line_count) {
-        value ^= line_starts_array.At(line_index + 1);
-        end = value.Value();
+        end = line_starts_data.GetInt32((line_index + 1) * 4);
       }
       bool first = true;
       while (token_index < token_count) {
@@ -9247,7 +9367,7 @@ void Script::set_source(const String& value) const {
   StorePointer(&raw_ptr()->source_, value.raw());
 }
 
-void Script::set_line_starts(const Array& value) const {
+void Script::set_line_starts(const TypedData& value) const {
   StorePointer(&raw_ptr()->line_starts_, value.raw());
 }
 
@@ -9270,7 +9390,7 @@ RawArray* Script::yield_positions() const {
   return raw_ptr()->yield_positions_;
 }
 
-RawArray* Script::line_starts() const {
+RawTypedData* Script::line_starts() const {
   return raw_ptr()->line_starts_;
 }
 
@@ -9336,40 +9456,50 @@ intptr_t Script::GetTokenLineUsingLineStarts(
     return 0;
   }
   Zone* zone = Thread::Current()->zone();
-  Array& line_starts_array = Array::Handle(zone, line_starts());
-  Smi& token_pos = Smi::Handle(zone);
-  if (line_starts_array.IsNull()) {
+  TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+  if (line_starts_data.IsNull()) {
     ASSERT(kind() != RawScript::kKernelTag);
-    GrowableObjectArray& line_starts_list =
-        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
     const TokenStream& tkns = TokenStream::Handle(zone, tokens());
+
+    intptr_t line_count = 0;
+    {
+      // Evaluate the number of lines in the script.
+      TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
+                                 TokenStream::Iterator::kAllTokens);
+      while (tkit.CurrentTokenKind() != Token::kEOS) {
+        if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
+          line_count++;
+        }
+        tkit.Advance();
+      }
+    }
+    line_starts_data = TypedData::New(kTypedDataInt32ArrayCid, line_count + 1);
+
+    intptr_t cur_line = 0;
     TokenStream::Iterator tkit(zone, tkns, TokenPosition::kMinSource,
                                TokenStream::Iterator::kAllTokens);
-    intptr_t cur_line = line_offset() + 1;
-    token_pos = Smi::New(0);
-    line_starts_list.Add(token_pos);
+    line_starts_data.SetInt32(cur_line, 0);
     while (tkit.CurrentTokenKind() != Token::kEOS) {
       if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
         cur_line++;
-        token_pos = Smi::New(tkit.CurrentPosition().value() + 1);
-        line_starts_list.Add(token_pos);
+        line_starts_data.SetInt32(cur_line << 2,
+                                  tkit.CurrentPosition().value() + 1);
       }
       tkit.Advance();
     }
-    line_starts_array = Array::MakeFixedLength(line_starts_list);
-    set_line_starts(line_starts_array);
+    set_line_starts(line_starts_data);
   }
 
-  ASSERT(line_starts_array.Length() > 0);
+  ASSERT(line_starts_data.Length() > 0);
   intptr_t offset = target_token_pos.Pos();
   intptr_t min = 0;
-  intptr_t max = line_starts_array.Length() - 1;
+  intptr_t max = line_starts_data.Length() - 1;
 
   // Binary search to find the line containing this offset.
   while (min < max) {
     int midpoint = (max - min + 1) / 2 + min;
-    token_pos ^= line_starts_array.At(midpoint);
-    if (token_pos.Value() > offset) {
+    int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
+    if (token_pos > offset) {
       max = midpoint - 1;
     } else {
       min = midpoint;
@@ -9386,8 +9516,8 @@ void Script::GetTokenLocation(TokenPosition token_pos,
   Zone* zone = Thread::Current()->zone();
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(zone, line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       *line = -1;
       if (column != NULL) {
@@ -9398,27 +9528,26 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       }
       return;
     }
-    ASSERT(line_starts_array.Length() > 0);
+    ASSERT(line_starts_data.Length() > 0);
     intptr_t offset = token_pos.value();
     intptr_t min = 0;
-    intptr_t max = line_starts_array.Length() - 1;
+    intptr_t max = line_starts_data.Length() - 1;
 
     // Binary search to find the line containing this offset.
-    Smi& smi = Smi::Handle(zone);
     while (min < max) {
       intptr_t midpoint = (max - min + 1) / 2 + min;
 
-      smi ^= line_starts_array.At(midpoint);
-      if (smi.Value() > offset) {
+      int32_t value = line_starts_data.GetInt32(midpoint * 4);
+      if (value > offset) {
         max = midpoint - 1;
       } else {
         min = midpoint;
       }
     }
     *line = min + 1;  // Line numbers start at 1.
-    smi ^= line_starts_array.At(min);
+    int32_t min_value = line_starts_data.GetInt32(min * 4);
     if (column != NULL) {
-      *column = offset - smi.Value() + 1;
+      *column = offset - min_value + 1;
     }
     if (token_len != NULL) {
       // We don't explicitly save this data: Load the source
@@ -9490,20 +9619,19 @@ void Script::TokenRangeAtLine(intptr_t line_number,
   ASSERT(line_number > 0);
 
   if (kind() == RawScript::kKernelTag) {
-    const Array& line_starts_array = Array::Handle(line_starts());
-    if (line_starts_array.IsNull()) {
+    const TypedData& line_starts_data = TypedData::Handle(line_starts());
+    if (line_starts_data.IsNull()) {
       // Scripts in the AOT snapshot do not have a line starts array.
       *first_token_index = TokenPosition::kNoSource;
       *last_token_index = TokenPosition::kNoSource;
       return;
     }
-    ASSERT(line_starts_array.Length() >= line_number);
-    Smi& value = Smi::Handle();
-    value ^= line_starts_array.At(line_number - 1);
-    *first_token_index = TokenPosition(value.Value());
-    if (line_starts_array.Length() > line_number) {
-      value ^= line_starts_array.At(line_number);
-      *last_token_index = TokenPosition(value.Value() - 1);
+    ASSERT(line_starts_data.Length() >= line_number);
+    int32_t value = line_starts_data.GetInt32((line_number - 1) * 4);
+    *first_token_index = TokenPosition(value);
+    if (line_starts_data.Length() > line_number) {
+      value = line_starts_data.GetInt32(line_number * 4);
+      *last_token_index = TokenPosition(value - 1);
     } else {
       // Length of source is last possible token in this script.
       *last_token_index = TokenPosition(String::Handle(Source()).Length());
@@ -9562,6 +9690,10 @@ int32_t Script::SourceFingerprint() const {
 
 int32_t Script::SourceFingerprint(TokenPosition start,
                                   TokenPosition end) const {
+  if (kind() == RawScript::kKernelTag) {
+    // TODO(30756): Implemented.
+    return 0;
+  }
   uint32_t result = 0;
   Zone* zone = Thread::Current()->zone();
   TokenStream::Iterator tokens_iterator(
@@ -9713,10 +9845,11 @@ RawScript* Script::New(const String& url,
   result.set_resolved_url(
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
+  result.SetLocationOffset(0, 0);
   result.set_kind(kind);
+  result.set_kernel_script_index(0);
   result.set_load_timestamp(
       FLAG_remove_script_timestamps_for_test ? 0 : OS::GetCurrentTimeMillis());
-  result.SetLocationOffset(0, 0);
   return result.raw();
 }
 
@@ -9847,6 +9980,10 @@ void Library::set_name(const String& name) const {
 
 void Library::set_url(const String& name) const {
   StorePointer(&raw_ptr()->url_, name.raw());
+}
+
+void Library::set_kernel_data(const TypedData& data) const {
+  StorePointer(&raw_ptr()->kernel_data_, data.raw());
 }
 
 void Library::SetName(const String& name) const {
@@ -10021,8 +10158,7 @@ static RawString* MakeTypeParameterMetaName(Thread* thread,
 void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset,
-                          const TypedData* kernel_data) const {
+                          intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
@@ -10031,14 +10167,11 @@ void Library::AddMetadata(const Object& owner,
       Field::Handle(zone, Field::NewTopLevel(metaname,
                                              false,  // is_final
                                              false,  // is_const
-                                             owner, token_pos));
+                                             owner, token_pos, token_pos));
   field.SetFieldType(Object::dynamic_type());
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
   field.set_kernel_offset(kernel_offset);
-  if (kernel_data != NULL) {
-    field.set_kernel_data(*kernel_data);
-  }
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
@@ -10047,37 +10180,34 @@ void Library::AddMetadata(const Object& owner,
 void Library::AddClassMetadata(const Class& cls,
                                const Object& tl_owner,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset,
-                               const TypedData* kernel_data) const {
+                               intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
               String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos, kernel_offset, kernel_data);
+              token_pos, kernel_offset);
 }
 
 void Library::AddFieldMetadata(const Field& field,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset,
-                               const TypedData* kernel_data) const {
+                               intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, field.RawOwner()),
               String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
-              token_pos, kernel_offset, kernel_data);
+              token_pos, kernel_offset);
 }
 
 void Library::AddFunctionMetadata(const Function& func,
                                   TokenPosition token_pos,
-                                  intptr_t kernel_offset,
-                                  const TypedData* kernel_data) const {
+                                  intptr_t kernel_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   AddMetadata(Object::Handle(zone, func.RawOwner()),
               String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
-              token_pos, kernel_offset, kernel_data);
+              token_pos, kernel_offset);
 }
 
 void Library::AddTypeParameterMetadata(const TypeParameter& param,
@@ -10128,6 +10258,18 @@ RawField* Library::GetMetadataField(const String& metaname) const {
     }
   }
   return Field::null();
+}
+
+void Library::CloneMetadataFrom(const Library& from_library,
+                                const Function& from_fun,
+                                const Function& to_fun) const {
+  const String& metaname = String::Handle(MakeMetadataName(from_fun));
+  const Field& from_field =
+      Field::Handle(from_library.GetMetadataField(metaname));
+  if (!from_field.IsNull()) {
+    AddFunctionMetadata(to_fun, from_field.token_pos(),
+                        from_field.kernel_offset());
+  }
 }
 
 RawObject* Library::GetMetadata(const Object& obj) const {
@@ -10960,6 +11102,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
     result.set_debuggable(true);
   }
   result.set_is_dart_scheme(dart_scheme);
+  result.set_kernel_offset(-1);
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);
   result.StoreNonPointer(&result.raw_ptr()->index_, -1);
@@ -11612,7 +11755,7 @@ void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
   Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                                   false,  // is_final
                                                   false,  // is_const
-                                                  owner, token_pos));
+                                                  owner, token_pos, token_pos));
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
@@ -11765,6 +11908,51 @@ RawNamespace* Namespace::New(const Library& library,
   result.StorePointer(&result.raw_ptr()->show_names_, show_names.raw());
   result.StorePointer(&result.raw_ptr()->hide_names_, hide_names.raw());
   return result.raw();
+}
+
+RawKernelProgramInfo* KernelProgramInfo::New() {
+  RawObject* raw =
+      Object::Allocate(KernelProgramInfo::kClassId,
+                       KernelProgramInfo::InstanceSize(), Heap::kOld);
+  return reinterpret_cast<RawKernelProgramInfo*>(raw);
+}
+
+RawKernelProgramInfo* KernelProgramInfo::New(const TypedData& string_offsets,
+                                             const TypedData& string_data,
+                                             const TypedData& canonical_names,
+                                             const TypedData& metadata_payloads,
+                                             const TypedData& metadata_mappings,
+                                             const Array& scripts) {
+  const KernelProgramInfo& info =
+      KernelProgramInfo::Handle(KernelProgramInfo::New());
+  info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
+  info.StorePointer(&info.raw_ptr()->string_data_, string_data.raw());
+  info.StorePointer(&info.raw_ptr()->canonical_names_, canonical_names.raw());
+  info.StorePointer(&info.raw_ptr()->metadata_payloads_,
+                    metadata_payloads.raw());
+  info.StorePointer(&info.raw_ptr()->metadata_mappings_,
+                    metadata_mappings.raw());
+  info.StorePointer(&info.raw_ptr()->scripts_, scripts.raw());
+  return info.raw();
+}
+
+const char* KernelProgramInfo::ToCString() const {
+  return OS::SCreate(Thread::Current()->zone(), "[KernelProgramInfo]");
+}
+
+RawScript* KernelProgramInfo::ScriptAt(intptr_t index) const {
+  const Array& all_scripts = Array::Handle(scripts());
+  RawObject* script = all_scripts.At(index);
+  return Script::RawCast(script);
+}
+
+void KernelProgramInfo::set_constants(const Array& constants) const {
+  StorePointer(&raw_ptr()->constants_, constants.raw());
+}
+
+void KernelProgramInfo::set_potential_natives(
+    const GrowableObjectArray& candidates) const {
+  StorePointer(&raw_ptr()->potential_natives_, candidates.raw());
 }
 
 RawError* Library::CompileAll() {
@@ -12323,9 +12511,16 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
   // Guard against integer overflow of the instance size computation.
   intptr_t length = bmap->Length();
   intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if ((payload_size < 0) || (payload_size > kMaxLengthInBytes)) {
+  if ((length < 0) || (length > kMaxUint16) ||
+      (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
+  }
+  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
+           "\n",
+           slow_path_bit_count);
   }
   {
     // StackMap data objects are associated with a code object, allocate them
@@ -12336,9 +12531,6 @@ RawStackMap* StackMap::New(intptr_t pc_offset,
     result ^= raw;
     result.SetLength(length);
   }
-  // When constructing a stackmap we store the pc offset in the stackmap's
-  // PC. StackMapTableBuilder::FinalizeStackMaps will replace it with the pc
-  // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
   for (intptr_t i = 0; i < length; ++i) {
@@ -12355,10 +12547,18 @@ RawStackMap* StackMap::New(intptr_t length,
   StackMap& result = StackMap::Handle();
   // Guard against integer overflow of the instance size computation.
   intptr_t payload_size = Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
-  if ((payload_size < 0) || (payload_size > kMaxLengthInBytes)) {
+  if ((length < 0) || (length > kMaxUint16) ||
+      (payload_size > kMaxLengthInBytes)) {
     // This should be caught before we reach here.
     FATAL1("Fatal error in StackMap::New: invalid length %" Pd "\n", length);
   }
+  if ((slow_path_bit_count < 0) || (slow_path_bit_count > kMaxUint16)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in StackMap::New: invalid slow_path_bit_count %" Pd
+           "\n",
+           slow_path_bit_count);
+  }
+
   {
     // StackMap data objects are associated with a code object, allocate them
     // in old generation.
@@ -12368,9 +12568,6 @@ RawStackMap* StackMap::New(intptr_t length,
     result ^= raw;
     result.SetLength(length);
   }
-  // When constructing a stackmap we store the pc offset in the stackmap's
-  // PC. StackMapTableBuilder::FinalizeStackMaps will replace it with the pc
-  // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
   result.SetSlowPathBitCount(slow_path_bit_count);
@@ -12875,13 +13072,17 @@ void ICData::AddDeoptReason(DeoptReasonId reason) const {
   }
 }
 
-void ICData::SetIsStaticCall(bool static_call) const {
+ICData::RebindRule ICData::rebind_rule() const {
+  return (ICData::RebindRule)RebindRuleBits::decode(raw_ptr()->state_bits_);
+}
+
+void ICData::set_rebind_rule(uint32_t rebind_rule) const {
   StoreNonPointer(&raw_ptr()->state_bits_,
-                  StaticCallBit::update(static_call, raw_ptr()->state_bits_));
+                  RebindRuleBits::update(rebind_rule, raw_ptr()->state_bits_));
 }
 
 bool ICData::is_static_call() const {
-  return StaticCallBit::decode(raw_ptr()->state_bits_);
+  return rebind_rule() != kInstance;
 }
 
 void ICData::set_state_bits(uint32_t bits) const {
@@ -13671,7 +13872,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
                                  const Array& arguments_descriptor,
                                  intptr_t deopt_id,
                                  intptr_t num_args_tested,
-                                 bool is_static_call) {
+                                 RebindRule rebind_rule) {
   ASSERT(!owner.IsNull());
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
@@ -13693,7 +13894,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
 #if defined(TAG_IC_DATA)
   result.set_tag(-1);
 #endif
-  result.SetIsStaticCall(is_static_call);
+  result.set_rebind_rule(rebind_rule);
   result.SetNumArgsTested(num_args_tested);
   return result.raw();
 }
@@ -13725,11 +13926,11 @@ RawICData* ICData::New(const Function& owner,
                        const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested,
-                       bool is_static_call) {
+                       RebindRule rebind_rule) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(
       zone, NewDescriptor(zone, owner, target_name, arguments_descriptor,
-                          deopt_id, num_args_tested, is_static_call));
+                          deopt_id, num_args_tested, rebind_rule));
   result.set_ic_data_array(
       Array::Handle(zone, CachedEmptyICDataArray(num_args_tested)));
   return result.raw();
@@ -13739,7 +13940,7 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
   const ICData& result = ICData::Handle(ICData::New(
       Function::Handle(from.Owner()), String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()), from.deopt_id(),
-      num_args_tested, from.is_static_call()));
+      num_args_tested, from.rebind_rule()));
   // Copy deoptimization reasons.
   result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
@@ -13751,7 +13952,7 @@ RawICData* ICData::Clone(const ICData& from) {
       zone, Function::Handle(zone, from.Owner()),
       String::Handle(zone, from.target_name()),
       Array::Handle(zone, from.arguments_descriptor()), from.deopt_id(),
-      from.NumArgsTested(), from.is_static_call()));
+      from.NumArgsTested(), from.rebind_rule()));
   // Clone entry array.
   const Array& from_array = Array::Handle(zone, from.ic_data());
   const intptr_t len = from_array.Length();
@@ -14010,7 +14211,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 void Code::Disassemble(DisassemblyFormatter* formatter) const {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
   if (!FLAG_support_disassembler) {
     return;
   }
@@ -14295,7 +14496,6 @@ const char* Code::Name() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     if (name == NULL) {
-      ASSERT(!StubCode::HasBeenInitialized());
       return zone->PrintToString("[this stub]");  // Not yet recorded.
     }
     return zone->PrintToString("[Stub] %s", name);
@@ -15347,8 +15547,8 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
           TypeArguments::Handle(Closure::Cast(*this).function_type_arguments());
       // No bound error possible, since the instance exists.
       type ^= type.InstantiateFrom(instantiator_type_arguments,
-                                   function_type_arguments, NULL, NULL, NULL,
-                                   space);
+                                   function_type_arguments, kAllFree, NULL,
+                                   NULL, NULL, space);
     }
     type ^= type.Canonicalize();
     return type.raw();
@@ -15411,7 +15611,7 @@ bool Instance::IsInstanceOf(
     if (!other.IsInstantiated()) {
       instantiated_other = other.InstantiateFrom(
           other_instantiator_type_arguments, other_function_type_arguments,
-          bound_error, NULL, NULL, Heap::kOld);
+          kAllFree, bound_error, NULL, NULL, Heap::kOld);
       if ((bound_error != NULL) && !bound_error->IsNull()) {
         ASSERT(Isolate::Current()->type_checks());
         return false;
@@ -15437,8 +15637,9 @@ bool Instance::IsInstanceOf(
           zone, Closure::Cast(*this).instantiator_type_arguments());
       const TypeArguments& function_type_arguments = TypeArguments::Handle(
           zone, Closure::Cast(*this).function_type_arguments());
-      sig_fun = sig_fun.InstantiateSignatureFrom(
-          instantiator_type_arguments, function_type_arguments, Heap::kOld);
+      sig_fun = sig_fun.InstantiateSignatureFrom(instantiator_type_arguments,
+                                                 function_type_arguments,
+                                                 kAllFree, Heap::kOld);
     }
     return sig_fun.IsSubtypeOf(other_signature, bound_error, NULL, Heap::kOld);
   }
@@ -15464,7 +15665,7 @@ bool Instance::IsInstanceOf(
   if (!other.IsInstantiated()) {
     instantiated_other = other.InstantiateFrom(
         other_instantiator_type_arguments, other_function_type_arguments,
-        bound_error, NULL, NULL, Heap::kOld);
+        kAllFree, bound_error, NULL, NULL, Heap::kOld);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
       ASSERT(Isolate::Current()->type_checks());
       return false;
@@ -15487,17 +15688,17 @@ bool Instance::IsInstanceOf(
       if (other_is_dart_function) {
         return true;
       }
-      if (!sig_fun.HasInstantiatedSignature()) {
-        // The following signature instantiation of sig_fun with its own type
-        // parameters only works if sig_fun has no generic parent, which is
-        // guaranteed to be the case, since the looked up call() function
-        // cannot be nested. It is most probably not even generic.
+      if (!sig_fun.HasInstantiatedSignature(kCurrentClass)) {
+        // The following signature instantiation of sig_fun does not instantiate
+        // its own function type parameters, i.e there are 0 free function type
+        // params. Note that sig_fun has no generic parent, which is guaranteed
+        // to be the case, since the looked up call() function cannot be nested.
+        // It is most probably not even generic.
         ASSERT(!sig_fun.HasGenericParent());
-        const TypeArguments& function_type_arguments =
-            TypeArguments::Handle(zone, sig_fun.type_parameters());
         // No bound error possible, since the instance exists.
         sig_fun = sig_fun.InstantiateSignatureFrom(
-            type_arguments, function_type_arguments, Heap::kOld);
+            type_arguments, Object::null_type_arguments(), kNoneFree,
+            Heap::kOld);
       }
       const Function& other_signature =
           Function::Handle(zone, Type::Cast(instantiated_other).signature());
@@ -15828,6 +16029,7 @@ void AbstractType::SetScopeFunction(const Function& function) const {
 RawAbstractType* AbstractType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -16389,6 +16591,10 @@ RawType* Type::DartFunctionType() {
   return Isolate::Current()->object_store()->function_type();
 }
 
+RawType* Type::DartTypeType() {
+  return Isolate::Current()->object_store()->type_type();
+}
+
 RawType* Type::NewNonParameterizedType(const Class& type_class) {
   ASSERT(type_class.NumTypeArguments() == 0);
   Type& type = Type::Handle(type_class.CanonicalType());
@@ -16530,7 +16736,7 @@ bool Type::IsInstantiated(Genericity genericity,
   if (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) {
     return true;
   }
-  if ((genericity == kAny) && (num_free_fun_type_params == kMaxInt32) &&
+  if ((genericity == kAny) && (num_free_fun_type_params == kAllFree) &&
       (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated)) {
     return false;
   }
@@ -16574,6 +16780,7 @@ bool Type::IsInstantiated(Genericity genericity,
 RawAbstractType* Type::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -16599,8 +16806,9 @@ RawAbstractType* Type::InstantiateFrom(
     // parameterization of a generic typedef. They are otherwise ignored.
     ASSERT(type_arguments.Length() == cls.NumTypeArguments());
     type_arguments = type_arguments.InstantiateFrom(
-        instantiator_type_arguments, function_type_arguments, bound_error,
-        instantiation_trail, bound_trail, space);
+        instantiator_type_arguments, function_type_arguments,
+        num_free_fun_type_params, bound_error, instantiation_trail, bound_trail,
+        space);
   }
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators. Allocate a new instantiated version of it.
@@ -16619,9 +16827,10 @@ RawAbstractType* Type::InstantiateFrom(
     // even while checking bounds of recursive types.
     if (IsFinalized()) {
       // A generic typedef may actually declare an instantiated signature.
-      if (!sig_fun.HasInstantiatedSignature()) {
+      if (!sig_fun.HasInstantiatedSignature(kAny, num_free_fun_type_params)) {
         sig_fun = sig_fun.InstantiateSignatureFrom(
-            instantiator_type_arguments, function_type_arguments, space);
+            instantiator_type_arguments, function_type_arguments,
+            num_free_fun_type_params, space);
       }
     } else {
       // The Kernel frontend does not keep the information that a function type
@@ -16742,7 +16951,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
   const Function& other_sig_fun =
       Function::Handle(zone, other_type.signature());
 
-  if (FLAG_reify_generic_functions) {
+  if (Isolate::Current()->reify_generic_functions()) {
     // Compare function type parameters and their bounds.
     // Check the type parameters and bounds of generic functions.
     if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {
@@ -17086,7 +17295,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
 
 #if defined(DEBUG)
 bool Type::CheckIsCanonical(Thread* thread) const {
-  if (IsMalformed()) {
+  if (IsMalformed() || IsRecursive()) {
     return true;
   }
   if (type_class() == Object::dynamic_class()) {
@@ -17303,6 +17512,7 @@ void TypeRef::SetScopeFunction(const Function& function) const {
 RawTypeRef* TypeRef::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -17319,8 +17529,9 @@ RawTypeRef* TypeRef::InstantiateFrom(
   ASSERT(!ref_type.IsNull() && !ref_type.IsTypeRef());
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
-      instantiator_type_arguments, function_type_arguments, bound_error,
-      instantiation_trail, bound_trail, space);
+      instantiator_type_arguments, function_type_arguments,
+      num_free_fun_type_params, bound_error, instantiation_trail, bound_trail,
+      space);
   ASSERT(!instantiated_ref_type.IsTypeRef());
   instantiated_type_ref.set_type(instantiated_ref_type);
   return instantiated_type_ref.raw();
@@ -17518,22 +17729,19 @@ void TypeParameter::set_bound(const AbstractType& value) const {
 RawAbstractType* TypeParameter::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
     Heap::Space space) const {
   ASSERT(IsFinalized());
   if (IsFunctionTypeParameter()) {
-    // We make the distinction between a null function_type_arguments vector,
-    // which instantiates every function type parameter to dynamic, and a
-    // (possibly empty) function_type_arguments vector of length N, which only
-    // instantiates function type parameters with indices below N.
-    if (function_type_arguments.IsNull()) {
-      return Type::DynamicType();
-    }
-    if (index() >= function_type_arguments.Length()) {
+    if (index() >= num_free_fun_type_params) {
       // Return uninstantiated type parameter unchanged.
       return raw();
+    }
+    if (function_type_arguments.IsNull()) {
+      return Type::DynamicType();
     }
     return function_type_arguments.TypeAt(index());
   }
@@ -17852,6 +18060,7 @@ void BoundedType::set_type_parameter(const TypeParameter& value) const {
 RawAbstractType* BoundedType::InstantiateFrom(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
+    intptr_t num_free_fun_type_params,
     Error* bound_error,
     TrailPtr instantiation_trail,
     TrailPtr bound_trail,
@@ -17861,10 +18070,11 @@ RawAbstractType* BoundedType::InstantiateFrom(
   ASSERT(bounded_type.IsFinalized());
   AbstractType& instantiated_bounded_type =
       AbstractType::Handle(bounded_type.raw());
-  if (!bounded_type.IsInstantiated()) {
+  if (!bounded_type.IsInstantiated(kAny, num_free_fun_type_params)) {
     instantiated_bounded_type = bounded_type.InstantiateFrom(
-        instantiator_type_arguments, function_type_arguments, bound_error,
-        instantiation_trail, bound_trail, space);
+        instantiator_type_arguments, function_type_arguments,
+        num_free_fun_type_params, bound_error, instantiation_trail, bound_trail,
+        space);
     // In case types of instantiator_type_arguments are not finalized
     // (or instantiated), then the instantiated_bounded_type is not finalized
     // (or instantiated) either.
@@ -17878,10 +18088,12 @@ RawAbstractType* BoundedType::InstantiateFrom(
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
     AbstractType& instantiated_upper_bound =
         AbstractType::Handle(upper_bound.raw());
-    if (upper_bound.IsFinalized() && !upper_bound.IsInstantiated()) {
+    if (upper_bound.IsFinalized() &&
+        !upper_bound.IsInstantiated(kAny, num_free_fun_type_params)) {
       instantiated_upper_bound = upper_bound.InstantiateFrom(
-          instantiator_type_arguments, function_type_arguments, bound_error,
-          instantiation_trail, bound_trail, space);
+          instantiator_type_arguments, function_type_arguments,
+          num_free_fun_type_params, bound_error, instantiation_trail,
+          bound_trail, space);
       // The instantiated_upper_bound may not be finalized or instantiated.
       // See comment above.
     }
@@ -18155,12 +18367,22 @@ const char* Integer::ToCString() const {
   return "NULL Integer";
 }
 
+// String representation of kMaxInt64 + 1.
+static const char* kMaxInt64Plus1 = "9223372036854775808";
+
 RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
-  int64_t value;
-  if (!OS::StringToInt64(str.ToCString(), &value)) {
+  int64_t value = 0;
+  const char* cstr = str.ToCString();
+  if (!OS::StringToInt64(cstr, &value)) {
     if (FLAG_limit_ints_to_64_bits) {
+      if (strcmp(cstr, kMaxInt64Plus1) == 0) {
+        // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
+        // of unary minus to produce MIN_INT64 value. The value is automatically
+        // wrapped to MIN_INT64.
+        return Integer::New(kMinInt64, space);
+      }
       // Out of range.
       return Integer::null();
     }
@@ -18176,9 +18398,16 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
 RawInteger* Integer::NewCanonical(const String& str) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
-  int64_t value;
-  if (!OS::StringToInt64(str.ToCString(), &value)) {
+  int64_t value = 0;
+  const char* cstr = str.ToCString();
+  if (!OS::StringToInt64(cstr, &value)) {
     if (FLAG_limit_ints_to_64_bits) {
+      if (strcmp(cstr, kMaxInt64Plus1) == 0) {
+        // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
+        // of unary minus to produce MIN_INT64 value. The value is automatically
+        // wrapped to MIN_INT64.
+        return Mint::NewCanonical(kMinInt64);
+      }
       // Out of range.
       return Integer::null();
     }
@@ -19855,14 +20084,14 @@ RawString* String::FromUTF8(const uint8_t* utf8_array,
     if (len > 0) {
       NoSafepointScope no_safepoint;
       Utf8::DecodeToLatin1(utf8_array, array_len,
-                           OneByteString::CharAddr(strobj, 0), len);
+                           OneByteString::DataStart(strobj), len);
     }
     return strobj.raw();
   }
   ASSERT((type == Utf8::kBMP) || (type == Utf8::kSupplementary));
   const String& strobj = String::Handle(TwoByteString::New(len, space));
   NoSafepointScope no_safepoint;
-  Utf8::DecodeToUTF16(utf8_array, array_len, TwoByteString::CharAddr(strobj, 0),
+  Utf8::DecodeToUTF16(utf8_array, array_len, TwoByteString::DataStart(strobj),
                       len);
   return strobj.raw();
 }
@@ -20299,29 +20528,6 @@ RawString* String::SubString(Thread* thread,
 }
 
 const char* String::ToCString() const {
-  if (IsOneByteString()) {
-    // Quick conversion if OneByteString contains only ASCII characters.
-    intptr_t len = Length();
-    if (len == 0) {
-      return "";
-    }
-    Zone* zone = Thread::Current()->zone();
-    uint8_t* result = zone->Alloc<uint8_t>(len + 1);
-    NoSafepointScope no_safepoint;
-    const uint8_t* original_str = OneByteString::CharAddr(*this, 0);
-    for (intptr_t i = 0; i < len; i++) {
-      if (original_str[i] <= Utf8::kMaxOneByteChar) {
-        result[i] = original_str[i];
-      } else {
-        len = -1;
-        break;
-      }
-    }
-    if (len > 0) {
-      result[len] = 0;
-      return reinterpret_cast<const char*>(result);
-    }
-  }
   const intptr_t len = Utf8::Length(*this);
   Zone* zone = Thread::Current()->zone();
   uint8_t* result = zone->Alloc<uint8_t>(len + 1);
@@ -20331,25 +20537,6 @@ const char* String::ToCString() const {
 }
 
 char* String::ToMallocCString() const {
-  if (IsOneByteString()) {
-    // Quick conversion if OneByteString contains only ASCII characters.
-    intptr_t len = Length();
-    uint8_t* result = reinterpret_cast<uint8_t*>(malloc(len + 1));
-    NoSafepointScope no_safepoint;
-    const uint8_t* original_str = OneByteString::CharAddr(*this, 0);
-    for (intptr_t i = 0; i < len; i++) {
-      if (original_str[i] <= Utf8::kMaxOneByteChar) {
-        result[i] = original_str[i];
-      } else {
-        len = -1;
-        break;
-      }
-    }
-    if (len > 0) {
-      result[len] = 0;
-      return reinterpret_cast<char*>(result);
-    }
-  }
   const intptr_t len = Utf8::Length(*this);
   uint8_t* result = reinterpret_cast<uint8_t*>(malloc(len + 1));
   ToUTF8(result, len);
@@ -20644,7 +20831,7 @@ RawOneByteString* OneByteString::New(const uint8_t* characters,
   const String& result = String::Handle(OneByteString::New(len, space));
   if (len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(CharAddr(result, 0), characters, len);
+    memmove(DataStart(result), characters, len);
   }
   return OneByteString::raw(result);
 }
@@ -20688,7 +20875,7 @@ RawOneByteString* OneByteString::New(const String& other_one_byte_string,
   ASSERT(other_one_byte_string.IsOneByteString());
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(OneByteString::CharAddr(result, 0),
+    memmove(OneByteString::DataStart(result),
             OneByteString::CharAddr(other_one_byte_string, other_start_index),
             other_len);
   }
@@ -20703,7 +20890,7 @@ RawOneByteString* OneByteString::New(const TypedData& other_typed_data,
   ASSERT(other_typed_data.ElementSizeInBytes() == 1);
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(OneByteString::CharAddr(result, 0),
+    memmove(OneByteString::DataStart(result),
             other_typed_data.DataAddr(other_start_index), other_len);
   }
   return OneByteString::raw(result);
@@ -20717,7 +20904,7 @@ RawOneByteString* OneByteString::New(const ExternalTypedData& other_typed_data,
   ASSERT(other_typed_data.ElementSizeInBytes() == 1);
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(OneByteString::CharAddr(result, 0),
+    memmove(OneByteString::DataStart(result),
             other_typed_data.DataAddr(other_start_index), other_len);
   }
   return OneByteString::raw(result);
@@ -20867,7 +21054,7 @@ RawTwoByteString* TwoByteString::New(const uint16_t* utf16_array,
   const String& result = String::Handle(TwoByteString::New(array_len, space));
   {
     NoSafepointScope no_safepoint;
-    memmove(CharAddr(result, 0), utf16_array, (array_len * 2));
+    memmove(DataStart(result), utf16_array, (array_len * 2));
   }
   return TwoByteString::raw(result);
 }
@@ -20910,7 +21097,7 @@ RawTwoByteString* TwoByteString::New(const TypedData& other_typed_data,
   const String& result = String::Handle(TwoByteString::New(other_len, space));
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(TwoByteString::CharAddr(result, 0),
+    memmove(TwoByteString::DataStart(result),
             other_typed_data.DataAddr(other_start_index),
             other_len * sizeof(uint16_t));
   }
@@ -20924,7 +21111,7 @@ RawTwoByteString* TwoByteString::New(const ExternalTypedData& other_typed_data,
   const String& result = String::Handle(TwoByteString::New(other_len, space));
   if (other_len > 0) {
     NoSafepointScope no_safepoint;
-    memmove(TwoByteString::CharAddr(result, 0),
+    memmove(TwoByteString::DataStart(result),
             other_typed_data.DataAddr(other_start_index),
             other_len * sizeof(uint16_t));
   }
@@ -21756,7 +21943,9 @@ bool TypedData::CanonicalizeEquals(const Instance& other) const {
 
 uword TypedData::ComputeCanonicalTableHash() const {
   const intptr_t len = this->LengthInBytes();
-  ASSERT(len != 0);
+  if (len == 0) {
+    return 1;
+  }
   uword hash = len;
   for (intptr_t i = 0; i < len; i++) {
     hash = CombineHashes(len, GetUint8(i));

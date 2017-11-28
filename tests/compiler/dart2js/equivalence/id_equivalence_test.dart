@@ -15,8 +15,8 @@ import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
-import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
+import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -37,36 +37,18 @@ main(List<String> args) {
         print('Checking ${entity.uri}');
         String annotatedCode =
             await new File.fromUri(entity.uri).readAsString();
-        IdData data1 = await computeData(
-            annotatedCode, computeAstMemberData, compileFromSource,
+        AnnotatedCode code =
+            new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd);
+        // Pretend this is a dart2js_native test to allow use of 'native'
+        // keyword and import of private libraries.
+        Uri entryPoint =
+            Uri.parse('memory:sdk/tests/compiler/dart2js_native/main.dart');
+        Map<String, String> memorySourceFiles = {
+          entryPoint.path: code.sourceCode
+        };
+        await compareData(entryPoint, memorySourceFiles, computeAstMemberData,
+            computeIrMemberData,
             options: [Flags.disableTypeInference, stopAfterTypeInference]);
-        IdData data2 = await computeData(
-            annotatedCode, computeIrMemberData, compileFromDill,
-            options: [Flags.disableTypeInference, stopAfterTypeInference]);
-        data1.actualMap.forEach((Id id, ActualData actualData1) {
-          IdValue value1 = actualData1.value;
-          IdValue value2 = data2.actualMap[id]?.value;
-          if (value1 != value2) {
-            reportHere(data1.compiler.reporter, actualData1.sourceSpan,
-                '$id: from source:${value1},from dill:${value2}');
-            print('--annotations diff----------------------------------------');
-            print(data1.computeDiffCodeFor(data2));
-            print('----------------------------------------------------------');
-          }
-          Expect.equals(value1, value2, 'Value mismatch for $id');
-        });
-        data2.actualMap.forEach((Id id, ActualData actualData2) {
-          IdValue value2 = actualData2.value;
-          IdValue value1 = data1.actualMap[id]?.value;
-          if (value1 != value2) {
-            reportHere(data2.compiler.reporter, actualData2.sourceSpan,
-                '$id: from source:${value1},from dill:${value2}');
-            print('--annotations diff----------------------------------------');
-            print(data1.computeDiffCodeFor(data2));
-            print('----------------------------------------------------------');
-          }
-          Expect.equals(value1, value2, 'Value mismatch for $id');
-        });
       }
     }
   });
@@ -117,6 +99,8 @@ class ComputerMixin {
   String get switchName => 'switch';
 
   String get switchCaseName => 'case';
+
+  String get labelName => 'label';
 }
 
 /// AST visitor for computing a descriptive mapping of the [Id]s in a member.
@@ -138,6 +122,8 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
       return switchName;
     } else if (node is ast.SwitchCase) {
       return switchCaseName;
+    } else if (node is ast.LabeledStatement) {
+      return labelName;
     }
 
     dynamic sendStructure;
@@ -155,6 +141,7 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
             return sendStructure.semantics.element.name;
           case AccessKind.THIS_PROPERTY:
           case AccessKind.DYNAMIC_PROPERTY:
+          case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
             DynamicAccess access = sendStructure.semantics;
             return access.name.text;
           default:
@@ -168,14 +155,60 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
           if (dynamicName != null) return computeGetName(dynamicName);
           break;
         case SendStructureKind.BINARY:
+        case SendStructureKind.UNARY:
           return computeInvokeName(sendStructure.operator.selectorName);
+        case SendStructureKind.INDEX:
+          return computeGetName('[]');
+        case SendStructureKind.INDEX_SET:
+          return computeSetName('[]=');
+        case SendStructureKind.COMPOUND_INDEX_SET:
+        case SendStructureKind.INDEX_PREFIX:
+        case SendStructureKind.INDEX_POSTFIX:
+          if (id.kind == IdKind.update) {
+            return computeSetName('[]=');
+          } else if (id.kind == IdKind.invoke) {
+            return computeInvokeName(
+                sendStructure.operator.binaryOperator.name);
+          } else {
+            return computeGetName('[]');
+          }
+          break;
         case SendStructureKind.EQUALS:
           return computeInvokeName('==');
         case SendStructureKind.NOT_EQUALS:
-          return computeInvokeName('!=');
+          return computeInvokeName('==');
         case SendStructureKind.INVOKE:
-          String dynamicName = getDynamicName();
-          if (dynamicName != null) return computeInvokeName(dynamicName);
+        case SendStructureKind.INCOMPATIBLE_INVOKE:
+          switch (sendStructure.semantics.kind) {
+            case AccessKind.LOCAL_VARIABLE:
+            case AccessKind.FINAL_LOCAL_VARIABLE:
+            case AccessKind.PARAMETER:
+            case AccessKind.FINAL_PARAMETER:
+            case AccessKind.EXPRESSION:
+              if (id.kind == IdKind.invoke) {
+                return computeInvokeName('call');
+              } else if (id.kind == IdKind.node) {
+                String dynamicName = getDynamicName();
+                if (dynamicName != null) return computeGetName(dynamicName);
+              }
+              break;
+            case AccessKind.STATIC_FIELD:
+            case AccessKind.FINAL_STATIC_FIELD:
+            case AccessKind.TOPLEVEL_FIELD:
+            case AccessKind.FINAL_TOPLEVEL_FIELD:
+            case AccessKind.STATIC_GETTER:
+            case AccessKind.TOPLEVEL_GETTER:
+            case AccessKind.SUPER_FIELD:
+            case AccessKind.SUPER_FINAL_FIELD:
+            case AccessKind.SUPER_GETTER:
+              if (id.kind == IdKind.invoke) {
+                return computeInvokeName('call');
+              }
+              break;
+            default:
+              String dynamicName = getDynamicName();
+              if (dynamicName != null) return computeInvokeName(dynamicName);
+          }
           break;
         case SendStructureKind.SET:
           String dynamicName = getDynamicName();
@@ -184,15 +217,17 @@ class ResolvedAstComputer extends AstDataExtractor with ComputerMixin {
         case SendStructureKind.PREFIX:
         case SendStructureKind.POSTFIX:
         case SendStructureKind.COMPOUND:
-          String dynamicName = getDynamicName();
-          if (dynamicName != null) {
-            if (id.kind == IdKind.update) {
-              return computeSetName(dynamicName);
-            } else if (id.kind == IdKind.invoke) {
-              return computeInvokeName(
-                  sendStructure.operator.binaryOperator.name);
-            } else {
-              return computeGetName(dynamicName);
+          if (id.kind == IdKind.invoke) {
+            return computeInvokeName(
+                sendStructure.operator.binaryOperator.name);
+          } else {
+            String dynamicName = getDynamicName();
+            if (dynamicName != null) {
+              if (id.kind == IdKind.update) {
+                return computeSetName(dynamicName);
+              } else {
+                return computeGetName(dynamicName);
+              }
             }
           }
           break;
@@ -243,7 +278,18 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
     } else if (node is ir.FunctionExpression) {
       return computeLocalName('');
     } else if (node is ir.MethodInvocation) {
-      return computeInvokeName(node.name.name);
+      ir.TreeNode receiver = node.receiver;
+      if (receiver is ir.VariableGet &&
+          receiver.variable.parent is ir.FunctionDeclaration) {
+        // This is an invocation of a named local function.
+        return computeInvokeName(receiver.variable.name);
+      } else if (node.name.name == '[]') {
+        return computeGetName('[]');
+      } else if (node.name.name == '[]=') {
+        return computeSetName('[]=');
+      } else {
+        return computeInvokeName(node.name.name);
+      }
     } else if (node is ir.PropertyGet) {
       return computeGetName(node.name.name);
     } else if (node is ir.PropertySet) {
@@ -268,6 +314,10 @@ class IrComputer extends IrDataExtractor with ComputerMixin {
       return switchName;
     } else if (node is ir.SwitchCase) {
       return switchCaseName;
+    } else if (node is ir.LabeledStatement) {
+      return labelName;
+    } else if (node is ir.LoadLibrary) {
+      return computeInvokeName('call');
     }
     return '<unknown:$node (${node.runtimeType})>';
   }

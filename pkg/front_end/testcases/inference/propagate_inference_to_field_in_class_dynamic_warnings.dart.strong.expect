@@ -10,7 +10,7 @@ class A extends core::Object {
 }
 static method main() → dynamic {
   dynamic a = new self::A::•();
-  self::A b = a;
+  self::A b = a as{TypeError} self::A;
   core::print(a.x);
   core::print(a.x.+(2));
 }

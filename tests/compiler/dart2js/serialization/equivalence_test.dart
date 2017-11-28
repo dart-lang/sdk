@@ -269,6 +269,12 @@ class ConstantConstructorEquivalence
         constructor1.thisConstructorInvocation,
         constructor2.thisConstructorInvocation);
   }
+
+  @override
+  visitErroneous(ErroneousConstantConstructor constructor1,
+      ErroneousConstantConstructor constructor2) {
+    throw new UnsupportedError("ConstantConstructorEquivalence.visitErroneous");
+  }
 }
 
 /// Check the equivalence of the two lists of elements, [list1] and [list2].

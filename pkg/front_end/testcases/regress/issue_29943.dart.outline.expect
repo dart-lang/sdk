@@ -1,5 +1,7 @@
 library;
 import self as self;
 
+static method bad() → dynamic
+  ;
 static method main() → dynamic
   ;

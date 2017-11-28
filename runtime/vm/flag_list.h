@@ -44,17 +44,19 @@
 #define FLAG_LIST(P, R, D, C)                                                  \
   P(abort_on_oom, bool, false,                                                 \
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
+  C(async_debugger, false, false, bool, true,                                  \
+    "Debugger support async functions.")                                       \
   P(background_compilation, bool, USING_MULTICORE,                             \
     "Run optimizing compilation in background")                                \
   R(background_compilation_stop_alot, false, bool, false,                      \
     "Stress test system: stop background compiler often.")                     \
   R(break_at_isolate_spawn, false, bool, false,                                \
     "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
-  C(collect_code, false, true, bool, true,                                     \
-    "Attempt to GC infrequently used code.")                                   \
+  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
+  P(collect_code, bool, true, "Attempt to GC infrequently used code.")         \
   P(collect_dynamic_function_names, bool, true,                                \
     "Collects all dynamic function names to identify unique targets")          \
-  R(concurrent_sweep, USING_MULTICORE, bool, USING_MULTICORE,                  \
+  P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")                            \
@@ -128,7 +130,12 @@
   P(polymorphic_with_deopt, bool, true,                                        \
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
+  P(print_precompiler_entry_points, bool, false,                               \
+    "Print entry points and info about recognized methods used by "            \
+    "precompiler.")                                                            \
   P(print_snapshot_sizes, bool, false, "Print sizes of generated snapshots.")  \
+  P(print_snapshot_sizes_verbose, bool, false,                                 \
+    "Print cluster sizes of generated snapshots.")                             \
   P(print_benchmarking_metrics, bool, false,                                   \
     "Print additional memory and latency metrics for benchmarking.")           \
   R(print_ssa_liveranges, false, bool, false,                                  \
@@ -144,11 +151,9 @@
   P(reify_generic_functions, bool, false,                                      \
     "Enable reification of generic functions (not yet supported).")            \
   P(reorder_basic_blocks, bool, true, "Reorder basic blocks")                  \
-  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
   C(stress_async_stacks, false, false, bool, false,                            \
     "Stress test async stack traces")                                          \
-  C(async_debugger, false, false, bool, true,                                  \
-    "Debugger support async functions.")                                       \
+  P(strong, bool, false, "Use strong mode in type checks.")                    \
   R(support_ast_printer, false, bool, true, "Support the AST printer.")        \
   R(support_compiler_stats, false, bool, true, "Support compiler stats.")      \
   R(support_disassembler, false, bool, true, "Support the disassembler.")      \
@@ -169,6 +174,7 @@
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
+  P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, !USING_DBC,                                        \

@@ -25,7 +25,7 @@ class F4<T> {
   F4({Iterable<Iterable<T>> a}) {}
 }
 
-void main() {
+void test() {
   new F0<int>(/*@typeArgs=int*/ []);
   new F0<int>(/*@typeArgs=int*/ [3]);
   new F0<int>(
@@ -104,3 +104,5 @@ void main() {
     /*@typeArgs=int*/ [3]
   ]);
 }
+
+main() {}

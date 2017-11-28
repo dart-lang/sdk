@@ -35,8 +35,8 @@ void checkVeryClose(double a, double b) {
   Expect.equals(true, b <= limitHigh);
 }
 
-const NaN = double.NAN;
-const Infinity = double.INFINITY;
+const NaN = double.nan;
+const Infinity = double.infinity;
 
 var samples = [
   NaN,
@@ -166,7 +166,7 @@ test() {
 
   // The second argument is an odd integer as int, but not when converted
   // to double.
-  Expect.identical(Infinity, pow(-0.0, -9223372036854775809));
+  Expect.identical(Infinity, pow(-0.0, -9223372036854775807));
 }
 
 main() {

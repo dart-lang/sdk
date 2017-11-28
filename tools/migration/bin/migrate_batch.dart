@@ -15,7 +15,7 @@ import 'package:migration/src/io.dart';
 import 'package:migration/src/log.dart';
 import 'package:migration/src/migrate_statuses.dart';
 
-const simpleDirs = const ["corelib", "language", "lib"];
+const simpleDirs = const ["corelib", "language", "lib", "standalone"];
 
 void main(List<String> arguments) {
   if (arguments.contains("--dry-run")) {

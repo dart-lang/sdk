@@ -31,7 +31,7 @@ class A {
   int _x;
   A(this._x);
 
-  A.fail() async; // //# constructor2: compile-time error
+  A.fail() async; // //# constructor2: syntax error
   factory A.create() async {return null; } //# constructor3: compile-time error
 
   int someMethod(int param1, int param2, int param3) async => _x + param2; //# type-mismatch3: static type warning, dynamic type error
@@ -46,7 +46,7 @@ class A {
 class B {
   final _y;
   const B._internal(this._y);
-  const factory B.createConst(int y) async = A._internal; // //# constructor4: compile-time error
+  const factory B.createConst(int y) async = A._internal; // //# constructor4: syntax error
 
   B() : _y = null;
 

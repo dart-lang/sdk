@@ -592,6 +592,13 @@ analyzer:
     ''', [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
+  test_analyzer_strong_mode_false_deprecated() {
+    validate('''
+analyzer:
+  strong-mode: false
+    ''', [AnalysisOptionsHintCode.SPEC_MODE_DEPRECATED]);
+  }
+
   test_analyzer_unsupported_option() {
     validate('''
 analyzer:

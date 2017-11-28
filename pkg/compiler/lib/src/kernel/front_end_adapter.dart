@@ -80,20 +80,24 @@ void reportFrontEndMessage(
     DiagnosticReporter reporter, fe.CompilationMessage message) {
   // TODO(sigmund): translate message kinds using message.dart2jsCode
   MessageKind kind = MessageKind.GENERIC;
+  Spannable span;
+  if (message.span != null) {
+    span = new SourceSpan(message.span.start.sourceUrl,
+        message.span.start.offset, message.span.start.offset + 1);
+  } else {
+    span = NO_LOCATION_SPANNABLE;
+  }
   switch (message.severity) {
     case fe.Severity.internalProblem:
       throw message.message;
     case fe.Severity.error:
-      reporter.reportErrorMessage(
-          NO_LOCATION_SPANNABLE, kind, {'text': message.message});
+      reporter.reportErrorMessage(span, kind, {'text': message.message});
       break;
     case fe.Severity.warning:
-      reporter.reportWarningMessage(
-          NO_LOCATION_SPANNABLE, kind, {'text': message.message});
+      reporter.reportWarningMessage(span, kind, {'text': message.message});
       break;
     case fe.Severity.nit:
-      reporter.reportHintMessage(
-          NO_LOCATION_SPANNABLE, kind, {'text': message.message});
+      reporter.reportHintMessage(span, kind, {'text': message.message});
       break;
     default:
       throw new UnimplementedError('unhandled severity ${message.severity}');

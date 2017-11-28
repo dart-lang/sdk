@@ -37,7 +37,8 @@ CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
   // Wrap the SmiReturnCodegen test above as a static function and call it.
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
   test->node_sequence()->Add(
-      new ReturnNode(kPos, new StaticCallNode(kPos, function, no_arguments)));
+      new ReturnNode(kPos, new StaticCallNode(kPos, function, no_arguments,
+                                              StaticCallNode::kStatic)));
 }
 CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
 
@@ -67,8 +68,9 @@ CODEGEN_TEST2_GENERATE(StaticCallReturnParameterCodegen, function, test) {
   SequenceNode* node_seq = test->node_sequence();
   ArgumentListNode* arguments = new ArgumentListNode(kPos);
   arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))));
-  node_seq->Add(
-      new ReturnNode(kPos, new StaticCallNode(kPos, function, arguments)));
+  node_seq->Add(new ReturnNode(
+      kPos,
+      new StaticCallNode(kPos, function, arguments, StaticCallNode::kStatic)));
 }
 CODEGEN_TEST2_RUN(StaticCallReturnParameterCodegen,
                   ReturnParameterCodegen,
@@ -102,8 +104,9 @@ CODEGEN_TEST2_GENERATE(StaticCallSmiParamSumCodegen, function, test) {
   ArgumentListNode* arguments = new ArgumentListNode(kPos);
   arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))));
   arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(2))));
-  node_seq->Add(
-      new ReturnNode(kPos, new StaticCallNode(kPos, function, arguments)));
+  node_seq->Add(new ReturnNode(
+      kPos,
+      new StaticCallNode(kPos, function, arguments, StaticCallNode::kStatic)));
 }
 CODEGEN_TEST2_RUN(StaticCallSmiParamSumCodegen, SmiParamSumCodegen, Smi::New(5))
 
@@ -246,10 +249,10 @@ CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
   EXPECT(function_fly.HasCode());
 
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
-  StaticCallNode* call_bar =
-      new StaticCallNode(kPos, function_bar, no_arguments);
-  StaticCallNode* call_fly =
-      new StaticCallNode(kPos, function_fly, no_arguments);
+  StaticCallNode* call_bar = new StaticCallNode(
+      kPos, function_bar, no_arguments, StaticCallNode::kStatic);
+  StaticCallNode* call_fly = new StaticCallNode(
+      kPos, function_fly, no_arguments, StaticCallNode::kStatic);
 
   BinaryOpNode* add_node =
       new BinaryOpNode(kPos, Token::kADD, call_bar, call_fly);

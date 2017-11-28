@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// part of "common_patch.dart";
+
 @patch
 class RawSynchronousSocket {
   @patch
@@ -62,7 +64,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
 
   static _NativeSynchronousSocket connectSync(host, int port) {
     if (host == null) {
-      throw ArgumentError("Parameter host cannot be null");
+      throw new ArgumentError("Parameter host cannot be null");
     }
     List<_InternetAddress> addresses = null;
     var error = null;

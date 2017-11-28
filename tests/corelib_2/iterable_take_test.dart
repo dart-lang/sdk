@@ -214,14 +214,14 @@ main() {
   Expect.isFalse(dynamicIt.moveNext());
   Expect.isNull(dynamicIt.current);
 
-  Expect.throws(() => list1.skip(-1), (e) => e is RangeError);
-  Expect.throws(() => list2.skip(-1), (e) => e is RangeError);
-  Expect.throws(() => list3.skip(-1), (e) => e is RangeError);
-  Expect.throws(() => set1.skip(-1), (e) => e is RangeError);
-  Expect.throws(() => set2.skip(-1), (e) => e is RangeError);
-  Expect.throws(() => list1.map((x) => x).skip(-1), (e) => e is RangeError);
-  Expect.throws(() => list2.map((x) => x).skip(-1), (e) => e is RangeError);
-  Expect.throws(() => list3.map((x) => x).skip(-1), (e) => e is RangeError);
-  Expect.throws(() => set1.map((x) => x).skip(-1), (e) => e is RangeError);
-  Expect.throws(() => set2.map((x) => x).skip(-1), (e) => e is RangeError);
+  Expect.throwsRangeError(() => list1.skip(-1));
+  Expect.throwsRangeError(() => list2.skip(-1));
+  Expect.throwsRangeError(() => list3.skip(-1));
+  Expect.throwsRangeError(() => set1.skip(-1));
+  Expect.throwsRangeError(() => set2.skip(-1));
+  Expect.throwsRangeError(() => list1.map((x) => x).skip(-1));
+  Expect.throwsRangeError(() => list2.map((x) => x).skip(-1));
+  Expect.throwsRangeError(() => list3.map((x) => x).skip(-1));
+  Expect.throwsRangeError(() => set1.map((x) => x).skip(-1));
+  Expect.throwsRangeError(() => set2.map((x) => x).skip(-1));
 }

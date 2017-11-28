@@ -9,7 +9,7 @@ class B<T> {
   T /*@covariance=genericInterface, genericImpl*/ x;
 }
 
-class /*@forwardingStub=abstract void set x(covariance=(genericImpl) num value)*/ C
+class /*@forwardingStub=abstract void set x(covariance=(genericImpl) num _)*/ C
     extends B<num> {}
 
 void main() {}

@@ -246,6 +246,16 @@ IsolateTest setBreakpointAtLine(int line) {
   };
 }
 
+IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
+  return (Isolate isolate) async {
+    print("Setting breakpoint for line $line in $uri");
+    Breakpoint bpt = await isolate.addBreakpointByScriptUri(uri, line);
+    print("Breakpoint is $bpt");
+    expect(bpt, isNotNull);
+    expect(bpt is Breakpoint, isTrue);
+  };
+}
+
 IsolateTest stoppedAtLine(int line) {
   return (Isolate isolate) async {
     print("Checking we are at line $line");
@@ -421,6 +431,43 @@ IsolateTest runStepThroughProgramRecordingStops(List<String> recordStops) {
   };
 }
 
+IsolateTest resumeProgramRecordingStops(
+    List<String> recordStops, bool includeCaller) {
+  return (Isolate isolate) async {
+    Completer completer = new Completer();
+
+    await subscribeToStream(isolate.vm, VM.kDebugStream,
+        (ServiceEvent event) async {
+      if (event.kind == ServiceEvent.kPauseBreakpoint) {
+        await isolate.reload();
+        // We are paused: Resume after recording.
+        ServiceMap stack = await isolate.getStack();
+        expect(stack.type, equals('Stack'));
+        List<Frame> frames = stack['frames'];
+        expect(frames.length, greaterThanOrEqualTo(2));
+        Frame frame = frames[0];
+        String brokeAt = await frame.location.toUserString();
+        if (includeCaller) {
+          frame = frames[1];
+          String calledFrom = await frame.location.toUserString();
+          recordStops.add("$brokeAt ($calledFrom)");
+        } else {
+          recordStops.add(brokeAt);
+        }
+
+        isolate.resume();
+      } else if (event.kind == ServiceEvent.kPauseExit) {
+        // We are at the exit: The test is done.
+        await cancelStreamSubscription(VM.kDebugStream);
+        completer.complete();
+      }
+    });
+    print("Resuming!");
+    isolate.resume();
+    return completer.future;
+  };
+}
+
 IsolateTest runStepIntoThroughProgramRecordingStops(List<String> recordStops) {
   return (Isolate isolate) async {
     Completer completer = new Completer();
@@ -486,7 +533,8 @@ IsolateTest checkRecordedStops(
     }
 
     expect(recordStops.length >= expectedStops.length, true,
-        reason: "Expects at least ${expectedStops.length} breaks.");
+        reason: "Expects at least ${expectedStops.length} breaks, "
+            "got ${recordStops.length}.");
   };
 }
 

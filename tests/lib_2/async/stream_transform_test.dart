@@ -4,9 +4,11 @@
 
 library stream_transform_test;
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import 'package:test/test.dart';
+
+import 'package:expect/expect.dart';
+import 'package:unittest/unittest.dart';
+
 import 'event_helper.dart';
 
 main() {

@@ -8,8 +8,8 @@ class C<T extends core::Object> extends core::Object {
   default constructor •() → void
     : super core::Object::•()
     ;
-  method f1(self::C::T x) → void {}
-  method f2(core::List<self::C::T> x) → self::C::T
+  method f1(generic-covariant-impl generic-covariant-interface self::C::T x) → void {}
+  method f2(generic-covariant-impl generic-covariant-interface core::List<self::C::T> x) → self::C::T
     return x.{core::Iterable::first};
 }
 static method g1(self::C<core::num> c) → (core::num) → void {

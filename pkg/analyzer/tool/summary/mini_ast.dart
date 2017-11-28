@@ -156,8 +156,8 @@ class MiniAstBuilder extends StackListener {
   Uri get uri => null;
 
   @override
-  void addCompileTimeError(Message message, int charOffset) {
-    internalProblem(message, charOffset, uri);
+  void addCompileTimeError(Message message, int offset, int length) {
+    internalProblem(message, offset, uri);
   }
 
   @override
@@ -187,14 +187,12 @@ class MiniAstBuilder extends StackListener {
     push(popList(memberCount));
   }
 
-  void endClassDeclaration(
-      int interfacesCount,
-      Token beginToken,
-      Token classKeyword,
-      Token extendsKeyword,
-      Token implementsKeyword,
-      Token nativeToken,
-      Token endToken) {
+  @override
+  void handleRecoverClassHeader() {
+    pop(); // superclass
+  }
+
+  void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
     List<ClassMember> members = pop();
     TypeName superclass = pop();
@@ -257,8 +255,8 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token nameToken,
-      FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
+      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
     debugEvent("FormalParameter");
     pop(); // Name
     pop(); // Type
@@ -273,19 +271,30 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endIdentifierList(int count) {
+  void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
     push(popList(count));
   }
 
   @override
-  void endImport(Token importKeyword, Token deferredKeyword, Token asKeyword,
-      Token semicolon) {
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    debugEvent("ImportPrefix");
+    pushIfNull(asKeyword, NullValue.Prefix);
+  }
+
+  @override
+  void endImport(Token importKeyword, Token semicolon) {
     debugEvent("Import");
-    popIfNotNull(asKeyword); // Prefix identifier
+    pop(NullValue.Prefix); // Prefix identifier
     pop(); // URI
     pop(); // Metadata
     pop(); // Comment
+  }
+
+  @override
+  void handleRecoverImport(Token semicolon) {
+    debugEvent("RecoverImport");
+    pop(NullValue.Prefix); // Prefix identifier
   }
 
   @override
@@ -309,6 +318,12 @@ class MiniAstBuilder extends StackListener {
     if (hasName) {
       pop(); // Pop the native name which is a StringLiteral.
     }
+  }
+
+  @override
+  void handleInvalidMember(Token endToken) {
+    debugEvent("InvalidMember");
+    pop(); // metadata star
   }
 
   @override
@@ -416,8 +431,9 @@ class MiniAstBuilder extends StackListener {
 
   void handleIdentifier(Token token, IdentifierContext context) {
     if (context == IdentifierContext.enumValueDeclaration) {
-      var comment = new Comment(token.precedingComments);
-      push(new EnumConstantDeclaration(comment, null, token.lexeme));
+      List<Annotation> metadata = pop();
+      Comment comment = pop();
+      push(new EnumConstantDeclaration(comment, metadata, token.lexeme));
     } else {
       push(token.lexeme);
     }

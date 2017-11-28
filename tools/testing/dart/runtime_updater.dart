@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'utils.dart';
+import 'repository.dart';
 
 Future _contentShellFuture;
 
@@ -31,7 +31,7 @@ class _RuntimeUpdater {
     try {
       print('Updating $_name...');
 
-      var arguments = [TestUtils.dartDirUri.resolve(_script).toFilePath()];
+      var arguments = [Repository.uri.resolve(_script).toFilePath()];
 
       if (_option != null) arguments.add(_option);
 

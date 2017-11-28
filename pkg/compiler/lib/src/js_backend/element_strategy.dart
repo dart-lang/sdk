@@ -11,6 +11,7 @@ import '../common/codegen.dart';
 import '../common/tasks.dart';
 import '../common/work.dart';
 import '../compiler.dart';
+import '../deferred_load.dart' show OutputUnitData;
 import '../elements/elements.dart';
 import '../enqueue.dart';
 import '../inferrer/type_graph_inferrer.dart' show AstTypeGraphInferrer;
@@ -25,7 +26,6 @@ import '../js_backend/native_data.dart';
 import '../js_emitter/sorter.dart';
 import '../resolution/resolution_strategy.dart';
 import '../ssa/builder.dart';
-import '../ssa/rasta_ssa_builder_task.dart';
 import '../ssa/ssa.dart';
 import '../types/types.dart';
 import '../options.dart';
@@ -64,6 +64,9 @@ class ElementBackendStrategy extends ComputeSpannableMixin
   }
 
   @override
+  OutputUnitData convertOutputUnitData(OutputUnitData data) => data;
+
+  @override
   WorkItemBuilder createCodegenWorkItemBuilder(ClosedWorld closedWorld) {
     return new ElementCodegenWorkItemBuilder(
         _compiler.backend, closedWorld, _compiler.options);
@@ -72,9 +75,7 @@ class ElementBackendStrategy extends ComputeSpannableMixin
   @override
   SsaBuilder createSsaBuilder(CompilerTask task, JavaScriptBackend backend,
       SourceInformationStrategy sourceInformationStrategy) {
-    return _compiler.options.useKernelInSsa
-        ? new RastaSsaBuilder(task, backend, sourceInformationStrategy)
-        : new SsaAstBuilder(task, backend, sourceInformationStrategy);
+    return new SsaAstBuilder(task, backend, sourceInformationStrategy);
   }
 
   SourceInformationStrategy get sourceInformationStrategy {

@@ -9,7 +9,7 @@ library dart2js.source_information.position;
 
 import '../common.dart';
 import '../elements/elements.dart'
-    show AstElement, MemberElement, ResolvedAst, ResolvedAstKind;
+    show MemberElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
@@ -96,14 +96,9 @@ class PositionSourceInformation extends SourceInformation {
   }
 }
 
-class PositionSourceInformationStrategy
-    implements JavaScriptSourceInformationStrategy {
-  const PositionSourceInformationStrategy();
-
-  @override
-  SourceInformationBuilder createBuilderForContext(MemberElement member) {
-    return new PositionSourceInformationBuilder(member);
-  }
+abstract class AbstractPositionSourceInformationStrategy<T>
+    implements JavaScriptSourceInformationStrategy<T> {
+  const AbstractPositionSourceInformationStrategy();
 
   @override
   SourceInformationProcessor createProcessor(
@@ -117,6 +112,16 @@ class PositionSourceInformationStrategy
   @override
   SourceInformation buildSourceMappedMarker() {
     return const SourceMappedMarker();
+  }
+}
+
+class PositionSourceInformationStrategy
+    extends AbstractPositionSourceInformationStrategy<Node> {
+  const PositionSourceInformationStrategy();
+
+  @override
+  SourceInformationBuilder<Node> createBuilderForContext(MemberElement member) {
+    return new PositionSourceInformationBuilder(member);
   }
 }
 
@@ -138,8 +143,10 @@ class SourceMappedMarker extends SourceInformation {
   SourceSpan get sourceSpan => new SourceSpan(null, null, null);
 }
 
-/// [SourceInformationBuilder] that generates [PositionSourceInformation].
-class PositionSourceInformationBuilder implements SourceInformationBuilder {
+/// [SourceInformationBuilder] that generates [PositionSourceInformation] from
+/// AST nodes.
+class PositionSourceInformationBuilder
+    implements SourceInformationBuilder<Node> {
   final SourceFile sourceFile;
   final String name;
   final ResolvedAst resolvedAst;
@@ -151,6 +158,7 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
 
   SourceInformation buildDeclaration(MemberElement member) {
     ResolvedAst resolvedAst = member.resolvedAst;
+    SourceFile sourceFile = computeSourceFile(member.resolvedAst);
     if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       SourceSpan span = resolvedAst.element.sourcePosition;
       return new PositionSourceInformation(
@@ -170,6 +178,12 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
         sourceFile, node.getBeginToken().charOffset, name));
   }
 
+  /// Builds a source information object pointing the end position of [node].
+  SourceInformation buildEnd(Node node) {
+    return new PositionSourceInformation(new OffsetSourceLocation(
+        sourceFile, node.getEndToken().charOffset, name));
+  }
+
   @override
   SourceInformation buildGeneric(Node node) => buildBegin(node);
 
@@ -177,10 +191,13 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation buildCreate(Node node) => buildBegin(node);
 
   @override
+  SourceInformation buildListLiteral(Node node) => buildBegin(node);
+
+  @override
   SourceInformation buildReturn(Node node) => buildBegin(node);
 
   @override
-  SourceInformation buildImplicitReturn(AstElement element) {
+  SourceInformation buildImplicitReturn(MemberElement element) {
     if (element.isSynthesized) {
       return new PositionSourceInformation(new OffsetSourceLocation(
           sourceFile, element.position.charOffset, name));
@@ -238,8 +255,7 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   @override
   SourceInformation buildAssignment(Node node) => buildBegin(node);
 
-  @override
-  SourceInformation buildVariableDeclaration() {
+  SourceInformation _buildMemberBody() {
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       Node body = resolvedAst.body;
       if (body != null) {
@@ -248,6 +264,38 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
       // TODO(johnniwinther): Are there other cases?
     }
     return null;
+  }
+
+  SourceInformation _buildMemberExit() {
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      Node body = resolvedAst.body;
+      if (body != null) {
+        return buildEnd(body);
+      }
+      // TODO(johnniwinther): Are there other cases?
+    }
+    return null;
+  }
+
+  @override
+  SourceInformation buildVariableDeclaration() {
+    return _buildMemberBody();
+  }
+
+  @override
+  SourceInformation buildAwait(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildYield(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildAsyncBody() {
+    return _buildMemberBody();
+  }
+
+  @override
+  SourceInformation buildAsyncExit() {
+    return _buildMemberExit();
   }
 
   @override
@@ -281,6 +329,9 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
 
   @override
   SourceInformation buildBinary(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildTry(Node node) => buildBegin(node);
 
   @override
   SourceInformation buildCatch(Node node) => buildBegin(node);
@@ -389,7 +440,8 @@ SourceLocation getSourceLocation(SourceInformation sourceInformation,
     case SourcePositionKind.START:
       return sourceInformation.startPosition;
     case SourcePositionKind.INNER:
-      return sourceInformation.closingPosition;
+      return sourceInformation.closingPosition ??
+          sourceInformation.startPosition;
   }
 }
 
@@ -638,14 +690,16 @@ class CallPosition {
         return new CallPosition(
             access.selector, CodePositionKind.START, SourcePositionKind.INNER);
       }
-    } else if (node.target is js.VariableUse) {
-      // m()
-      // ^
+    } else if (node.target is js.VariableUse || node.target is js.This) {
+      // m()   this()
+      // ^     ^
       return new CallPosition(
           node, CodePositionKind.START, SourcePositionKind.START);
-    } else if (node.target is js.Fun || node.target is js.New) {
-      // function(){}()  new Function("...")()
-      //             ^                      ^
+    } else if (node.target is js.Fun ||
+        node.target is js.New ||
+        node.target is js.NamedFunction) {
+      // function(){}()  new Function("...")()   function foo(){}()
+      //             ^                      ^                    ^
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
     } else if (node.target is js.Binary || node.target is js.Call) {
@@ -862,8 +916,7 @@ class JavaScriptTracer extends js.BaseVisitor {
     }
   }
 
-  @override
-  visitFun(js.Fun node) {
+  void _handleFunction(js.Node node, js.Node body) {
     bool activeBefore = active;
     if (!active) {
       active = reader.getSourceInformation(node) != null;
@@ -873,7 +926,7 @@ class JavaScriptTracer extends js.BaseVisitor {
     Offset entryOffset = getOffsetForNode(node, statementOffset);
     notifyStep(node, entryOffset, StepKind.FUN_ENTRY);
 
-    visit(node.body);
+    visit(body);
 
     leftToRightOffset =
         statementOffset = getSyntaxOffset(node, kind: CodePositionKind.CLOSING);
@@ -885,6 +938,16 @@ class JavaScriptTracer extends js.BaseVisitor {
       notifyStep(node, endOffset, StepKind.NO_INFO);
     }
     active = activeBefore;
+  }
+
+  @override
+  visitFun(js.Fun node) {
+    _handleFunction(node, node.body);
+  }
+
+  @override
+  visitNamedFunction(js.NamedFunction node) {
+    _handleFunction(node, node.function.body);
   }
 
   @override
@@ -1206,7 +1269,9 @@ class JavaScriptTracer extends js.BaseVisitor {
         codeOffset = codePosition.startPosition;
       }
     }
-    if (leftToRightOffset != null && leftToRightOffset < codeOffset) {
+    if (leftToRightOffset != null &&
+        codeOffset != null &&
+        leftToRightOffset < codeOffset) {
       leftToRightOffset = codeOffset;
     }
     if (leftToRightOffset == null) {

@@ -26,8 +26,10 @@ import 'parser_helper.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
-Node buildInitialization(String name) => parseBodyCode('$name = 1',
-    (parser, tokens) => parser.parseOptionallyInitializedIdentifier(tokens));
+Node buildInitialization(String name) => parseBodyCode(
+    '$name = 1',
+    (parser, tokens) => parser.parseOptionallyInitializedIdentifier(
+        parser.syntheticPreviousToken(tokens)));
 
 createLocals(List variables) {
   var locals = <Node>[];
@@ -44,7 +46,7 @@ createLocals(List variables) {
   return new VariableDefinitions(null, Modifiers.EMPTY, definitions);
 }
 
-Future testLocals(List variables) {
+Future<MockCompiler> testLocals(List variables) {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     ResolutionResult result = visitor.visit(createLocals(variables));
@@ -660,7 +662,7 @@ Future testTwoInterfaces() {
 
 Future testFunctionExpression() {
   return MockCompiler.create((MockCompiler compiler) {
-    Map mapping = compiler.resolveStatement("int f() {}").map;
+    var mapping = compiler.resolveStatement("int f() {}").map;
     Expect.equals(2, mapping.length);
     Element element;
     Node node;

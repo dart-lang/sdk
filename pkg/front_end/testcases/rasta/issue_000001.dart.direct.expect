@@ -6,5 +6,5 @@ static method test0(dynamic x) → dynamic {
   core::print("test0");
 }
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::_withType(null, #test0, 32, <dynamic>[0, 1].toList(growable: false), <dynamic, dynamic>{}, null);
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#test0, 32, null, <dynamic>[0, 1].toList(growable: false), <dynamic, dynamic>{}));
 }

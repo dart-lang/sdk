@@ -10,7 +10,7 @@ import 'util/relativize.dart' show relativizeUri;
 
 import 'compiler_context.dart' show CompilerContext;
 
-import 'fasta_codes.dart' show Message;
+import 'fasta_codes.dart' show LocatedMessage, Message;
 
 import 'severity.dart' show Severity;
 
@@ -18,14 +18,20 @@ export 'fasta_codes.dart';
 
 bool get isVerbose => CompilerContext.current.options.verbose;
 
+void error(Message message, int charOffset, Uri uri) {
+  report(message.withLocation(uri, charOffset), Severity.error);
+}
+
 void warning(Message message, int charOffset, Uri uri) {
-  CompilerContext.current
-      .report(message.withLocation(uri, charOffset), Severity.warning);
+  report(message.withLocation(uri, charOffset), Severity.warning);
 }
 
 void nit(Message message, int charOffset, Uri uri) {
-  CompilerContext.current
-      .report(message.withLocation(uri, charOffset), Severity.nit);
+  report(message.withLocation(uri, charOffset), Severity.nit);
+}
+
+void report(LocatedMessage message, Severity severity) {
+  CompilerContext.current.report(message, severity);
 }
 
 Location getLocation(String path, int charOffset) {

@@ -72,8 +72,7 @@ class PhysicalResourceProvider implements ResourceProvider {
    */
   final String _stateLocation;
 
-  static _SingleIsolateRunnerProvider pathsToTimesIsolateProvider =
-      new _SingleIsolateRunnerProvider();
+  static Future<IsolateRunner> pathsToTimesIsolate = IsolateRunner.spawn();
 
   @override
   final AbsolutePathContext absolutePathContext =
@@ -104,7 +103,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
     List<String> paths = sources.map((source) => source.fullName).toList();
-    IsolateRunner runner = await pathsToTimesIsolateProvider.get();
+    IsolateRunner runner = await pathsToTimesIsolate;
     return runner.run(_pathsToTimes, paths);
   }
 
@@ -424,35 +423,5 @@ abstract class _PhysicalResource implements Resource {
             path, 'Windows device drivers cannot be read.');
       }
     }
-  }
-}
-
-/**
- * This class encapsulates logic for creating a single [IsolateRunner].
- */
-class _SingleIsolateRunnerProvider {
-  bool _isSpawning = false;
-  IsolateRunner _runner;
-
-  /**
-   * Complete with the only [IsolateRunner] instance.
-   */
-  Future<IsolateRunner> get() async {
-    if (_runner != null) {
-      return _runner;
-    }
-    if (_isSpawning) {
-      Completer<IsolateRunner> completer = new Completer<IsolateRunner>();
-      new Timer.periodic(new Duration(milliseconds: 10), (Timer timer) {
-        if (_runner != null) {
-          completer.complete(_runner);
-          timer.cancel();
-        }
-      });
-      return completer.future;
-    }
-    _isSpawning = true;
-    _runner = await IsolateRunner.spawn();
-    return _runner;
   }
 }

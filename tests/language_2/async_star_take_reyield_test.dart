@@ -6,9 +6,9 @@ import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
-expectList(stream, list) {
-  return stream.toList().then((v) {
-    Expect.listEquals(v, list);
+expectList(actualStream, expectedList) {
+  return actualStream.toList().then((v) {
+    Expect.listEquals(expectedList, v);
   });
 }
 

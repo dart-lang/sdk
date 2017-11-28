@@ -19,7 +19,7 @@ class MyList extends ListBase {
   operator []=(index, val) => list[index] = val;
 }
 
-id(x) => x;
+Iterable id(Iterable x) => x;
 
 main() {
   // Test functionality.
@@ -110,9 +110,8 @@ main() {
     "".runes,
     new MyList([]),
   ]) {
-    Expect.throws(() {
-      iterable.reduce((x, y) => throw "Unreachable");
-    }, (e) => e is StateError);
+    Expect.throwsStateError(
+        () => iterable.reduce((x, y) => throw "Unreachable"));
   }
 
   // Singleton iterables not calling reduce function.

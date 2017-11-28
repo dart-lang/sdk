@@ -25,6 +25,7 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
 #include "vm/kernel_isolate.h"
 #include "vm/lockers.h"
@@ -1089,7 +1090,8 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
     }
   }
 
-  if (ServiceIsolate::NameEquals(script_uri)) {
+  if (ServiceIsolate::NameEquals(script_uri) ||
+      (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0)) {
     return strdup(script_uri);
   }
 
@@ -1134,7 +1136,9 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
   Isolate* I = Dart::CreateIsolate(isolate_name, *flags);
   free(isolate_name);
   if (I == NULL) {
-    *error = strdup("Isolate creation failed");
+    if (error != NULL) {
+      *error = strdup("Isolate creation failed");
+    }
     return reinterpret_cast<Dart_Isolate>(NULL);
   }
   {
@@ -1163,9 +1167,14 @@ static Dart_Isolate CreateIsolate(const char* script_uri,
       // outside this scope in Dart_ShutdownIsolate/Dart_ExitIsolate.
       T->set_execution_state(Thread::kThreadInNative);
       T->EnterSafepoint();
+      if (error != NULL) {
+        *error = NULL;
+      }
       return Api::CastIsolate(I);
     }
-    *error = strdup(error_obj.ToErrorCString());
+    if (error != NULL) {
+      *error = strdup(error_obj.ToErrorCString());
+    }
     // We exit the API scope entered above.
     Dart_ExitScope();
   }
@@ -2474,10 +2483,36 @@ DART_EXPORT Dart_Handle Dart_StringGetProperties(Dart_Handle object,
 // --- Lists ---
 
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
+  return Dart_NewListOf(Dart_CoreType_Dynamic, length);
+}
+
+static RawTypeArguments* TypeArgumentsForElementType(
+    ObjectStore* store,
+    Dart_CoreType_Id element_type_id) {
+  switch (element_type_id) {
+    case Dart_CoreType_Dynamic:
+      return TypeArguments::null();
+    case Dart_CoreType_Int:
+      return store->type_argument_int();
+    case Dart_CoreType_String:
+      return store->type_argument_string();
+  }
+  UNREACHABLE();
+  return NULL;
+}
+
+DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
+                                       intptr_t length) {
   DARTSCOPE(Thread::Current());
   CHECK_LENGTH(length, Array::kMaxElements);
   CHECK_CALLBACK_STATE(T);
-  return Api::NewHandle(T, Array::New(length));
+  const Array& arr = Array::Handle(Z, Array::New(length));
+  if (element_type_id != Dart_CoreType_Dynamic) {
+    arr.SetTypeArguments(TypeArguments::Handle(
+        Z, TypeArgumentsForElementType(T->isolate()->object_store(),
+                                       element_type_id)));
+  }
+  return Api::NewHandle(T, arr.raw());
 }
 
 #define GET_LIST_LENGTH(zone, type, obj, len)                                  \
@@ -3640,8 +3675,8 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
       ASSERT(redirect_type.IsInstantiated(kFunctions));
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, Object::null_type_arguments(), &bound_error, NULL,
-          NULL, Heap::kNew);
+          type_arguments, Object::null_type_arguments(), kNoneFree,
+          &bound_error, NULL, NULL, Heap::kNew);
       if (!bound_error.IsNull()) {
         return Api::NewHandle(T, bound_error.raw());
       }
@@ -4990,8 +5025,7 @@ static Dart_Handle LoadKernelProgram(Thread* T,
   // NOTE: Now the VM owns the [kernel_program] memory!
   // We will promptly delete it when done.
   kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel);
-  kernel::KernelLoader loader(program);
-  const Object& tmp = loader.LoadProgram();
+  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
   return Api::NewHandle(T, tmp.raw());
 }
@@ -5177,8 +5211,7 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   // NOTE: Now the VM owns the [kernel_program] memory!
   // We will promptly delete it when done.
   kernel::Program* program = reinterpret_cast<kernel::Program*>(kernel_program);
-  kernel::KernelLoader loader(program);
-  const Object& tmp = loader.LoadProgram();
+  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
   delete program;
 
   if (tmp.IsError()) {
@@ -5398,7 +5431,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   Dart_Handle result;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (I->use_dart_frontend()) {
-    result = LoadKernelProgram(T, url_str, reinterpret_cast<void*>(source));
+    void* kernel_pgm = reinterpret_cast<void*>(source);
+    result = LoadKernelProgram(T, url_str, kernel_pgm);
     if (::Dart_IsError(result)) {
       return result;
     }
