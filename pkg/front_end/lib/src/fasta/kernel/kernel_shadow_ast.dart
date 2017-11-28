@@ -956,6 +956,18 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
       {bool isSuper: false})
       : super(receiver, rhs, isSuper);
 
+  Arguments _getInvocationArguments(
+      ShadowTypeInferrer inferrer, Expression invocation) {
+    if (invocation is MethodInvocation) {
+      return invocation.arguments;
+    } else if (invocation is SuperMethodInvocation) {
+      return invocation.arguments;
+    } else {
+      throw unhandled("${invocation.runtimeType}", "_getInvocationArguments",
+          fileOffset, Uri.parse(inferrer.uri));
+    }
+  }
+
   @override
   List<String> _getToStringParts() {
     var parts = super._getToStringParts();
@@ -969,6 +981,32 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     typeNeeded = inferrer.listener.indexAssignEnter(desugared, typeContext) ||
         typeNeeded;
     var receiverType = _inferReceiver(inferrer);
+    var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
+    // To replicate analyzer behavior, we base type inference on the write
+    // member.  TODO(paulberry): would it be better to use the read member
+    // when doing compound assignment?
+    var calleeType =
+        inferrer.getCalleeFunctionType(writeMember, receiverType, false);
+    DartType expectedIndexTypeForWrite;
+    DartType indexContext;
+    DartType writeContext;
+    if (calleeType.positionalParameters.length >= 2) {
+      // TODO(paulberry): we ought to get a context for the index expression
+      // from the index formal parameter, but analyzer doesn't so for now we
+      // replicate its behavior.
+      indexContext = null;
+      expectedIndexTypeForWrite = calleeType.positionalParameters[0];
+      writeContext = calleeType.positionalParameters[1];
+    }
+    var indexType = inferrer.inferExpression(index, indexContext, true);
+    _storeLetType(inferrer, index, indexType);
+    if (writeContext != null) {
+      inferrer.checkAssignability(
+          expectedIndexTypeForWrite,
+          indexType,
+          _getInvocationArguments(inferrer, write).positional[0],
+          write.fileOffset);
+    }
     InvocationExpression read = this.read;
     DartType readType;
     if (read != null) {
@@ -976,6 +1014,11 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
           inferrer.findMethodInvocationMember(receiverType, read, silent: true);
       var calleeFunctionType =
           inferrer.getCalleeFunctionType(readMember, receiverType, false);
+      inferrer.checkAssignability(
+          getPositionalParameterType(calleeFunctionType, 0),
+          indexType,
+          _getInvocationArguments(inferrer, read).positional[0],
+          read.fileOffset);
       readType = calleeFunctionType.returnType;
       var desugaredInvocation = read is MethodInvocation ? read : null;
       var checkKind = inferrer.preCheckInvocationContravariance(receiver,
@@ -990,23 +1033,6 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
           read.fileOffset);
       _storeLetType(inferrer, replacedRead, readType);
     }
-    var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
-    // To replicate analyzer behavior, we base type inference on the write
-    // member.  TODO(paulberry): would it be better to use the read member
-    // when doing compound assignment?
-    var calleeType =
-        inferrer.getCalleeFunctionType(writeMember, receiverType, false);
-    DartType indexContext;
-    DartType writeContext;
-    if (calleeType.positionalParameters.length >= 2) {
-      // TODO(paulberry): we ought to get a context for the index expression
-      // from the index formal parameter, but analyzer doesn't so for now we
-      // replicate its behavior.
-      indexContext = null;
-      writeContext = calleeType.positionalParameters[1];
-    }
-    var indexType = inferrer.inferExpression(index, indexContext, true);
-    _storeLetType(inferrer, index, indexType);
     var inferredType = _inferRhs(inferrer, readType, writeContext);
     inferrer.listener.indexAssignExit(desugared, inferredType);
     _replaceWithDesugared();

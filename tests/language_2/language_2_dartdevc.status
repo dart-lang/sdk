@@ -33,6 +33,8 @@ generic_list_checked_test: CompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 generic_tearoff_test: CompileTimeError
+implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
+implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 internal_library_test/02: Crash
 method_override7_test/03: MissingCompileTimeError # Issue 30514

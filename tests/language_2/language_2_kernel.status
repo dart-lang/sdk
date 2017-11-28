@@ -693,8 +693,6 @@ library_env_test/has_html_support: RuntimeError # KernelVM bug: Configurable imp
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_mirror_support: RuntimeError
 list_is_test: RuntimeError
-list_literal4_test/01: MissingCompileTimeError
-list_literal4_test/04: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
@@ -774,8 +772,6 @@ map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 map_literal3_test/04: MissingCompileTimeError
-map_literal4_test/02: MissingCompileTimeError
-map_literal4_test/06: MissingCompileTimeError
 method_override2_test/00: MissingCompileTimeError
 method_override2_test/01: MissingCompileTimeError
 method_override2_test/02: MissingCompileTimeError
@@ -2283,8 +2279,6 @@ library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError # KernelVM bug: Configurable imports.
 library_env_test/has_no_io_support: RuntimeError, OK
-list_literal4_test/01: MissingCompileTimeError
-list_literal4_test/04: MissingCompileTimeError
 list_literal_syntax_test/01: MissingCompileTimeError
 list_literal_syntax_test/02: MissingCompileTimeError
 list_literal_syntax_test/03: MissingCompileTimeError
@@ -2366,8 +2360,6 @@ map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
 map_literal3_test/04: MissingCompileTimeError
-map_literal4_test/02: MissingCompileTimeError
-map_literal4_test/06: MissingCompileTimeError
 map_literal8_test: Pass
 map_literal8_test: RuntimeError
 method_override2_test/*: MissingCompileTimeError
