@@ -27,6 +27,22 @@ main() {
   switchStatement(0);
   switchStatementConst(const Const(0));
   switchStatementConst(const Const(1));
+  isInt(null);
+  isInt(0);
+  isDouble(null);
+  isDouble(0.5);
+  isBool(null);
+  isBool(true);
+  isString(null);
+  isString('');
+  asString(0);
+  asString('');
+  isList([]);
+  isList(null);
+  isListOfString(<String>[]);
+  isListOfString(<int>[]);
+  tryCatch();
+  tryOnCatch();
 }
 
 throwStatement() {
@@ -131,4 +147,74 @@ switchStatementConst(a) {
     case const Const(2):
       return 3;
   }
+}
+
+isInt(e) {
+  e = e is int;
+  print(e);
+  return e;
+}
+
+isDouble(e) {
+  e = e is double;
+  print(e);
+  return e;
+}
+
+isBool(e) {
+  e = e is bool;
+  print(e);
+  return e;
+}
+
+isString(e) {
+  e = e is String;
+  print(e);
+  return e;
+}
+
+isList(e) {
+  e = e is List;
+  print(e);
+  return e;
+}
+
+isListOfString(e) {
+  e = e is List<String>;
+  print(e);
+  return e;
+}
+
+asString(e) {
+  e = e as String;
+  print(e);
+  return e;
+}
+
+tryCatch() {
+  try {
+    throw '';
+  } catch (e) {
+    print(e);
+  }
+}
+
+tryOnCatch() {
+  try {
+    throw '';
+  } on String catch (e) {
+    print(e);
+  } on int catch (e) {
+    print(e);
+  }
+}
+
+unresolvedToplevel() {
+  // ignore: undefined_function
+  unresolved();
+}
+
+unresolvedType(e) {
+  // ignore: type_test_with_undefined_name
+  e is Unresolved;
 }

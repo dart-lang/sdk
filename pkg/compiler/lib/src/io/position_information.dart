@@ -191,6 +191,9 @@ class PositionSourceInformationBuilder
   SourceInformation buildCreate(Node node) => buildBegin(node);
 
   @override
+  SourceInformation buildListLiteral(Node node) => buildBegin(node);
+
+  @override
   SourceInformation buildReturn(Node node) => buildBegin(node);
 
   @override
@@ -320,6 +323,9 @@ class PositionSourceInformationBuilder
 
   @override
   SourceInformation buildBinary(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildTry(Node node) => buildBegin(node);
 
   @override
   SourceInformation buildCatch(Node node) => buildBegin(node);

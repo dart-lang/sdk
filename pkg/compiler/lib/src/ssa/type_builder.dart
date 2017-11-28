@@ -160,7 +160,8 @@ abstract class TypeBuilder {
   }
 
   HInstruction buildTypeArgumentRepresentations(
-      DartType type, MemberEntity sourceElement) {
+      DartType type, MemberEntity sourceElement,
+      [SourceInformation sourceInformation]) {
     assert(!type.isTypeVariable);
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
@@ -168,13 +169,15 @@ abstract class TypeBuilder {
     InterfaceType interface = type;
     List<HInstruction> inputs = <HInstruction>[];
     for (DartType argument in interface.typeArguments) {
-      inputs.add(analyzeTypeArgument(argument, sourceElement));
+      inputs.add(analyzeTypeArgument(argument, sourceElement,
+          sourceInformation: sourceInformation));
     }
     HInstruction representation = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
         builder.closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
-        builder.commonMasks.dynamicType);
+        builder.commonMasks.dynamicType)
+      ..sourceInformation = sourceInformation;
     return representation;
   }
 
@@ -239,7 +242,8 @@ abstract class TypeBuilder {
   /// Invariant: [type] must be valid in the context.
   /// See [LocalsHandler.substInContext].
   HInstruction buildTypeConversion(
-      HInstruction original, DartType type, int kind) {
+      HInstruction original, DartType type, int kind,
+      {SourceInformation sourceInformation}) {
     if (type == null) return original;
     if (type.isTypeVariable) {
       TypeVariableType typeVariable = type;
@@ -256,26 +260,30 @@ abstract class TypeBuilder {
       InterfaceType interfaceType = type;
       TypeMask subtype =
           new TypeMask.subtype(interfaceType.element, builder.closedWorld);
-      HInstruction representations =
-          buildTypeArgumentRepresentations(type, builder.sourceElement);
+      HInstruction representations = buildTypeArgumentRepresentations(
+          type, builder.sourceElement, sourceInformation);
       builder.add(representations);
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, subtype, original, representations);
+          type, kind, subtype, original, representations)
+        ..sourceInformation = sourceInformation;
     } else if (type.isTypeVariable) {
       TypeMask subtype = original.instructionType;
       HInstruction typeVariable =
           addTypeVariableReference(type, builder.sourceElement);
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, subtype, original, typeVariable);
+          type, kind, subtype, original, typeVariable)
+        ..sourceInformation = sourceInformation;
     } else if (type.isFunctionType) {
       HInstruction reifiedType =
           analyzeTypeArgument(type, builder.sourceElement);
       // TypeMasks don't encode function types.
       TypeMask refinedMask = original.instructionType;
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, refinedMask, original, reifiedType);
+          type, kind, refinedMask, original, reifiedType)
+        ..sourceInformation = sourceInformation;
     } else {
-      return original.convertType(builder.closedWorld, type, kind);
+      return original.convertType(builder.closedWorld, type, kind)
+        ..sourceInformation = sourceInformation;
     }
   }
 }

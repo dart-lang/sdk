@@ -143,6 +143,9 @@ class SourceInformationBuilder<T> {
   /// Generate [SourceInformation] for the binary operation in [node].
   SourceInformation buildBinary(T node) => null;
 
+  /// Generate [SourceInformation] for the try statement in [node].
+  SourceInformation buildTry(T node) => null;
+
   /// Generate [SourceInformation] for the unary operator in [node].
   SourceInformation buildCatch(T node) => null;
 
@@ -157,6 +160,9 @@ class SourceInformationBuilder<T> {
 
   /// Generate [SourceInformation] for the switch case in [node].
   SourceInformation buildSwitchCase(T node) => null;
+
+  /// Generate [SourceInformation] for the list literal in [node].
+  SourceInformation buildListLiteral(T node) => null;
 }
 
 /// A location in a source file.

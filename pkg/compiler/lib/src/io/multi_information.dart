@@ -109,6 +109,12 @@ class MultiSourceInformationBuilder<T> implements SourceInformationBuilder<T> {
   }
 
   @override
+  SourceInformation buildTry(T node) {
+    return new MultiSourceInformation(
+        builders.map((b) => b.buildTry(node)).toList());
+  }
+
+  @override
   SourceInformation buildCatch(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildCatch(node)).toList());
@@ -244,6 +250,12 @@ class MultiSourceInformationBuilder<T> implements SourceInformationBuilder<T> {
   SourceInformation buildCreate(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildCreate(node)).toList());
+  }
+
+  @override
+  SourceInformation buildListLiteral(T node) {
+    return new MultiSourceInformation(
+        builders.map((b) => b.buildListLiteral(node)).toList());
   }
 
   @override

@@ -2448,7 +2448,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       HInstruction converted = typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),
-          HTypeConversion.CAST_TYPE_CHECK);
+          HTypeConversion.CAST_TYPE_CHECK,
+          sourceInformation: sourceInformationBuilder.buildAs(node));
       if (converted != expressionInstruction) add(converted);
       stack.add(converted);
     }
@@ -2457,20 +2458,22 @@ class SsaAstGraphBuilder extends ast.Visitor
   @override
   void visitIs(ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
-    push(buildIsNode(node, type, expressionInstruction));
+    push(buildIsNode(node, type, expressionInstruction,
+        sourceInformationBuilder.buildIs(node)));
   }
 
   @override
   void visitIsNot(
       ast.Send node, ast.Node expression, ResolutionDartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
-    HInstruction instruction = buildIsNode(node, type, expressionInstruction);
+    HInstruction instruction = buildIsNode(node, type, expressionInstruction,
+        sourceInformationBuilder.buildIs(node));
     add(instruction);
     push(new HNot(instruction, commonMasks.boolType));
   }
 
-  HInstruction buildIsNode(
-      ast.Node node, ResolutionDartType type, HInstruction expression) {
+  HInstruction buildIsNode(ast.Node node, ResolutionDartType type,
+      HInstruction expression, SourceInformation sourceInformation) {
     type = localsHandler.substInContext(type).unaliased;
     if (type.isMalformed) {
       String message;
@@ -2493,16 +2496,18 @@ class SsaAstGraphBuilder extends ast.Visitor
         representation,
       ];
       pushInvokeStatic(node, commonElements.functionTypeTest, inputs,
-          typeMask: commonMasks.boolType);
+          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call, commonMasks.boolType);
+      return new HIs.compound(type, expression, call, commonMasks.boolType)
+        ..sourceInformation = sourceInformation;
     } else if (type.isTypeVariable) {
       ResolutionTypeVariableType typeVariable = type;
       HInstruction runtimeType =
           typeBuilder.addTypeVariableReference(typeVariable, sourceElement);
       MethodElement helper = commonElements.checkSubtypeOfRuntimeType;
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
-      pushInvokeStatic(null, helper, inputs, typeMask: commonMasks.boolType);
+      pushInvokeStatic(null, helper, inputs,
+          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
       return new HIs.variable(type, expression, call, commonMasks.boolType);
     } else if (RuntimeTypesSubstitutions.hasTypeArguments(type)) {
@@ -2522,17 +2527,21 @@ class SsaAstGraphBuilder extends ast.Visitor
         representations,
         asFieldName
       ];
-      pushInvokeStatic(node, helper, inputs, typeMask: commonMasks.boolType);
+      pushInvokeStatic(node, helper, inputs,
+          typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call, commonMasks.boolType);
+      return new HIs.compound(type, expression, call, commonMasks.boolType)
+        ..sourceInformation = sourceInformation;
     } else {
       if (backend.hasDirectCheckFor(closedWorld.commonElements, type)) {
-        return new HIs.direct(type, expression, commonMasks.boolType);
+        return new HIs.direct(type, expression, commonMasks.boolType)
+          ..sourceInformation = sourceInformation;
       }
       // The interceptor is not always needed.  It is removed by optimization
       // when the receiver type or tested type permit.
-      return new HIs.raw(type, expression, invokeInterceptor(expression),
-          commonMasks.boolType);
+      return new HIs.raw(
+          type, expression, invokeInterceptor(expression), commonMasks.boolType)
+        ..sourceInformation = sourceInformation;
     }
   }
 
@@ -3358,28 +3367,30 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   HInstruction handleListConstructor(ResolutionInterfaceType type,
-      ast.Node currentNode, HInstruction newObject) {
+      HInstruction newObject, SourceInformation sourceInformation) {
     if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return newObject;
     }
     List<HInstruction> inputs = <HInstruction>[];
     type = localsHandler.substInContext(type);
     type.typeArguments.forEach((ResolutionDartType argument) {
-      inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
+      inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement,
+          sourceInformation: sourceInformation));
     });
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(type, inputs, newObject);
+    return callSetRuntimeTypeInfoWithTypeArguments(
+        type, inputs, newObject, sourceInformation);
   }
 
-  HInstruction callSetRuntimeTypeInfo(
-      HInstruction typeInfo, HInstruction newObject) {
+  HInstruction callSetRuntimeTypeInfo(HInstruction typeInfo,
+      HInstruction newObject, SourceInformation sourceInformation) {
     // Set the runtime type information on the object.
     MethodElement typeInfoSetterElement = commonElements.setRuntimeTypeInfo;
     pushInvokeStatic(
         null, typeInfoSetterElement, <HInstruction>[newObject, typeInfo],
         typeMask: commonMasks.dynamicType,
-        sourceInformation: newObject.sourceInformation);
+        sourceInformation: sourceInformation);
 
     // The new object will now be referenced through the
     // `setRuntimeTypeInfo` call. We therefore set the type of that
@@ -3397,6 +3408,9 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   void handleNewSend(ast.NewExpression node) {
     ast.Send send = node.send;
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildNew(send);
+
     generateIsDeferredLoadedCheckOfSend(send);
 
     ConstructorElement constructor = elements[send];
@@ -3573,8 +3587,6 @@ class SsaAstGraphBuilder extends ast.Visitor
           '${cls.name}.${constructor.name} '
           'can only be used as a const constructor');
     } else {
-      SourceInformation sourceInformation =
-          sourceInformationBuilder.buildNew(send);
       potentiallyAddTypeArguments(inputs, cls, expectedType);
       addInlinedInstantiation(expectedType);
       pushInvokeStatic(node, constructor.declaration, inputs,
@@ -3599,7 +3611,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         (isFixedListConstructorCall ||
             isGrowableListConstructorCall ||
             isJSArrayTypedConstructor)) {
-      newInstance = handleListConstructor(type, send, pop());
+      newInstance = handleListConstructor(type, pop(), sourceInformation);
       stack.add(newInstance);
     }
 
@@ -5333,7 +5345,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
   }
 
-  HInstruction setRtiIfNeeded(HInstruction object, ast.Node node) {
+  HInstruction setRtiIfNeeded(
+      HInstruction object, ast.Node node, SourceInformation sourceInformation) {
     ResolutionInterfaceType type =
         localsHandler.substInContext(elements.getType(node));
     if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
@@ -5341,11 +5354,13 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
     List<HInstruction> arguments = <HInstruction>[];
     for (ResolutionDartType argument in type.typeArguments) {
-      arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
+      arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement,
+          sourceInformation: sourceInformation));
     }
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(type, arguments, object);
+    return callSetRuntimeTypeInfoWithTypeArguments(
+        type, arguments, object, sourceInformation);
   }
 
   visitLiteralList(ast.LiteralList node) {
@@ -5363,7 +5378,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       instruction = buildLiteralList(inputs);
       add(instruction);
-      instruction = setRtiIfNeeded(instruction, node);
+      instruction = setRtiIfNeeded(
+          instruction, node, sourceInformationBuilder.buildListLiteral(node));
     }
 
     TypeMask type = _inferredTypeOfListLiteral(node);
@@ -6376,12 +6392,16 @@ class SsaAstGraphBuilder extends ast.Visitor
       open(startCatchBlock);
       // Note that the name of this local is irrelevant.
       SyntheticLocal local = localsHandler.createLocal('exception');
-      exception = new HLocalValue(local, commonMasks.nonNullType);
+      SourceInformation trySourceInformation =
+          sourceInformationBuilder.buildTry(node);
+      exception = new HLocalValue(local, commonMasks.nonNullType)
+        ..sourceInformation = trySourceInformation;
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
 
-      pushInvokeStatic(node, commonElements.exceptionUnwrapper, [exception]);
+      pushInvokeStatic(node, commonElements.exceptionUnwrapper, [exception],
+          sourceInformation: trySourceInformation);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
       Link<ast.Node> link = node.catchBlocks.nodes;
@@ -6392,8 +6412,11 @@ class SsaAstGraphBuilder extends ast.Visitor
           if (type == null) {
             reporter.internalError(catchBlock.type, 'On with no type.');
           }
-          HInstruction condition =
-              buildIsNode(catchBlock.type, type, unwrappedException);
+          HInstruction condition = buildIsNode(
+              catchBlock.type,
+              type,
+              unwrappedException,
+              sourceInformationBuilder.buildCatch(catchBlock.type));
           push(condition);
         } else {
           ast.VariableDefinitions declaration = catchBlock.formals.nodes.head;
@@ -6410,7 +6433,8 @@ class SsaAstGraphBuilder extends ast.Visitor
             if (type == null) {
               reporter.internalError(catchBlock, 'Catch with unresolved type.');
             }
-            condition = buildIsNode(declaration.type, type, unwrappedException);
+            condition = buildIsNode(declaration.type, type, unwrappedException,
+                sourceInformationBuilder.buildCatch(declaration));
             push(condition);
           }
         }
@@ -6422,7 +6446,9 @@ class SsaAstGraphBuilder extends ast.Visitor
         if (catchBlock.exception != null) {
           LocalVariableElement exceptionVariable =
               elements[catchBlock.exception];
-          localsHandler.updateLocal(exceptionVariable, unwrappedException);
+          localsHandler.updateLocal(exceptionVariable, unwrappedException,
+              sourceInformation:
+                  sourceInformationBuilder.buildCatch(catchBlock.exception));
         }
         ast.Node trace = catchBlock.trace;
         if (trace != null) {
@@ -6447,7 +6473,8 @@ class SsaAstGraphBuilder extends ast.Visitor
                 pushCondition(newBlock);
               },
               visitThen: visitThen,
-              visitElse: visitElse);
+              visitElse: visitElse,
+              sourceInformation: sourceInformationBuilder.buildCatch(newBlock));
         }
       }
 
@@ -6458,7 +6485,8 @@ class SsaAstGraphBuilder extends ast.Visitor
             pushCondition(firstBlock);
           },
           visitThen: visitThen,
-          visitElse: visitElse);
+          visitElse: visitElse,
+          sourceInformation: sourceInformationBuilder.buildCatch(firstBlock));
       if (!isAborted()) endCatchBlock = close(new HGoto());
 
       rethrowableException = oldRethrowableException;

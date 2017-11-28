@@ -224,13 +224,24 @@ class KernelSourceInformationBuilder
   }
 
   @override
-  SourceInformation buildAs(ir.Node node) => null;
+  SourceInformation buildAs(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
-  SourceInformation buildIs(ir.Node node) => null;
+  SourceInformation buildIs(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
-  SourceInformation buildCatch(ir.Node node) => null;
+  SourceInformation buildTry(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildCatch(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildBinary(ir.Node node) => null;
@@ -329,6 +340,11 @@ class KernelSourceInformationBuilder
 
   @override
   SourceInformation buildCreate(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildListLiteral(ir.Node node) {
     return _buildTreeNode(node);
   }
 

@@ -26,6 +26,7 @@ import '../elements/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart' show JavaScriptBackend;
+import '../js_backend/runtime_types.dart' show RuntimeTypesSubstitutions;
 import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../js_model/locals.dart'
     show forEachOrderedParameter, GlobalLocalsMap, JumpVisitor;
@@ -1161,9 +1162,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
         if (options.enableTypeAssertions &&
             !isValidAsyncReturnType(_returnType)) {
           generateTypeError(
-              node,
               "Async function returned a Future,"
-              " was declared to return a ${_returnType}.");
+              " was declared to return a ${_returnType}.",
+              sourceInformation);
           pop();
           return;
         }
@@ -1467,7 +1468,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     void buildUpdate() {}
 
     // Creates a synthetic try/finally block in case anything async goes amiss.
-    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(this);
+    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(
+        this, _sourceInformationBuilder.buildLoop(node));
     // Build fake try body:
     loopHandler.handleLoop(
         node,
@@ -1492,13 +1494,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ..cleanUp();
   }
 
-  HInstruction callSetRuntimeTypeInfo(
-      HInstruction typeInfo, HInstruction newObject) {
+  HInstruction callSetRuntimeTypeInfo(HInstruction typeInfo,
+      HInstruction newObject, SourceInformation sourceInformation) {
     // Set the runtime type information on the object.
     FunctionEntity typeInfoSetterFn = _commonElements.setRuntimeTypeInfo;
     // TODO(efortuna): Insert source information in this static invocation.
     _pushStaticInvocation(typeInfoSetterFn, <HInstruction>[newObject, typeInfo],
-        commonMasks.dynamicType);
+        commonMasks.dynamicType,
+        sourceInformation: sourceInformation);
 
     // The new object will now be referenced through the
     // `setRuntimeTypeInfo` call. We therefore set the type of that
@@ -1698,19 +1701,22 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitAsExpression(ir.AsExpression node) {
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildAs(node);
     node.operand.accept(this);
     HInstruction expressionInstruction = pop();
 
     if (node.type is ir.InvalidType) {
-      generateTypeError(node, 'invalid type');
+      generateTypeError('invalid type', sourceInformation);
       return;
     }
 
     DartType type = _elementMap.getDartType(node.type);
     if (type.isMalformed) {
+      // TODO(johnniwinther): This branch is no longer needed.
       if (type is MalformedType) {
         ErroneousElement element = type.element;
-        generateTypeError(node, element.message);
+        generateTypeError(element.message, sourceInformation);
       } else {
         assert(type is MethodTypeVariableType);
         stack.add(expressionInstruction);
@@ -1719,7 +1725,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HInstruction converted = typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),
-          HTypeConversion.CAST_TYPE_CHECK);
+          HTypeConversion.CAST_TYPE_CHECK,
+          sourceInformation: sourceInformation);
       if (converted != expressionInstruction) {
         add(converted);
       }
@@ -1727,25 +1734,29 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
   }
 
-  void generateError(ir.Node node, FunctionEntity function, String message,
-      TypeMask typeMask) {
+  void generateError(FunctionEntity function, String message, TypeMask typeMask,
+      SourceInformation sourceInformation) {
     HInstruction errorMessage = graph.addConstantString(message, closedWorld);
     // TODO(sra): Associate source info from [node].
     _pushStaticInvocation(function, [errorMessage], typeMask);
   }
 
-  void generateTypeError(ir.Node node, String message) {
-    generateError(node, _commonElements.throwTypeError, message,
-        _typeInferenceMap.getReturnTypeOf(_commonElements.throwTypeError));
+  void generateTypeError(String message, SourceInformation sourceInformation) {
+    generateError(
+        _commonElements.throwTypeError,
+        message,
+        _typeInferenceMap.getReturnTypeOf(_commonElements.throwTypeError),
+        sourceInformation);
   }
 
-  void generateUnsupportedError(ir.Node node, String message) {
+  void generateUnsupportedError(
+      String message, SourceInformation sourceInformation) {
     generateError(
-        node,
         _commonElements.throwUnsupportedError,
         message,
         _typeInferenceMap
-            .getReturnTypeOf(_commonElements.throwUnsupportedError));
+            .getReturnTypeOf(_commonElements.throwUnsupportedError),
+        sourceInformation);
   }
 
   @override
@@ -2310,8 +2321,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   /// Set the runtime type information if necessary.
-  HInstruction _setListRuntimeTypeInfoIfNeeded(
-      HInstruction object, InterfaceType type) {
+  HInstruction _setListRuntimeTypeInfoIfNeeded(HInstruction object,
+      InterfaceType type, SourceInformation sourceInformation) {
     if (!rtiNeed.classNeedsRti(type.element) || type.treatAsRaw) {
       return object;
     }
@@ -2321,7 +2332,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(type, arguments, object);
+    return callSetRuntimeTypeInfoWithTypeArguments(
+        type, arguments, object, sourceInformation);
   }
 
   @override
@@ -2338,9 +2350,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
       listInstruction = buildLiteralList(elements);
       add(listInstruction);
+      SourceInformation sourceInformation =
+          _sourceInformationBuilder.buildListLiteral(node);
       InterfaceType type = localsHandler.substInContext(
           _commonElements.listType(_elementMap.getDartType(node.typeArgument)));
-      listInstruction = _setListRuntimeTypeInfoIfNeeded(listInstruction, type);
+      listInstruction = _setListRuntimeTypeInfoIfNeeded(
+          listInstruction, type, sourceInformation);
     }
 
     TypeMask type =
@@ -2859,9 +2874,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
             sourceInformation: sourceInformation));
       } else {
         generateUnsupportedError(
-            invocation,
             '${function.enclosingClass.name}.${function.name} '
-            'can only be used as a const constructor');
+            'can only be used as a const constructor',
+            sourceInformation);
       }
       return;
     }
@@ -2978,7 +2993,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
             isJSArrayTypedConstructor)) {
       InterfaceType type = _elementMap.createInterfaceType(
           invocation.target.enclosingClass, invocation.arguments.types);
-      stack.add(_setListRuntimeTypeInfoIfNeeded(pop(), type));
+      stack
+          .add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
     }
 
     // TODO(redemption): For redirecting factory constructors, check or trust
@@ -3850,21 +3866,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitIsExpression(ir.IsExpression isExpression) {
-    isExpression.operand.accept(this);
+  void visitIsExpression(ir.IsExpression node) {
+    node.operand.accept(this);
     HInstruction expression = pop();
-    pushIsTest(isExpression, isExpression.type, expression);
+    pushIsTest(node.type, expression, _sourceInformationBuilder.buildIs(node));
   }
 
-  void pushIsTest(ir.Node node, ir.DartType type, HInstruction expression,
-      {SourceInformation sourceInformation}) {
+  void pushIsTest(ir.DartType type, HInstruction expression,
+      SourceInformation sourceInformation) {
     // Note: The call to "unalias" this type like in the original SSA builder is
     // unnecessary in kernel because Kernel has no notion of typedef.
     // TODO(efortuna): Add test for this.
 
     if (type is ir.InvalidType) {
       // TODO(sra): Make InvalidType carry a message.
-      generateTypeError(node, 'invalid type');
+      generateTypeError('invalid type', sourceInformation);
       pop();
       stack.add(graph.addConstantBool(true, closedWorld));
       return;
@@ -3886,9 +3902,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
         representation,
       ];
       _pushStaticInvocation(
-          _commonElements.functionTypeTest, inputs, commonMasks.boolType);
+          _commonElements.functionTypeTest, inputs, commonMasks.boolType,
+          sourceInformation: sourceInformation);
       HInstruction call = pop();
-      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType));
+      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType)
+        ..sourceInformation = sourceInformation);
       return;
     }
 
@@ -3896,13 +3914,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       HInstruction runtimeType =
           typeBuilder.addTypeVariableReference(typeValue, sourceElement);
       _pushStaticInvocation(_commonElements.checkSubtypeOfRuntimeType,
-          <HInstruction>[expression, runtimeType], commonMasks.boolType);
-      push(
-          new HIs.variable(typeValue, expression, pop(), commonMasks.boolType));
+          <HInstruction>[expression, runtimeType], commonMasks.boolType,
+          sourceInformation: sourceInformation);
+      push(new HIs.variable(typeValue, expression, pop(), commonMasks.boolType)
+        ..sourceInformation = sourceInformation);
       return;
     }
 
-    if (_isInterfaceWithNoDynamicTypes(type)) {
+    if (RuntimeTypesSubstitutions.hasTypeArguments(typeValue)) {
       InterfaceType interfaceType = typeValue;
       HInstruction representations = typeBuilder
           .buildTypeArgumentRepresentations(typeValue, sourceElement);
@@ -3922,34 +3941,24 @@ class KernelSsaGraphBuilder extends ir.Visitor
         asFieldName
       ];
       _pushStaticInvocation(
-          _commonElements.checkSubtype, inputs, commonMasks.boolType);
-      push(
-          new HIs.compound(typeValue, expression, pop(), commonMasks.boolType));
+          _commonElements.checkSubtype, inputs, commonMasks.boolType,
+          sourceInformation: sourceInformation);
+      push(new HIs.compound(typeValue, expression, pop(), commonMasks.boolType)
+        ..sourceInformation = sourceInformation);
       return;
     }
 
     if (backend.hasDirectCheckFor(closedWorld.commonElements, typeValue)) {
-      push(new HIs.direct(typeValue, expression, commonMasks.boolType));
+      push(new HIs.direct(typeValue, expression, commonMasks.boolType)
+        ..sourceInformation = sourceInformation);
       return;
     }
     // The interceptor is not always needed.  It is removed by optimization
     // when the receiver type or tested type permit.
     push(new HIs.raw(typeValue, expression,
-        _interceptorFor(expression, sourceInformation), commonMasks.boolType));
+        _interceptorFor(expression, sourceInformation), commonMasks.boolType)
+      ..sourceInformation = sourceInformation);
     return;
-  }
-
-  bool _isInterfaceWithNoDynamicTypes(ir.DartType type) {
-    bool isMethodTypeVariableType(ir.DartType typeArgType) {
-      return (typeArgType is ir.TypeParameterType &&
-          typeArgType.parameter.parent is ir.FunctionNode);
-    }
-
-    return type is ir.InterfaceType &&
-        type.typeArguments.any((ir.DartType typeArgType) =>
-            typeArgType is! ir.DynamicType &&
-            typeArgType is! ir.InvalidType &&
-            !isMethodTypeVariableType(type));
   }
 
   @override
@@ -4024,12 +4033,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitTryCatch(ir.TryCatch tryCatch) {
-    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(this);
-    tryCatch.body.accept(this);
+  void visitTryCatch(ir.TryCatch node) {
+    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(
+        this, _sourceInformationBuilder.buildTry(node));
+    node.body.accept(this);
     tryBuilder
       ..closeTryBody()
-      ..buildCatch(tryCatch)
+      ..buildCatch(node)
       ..cleanUp();
   }
 
@@ -4042,25 +4052,26 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// nested try statements, the visitors avoid one potential level of
   /// recursion.
   @override
-  void visitTryFinally(ir.TryFinally tryFinally) {
-    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(this);
+  void visitTryFinally(ir.TryFinally node) {
+    TryCatchFinallyBuilder tryBuilder = new TryCatchFinallyBuilder(
+        this, _sourceInformationBuilder.buildTry(node));
 
     // We do these shenanigans to produce better looking code that doesn't
     // have nested try statements.
-    if (tryFinally.body is ir.TryCatch) {
-      ir.TryCatch tryCatch = tryFinally.body;
+    if (node.body is ir.TryCatch) {
+      ir.TryCatch tryCatch = node.body;
       tryCatch.body.accept(this);
       tryBuilder
         ..closeTryBody()
         ..buildCatch(tryCatch);
     } else {
-      tryFinally.body.accept(this);
+      node.body.accept(this);
       tryBuilder.closeTryBody();
     }
 
     tryBuilder
       ..buildFinallyBlock(() {
-        tryFinally.finalizer.accept(this);
+        node.finalizer.accept(this);
       })
       ..cleanUp();
   }
@@ -4583,6 +4594,9 @@ class InlineWeeder {
 /// the instructions that need to be output and the dominator calculation of
 /// this sequence of code.
 class TryCatchFinallyBuilder {
+  final KernelSsaGraphBuilder kernelBuilder;
+  final SourceInformation trySourceInformation;
+
   HBasicBlock enterBlock;
   HBasicBlock startTryBlock;
   HBasicBlock endTryBlock;
@@ -4593,7 +4607,6 @@ class TryCatchFinallyBuilder {
   HBasicBlock exitBlock;
   HTry tryInstruction;
   HLocalValue exception;
-  KernelSsaGraphBuilder kernelBuilder;
 
   /// True if the code surrounding this try statement was also part of a
   /// try/catch/finally statement.
@@ -4611,7 +4624,7 @@ class TryCatchFinallyBuilder {
   // used in a non-dominated block.
   LocalsHandler originalSavedLocals;
 
-  TryCatchFinallyBuilder(this.kernelBuilder) {
+  TryCatchFinallyBuilder(this.kernelBuilder, this.trySourceInformation) {
     tryInstruction = new HTry();
     originalSavedLocals = new LocalsHandler.from(kernelBuilder.localsHandler);
     enterBlock = kernelBuilder.openNewBlock();
@@ -4706,7 +4719,8 @@ class TryCatchFinallyBuilder {
     kernelBuilder.open(startCatchBlock);
     // Note that the name of this local is irrelevant.
     SyntheticLocal local = kernelBuilder.localsHandler.createLocal('exception');
-    exception = new HLocalValue(local, kernelBuilder.commonMasks.nonNullType);
+    exception = new HLocalValue(local, kernelBuilder.commonMasks.nonNullType)
+      ..sourceInformation = trySourceInformation;
     kernelBuilder.add(exception);
     HInstruction oldRethrowableException = kernelBuilder.rethrowableException;
     kernelBuilder.rethrowableException = exception;
@@ -4715,15 +4729,16 @@ class TryCatchFinallyBuilder {
         kernelBuilder._commonElements.exceptionUnwrapper,
         [exception],
         kernelBuilder._typeInferenceMap
-            .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper));
+            .getReturnTypeOf(kernelBuilder._commonElements.exceptionUnwrapper),
+        sourceInformation: trySourceInformation);
     HInvokeStatic unwrappedException = kernelBuilder.pop();
     tryInstruction.exception = exception;
     int catchesIndex = 0;
 
     void pushCondition(ir.Catch catchBlock) {
       // `guard` is often `dynamic`, which generates `true`.
-      kernelBuilder.pushIsTest(
-          catchBlock.exception, catchBlock.guard, unwrappedException);
+      kernelBuilder.pushIsTest(catchBlock.guard, unwrappedException,
+          kernelBuilder._sourceInformationBuilder.buildCatch(catchBlock));
     }
 
     void visitThen() {
@@ -4732,8 +4747,10 @@ class TryCatchFinallyBuilder {
       if (catchBlock.exception != null) {
         Local exceptionVariable =
             kernelBuilder.localsMap.getLocalVariable(catchBlock.exception);
-        kernelBuilder.localsHandler
-            .updateLocal(exceptionVariable, unwrappedException);
+        kernelBuilder.localsHandler.updateLocal(
+            exceptionVariable, unwrappedException,
+            sourceInformation:
+                kernelBuilder._sourceInformationBuilder.buildCatch(catchBlock));
       }
       if (catchBlock.stackTrace != null) {
         kernelBuilder._pushStaticInvocation(
@@ -4744,8 +4761,9 @@ class TryCatchFinallyBuilder {
         HInstruction traceInstruction = kernelBuilder.pop();
         Local traceVariable =
             kernelBuilder.localsMap.getLocalVariable(catchBlock.stackTrace);
-        kernelBuilder.localsHandler
-            .updateLocal(traceVariable, traceInstruction);
+        kernelBuilder.localsHandler.updateLocal(traceVariable, traceInstruction,
+            sourceInformation:
+                kernelBuilder._sourceInformationBuilder.buildCatch(catchBlock));
       }
       catchBlock.body.accept(kernelBuilder);
     }
@@ -4758,12 +4776,15 @@ class TryCatchFinallyBuilder {
       } else {
         // TODO(efortuna): Make SsaBranchBuilder handle kernel elements, and
         // pass tryCatch in here as the "diagnosticNode".
+        ir.Catch nextCatch = tryCatch.catches[catchesIndex];
         kernelBuilder.handleIf(
             visitCondition: () {
-              pushCondition(tryCatch.catches[catchesIndex]);
+              pushCondition(nextCatch);
             },
             visitThen: visitThen,
-            visitElse: visitElse);
+            visitElse: visitElse,
+            sourceInformation:
+                kernelBuilder._sourceInformationBuilder.buildCatch(nextCatch));
       }
     }
 
@@ -4775,7 +4796,9 @@ class TryCatchFinallyBuilder {
           pushCondition(firstBlock);
         },
         visitThen: visitThen,
-        visitElse: visitElse);
+        visitElse: visitElse,
+        sourceInformation:
+            kernelBuilder._sourceInformationBuilder.buildCatch(firstBlock));
     if (!kernelBuilder.isAborted()) {
       endCatchBlock = kernelBuilder.close(new HGoto());
     }
