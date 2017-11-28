@@ -110,6 +110,12 @@ class SourceInformationBuilder<T> {
   /// first statement of a function.
   SourceInformation buildVariableDeclaration() => null;
 
+  /// Generate [SourceInformation] for async/await boiler plate code.
+  SourceInformation buildAsyncBody() => null;
+
+  /// Generate [SourceInformation] for exiting async/await code.
+  SourceInformation buildAsyncExit() => null;
+
   /// Generate [SourceInformation] for an invocation of a foreign method.
   SourceInformation buildForeignCode(T node) => null;
 

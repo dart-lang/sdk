@@ -255,13 +255,13 @@ class HighlightLinkScheme implements ElementScheme {
 
   @override
   String onMouseOut(int id, Set<int> indices) {
-    String onmouseover = indices.map((i) => '\'$i\'').join(',');
-    return "highlight([${onmouseover}]);";
+    return "highlight([]);";
   }
 
   @override
   String onMouseOver(int id, Set<int> indices) {
-    return "highlight([]);";
+    String onmouseover = indices.map((i) => '\'$i\'').join(',');
+    return "highlight([${onmouseover}]);";
   }
 }
 

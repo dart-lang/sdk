@@ -178,6 +178,12 @@ class PositionSourceInformationBuilder
         sourceFile, node.getBeginToken().charOffset, name));
   }
 
+  /// Builds a source information object pointing the end position of [node].
+  SourceInformation buildEnd(Node node) {
+    return new PositionSourceInformation(new OffsetSourceLocation(
+        sourceFile, node.getEndToken().charOffset, name));
+  }
+
   @override
   SourceInformation buildGeneric(Node node) => buildBegin(node);
 
@@ -246,8 +252,7 @@ class PositionSourceInformationBuilder
   @override
   SourceInformation buildAssignment(Node node) => buildBegin(node);
 
-  @override
-  SourceInformation buildVariableDeclaration() {
+  SourceInformation _buildMemberBody() {
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       Node body = resolvedAst.body;
       if (body != null) {
@@ -256,6 +261,32 @@ class PositionSourceInformationBuilder
       // TODO(johnniwinther): Are there other cases?
     }
     return null;
+  }
+
+  SourceInformation _buildMemberExit() {
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      Node body = resolvedAst.body;
+      if (body != null) {
+        return buildEnd(body);
+      }
+      // TODO(johnniwinther): Are there other cases?
+    }
+    return null;
+  }
+
+  @override
+  SourceInformation buildVariableDeclaration() {
+    return _buildMemberBody();
+  }
+
+  @override
+  SourceInformation buildAsyncBody() {
+    return _buildMemberBody();
+  }
+
+  @override
+  SourceInformation buildAsyncExit() {
+    return _buildMemberExit();
   }
 
   @override

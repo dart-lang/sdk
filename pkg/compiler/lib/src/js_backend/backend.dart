@@ -31,7 +31,8 @@ import '../enqueue.dart'
         ResolutionEnqueuer,
         TreeShakingEnqueuerStrategy;
 import '../frontend_strategy.dart';
-import '../io/source_information.dart' show SourceInformationStrategy;
+import '../io/source_information.dart'
+    show SourceInformation, SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_model/elements.dart';
@@ -1143,8 +1144,12 @@ class JavaScriptBackend {
   /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
-  jsAst.Expression rewriteAsync(CommonElements commonElements,
-      FunctionEntity element, jsAst.Expression code) {
+  jsAst.Expression rewriteAsync(
+      CommonElements commonElements,
+      FunctionEntity element,
+      jsAst.Expression code,
+      SourceInformation bodySourceInformation,
+      SourceInformation exitSourceInformation) {
     AsyncRewriterBase rewriter = null;
     jsAst.Name name = namer.methodPropertyName(element);
     switch (element.asyncMarker) {
@@ -1197,7 +1202,7 @@ class JavaScriptBackend {
         assert(element.asyncMarker == AsyncMarker.SYNC);
         return code;
     }
-    return rewriter.rewrite(code);
+    return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
   }
 
   /// Creates an impact strategy to use for compilation.

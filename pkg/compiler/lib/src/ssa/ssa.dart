@@ -46,8 +46,15 @@ class SsaFunctionCompiler implements FunctionCompiler {
     MemberEntity element = work.element;
     js.Expression result = generator.generateCode(work, graph, closedWorld);
     if (element is FunctionEntity) {
-      result =
-          backend.rewriteAsync(closedWorld.commonElements, element, result);
+      SourceInformationBuilder sourceInformationBuilder =
+          backend.sourceInformationStrategy.createBuilderForContext(element);
+
+      result = backend.rewriteAsync(
+          closedWorld.commonElements,
+          element,
+          result,
+          sourceInformationBuilder.buildAsyncBody(),
+          sourceInformationBuilder.buildAsyncExit());
     }
     return result;
   }
