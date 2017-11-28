@@ -190,9 +190,6 @@ super_call4_test: Fail # mirrors not supported
 super_getter_setter_test: Fail # mirrors not supported
 vm/reflect_core_vm_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $runtime == d8 && $checked && $dart2js_with_kernel ]
-assertion_initializer_const_function_test/none: RuntimeError
-
 [ $compiler == dart2js && $runtime == jsshell && !$dart2js_with_kernel ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
@@ -1312,7 +1309,6 @@ type_checks_in_factory_method_test: RuntimeError
 arithmetic_canonicalization_test: RuntimeError
 assert_message_test: RuntimeError
 assertion_initializer_const_function_test/01: RuntimeError
-assertion_initializer_const_function_test/none: Pass
 assertion_initializer_test: CompileTimeError
 assign_static_type_test/01: Fail
 assign_static_type_test/02: MissingCompileTimeError
@@ -1733,7 +1729,6 @@ regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
 regress_29405_test: RuntimeError
-savannah_test: RuntimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError

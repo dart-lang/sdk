@@ -2899,7 +2899,6 @@ regress_29405_test: RuntimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
-savannah_test: RuntimeError
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 shadow_parameter_and_local_test: RuntimeError

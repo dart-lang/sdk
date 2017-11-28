@@ -2931,6 +2931,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments, sourceInformation);
       }
+      InterfaceType type = _elementMap.createInterfaceType(
+          invocation.target.enclosingClass, invocation.arguments.types);
+      addImplicitInstantiation(type);
       _pushStaticInvocation(function, arguments, typeMask,
           sourceInformation: sourceInformation);
     }
