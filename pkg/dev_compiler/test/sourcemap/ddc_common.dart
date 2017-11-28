@@ -141,9 +141,10 @@ void createHtmlWrapper(String ddcDir, File sdkJsFile, String outputFile,
 
   print("You should now be able to run\n\n"
       "dart $sdkPath/tools/testing/dart/http_server.dart -p 39550 "
+      "--network 127.0.0.1"
       "--build-directory=$outDir"
       "\n\nand go to\n\n"
-      "http://localhost:39550/root_build/$outFileRelative.html.html"
+      "http://127.0.0.1:39550/root_build/$outFileRelative.html.html"
       "\n\nto step through via the browser.");
 }
 
