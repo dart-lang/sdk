@@ -2119,11 +2119,12 @@ class FastaParserTestCase extends Object
   @override
   FormalParameterList parseFormalParameterList(String code,
       {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      List<ExpectedError> errors}) {
     createParser(code);
     FormalParameterList result =
         _parserProxy.parseFormalParameterList(inFunctionType: inFunctionType);
-    assertErrors(codes: errorCodes);
+    assertErrors(codes: errors != null ? null : errorCodes, errors: errors);
     return result;
   }
 
@@ -2327,20 +2328,6 @@ class FastaParserTestCase extends Object
 @reflectiveTest
 class FormalParameterParserTest_Fasta extends FastaParserTestCase
     with FormalParameterParserTestMixin {
-  @override
-  @failingTest
-  void test_parseFormalParameterList_prefixedType_partial() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_parseFormalParameterList_prefixedType_partial();
-  }
-
-  @override
-  @failingTest
-  void test_parseFormalParameterList_prefixedType_partial2() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_parseFormalParameterList_prefixedType_partial2();
-  }
-
   @override
   @failingTest
   void test_parseNormalFormalParameter_field_const_noType() {

@@ -164,7 +164,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   FormalParameterList parseFormalParameterList(String code,
       {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[]});
+      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      List<ExpectedError> errors});
 
   /**
    * Parses a single top level member of a compilation unit (other than a
@@ -8460,23 +8461,26 @@ abstract class FormalParameterParserTestMixin
   }
 
   void test_parseFormalParameterList_prefixedType_partial() {
-    FormalParameterList list = parseFormalParameterList('(io.)', errorCodes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
+    int errorOffset = usingFastaParser ? 4 : 3;
+    FormalParameterList list = parseFormalParameterList('(io.)', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1)
     ]);
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);
     expect(list.leftDelimiter, isNull);
     expect(list.parameters, hasLength(1));
+    // TODO(danrubel): Investigate and improve recovery of parameter type/name.
     expect(list.parameters[0].toSource(), 'io. ');
     expect(list.rightDelimiter, isNull);
     expect(list.rightParenthesis, isNotNull);
   }
 
   void test_parseFormalParameterList_prefixedType_partial2() {
-    FormalParameterList list = parseFormalParameterList('(io.,a)', errorCodes: [
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
+    int errorOffset = usingFastaParser ? 4 : 3;
+    FormalParameterList list = parseFormalParameterList('(io.,a)', errors: [
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, errorOffset, 1)
     ]);
     expect(list, isNotNull);
     expect(list.leftParenthesis, isNotNull);
@@ -8492,12 +8496,6 @@ abstract class FormalParameterParserTestMixin
     NormalFormalParameter parameter =
         parseNormalFormalParameter('const this.a');
     expect(parameter, isNotNull);
-    if (usingFastaParser) {
-      // TODO(danrubel): should not be generating an error
-      assertErrorsWithCodes([ParserErrorCode.EXTRANEOUS_MODIFIER]);
-    } else {
-      assertNoErrors();
-    }
     expect(parameter, new isInstanceOf<FieldFormalParameter>());
     FieldFormalParameter fieldParameter = parameter;
     expect(fieldParameter.keyword, isNotNull);
@@ -9241,10 +9239,14 @@ class ParserTestCase extends EngineTestCase
   @override
   FormalParameterList parseFormalParameterList(String code,
       {bool inFunctionType: false,
-      List<ErrorCode> errorCodes: const <ErrorCode>[]}) {
+      List<ErrorCode> errorCodes: const <ErrorCode>[],
+      List<ExpectedError> errors}) {
     createParser(code);
     FormalParameterList list =
         parser.parseFormalParameterList(inFunctionType: inFunctionType);
+    if (errors != null) {
+      errorCodes = errors.map((e) => e.code).toList();
+    }
     assertErrorsWithCodes(errorCodes);
     return list;
   }

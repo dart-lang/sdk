@@ -1623,7 +1623,7 @@ class Parser {
           // Since the token is not a keyword or identifier,
           // consume it to ensure forward progress in parseMethod.
           token = token.next;
-          // Supply a non-empty method name so that it does not accidently
+          // Supply a non-empty method name so that it does not accidentally
           // match the default constructor.
           token = insertSyntheticIdentifier(
               token, context, '#synthetic_method_name_${token.offset}');
@@ -1632,7 +1632,7 @@ class Parser {
           // Since the token is not a keyword or identifier,
           // consume it to ensure forward progress in parseField.
           token = token.next;
-          // Supply a non-empty method name so that it does not accidently
+          // Supply a non-empty method name so that it does not accidentally
           // match the default constructor.
           token = insertSyntheticIdentifier(
               token, context, '#synthetic_field_name_${token.offset}');
@@ -1731,7 +1731,7 @@ class Parser {
       followingValues = ['(', '<', ';'];
     } else if (context == IdentifierContext.typeReference ||
         context == IdentifierContext.typeReferenceContinuation) {
-      followingValues = ['>', ')', ']', '}', ';'];
+      followingValues = ['>', ')', ']', '}', ',', ';'];
     } else if (context == IdentifierContext.typeVariableDeclaration) {
       followingValues = ['<', '>'];
     } else {
@@ -2393,9 +2393,17 @@ class Parser {
           nameToken = token;
           token = token.next;
         } else if (!nameToken.isIdentifier) {
-          untyped = true;
-          nameToken = begin;
-          token = nameToken.next;
+          if (optional('.', nameToken)) {
+            // Looks like a prefixed type, but missing the type and param names.
+            // Set the nameToken so that a synthetic identifier is inserted
+            // after the `.` token.
+            nameToken = nameToken.next;
+            token = nameToken;
+          } else {
+            untyped = true;
+            nameToken = begin;
+            token = nameToken.next;
+          }
         }
         if (isNamedParameter && nameToken.lexeme.startsWith("_")) {
           // TODO(ahe): Move this to after committing the type.
