@@ -5,59 +5,36 @@
 [ $compiler == dartkp ]
 *: Skip # Non-kernel also skips precompiled mode.
 
+# Kernel works slightly different. There are kernel specific versions.
+# These are the non-kernel specific versions so skip tests and allow errors.
 [ $compiler == dartk ]
-###
-### Kernel works slightly different. There are kernel specific versions.
-### These are the non-kernel specific versions so skip these tests.
-###
 add_breakpoint_rpc_test: SkipByDesign # non-kernel specific version of add_breakpoint_rpc_kernel_test.
-
-###
-### Kernel works slightly different. At least for now allow errors.
-###
 get_isolate_after_language_error_test: CompileTimeError
 developer_extension_test: CompileTimeError
 step_through_arithmetic_test: RuntimeError # probably constant evaluator pre-evaluating e.g. 1+2
 
-# These 3 tests fail with 'dart:vmservice_io': error: [...] native function
-# 'VMServiceIO_Shutdown' (0 arguments) cannot be found
-# because of '--compile_all'
-capture_stdio_test: CompileTimeError
-address_mapper_test: CompileTimeError
+capture_stdio_test: CompileTimeError # These 3 tests fail with 'dart:vmservice_io': error: [...] native function 'VMServiceIO_Shutdown' (0 arguments) cannot be found because of '--compile_all'
+address_mapper_test: CompileTimeError # These 3 tests fail with 'dart:vmservice_io': error: [...] native function 'VMServiceIO_Shutdown' (0 arguments) cannot be found because of '--compile_all'
 
-###
-### Not supported for now at least
-###
 *_reload_*: Skip # no reload support for now
 eval_internal_class_test: Skip # no evaluation test for now
 evaluate_*: Skip # no evaluation test for now
 
-###
-### Async debugging
-###
-async_star_single_step_into_test: RuntimeError # Issue 29158
-async_step_out_test: RuntimeError # Issue 29158
-async_star_step_out_test: RuntimeError # Issue 29158
-awaiter_async_stack_contents_test: RuntimeError # Issue 29158
-async_single_step_out_test: RuntimeError # Issue 29158
-async_generator_breakpoint_test: Skip # Issue 29158
+async_star_single_step_into_test: RuntimeError # Issue 29158, Async debugging
+async_step_out_test: RuntimeError # Issue 29158, Async debugging
+async_star_step_out_test: RuntimeError # Issue 29158, Async debugging
+awaiter_async_stack_contents_test: RuntimeError # Issue 29158, Async debugging
+async_single_step_out_test: RuntimeError # Issue 29158, Async debugging
+async_generator_breakpoint_test: Skip # Issue 29158, Async debugging
 
-###
-### These tests currently crash the VM
-###
 capture_stdio_test: Crash
 address_mapper_test: Crash
 vm_restart_test: Crash
 
-###
-### --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
-###
-pause_on_unhandled_async_exceptions2_test: RuntimeError
-pause_on_unhandled_async_exceptions_test: RuntimeError
+pause_on_unhandled_async_exceptions2_test: RuntimeError # --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
+pause_on_unhandled_async_exceptions_test: RuntimeError #  --pause-isolates-on-unhandled-exceptions doesn't currently work. Issue #29056
 
-# Inherited from service.status
-isolate_lifecycle_test: Pass, RuntimeError
-
+isolate_lifecycle_test: Pass, RuntimeError # Inherited from service.status
 
 [ $compiler == dartk && $mode == debug ]
 isolate_lifecycle_test: Skip # Flaky.

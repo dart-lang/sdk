@@ -15,7 +15,6 @@ js_type_test/dynamic-String-not-Foo: Fail  # Issue 26838
 js_type_test/dynamic-String-not-dynamic-Foo: Fail  # Issue 26838
 js_interop_constructor_name_test/HTMLDivElement-types-erroneous1: Fail # Issue 26838
 js_interop_constructor_name_test/HTMLDivElement-types-erroneous2: Fail # Issue 26838
-# ROLL 50 FAILURES START
 custom/document_register_type_extensions_test/construction: Pass, Timeout # Roll 50 failure
 custom/document_register_type_extensions_test/registration: Pass, Timeout # Roll 50 failure
 custom/entered_left_view_test/shadow_dom: Pass, Timeout # Roll 50 failure
@@ -33,7 +32,6 @@ js_typed_interop_side_cast_exp_test: Pass, RuntimeError # Roll 50 failure
 svgelement_test/PathElement: Pass, RuntimeError # Roll 50 failure
 websql_test/functional: Pass, Timeout # Roll 50 failure
 xhr_test/xhr: Pass, RuntimeError # Roll 50 failure
-# ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
@@ -136,46 +134,43 @@ websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
 wheelevent_test: RuntimeError # Issue 23437
 worker_test/functional: Pass, Fail # Issues 20659.
 
-# IE11 Feature support statuses-
-# These results not yet noted in platform support annotations.
-# All changes should be accompanied by platform support annotation changes.
-audiobuffersourcenode_test/supported: Fail
-audiocontext_test/supported: Fail
-crypto_test/supported: Fail
-css_test/supportsPointConversions: Fail
-element_types_test/supported_content: Fail
-element_types_test/supported_details: Fail
-element_types_test/supported_keygen: Fail
-element_types_test/supported_meter: Fail
-element_types_test/supported_output: Fail
-element_types_test/supported_shadow: Fail
-element_types_test/supported_template: Fail
-fileapi_test/supported: Fail
-history_test/supported_HashChangeEvent: Fail
-input_element_test/supported_date: Fail
-input_element_test/supported_datetime-local: Fail
-input_element_test/supported_month: Fail
-input_element_test/supported_time: Fail
-input_element_test/supported_week: Fail
-media_stream_test/supported_MediaStreamEvent: Fail
-media_stream_test/supported_MediaStreamTrackEvent: Fail
-media_stream_test/supported_media: Fail
+audiobuffersourcenode_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+audiocontext_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+crypto_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+css_test/supportsPointConversions: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_content: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_details: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_keygen: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_meter: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_output: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_shadow: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_template: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+fileapi_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+history_test/supported_HashChangeEvent: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+input_element_test/supported_date: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+input_element_test/supported_datetime-local: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+input_element_test/supported_month: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+input_element_test/supported_time: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+input_element_test/supported_week: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_MediaStreamEvent: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_MediaStreamTrackEvent: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_media: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 mediasource_test/supported: Pass, Fail # Should pass on Windows 8
 mediasource_test/functional: Pass, Fail # Fails on Windows 8
-rtc_test/supported: Fail
-shadow_dom_test/supported: Fail
-speechrecognition_test/supported: Fail
-svgelement_test/supported_altGlyph: Fail
-svgelement_test/supported_animate: Fail
-svgelement_test/supported_animateMotion: Fail
-svgelement_test/supported_animateTransform: Fail
-svgelement_test/supported_foreignObject: Fail
-svgelement_test/supported_set: Fail
+rtc_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+shadow_dom_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+speechrecognition_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+svgelement_test/supported_altGlyph: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+svgelement_test/supported_animate: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+svgelement_test/supported_animateMotion: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+svgelement_test/supported_animateTransform: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+svgelement_test/supported_foreignObject: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+svgelement_test/supported_set: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 touchevent_test/supported: Fail # IE does not support TouchEvents
-webgl_1_test/functional: Fail
-websql_test/supported: Fail
+webgl_1_test/functional: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
+websql_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 xhr_test/json: Fail # IE10 returns string, not JSON object
-xsltprocessor_test/supported: Fail
+xsltprocessor_test/supported: Fail # IE11 Feature support statuses - These results not yet noted in platform support annotations. All changes should be accompanied by platform support annotation changes.
 
 [ $compiler == dart2js && $runtime == drt && ! $checked ]
 audiocontext_test/functional: Pass, Fail
@@ -190,18 +185,16 @@ mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, w
 element_animate_test: Fail # Element.animate not supported on these browsers.
 gamepad_test: Fail # Safari does not support Navigator.getGamepads()
 
-# Safari Feature support statuses-
-# All changes should be accompanied by platform support annotation changes.
-element_types_test/supported_content: Fail
-element_types_test/supported_datalist: Fail
-element_types_test/supported_shadow: Fail
-fileapi_test/supported: Fail
-media_stream_test/supported_MediaStreamEvent: Fail
-media_stream_test/supported_MediaStreamTrackEvent: Fail
-media_stream_test/supported_media: Fail
-rtc_test/supported: Fail
-shadow_dom_test/supported: Fail
-speechrecognition_test/supported: Fail
+element_types_test/supported_content: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_datalist: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+element_types_test/supported_shadow: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+fileapi_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_MediaStreamEvent: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_MediaStreamTrackEvent: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_media: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+rtc_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+shadow_dom_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
+speechrecognition_test/supported: Fail # Safari Feature support statuses - All changes should be accompanied by platform support annotation changes.
 
 [ $runtime == safarimobilesim ]
 performance_api_test/supported: Fail
@@ -240,20 +233,18 @@ serialized_script_value_test: Pass, RuntimeError # Issue 28983
 element_types_test/supported_content: Pass, RuntimeError # Issue 28983
 element_types_test/supported_shadow: Pass, RuntimeError # Issue 28983
 
-# Firefox Feature support statuses-
-# All changes should be accompanied by platform support annotation changes.
 element_classes_test: RuntimeError # Issue 27535
-element_types_test/supported_keygen: Fail
-fileapi_test/supported: Fail
-input_element_test/supported_datetime-local: Fail
-input_element_test/supported_month: Fail
-input_element_test/supported_week: Fail
-media_stream_test/supported_MediaStreamEvent: Fail
-media_stream_test/supported_MediaStreamTrackEvent: Fail
-shadow_dom_test/supported: Fail
-speechrecognition_test/supported: Fail
-touchevent_test/supported: Fail
-websql_test/supported: Fail
+element_types_test/supported_keygen: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+fileapi_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+input_element_test/supported_datetime-local: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+input_element_test/supported_month: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+input_element_test/supported_week: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_MediaStreamEvent: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+media_stream_test/supported_MediaStreamTrackEvent: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+shadow_dom_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+speechrecognition_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+touchevent_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
+websql_test/supported: Fail # Firefox Feature support statuses - All changes should be accompanied by platform support annotation changes.
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
@@ -266,9 +257,9 @@ request_animation_frame_test: Skip # Async test hangs.
 [ $runtime == drt ]
 webgl_extensions_test: Skip # webgl does not work properly on DRT, which is 'headless'.
 
-[ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
 # TODO(sra): Change these tests to use a same-origin JavaScript script file.
+[ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 event_customevent_test: SkipByDesign
 js_interop_1_test: SkipByDesign
 js_test: SkipByDesign

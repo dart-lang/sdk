@@ -29,25 +29,21 @@ script_snapshot_not_executed_test: RuntimeError
 io/*: Skip # Issue 30618
 
 [ ($runtime == vm || $runtime == flutter || $runtime == dart_precompiled) && $checked ]
-# These tests have type errors on purpose.
-io/process_invalid_arguments_test: Fail, OK
-io/directory_invalid_arguments_test: Fail, OK
-io/file_invalid_arguments_test: Fail, OK
-io/internet_address_invalid_arguments_test: Fail, OK
-io/socket_invalid_arguments_test: Fail, OK
-io/stdout_bad_argument_test: Fail, OK
+io/process_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
+io/directory_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
+io/file_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
+io/internet_address_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
+io/socket_invalid_arguments_test: Fail, OK # These tests have type errors on purpose.
+io/stdout_bad_argument_test: Fail, OK # These tests have type errors on purpose.
 
-# These test have type errors on purpose and take very long to run in
-# checked mode with no benefit. Skip.
-io/file_fuzz_test: Skip
-io/directory_fuzz_test: Skip
+io/file_fuzz_test: Skip # These test have type errors on purpose and take very long to run in checked mode with no benefit. Skip.
+io/directory_fuzz_test: Skip # These test have type errors on purpose and take very long to run in checked mode with no benefit. Skip.
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $system == macos ]
 io/raw_secure_server_socket_test: Pass, Crash # Issue 29524
 
 [ $compiler == dart2analyzer ]
-# test issue https://code.google.com/p/dart/issues/detail?id=11518
-io/file_constructor_test: fail
+io/file_constructor_test: fail # Issue 11518
 io/raw_secure_server_socket_argument_test: StaticWarning
 io/stdout_bad_argument_test: StaticWarning
 io/process_invalid_arguments_test: StaticWarning
@@ -58,7 +54,6 @@ verbose_gc_to_bmu_test: Skip
 io/sleep_test: Pass, Fail # Issue 25757
 
 [ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter ]
-# Failures in secure networking while NSS is replaced with BoringSSL
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
 
 [ $compiler == precompiler || $compiler == app_jit ]
@@ -70,8 +65,7 @@ io/raw_secure_server_socket_test: RuntimeError # Issue 31310
 io/raw_datagram_socket_test: RuntimeError # Issue 31310
 
 [ $runtime == dart_precompiled ]
-# These tests attempt to spawn another script using the precompiled runtime.
-verbose_gc_to_bmu_test: Skip
+verbose_gc_to_bmu_test: Skip # These tests attempt to spawn another script using the precompiled runtime.
 
 [ $runtime == dart_precompiled || $mode == product ]
 no_assert_test: SkipByDesign # Requires checked mode.

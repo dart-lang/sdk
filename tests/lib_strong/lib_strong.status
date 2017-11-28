@@ -9,11 +9,9 @@
 # Skip tests that are not yet strong-mode clean.
 [ $strong ]
 
-# Temporalily disable the following tests until we figure out why they started failing.
-
-async/print_test/01: Skip
-async/print_test/none: Skip
-html/cross_frame_test: Skip
+async/print_test/01: Skip # Temporalily disable the following tests until we figure out why they started failing.
+async/print_test/none: Skip # Temporalily disable the following tests until we figure out why they started failing.
+html/cross_frame_test: Skip # Temporalily disable the following tests until we figure out why they started failing.
 html/custom/created_callback_test: CompileTimeError # Issue 28969
 html/custom/document_register_basic_test: CompileTimeError # Issue 28969
 html/custom/document_register_type_extensions_test: CompileTimeError # Issue 28969

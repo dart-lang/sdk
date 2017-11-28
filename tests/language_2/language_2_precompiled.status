@@ -925,10 +925,9 @@ vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers
 void_block_return_test/00: MissingCompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
-# Non-contractive types are not supported in the vm.
-cyclic_type_test/02: Fail, OK
-cyclic_type_test/04: Fail, OK
-cyclic_type2_test: Fail, OK
+cyclic_type_test/02: Fail, OK # Non-contractive types are not supported in the vm.
+cyclic_type_test/04: Fail, OK # Non-contractive types are not supported in the vm.
+cyclic_type2_test: Fail, OK # Non-contractive types are not supported in the vm.
 language_2/least_upper_bound_expansive_test/none: CompileTimeError
 duplicate_export_negative_test: Fail # Issue 6134
 example_constructor_test: Fail, OK

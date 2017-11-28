@@ -131,8 +131,7 @@ spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
 [ $compiler == precompiler || $runtime == flutter ]
-# Imports dart:mirrors
-count_test: SkipByDesign
+count_test: SkipByDesign # Imports dart:mirrors
 cross_isolate_message_test: SkipByDesign
 illegal_msg_function_test: SkipByDesign
 illegal_msg_mirror_test: SkipByDesign

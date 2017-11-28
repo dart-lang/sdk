@@ -19,7 +19,6 @@
 *: SkipByDesign
 
 # ===== dartk + vm status lines =====
-
 [ $compiler == dartk && $runtime == vm && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
@@ -452,7 +451,6 @@ mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
 
 # ===== dartkp + dart_precompiled status lines =====
-
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError

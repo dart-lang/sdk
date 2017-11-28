@@ -10,7 +10,6 @@ compare_to2_test: Fail    # Bug 4018
 symbol_test/01: Fail, Pass # bug 11669
 unicode_test: Fail        # Bug 6706
 
-# With the exception of 'void', new Symbol() should not accept reserved words.
 symbol_reserved_word_test/05: CompileTimeError # bug 20191
 symbol_reserved_word_test/06: RuntimeError # bug 11669
 symbol_reserved_word_test/09: RuntimeError # bug 11669
@@ -26,12 +25,9 @@ string_trimlr_test/02: RuntimeError # Issue 29060
 [ $compiler == precompiler || $compiler == app_jit ]
 string_trimlr_test/02: RuntimeError # Issue 29060
 
-# #void should be a valid symbol.
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
 
-# With the exception of 'void', const Symbol() should not accept reserved
-# words.
 symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
@@ -55,12 +51,12 @@ apply3_test: Fail # mirrors not supported
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
 
-[ $runtime == ff || $runtime == jsshell ]
 # Firefox takes advantage of the ECMAScript number parsing cop-out clause
 # (presumably added to allow Mozilla's existing behavior)
 # and only looks at the first 20 significant digits.
 # The Dart VM and the other ECMAScript implementations follow the correct
 # IEEE-754 rounding algorithm.
+[ $runtime == ff || $runtime == jsshell ]
 double_parse_test/02: Fail, OK
 
 [ $runtime == safari || $runtime == safarimobilesim ]
@@ -144,8 +140,7 @@ duration2_test: StaticWarning, OK # Test generates error on purpose.
 stopwatch_test: Skip  # Flaky test due to expected performance behaviour.
 
 [ $runtime != d8 && $runtime != vm && $runtime != dart_precompiled ]
-# The regexp tests are not verified to work on non d8/vm platforms yet.
-regexp/*: Skip
+regexp/*: Skip # The regexp tests are not verified to work on non d8/vm platforms yet.
 
 [ $runtime == d8 ]
 uri_base_test: RuntimeError # d8 preamble uses custom URI scheme "org-dartlang-d8-preamble:".
@@ -250,15 +245,11 @@ from_environment_const_type_undefined_test/07: MissingCompileTimeError
 from_environment_const_type_undefined_test/08: MissingCompileTimeError
 
 [ $compiler == dartkp ]
-# No support for mirrors
-apply3_test: CompileTimeError
+apply3_test: CompileTimeError # No support for mirrors
 
 [ $runtime == flutter ]
+apply3_test: CompileTimeError # No support for mirrors
 
-# No support for mirrors
-apply3_test: CompileTimeError
-
-# Possible bugs
 bool_from_environment_test: Fail # Flutter Issue 9111
 format_exception_test: RuntimeError # Flutter Issue 9111
 from_environment_const_type_test/01: Fail # Flutter Issue 9111

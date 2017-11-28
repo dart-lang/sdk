@@ -143,12 +143,9 @@ type_variable_conflict_test/05: Fail # Issue 13702
 type_variable_conflict_test/06: Fail # Issue 13702
 syntax_test/none: CompileTimeError # Issue #30176.
 
-# The following tests are supposed to fail.
-# In testing-mode, dart2js supports all dart:X libraries (because it
-# uses '--categories=all').
-library_env_test/has_no_html_support: RuntimeError, OK
-library_env_test/has_no_io_support: RuntimeError, OK
-library_env_test/has_no_mirror_support: RuntimeError, OK
+library_env_test/has_no_html_support: RuntimeError, OK # The following tests are supposed to fail. In testing-mode, dart2js supports all dart:X libraries (because it uses '--categories=all').
+library_env_test/has_no_io_support: RuntimeError, OK # The following tests are supposed to fail. In testing-mode, dart2js supports all dart:X libraries (because it uses '--categories=all').
+library_env_test/has_no_mirror_support: RuntimeError, OK # The following tests are supposed to fail. In testing-mode, dart2js supports all dart:X libraries (because it uses '--categories=all').
 
 
 [ $compiler == dart2js && $csp && $browser && !$fast_startup ]
@@ -283,8 +280,7 @@ await_future_test: Pass, Timeout # Issue 26735
 string_literals_test: RuntimeError # Issue 27533
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
-# Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
-call_through_getter_test: Fail, OK
+call_through_getter_test: Fail, OK # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 override_field_test/02: Pass, Slow # TODO(kasperl): Please triage.

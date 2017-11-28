@@ -13,8 +13,7 @@ regress_29025_test: StaticWarning # Issue 29081
 regress_29405_test: StaticWarning # Issue 29421
 regress_29349_test: CompileTimeError # Issue 29744
 
-# Runtime negative test. No static errors or warnings.
-closure_call_wrong_argument_count_negative_test: skip
+closure_call_wrong_argument_count_negative_test: skip # Runtime negative test. No static errors or warnings.
 
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
@@ -55,9 +54,6 @@ multiline_newline_test/05r: MissingCompileTimeError # Issue 23888
 multiline_newline_test/06r: MissingCompileTimeError # Issue 23888
 
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
-
-# Please add new failing tests before this line.
-# Section below is for invalid tests.
 
 bad_initializer2_negative_test: fail # Issue 14880
 field3a_negative_test: Fail # Issue 11124
@@ -127,14 +123,12 @@ factory_redirection_test/13: StaticWarning # Issue 18230
 factory_redirection_test/14: StaticWarning # Issue 18230
 factory_redirection_test/none: StaticWarning # Issue 18230
 
-# The following tests are currently assumed to be failing because the test is wrong.
-#
-application_negative_test: CompileTimeError # Issue 14528
-bad_initializer1_negative_test: CompileTimeError # Issue 14529
-bad_named_constructor_negative_test: CompileTimeError # Issue 18693
-body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
-empty_block_case_test: StaticWarning # Issue 18701
-error_stacktrace_test: StaticWarning # Issue 18702
+application_negative_test: CompileTimeError # Issue 14528, The following tests are currently assumed to be failing because the test is wrong.
+bad_initializer1_negative_test: CompileTimeError # Issue 14529, The following tests are currently assumed to be failing because the test is wrong.
+bad_named_constructor_negative_test: CompileTimeError # Issue 18693, The following tests are currently assumed to be failing because the test is wrong.
+body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695, The following tests are currently assumed to be failing because the test is wrong.
+empty_block_case_test: StaticWarning # Issue 18701, The following tests are currently assumed to be failing because the test is wrong.
+error_stacktrace_test: StaticWarning # Issue 18702, The following tests are currently assumed to be failing because the test is wrong.
 
 abstract_beats_arguments_test: StaticWarning
 const_counter_negative_test: CompileTimeError
@@ -356,10 +350,8 @@ switch5_negative_test: CompileTimeError
 switch7_negative_test: CompileTimeError
 switch_fallthru_test: StaticWarning
 test_negative_test: CompileTimeError
-# Note: test is in error but analyzer doesn't notice due to bug #24502
-# top_level_non_prefixed_library_test: StaticWarning
-try_catch4_test: StaticWarning
-try_catch5_test: StaticWarning
+try_catch4_test: StaticWarning # Note: test is in error but analyzer doesn't notice due to bug #24502 top_level_non_prefixed_library_test: StaticWarning
+try_catch5_test: StaticWarning # Note: test is in error but analyzer doesn't notice due to bug #24502 top_level_non_prefixed_library_test: StaticWarning
 type_argument_in_super_type_test: StaticWarning
 typed_selector2_test: StaticWarning
 type_variable_identifier_expression_test: StaticWarning
@@ -380,41 +372,22 @@ void_type_test: StaticWarning
 
 issue13474_test: StaticWarning, OK # Issue 13474
 
-
-# The following lines have been left in to quickly switch back to having deferred loading
-# off by default again.
-# Deferred loading support, tests marked as failing until support is enabled by default.
-#deferred_closurize_load_library_test: Pass, Fail
-#deferred_not_loaded_check_test/*: Pass, Fail
-#deferred_shadow_load_library_test: Pass, Fail
-#deferred_constraints_constants_test/*: Pass, Fail
-#deferred_load_library_wrong_args_test/*: Pass, Fail
-#deferred_constraints_type_annotation_test/*: Pass, Fail
-#deferred_load_inval_code_test: Pass, Fail
-#deferred_not_loaded_check_test: Pass, Fail
-
-# Issues to be fixed now that type parameters have been fixed
-# (issues 14221, 15553)
-factory1_test/00: StaticWarning # Issue 18726
-factory1_test/01: StaticWarning # Issue 18726
-factory1_test/none: StaticWarning # Issue 18726
+factory1_test/00: StaticWarning # Issue 18726 # Issues to be fixed now that type parameters have been fixed (issues 14221, 15553)
+factory1_test/01: StaticWarning # Issue 18726 # Issues to be fixed now that type parameters have been fixed (issues 14221, 15553)
+factory1_test/none: StaticWarning # Issue 18726 # Issues to be fixed now that type parameters have been fixed (issues 14221, 15553)
 generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
 redirecting_factory_long_test: StaticWarning
 
-# This test uses "const Symbol('_setAt')"
-vm/reflect_core_vm_test: CompileTimeError
+vm/reflect_core_vm_test: CompileTimeError # This test uses "const Symbol('_setAt')"
 
-# This test is expected to have warnings because of noSuchMethod overriding.
-regress_12561_test: StaticWarning
+regress_12561_test: StaticWarning # This test is expected to have warnings because of noSuchMethod overriding.
 
 main_not_a_function_test/01: Fail # Issue 20030
 main_test/03: Fail # Issue 20030
 no_main_test/01: Fail # Issue 20030
 
-# This test is expected to generate a warning, since it's
-# intentionally referring to a variable that's not in scope.
-transitive_private_library_access_test: StaticWarning
+transitive_private_library_access_test: StaticWarning # This test is expected to generate a warning, since it's intentionally referring to a variable that's not in scope.
 
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
 
@@ -440,14 +413,13 @@ accessor_conflict_import_test: StaticWarning # Issue 25624
 for_in3_test: StaticWarning, OK # Test should have warning by design.
 for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does not implement Iterable in for-in.
 
-# Experimental feature: Use initializing formals in initializers and constructor body.
-initializing_formal_type_test: StaticWarning # Issue 26658
+initializing_formal_type_test: StaticWarning # Issue 26658 # Experimental feature: Use initializing formals in initializers and constructor body.
 
 regress_27572_test: StaticWarning # Warning about undefined method expected.
 
 part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 
-# TODO: generalized_void_syntax_test: CompileTimeError # Issue #30177.
+generalized_void_syntax_test: Skip # TODO, Issue #30177.
 
 [ $compiler == dart2analyzer && $builder_tag == strong ]
 *: Skip # Issue 28649

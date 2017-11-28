@@ -20,7 +20,6 @@
 *: SkipByDesign # language_2 is only supported in strong mode.
 
 # ===== dartk + vm status lines =====
-
 [ $compiler == dartk && $runtime == vm && $strong ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
@@ -1476,7 +1475,6 @@ type_parameter_test/none: RuntimeError
 type_variable_bounds4_test/01: RuntimeError
 
 # ==== dartkp + dart_precompiled status lines ====
-
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError

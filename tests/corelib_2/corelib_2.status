@@ -31,12 +31,11 @@ int_parse_radix_test/badTypes: RuntimeError # wrong exception returned
 [ ($compiler == dart2analyzer && $strong) || $compiler == dartdevc ]
 iterable_reduce_test/01: CompileTimeError
 
-# Temporarily disable the following tests until we figure out why they started failing.
-double_parse_test/01: Skip
-double_parse_test/02: Skip
-double_parse_test/03: Skip
-double_parse_test/04: Skip
-double_parse_test/none: Skip
+double_parse_test/01: Skip # Temporarily disable the following tests until we figure out why they started failing.
+double_parse_test/02: Skip # Temporarily disable the following tests until we figure out why they started failing.
+double_parse_test/03: Skip # Temporarily disable the following tests until we figure out why they started failing.
+double_parse_test/04: Skip # Temporarily disable the following tests until we figure out why they started failing.
+double_parse_test/none: Skip # Temporarily disable the following tests until we figure out why they started failing.
 
 [ !$strong && !$checked ]
 core_runtime_types_static_test: MissingCompileTimeError
@@ -247,10 +246,9 @@ compare_to2_test: Fail # Issue 4018
 unicode_test: Fail # Issue 6706
 symbol_test/01: Fail, Pass # Issue 11669
 
-# With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_reserved_word_test/06: RuntimeError # Issue 11669
-symbol_reserved_word_test/09: RuntimeError # Issue 11669
-symbol_reserved_word_test/12: RuntimeError # Issue 11669
+symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/12: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
 
 symbol_test/none: Fail # Issue 11669
 symbol_operator_test/03: Fail # Issue 11669
@@ -282,11 +280,9 @@ string_trimlr_test/02: RuntimeError # Issue 29060
 [ $compiler == none || $compiler == precompiler || $compiler == app_jit || ($compiler == dart2js && !$dart2js_with_kernel) ]
 symbol_reserved_word_test/02: CompileTimeError # Issue 20191
 
-# With the exception of 'void', const Symbol() should not accept reserved
-# words.
-symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972
-symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972
-symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
 
 [ $compiler == dart2js ]
 hash_set_test/01: RuntimeError # Issue 11551
@@ -522,14 +518,11 @@ list_concurrent_modify_test: Crash # Issue 30559
 # existing sections, if possible keep the alphabetic ordering. If we are missing
 # a section you need, please reach out to sigmund@ to see the best way to add
 # them.
-
 # ===== Skip dartk and darkp in !$strong mode ====
-
 [ ($compiler == dartk || $compiler == dartkp) && !$strong ]
 *: SkipByDesign
 
 # ===== dartk + vm status lines =====
-
 [ $compiler == dartk && $runtime == vm && $strong ]
 apply3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 bool_from_environment2_test/03: MissingCompileTimeError
@@ -577,7 +570,6 @@ list_test/01: Crash
 list_test/none: Crash
 
 # ===== dartkp + dart_precompiled status lines =====
-
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 bool_from_environment2_test/03: MissingCompileTimeError
 collection_removes_test: RuntimeError
@@ -619,9 +611,6 @@ integer_parsed_arith_vm_test/01: RuntimeError
 integer_parsed_arith_vm_test/02: RuntimeError
 list_test/01: Crash
 list_test/none: Crash
-
-# ===== end of dartkp + dart_precompiled status lines =====
-
 
 [ $compiler == dartdevk ]
 bool_from_environment2_test/01: MissingCompileTimeError
