@@ -106,6 +106,21 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   }
 }
 
+/// A reference to the getter represented by the [member].
+/// The [member] might be either a getter itself, or a field.
+class MemberGetterNode implements TreeNode {
+  final Member member;
+
+  MemberGetterNode(this.member);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '$member.getter';
+  }
+}
+
 /// TODO(scheglov) document
 class MemberReferenceDartType implements DartType {
   final Member member;
@@ -118,6 +133,21 @@ class MemberReferenceDartType implements DartType {
   @override
   String toString() {
     return '<${typeArguments.join(', ')}>$member';
+  }
+}
+
+/// A reference to the setter represented by the [member].
+/// The [member] might be either a setter itself, or a field.
+class MemberSetterNode implements TreeNode {
+  final Member member;
+
+  MemberSetterNode(this.member);
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '$member.setter';
   }
 }
 
@@ -220,6 +250,29 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  bool propertyAssignEnter(Expression expression, DartType typeContext) {
+    _deferReference(expression.fileOffset);
+    _deferType(expression.fileOffset);
+    return super.propertyAssignEnter(expression, typeContext);
+  }
+
+  @override
+  void propertyAssignExit(Expression expression, Member writeMember,
+      DartType writeContext, DartType inferredType) {
+    _replaceReference(new MemberSetterNode(writeMember));
+    _replaceType(writeContext);
+    // No call for super().
+    // The type of the assignment is the type of the RHS.
+  }
+
+  @override
+  void propertyGetExit(
+      Expression expression, Object member, DartType inferredType) {
+    _recordReference(new MemberGetterNode(member), expression.fileOffset);
+    super.propertyGetExit(expression, member, inferredType);
+  }
+
+  @override
   void staticGetExit(StaticGet expression, DartType inferredType) {
     _recordReference(expression.target, expression.fileOffset);
     super.staticGetExit(expression, inferredType);
@@ -265,6 +318,23 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  bool variableAssignEnter(Expression expression, DartType typeContext) {
+    _deferReference(expression.fileOffset);
+    _deferType(expression.fileOffset);
+    return super.variableAssignEnter(expression, typeContext);
+  }
+
+  @override
+  void variableAssignExit(
+      Expression expression, DartType writeContext, DartType inferredType) {
+    VariableSet variableSet = expression;
+    _replaceReference(variableSet.variable);
+    _replaceType(writeContext);
+    // No call for super().
+    // The type of the assignment is the type of the RHS.
+  }
+
+  @override
   void variableDeclarationEnter(VariableDeclaration statement) {
     _deferType(statement.fileOffset);
     super.variableDeclarationEnter(statement);
@@ -274,7 +344,7 @@ class ResolutionStorer extends TypeInferenceListener {
   void variableDeclarationExit(
       VariableDeclaration statement, DartType inferredType) {
     _recordDeclaration(statement, statement.fileOffset);
-    _replaceType(inferredType);
+    _replaceType(statement.type);
     super.variableDeclarationExit(statement, inferredType);
   }
 

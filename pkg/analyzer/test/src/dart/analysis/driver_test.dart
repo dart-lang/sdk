@@ -215,6 +215,237 @@ var b = new C<num, String>.named(4, 'five');
     }
   }
 
+  test_assignmentExpression_simple_local() async {
+    String content = r'''
+main() {
+  num v = 0;
+  v = 2;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement v;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      v = statement.variables.variables[0].element;
+      expect(v.type, typeProvider.numType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.staticType, typeProvider.intType);
+
+      SimpleIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(v));
+      expect(left.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_simple_prefixedIdentifier() async {
+    String content = r'''
+main() {
+  var c = new C();
+  c.f = 2;
+}
+class C {
+  num f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement c;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      c = statement.variables.variables[0].element;
+      expect(c.type, cClassElement.type);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.staticType, typeProvider.intType);
+
+      PrefixedIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(fElement.setter));
+      expect(left.staticType, typeProvider.numType);
+
+      expect(left.prefix.staticElement, c);
+      expect(left.prefix.staticType, cClassElement.type);
+
+      expect(left.identifier.staticElement, same(fElement.setter));
+      expect(left.identifier.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_simple_propertyAccess() async {
+    String content = r'''
+main() {
+  new C().f = 2;
+}
+class C {
+  num f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.staticType, typeProvider.intType);
+
+      PropertyAccess left = assignment.leftHandSide;
+      expect(left.staticType, typeProvider.numType);
+
+      InstanceCreationExpression newC = left.target;
+      expect(newC.staticElement, cClassElement.unnamedConstructor);
+
+      expect(left.propertyName.staticElement, same(fElement.setter));
+      expect(left.propertyName.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_simple_propertyAccess_chained() async {
+    String content = r'''
+main() {
+  var a = new A();
+  a.b.f = 2;
+}
+class A {
+  B b;
+}
+class B {
+  num f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration aClassDeclaration = unit.declarations[1];
+    ClassElement aClassElement = aClassDeclaration.element;
+    FieldElement bElement = aClassElement.getField('b');
+
+    ClassDeclaration bClassDeclaration = unit.declarations[2];
+    ClassElement bClassElement = bClassDeclaration.element;
+    FieldElement fElement = bClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement a;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      a = statement.variables.variables[0].element;
+      expect(a.type, aClassElement.type);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.staticType, typeProvider.intType);
+
+      PropertyAccess fAccess = assignment.leftHandSide;
+      expect(fAccess.propertyName.name, 'f');
+      expect(fAccess.propertyName.staticElement, same(fElement.setter));
+      expect(fAccess.propertyName.staticType, typeProvider.numType);
+
+      PrefixedIdentifier bAccess = fAccess.target;
+      expect(bAccess.identifier.name, 'b');
+      expect(bAccess.identifier.staticElement, same(bElement.getter));
+      expect(bAccess.identifier.staticType, bClassElement.type);
+
+      SimpleIdentifier aIdentifier = bAccess.prefix;
+      expect(aIdentifier.name, 'a');
+      expect(aIdentifier.staticElement, a);
+      expect(aIdentifier.staticType, aClassElement.type);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_simple_propertyAccess_setter() async {
+    String content = r'''
+main() {
+  new C().f = 2;
+}
+class C {
+  void set f(num _) {}
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.staticType, typeProvider.intType);
+
+      PropertyAccess left = assignment.leftHandSide;
+      expect(left.staticType, typeProvider.numType);
+
+      InstanceCreationExpression newC = left.target;
+      expect(newC.staticElement, cClassElement.unnamedConstructor);
+
+      expect(left.propertyName.staticElement, same(fElement.setter));
+      expect(left.propertyName.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
   test_binaryExpression() async {
     String content = r'''
 main() {
@@ -569,6 +800,76 @@ void foo(int a, {bool b, double c}) {}
     ParameterElement cElement = fooElement.parameters[2];
     expect(cArgument.name.label.staticElement, same(cElement));
     expect(cArgument.staticParameterElement, same(cElement));
+  }
+
+  test_propertyAccess_field() async {
+    String content = r'''
+main() {
+  new C().f;
+}
+class C {
+  int f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+      PropertyAccess access = statement.expression;
+      expect(access.staticType, typeProvider.intType);
+
+      InstanceCreationExpression newC = access.target;
+      expect(newC.staticElement, cClassElement.unnamedConstructor);
+      expect(newC.staticType, cClassElement.type);
+
+      expect(access.propertyName.staticElement, same(fElement.getter));
+      expect(access.propertyName.staticType, typeProvider.intType);
+    }
+  }
+
+  test_propertyAccess_getter() async {
+    String content = r'''
+main() {
+  new C().f;
+}
+class C {
+  int get f => 0;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+      PropertyAccess access = statement.expression;
+      expect(access.staticType, typeProvider.intType);
+
+      InstanceCreationExpression newC = access.target;
+      expect(newC.staticElement, cClassElement.unnamedConstructor);
+      expect(newC.staticType, cClassElement.type);
+
+      expect(access.propertyName.staticElement, same(fElement.getter));
+      expect(access.propertyName.staticType, typeProvider.intType);
+    }
   }
 
   test_top_executables_class() async {

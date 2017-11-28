@@ -1535,10 +1535,10 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
+    var receiverType = _inferReceiver(inferrer);
     typeNeeded =
         inferrer.listener.propertyAssignEnter(desugared, typeContext) ||
             typeNeeded;
-    var receiverType = _inferReceiver(inferrer);
     DartType readType;
     if (read != null) {
       var readMember =
@@ -1558,7 +1558,8 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
     var inferredType = _inferRhs(inferrer, readType, writeContext);
     if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
-    inferrer.listener.propertyAssignExit(desugared, inferredType);
+    inferrer.listener
+        .propertyAssignExit(desugared, writeMember, writeContext, inferredType);
     _replaceWithDesugared();
     return inferredType;
   }
@@ -2246,7 +2247,7 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
       }
     }
     var inferredType = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.variableAssignExit(desugared, inferredType);
+    inferrer.listener.variableAssignExit(desugared, writeContext, inferredType);
     _replaceWithDesugared();
     return inferredType;
   }

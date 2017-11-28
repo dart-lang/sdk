@@ -48,6 +48,15 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    node.leftHandSide.accept(this);
+    node.rightHandSide.accept(this);
+    node.staticType = node.rightHandSide.staticType;
+
+    // TODO(scheglov) Support for compound assignment.
+  }
+
+  @override
   void visitBinaryExpression(BinaryExpression node) {
     node.leftOperand.accept(this);
 
@@ -213,6 +222,20 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     node.visitChildren(this);
     node.staticType = node.expression.staticType;
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    node.prefix.accept(this);
+    node.identifier.accept(this);
+    node.staticType = node.identifier.staticType;
+  }
+
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    node.target?.accept(this);
+    node.propertyName.accept(this);
+    node.staticType = node.propertyName.staticType;
   }
 
   @override

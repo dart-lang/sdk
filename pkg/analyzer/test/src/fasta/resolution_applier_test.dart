@@ -241,7 +241,6 @@ f(String s) {
     ], <DartType>[
       typeProvider.stringType,
       typeProvider.intType,
-      typeProvider.intType
     ]);
   }
 

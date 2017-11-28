@@ -467,6 +467,26 @@ class LibraryAnalyzer {
         element = _kernelResynthesizer
             .getElementFromCanonicalName(referencedNode.canonicalName);
         assert(element != null);
+      } else if (referencedNode is kernel.MemberGetterNode) {
+        var memberElement = _kernelResynthesizer
+            .getElementFromCanonicalName(referencedNode.member.canonicalName);
+        assert(memberElement != null);
+        if (memberElement is PropertyInducingElementImpl) {
+          element = memberElement.getter;
+          assert(element != null);
+        } else {
+          element = memberElement;
+        }
+      } else if (referencedNode is kernel.MemberSetterNode) {
+        var memberElement = _kernelResynthesizer
+            .getElementFromCanonicalName(referencedNode.member.canonicalName);
+        assert(memberElement != null);
+        if (memberElement is PropertyInducingElementImpl) {
+          element = memberElement.setter;
+          assert(element != null);
+        } else {
+          element = memberElement;
+        }
       } else {
         // TODO(scheglov) Add more supported nodes.
         throw new UnimplementedError(

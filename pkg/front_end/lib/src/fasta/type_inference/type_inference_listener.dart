@@ -33,6 +33,8 @@ class TypeInferenceBase {
 class TypeInferenceDebugging implements TypeInferenceBase {
   int _indentLevel = 0;
 
+  String get _indent => '| ' * _indentLevel;
+
   bool genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
     _enter('genericExpressionEnter', '$expressionType($expression)',
@@ -80,8 +82,6 @@ class TypeInferenceDebugging implements TypeInferenceBase {
     print('$_indent    $description');
     print('$_indent    $details');
   }
-
-  String get _indent => '| ' * _indentLevel;
 }
 
 /// Callback interface used by [TypeInferrer] to report the results of type
@@ -325,13 +325,15 @@ class TypeInferenceListener
   bool propertyAssignEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("propertyAssign", expression, typeContext);
 
-  void propertyAssignExit(Expression expression, DartType inferredType) =>
+  void propertyAssignExit(Expression expression, Member writeMember,
+          DartType writeContext, DartType inferredType) =>
       genericExpressionExit("propertyAssign", expression, inferredType);
 
   bool propertyGetEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("propertyGet", expression, typeContext);
 
-  void propertyGetExit(Expression expression, DartType inferredType) =>
+  void propertyGetExit(
+          Expression expression, Object member, DartType inferredType) =>
       genericExpressionExit("propertyGet", expression, inferredType);
 
   bool propertySetEnter(PropertySet expression, DartType typeContext) =>
@@ -443,7 +445,8 @@ class TypeInferenceListener
   bool variableAssignEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("variableAssign", expression, typeContext);
 
-  void variableAssignExit(Expression expression, DartType inferredType) =>
+  void variableAssignExit(Expression expression, DartType writeContext,
+          DartType inferredType) =>
       genericExpressionExit("variableAssign", expression, inferredType);
 
   void variableDeclarationEnter(VariableDeclaration statement) =>

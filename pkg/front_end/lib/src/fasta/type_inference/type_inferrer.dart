@@ -1137,7 +1137,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
     handlePropertyGetContravariance(receiver, interfaceMember, desugaredGet,
         expression, inferredType, fileOffset);
-    listener.propertyGetExit(expression, inferredType);
+    listener.propertyGetExit(expression, interfaceMember, inferredType);
     return typeNeeded ? inferredType : null;
   }
 
