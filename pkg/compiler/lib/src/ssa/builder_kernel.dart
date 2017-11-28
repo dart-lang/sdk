@@ -2508,17 +2508,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
           stack.add(graph.addConstant(value, closedWorld,
               sourceInformation: sourceInformation));
         } else {
-          push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field))
-            ..sourceInformation = sourceInformation);
+          push(new HStatic(field, _typeInferenceMap.getInferredTypeOf(field),
+              sourceInformation));
         }
       } else {
-        push(new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field))
-          ..sourceInformation = sourceInformation);
+        push(new HLazyStatic(field, _typeInferenceMap.getInferredTypeOf(field),
+            sourceInformation));
       }
     } else {
       MemberEntity member = _elementMap.getMember(staticTarget);
-      push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member))
-        ..sourceInformation = sourceInformation);
+      push(new HStatic(member, _typeInferenceMap.getInferredTypeOf(member),
+          sourceInformation));
     }
   }
 
@@ -2907,8 +2907,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
             commonMasks.numType,
-            lengthInput)
-          ..sourceInformation = sourceInformation;
+            lengthInput,
+            sourceInformation);
         add(conversion);
         lengthInput = conversion;
       }
@@ -3526,14 +3526,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     TypeMask type = _typeInferenceMap.selectorTypeOf(selector, mask);
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(selector, mask, null, inputs, type)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicGetter(
+          selector, mask, null, inputs, type, sourceInformation));
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(selector, mask, null, inputs, type)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicSetter(
+          selector, mask, null, inputs, type, sourceInformation));
     } else {
-      push(new HInvokeDynamicMethod(selector, mask, inputs, type, isIntercepted)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicMethod(
+          selector, mask, inputs, type, sourceInformation, isIntercepted));
     }
   }
 
@@ -3778,9 +3778,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       typeMask = closedWorld.commonMasks.dynamicType;
     }
     HInstruction instruction = new HInvokeSuper(
-        target, containingClass, selector, inputs, typeMask, null,
-        isSetter: selector.isSetter || selector.isIndexSet)
-      ..sourceInformation = sourceInformation;
+        target, containingClass, selector, inputs, typeMask, sourceInformation,
+        isSetter: selector.isSetter || selector.isIndexSet);
     instruction.sideEffects =
         closedWorld.getSideEffectsOfSelector(selector, null);
     push(instruction);
@@ -3905,8 +3904,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           _commonElements.functionTypeTest, inputs, commonMasks.boolType,
           sourceInformation: sourceInformation);
       HInstruction call = pop();
-      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType)
-        ..sourceInformation = sourceInformation);
+      push(new HIs.compound(typeValue, expression, call, commonMasks.boolType,
+          sourceInformation));
       return;
     }
 
@@ -3916,8 +3915,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _pushStaticInvocation(_commonElements.checkSubtypeOfRuntimeType,
           <HInstruction>[expression, runtimeType], commonMasks.boolType,
           sourceInformation: sourceInformation);
-      push(new HIs.variable(typeValue, expression, pop(), commonMasks.boolType)
-        ..sourceInformation = sourceInformation);
+      push(new HIs.variable(typeValue, expression, pop(), commonMasks.boolType,
+          sourceInformation));
       return;
     }
 
@@ -3943,21 +3942,24 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _pushStaticInvocation(
           _commonElements.checkSubtype, inputs, commonMasks.boolType,
           sourceInformation: sourceInformation);
-      push(new HIs.compound(typeValue, expression, pop(), commonMasks.boolType)
-        ..sourceInformation = sourceInformation);
+      push(new HIs.compound(typeValue, expression, pop(), commonMasks.boolType,
+          sourceInformation));
       return;
     }
 
     if (backend.hasDirectCheckFor(closedWorld.commonElements, typeValue)) {
-      push(new HIs.direct(typeValue, expression, commonMasks.boolType)
-        ..sourceInformation = sourceInformation);
+      push(new HIs.direct(
+          typeValue, expression, commonMasks.boolType, sourceInformation));
       return;
     }
     // The interceptor is not always needed.  It is removed by optimization
     // when the receiver type or tested type permit.
-    push(new HIs.raw(typeValue, expression,
-        _interceptorFor(expression, sourceInformation), commonMasks.boolType)
-      ..sourceInformation = sourceInformation);
+    push(new HIs.raw(
+        typeValue,
+        expression,
+        _interceptorFor(expression, sourceInformation),
+        commonMasks.boolType,
+        sourceInformation));
     return;
   }
 
@@ -3985,8 +3987,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void visitYieldStatement(ir.YieldStatement node) {
     node.expression.accept(this);
-    add(new HYield(pop(), node.isYieldStar)
-      ..sourceInformation = _sourceInformationBuilder.buildYield(node));
+    add(new HYield(
+        pop(), node.isYieldStar, _sourceInformationBuilder.buildYield(node)));
   }
 
   @override

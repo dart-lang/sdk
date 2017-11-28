@@ -2214,14 +2214,15 @@ class SsaAstGraphBuilder extends ast.Visitor
         HInstruction instruction = new HStatic(
             field,
             TypeMaskFactory.inferredTypeForMember(
-                field, globalInferenceResults))
-          ..sourceInformation = sourceInformation;
+                field, globalInferenceResults),
+            sourceInformation);
         push(instruction);
       }
     } else {
-      HInstruction instruction = new HLazyStatic(field,
-          TypeMaskFactory.inferredTypeForMember(field, globalInferenceResults))
-        ..sourceInformation = sourceInformation;
+      HInstruction instruction = new HLazyStatic(
+          field,
+          TypeMaskFactory.inferredTypeForMember(field, globalInferenceResults),
+          sourceInformation);
       push(instruction);
     }
   }
@@ -2252,8 +2253,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     // creating an [HStatic].
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildGet(node.selector);
-    push(new HStatic(method, commonMasks.nonNullType)
-      ..sourceInformation = sourceInformation);
+    push(new HStatic(method, commonMasks.nonNullType, sourceInformation));
   }
 
   /// Read a local variable, function or parameter.
@@ -2487,7 +2487,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       }
       generateTypeError(node, message);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call, commonMasks.boolType);
+      return new HIs.compound(
+          type, expression, call, commonMasks.boolType, sourceInformation);
     } else if (type.isFunctionType) {
       HInstruction representation =
           typeBuilder.analyzeTypeArgument(type, sourceElement);
@@ -2498,8 +2499,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       pushInvokeStatic(node, commonElements.functionTypeTest, inputs,
           typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call, commonMasks.boolType)
-        ..sourceInformation = sourceInformation;
+      return new HIs.compound(
+          type, expression, call, commonMasks.boolType, sourceInformation);
     } else if (type.isTypeVariable) {
       ResolutionTypeVariableType typeVariable = type;
       HInstruction runtimeType =
@@ -2509,7 +2510,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       pushInvokeStatic(null, helper, inputs,
           typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.variable(type, expression, call, commonMasks.boolType);
+      return new HIs.variable(
+          type, expression, call, commonMasks.boolType, sourceInformation);
     } else if (RuntimeTypesSubstitutions.hasTypeArguments(type)) {
       ClassElement element = type.element;
       MethodElement helper = commonElements.checkSubtype;
@@ -2530,18 +2532,17 @@ class SsaAstGraphBuilder extends ast.Visitor
       pushInvokeStatic(node, helper, inputs,
           typeMask: commonMasks.boolType, sourceInformation: sourceInformation);
       HInstruction call = pop();
-      return new HIs.compound(type, expression, call, commonMasks.boolType)
-        ..sourceInformation = sourceInformation;
+      return new HIs.compound(
+          type, expression, call, commonMasks.boolType, sourceInformation);
     } else {
       if (backend.hasDirectCheckFor(closedWorld.commonElements, type)) {
-        return new HIs.direct(type, expression, commonMasks.boolType)
-          ..sourceInformation = sourceInformation;
+        return new HIs.direct(
+            type, expression, commonMasks.boolType, sourceInformation);
       }
       // The interceptor is not always needed.  It is removed by optimization
       // when the receiver type or tested type permit.
-      return new HIs.raw(
-          type, expression, invokeInterceptor(expression), commonMasks.boolType)
-        ..sourceInformation = sourceInformation;
+      return new HIs.raw(type, expression, invokeInterceptor(expression),
+          commonMasks.boolType, sourceInformation);
     }
   }
 
@@ -3546,7 +3547,8 @@ class SsaAstGraphBuilder extends ast.Visitor
             null,
             HTypeConversion.ARGUMENT_TYPE_CHECK,
             commonMasks.numType,
-            inputs[0]);
+            inputs[0],
+            sourceInformation);
         add(conversion);
         inputs[0] = conversion;
       }
@@ -4133,14 +4135,14 @@ class SsaAstGraphBuilder extends ast.Visitor
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(
         selector, mask, globalInferenceResults);
     if (selector.isGetter) {
-      push(new HInvokeDynamicGetter(selector, mask, null, inputs, type)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicGetter(
+          selector, mask, null, inputs, type, sourceInformation));
     } else if (selector.isSetter) {
-      push(new HInvokeDynamicSetter(selector, mask, null, inputs, type)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicSetter(
+          selector, mask, null, inputs, type, sourceInformation));
     } else {
-      push(new HInvokeDynamicMethod(selector, mask, inputs, type, isIntercepted)
-        ..sourceInformation = sourceInformation);
+      push(new HInvokeDynamicMethod(
+          selector, mask, inputs, type, sourceInformation, isIntercepted));
     }
   }
 
@@ -5311,8 +5313,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   visitYield(ast.Yield node) {
     visit(node.expression);
     HInstruction yielded = pop();
-    add(new HYield(yielded, node.hasStar)
-      ..sourceInformation = sourceInformationBuilder.buildYield(node));
+    add(new HYield(
+        yielded, node.hasStar, sourceInformationBuilder.buildYield(node)));
   }
 
   visitAwait(ast.Await node) {

@@ -448,8 +448,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // bounds check on removeLast). Once we start inlining, the
         // bounds check will become explicit, so we won't need this
         // optimization.
-        HInvokeDynamicMethod result = new HInvokeDynamicMethod(node.selector,
-            node.mask, node.inputs.sublist(1), node.instructionType);
+        HInvokeDynamicMethod result = new HInvokeDynamicMethod(
+            node.selector,
+            node.mask,
+            node.inputs.sublist(1),
+            node.instructionType,
+            node.sourceInformation);
         result.element = target;
         return result;
       }
@@ -583,8 +587,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
         _nativeData.getNativeMethodBehavior(method);
     TypeMask returnType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, _closedWorld);
-    HInvokeDynamicMethod result =
-        new HInvokeDynamicMethod(node.selector, node.mask, inputs, returnType);
+    HInvokeDynamicMethod result = new HInvokeDynamicMethod(
+        node.selector, node.mask, inputs, returnType, node.sourceInformation);
     result.element = method;
     return result;
   }
@@ -1193,8 +1197,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
             selector,
             input.instructionType, // receiver mask.
             inputs,
-            toStringType)
-          ..sourceInformation = node.sourceInformation;
+            toStringType,
+            node.sourceInformation);
         return result;
       }
       return null;
