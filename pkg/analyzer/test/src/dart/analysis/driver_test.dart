@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -215,11 +216,11 @@ var b = new C<num, String>.named(4, 'five');
     }
   }
 
-  test_assignmentExpression_simple_local() async {
+  test_assignmentExpression_compound_local() async {
     String content = r'''
 main() {
   num v = 0;
-  v = 2;
+  v += 3;
 }
 ''';
     addTestFile(content);
@@ -241,7 +242,164 @@ main() {
       ExpressionStatement statement = mainStatements[1];
 
       AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.PLUS_EQ);
+      expect(assignment.staticElement, isNotNull);
+      expect(assignment.staticElement.name, '+');
+      expect(assignment.staticType, typeProvider.numType); // num + int = num
+
+      SimpleIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(v));
+      expect(left.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_compound_prefixedIdentifier() async {
+    String content = r'''
+main() {
+  var c = new C();
+  c.f += 2;
+}
+class C {
+  num f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement c;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      c = statement.variables.variables[0].element;
+      expect(c.type, cClassElement.type);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.PLUS_EQ);
+      expect(assignment.staticElement, isNotNull);
+      expect(assignment.staticElement.name, '+');
+      expect(assignment.staticType, typeProvider.numType); // num + int = num
+
+      PrefixedIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(fElement.setter));
+      expect(left.staticType, typeProvider.numType);
+
+      expect(left.prefix.staticElement, c);
+      expect(left.prefix.staticType, cClassElement.type);
+
+      expect(left.identifier.staticElement, same(fElement.setter));
+      expect(left.identifier.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_compound_propertyAccess() async {
+    String content = r'''
+main() {
+  new C().f += 2;
+}
+class C {
+  num f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.PLUS_EQ);
+      expect(assignment.staticElement, isNotNull);
+      expect(assignment.staticElement.name, '+');
+      expect(assignment.staticType, typeProvider.numType); // num + int = num
+
+      PropertyAccess left = assignment.leftHandSide;
+      expect(left.staticType, typeProvider.numType);
+
+      InstanceCreationExpression newC = left.target;
+      expect(newC.staticElement, cClassElement.unnamedConstructor);
+
+      expect(left.propertyName.staticElement, same(fElement.setter));
+      expect(left.propertyName.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_simple_local() async {
+    String content = r'''
+main() {
+  num v = 0;
+  v = 2;
+  v += 3;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement v;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      v = statement.variables.variables[0].element;
+      expect(v.type, typeProvider.numType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.EQ);
+      expect(assignment.staticElement, isNull);
       expect(assignment.staticType, typeProvider.intType);
+
+      SimpleIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(v));
+      expect(left.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[2];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.PLUS_EQ);
+      expect(assignment.staticElement, isNotNull);
+      expect(assignment.staticElement.name, '+');
+      expect(assignment.staticType, typeProvider.numType); // num + int = num
 
       SimpleIdentifier left = assignment.leftHandSide;
       expect(left.staticElement, same(v));

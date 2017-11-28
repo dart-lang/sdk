@@ -487,6 +487,8 @@ class LibraryAnalyzer {
         } else {
           element = memberElement;
         }
+      } else if (referencedNode is kernel.NullAssignmentCombinerNode) {
+        element = null;
       } else {
         // TODO(scheglov) Add more supported nodes.
         throw new UnimplementedError(

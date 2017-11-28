@@ -51,9 +51,21 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitAssignmentExpression(AssignmentExpression node) {
     node.leftHandSide.accept(this);
     node.rightHandSide.accept(this);
-    node.staticType = node.rightHandSide.staticType;
 
-    // TODO(scheglov) Support for compound assignment.
+    // Assignment reference and type are recorded recorded for LHS.
+    SimpleIdentifier assignmentNode;
+    Expression left = node.leftHandSide;
+    if (left is SimpleIdentifier) {
+      assignmentNode = left;
+    } else if (left is PrefixedIdentifier) {
+      assignmentNode = left.identifier;
+    } else if (left is PropertyAccess) {
+      assignmentNode = left.propertyName;
+    } else {
+      throw new StateError('Unexpected LHT (${left.runtimeType}) $left');
+    }
+    node.staticType = _getTypeFor(assignmentNode);
+    node.staticElement = _getReferenceFor(assignmentNode);
   }
 
   @override

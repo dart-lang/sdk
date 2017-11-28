@@ -326,7 +326,7 @@ class TypeInferenceListener
       genericExpressionEnter("propertyAssign", expression, typeContext);
 
   void propertyAssignExit(Expression expression, Member writeMember,
-          DartType writeContext, DartType inferredType) =>
+          DartType writeContext, Procedure combiner, DartType inferredType) =>
       genericExpressionExit("propertyAssign", expression, inferredType);
 
   bool propertyGetEnter(Expression expression, DartType typeContext) =>
@@ -446,7 +446,7 @@ class TypeInferenceListener
       genericExpressionEnter("variableAssign", expression, typeContext);
 
   void variableAssignExit(Expression expression, DartType writeContext,
-          DartType inferredType) =>
+          Procedure combiner, DartType inferredType) =>
       genericExpressionExit("variableAssign", expression, inferredType);
 
   void variableDeclarationEnter(VariableDeclaration statement) =>

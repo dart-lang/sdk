@@ -151,6 +151,19 @@ class MemberSetterNode implements TreeNode {
   }
 }
 
+/// The type of [TreeNode] node that is used as a marker for using `null`
+/// combiner for not compound assignments.
+class NullAssignmentCombinerNode implements TreeNode {
+  const NullAssignmentCombinerNode();
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() {
+    return '(null-assignment-combiner)';
+  }
+}
+
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
 class ResolutionStorer extends TypeInferenceListener {
@@ -251,18 +264,22 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   bool propertyAssignEnter(Expression expression, DartType typeContext) {
-    _deferReference(expression.fileOffset);
-    _deferType(expression.fileOffset);
-    return super.propertyAssignEnter(expression, typeContext);
+    PropertySet propertySet = _findPropertySet(expression);
+    _deferReference(propertySet.fileOffset);
+    _deferType(propertySet.fileOffset);
+    return super.propertyAssignEnter(propertySet, typeContext);
   }
 
   @override
   void propertyAssignExit(Expression expression, Member writeMember,
-      DartType writeContext, DartType inferredType) {
+      DartType writeContext, Procedure combiner, DartType inferredType) {
+    PropertySet propertySet = _findPropertySet(expression);
     _replaceReference(new MemberSetterNode(writeMember));
     _replaceType(writeContext);
-    // No call for super().
-    // The type of the assignment is the type of the RHS.
+    _recordReference(
+        combiner ?? const NullAssignmentCombinerNode(), propertySet.fileOffset);
+    super.propertyAssignExit(
+        propertySet, writeMember, writeContext, combiner, inferredType);
   }
 
   @override
@@ -325,13 +342,14 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  void variableAssignExit(
-      Expression expression, DartType writeContext, DartType inferredType) {
+  void variableAssignExit(Expression expression, DartType writeContext,
+      Procedure combiner, DartType inferredType) {
     VariableSet variableSet = expression;
     _replaceReference(variableSet.variable);
     _replaceType(writeContext);
-    // No call for super().
-    // The type of the assignment is the type of the RHS.
+    _recordReference(
+        combiner ?? const NullAssignmentCombinerNode(), variableSet.fileOffset);
+    super.variableAssignExit(expression, writeContext, combiner, inferredType);
   }
 
   @override
@@ -400,5 +418,15 @@ class ResolutionStorer extends TypeInferenceListener {
   void _replaceType(DartType type) {
     int slot = _deferredTypeSlots.removeLast();
     _types[slot] = type;
+  }
+
+  /// Return the [PropertySet] that that is either the given [expression],
+  /// or if the [expression] is a [Let], a body in a [Let].
+  static PropertySet _findPropertySet(Expression expression) {
+    while (expression is Let) {
+      Let let = expression;
+      expression = let.body;
+    }
+    return expression;
   }
 }

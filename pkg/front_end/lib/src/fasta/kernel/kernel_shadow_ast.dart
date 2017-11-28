@@ -412,13 +412,14 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     return parts;
   }
 
-  DartType _inferRhs(
+  _ComplexAssignmentInferenceResult _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
     var writeOffset = write == null ? -1 : write.fileOffset;
+    Procedure combinerMember;
     DartType combinedType;
     if (combiner != null) {
       bool isOverloadedArithmeticOperator = false;
-      var combinerMember =
+      combinerMember =
           inferrer.findMethodInvocationMember(readType, combiner, silent: true);
       if (combinerMember is Procedure) {
         isOverloadedArithmeticOperator = inferrer.typeSchemaEnvironment
@@ -489,7 +490,8 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     } else {
       _storeLetType(inferrer, write, combinedType);
     }
-    return isPostIncDec ? (readType ?? const DynamicType()) : combinedType;
+    return new _ComplexAssignmentInferenceResult(combinerMember,
+        isPostIncDec ? (readType ?? const DynamicType()) : combinedType);
   }
 }
 
@@ -1033,10 +1035,10 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
           read.fileOffset);
       _storeLetType(inferrer, replacedRead, readType);
     }
-    var inferredType = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.indexAssignExit(desugared, inferredType);
+    var inferredResult = _inferRhs(inferrer, readType, writeContext);
+    inferrer.listener.indexAssignExit(desugared, inferredResult.type);
     _replaceWithDesugared();
-    return inferredType;
+    return inferredResult.type;
   }
 }
 
@@ -1556,12 +1558,12 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     // member.  TODO(paulberry): would it be better to use the read member when
     // doing compound assignment?
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
-    var inferredType = _inferRhs(inferrer, readType, writeContext);
-    if (inferrer.strongMode) nullAwareGuard?.staticType = inferredType;
-    inferrer.listener
-        .propertyAssignExit(desugared, writeMember, writeContext, inferredType);
+    var inferredResult = _inferRhs(inferrer, readType, writeContext);
+    if (inferrer.strongMode) nullAwareGuard?.staticType = inferredResult.type;
+    inferrer.listener.propertyAssignExit(desugared, writeMember, writeContext,
+        inferredResult.combiner, inferredResult.type);
     _replaceWithDesugared();
-    return inferredType;
+    return inferredResult.type;
   }
 }
 
@@ -1670,10 +1672,10 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
         target._inferenceNode = null;
       }
     }
-    var inferredType = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.staticAssignExit(desugared, inferredType);
+    var inferredResult = _inferRhs(inferrer, readType, writeContext);
+    inferrer.listener.staticAssignExit(desugared, inferredResult.type);
     _replaceWithDesugared();
-    return inferredType;
+    return inferredResult.type;
   }
 }
 
@@ -2246,10 +2248,11 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
         _storeLetType(inferrer, read, writeContext);
       }
     }
-    var inferredType = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.variableAssignExit(desugared, writeContext, inferredType);
+    var inferredResult = _inferRhs(inferrer, readType, writeContext);
+    inferrer.listener.variableAssignExit(
+        desugared, writeContext, inferredResult.combiner, inferredResult.type);
     _replaceWithDesugared();
-    return inferredType;
+    return inferredResult.type;
   }
 }
 
@@ -2405,6 +2408,18 @@ class ShadowYieldStatement extends YieldStatement implements ShadowStatement {
         inferrer, isYieldStar, inferredType, expression, fileOffset);
     inferrer.listener.yieldStatementExit(this);
   }
+}
+
+/// The result of inference for a RHS of an assignment.
+class _ComplexAssignmentInferenceResult {
+  /// The resolved combiner [Procedure], e.g. `operator+` for `a += 2`, or
+  /// `null` if the assignment is not compound.
+  final Procedure combiner;
+
+  /// The inferred type of the assignment expression.
+  final DartType type;
+
+  _ComplexAssignmentInferenceResult(this.combiner, this.type);
 }
 
 class _UnfinishedCascade extends Expression {
