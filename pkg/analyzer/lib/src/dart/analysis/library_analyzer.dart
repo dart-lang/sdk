@@ -461,7 +461,19 @@ class LibraryAnalyzer {
     for (var referencedNode in resolution.kernelReferences) {
       Element element;
       if (referencedNode is kernel.VariableDeclaration) {
-        element = declarationToElement[referencedNode];
+        kernel.TreeNode parent = referencedNode.parent;
+        if (parent is kernel.Statement) {
+          element = declarationToElement[referencedNode];
+        } else {
+          assert(parent is kernel.FunctionNode);
+          ExecutableElementImpl contextExecutable = context;
+          for (var parameter in contextExecutable.parameters) {
+            if (parameter.name == referencedNode.name) {
+              element = parameter;
+              break;
+            }
+          }
+        }
         assert(element != null);
       } else if (referencedNode is kernel.NamedNode) {
         element = _kernelResynthesizer

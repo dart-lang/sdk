@@ -879,13 +879,42 @@ void main() {
     }
   }
 
+  test_local_parameter() async {
+    String content = r'''
+void main(int p) {
+  p;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    expect(result.errors, isEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType intType = typeProvider.intType;
+
+    FunctionDeclaration main = result.unit.declarations[0];
+    List<Statement> statements = _getMainStatements(result);
+
+    // (int p)
+    VariableElement pElement = main.element.parameters[0];
+    expect(pElement.type, intType);
+
+    // p;
+    {
+      ExpressionStatement statement = statements[0];
+      SimpleIdentifier identifier = statement.expression;
+      expect(identifier.staticElement, pElement);
+      expect(identifier.staticType, intType);
+    }
+  }
+
   test_local_variable() async {
     String content = r'''
 void main() {
   var v = 42;
   v;
-//  v = 1;
-//  v += 2;
 }
 ''';
     addTestFile(content);
