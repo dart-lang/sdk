@@ -387,6 +387,8 @@ rasta/unresolved_constructor: Crash
 rasta/unresolved_for_in: Crash
 rasta/unresolved_recovery: Crash
 redirecting_factory: Crash
+redirecting_factory_typeparam_test: Crash
+redirecting_factory_typeparambounds_test: Crash
 regress/issue_29937: Crash
 regress/issue_29941: Crash
 regress/issue_29942: Crash

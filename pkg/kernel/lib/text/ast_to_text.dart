@@ -926,6 +926,30 @@ class Printer extends Visitor<Null> {
         name: node.name, initializers: node.initializers);
   }
 
+  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    writeAnnotationList(node.annotations);
+    writeIndentation();
+    writeModifier(node.isExternal, 'external');
+    writeModifier(node.isConst, 'const');
+    writeModifier(node.isSyntheticDefault, 'default');
+    writeWord('factory');
+
+    if (node.name != null) {
+      writeName(node.name);
+    }
+    writeTypeParameterList(node.typeParameters);
+    writeParameterList(node.positionalParameters, node.namedParameters,
+        node.requiredParameterCount);
+    writeSpaced('=');
+    writeMemberReferenceFromReference(node.targetReference);
+    if (node.typeArguments.isNotEmpty) {
+      writeSymbol('<');
+      writeList(node.typeArguments, writeType);
+      writeSymbol('>');
+    }
+    endLine(';');
+  }
+
   visitClass(Class node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
@@ -955,6 +979,7 @@ class Printer extends Visitor<Null> {
     node.fields.forEach(writeNode);
     node.constructors.forEach(writeNode);
     node.procedures.forEach(writeNode);
+    node.redirectingFactoryConstructors.forEach(writeNode);
     --indentation;
     writeIndentation();
     endLine('}');

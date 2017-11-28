@@ -703,6 +703,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     procedureOffsets = <int>[];
     writeNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
+    writeNodeList(node.redirectingFactoryConstructors);
     _typeParameterIndexer.exit(node.typeParameters);
 
     assert(procedureOffsets.length > 0);
@@ -771,6 +772,32 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
+    _variableIndexer = null;
+  }
+
+  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    if (node.canonicalName == null) {
+      throw 'Missing canonical name for $node';
+    }
+    writeByte(Tag.RedirectingFactoryConstructor);
+    _variableIndexer = new VariableIndexer();
+    _variableIndexer.pushScope();
+    _typeParameterIndexer.enter(node.typeParameters);
+    writeCanonicalNameReference(getCanonicalNameOfMember(node));
+    writeOffset(node.fileOffset);
+    writeOffset(node.fileEndOffset);
+    writeByte(node.flags);
+    writeName(node.name);
+    writeAnnotationList(node.annotations);
+    writeReference(node.targetReference);
+    writeNodeList(node.typeArguments);
+    writeNodeList(node.typeParameters);
+    writeUInt30(node.positionalParameters.length + node.namedParameters.length);
+    writeUInt30(node.requiredParameterCount);
+    writeVariableDeclarationList(node.positionalParameters);
+    writeVariableDeclarationList(node.namedParameters);
+    _typeParameterIndexer.exit(node.typeParameters);
+    _variableIndexer.popScope();
     _variableIndexer = null;
   }
 

@@ -797,6 +797,8 @@ class BinaryBuilder {
       return readProcedure(procedureOffsets[index + 1]);
     }, node);
     _byteOffset = procedureOffsets.last;
+    _mergeNamedNodeList(node.redirectingFactoryConstructors,
+        (index) => readRedirectingFactoryConstructor(), node);
     typeParameterStack.length = 0;
     assert(debugPath.removeLast() != null);
     if (shouldWriteData) {
@@ -940,6 +942,50 @@ class BinaryBuilder {
       node.transformerFlags = transformerFlags;
     }
     _byteOffset = endOffset;
+    return node;
+  }
+
+  RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
+    int tag = readByte();
+    assert(tag == Tag.RedirectingFactoryConstructor);
+    var canonicalName = readCanonicalNameReference();
+    var reference = canonicalName.getReference();
+    RedirectingFactoryConstructor node = reference.node;
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new RedirectingFactoryConstructor(null, reference: reference);
+    }
+    var fileOffset = readOffset();
+    var fileEndOffset = readOffset();
+    var flags = readByte();
+    var name = readName();
+    var annotations = readAnnotationList(node);
+    debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+    var targetReference = readMemberReference();
+    var typeArguments = readDartTypeList();
+    int typeParameterStackHeight = typeParameterStack.length;
+    var typeParameters = readAndPushTypeParameterList();
+    readUInt(); // Total parameter count.
+    var requiredParameterCount = readUInt();
+    int variableStackHeight = variableStack.length;
+    var positional = readAndPushVariableDeclarationList();
+    var named = readAndPushVariableDeclarationList();
+    variableStack.length = variableStackHeight;
+    typeParameterStack.length = typeParameterStackHeight;
+    debugPath.removeLast();
+    if (shouldWriteData) {
+      node.fileOffset = fileOffset;
+      node.fileEndOffset = fileEndOffset;
+      node.flags = flags;
+      node.name = name;
+      node.annotations = annotations;
+      node.targetReference = targetReference;
+      node.typeArguments.addAll(typeArguments);
+      node.typeParameters = typeParameters;
+      node.requiredParameterCount = requiredParameterCount;
+      node.positionalParameters = positional;
+      node.namedParameters = named;
+    }
     return node;
   }
 
@@ -1911,6 +1957,13 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   Procedure readProcedure(int endOffset) {
     final nodeOffset = _byteOffset;
     final result = super.readProcedure(endOffset);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
+    final nodeOffset = _byteOffset;
+    final result = super.readRedirectingFactoryConstructor();
     return _associateMetadata(result, nodeOffset);
   }
 

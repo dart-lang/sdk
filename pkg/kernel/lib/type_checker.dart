@@ -196,6 +196,11 @@ class TypeCheckingVisitor
     handleFunctionNode(node.function);
   }
 
+  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    environment.returnType = null;
+    environment.yieldType = null;
+  }
+
   void handleFunctionNode(FunctionNode node) {
     var oldAsyncMarker = environment.currentAsyncMarker;
     environment.currentAsyncMarker = node.asyncMarker;

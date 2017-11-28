@@ -419,6 +419,20 @@ class CloneVisitor extends TreeVisitor {
       ..fileEndOffset = node.fileEndOffset;
   }
 
+  visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    return new RedirectingFactoryConstructor(node.targetReference,
+        name: node.name,
+        isConst: node.isConst,
+        isExternal: node.isExternal,
+        isSyntheticDefault: node.isSyntheticDefault,
+        transformerFlags: node.transformerFlags,
+        typeArguments: node.typeArguments.map(visitType).toList(),
+        typeParameters: node.typeParameters.map(clone).toList(),
+        positionalParameters: node.positionalParameters.map(clone).toList(),
+        namedParameters: node.namedParameters.map(clone).toList(),
+        requiredParameterCount: node.requiredParameterCount);
+  }
+
   visitTypeParameter(TypeParameter node) {
     var newNode = new TypeParameter(node.name);
     typeSubstitution[node] = new TypeParameterType(newNode);

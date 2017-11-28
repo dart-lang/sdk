@@ -730,6 +730,11 @@ class Class extends NamedNode implements FileUriNode {
   /// For mixin applications this should only contain forwarding stubs.
   final List<Procedure> procedures;
 
+  /// Redirecting factory constructors declared in the class.
+  ///
+  /// For mixin applications this should be empty.
+  final List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
+
   Class(
       {this.name,
       this.isAbstract: false,
@@ -741,6 +746,7 @@ class Class extends NamedNode implements FileUriNode {
       List<Constructor> constructors,
       List<Procedure> procedures,
       List<Field> fields,
+      List<RedirectingFactoryConstructor> redirectingFactoryConstructors,
       this.fileUri,
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -748,11 +754,14 @@ class Class extends NamedNode implements FileUriNode {
         this.fields = fields ?? <Field>[],
         this.constructors = constructors ?? <Constructor>[],
         this.procedures = procedures ?? <Procedure>[],
+        this.redirectingFactoryConstructors =
+            redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
     setParents(this.constructors, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+    setParents(this.redirectingFactoryConstructors, this);
   }
 
   void computeCanonicalNames() {
@@ -764,6 +773,9 @@ class Class extends NamedNode implements FileUriNode {
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
     for (var member in constructors) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var member in redirectingFactoryConstructors) {
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
   }
@@ -786,8 +798,12 @@ class Class extends NamedNode implements FileUriNode {
   ///
   /// This getter is for convenience, not efficiency.  Consider manually
   /// iterating the members to speed up code in production.
-  Iterable<Member> get members =>
-      <Iterable<Member>>[fields, constructors, procedures].expand((x) => x);
+  Iterable<Member> get members => <Iterable<Member>>[
+        fields,
+        constructors,
+        procedures,
+        redirectingFactoryConstructors
+      ].expand((x) => x);
 
   /// The immediately extended, mixed-in, and implemented types.
   ///
@@ -814,6 +830,8 @@ class Class extends NamedNode implements FileUriNode {
       procedures.add(member);
     } else if (member is Field) {
       fields.add(member);
+    } else if (member is RedirectingFactoryConstructor) {
+      redirectingFactoryConstructors.add(member);
     } else {
       throw new ArgumentError(member);
     }
@@ -877,6 +895,7 @@ class Class extends NamedNode implements FileUriNode {
     visitList(constructors, v);
     visitList(procedures, v);
     visitList(fields, v);
+    visitList(redirectingFactoryConstructors, v);
   }
 
   transformChildren(Transformer v) {
@@ -892,6 +911,7 @@ class Class extends NamedNode implements FileUriNode {
     transformList(constructors, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
+    transformList(redirectingFactoryConstructors, v, this);
   }
 
   Location _getLocationInEnclosingFile(int offset) {
@@ -1259,6 +1279,148 @@ class Constructor extends Member {
       function = function.accept(v);
       function?.parent = this;
     }
+  }
+
+  DartType get getterType => const BottomType();
+  DartType get setterType => const BottomType();
+}
+
+/// Residue of a redirecting factory constructor for the linking phase.
+///
+/// In the following example, `bar` is a redirecting factory constructor.
+///
+///     class A {
+///       A.foo();
+///       factory A.bar() = A.foo;
+///     }
+///
+/// An invocation of `new A.bar()` has the same effect as an invocation of
+/// `new A.foo()`.  In Kernel, the invocations of `bar` are replaced with
+/// invocations of `foo`, and after it is done, the redirecting constructor can
+/// be removed from the class.  However, it is needed during the linking phase,
+/// because other modules can refer to that constructor.
+///
+/// [RedirectingFactoryConstructor]s contain the necessary information for
+/// linking and are treated as non-runnable members of classes that merely serve
+/// as containers for that information.
+///
+/// Existing transformers may easily ignore [RedirectingFactoryConstructor]s,
+/// because the class is implemented as a subclass of [Member], and not as a
+/// subclass of, for example, [Constructor] or [Procedure].
+///
+/// Redirecting factory constructors can be unnamed.  In this case, the name is
+/// an empty string (in a [Name]).
+class RedirectingFactoryConstructor extends Member {
+  int flags = 0;
+
+  /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
+  /// of instantiated generic types, that is, generic types with supplied type
+  /// arguments.  The supplied type arguments are stored in this field.
+  final List<DartType> typeArguments;
+
+  /// Reference to the constructor or the factory that this
+  /// [RedirectingFactoryConstructor] redirects to.
+  Reference targetReference;
+
+  /// [typeParameters] are duplicates of the type parameters of the enclosing
+  /// class.  Because [RedirectingFactoryConstructor]s aren't instance members,
+  /// references to the type parameters of the enclosing class in the
+  /// redirection target description are encoded with references to the elements
+  /// of [typeParameters].
+  List<TypeParameter> typeParameters;
+
+  /// Positional parameters of [RedirectingFactoryConstructor]s should be
+  /// compatible with that of the target constructor.
+  List<VariableDeclaration> positionalParameters;
+  int requiredParameterCount;
+
+  /// Named parameters of [RedirectingFactoryConstructor]s should be compatible
+  /// with that of the target constructor.
+  List<VariableDeclaration> namedParameters;
+
+  RedirectingFactoryConstructor(this.targetReference,
+      {Name name,
+      bool isConst: false,
+      bool isExternal: false,
+      bool isSyntheticDefault: false,
+      int transformerFlags: 0,
+      List<DartType> typeArguments,
+      List<TypeParameter> typeParameters,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters,
+      int requiredParameterCount,
+      Reference reference})
+      : this.typeArguments = typeArguments ?? <DartType>[],
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.positionalParameters =
+            positionalParameters ?? <VariableDeclaration>[],
+        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
+        this.requiredParameterCount =
+            requiredParameterCount ?? positionalParameters?.length ?? 0,
+        super(name, reference) {
+    setParents(this.typeParameters, this);
+    setParents(this.positionalParameters, this);
+    setParents(this.namedParameters, this);
+    this.isConst = isConst;
+    this.isExternal = isExternal;
+    this.isSyntheticDefault = isSyntheticDefault;
+    this.transformerFlags = transformerFlags;
+  }
+
+  static const int FlagConst = 1 << 0; // Must match serialized bit positions.
+  static const int FlagExternal = 1 << 1;
+  static const int FlagSyntheticDefault = 1 << 2;
+
+  bool get isConst => flags & FlagConst != 0;
+  bool get isExternal => flags & FlagExternal != 0;
+
+  /// True if this is a synthetic default constructor inserted in a class that
+  /// does not otherwise declare any constructors.
+  bool get isSyntheticDefault => flags & FlagSyntheticDefault != 0;
+
+  void set isConst(bool value) {
+    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  void set isExternal(bool value) {
+    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
+  }
+
+  void set isSyntheticDefault(bool value) {
+    flags = value
+        ? (flags | FlagSyntheticDefault)
+        : (flags & ~FlagSyntheticDefault);
+  }
+
+  bool get isInstanceMember => false;
+  bool get hasGetter => false;
+  bool get hasSetter => false;
+
+  bool get isUnresolved => targetReference == null;
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member member) {
+    assert(member is Constructor ||
+        (member is Procedure && member.kind == ProcedureKind.Factory));
+    targetReference = getMemberReference(member);
+  }
+
+  accept(MemberVisitor v) => v.visitRedirectingFactoryConstructor(this);
+
+  acceptReference(MemberReferenceVisitor v) =>
+      v.visitRedirectingFactoryConstructorReference(this);
+
+  visitChildren(Visitor v) {
+    visitList(annotations, v);
+    target?.acceptReference(v);
+    visitList(typeArguments, v);
+    name?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(annotations, v, this);
+    transformTypeList(typeArguments, v);
   }
 
   DartType get getterType => const BottomType();

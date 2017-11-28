@@ -103,6 +103,9 @@ abstract class MemberVisitor<R> {
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
+  R visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    return defaultMember(node);
+  }
 }
 
 abstract class InitializerVisitor<R> {
@@ -216,6 +219,9 @@ class TreeVisitor<R>
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
+  R visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
+    return defaultMember(node);
+  }
 
   // Classes
   R visitClass(Class node) => defaultTreeNode(node);
@@ -283,6 +289,10 @@ class MemberReferenceVisitor<R> {
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
+  R visitRedirectingFactoryConstructorReference(
+      RedirectingFactoryConstructor node) {
+    return defaultMemberReference(node);
+  }
 }
 
 class Visitor<R> extends TreeVisitor<R>
@@ -353,6 +363,10 @@ class Visitor<R> extends TreeVisitor<R>
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
+  R visitRedirectingFactoryConstructorReference(
+      RedirectingFactoryConstructor node) {
+    return defaultMemberReference(node);
+  }
 
   R visitName(Name node) => defaultNode(node);
   R visitSupertype(Supertype node) => defaultNode(node);

@@ -46,6 +46,11 @@ platform: Fail
 prefer_baseclass: Fail
 redirecting_constructor: Fail
 redirecting_factory: Fail
+redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparambounds_test: VerificationError # Incorrect references to class type parameters. Missing support for RedirectingFactoryConstructor.
 statements: Fail
 stringliteral: Fail
 super_rasta_copy: TypeCheckError
