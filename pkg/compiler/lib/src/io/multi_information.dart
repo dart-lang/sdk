@@ -181,6 +181,18 @@ class MultiSourceInformationBuilder<T> implements SourceInformationBuilder<T> {
   }
 
   @override
+  SourceInformation buildAwait(T node) {
+    return new MultiSourceInformation(
+        builders.map((b) => b.buildAwait(node)).toList());
+  }
+
+  @override
+  SourceInformation buildYield(T node) {
+    return new MultiSourceInformation(
+        builders.map((b) => b.buildYield(node)).toList());
+  }
+
+  @override
   SourceInformation buildAsyncBody() {
     return new MultiSourceInformation(
         builders.map((b) => b.buildAsyncBody()).toList());

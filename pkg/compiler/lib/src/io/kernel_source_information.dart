@@ -284,6 +284,16 @@ class KernelSourceInformationBuilder
   }
 
   @override
+  SourceInformation buildAwait(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildYield(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
   SourceInformation buildAsyncBody() {
     return _buildMemberBody();
   }

@@ -110,6 +110,12 @@ class SourceInformationBuilder<T> {
   /// first statement of a function.
   SourceInformation buildVariableDeclaration() => null;
 
+  /// Generate [SourceInformation] for the await [node].
+  SourceInformation buildAwait(T node) => null;
+
+  /// Generate [SourceInformation] for the yield or yield* [node].
+  SourceInformation buildYield(T node) => null;
+
   /// Generate [SourceInformation] for async/await boiler plate code.
   SourceInformation buildAsyncBody() => null;
 

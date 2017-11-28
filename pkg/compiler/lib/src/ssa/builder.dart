@@ -5311,15 +5311,17 @@ class SsaAstGraphBuilder extends ast.Visitor
   visitYield(ast.Yield node) {
     visit(node.expression);
     HInstruction yielded = pop();
-    add(new HYield(yielded, node.hasStar));
+    add(new HYield(yielded, node.hasStar)
+      ..sourceInformation = sourceInformationBuilder.buildYield(node));
   }
 
   visitAwait(ast.Await node) {
     visit(node.expression);
     HInstruction awaited = pop();
     // TODO(herhut): Improve this type.
-    push(new HAwait(awaited,
-        new TypeMask.subclass(commonElements.objectClass, closedWorld)));
+    push(new HAwait(
+        awaited, new TypeMask.subclass(commonElements.objectClass, closedWorld))
+      ..sourceInformation = sourceInformationBuilder.buildAwait(node));
   }
 
   visitTypeAnnotation(ast.TypeAnnotation node) {

@@ -4,8 +4,32 @@
 
 main() {
   asyncReturn();
+  asyncThrow();
+  asyncTryCatch();
+  asyncAwait();
+  syncStarYield();
 }
 
 asyncReturn() async {
   return 0;
+}
+
+asyncThrow() async {
+  throw '';
+}
+
+asyncTryCatch() async {
+  try {
+    throw '';
+  } catch (e) {
+    print(e);
+  }
+}
+
+asyncAwait() async {
+  await 0;
+}
+
+syncStarYield() sync* {
+  yield 0;
 }

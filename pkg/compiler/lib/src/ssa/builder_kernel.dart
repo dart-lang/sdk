@@ -3983,17 +3983,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
   }
 
-  void visitYieldStatement(ir.YieldStatement yieldStatement) {
-    yieldStatement.expression.accept(this);
-    add(new HYield(pop(), yieldStatement.isYieldStar));
+  void visitYieldStatement(ir.YieldStatement node) {
+    node.expression.accept(this);
+    add(new HYield(pop(), node.isYieldStar)
+      ..sourceInformation = _sourceInformationBuilder.buildYield(node));
   }
 
   @override
-  void visitAwaitExpression(ir.AwaitExpression await) {
-    await.operand.accept(this);
+  void visitAwaitExpression(ir.AwaitExpression node) {
+    node.operand.accept(this);
     HInstruction awaited = pop();
     // TODO(herhut): Improve this type.
-    push(new HAwait(awaited, closedWorld.commonMasks.dynamicType));
+    push(new HAwait(awaited, closedWorld.commonMasks.dynamicType)
+      ..sourceInformation = _sourceInformationBuilder.buildAwait(node));
   }
 
   @override

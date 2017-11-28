@@ -283,6 +283,12 @@ class PositionSourceInformationBuilder
   }
 
   @override
+  SourceInformation buildAwait(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildYield(Node node) => buildBegin(node);
+
+  @override
   SourceInformation buildAsyncBody() {
     return _buildMemberBody();
   }
@@ -910,8 +916,7 @@ class JavaScriptTracer extends js.BaseVisitor {
     }
   }
 
-  @override
-  visitFun(js.Fun node) {
+  void _handleFunction(js.Node node, js.Node body) {
     bool activeBefore = active;
     if (!active) {
       active = reader.getSourceInformation(node) != null;
@@ -921,7 +926,7 @@ class JavaScriptTracer extends js.BaseVisitor {
     Offset entryOffset = getOffsetForNode(node, statementOffset);
     notifyStep(node, entryOffset, StepKind.FUN_ENTRY);
 
-    visit(node.body);
+    visit(body);
 
     leftToRightOffset =
         statementOffset = getSyntaxOffset(node, kind: CodePositionKind.CLOSING);
@@ -933,6 +938,16 @@ class JavaScriptTracer extends js.BaseVisitor {
       notifyStep(node, endOffset, StepKind.NO_INFO);
     }
     active = activeBefore;
+  }
+
+  @override
+  visitFun(js.Fun node) {
+    _handleFunction(node, node.body);
+  }
+
+  @override
+  visitNamedFunction(js.NamedFunction node) {
+    _handleFunction(node, node.function.body);
   }
 
   @override

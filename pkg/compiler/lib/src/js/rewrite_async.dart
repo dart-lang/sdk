@@ -801,7 +801,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     }
   }
 
-  js.Statement awaitStatement(js.Expression value);
+  js.Statement awaitStatement(
+      js.Expression value, SourceInformation sourceInformation);
 
   /// An await is translated to an [awaitStatement].
   ///
@@ -812,7 +813,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     int afterAwait = newLabel("returning from await.");
     withExpression(node.expression, (js.Expression value) {
       addStatement(setGotoVariable(afterAwait, node.sourceInformation));
-      addStatement(awaitStatement(value));
+      addStatement(awaitStatement(value, node.sourceInformation));
     }, store: false);
     beginLabel(afterAwait);
     return result;
@@ -1661,7 +1662,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     beginLabel(afterLabel);
   }
 
-  addYield(js.DartYield node, js.Expression expression);
+  addYield(js.DartYield node, js.Expression expression,
+      SourceInformation sourceInformation);
 
   @override
   void visitDartYield(js.DartYield node) {
@@ -1671,7 +1673,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // addSynYield or addAsyncYield.
     withExpression(node.expression, (js.Expression expression) {
       addStatement(setGotoVariable(label, node.sourceInformation));
-      addYield(node, expression);
+      addYield(node, expression, node.sourceInformation);
     }, store: false);
     beginLabel(label);
   }
@@ -1752,7 +1754,8 @@ class AsyncRewriter extends AsyncRewriterBase {
       : super(reporter, spannable, safeVariableName, bodyName);
 
   @override
-  void addYield(js.DartYield node, js.Expression expression) {
+  void addYield(js.DartYield node, js.Expression expression,
+      SourceInformation sourceInformation) {
     reporter.internalError(spannable, "Yield in non-generating async function");
   }
 
@@ -1812,15 +1815,15 @@ class AsyncRewriter extends AsyncRewriterBase {
   }
 
   @override
-  js.Statement awaitStatement(js.Expression value) {
-    return js.js.statement("""
-          return #asyncHelper(#value,
-                              #bodyName);
-          """, {
+  js.Statement awaitStatement(
+      js.Expression value, SourceInformation sourceInformation) {
+    js.Expression asyncHelperCall = js.js("#asyncHelper(#value, #bodyName)", {
       "asyncHelper": asyncAwait,
       "value": value,
       "bodyName": bodyName,
-    });
+    }).withSourceInformation(sourceInformation);
+    return new js.Return(asyncHelperCall)
+        .withSourceInformation(sourceInformation);
   }
 
   @override
@@ -1925,12 +1928,15 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// `yield` in a sync* function just returns [value].
   /// `yield*` wraps [value] in a [yieldStarExpression] and returns it.
   @override
-  void addYield(js.DartYield node, js.Expression expression) {
+  void addYield(js.DartYield node, js.Expression expression,
+      SourceInformation sourceInformation) {
     if (node.hasStar) {
-      addStatement(
-          new js.Return(new js.Call(yieldStarExpression, [expression])));
+      addStatement(new js.Return(new js.Call(yieldStarExpression, [expression])
+              .withSourceInformation(sourceInformation))
+          .withSourceInformation(sourceInformation));
     } else {
-      addStatement(new js.Return(expression));
+      addStatement(
+          new js.Return(expression).withSourceInformation(sourceInformation));
     }
   }
 
@@ -1957,40 +1963,69 @@ class SyncStarRewriter extends AsyncRewriterBase {
     }
     js.VariableDeclarationList copyParameters =
         new js.VariableDeclarationList(declarations);
+
+    js.Expression setCurrentError = js.js("#currentError = #result", {
+      "result": resultName,
+      "currentError": currentErrorName,
+    }).withSourceInformation(bodySourceInformation);
+    js.Expression setGoto = js.js("#goto = #handler", {
+      "goto": goto,
+      "handler": handler,
+    }).withSourceInformation(bodySourceInformation);
+    js.Statement checkErrorCode = js.js.statement("""
+          if (#errorCode === #ERROR) {
+              #setCurrentError;
+              #setGoto;
+          }""", {
+      "errorCode": errorCodeName,
+      "ERROR": js.number(error_codes.ERROR),
+      "setCurrentError": setCurrentError,
+      "setGoto": setGoto,
+    }).withSourceInformation(bodySourceInformation);
+    js.NamedFunction innerInnerFunction = js.js("""
+          function #body(#errorCode, #result) {
+            #checkErrorCode;
+            #helperBody;
+          }""", {
+      "helperBody": rewrittenBody,
+      "errorCode": errorCodeName,
+      "body": bodyName,
+      "result": resultName,
+      "checkErrorCode": checkErrorCode,
+    }).withSourceInformation(functionSourceInformation);
+    js.Return returnInnerInnerFunction = new js.Return(innerInnerFunction)
+        .withSourceInformation(bodySourceInformation);
+    js.Fun innerFunction = js.js("""
+          function () {
+            if (#hasParameters) {
+              #copyParameters;
+            }
+            #varDecl;
+            #returnInnerInnerFunction;
+          }""", {
+      "hasParameters": parameters.isNotEmpty,
+      "copyParameters": copyParameters,
+      "varDecl": variableDeclarations,
+      "returnInnerInnerFunction": returnInnerInnerFunction,
+    }).withSourceInformation(functionSourceInformation);
+    js.Expression callIterableFactory =
+        js.js("#iterableFactory(#innerFunction)", {
+      "iterableFactory": iterableFactory,
+      "innerFunction": innerFunction,
+    }).withSourceInformation(bodySourceInformation);
+    js.Statement returnCallIterableFactory = new js.Return(callIterableFactory)
+        .withSourceInformation(bodySourceInformation);
     return js.js("""
           function (#renamedParameters) {
             if (#needsThis)
               var #self = this;
-            return #iterableFactory(function () {
-              if (#hasParameters) {
-                #copyParameters;
-              }
-              #varDecl;
-              return function #body(#errorCode, #result) {
-                if (#errorCode === #ERROR) {
-                    #currentError = #result;
-                    #goto = #handler;
-                }
-                #helperBody;
-              };
-            });
+            #returnCallIterableFactory;
           }
           """, {
       "renamedParameters": renamedParameters,
       "needsThis": analysis.hasThis,
-      "helperBody": rewrittenBody,
-      "hasParameters": parameters.isNotEmpty,
-      "copyParameters": copyParameters,
-      "varDecl": variableDeclarations,
-      "errorCode": errorCodeName,
-      "iterableFactory": iterableFactory,
-      "body": bodyName,
       "self": selfName,
-      "result": resultName,
-      "goto": goto,
-      "handler": handler,
-      "currentError": currentErrorName,
-      "ERROR": js.number(error_codes.ERROR),
+      "returnCallIterableFactory": returnCallIterableFactory,
     }).withSourceInformation(functionSourceInformation);
   }
 
@@ -2026,7 +2061,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
   }
 
   @override
-  js.Statement awaitStatement(js.Expression value) {
+  js.Statement awaitStatement(
+      js.Expression value, SourceInformation sourceInformation) {
     throw reporter.internalError(
         spannable, "Sync* functions cannot contain await statements.");
   }
@@ -2108,7 +2144,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   /// Also [nextWhenCanceled] is set up to contain the finally blocks that
   /// must be run in case the stream was canceled.
   @override
-  void addYield(js.DartYield node, js.Expression expression) {
+  void addYield(js.DartYield node, js.Expression expression,
+      SourceInformation sourceInformation) {
     // Find all the finally blocks that should be performed if the stream is
     // canceled during the yield.
     // At the bottom of the stack is the return label.
@@ -2236,17 +2273,17 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   }
 
   @override
-  js.Statement awaitStatement(js.Expression value) {
-    return js.js.statement("""
-          return #asyncHelper(#value,
-                              #bodyName,
-                              #controller);
-          """, {
+  js.Statement awaitStatement(
+      js.Expression value, SourceInformation sourceInformation) {
+    js.Expression asyncHelperCall =
+        js.js("#asyncHelper(#value, #bodyName, #controller)", {
       "asyncHelper": asyncStarHelper,
       "value": value,
       "bodyName": bodyName,
       "controller": controllerName
-    });
+    }).withSourceInformation(sourceInformation);
+    return new js.Return(asyncHelperCall)
+        .withSourceInformation(sourceInformation);
   }
 }
 
