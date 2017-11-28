@@ -3392,11 +3392,36 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
     SourceInformation sourceInformation = null;
-    push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
+    HInstruction code = new HForeignCode(
+        nativeBehavior.codeTemplate, ssaType, inputs,
         isStatement: !nativeBehavior.codeTemplate.isExpression,
         effects: nativeBehavior.sideEffects,
         nativeBehavior: nativeBehavior)
-      ..sourceInformation = sourceInformation);
+      ..sourceInformation = sourceInformation;
+    push(code);
+
+    DartType type = _getDartTypeIfValid(invocation.arguments.types.single);
+    TypeMask trustedMask = typeBuilder.trustTypeMask(type);
+
+    if (trustedMask != null) {
+      // We only allow the type argument to narrow `dynamic`, which probably
+      // comes from an unspecified return type in the NativeBehavior.
+      if (code.instructionType.containsAll(closedWorld)) {
+        // Overwrite the type with the narrower type.
+        code.instructionType = trustedMask;
+      } else if (trustedMask.containsMask(code.instructionType, closedWorld)) {
+        // It is acceptable for the type parameter to be broader than the
+        // specified type.
+      } else {
+        reporter.reportErrorMessage(
+            _elementMap.getSpannable(targetElement, invocation),
+            MessageKind.GENERIC, {
+          'text': 'Type argument too narrow for specified behavior type '
+              '(${trustedMask} does not allow '
+              'all values in ${code.instructionType})'
+        });
+      }
+    }
   }
 
   void handleJsStringConcat(ir.StaticInvocation invocation) {

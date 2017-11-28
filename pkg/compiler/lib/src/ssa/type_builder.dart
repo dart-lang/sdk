@@ -39,18 +39,26 @@ abstract class TypeBuilder {
   final GraphBuilder builder;
   TypeBuilder(this.builder);
 
+  /// Create a type mask for 'trusting' a DartType. Returns `null` if there is
+  /// no approximating type mask (i.e. the type mask would be `dynamic`).
+  TypeMask trustTypeMask(DartType type) {
+    if (type == null) return null;
+    type = builder.localsHandler.substInContext(type);
+    type = type.unaliased;
+    if (type.isDynamic) return null;
+    if (!type.isInterfaceType) return null;
+    if (type == builder.commonElements.objectType) return null;
+    // The type element is either a class or the void element.
+    ClassEntity element = (type as InterfaceType).element;
+    return new TypeMask.subtype(element, builder.closedWorld);
+  }
+
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
     assert(builder.options.trustTypeAnnotations);
     assert(type != null);
-    type = builder.localsHandler.substInContext(type);
-    type = type.unaliased;
-    if (type.isDynamic) return original;
-    if (!type.isInterfaceType) return original;
-    if (type == builder.commonElements.objectType) return original;
-    // The type element is either a class or the void element.
-    ClassEntity element = (type as InterfaceType).element;
-    TypeMask mask = new TypeMask.subtype(element, builder.closedWorld);
+    TypeMask mask = trustTypeMask(type);
+    if (mask == null) return original;
     return new HTypeKnown.pinned(mask, original);
   }
 

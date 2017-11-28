@@ -2722,18 +2722,45 @@ class SsaAstGraphBuilder extends ast.Visitor
     TypeMask ssaType =
         TypeMaskFactory.fromNativeBehavior(nativeBehavior, closedWorld);
 
+    DartType typeArgument;
+    ast.NodeList typeArgumentsNode = node.typeArgumentsNode;
+    if (typeArgumentsNode != null) {
+      if (typeArgumentsNode.slowLength() == 1) {
+        ast.Node typeNode = typeArgumentsNode.single;
+        typeArgument = elements.getType(typeNode);
+      } else {
+        reporter.reportErrorMessage(typeArgumentsNode, MessageKind.GENERIC,
+            {'text': 'JS takes one type argument'});
+      }
+    }
+
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildCall(node, node.argumentsNode);
-    if (nativeBehavior.codeTemplate.isExpression) {
-      push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
-          effects: nativeBehavior.sideEffects, nativeBehavior: nativeBehavior)
-        ..sourceInformation = sourceInformation);
-    } else {
-      push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
-          isStatement: true,
-          effects: nativeBehavior.sideEffects,
-          nativeBehavior: nativeBehavior)
-        ..sourceInformation = sourceInformation);
+    push(new HForeignCode(nativeBehavior.codeTemplate, ssaType, inputs,
+        isStatement: !nativeBehavior.codeTemplate.isExpression,
+        effects: nativeBehavior.sideEffects,
+        nativeBehavior: nativeBehavior)
+      ..sourceInformation = sourceInformation);
+
+    HInstruction code = stack.last;
+    TypeMask trustedMask = typeBuilder.trustTypeMask(typeArgument);
+
+    if (trustedMask != null) {
+      // We only allow the type argument to narrow `dynamic`, which probably
+      // comes from an unspecified return type in the NativeBehavior.
+      if (code.instructionType.containsAll(closedWorld)) {
+        // Overwrite the type with the narrower type.
+        code.instructionType = trustedMask;
+      } else if (trustedMask.containsMask(code.instructionType, closedWorld)) {
+        // It is acceptable for the type parameter to be broader than the
+        // specified type.
+      } else {
+        reporter.reportErrorMessage(typeArgumentsNode, MessageKind.GENERIC, {
+          'text': 'Type argument too narrow for specified behavior type '
+              '(${trustedMask} does not allow '
+              'all values in ${code.instructionType})'
+        });
+      }
     }
   }
 
