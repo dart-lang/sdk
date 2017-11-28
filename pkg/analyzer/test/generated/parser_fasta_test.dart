@@ -3016,21 +3016,9 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    super.test_parseTypeParameterList_parameterizedWithTrailingEquals();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeParameterList_single() {
     // TODO(brianwilkerson) Does not use all tokens.
     super.test_parseTypeParameterList_single();
-  }
-
-  @override
-  @failingTest
-  void test_parseTypeParameterList_withTrailingEquals() {
-    super.test_parseTypeParameterList_withTrailingEquals();
   }
 }
 

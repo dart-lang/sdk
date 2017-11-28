@@ -13148,13 +13148,33 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeParameterList_parameterizedWithTrailingEquals() {
-    createParser('<A extends B<E>>=');
+    createParser('<A extends B<E>>=', expectedEndOffset: 16);
     TypeParameterList parameterList = parser.parseTypeParameterList();
     expectNotNullIfNoErrors(parameterList);
     listener.assertNoErrors();
     expect(parameterList.leftBracket, isNotNull);
     expect(parameterList.rightBracket, isNotNull);
     expect(parameterList.typeParameters, hasLength(1));
+  }
+
+  void test_parseTypeParameterList_parameterizedWithTrailingEquals2() {
+    createParser('<A extends B<E /* foo */ >>=', expectedEndOffset: 27);
+    TypeParameterList parameterList = parser.parseTypeParameterList();
+    expectNotNullIfNoErrors(parameterList);
+    listener.assertNoErrors();
+    expect(parameterList.leftBracket, isNotNull);
+    expect(parameterList.rightBracket, isNotNull);
+    expect(parameterList.typeParameters, hasLength(1));
+    TypeParameter typeParameter = parameterList.typeParameters[0];
+    expect(typeParameter.name.name, 'A');
+    TypeName bound = typeParameter.bound;
+    expect(bound.name.name, 'B');
+    TypeArgumentList typeArguments = bound.typeArguments;
+    expect(typeArguments.arguments, hasLength(1));
+    expect(typeArguments.rightBracket, isNotNull);
+    expect(typeArguments.rightBracket.precedingComments.lexeme, '/* foo */');
+    TypeName argument = typeArguments.arguments[0];
+    expect(argument.name.name, 'E');
   }
 
   void test_parseTypeParameterList_single() {
@@ -13168,7 +13188,7 @@ Function<A>(core.List<core.int> x) m() => null;
   }
 
   void test_parseTypeParameterList_withTrailingEquals() {
-    createParser('<A>=');
+    createParser('<A>=', expectedEndOffset: 3);
     TypeParameterList parameterList = parser.parseTypeParameterList();
     expectNotNullIfNoErrors(parameterList);
     listener.assertNoErrors();

@@ -2537,11 +2537,24 @@ class Parser {
         token = stuffParser(token);
         ++count;
       } while (optional(',', token));
-      if (identical(token.stringValue, '>>')) {
-        Token replacement = new Token(TokenType.GT, token.charOffset)
-          ..next = new Token(TokenType.GT, token.charOffset + 1);
-        token = rewriter.replaceToken(token, replacement);
+
+      // Rewrite `>>`, `>=`, and `>>=` tokens
+      String value = token.stringValue;
+      if (value != null && value.length > 1) {
+        Token replacement = new Token(TokenType.GT, token.charOffset);
+        if (identical(value, '>>')) {
+          replacement.next = new Token(TokenType.GT, token.charOffset + 1);
+          token = rewriter.replaceToken(token, replacement);
+        } else if (identical(value, '>=')) {
+          replacement.next = new Token(TokenType.EQ, token.charOffset + 1);
+          token = rewriter.replaceToken(token, replacement);
+        } else if (identical(value, '>>=')) {
+          replacement.next = new Token(TokenType.GT, token.charOffset + 1);
+          replacement.next.next = new Token(TokenType.EQ, token.charOffset + 2);
+          token = rewriter.replaceToken(token, replacement);
+        }
       }
+
       endStuff(count, begin, token);
       expect('>', token);
       return token;
