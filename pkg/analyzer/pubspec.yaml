@@ -1,10 +1,10 @@
 name: analyzer
-version: 0.31.0-alpha.1
+version: 0.31.0-alpha.2
 author: Dart Team <misc@dartlang.org>
 description: Static analyzer for Dart.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer
 environment:
-  sdk: '>=1.20.0 <2.0.0-dev'
+  sdk: '>=1.20.0 <2.0.0'
 dependencies:
   args: '>=0.12.1 <2.0.0'
   charcode: ^1.1.0
