@@ -140,7 +140,9 @@ class KernelSourceInformationBuilder
   SourceInformation buildSwitchCase(ir.Node node) => null;
 
   @override
-  SourceInformation buildSwitch(ir.Node node) => null;
+  SourceInformation buildSwitch(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildAs(ir.Node node) => null;

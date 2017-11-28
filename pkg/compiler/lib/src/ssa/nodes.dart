@@ -3399,9 +3399,10 @@ class HSwitchBlockInformation implements HStatementInformation {
   final List<HStatementInformation> statements;
   final JumpTarget target;
   final List<LabelDefinition> labels;
+  final SourceInformation sourceInformation;
 
-  HSwitchBlockInformation(
-      this.expression, this.statements, this.target, this.labels);
+  HSwitchBlockInformation(this.expression, this.statements, this.target,
+      this.labels, this.sourceInformation);
 
   HBasicBlock get start => expression.start;
   HBasicBlock get end {

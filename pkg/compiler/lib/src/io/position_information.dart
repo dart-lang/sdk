@@ -158,6 +158,7 @@ class PositionSourceInformationBuilder
 
   SourceInformation buildDeclaration(MemberElement member) {
     ResolvedAst resolvedAst = member.resolvedAst;
+    SourceFile sourceFile = computeSourceFile(member.resolvedAst);
     if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       SourceSpan span = resolvedAst.element.sourcePosition;
       return new PositionSourceInformation(

@@ -781,7 +781,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   HGraph buildCheckedSetter(FieldElement field) {
     ResolvedAst resolvedAst = field.resolvedAst;
     openFunction(field, resolvedAst.node);
-    HInstruction thisInstruction = localsHandler.readThis();
+    HInstruction thisInstruction = localsHandler.readThis(
+        sourceInformation: sourceInformationBuilder.buildDeclaration(field));
     // Use dynamic type because the type computed by the inferrer is
     // narrowed to the type annotation.
     HInstruction parameter =
@@ -1035,6 +1036,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       localsHandler.scopeInfo = newScopeInfo;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(closureDataLookup.getCapturedScope(callee),
+            sourceInformationBuilder.buildDeclaration(callee),
             forGenerativeConstructorBody: callee.isGenerativeConstructorBody);
       }
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
@@ -1336,10 +1338,11 @@ class SsaAstGraphBuilder extends ast.Visitor
       newObject = new HCreate(classElement, constructorArguments, ssaType,
           instantiatedTypes: instantiatedTypes, hasRtiInput: hasRtiInput);
       if (function != null) {
-        // TODO(johnniwinther): Provide source information for creation through
-        // synthetic constructors.
         newObject.sourceInformation =
             sourceInformationBuilder.buildCreate(function);
+      } else {
+        newObject.sourceInformation =
+            sourceInformationBuilder.buildDeclaration(functionElement);
       }
       add(newObject);
     } else {
@@ -1453,6 +1456,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         closureDataLookup.getScopeInfo(element),
         closureDataLookup.getCapturedScope(element),
         parameters,
+        sourceInformationBuilder.buildDeclaration(element),
         isGenerativeConstructorBody: element.isGenerativeConstructorBody);
     close(new HGoto()).addSuccessor(block);
 
@@ -1753,9 +1757,11 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   visitDoWhile(ast.DoWhile node) {
     assert(isReachable);
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildLoop(node);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     var loopClosureInfo = closureDataLookup.getCapturedLoopScope(node);
-    localsHandler.startLoop(loopClosureInfo);
+    localsHandler.startLoop(loopClosureInfo, sourceInformation);
     loopDepth++;
     JumpTarget target = elements.getTargetDefinition(node);
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(node, target);
@@ -1773,7 +1779,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // Using a separate block is just a simple workaround.
       bodyEntryBlock = openNewBlock();
     }
-    localsHandler.enterLoopBody(loopClosureInfo);
+    localsHandler.enterLoopBody(loopClosureInfo, sourceInformation);
     visit(node.body);
 
     // If there are no continues we could avoid the creation of the condition
@@ -1857,7 +1863,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           null,
           loopEntryBlock.loopInformation.target,
           loopEntryBlock.loopInformation.labels,
-          sourceInformationBuilder.buildLoop(node));
+          sourceInformation);
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
       loopInfo.loopBlockInformation = loopBlockInfo;
     } else {
@@ -1918,7 +1924,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
   @override
   void visitThisGet(ast.Identifier node, [_]) {
-    stack.add(localsHandler.readThis());
+    stack.add(localsHandler.readThis(
+        sourceInformation: sourceInformationBuilder.buildGet(node)));
   }
 
   visitIdentifier(ast.Identifier node) {
@@ -2088,7 +2095,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   HInstruction generateInstanceSendReceiver(ast.Send send) {
     assert(Elements.isInstanceSend(send, elements));
     if (send.receiver == null) {
-      return localsHandler.readThis();
+      return localsHandler.readThis(
+          sourceInformation: sourceInformationBuilder.buildGet(send));
     }
     visit(send.receiver);
     return pop();
@@ -2653,7 +2661,10 @@ class SsaAstGraphBuilder extends ast.Visitor
   @override
   visitThisInvoke(
       ast.Send node, ast.NodeList arguments, CallStructure callStructure, _) {
-    generateCallInvoke(node, localsHandler.readThis(),
+    generateCallInvoke(
+        node,
+        localsHandler.readThis(
+            sourceInformation: sourceInformationBuilder.buildGet(node)),
         sourceInformationBuilder.buildCall(node, node.argumentsNode));
   }
 
@@ -4264,7 +4275,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   HInstruction buildInvokeSuper(
       Selector selector, MemberElement element, List<HInstruction> arguments,
       [SourceInformation sourceInformation]) {
-    HInstruction receiver = localsHandler.readThis();
+    HInstruction receiver =
+        localsHandler.readThis(sourceInformation: sourceInformation);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     List<HInstruction> inputs = <HInstruction>[];
@@ -4710,7 +4722,10 @@ class SsaAstGraphBuilder extends ast.Visitor
   @override
   void visitThisPropertySet(ast.SendSet node, Name name, ast.Node rhs, _) {
     generateInstanceSetterWithCompiledReceiver(
-        node, localsHandler.readThis(), visitAndPop(rhs));
+        node,
+        localsHandler.readThis(
+            sourceInformation: sourceInformationBuilder.buildGet(node)),
+        visitAndPop(rhs));
   }
 
   @override
@@ -5860,6 +5875,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   }
 
   visitSwitchStatement(ast.SwitchStatement node) {
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildSwitch(node);
     Map<ast.CaseMatch, ConstantValue> constants =
         buildSwitchCaseConstants(node);
 
@@ -5888,9 +5905,10 @@ class SsaAstGraphBuilder extends ast.Visitor
     if (!hasContinue) {
       // If the switch statement has no switch cases targeted by continue
       // statements we encode the switch statement directly.
-      buildSimpleSwitchStatement(node, constants);
+      buildSimpleSwitchStatement(node, constants, sourceInformation);
     } else {
-      buildComplexSwitchStatement(node, constants, caseIndex, hasDefault);
+      buildComplexSwitchStatement(
+          node, constants, caseIndex, hasDefault, sourceInformation);
     }
   }
 
@@ -5899,7 +5917,9 @@ class SsaAstGraphBuilder extends ast.Visitor
    * statements to labeled switch cases.
    */
   void buildSimpleSwitchStatement(
-      ast.SwitchStatement node, Map<ast.CaseMatch, ConstantValue> constants) {
+      ast.SwitchStatement node,
+      Map<ast.CaseMatch, ConstantValue> constants,
+      SourceInformation sourceInformation) {
     JumpHandler jumpHandler = createJumpHandler(
         node, elements.getTargetDefinition(node),
         isLoopJump: false);
@@ -5927,7 +5947,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     handleSwitch(node, jumpHandler, buildExpression, node.cases, getConstants,
-        isDefaultCase, buildSwitchCase);
+        isDefaultCase, buildSwitchCase, sourceInformation);
     jumpHandler.close();
   }
 
@@ -5939,7 +5959,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       ast.SwitchStatement node,
       Map<ast.CaseMatch, ConstantValue> constants,
       Map<ast.SwitchCase, int> caseIndex,
-      bool hasDefault) {
+      bool hasDefault,
+      SourceInformation sourceInformation) {
     // If the switch statement has switch cases targeted by continue
     // statements we create the following encoding:
     //
@@ -6017,7 +6038,7 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     handleSwitch(node, jumpHandler, buildExpression, switchCases, getConstants,
-        isDefaultCase, buildSwitchCase);
+        isDefaultCase, buildSwitchCase, sourceInformation);
     jumpHandler.close();
 
     HInstruction buildCondition() => graph.addConstantBool(true, closedWorld);
@@ -6050,7 +6071,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           node.cases,
           getConstants,
           (_) => false, // No case is default.
-          buildSwitchCase);
+          buildSwitchCase,
+          sourceInformation);
     }
 
     void buildLoop() {
@@ -6104,7 +6126,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       var switchCases,
       Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase),
       bool isDefaultCase(ast.SwitchCase switchCase),
-      void buildSwitchCase(ast.SwitchCase switchCase)) {
+      void buildSwitchCase(ast.SwitchCase switchCase),
+      SourceInformation sourceInformation) {
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();
     if (switchCases.isEmpty) {
@@ -6205,8 +6228,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         new HSubExpressionBlockInformation(
             new SubExpression(expressionStart, expressionEnd));
     expressionStart.setBlockFlow(
-        new HSwitchBlockInformation(
-            expressionInfo, statements, jumpHandler.target, jumpHandler.labels),
+        new HSwitchBlockInformation(expressionInfo, statements,
+            jumpHandler.target, jumpHandler.labels, sourceInformation),
         joinBlock);
 
     jumpHandler.close();

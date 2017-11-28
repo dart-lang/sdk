@@ -270,7 +270,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _inLazyInitializerExpression = field.isStatic;
     openFunction();
     if (field.isInstanceMember && options.enableTypeAssertions) {
-      HInstruction thisInstruction = localsHandler.readThis();
+      HInstruction thisInstruction = localsHandler.readThis(
+          sourceInformation: _sourceInformationBuilder.buildGet(field));
       // Use dynamic type because the type computed by the inferrer is
       // narrowed to the type annotation.
       FieldEntity fieldEntity = _elementMap.getMember(field);
@@ -819,7 +820,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
     ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
     localsHandler.scopeInfo = newScopeInfo;
-    localsHandler.enterScope(closureDataLookup.getCapturedScope(element));
+    localsHandler.enterScope(closureDataLookup.getCapturedScope(element),
+        _sourceInformationBuilder.buildDeclaration(element));
     inlinedFrom(element, () {
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
@@ -926,7 +928,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       List<HInstruction> inputs = <HInstruction>[];
       if (targetElement.isInstanceMember) {
         templateReceiver = '#.';
-        inputs.add(localsHandler.readThis());
+        inputs.add(localsHandler.readThis(
+            sourceInformation:
+                _sourceInformationBuilder.buildGet(functionNode)));
       }
 
       for (ir.VariableDeclaration param in functionNode.positionalParameters) {
@@ -1011,6 +1015,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         closureDataLookup.getScopeInfo(targetElement),
         closureDataLookup.getCapturedScope(targetElement),
         parameterMap,
+        _sourceInformationBuilder.buildDeclaration(targetElement),
         isGenerativeConstructorBody: targetElement is ConstructorBodyEntity);
     close(new HGoto()).addSuccessor(block);
 
@@ -1530,12 +1535,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   visitDoStatement(ir.DoStatement node) {
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildLoop(node);
     // TODO(efortuna): I think this can be rewritten using
     // LoopHandler.handleLoop with some tricks about when the "update" happens.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     CapturedLoopScope loopClosureInfo =
         localsMap.getCapturedLoopScope(closureDataLookup, node);
-    localsHandler.startLoop(loopClosureInfo);
+    localsHandler.startLoop(loopClosureInfo, sourceInformation);
     JumpTarget target = localsMap.getJumpTargetForDo(node);
     JumpHandler jumpHandler = loopHandler.beginLoopHeader(node, target);
     HLoopInformation loopInfo = current.loopInformation;
@@ -1552,7 +1559,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Using a separate block is just a simple workaround.
       bodyEntryBlock = openNewBlock();
     }
-    localsHandler.enterLoopBody(loopClosureInfo);
+    localsHandler.enterLoopBody(loopClosureInfo, sourceInformation);
     node.body.accept(this);
 
     // If there are no continues we could avoid the creation of the condition
@@ -1636,9 +1643,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           null,
           loopEntryBlock.loopInformation.target,
           loopEntryBlock.loopInformation.labels,
-          // TODO(redemption): Provide source information like:
-          // _sourceInformationBuilder.buildLoop(astAdapter.getNode(doStatement))
-          null);
+          sourceInformation);
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
       loopInfo.loopBlockInformation = loopBlockInfo;
     } else {
@@ -1888,6 +1893,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   @override
   void visitSwitchStatement(ir.SwitchStatement node) {
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildSwitch(node);
     // The switch case indices must match those computed in
     // [KernelSwitchCaseJumpHandler].
     bool hasContinue = false;
@@ -1910,9 +1917,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (!hasContinue) {
       // If the switch statement has no switch cases targeted by continue
       // statements we encode the switch statement directly.
-      _buildSimpleSwitchStatement(node, jumpHandler);
+      _buildSimpleSwitchStatement(node, jumpHandler, sourceInformation);
     } else {
-      _buildComplexSwitchStatement(node, jumpHandler, caseIndex, hasDefault);
+      _buildComplexSwitchStatement(
+          node, jumpHandler, caseIndex, hasDefault, sourceInformation);
     }
   }
 
@@ -1943,8 +1951,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Builds a simple switch statement which does not handle uses of continue
   /// statements to labeled switch cases.
-  void _buildSimpleSwitchStatement(
-      ir.SwitchStatement switchStatement, JumpHandler jumpHandler) {
+  void _buildSimpleSwitchStatement(ir.SwitchStatement switchStatement,
+      JumpHandler jumpHandler, SourceInformation sourceInformation) {
     void buildSwitchCase(ir.SwitchCase switchCase) {
       switchCase.body.accept(this);
     }
@@ -1956,7 +1964,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         switchStatement.cases,
         _getSwitchConstants,
         _isDefaultCase,
-        buildSwitchCase);
+        buildSwitchCase,
+        sourceInformation);
     jumpHandler.close();
   }
 
@@ -1966,7 +1975,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.SwitchStatement switchStatement,
       JumpHandler jumpHandler,
       Map<ir.SwitchCase, int> caseIndex,
-      bool hasDefault) {
+      bool hasDefault,
+      SourceInformation sourceInformation) {
     // If the switch statement has switch cases targeted by continue
     // statements we create the following encoding:
     //
@@ -2024,8 +2034,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
       jumpTargets[switchTarget].generateBreak();
     }
 
-    _handleSwitch(switchStatement, jumpHandler, _buildExpression, switchCases,
-        _getSwitchConstants, _isDefaultCase, buildSwitchCase);
+    _handleSwitch(
+        switchStatement,
+        jumpHandler,
+        _buildExpression,
+        switchCases,
+        _getSwitchConstants,
+        _isDefaultCase,
+        buildSwitchCase,
+        sourceInformation);
     jumpHandler.close();
 
     HInstruction buildCondition() => graph.addConstantBool(true, closedWorld);
@@ -2059,7 +2076,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           switchStatement.cases,
           getConstants,
           (_) => false, // No case is default.
-          buildSwitchCase);
+          buildSwitchCase,
+          sourceInformation);
     }
 
     void buildLoop() {
@@ -2108,7 +2126,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       List<ConstantValue> getConstants(
           ir.SwitchStatement parentSwitch, ir.SwitchCase switchCase),
       bool isDefaultCase(ir.SwitchCase switchCase),
-      void buildSwitchCase(ir.SwitchCase switchCase)) {
+      void buildSwitchCase(ir.SwitchCase switchCase),
+      SourceInformation sourceInformation) {
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression(switchStatement);
 
@@ -2207,8 +2226,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         new HSubExpressionBlockInformation(
             new SubExpression(expressionStart, expressionEnd));
     expressionStart.setBlockFlow(
-        new HSwitchBlockInformation(
-            expressionInfo, statements, jumpHandler.target, jumpHandler.labels),
+        new HSwitchBlockInformation(expressionInfo, statements,
+            jumpHandler.target, jumpHandler.labels, sourceInformation),
         joinBlock);
 
     jumpHandler.close();
@@ -2528,7 +2547,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     Local local = localsMap.getLocalVariable(node.variable);
-    stack.add(localsHandler.readLocal(local));
+    stack.add(localsHandler.readLocal(local,
+        sourceInformation: _sourceInformationBuilder.buildGet(node)));
   }
 
   @override
@@ -2597,7 +2617,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void visitVariableSet(ir.VariableSet node) {
     node.value.accept(this);
     HInstruction value = pop();
-    _visitLocalSetter(node.variable, value);
+    _visitLocalSetter(
+        node.variable, value, _sourceInformationBuilder.buildAssignment(node));
   }
 
   @override
@@ -2610,14 +2631,16 @@ class KernelSsaGraphBuilder extends ir.Visitor
       node.initializer.accept(this);
       HInstruction initialValue = pop();
 
-      _visitLocalSetter(node, initialValue);
+      _visitLocalSetter(
+          node, initialValue, _sourceInformationBuilder.buildAssignment(node));
 
       // Ignore value
       pop();
     }
   }
 
-  void _visitLocalSetter(ir.VariableDeclaration variable, HInstruction value) {
+  void _visitLocalSetter(ir.VariableDeclaration variable, HInstruction value,
+      SourceInformation sourceInformation) {
     Local local = localsMap.getLocalVariable(variable);
 
     // Give the value a name if it doesn't have one already.
@@ -2629,7 +2652,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     localsHandler.updateLocal(
         local,
         typeBuilder.potentiallyCheckOrTrustType(
-            value, _getDartTypeIfValid(variable.type)));
+            value, _getDartTypeIfValid(variable.type)),
+        sourceInformation: sourceInformation);
   }
 
   @override
@@ -3721,8 +3745,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       MemberEntity target,
       List<HInstruction> arguments,
       SourceInformation sourceInformation) {
-    // TODO(efortuna): Add source information.
-    HInstruction receiver = localsHandler.readThis();
+    HInstruction receiver =
+        localsHandler.readThis(sourceInformation: sourceInformation);
 
     List<HInstruction> inputs = <HInstruction>[];
     if (closedWorld.interceptorData.isInterceptedSelector(selector)) {
@@ -3981,8 +4005,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitThisExpression(ir.ThisExpression thisExpression) {
-    stack.add(localsHandler.readThis());
+  void visitThisExpression(ir.ThisExpression node) {
+    stack.add(localsHandler.readThis(
+        sourceInformation: _sourceInformationBuilder.buildGet(node)));
   }
 
   @override

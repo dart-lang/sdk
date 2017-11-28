@@ -12,8 +12,21 @@ main() {
   forInLoop([1, 2]);
   forInLoopEmpty([]);
   forInLoopNull(null);
+  doLoop(true);
   stringInterpolation(0);
   stringInterpolation(null);
+  boxing();
+  captureTwice();
+  var c = new Class();
+  equals(c, 0);
+  c.property1 = 1;
+  c.property2 = 2;
+  equals(c, null);
+  c.captureTwice();
+  switchStatement(1);
+  switchStatement(0);
+  switchStatementConst(const Const(0));
+  switchStatementConst(const Const(1));
 }
 
 throwStatement() {
@@ -50,7 +63,72 @@ forInLoopNull(local) {
   }
 }
 
+doLoop(local) {
+  do {
+    print(local);
+  } while (local);
+}
+
 stringInterpolation(a) {
   // TODO(johnniwinther): Handle interpolation of `a` itself.
   print('${a()}');
+}
+
+boxing() {
+  var b = 0;
+  () {
+    b = 2;
+  }();
+  return b;
+}
+
+captureTwice() {
+  var b = 0;
+  () {
+    return b + b;
+  }();
+  return b;
+}
+
+class Class {
+  var property1;
+  var property2;
+
+  captureTwice() {
+    return () {
+      return property1 == property2;
+    };
+  }
+}
+
+equals(a, b) {
+  return a.property1 == b;
+}
+
+switchStatement(a) {
+  switch (a) {
+    case 0:
+      return 1;
+    case 1:
+      return 2;
+    case 2:
+      return 3;
+  }
+}
+
+class Const {
+  final int value;
+
+  const Const(this.value);
+}
+
+switchStatementConst(a) {
+  switch (a) {
+    case const Const(0):
+      return 1;
+    case const Const(2):
+      return 2;
+    case const Const(2):
+      return 3;
+  }
 }

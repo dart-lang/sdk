@@ -816,7 +816,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     currentContainer = oldContainer;
 
-    js.Statement result = new js.Switch(key, cases);
+    js.Statement result =
+        new js.Switch(key, cases).withSourceInformation(info.sourceInformation);
     pushStatement(wrapIntoLabels(result, info.labels));
     return true;
   }

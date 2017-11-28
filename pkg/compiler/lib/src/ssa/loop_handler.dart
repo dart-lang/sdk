@@ -45,7 +45,7 @@ abstract class LoopHandler<T> {
     //    goto loop-entry;
     //  loop-exit:
 
-    builder.localsHandler.startLoop(loopClosureInfo);
+    builder.localsHandler.startLoop(loopClosureInfo, sourceInformation);
 
     // The initializer.
     SubExpression initializerGraph = null;
@@ -80,7 +80,7 @@ abstract class LoopHandler<T> {
     conditionEndBlock.addSuccessor(beginBodyBlock);
     builder.open(beginBodyBlock);
 
-    builder.localsHandler.enterLoopBody(loopClosureInfo);
+    builder.localsHandler.enterLoopBody(loopClosureInfo, sourceInformation);
     body();
 
     SubGraph bodyGraph = new SubGraph(beginBodyBlock, builder.lastOpenedBlock);
@@ -128,7 +128,8 @@ abstract class LoopHandler<T> {
             updateBlock);
       }
 
-      builder.localsHandler.enterLoopUpdates(loopClosureInfo);
+      builder.localsHandler
+          .enterLoopUpdates(loopClosureInfo, sourceInformation);
 
       update();
 
