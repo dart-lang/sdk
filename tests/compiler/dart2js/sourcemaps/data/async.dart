@@ -7,7 +7,12 @@ main() {
   asyncThrow();
   asyncTryCatch();
   asyncAwait();
+  syncStar();
   syncStarYield();
+  syncStarYieldStar();
+  asyncStar();
+  asyncStarYield();
+  asyncStarYieldStar();
 }
 
 asyncReturn() async {
@@ -30,6 +35,22 @@ asyncAwait() async {
   await 0;
 }
 
+syncStar() sync* {}
+
 syncStarYield() sync* {
   yield 0;
+}
+
+syncStarYieldStar() sync* {
+  yield* [0, 1];
+}
+
+asyncStar() async* {}
+
+asyncStarYield() async* {
+  yield 0;
+}
+
+asyncStarYieldStar() async* {
+  yield* null;
 }

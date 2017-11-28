@@ -2156,16 +2156,20 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     addStatement(js.js.statement("# = #;", [
       nextWhenCanceled,
       new js.ArrayInitializer(enclosingFinallyLabels.map(js.number).toList())
-    ]));
-    addStatement(js.js.statement("""
-        return #asyncStarHelper(#yieldExpression(#expression), #bodyName,
-            #controller);""", {
-      "asyncStarHelper": asyncStarHelper,
+    ]).withSourceInformation(sourceInformation));
+    js.Expression yieldExpressionCall = js.js("#yieldExpression(#expression)", {
       "yieldExpression": node.hasStar ? yieldStarExpression : yieldExpression,
       "expression": expression,
+    }).withSourceInformation(sourceInformation);
+    js.Expression asyncStarHelperCall = js
+        .js("#asyncStarHelper(#yieldExpressionCall, #bodyName, #controller)", {
+      "asyncStarHelper": asyncStarHelper,
+      "yieldExpressionCall": yieldExpressionCall,
       "bodyName": bodyName,
       "controller": controllerName,
-    }));
+    }).withSourceInformation(sourceInformation);
+    addStatement(new js.Return(asyncStarHelperCall)
+        .withSourceInformation(sourceInformation));
   }
 
   @override
@@ -2175,47 +2179,104 @@ class AsyncStarRewriter extends AsyncRewriterBase {
       js.VariableDeclarationList variableDeclarations,
       SourceInformation functionSourceInformation,
       SourceInformation bodySourceInformation) {
-    return js.js("""
-        function (#parameters) {
-          var #bodyName = #wrapBody(function (#errorCode, #result) {
-            if (#hasYield) {
-              switch (#errorCode) {
-                case #STREAM_WAS_CANCELED:
-                  #next = #nextWhenCanceled;
-                  #goto = #next.pop();
-                  break;
-                case #ERROR:
-                  #currentError = #result;
-                  #goto = #handler;
-              }
-            } else {
-              if (#errorCode === #ERROR) {
-                #currentError = #result;
-                #goto = #handler;
-              }
-            }
-            #rewrittenBody;
-          });
-          #variableDeclarations;
-          return #streamOfController(#controller);
-        }""", {
-      "parameters": parameters,
-      "variableDeclarations": variableDeclarations,
-      "STREAM_WAS_CANCELED": js.number(error_codes.STREAM_WAS_CANCELED),
-      "ERROR": js.number(error_codes.ERROR),
-      "hasYield": analysis.hasYield,
-      "rewrittenBody": rewrittenBody,
-      "bodyName": bodyName,
-      "currentError": currentError,
-      "goto": goto,
-      "handler": handler,
+    js.Expression updateNext = js.js("#next = #nextWhenCanceled", {
       "next": next,
       "nextWhenCanceled": nextWhenCanceled,
+    }).withSourceInformation(bodySourceInformation);
+    js.Expression callPop = js.js("#next.pop()", {
+      "next": next,
+    }).withSourceInformation(bodySourceInformation);
+    js.Expression gotoCancelled = js.js("#goto = #callPop", {
+      "goto": goto,
+      "callPop": callPop,
+    }).withSourceInformation(bodySourceInformation);
+    js.Expression updateError = js.js("#currentError = #result", {
+      "currentError": currentError,
+      "result": resultName,
+    }).withSourceInformation(bodySourceInformation);
+    js.Expression gotoError = js.js("#goto = #handler", {
+      "goto": goto,
+      "handler": handler,
+    }).withSourceInformation(bodySourceInformation);
+    js.Statement breakStatement =
+        new js.Break(null).withSourceInformation(bodySourceInformation);
+    js.Statement switchCase = js.js.statement("""
+        switch (#errorCode) {
+          case #STREAM_WAS_CANCELED:
+            #updateNext;
+            #gotoCancelled;
+            #break;
+          case #ERROR:
+            #updateError;
+            #gotoError;
+        }""", {
+      "errorCode": errorCodeName,
+      "STREAM_WAS_CANCELED": js.number(error_codes.STREAM_WAS_CANCELED),
+      "updateNext": updateNext,
+      "gotoCancelled": gotoCancelled,
+      "break": breakStatement,
+      "ERROR": js.number(error_codes.ERROR),
+      "updateError": updateError,
+      "gotoError": gotoError,
+    }).withSourceInformation(bodySourceInformation);
+    js.Statement ifError = js.js.statement("""
+        if (#errorCode === #ERROR) {
+          #updateError;
+          #gotoError;
+        }""", {
+      "errorCode": errorCodeName,
+      "ERROR": js.number(error_codes.ERROR),
+      "updateError": updateError,
+      "gotoError": gotoError,
+    }).withSourceInformation(bodySourceInformation);
+    js.Statement ifHasYield = js.js.statement("""
+        if (#hasYield) {
+          #switchCase
+        } else {
+          #ifError;
+        }
+    """, {
+      "hasYield": analysis.hasYield,
+      "switchCase": switchCase,
+      "ifError": ifError,
+    }).withSourceInformation(bodySourceInformation);
+    js.Fun innerFunction = js.js("""
+        function (#errorCode, #result) {
+          #ifHasYield;
+          #rewrittenBody;
+        }""", {
       "errorCode": errorCodeName,
       "result": resultName,
+      "ifHasYield": ifHasYield,
+      "rewrittenBody": rewrittenBody,
+    }).withSourceInformation(functionSourceInformation);
+    js.Expression wrapBodyCall = js.js("#wrapBody(#innerFunction)", {
+      "wrapBody": wrapBody,
+      "innerFunction": innerFunction,
+    }).withSourceInformation(bodySourceInformation);
+    js.Statement declareBodyName =
+        js.js.statement("var #bodyName = #wrapBodyCall;", {
+      "bodyName": bodyName,
+      "wrapBodyCall": wrapBodyCall,
+    }).withSourceInformation(bodySourceInformation);
+    js.Expression streamOfControllerCall =
+        js.js("#streamOfController(#controller)", {
       "streamOfController": streamOfController,
       "controller": controllerName,
-      "wrapBody": wrapBody,
+    }).withSourceInformation(bodySourceInformation);
+    js.Return returnStreamOfControllerCall =
+        new js.Return(streamOfControllerCall)
+            .withSourceInformation(bodySourceInformation);
+    return js.js("""
+        function (#parameters) {
+          #declareBodyName;
+          #variableDeclarations;
+          #returnStreamOfControllerCall;
+        }""", {
+      "parameters": parameters,
+      "declareBodyName": declareBodyName,
+      "variableDeclarations": variableDeclarations,
+      "returnStreamOfControllerCall": returnStreamOfControllerCall,
     }).withSourceInformation(functionSourceInformation);
   }
 
