@@ -44,10 +44,6 @@ float_array_static_test: MissingCompileTimeError
 [ !$strong ]
 float_array_static_test: MissingCompileTimeError
 
-[ ((($runtime != vm) && ($runtime != dart_precompiled)) && ($compiler != none)) ]
-no_assert_test: Fail, Ok
-env_test: Skip
-
 [ ($runtime == vm || $runtime == dart_precompiled) && $system == macos ]
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 io/secure_server_client_certificate_test: Skip # Re-enable once the bots have been updated. Issue #26057
