@@ -222,6 +222,13 @@ class AnalyzerDietListener extends DietListener {
     var bodyBuilderFormals = _bodyBuilder.pop();
     _bodyBuilder.checkEmpty(token.next.charOffset);
     token = parser.parseInitializersOpt(token);
+
+    // Parse the modifier so that the parser's `asyncState` will be set
+    // correctly, but remove the `AsyncModifier` from the listener's stack
+    // because the listener doesn't expect it to be there.
+    token = parser.parseAsyncModifier(token);
+    _bodyBuilder.pop();
+
     bool isExpression = false;
     bool allowAbstract = asyncModifier == AsyncMarker.Sync;
     parser.parseFunctionBody(token, isExpression, allowAbstract);

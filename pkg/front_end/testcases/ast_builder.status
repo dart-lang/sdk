@@ -41,8 +41,8 @@ inference/block_bodied_lambdas_async_star: Crash
 inference/block_bodied_lambdas_basic: Crash
 inference/block_bodied_lambdas_basic_void: Crash
 inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: Crash
-inference/block_bodied_lambdas_infer_bottom_async: Fail
-inference/block_bodied_lambdas_infer_bottom_async_star: Fail
+inference/block_bodied_lambdas_infer_bottom_async: Crash
+inference/block_bodied_lambdas_infer_bottom_async_star: Crash
 inference/block_bodied_lambdas_infer_bottom_sync_star: Crash
 inference/block_bodied_lambdas_lub: Crash
 inference/block_bodied_lambdas_no_return: Crash
@@ -83,8 +83,8 @@ inference/downwards_inference_annotations_type_variable: Fail
 inference/downwards_inference_annotations_type_variable_local: Crash
 inference/downwards_inference_annotations_typedef: Crash
 inference/downwards_inference_assignment_statements: Crash
-inference/downwards_inference_async_await: Fail
-inference/downwards_inference_for_each: Fail
+inference/downwards_inference_async_await: Crash
+inference/downwards_inference_for_each: Crash
 inference/downwards_inference_initializing_formal_default_formal: Crash
 inference/downwards_inference_inside_top_level: Crash
 inference/downwards_inference_inside_top_level_2: Crash
@@ -134,9 +134,9 @@ inference/future_union_downwards: Crash
 inference/future_union_downwards_2: Crash
 inference/future_union_downwards_3: Crash
 inference/future_union_downwards_4: Crash
-inference/future_union_downwards_generic_method_with_future_return: Fail
-inference/future_union_downwards_generic_method_with_generic_return: Fail
-inference/future_union_upwards_generic_methods: Fail
+inference/future_union_downwards_generic_method_with_future_return: Crash
+inference/future_union_downwards_generic_method_with_generic_return: Crash
+inference/future_union_upwards_generic_methods: Crash
 inference/generic_functions_return_typedef: Crash
 inference/generic_methods_basic_downward_inference: Crash
 inference/generic_methods_correctly_recognize_generic_upper_bound: Crash
@@ -367,6 +367,7 @@ rasta/issue_000069: Crash
 rasta/issue_000070: Crash
 rasta/issue_000080: Crash
 rasta/issue_000081: Crash
+rasta/malformed_const_constructor: Crash
 rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: VerificationError
 rasta/mixin_library: Crash
@@ -395,6 +396,7 @@ regress/issue_29942: Crash
 regress/issue_29943: Crash
 regress/issue_29978: Crash
 regress/issue_29979: Crash
+regress/issue_29983: Crash
 regress/issue_29984: Crash
 regress/issue_29985: Crash
 regress/issue_31155: Crash # Issue 31155.
@@ -443,6 +445,7 @@ runtime_checks_new/mixin_forwarding_stub_field: Crash
 runtime_checks_new/mixin_forwarding_stub_getter: Crash
 runtime_checks_new/mixin_forwarding_stub_setter: Crash
 runtime_checks_new/stub_checked_via_target: Crash
+statements: Crash
 static_setter: Crash
 stringliteral: Crash
 super_rasta_copy: Crash

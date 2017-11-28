@@ -3272,6 +3272,8 @@ class Parser {
   /// The [beforeBody] token is required to be a token that appears somewhere
   /// before the [token] in the token stream.
   Token parseClassBody(Token token, Token beforeBody) {
+    // TODO(brianwilkerson): Remove the parameter `beforeBody` because it is not
+    // being used.
     Token begin = token = token.next;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
@@ -3286,19 +3288,6 @@ class Parser {
     expect('}', token);
     listener.endClassBody(count, begin, token);
     return token;
-  }
-
-  /// Report that the given [token] was expected to be the beginning of a class
-  /// body, but isn't, insert a synthetic pair of curly braces, and return the
-  /// opening curly brace.
-  Token recoverFromMissingClassBody(Token token) {
-    reportRecoverableError(
-        token, fasta.templateExpectedClassBody.withArguments(token));
-    BeginToken replacement = link(
-        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
-        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertToken(replacement, token);
-    return replacement;
   }
 
   bool isGetOrSet(Token token) {
@@ -3852,8 +3841,7 @@ class Parser {
     Token begin = next;
     int statementCount = 0;
     if (!optional('{', next)) {
-      token = reportUnrecoverableErrorWithToken(
-          next, fasta.templateExpectedFunctionBody);
+      token = recoverFromMissingFunctionBody(next);
       listener.handleInvalidFunctionBody(token.next);
       return token;
     }
@@ -5395,20 +5383,6 @@ class Parser {
     return token;
   }
 
-  /// Report that the given [token] was expected to be the beginning of a block
-  /// but isn't, insert a synthetic pair of curly braces, and return the opening
-  /// curly brace.
-  Token recoverFromMissingBlock(Token token) {
-    // TODO(brianwilkerson): Add context information (as a parameter) so that we
-    // can generate a better error.
-    reportRecoverableError(token, fasta.messageExpectedBlock);
-    BeginToken replacement = link(
-        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
-        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertToken(replacement, token);
-    return replacement;
-  }
-
   /// ```
   /// awaitExpression:
   ///   'await' unaryExpression
@@ -5793,6 +5767,47 @@ class Parser {
     assert(optional(';', token));
     listener.handleEmptyStatement(token);
     return token;
+  }
+
+  /// Report that the given [token] was expected to be the beginning of a block
+  /// but isn't, insert a synthetic pair of curly braces, and return the opening
+  /// curly brace.
+  Token recoverFromMissingBlock(Token token) {
+    // TODO(brianwilkerson): Add context information (as a parameter) so that we
+    // can (a) generate a better error and (b) unify this method with
+    // `recoverFromMissingClassBody` and `recoverFromMissingFunctionBody`.
+    reportRecoverableError(token, fasta.messageExpectedBlock);
+    BeginToken replacement = link(
+        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
+        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
+    rewriter.insertToken(replacement, token);
+    return replacement;
+  }
+
+  /// Report that the given [token] was expected to be the beginning of a class
+  /// body but isn't, insert a synthetic pair of curly braces, and return the
+  /// opening curly brace.
+  Token recoverFromMissingClassBody(Token token) {
+    reportRecoverableError(
+        token, fasta.templateExpectedClassBody.withArguments(token));
+    BeginToken replacement = link(
+        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
+        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
+    rewriter.insertToken(replacement, token);
+    return replacement;
+  }
+
+  /// Report that the given [token] was expected to be the beginning of a block
+  /// function body but isn't, insert a synthetic pair of curly braces, and
+  /// return the opening curly brace.
+  Token recoverFromMissingFunctionBody(Token token) {
+    reportRecoverableError(
+        token, fasta.templateExpectedFunctionBody.withArguments(token));
+    BeginToken replacement = link(
+        new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
+        new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
+    rewriter.insertToken(replacement, token);
+    return replacement;
   }
 
   /// Don't call this method. Should only be used as a last resort when there
