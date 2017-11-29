@@ -56,7 +56,7 @@ case "${1//_/-}" in
         | head -1)
     exec "${DART_VM}" -DDFE_VERBOSE=true \
          --kernel-binaries=${PATCHED_SDK_DIR} \
-         --dfe="${REPO_DIR}/utils/kernel-service/kernel-service.dart" "$@"
+         --dfe="${REPO_DIR}/pkg/vm/bin/kernel_service.dart" "$@"
     ;;
   testing)
     SCRIPT="${REPO_DIR}/pkg/testing/bin/testing.dart"

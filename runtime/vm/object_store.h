@@ -130,8 +130,6 @@ class ObjectPointerVisitor;
 
 // The object store is a per isolate instance which stores references to
 // objects used by the VM.
-// TODO(iposva): Move the actual store into the object heap for quick handling
-// by snapshots eventually.
 class ObjectStore {
  public:
   enum BootstrapLibraryId {

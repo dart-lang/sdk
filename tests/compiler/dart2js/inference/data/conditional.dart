@@ -19,7 +19,7 @@ main() {
 /// Simple conditional with unknown condition value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _simpleConditional:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: _simpleConditional:Union([exact=JSString], [exact=JSUInt31])*/
 _simpleConditional(/*[exact=JSBool]*/ c) => c ? '' : 0;
 
 /*element: simpleConditional:[null]*/
@@ -32,9 +32,8 @@ simpleConditional() {
 /// Simple conditional with unknown condition value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _simpleConditionalTrue:Union of [[exact=JSString], [exact=JSUInt31]]*/
-_simpleConditionalTrue(/*Value mask: [true] type: [exact=JSBool]*/ c) =>
-    c ? '' : 0;
+/*element: _simpleConditionalTrue:Union([exact=JSString], [exact=JSUInt31])*/
+_simpleConditionalTrue(/*Value([exact=JSBool], value: true)*/ c) => c ? '' : 0;
 
 /*element: simpleConditionalTrue:[null]*/
 simpleConditionalTrue() {
@@ -45,8 +44,8 @@ simpleConditionalTrue() {
 /// Simple conditional with unknown condition value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _simpleConditionalFalse:Union of [[exact=JSString], [exact=JSUInt31]]*/
-_simpleConditionalFalse(/*Value mask: [false] type: [exact=JSBool]*/ c) =>
+/*element: _simpleConditionalFalse:Union([exact=JSString], [exact=JSUInt31])*/
+_simpleConditionalFalse(/*Value([exact=JSBool], value: false)*/ c) =>
     c ? '' : 0;
 
 /*element: simpleConditionalFalse:[null]*/
@@ -57,7 +56,7 @@ simpleConditionalFalse() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is test.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalIs:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*element: _conditionalIs:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalIs(/*[null|exact=JSUInt31]*/ o) =>
     o is int ? o. /*invoke: [exact=JSUInt31]*/ abs() : '';
 
@@ -70,7 +69,7 @@ conditionalIs() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is `int` test known to be true.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalIsInt:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*element: _conditionalIsInt:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalIsInt(/*[exact=JSUInt31]*/ o) =>
     o is int ? o. /*invoke: [exact=JSUInt31]*/ abs() : '';
 
@@ -82,7 +81,7 @@ conditionalIsInt() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is-not test.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalIsNot:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*element: _conditionalIsNot:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalIsNot(/*[null|exact=JSUInt31]*/ o) =>
     o is! int ? '' : o. /*invoke: [exact=JSUInt31]*/ abs();
 
@@ -95,7 +94,7 @@ conditionalIsNot() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is-not `int` test known to be false.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalIsNotInt:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*element: _conditionalIsNotInt:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalIsNotInt(/*[exact=JSUInt31]*/ o) =>
     o is! int ? '' : o. /*invoke: [exact=JSUInt31]*/ abs();
 
@@ -107,7 +106,7 @@ conditionalIsNotInt() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is test.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalNull:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*element: _conditionalNull:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalNull(/*[null|exact=JSUInt31]*/ o) =>
     o == null ? '' : o. /*invoke: [exact=JSUInt31]*/ abs();
 
@@ -120,7 +119,7 @@ conditionalNull() {
 ////////////////////////////////////////////////////////////////////////////////
 /// Conditional with an is `int` test known to be true.
 ////////////////////////////////////////////////////////////////////////////////
-/*element: _conditionalNotNull:Union of [[exact=JSString], [subclass=JSPositiveInt]]*/
+/*element: _conditionalNotNull:Union([exact=JSString], [subclass=JSPositiveInt])*/
 _conditionalNotNull(/*[null|exact=JSUInt31]*/ o) =>
     o != null ? o. /*invoke: [exact=JSUInt31]*/ abs() : '';
 

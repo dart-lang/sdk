@@ -16,7 +16,7 @@ main() {
 // A break statement in a while loop.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _breakInWhile:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: _breakInWhile:Union([exact=JSString], [exact=JSUInt31])*/
 _breakInWhile(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   while (b) {
@@ -61,11 +61,11 @@ noBreakInWhile() {
 // A continue statement in a while loop.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _continueInWhile:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: _continueInWhile:Union([exact=JSString], [exact=JSUInt31])*/
 _continueInWhile(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   while (b) {
-    local /*invoke: Union of [[exact=JSString], [exact=JSUInt31]]*/ + null;
+    local /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ + null;
     if (b) {
       local = '';
       continue;
@@ -108,7 +108,7 @@ noContinueInWhile() {
 // A break statement in a labeled statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _breakInIf:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: _breakInIf:Union([exact=JSString], [exact=JSUInt31])*/
 _breakInIf(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   label:

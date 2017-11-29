@@ -984,10 +984,8 @@ void PageSpace::MarkSweep() {
 
       mid3 = OS::GetCurrentMonotonicMicros();
 
-      if (FLAG_use_compactor_evacuating) {
-        EvacuatingCompact(thread);
-      } else if (FLAG_use_compactor_sliding) {
-        SlidingCompact(thread);
+      if (FLAG_use_compactor) {
+        Compact(thread);
       } else if (FLAG_concurrent_sweep) {
         ConcurrentSweep(isolate);
       } else {
@@ -1041,7 +1039,7 @@ void PageSpace::MarkSweep() {
     ml.NotifyAll();
   }
 
-  if (FLAG_use_compactor_evacuating || FLAG_use_compactor_sliding) {
+  if (FLAG_use_compactor) {
     // Const object tables are hashed by address: rehash.
     SafepointOperationScope safepoint(thread);
     thread->isolate()->RehashConstants();
@@ -1078,37 +1076,7 @@ void PageSpace::ConcurrentSweep(Isolate* isolate) {
                              &freelist_[HeapPage::kData]);
 }
 
-void PageSpace::EvacuatingCompact(Thread* thread) {
-  thread->isolate()->set_compaction_in_progress(true);
-  HeapPage* pages_to_evacuate = pages_;
-  pages_ = pages_tail_ = NULL;
-
-  GCCompactor compactor(thread, heap_);
-  intptr_t moved_bytes = compactor.EvacuatePages(pages_to_evacuate);
-  usage_.used_in_words -= (moved_bytes / kWordSize);
-
-  Become::FollowForwardingPointers(thread);
-
-  {
-    MutexLocker ml(pages_lock_);
-    HeapPage* page = pages_to_evacuate;
-    while (page != NULL) {
-      HeapPage* next = page->next();
-      IncreaseCapacityInWordsLocked(-(page->memory_->size() >> kWordSizeLog2));
-      page->Deallocate();
-      page = next;
-    }
-  }
-  thread->isolate()->set_compaction_in_progress(false);
-
-  if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after compacting...");
-    heap_->VerifyGC(kForbidMarked);
-    OS::PrintErr(" done.\n");
-  }
-}
-
-void PageSpace::SlidingCompact(Thread* thread) {
+void PageSpace::Compact(Thread* thread) {
   thread->isolate()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
   compactor.CompactBySliding(pages_, &freelist_[HeapPage::kData], pages_lock_);

@@ -6,8 +6,8 @@ import "dart:math" as math;
 static method f() → dynamic {
   core::num x;
   dynamic y;
-  core::num a = math::max<core::num>(x, y);
-  core::Object b = math::max<core::num>(x, y);
+  core::num a = math::max<core::num>(x, y as{TypeError} core::num);
+  core::Object b = math::max<core::num>(x, y as{TypeError} core::num);
   dynamic c = math::max<dynamic>(x, y);
   dynamic d = math::max<dynamic>(x, y);
 }

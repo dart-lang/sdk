@@ -704,6 +704,14 @@ void Heap::ForwardWeakEntries(RawObject* before_object,
   }
 }
 
+void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    WeakSelector selector = static_cast<Heap::WeakSelector>(sel);
+    GetWeakTable(Heap::kNew, selector)->Forward(visitor);
+    GetWeakTable(Heap::kOld, selector)->Forward(visitor);
+  }
+}
+
 #ifndef PRODUCT
 void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
   if (space == kNew) {

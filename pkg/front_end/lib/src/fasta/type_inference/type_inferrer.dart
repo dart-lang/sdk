@@ -89,10 +89,12 @@ class ClosureContext {
 
   final DartType returnContext;
 
+  final bool _needToInferReturnType;
+
   DartType _inferredReturnType;
 
   factory ClosureContext(TypeInferrerImpl inferrer, AsyncMarker asyncMarker,
-      DartType returnContext) {
+      DartType returnContext, bool needToInferReturnType) {
     bool isAsync = asyncMarker == AsyncMarker.Async ||
         asyncMarker == AsyncMarker.AsyncStar;
     bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
@@ -109,36 +111,52 @@ class ClosureContext {
       returnContext = inferrer.wrapFutureOrType(
           inferrer.typeSchemaEnvironment.flattenFutures(returnContext));
     }
-    return new ClosureContext._(isAsync, isGenerator, returnContext);
+    return new ClosureContext._(
+        isAsync, isGenerator, returnContext, needToInferReturnType);
   }
 
-  ClosureContext._(this.isAsync, this.isGenerator, this.returnContext);
+  ClosureContext._(this.isAsync, this.isGenerator, this.returnContext,
+      this._needToInferReturnType);
 
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
-  void handleReturn(TypeInferrerImpl inferrer, DartType type) {
+  void handleReturn(TypeInferrerImpl inferrer, DartType type,
+      Expression expression, int fileOffset) {
     if (isGenerator) return;
+    var unwrappedType = type;
     if (isAsync) {
-      type = inferrer.typeSchemaEnvironment.flattenFutures(type);
+      if (type is InterfaceType) {
+        if (identical(type.classNode, inferrer.coreTypes.futureClass)) {
+          unwrappedType = type.typeArguments[0];
+        } else if (identical(
+            type.classNode, inferrer.coreTypes.futureOrClass)) {
+          unwrappedType = type.typeArguments[0];
+        }
+      }
     }
-    _updateInferredReturnType(inferrer, type);
+    _updateInferredReturnType(
+        inferrer, type, unwrappedType, expression, fileOffset, false);
   }
 
-  void handleYield(TypeInferrerImpl inferrer, bool isYieldStar, DartType type) {
+  void handleYield(TypeInferrerImpl inferrer, bool isYieldStar, DartType type,
+      Expression expression, int fileOffset) {
     if (!isGenerator) return;
+    var unwrappedType = type;
     if (isYieldStar) {
-      type = inferrer.getDerivedTypeArgumentOf(
-          type,
-          isAsync
-              ? inferrer.coreTypes.streamClass
-              : inferrer.coreTypes.iterableClass);
-      if (type == null) return;
+      unwrappedType = inferrer.getDerivedTypeArgumentOf(
+              type,
+              isAsync
+                  ? inferrer.coreTypes.streamClass
+                  : inferrer.coreTypes.iterableClass) ??
+          type;
     }
-    _updateInferredReturnType(inferrer, type);
+    _updateInferredReturnType(
+        inferrer, type, unwrappedType, expression, fileOffset, isYieldStar);
   }
 
   DartType inferReturnType(
       TypeInferrerImpl inferrer, bool isExpressionFunction) {
+    assert(_needToInferReturnType);
     DartType inferredReturnType =
         inferrer.inferReturnType(_inferredReturnType, isExpressionFunction);
     if (!isExpressionFunction &&
@@ -163,12 +181,25 @@ class ClosureContext {
     return _wrapAsyncOrGenerator(inferrer, inferredReturnType);
   }
 
-  void _updateInferredReturnType(TypeInferrerImpl inferrer, DartType type) {
-    if (_inferredReturnType == null) {
-      _inferredReturnType = type;
+  void _updateInferredReturnType(
+      TypeInferrerImpl inferrer,
+      DartType type,
+      DartType unwrappedType,
+      Expression expression,
+      int fileOffset,
+      bool isYieldStar) {
+    if (_needToInferReturnType) {
+      if (_inferredReturnType == null) {
+        _inferredReturnType = unwrappedType;
+      } else {
+        _inferredReturnType = inferrer.typeSchemaEnvironment
+            .getLeastUpperBound(_inferredReturnType, unwrappedType);
+      }
     } else {
-      _inferredReturnType = inferrer.typeSchemaEnvironment
-          .getLeastUpperBound(_inferredReturnType, type);
+      var expectedType = isYieldStar
+          ? _wrapAsyncOrGenerator(inferrer, returnContext)
+          : returnContext;
+      inferrer.checkAssignability(expectedType, type, expression, fileOffset);
     }
   }
 
@@ -339,6 +370,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// an implicit downcast if appropriate.
   Expression checkAssignability(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset) {
+    // We don't need to insert assignability checks when doing top level type
+    // inference since top level type inference only cares about the type that
+    // is inferred (the kernel code is discarded).
+    if (isTopLevel) return null;
+
     if (expectedType == null ||
         typeSchemaEnvironment.isSubtypeOf(actualType, expectedType)) {
       // Types are compatible.
@@ -728,7 +764,12 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   @override
   void inferFieldInitializer(DartType declaredType, Expression initializer) {
     assert(closureContext == null);
-    inferExpression(initializer, declaredType, false);
+    var actualType =
+        inferExpression(initializer, declaredType, declaredType != null);
+    if (declaredType != null) {
+      checkAssignability(
+          declaredType, actualType, initializer, initializer.fileOffset);
+    }
   }
 
   /// Performs type inference on the given [field]'s initializer expression.
@@ -742,7 +783,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   void inferFunctionBody(
       DartType returnType, AsyncMarker asyncMarker, Statement body) {
     assert(closureContext == null);
-    closureContext = new ClosureContext(this, asyncMarker, returnType);
+    closureContext = new ClosureContext(this, asyncMarker, returnType, false);
     inferStatement(body);
     closureContext = null;
   }
@@ -761,10 +802,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         explicitTypeArguments == null &&
         strongMode &&
         calleeTypeParameters.isNotEmpty;
+    bool typeChecksNeeded = !isTopLevel;
     List<DartType> inferredTypes;
     Substitution substitution;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
+    List<Expression> expressions;
+    if (inferenceNeeded || typeChecksNeeded) {
+      formalTypes = [];
+      actualTypes = [];
+      expressions = [];
+    }
     if (inferenceNeeded) {
       if (isConst && typeContext != null) {
         typeContext =
@@ -776,8 +824,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           calleeTypeParameters, null, null, typeContext, inferredTypes);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
-      formalTypes = [];
-      actualTypes = [];
     } else if (explicitTypeArguments != null &&
         calleeTypeParameters.length == explicitTypeArguments.length) {
       substitution =
@@ -798,11 +844,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       DartType inferredFormalType = substitution != null
           ? substitution.substituteType(formalType)
           : formalType;
-      var expressionType = inferExpression(expression, inferredFormalType,
-          inferenceNeeded || isOverloadedArithmeticOperator);
-      if (inferenceNeeded) {
+      var expressionType = inferExpression(
+          expression,
+          inferredFormalType,
+          inferenceNeeded ||
+              isOverloadedArithmeticOperator ||
+              typeChecksNeeded);
+      if (inferenceNeeded || typeChecksNeeded) {
         formalTypes.add(formalType);
         actualTypes.add(expressionType);
+        expressions.add(expression);
       }
       if (isOverloadedArithmeticOperator) {
         returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
@@ -824,6 +875,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
     }
+    if (typeChecksNeeded) {
+      for (int i = 0; i < formalTypes.length; i++) {
+        var formalType = formalTypes[i];
+        var expectedType = substitution != null
+            ? substitution.substituteType(formalType)
+            : formalType;
+        var actualType = actualTypes[i];
+        var expression = expressions[i];
+        checkAssignability(
+            expectedType, actualType, expression, expression.fileOffset);
+      }
+    }
     DartType inferredType;
     if (typeNeeded) {
       inferredType = substitution == null
@@ -837,15 +900,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       bool typeNeeded, int fileOffset, DartType returnContext) {
     bool hasImplicitReturnType = returnContext == null;
     if (!isTopLevel) {
-      for (var parameter in function.positionalParameters) {
+      var positionalParameters = function.positionalParameters;
+      for (var i = 0; i < positionalParameters.length; i++) {
+        var parameter = positionalParameters[i];
+        if (i >= function.requiredParameterCount &&
+            parameter.initializer == null) {
+          parameter.initializer = new ShadowNullLiteral()..parent = parameter;
+        }
         if (parameter.initializer != null) {
           inferExpression(parameter.initializer, parameter.type, false);
         }
       }
       for (var parameter in function.namedParameters) {
-        if (parameter.initializer != null) {
-          inferExpression(parameter.initializer, parameter.type, false);
+        if (parameter.initializer == null) {
+          parameter.initializer = new ShadowNullLiteral()..parent = parameter;
         }
+        inferExpression(parameter.initializer, parameter.type, false);
       }
     }
 
@@ -934,8 +1004,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     bool isExpressionFunction = function.body is ReturnStatement;
     bool needToSetReturnType = hasImplicitReturnType && strongMode;
     ClosureContext oldClosureContext = this.closureContext;
-    ClosureContext closureContext =
-        new ClosureContext(this, function.asyncMarker, returnContext);
+    ClosureContext closureContext = new ClosureContext(
+        this, function.asyncMarker, returnContext, needToSetReturnType);
     this.closureContext = closureContext;
     inferStatement(function.body);
 
@@ -945,7 +1015,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // the least upper bound of the types of the `return` expressions in `B’`,
     // or `void` if `B’` contains no `return` expressions.
     DartType inferredReturnType;
-    if (needToSetReturnType || typeNeeded) {
+    if (needToSetReturnType) {
       inferredReturnType =
           closureContext.inferReturnType(this, isExpressionFunction);
     }
@@ -1028,7 +1098,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, calleeType, fileOffset);
     listener.methodInvocationExit(
-        expression, arguments, isImplicitCall, inferredType);
+        expression, arguments, isImplicitCall, interfaceMember, inferredType);
     return inferredType;
   }
 
@@ -1036,7 +1106,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   void inferParameterInitializer(
       Expression initializer, DartType declaredType) {
     assert(closureContext == null);
-    inferExpression(initializer, declaredType, false);
+    assert(declaredType != null);
+    var actualType = inferExpression(initializer, declaredType, true);
+    checkAssignability(
+        declaredType, actualType, initializer, initializer.fileOffset);
   }
 
   /// Performs the core type inference algorithm for property gets (this handles
@@ -1067,7 +1140,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
     handlePropertyGetContravariance(receiver, interfaceMember, desugaredGet,
         expression, inferredType, fileOffset);
-    listener.propertyGetExit(expression, inferredType);
+    listener.propertyGetExit(expression, interfaceMember, inferredType);
     return typeNeeded ? inferredType : null;
   }
 

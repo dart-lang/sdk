@@ -10,7 +10,7 @@ void f1({List<int> a}) {}
 void f2(Iterable<int> a) {}
 void f3(Iterable<Iterable<int>> a) {}
 void f4({Iterable<Iterable<int>> a}) {}
-void main() {
+void test() {
   f0(/*@typeArgs=int*/ []);
   f0(/*@typeArgs=int*/ [3]);
   f0(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
@@ -53,3 +53,5 @@ void main() {
     /*@typeArgs=int*/ [3]
   ]);
 }
+
+main() {}

@@ -127,7 +127,8 @@ class TestCase extends UniqueObject {
     if (info.hasCompileErrorIfChecked) {
       _expectations |= HAS_COMPILE_ERROR_IF_CHECKED;
     }
-    if (info.hasCompileError || info.hasSyntaxError ||
+    if (info.hasCompileError ||
+        info.hasSyntaxError ||
         (configuration.isChecked && info.hasCompileErrorIfChecked)) {
       _expectations |= EXPECT_COMPILE_ERROR;
     }
@@ -209,28 +210,6 @@ class TestCase extends UniqueObject {
         (!lastCommandOutput.successful ||
             commands.length == commandOutputs.length);
   }
-}
-
-/**
- * BrowserTestCase has an extra compilation command that is run in a separate
- * process, before the regular test is run as in the base class [TestCase].
- * If the compilation command fails, then the rest of the test is not run.
- */
-class BrowserTestCase extends TestCase {
-  BrowserTestCase(
-      String displayName,
-      List<Command> commands,
-      Configuration configuration,
-      Set<Expectation> expectedOutcomes,
-      TestInformation info,
-      bool isNegative,
-      this._testingUrl)
-      : super(displayName, commands, configuration, expectedOutcomes,
-            isNegative: isNegative, info: info);
-
-  String _testingUrl;
-
-  String get testingUrl => _testingUrl;
 }
 
 /**
@@ -1518,8 +1497,10 @@ class ProcessQueue {
 
         for (TestCase testCase in testCases) {
           eventFinishedTestCase(testCase);
+          var outcomes = testCase.expectedOutcomes.map((o) => '$o').toList()
+            ..sort();
           print("${testCase.displayName}   "
-              "Expectations: ${testCase.expectedOutcomes.join(', ')}   "
+              "Expectations: ${outcomes.join(', ')}   "
               "Configuration: '${testCase.configurationString}'");
         }
         eventAllTestsKnown();

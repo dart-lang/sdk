@@ -33,6 +33,7 @@ class Immediate : public ValueObject {
   bool is_uint8() const { return Utils::IsUint(8, value_); }
   bool is_uint16() const { return Utils::IsUint(16, value_); }
   bool is_int32() const { return Utils::IsInt(32, value_); }
+  bool is_uint32() const { return Utils::IsUint(32, value_); }
 
  private:
   const int64_t value_;
@@ -511,7 +512,7 @@ class Assembler : public ValueObject {
   void CompareImmediate(const Address& address, const Immediate& imm);
 
   void testl(Register reg1, Register reg2);
-  void testl(Register reg, const Immediate& imm);
+  void testl(Register reg, const Immediate& imm) { testq(reg, imm); }
   void testb(const Address& address, const Immediate& imm);
 
   void testq(Register reg1, Register reg2);
@@ -712,7 +713,9 @@ class Assembler : public ValueObject {
   bool constant_pool_allowed() const { return constant_pool_allowed_; }
   void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
+  // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
+
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
@@ -1023,9 +1026,12 @@ class Assembler : public ValueObject {
 
   inline void EmitUint8(uint8_t value);
   inline void EmitInt32(int32_t value);
+  inline void EmitUInt32(uint32_t value);
   inline void EmitInt64(int64_t value);
 
-  inline void EmitRegisterREX(Register reg, uint8_t rex);
+  inline void EmitRegisterREX(Register reg,
+                              uint8_t rex,
+                              bool force_emit = false);
   inline void EmitOperandREX(int rm, const Operand& operand, uint8_t rex);
   inline void EmitXmmRegisterOperand(int rm, XmmRegister reg);
   inline void EmitFixup(AssemblerFixup* fixup);
@@ -1077,14 +1083,18 @@ inline void Assembler::EmitInt32(int32_t value) {
   buffer_.Emit<int32_t>(value);
 }
 
+inline void Assembler::EmitUInt32(uint32_t value) {
+  buffer_.Emit<uint32_t>(value);
+}
+
 inline void Assembler::EmitInt64(int64_t value) {
   buffer_.Emit<int64_t>(value);
 }
 
-inline void Assembler::EmitRegisterREX(Register reg, uint8_t rex) {
+inline void Assembler::EmitRegisterREX(Register reg, uint8_t rex, bool force) {
   ASSERT(reg != kNoRegister);
   rex |= (reg > 7 ? REX_B : REX_NONE);
-  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
+  if (rex != REX_NONE || force) EmitUint8(REX_PREFIX | rex);
 }
 
 inline void Assembler::EmitOperandREX(int rm,

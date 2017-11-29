@@ -21,7 +21,7 @@ main() {
     final argsFile = file('test/worker/hello_world.args');
     final inputDartFile = file('test/worker/hello_world.dart');
     final outputJsFile = file('test/worker/out/hello_world.js');
-    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
     final executableArgs = [dartdevc];
     final compilerArgs = [
       '--no-source-map',
@@ -156,7 +156,7 @@ main() {
     });
 
     test('can compile in basic mode', () {
-      final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+      final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
       var result = Process.runSync(Platform.executable, [
         dartdevc,
         '--summary-extension=api.ds',
@@ -193,7 +193,7 @@ main() {
     });
 
     test('reports error on overlapping summaries', () {
-      final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+      final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
       var result = Process.runSync(Platform.executable, [
         dartdevc,
         '--summary-extension=api.ds',
@@ -251,7 +251,7 @@ main() {
   });
 
   group('Error handling', () {
-    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
     final badFileDart = file('test/worker/bad.dart');
     final badFileJs = file('test/worker/bad.js');
 
@@ -290,7 +290,7 @@ main() {
   });
 
   group('Parts', () {
-    final dartSdkSummary = file('lib/sdk/ddc_sdk.sum');
+    final dartSdkSummary = file('gen/sdk/ddc_sdk.sum');
     final partFile = file('test/worker/greeting.dart');
     final libraryFile = file('test/worker/hello.dart');
 

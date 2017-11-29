@@ -18,7 +18,7 @@ static method test() → void {
   asy::Future<core::int> t2 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::Future<core::int> async {
     return let final core::int #t2 = await x in #t2.==(null) ?{core::Object} asy::Future::value<core::int>(3) : #t2;
   });
-  asy::Future<core::int> t5 = f.{self::MyFuture::then}<core::int>((core::int x) → core::Object => let final core::int #t3 = x in #t3.==(null) ?{core::Object} asy::Future::value<core::int>(3) : #t3);
+  asy::Future<core::int> t5 = f.{self::MyFuture::then}<core::int>(((core::int x) → core::Object => let final core::int #t3 = x in #t3.==(null) ?{core::Object} asy::Future::value<core::int>(3) : #t3) as{TypeError} (core::int) → asy::FutureOr<core::int>);
   asy::Future<core::int> t6 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::FutureOr<core::int> {
     return let final core::int #t4 = x in #t4.==(null) ?{core::Object} asy::Future::value<core::int>(3) : #t4;
   });

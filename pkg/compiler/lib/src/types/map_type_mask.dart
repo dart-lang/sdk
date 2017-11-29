@@ -108,6 +108,6 @@ class MapTypeMask<T> extends ForwardingTypeMask {
   }
 
   String toString() {
-    return 'Map mask: [$keyType/$valueType] type: $forwardTo';
+    return 'Map($forwardTo, key: $keyType, value: $valueType)';
   }
 }

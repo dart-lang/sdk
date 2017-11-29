@@ -28,6 +28,43 @@ class KernelSourceInformationStrategy
   }
 }
 
+/// Compute the source map name for kernel based [member].
+///
+/// [elementMap] is used to compute names for closure call methods.
+// TODO(johnniwinther): Make the closure call names available to
+// `sourcemap_helper.dart`.
+String computeKernelElementNameForSourceMaps(
+    KernelToElementMapForBuilding elementMap, MemberEntity member) {
+  MemberDefinition definition = elementMap.getMemberDefinition(member);
+  switch (definition.kind) {
+    case MemberKind.closureCall:
+      ir.TreeNode node = definition.node;
+      String name;
+      while (node is! ir.Member) {
+        if (node is ir.FunctionDeclaration) {
+          if (name != null) {
+            name = '${node.variable.name}.$name';
+          } else {
+            name = node.variable.name;
+          }
+        } else if (node is ir.FunctionExpression) {
+          if (name != null) {
+            name = '<anonymous function>.$name';
+          } else {
+            name = '<anonymous function>';
+          }
+        }
+        node = node.parent;
+      }
+      MemberEntity enclosingMember = elementMap.getMember(node);
+      String enclosingMemberName =
+          computeElementNameForSourceMaps(enclosingMember);
+      return '$enclosingMemberName.$name';
+    default:
+      return computeElementNameForSourceMaps(member);
+  }
+}
+
 /// [SourceInformationBuilder] that generates [PositionSourceInformation] from
 /// Kernel nodes.
 class KernelSourceInformationBuilder
@@ -37,7 +74,8 @@ class KernelSourceInformationBuilder
   final String _name;
 
   KernelSourceInformationBuilder(this._elementMap, this._member)
-      : this._name = computeElementNameForSourceMaps(_member);
+      : this._name =
+            computeKernelElementNameForSourceMaps(_elementMap, _member);
 
   /// Returns the [SourceLocation] for the [offset] within [node].
   ///
@@ -71,6 +109,19 @@ class KernelSourceInformationBuilder
     return _buildTreeNode(node);
   }
 
+  /// Creates the source information for exiting a function definition defined
+  /// by the root [node] and its [functionNode].
+  ///
+  /// This method handles both methods, constructors, and local functions.
+  SourceInformation _buildFunctionExit(
+      ir.TreeNode node, ir.FunctionNode functionNode) {
+    if (functionNode.fileEndOffset != ir.TreeNode.noOffset) {
+      return new PositionSourceInformation(
+          _getSourceLocation(functionNode, functionNode.fileEndOffset));
+    }
+    return _buildTreeNode(node);
+  }
+
   /// Creates the source information for the [body] of [node].
   ///
   /// This method is used to for code in the beginning of a method, like
@@ -89,59 +140,8 @@ class KernelSourceInformationBuilder
     return new PositionSourceInformation(location);
   }
 
-  /// Creates source information based on the location of [node].
-  SourceInformation _buildTreeNode(ir.TreeNode node) {
-    return new PositionSourceInformation(_getSourceLocation(node));
-  }
-
-  @override
-  SourceInformationBuilder forContext(MemberEntity member) =>
-      new KernelSourceInformationBuilder(_elementMap, member);
-
-  @override
-  SourceInformation buildSwitchCase(ir.Node node) => null;
-
-  @override
-  SourceInformation buildSwitch(ir.Node node) => null;
-
-  @override
-  SourceInformation buildAs(ir.Node node) => null;
-
-  @override
-  SourceInformation buildIs(ir.Node node) => null;
-
-  @override
-  SourceInformation buildCatch(ir.Node node) => null;
-
-  @override
-  SourceInformation buildBinary(ir.Node node) => null;
-
-  @override
-  SourceInformation buildIndexSet(ir.Node node) => null;
-
-  @override
-  SourceInformation buildIndex(ir.Node node) => null;
-
-  @override
-  SourceInformation buildForInSet(ir.Node node) => null;
-
-  @override
-  SourceInformation buildForInCurrent(ir.Node node) => null;
-
-  @override
-  SourceInformation buildForInMoveNext(ir.Node node) => null;
-
-  @override
-  SourceInformation buildForInIterator(ir.Node node) => null;
-
-  @override
-  SourceInformation buildStringInterpolation(ir.Node node) => null;
-
-  @override
-  SourceInformation buildForeignCode(ir.Node node) => null;
-
-  @override
-  SourceInformation buildVariableDeclaration() {
+  /// Creates source information for the body of the current member.
+  SourceInformation _buildMemberBody() {
     MemberDefinition definition = _elementMap.getMemberDefinition(_member);
     switch (definition.kind) {
       case MemberKind.regular:
@@ -174,13 +174,144 @@ class KernelSourceInformationBuilder
     return _buildTreeNode(definition.node);
   }
 
+  /// Creates source information for the exit of the current member.
+  SourceInformation _buildMemberExit() {
+    MemberDefinition definition = _elementMap.getMemberDefinition(_member);
+    switch (definition.kind) {
+      case MemberKind.regular:
+        ir.Node node = definition.node;
+        if (node is ir.Procedure) {
+          return _buildFunctionExit(node, node.function);
+        }
+        break;
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        ir.Node node = definition.node;
+        if (node is ir.Procedure) {
+          return _buildFunctionExit(node, node.function);
+        } else if (node is ir.Constructor) {
+          return _buildFunctionExit(node, node.function);
+        }
+        break;
+      case MemberKind.closureCall:
+        ir.Node node = definition.node;
+        if (node is ir.FunctionDeclaration) {
+          return _buildFunctionExit(node, node.function);
+        } else if (node is ir.FunctionExpression) {
+          return _buildFunctionExit(node, node.function);
+        }
+        break;
+      default:
+    }
+    return _buildTreeNode(definition.node);
+  }
+
+  /// Creates source information based on the location of [node].
+  SourceInformation _buildTreeNode(ir.TreeNode node) {
+    return new PositionSourceInformation(_getSourceLocation(node));
+  }
+
+  @override
+  SourceInformationBuilder forContext(MemberEntity member) =>
+      new KernelSourceInformationBuilder(_elementMap, member);
+
+  @override
+  SourceInformation buildSwitchCase(ir.Node node) => null;
+
+  @override
+  SourceInformation buildSwitch(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildAs(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildIs(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildTry(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildCatch(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildBinary(ir.Node node) => null;
+
+  @override
+  SourceInformation buildIndexSet(ir.Node node) => null;
+
+  @override
+  SourceInformation buildIndex(ir.Node node) => null;
+
+  @override
+  SourceInformation buildForInSet(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildForInCurrent(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildForInMoveNext(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildForInIterator(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildStringInterpolation(ir.Node node) => null;
+
+  @override
+  SourceInformation buildForeignCode(ir.Node node) => null;
+
+  @override
+  SourceInformation buildVariableDeclaration() {
+    return _buildMemberBody();
+  }
+
+  @override
+  SourceInformation buildAwait(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildYield(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildAsyncBody() {
+    return _buildMemberBody();
+  }
+
+  @override
+  SourceInformation buildAsyncExit() {
+    return _buildMemberExit();
+  }
+
   @override
   SourceInformation buildAssignment(ir.Node node) {
     return _buildTreeNode(node);
   }
 
   @override
-  SourceInformation buildThrow(ir.Node node) => null;
+  SourceInformation buildThrow(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildNew(ir.Node node) {
@@ -205,7 +336,9 @@ class KernelSourceInformationBuilder
   }
 
   @override
-  SourceInformation buildLoop(ir.Node node) => null;
+  SourceInformation buildLoop(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildImplicitReturn(MemberEntity element) => null;
@@ -217,6 +350,11 @@ class KernelSourceInformationBuilder
 
   @override
   SourceInformation buildCreate(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildListLiteral(ir.Node node) {
     return _buildTreeNode(node);
   }
 

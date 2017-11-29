@@ -22,7 +22,7 @@ class DietParser extends ClassMemberParser {
   // TODO(brianwilkerson): Move this method to Parser, and, if possible, merge
   // it with skipFormalParameters.
   Token skipFormals(Token token, MemberKind kind) {
-    // TODO(brianwilkerson): Accept the last consumed token.
+    token = token.next;
     listener.beginOptionalFormalParameters(token);
     if (!optional('(', token)) {
       if (optional(';', token)) {

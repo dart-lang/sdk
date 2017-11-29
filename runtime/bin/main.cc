@@ -334,8 +334,8 @@ static Dart_Isolate CreateAndSetupKernelIsolate(const char* main,
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config, app_snapshot);
   Dart_Isolate isolate = Dart_CreateIsolate(
-      script_uri, main, isolate_snapshot_data, isolate_snapshot_instructions,
-      flags, isolate_data, error);
+      DART_KERNEL_ISOLATE_NAME, main, isolate_snapshot_data,
+      isolate_snapshot_instructions, flags, isolate_data, error);
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;

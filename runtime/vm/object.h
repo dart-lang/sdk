@@ -2239,6 +2239,12 @@ class Function : public Object {
     return kind() == RawFunction::kInvokeFieldDispatcher;
   }
 
+  bool IsImplicitGetterOrSetter() const {
+    return kind() == RawFunction::kImplicitGetter ||
+           kind() == RawFunction::kImplicitSetter ||
+           kind() == RawFunction::kImplicitStaticFinalGetter;
+  }
+
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -3792,7 +3798,7 @@ class Library : public Object {
     return -1;
 #endif
   }
-  void set_kernel_offset(intptr_t offset) {
+  void set_kernel_offset(intptr_t offset) const {
     NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
   }
 
@@ -4141,8 +4147,8 @@ class Instructions : public Object {
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kCheckedEntryOffset = 16;
-  static const intptr_t kUncheckedEntryOffset = 38;
+  static const intptr_t kCheckedEntryOffset = 15;
+  static const intptr_t kUncheckedEntryOffset = 34;
 #elif defined(TARGET_ARCH_ARM)
   static const intptr_t kCheckedEntryOffset = 8;
   static const intptr_t kUncheckedEntryOffset = 32;

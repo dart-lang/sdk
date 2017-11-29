@@ -2099,10 +2099,15 @@ RawClass* Class::New() {
   }
   FakeObject fake;
   result.set_handle_vtable(fake.vtable());
+  result.set_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeObject::InstanceSize());
+  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_next_field_offset(FakeObject::NextFieldOffset());
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
+  result.set_num_type_arguments(0);
+  result.set_num_own_type_arguments(0);
+  result.set_num_native_fields(0);
   result.set_state_bits(0);
   if ((FakeObject::kClassId < kInstanceCid) ||
       (FakeObject::kClassId == kTypeArgumentsCid)) {
@@ -2114,11 +2119,6 @@ RawClass* Class::New() {
     // references, but do not recompute size.
     result.set_is_prefinalized();
   }
-  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
-  result.set_num_type_arguments(0);
-  result.set_num_own_type_arguments(0);
-  result.set_num_native_fields(0);
-  result.set_token_pos(TokenPosition::kNoSource);
   result.set_kernel_offset(-1);
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
@@ -3240,15 +3240,15 @@ RawClass* Class::NewCommon(intptr_t index) {
   FakeInstance fake;
   ASSERT(fake.IsInstance());
   result.set_handle_vtable(fake.vtable());
+  result.set_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeInstance::InstanceSize());
+  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_next_field_offset(FakeInstance::NextFieldOffset());
   result.set_id(index);
-  result.set_state_bits(0);
-  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_own_type_arguments(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
-  result.set_token_pos(TokenPosition::kNoSource);
+  result.set_state_bits(0);
   result.InitEmptyFields();
   return result.raw();
 }
@@ -3783,7 +3783,9 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  Heap::Space space) {
   // Use the thsi object as if it was the receiver of this method, but instead
   // of recursing reset it to the super class and loop.
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   Class& thsi = Class::Handle(zone, cls.raw());
   while (true) {
     // Check for DynamicType.
@@ -3802,8 +3804,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     // strong mode.
     // However, DynamicType is not more specific than any type.
     if (thsi.IsDynamicClass()) {
-      return !Isolate::Current()->strong() &&
-             (test_kind == Class::kIsSubtypeOf);
+      return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
     // (already checked above), is more specific than ObjectType/VoidType.
@@ -3835,8 +3836,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
         // Other type can't be more specific than this one because for that
         // it would have to have all dynamic type arguments which is checked
         // above.
-        return !Isolate::Current()->strong() &&
-               (test_kind == Class::kIsSubtypeOf);
+        return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
       }
       return type_arguments.TypeTest(test_kind, other_type_arguments,
                                      from_index, num_type_params, bound_error,
@@ -5212,6 +5212,7 @@ RawPatchClass* PatchClass::New(const Class& patched_class,
   result.set_patched_class(patched_class);
   result.set_origin_class(origin_class);
   result.set_script(Script::Handle(origin_class.script()));
+  result.set_library_kernel_offset(-1);
   return result.raw();
 }
 
@@ -5221,6 +5222,7 @@ RawPatchClass* PatchClass::New(const Class& patched_class,
   result.set_patched_class(patched_class);
   result.set_origin_class(patched_class);
   result.set_script(script);
+  result.set_library_kernel_offset(-1);
   return result.raw();
 }
 
@@ -9843,10 +9845,11 @@ RawScript* Script::New(const String& url,
   result.set_resolved_url(
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
+  result.SetLocationOffset(0, 0);
   result.set_kind(kind);
+  result.set_kernel_script_index(0);
   result.set_load_timestamp(
       FLAG_remove_script_timestamps_for_test ? 0 : OS::GetCurrentTimeMillis());
-  result.SetLocationOffset(0, 0);
   return result.raw();
 }
 
@@ -11099,6 +11102,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
     result.set_debuggable(true);
   }
   result.set_is_dart_scheme(dart_scheme);
+  result.set_kernel_offset(-1);
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);
   result.StoreNonPointer(&result.raw_ptr()->index_, -1);
@@ -14492,7 +14496,6 @@ const char* Code::Name() const {
     // Regular stub.
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     if (name == NULL) {
-      ASSERT(!StubCode::HasBeenInitialized());
       return zone->PrintToString("[this stub]");  // Not yet recorded.
     }
     return zone->PrintToString("[Stub] %s", name);
@@ -17292,7 +17295,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
 
 #if defined(DEBUG)
 bool Type::CheckIsCanonical(Thread* thread) const {
-  if (IsMalformed()) {
+  if (IsMalformed() || IsRecursive()) {
     return true;
   }
   if (type_class() == Object::dynamic_class()) {

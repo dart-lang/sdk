@@ -1,0 +1,10 @@
+name: vm
+version: 0.1.0-alpha.1
+author: Dart Team <misc@dartlang.org>
+description: VM specific Dart code and helper scripts
+homepage: https://github.com/dart-lang/sdk/tree/master/pkg/vm
+environment:
+  sdk: ">=1.8.0 <2.0.0"
+dependencies:
+  front_end: 0.1.0-alpha.6
+  kernel: 0.3.0-alpha.3

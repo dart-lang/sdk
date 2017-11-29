@@ -187,12 +187,12 @@ class Isolate {
   }
 
   @patch
-  void kill({int priority: BEFORE_NEXT_EVENT}) {
+  void kill({int priority: beforeNextEvent}) {
     controlPort.send(["kill", terminateCapability, priority]);
   }
 
   @patch
-  void ping(SendPort responsePort, {Object response, int priority: IMMEDIATE}) {
+  void ping(SendPort responsePort, {Object response, int priority: immediate}) {
     var message = new List(4)
       ..[0] = "ping"
       ..[1] = responsePort
@@ -233,7 +233,7 @@ class ReceivePort {
 @patch
 class RawReceivePort {
   @patch
-  factory RawReceivePort([void handler(event)]) {
+  factory RawReceivePort([Function handler]) {
     return new RawReceivePortImpl(handler);
   }
 }

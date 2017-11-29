@@ -58,7 +58,7 @@ class RawReceivePort {
    * event is received.
    */
   @patch
-  factory RawReceivePort([void handler(event)]) {
+  factory RawReceivePort([Function handler]) {
     _RawReceivePortImpl result = new _RawReceivePortImpl();
     result.handler = handler;
     return result;
@@ -573,7 +573,7 @@ class Isolate {
   }
 
   @patch
-  void kill({int priority: BEFORE_NEXT_EVENT}) {
+  void kill({int priority: beforeNextEvent}) {
     var msg = new List(4)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = _KILL
@@ -583,7 +583,7 @@ class Isolate {
   }
 
   @patch
-  void ping(SendPort responsePort, {Object response, int priority: IMMEDIATE}) {
+  void ping(SendPort responsePort, {Object response, int priority: immediate}) {
     var msg = new List(5)
       ..[0] = 0 // Make room for OOM message type.
       ..[1] = _PING

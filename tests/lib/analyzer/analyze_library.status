@@ -19,7 +19,6 @@ lib/html/dart2js/html_dart2js: CompileTimeError # Issue 16522
 lib/html/dartium/html_dartium: Skip # TODO: Remove Dartium
 lib/html/html_common/html_common: StaticWarning # Issue 21647
 lib/html/html_common/html_common_dart2js: CompileTimeError # Issue 16522
-lib/html/html_common/html_common_dart2js: CompileTimeError # Issue 16522
 lib/indexed_db/dart2js/indexed_db_dart2js: CompileTimeError # Issue 16522
 lib/indexed_db/dartium/indexed_db_dartium: Skip # TODO: Remove Dartium
 lib/js/dart2js/js_dart2js: CompileTimeError # Issue 16522

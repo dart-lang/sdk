@@ -21,7 +21,6 @@ mirrors/redirecting_factory_test: CompileTimeError # Issue 30855
 
 [ $runtime == chrome && $system == macos ]
 async/catch_errors11_test: Pass, Timeout # Issue 22696
-async/catch_errors11_test: Pass, Timeout # Issue 22696
 async/slow_consumer_test: Pass, Timeout # Issue 22696
 async/timer_isActive_test: Fail, Pass, Timeout # Issue 22696
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050
@@ -83,10 +82,8 @@ typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for Typed
 
 [ $runtime == ff ]
 mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
-mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 
 [ $arch == simarmv5te ]
-mirrors/mirrors_reader_test: Pass, Slow
 mirrors/mirrors_reader_test: Pass, Slow
 
 [ $compiler == none && $mode == product ]
@@ -103,7 +100,6 @@ isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri
-isolate/deferred_in_isolate_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate_test: Skip # Isolate.spawnUri
 isolate/error_at_spawnuri_test: Skip # Isolate.spawnUri
 isolate/error_exit_at_spawnuri_test: Skip # Isolate.spawnUri
@@ -175,7 +171,6 @@ html/speechrecognition_test: Fail
 html/storage_test: Pass, RuntimeError # Issue 22166
 html/svgelement_test: Fail
 html/text_event_test: RuntimeError # Issue 23437
-html/touchevent_test: Fail # IE does not support TouchEvents
 html/transferables_test: Pass, Fail # Issues 20659.
 html/transition_event_test: Skip # Times out. Issue 22167
 html/touchevent_test: Fail # IE does not support TouchEvents
@@ -205,7 +200,6 @@ html/event_test: RuntimeError # Safarimobilesim does not support WheelEvent
 html/indexeddb_1_test/supported: Fail
 html/performance_api_test/supported: Fail
 html/notification_test: RuntimeError # Issue 22869
-html/performance_api_test/supported: Fail
 html/wheelevent_test: RuntimeError # Safarimobilesim does not support WheelEvent
 html/xhr_test/json: Fail # Safari doesn't support JSON response type
 
@@ -237,11 +231,7 @@ html/webgl_extensions_test: Skip # webgl does not work properly on DRT, which is
 [ $runtime != vm || $mode == product || $compiler == app_jit ]
 isolate/checked_test: Skip # Unsupported.
 
-[$compiler == app_jit && $runtime == vm && $mode == debug]
-isolate/compile_time_error_test/none: Crash # Issue 31376
-
 [ $csp ]
-isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 

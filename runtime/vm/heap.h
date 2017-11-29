@@ -12,7 +12,6 @@
 #include "vm/pages.h"
 #include "vm/scavenger.h"
 #include "vm/spaces.h"
-#include "vm/verifier.h"
 #include "vm/weak_table.h"
 
 namespace dart {
@@ -218,6 +217,7 @@ class Heap {
   }
 
   void ForwardWeakEntries(RawObject* before_object, RawObject* after_object);
+  void ForwardWeakTables(ObjectPointerVisitor* visitor);
 
   // Stats collection.
   void RecordTime(int id, int64_t micros) {

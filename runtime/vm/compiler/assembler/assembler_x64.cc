@@ -328,16 +328,25 @@ void Assembler::movw(const Address& dst, const Immediate& imm) {
 
 void Assembler::movq(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  if (imm.is_int32()) {
+  if (imm.is_uint32()) {
+    // Pick single byte B8 encoding if possible. If dst < 8 then we also omit
+    // the Rex byte.
+    EmitRegisterREX(dst, REX_NONE);
+    EmitUint8(0xB8 | (dst & 7));
+    EmitUInt32(imm.value());
+  } else if (imm.is_int32()) {
+    // Sign extended C7 Cx encoding if we have a negative input.
     Operand operand(dst);
     EmitOperandREX(0, operand, REX_W);
     EmitUint8(0xC7);
     EmitOperand(0, operand);
+    EmitImmediate(imm);
   } else {
+    // Full 64 bit immediate encoding.
     EmitRegisterREX(dst, REX_W);
     EmitUint8(0xB8 | (dst & 7));
+    EmitImmediate(imm);
   }
-  EmitImmediate(imm);
 }
 
 // Use 0x89 encoding (instead of 0x8B encoding), which is expected by gdb64
@@ -1297,37 +1306,6 @@ void Assembler::testl(Register reg1, Register reg2) {
   EmitOperand(reg1 & 7, operand);
 }
 
-void Assembler::testl(Register reg, const Immediate& imm) {
-  // TODO(kasperl): Deal with registers r8-r15 using the short
-  // encoding form of the immediate?
-
-  // We are using RBP for the exception marker. See testl(Label*).
-  ASSERT(reg != RBP);
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  // For registers that have a byte variant (RAX, RBX, RCX, and RDX)
-  // we only test the byte register to keep the encoding short.
-  if (imm.is_uint8() && reg < 4) {
-    // Use zero-extended 8-bit immediate.
-    if (reg == RAX) {
-      EmitUint8(0xA8);
-    } else {
-      EmitUint8(0xF6);
-      EmitUint8(0xC0 + reg);
-    }
-    EmitUint8(imm.value() & 0xFF);
-  } else {
-    ASSERT(imm.is_int32());
-    if (reg == RAX) {
-      EmitUint8(0xA9);
-    } else {
-      EmitRegisterREX(reg, REX_NONE);
-      EmitUint8(0xF7);
-      EmitUint8(0xC0 | (reg & 7));
-    }
-    EmitImmediate(imm);
-  }
-}
-
 void Assembler::testb(const Address& address, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(0, address, REX_NONE);
@@ -1346,27 +1324,37 @@ void Assembler::testq(Register reg1, Register reg2) {
 }
 
 void Assembler::testq(Register reg, const Immediate& imm) {
-  // TODO(kasperl): Deal with registers r8-r15 using the short
-  // encoding form of the immediate?
-
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  // For registers that have a byte variant (RAX, RBX, RCX, and RDX)
-  // we only test the byte register to keep the encoding short.
-  if (imm.is_uint8() && reg < 4) {
+  if (imm.is_uint8()) {
     // Use zero-extended 8-bit immediate.
+    if (reg >= 4) {
+      // We need the Rex byte to give access to the SIL and DIL registers (the
+      // low bytes of RSI and RDI).
+      EmitRegisterREX(reg, REX_NONE, /* force = */ true);
+    }
     if (reg == RAX) {
       EmitUint8(0xA8);
     } else {
       EmitUint8(0xF6);
-      EmitUint8(0xC0 + reg);
+      EmitUint8(0xC0 + (reg & 7));
     }
     EmitUint8(imm.value() & 0xFF);
-  } else {
-    ASSERT(imm.is_int32());
+  } else if (imm.is_uint32()) {
     if (reg == RAX) {
-      EmitUint8(0xA9 | REX_W);
+      EmitUint8(0xA9);
     } else {
-      EmitRegisterREX(reg, REX_W);
+      EmitRegisterREX(reg, REX_NONE);
+      EmitUint8(0xF7);
+      EmitUint8(0xC0 | (reg & 7));
+    }
+    EmitUInt32(imm.value());
+  } else {
+    // Sign extended version of 32 bit test.
+    ASSERT(imm.is_int32());
+    EmitRegisterREX(reg, REX_W);
+    if (reg == RAX) {
+      EmitUint8(0xA9);
+    } else {
       EmitUint8(0xF7);
       EmitUint8(0xC0 | (reg & 7));
     }
@@ -1375,7 +1363,7 @@ void Assembler::testq(Register reg, const Immediate& imm) {
 }
 
 void Assembler::TestImmediate(Register dst, const Immediate& imm) {
-  if (imm.is_int32()) {
+  if (imm.is_int32() || imm.is_uint32()) {
     testq(dst, imm);
   } else {
     ASSERT(dst != TMP);
@@ -1444,7 +1432,27 @@ void Assembler::AluQ(uint8_t modrm_opcode,
                      uint8_t opcode,
                      Register dst,
                      const Immediate& imm) {
-  if (imm.is_int32()) {
+  if (modrm_opcode == 4 && imm.is_uint32()) {
+    // We can use andl for andq.
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(dst, REX_NONE);
+    // Would like to use EmitComplex here, but it doesn't like uint32
+    // immediates.
+    if (imm.is_int8()) {
+      // Use sign-extended 8-bit immediate.
+      EmitUint8(0x83);
+      EmitOperand(modrm_opcode, Operand(dst));
+      EmitUint8(imm.value() & 0xFF);
+    } else {
+      if (dst == RAX) {
+        EmitUint8(0x25);
+      } else {
+        EmitUint8(0x81);
+        EmitOperand(modrm_opcode, Operand(dst));
+      }
+      EmitUInt32(imm.value());
+    }
+  } else if (imm.is_int32()) {
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitRegisterREX(dst, REX_W);
     EmitComplex(modrm_opcode, Operand(dst), imm);
@@ -1470,7 +1478,7 @@ void Assembler::AluQ(uint8_t modrm_opcode,
 }
 
 void Assembler::AndImmediate(Register dst, const Immediate& imm) {
-  if (imm.is_int32()) {
+  if (imm.is_int32() || imm.is_uint32()) {
     andq(dst, imm);
   } else {
     ASSERT(dst != TMP);
@@ -2260,7 +2268,9 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 }
 
 void Assembler::LoadImmediate(Register reg, const Immediate& imm) {
-  if (imm.is_int32() || !constant_pool_allowed()) {
+  if (imm.value() == 0) {
+    xorl(reg, reg);
+  } else if (imm.is_int32() || !constant_pool_allowed()) {
     movq(reg, imm);
   } else {
     int32_t offset = ObjectPool::element_offset(FindImmediate(imm.value()));
@@ -3117,6 +3127,8 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
   }
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
     "xmm0", "xmm1", "xmm2",  "xmm3",  "xmm4",  "xmm5",  "xmm6",  "xmm7",
     "xmm8", "xmm9", "xmm10", "xmm11", "xmm12", "xmm13", "xmm14", "xmm15"};
@@ -3125,8 +3137,6 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
   ASSERT((0 <= reg) && (reg < kNumberOfXmmRegisters));
   return xmm_reg_names[reg];
 }
-
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
     "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",

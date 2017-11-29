@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"  // NOLINT
-#if defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(TARGET_ARCH_IA32)
 
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/cpu.h"
@@ -15,6 +15,8 @@
 #include "vm/stub_code.h"
 
 namespace dart {
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 DECLARE_FLAG(bool, inline_alloc);
 
@@ -2569,6 +2571,10 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
   }
 }
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+// Used by disassembler, so it is declared outside of
+// !defined(DART_PRECOMPILED_RUNTIME) section.
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
     "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
 
@@ -2587,4 +2593,4 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(TARGET_ARCH_IA32)

@@ -4,5 +4,5 @@ import "dart:core" as core;
 
 static field core::int i;
 static field core::String s;
-static field core::int x = self::i = self::s as{TypeError} core::int;
+static field core::String x = self::i = self::s as{TypeError} core::int;
 static method main() → dynamic {}

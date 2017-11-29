@@ -18,6 +18,11 @@ micro: Fail # External method marked abstract.
 named_parameters: Fail # Missing types and unnecessary default values.
 optional: Fail # Unnecessary default values.
 redirecting_factory: Fail # Missing types on constructor parameters.
+redirecting_factory_chain_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_simple_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeargs_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparam_test: Fail # Missing support for RedirectingFactoryConstructor.
+redirecting_factory_typeparambounds_test: VerificationError # Incorrect references to class type parameters. Missing support for RedirectingFactoryConstructor.
 statements: Fail # Make async tranformer optional for golden file testing.
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
@@ -94,7 +99,14 @@ regress/issue_29982: Fail # Issue 29982.
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31155: Crash # Issue 31155.
 
+runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_for_condition: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_if: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_not: RuntimeError # Test exercises strong mode semantics
+runtime_checks/implicit_downcast_while: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError # Test exercises strong mode semantics
+runtime_checks_new/implicit_downcast_field: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_field: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_getter: RuntimeError # Test exercises strong mode semantics
 runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises strong mode semantics

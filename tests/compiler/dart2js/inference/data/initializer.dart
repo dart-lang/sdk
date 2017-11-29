@@ -92,13 +92,13 @@ abstract class SuperClass5 {
 }
 
 class Class5 extends SuperClass5 {
-  /*element: Class5.field2:Value mask: [""] type: [exact=JSString]*/
+  /*element: Class5.field2:Value([exact=JSString], value: "")*/
   var field2;
 
   /*element: Class5.:[exact=Class5]*/
   Class5(
       /*[exact=JSUInt31]*/ field1,
-      /*Value mask: [""] type: [exact=JSString]*/ field2)
+      /*Value([exact=JSString], value: "")*/ field2)
       // ignore: STRONG_MODE_INVALID_SUPER_INVOCATION
       : super(field1),
         this.field2 = field2;

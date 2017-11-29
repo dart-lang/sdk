@@ -14,11 +14,10 @@ from optparse import OptionParser
 from datetime import date
 import tarfile
 import tempfile
+import gzip
 
 def makeArchive(tar_path, client_root, compress, files):
   mode_string = 'w'
-  if compress:
-    mode_string = 'w:gz'
   tar = tarfile.open(tar_path, mode=mode_string)
   for input_file_name in files:
     # Chop off client_root.
@@ -30,9 +29,18 @@ def makeArchive(tar_path, client_root, compress, files):
       tarInfo = tarfile.TarInfo(name=archive_file_name)
       input_file.seek(0,2)
       tarInfo.size = input_file.tell()
+      tarInfo.mtime = 0  # For deterministic builds.
       input_file.seek(0)
       tar.addfile(tarInfo, fileobj=input_file)
   tar.close()
+  if compress:
+    with open(tar_path, "rb") as fin:
+      uncompressed = fin.read()
+    with open(tar_path, "wb") as fout:
+      # mtime=0 for deterministic builds.
+      gz = gzip.GzipFile(fileobj=fout, mode="wb", filename="", mtime=0)
+      gz.write(uncompressed)
+      gz.close()
 
 def writeCCFile(output_file,
                 outer_namespace,

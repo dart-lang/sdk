@@ -240,12 +240,10 @@ class ArgListContributor extends DartCompletionContributor {
       // Optionally add Flutter child widget details.
       Element element = parameter.enclosingElement;
       if (element is ConstructorElement) {
-        if (flutter.isWidget(element.enclosingElement) &&
-            parameter.name == 'children') {
+        if (flutter.isWidget(element.enclosingElement)) {
           String value = getDefaultStringParameterValue(parameter);
-          if (value != null) {
+          if (value == '<Widget>[]') {
             completion += value;
-            // children: <Widget>[]
             selectionOffset = completion.length - 1; // before closing ']'
           }
         }

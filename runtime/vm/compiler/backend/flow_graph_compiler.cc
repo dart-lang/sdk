@@ -1000,8 +1000,8 @@ void FlowGraphCompiler::FinalizeCodeSourceMap(const Code& code) {
 // Returns 'true' if regular code generation should be skipped.
 bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
-  // mode.
-  if (FLAG_intrinsify && !isolate()->type_checks()) {
+  // mode or strong mode.
+  if (FLAG_intrinsify && !isolate()->argument_type_checks()) {
     const Class& owner = Class::Handle(parsed_function().function().Owner());
     String& name = String::Handle(parsed_function().function().name());
 

@@ -43,10 +43,8 @@ bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
+bit_operations_test/03: StaticWarning
+bit_operations_test/04: StaticWarning
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
@@ -470,6 +468,10 @@ fuzzy_arrows_test/01: MissingCompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/85: Crash # Issue 28813
 
+[ $compiler == dart2analyzer && !$strong ]
+constructor13_test/01: MissingCompileTimeError
+constructor13_test/02: MissingCompileTimeError
+
 [ $compiler == dart2analyzer && $checked ]
 assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_error2_test/*: MissingCompileTimeError # Issue #
@@ -513,10 +515,8 @@ bad_named_parameters_test/05: MissingCompileTimeError
 bad_override_test/01: MissingCompileTimeError
 bad_override_test/02: MissingCompileTimeError
 bad_override_test/06: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
+bit_operations_test/03: StaticWarning
+bit_operations_test/04: StaticWarning
 call_constructor_on_unresolvable_class_test/01: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/02: MissingCompileTimeError
 call_constructor_on_unresolvable_class_test/03: MissingCompileTimeError
@@ -599,7 +599,6 @@ generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_shadowing_test: StaticWarning
 generic_methods_simple_is_expression_test: StaticWarning
 generic_no_such_method_dispatcher_test: StaticWarning
-generic_tearoff_test: CompileTimeError
 generic_tearoff_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
@@ -891,18 +890,9 @@ assertion_initializer_const_function_test/01: MissingCompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 bad_initializer1_negative_test: CompileTimeError # Issue 14529
 bad_initializer2_negative_test: Fail # Issue 14880
-bad_named_constructor_negative_test: CompileTimeError # Issue 18693
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-bit_operations_test/03: MissingCompileTimeError
-bit_operations_test/04: MissingCompileTimeError
 black_listed_test/none: Fail # Issue 14228
-body_less_constructor_wrong_arg_negative_test: CompileTimeError # Issue 18695
 built_in_identifier_prefix_test: CompileTimeError
 cascade_test/none: Fail # Issue 11577
-closure_call_wrong_argument_count_negative_test: skip
-const_optional_args_negative_test: CompileTimeError
-constructor3_negative_test: Fail # Issue 11585
 constructor_call_wrong_argument_count_negative_test: Fail # Issue 11585
 deep_nesting1_negative_test: CompileTimeError # Issue 25558
 deep_nesting2_negative_test: CompileTimeError # Issue 25558
@@ -919,17 +909,12 @@ final_syntax_test/04: Fail # Issue 11124
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_list_checked_test: StaticWarning
-generic_local_functions_test: CompileTimeError # Issue 28515
-generic_local_functions_test: CompileTimeError # Issue 28515
-generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
-generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
 generic_test: StaticWarning
 generics_test: StaticWarning
 getter_declaration_negative_test: CompileTimeError
 getter_setter_in_lib_test: Fail # Issue 23286
 import_core_prefix_test: StaticWarning
 initializing_formal_final_test: MissingCompileTimeError
-inst_field_initializer1_negative_test: CompileTimeError
 inst_field_initializer1_negative_test: CompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail # Issue 11585
 instance_method2_negative_test: CompileTimeError
@@ -938,19 +923,10 @@ interface2_negative_test: CompileTimeError
 interface_injection1_negative_test: CompileTimeError
 interface_injection2_negative_test: CompileTimeError
 interface_static_method_negative_test: CompileTimeError
-issue1578_negative_test: CompileTimeError
-issue1578_negative_test: CompileTimeError
 is_not_class1_negative_test: CompileTimeError
 is_not_class4_negative_test: CompileTimeError
-inst_field_initializer1_negative_test: CompileTimeError
 interface_static_non_final_fields_negative_test: Fail # Issue 11594
 interface_test/00: MissingCompileTimeError
-is_not_class1_negative_test: CompileTimeError
-is_not_class1_negative_test: CompileTimeError
-is_not_class4_negative_test: CompileTimeError
-is_not_class4_negative_test: CompileTimeError
-issue1578_negative_test: CompileTimeError
-issue1578_negative_test: CompileTimeError
 issue1578_negative_test: CompileTimeError
 label2_negative_test: CompileTimeError
 label3_negative_test: CompileTimeError
@@ -1022,7 +998,6 @@ script2_negative_test: CompileTimeError
 prefix1_negative_test: Fail # Issue 11962
 prefix12_negative_test: Fail # Issue 11962
 prefix11_negative_test: Fail # Issue 11964
-part_refers_to_core_library_test/01: MissingCompileTimeError # Issue 29709
 prefix2_negative_test: Fail # Issue 11962
 prefix4_negative_test: Fail # Issue 11962
 prefix5_negative_test: Fail # Issue 11962
@@ -1038,17 +1013,11 @@ regress_29025_test: CompileTimeError # Issue 29081
 regress_29405_test: CompileTimeError # Issue 29421
 regress_29349_test: CompileTimeError # Issue 29744
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
-static_call_wrong_argument_count_negative_test: Fail # Issue 12156
-syntax_test/none: Fail # Issue 11575
 test_negative_test: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
-const_counter_negative_test: CompileTimeError
-const_optional_args_negative_test: CompileTimeError
 conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
-constructor3_negative_test: fail # Issue 11585
-constructor_call_wrong_argument_count_negative_test: fail # Issue 11585
 function_type_parameter2_negative_test: CompileTimeError
 function_type_parameter_negative_test: CompileTimeError
 
@@ -1061,10 +1030,6 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 async_return_types_test/nestedFuture: MissingCompileTimeError
-bit_operations_test/01: MissingStaticWarning # Issue 28823
-bit_operations_test/02: MissingStaticWarning # Issue 28823
-bit_operations_test/03: MissingStaticWarning # Issue 28823
-bit_operations_test/04: MissingStaticWarning # Issue 28823
 config_import_corelib_test: CompileTimeError
 const_types_test/07: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 const_types_test/08: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
@@ -1203,6 +1168,8 @@ additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTi
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 additional_interface_adds_optional_args_test: StaticWarning
+argument_assignability_function_typed_test/01: MissingCompileTimeError
+argument_assignability_function_typed_test/02: MissingCompileTimeError
 assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue 31320
 assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue 31320
 assertion_initializer_const_function_test/01: MissingStaticWarning
@@ -1637,7 +1604,6 @@ private_access_test/03: MissingCompileTimeError
 private_access_test/04: MissingCompileTimeError
 private_access_test/05: MissingCompileTimeError
 private_access_test/06: MissingCompileTimeError
-prefix23_test/00: MissingCompileTimeError
 unbound_getter_test: MissingCompileTimeError
 unresolved_default_constructor_test/01: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
@@ -1677,14 +1643,11 @@ vm/lazy_deopt_with_exception_test: CompileTimeError
 [ $compiler == dart2analyzer && $strong ]
 assertion_initializer_const_function_test/01: MissingStaticWarning
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
-constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 field3a_negative_test: StaticWarning # Issue 28823
 generic_methods_closure_test: CompileTimeError # Issue 29070
-generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29070
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29070
 generic_methods_shadowing_test: CompileTimeError # Issue 29070
-generic_methods_closure_test: CompileTimeError # Issue 29070
 generic_methods_simple_is_expression_test: CompileTimeError # Issue 29070
 generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29070
 generic_methods_type_expression_test: CompileTimeError # Incorrectly disallows type parameter in "is" test.

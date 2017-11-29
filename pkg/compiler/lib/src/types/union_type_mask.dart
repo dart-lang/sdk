@@ -357,7 +357,7 @@ class UnionTypeMask implements TypeMask {
     String masksString =
         (disjointMasks.map((TypeMask mask) => mask.toString()).toList()..sort())
             .join(", ");
-    return 'Union of [$masksString]';
+    return 'Union($masksString)';
   }
 
   bool operator ==(other) {

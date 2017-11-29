@@ -95,10 +95,10 @@ class Class2 {
   var field;
 }
 
-/*element: _forUnion:Union of [[exact=Class1], [null|exact=Class2]]*/
+/*element: _forUnion:Union([exact=Class1], [null|exact=Class2])*/
 _forUnion(/*[exact=Class1]*/ o) {
   for (;
-      o = o. /*Union of [[exact=Class1], [null|exact=Class2]]*/ field;
+      o = o. /*Union([exact=Class1], [null|exact=Class2])*/ field;
       o != null) {}
   return o;
 }
@@ -128,7 +128,7 @@ class Class4 {
   var field;
 }
 
-/*element: _forIs:Union of [[exact=Class3], [null|exact=Class4]]*/
+/*element: _forIs:Union([exact=Class3], [null|exact=Class4])*/
 _forIs(/*[exact=Class3]*/ o) {
   for (; o is Class3; o = o. /*[exact=Class3]*/ field) {}
   return o;
@@ -159,11 +159,11 @@ class Class6 {
   var field;
 }
 
-/*element: _forIsNot:Union of [[exact=Class5], [null|exact=Class6]]*/
+/*element: _forIsNot:Union([exact=Class5], [null|exact=Class6])*/
 _forIsNot(/*[exact=Class5]*/ o) {
   for (;
       o is! Class6;
-      o = o. /*Union of [[exact=Class5], [null|exact=Class6]]*/ field) {}
+      o = o. /*Union([exact=Class5], [null|exact=Class6])*/ field) {}
   return o;
 }
 

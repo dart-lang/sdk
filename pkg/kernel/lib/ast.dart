@@ -173,6 +173,11 @@ abstract class NamedNode extends TreeNode {
   CanonicalName get canonicalName => reference?.canonicalName;
 }
 
+abstract class FileUriNode extends TreeNode {
+  /// The uri of the source file this node was loaded from.
+  String get fileUri;
+}
+
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
@@ -248,7 +253,7 @@ class Reference {
 // ------------------------------------------------------------------------
 
 @coq
-class Library extends NamedNode implements Comparable<Library> {
+class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -504,7 +509,7 @@ class LibraryDependency extends TreeNode {
 ///     part <url>;
 ///
 /// optionally with metadata.
-class LibraryPart extends TreeNode {
+class LibraryPart extends TreeNode implements FileUriNode {
   final List<Expression> annotations;
   final String fileUri;
 
@@ -555,7 +560,7 @@ class Combinator extends TreeNode {
 }
 
 /// Declaration of a type alias.
-class Typedef extends NamedNode {
+class Typedef extends NamedNode implements FileUriNode {
   /// The uri of the source file that contains the declaration of this typedef.
   String fileUri;
   List<Expression> annotations = const <Expression>[];
@@ -653,7 +658,7 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 @coq
-class Class extends NamedNode {
+class Class extends NamedNode implements FileUriNode {
   /// End offset in the source file it comes from. Valid values are from 0 and
   /// up, or -1 ([TreeNode.noOffset]) if the file end offset is not available
   /// (this is the default if none is specifically set).
@@ -725,6 +730,11 @@ class Class extends NamedNode {
   /// For mixin applications this should only contain forwarding stubs.
   final List<Procedure> procedures;
 
+  /// Redirecting factory constructors declared in the class.
+  ///
+  /// For mixin applications this should be empty.
+  final List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
+
   Class(
       {this.name,
       this.isAbstract: false,
@@ -736,6 +746,7 @@ class Class extends NamedNode {
       List<Constructor> constructors,
       List<Procedure> procedures,
       List<Field> fields,
+      List<RedirectingFactoryConstructor> redirectingFactoryConstructors,
       this.fileUri,
       Reference reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -743,11 +754,14 @@ class Class extends NamedNode {
         this.fields = fields ?? <Field>[],
         this.constructors = constructors ?? <Constructor>[],
         this.procedures = procedures ?? <Procedure>[],
+        this.redirectingFactoryConstructors =
+            redirectingFactoryConstructors ?? <RedirectingFactoryConstructor>[],
         super(reference) {
     setParents(this.typeParameters, this);
     setParents(this.constructors, this);
     setParents(this.procedures, this);
     setParents(this.fields, this);
+    setParents(this.redirectingFactoryConstructors, this);
   }
 
   void computeCanonicalNames() {
@@ -759,6 +773,9 @@ class Class extends NamedNode {
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
     for (var member in constructors) {
+      canonicalName.getChildFromMember(member).bindTo(member.reference);
+    }
+    for (var member in redirectingFactoryConstructors) {
       canonicalName.getChildFromMember(member).bindTo(member.reference);
     }
   }
@@ -781,8 +798,12 @@ class Class extends NamedNode {
   ///
   /// This getter is for convenience, not efficiency.  Consider manually
   /// iterating the members to speed up code in production.
-  Iterable<Member> get members =>
-      <Iterable<Member>>[fields, constructors, procedures].expand((x) => x);
+  Iterable<Member> get members => <Iterable<Member>>[
+        fields,
+        constructors,
+        procedures,
+        redirectingFactoryConstructors
+      ].expand((x) => x);
 
   /// The immediately extended, mixed-in, and implemented types.
   ///
@@ -809,6 +830,8 @@ class Class extends NamedNode {
       procedures.add(member);
     } else if (member is Field) {
       fields.add(member);
+    } else if (member is RedirectingFactoryConstructor) {
+      redirectingFactoryConstructors.add(member);
     } else {
       throw new ArgumentError(member);
     }
@@ -872,6 +895,7 @@ class Class extends NamedNode {
     visitList(constructors, v);
     visitList(procedures, v);
     visitList(fields, v);
+    visitList(redirectingFactoryConstructors, v);
   }
 
   transformChildren(Transformer v) {
@@ -887,6 +911,7 @@ class Class extends NamedNode {
     transformList(constructors, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
+    transformList(redirectingFactoryConstructors, v, this);
   }
 
   Location _getLocationInEnclosingFile(int offset) {
@@ -995,7 +1020,7 @@ abstract class Member extends NamedNode {
 ///
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
-class Field extends Member {
+class Field extends Member implements FileUriNode {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   int flags2 = 0;
@@ -1260,6 +1285,148 @@ class Constructor extends Member {
   DartType get setterType => const BottomType();
 }
 
+/// Residue of a redirecting factory constructor for the linking phase.
+///
+/// In the following example, `bar` is a redirecting factory constructor.
+///
+///     class A {
+///       A.foo();
+///       factory A.bar() = A.foo;
+///     }
+///
+/// An invocation of `new A.bar()` has the same effect as an invocation of
+/// `new A.foo()`.  In Kernel, the invocations of `bar` are replaced with
+/// invocations of `foo`, and after it is done, the redirecting constructor can
+/// be removed from the class.  However, it is needed during the linking phase,
+/// because other modules can refer to that constructor.
+///
+/// [RedirectingFactoryConstructor]s contain the necessary information for
+/// linking and are treated as non-runnable members of classes that merely serve
+/// as containers for that information.
+///
+/// Existing transformers may easily ignore [RedirectingFactoryConstructor]s,
+/// because the class is implemented as a subclass of [Member], and not as a
+/// subclass of, for example, [Constructor] or [Procedure].
+///
+/// Redirecting factory constructors can be unnamed.  In this case, the name is
+/// an empty string (in a [Name]).
+class RedirectingFactoryConstructor extends Member {
+  int flags = 0;
+
+  /// [RedirectingFactoryConstructor]s may redirect to constructors or factories
+  /// of instantiated generic types, that is, generic types with supplied type
+  /// arguments.  The supplied type arguments are stored in this field.
+  final List<DartType> typeArguments;
+
+  /// Reference to the constructor or the factory that this
+  /// [RedirectingFactoryConstructor] redirects to.
+  Reference targetReference;
+
+  /// [typeParameters] are duplicates of the type parameters of the enclosing
+  /// class.  Because [RedirectingFactoryConstructor]s aren't instance members,
+  /// references to the type parameters of the enclosing class in the
+  /// redirection target description are encoded with references to the elements
+  /// of [typeParameters].
+  List<TypeParameter> typeParameters;
+
+  /// Positional parameters of [RedirectingFactoryConstructor]s should be
+  /// compatible with that of the target constructor.
+  List<VariableDeclaration> positionalParameters;
+  int requiredParameterCount;
+
+  /// Named parameters of [RedirectingFactoryConstructor]s should be compatible
+  /// with that of the target constructor.
+  List<VariableDeclaration> namedParameters;
+
+  RedirectingFactoryConstructor(this.targetReference,
+      {Name name,
+      bool isConst: false,
+      bool isExternal: false,
+      bool isSyntheticDefault: false,
+      int transformerFlags: 0,
+      List<DartType> typeArguments,
+      List<TypeParameter> typeParameters,
+      List<VariableDeclaration> positionalParameters,
+      List<VariableDeclaration> namedParameters,
+      int requiredParameterCount,
+      Reference reference})
+      : this.typeArguments = typeArguments ?? <DartType>[],
+        this.typeParameters = typeParameters ?? <TypeParameter>[],
+        this.positionalParameters =
+            positionalParameters ?? <VariableDeclaration>[],
+        this.namedParameters = namedParameters ?? <VariableDeclaration>[],
+        this.requiredParameterCount =
+            requiredParameterCount ?? positionalParameters?.length ?? 0,
+        super(name, reference) {
+    setParents(this.typeParameters, this);
+    setParents(this.positionalParameters, this);
+    setParents(this.namedParameters, this);
+    this.isConst = isConst;
+    this.isExternal = isExternal;
+    this.isSyntheticDefault = isSyntheticDefault;
+    this.transformerFlags = transformerFlags;
+  }
+
+  static const int FlagConst = 1 << 0; // Must match serialized bit positions.
+  static const int FlagExternal = 1 << 1;
+  static const int FlagSyntheticDefault = 1 << 2;
+
+  bool get isConst => flags & FlagConst != 0;
+  bool get isExternal => flags & FlagExternal != 0;
+
+  /// True if this is a synthetic default constructor inserted in a class that
+  /// does not otherwise declare any constructors.
+  bool get isSyntheticDefault => flags & FlagSyntheticDefault != 0;
+
+  void set isConst(bool value) {
+    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
+  }
+
+  void set isExternal(bool value) {
+    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
+  }
+
+  void set isSyntheticDefault(bool value) {
+    flags = value
+        ? (flags | FlagSyntheticDefault)
+        : (flags & ~FlagSyntheticDefault);
+  }
+
+  bool get isInstanceMember => false;
+  bool get hasGetter => false;
+  bool get hasSetter => false;
+
+  bool get isUnresolved => targetReference == null;
+
+  Member get target => targetReference?.asMember;
+
+  void set target(Member member) {
+    assert(member is Constructor ||
+        (member is Procedure && member.kind == ProcedureKind.Factory));
+    targetReference = getMemberReference(member);
+  }
+
+  accept(MemberVisitor v) => v.visitRedirectingFactoryConstructor(this);
+
+  acceptReference(MemberReferenceVisitor v) =>
+      v.visitRedirectingFactoryConstructorReference(this);
+
+  visitChildren(Visitor v) {
+    visitList(annotations, v);
+    target?.acceptReference(v);
+    visitList(typeArguments, v);
+    name?.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    transformList(annotations, v, this);
+    transformTypeList(typeArguments, v);
+  }
+
+  DartType get getterType => const BottomType();
+  DartType get setterType => const BottomType();
+}
+
 /// A method, getter, setter, index-getter, index-setter, operator overloader,
 /// or factory.
 ///
@@ -1276,7 +1443,7 @@ class Constructor extends Member {
 /// For operators, this is the token for the operator, e.g. `+` or `==`,
 /// except for the unary minus operator, whose name is `unary-`.
 @coq
-class Procedure extends Member {
+class Procedure extends Member implements FileUriNode {
   ProcedureKind kind;
   int flags = 0;
   // function is null if and only if abstract, external,
@@ -1953,6 +2120,7 @@ class PropertySet extends Expression {
   Expression receiver;
   Name name;
   Expression value;
+  int flags = 0;
 
   Reference interfaceTargetReference;
 
@@ -1965,6 +2133,19 @@ class PropertySet extends Expression {
       this.receiver, this.name, this.value, this.interfaceTargetReference) {
     receiver?.parent = this;
     value?.parent = this;
+    this.dispatchCategory = DispatchCategory.dynamicDispatch;
+  }
+
+  // Must match serialized bit positions.
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get interfaceTarget => interfaceTargetReference?.asMember;
@@ -2059,6 +2240,7 @@ class DirectPropertySet extends Expression {
   Expression receiver;
   Reference targetReference;
   Expression value;
+  int flags = 0;
 
   DirectPropertySet(Expression receiver, Member target, Expression value)
       : this.byReference(receiver, getMemberReference(target), value);
@@ -2067,6 +2249,18 @@ class DirectPropertySet extends Expression {
       this.receiver, this.targetReference, this.value) {
     receiver?.parent = this;
     value?.parent = this;
+  }
+
+  // Must match serialized bit positions
+  static const int ShiftDispatchCategory = 0;
+  static const int FlagDispatchCategory = 3 << ShiftDispatchCategory;
+
+  DispatchCategory get dispatchCategory => DispatchCategory
+      .values[(flags & FlagDispatchCategory) >> ShiftDispatchCategory];
+
+  void set dispatchCategory(DispatchCategory value) {
+    flags = (flags & ~FlagDispatchCategory) |
+        (value.index << ShiftDispatchCategory);
   }
 
   Member get target => targetReference?.asMember;

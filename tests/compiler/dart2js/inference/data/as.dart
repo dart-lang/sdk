@@ -16,8 +16,7 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _asIntWithString:[exact=JSUInt31]*/
-_asIntWithString(/*Union of [[exact=JSString], [exact=JSUInt31]]*/ o) =>
-    o as int;
+_asIntWithString(/*Union([exact=JSString], [exact=JSUInt31])*/ o) => o as int;
 
 /*element: asIntWithString:[null]*/
 asIntWithString() {
@@ -67,7 +66,7 @@ asIntOfMinusOne() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /*element: _asIntOfString:[empty]*/
-_asIntOfString(/*Value mask: [""] type: [exact=JSString]*/ o) => o as int;
+_asIntOfString(/*Value([exact=JSString], value: "")*/ o) => o as int;
 
 /*element: asIntOfString:[null]*/
 asIntOfString() {

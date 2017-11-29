@@ -870,6 +870,13 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   entry_points_printer.Print();
 
   const Library& lib = Library::Handle(I->object_store()->root_library());
+  if (lib.IsNull()) {
+    const String& msg = String::Handle(
+        Z, String::New("Cannot find root library in isolate.\n"));
+    Jump(Error::Handle(Z, ApiError::New(msg)));
+    UNREACHABLE();
+  }
+
   const String& name = String::Handle(String::New("main"));
   const Object& main_closure = Object::Handle(lib.GetFunctionClosure(name));
   if (main_closure.IsClosure()) {

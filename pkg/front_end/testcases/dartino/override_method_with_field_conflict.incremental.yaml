@@ -1,0 +1,31 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that adding an override conflict results in a compile-time error.
+
+  class A {
+    m() {}
+  }
+
+  class B extends A {
+  <<<< {"messages":["42"]}
+  ==== {"messages":["42"],"hasCompileTimeError":1}
+    var m;
+  >>>>
+  }
+
+  var c;
+  main() {
+    // This print statement is added to ensure minimal incremental change in the
+    // second version of the program: The compile-time error introduced causes
+    // [compileError] to be added which in turn adds static fields because of its
+    // print statement.
+    print("42");
+    if (c == null) {
+      c = 0;
+    } else {
+      new B().m;
+    }
+  }

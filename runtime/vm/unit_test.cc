@@ -371,6 +371,31 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   }
 }
 
+Dart_Handle TestCase::LoadTestLibrary(const char* lib_uri, const char* script) {
+  if (FLAG_use_dart_frontend) {
+    const char* prefixed_lib_uri =
+        OS::SCreate(Thread::Current()->zone(), "file:///%s", lib_uri);
+    Dart_SourceFile sourcefiles[] = {{prefixed_lib_uri, script}};
+    Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
+    EXPECT_VALID(result);
+    void* kernel_pgm = NULL;
+    int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
+    OS::Print("Compiling %s %d\n", sourcefiles[0].uri, sourcefiles_count);
+    char* error = TestCase::CompileTestScriptWithDFE(
+        sourcefiles[0].uri, sourcefiles_count, sourcefiles, &kernel_pgm, false);
+    if (error != NULL) {
+      return Dart_NewApiError(error);
+    }
+    Dart_Handle url = NewString(prefixed_lib_uri);
+    return Dart_LoadLibrary(url, Dart_Null(),
+                            reinterpret_cast<Dart_Handle>(kernel_pgm), 0, 0);
+  } else {
+    Dart_Handle url = NewString(lib_uri);
+    Dart_Handle source = NewString(script);
+    return Dart_LoadLibrary(url, Dart_Null(), source, 0, 0);
+  }
+}
+
 Dart_Handle TestCase::LoadTestScriptWithDFE(int sourcefiles_count,
                                             Dart_SourceFile sourcefiles[],
                                             Dart_NativeEntryResolver resolver,
@@ -525,6 +550,12 @@ char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
   return bin::CObject::BigintToHexValue(bigint);
 }
 
+#if !defined(PRODUCT)
+static bool IsHex(int c) {
+  return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f');
+}
+#endif
+
 void AssemblerTest::Assemble() {
   const String& function_name =
       String::ZoneHandle(Symbols::New(Thread::Current(), name_));
@@ -546,13 +577,32 @@ void AssemblerTest::Assemble() {
   code_.set_owner(function);
   code_.set_exception_handlers(Object::empty_exception_handlers());
 #ifndef PRODUCT
+  const Instructions& instructions = Instructions::Handle(code_.instructions());
+  uword start = instructions.PayloadStart();
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
-    const Instructions& instructions =
-        Instructions::Handle(code_.instructions());
     uword start = instructions.PayloadStart();
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
+  }
+  Disassembler::Disassemble(start, start + assembler_->CodeSize(), disassembly_,
+                            DISASSEMBLY_SIZE);
+  // Blank out big hex constants, since they are not stable from run to run.
+  bool in_hex_constant = false;
+  for (char* p = disassembly_; *p != '\0'; p++) {
+    if (in_hex_constant) {
+      if (IsHex(*p)) {
+        *p = '.';
+      } else {
+        in_hex_constant = false;
+      }
+    } else {
+      if (*p == '0' && *(p + 1) == 'x' && IsHex(*(p + 2)) && IsHex(*(p + 3)) &&
+          IsHex(*(p + 4))) {
+        p++;
+        in_hex_constant = true;
+      }
+    }
   }
 #endif  // !PRODUCT
 }

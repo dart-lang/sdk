@@ -138,27 +138,7 @@ abstract class TestSuite {
    * Whether or not binaries should be found in the root build directory or
    * in the built SDK.
    */
-  bool get useSdk {
-    // The pub suite always uses the SDK.
-    // TODO(rnystrom): Eventually, all test suites should run out of the SDK
-    // and this check should go away.
-    // TODO(ahe): This check is broken for several reasons:
-    // First, it is not true that all tests should be running out of the
-    // SDK. It is absolutely critical to VM development that you can test the
-    // VM without building the SDK.
-    // Second, it is convenient for dart2js developers to run tests without
-    // rebuilding the SDK, and similarly, it should be convenient for pub
-    // developers.
-    // Third, even if pub can only run from the SDK directory, this is the
-    // wrong place to work around that problem. Instead, test_options.dart
-    // should have been modified so that configuration['use_sdk'] is always
-    // true when testing pub. Attempting to override the value here is brittle
-    // because we read configuration['use_sdk'] directly in many places without
-    // using this getter.
-    if (suiteName == 'pub') return true;
-
-    return configuration.useSdk;
-  }
+  bool get useSdk => configuration.useSdk;
 
   /**
    * The output directory for this suite's configuration.
@@ -175,17 +155,6 @@ abstract class TestSuite {
     var name = compilerConfiguration.computeCompilerPath();
 
     // TODO(ahe): Only validate this once, in test_options.dart.
-    TestUtils.ensureExists(name, configuration);
-    return name;
-  }
-
-  String get pubPath {
-    var prefix = 'sdk/bin/';
-    if (configuration.useSdk) {
-      prefix = '$buildDir/dart-sdk/bin/';
-    }
-    var suffix = getExecutableSuffix('pub');
-    var name = '${prefix}pub$suffix';
     TestUtils.ensureExists(name, configuration);
     return name;
   }
@@ -287,12 +256,20 @@ abstract class TestSuite {
   //  - handle SKIP/SKIP_BY_DESIGN markers
   //  - test if the selector matches
   // and will enqueue the test (if necessary).
-  void enqueueNewTestCase(TestCase testCase) {
-    if (testCase.isNegative &&
+  void enqueueNewTestCase(
+      String testName, List<Command> commands, Set<Expectation> expectations,
+      [TestInformation info]) {
+    var displayName = '$suiteName/$testName';
+
+    var negative = info != null ? isNegative(info) : false;
+    var testCase = new TestCase(
+        displayName, commands, configuration, expectations,
+        isNegative: negative, info: info);
+
+    if (negative &&
         configuration.runtimeConfiguration.shouldSkipNegativeTests) {
       return;
     }
-    var expectations = testCase.expectedOutcomes;
 
     // Handle sharding based on the original test path (i.e. all multitests
     // of a given original test belong to the same shard)
@@ -303,7 +280,7 @@ abstract class TestSuite {
 
     // Test if the selector includes this test.
     var pattern = configuration.selectors[suiteName];
-    if (!pattern.hasMatch(testCase.displayName)) {
+    if (!pattern.hasMatch(displayName)) {
       return;
     }
 
@@ -349,14 +326,28 @@ abstract class TestSuite {
     doTest(testCase);
   }
 
+  bool expectCompileError(TestInformation info) {
+    return info.hasCompileError ||
+        (configuration.isChecked && info.hasCompileErrorIfChecked);
+  }
+
+  bool isNegative(TestInformation info) {
+    if (info.hasRuntimeError && configuration.runtime != Runtime.none) {
+      return true;
+    }
+
+    if (info.isNegativeIfChecked && configuration.isChecked) {
+      return true;
+    }
+
+    return expectCompileError(info);
+  }
+
   String createGeneratedTestDirectoryHelper(
-      String name, String dirname, Path testPath, String optionsName) {
+      String name, String dirname, Path testPath) {
     Path relative = testPath.relativeTo(Repository.dir);
     relative = relative.directoryPath.append(relative.filenameWithoutExtension);
     String testUniqueName = TestUtils.getShortName(relative.toString());
-    if (!optionsName.isEmpty) {
-      testUniqueName = '$testUniqueName-$optionsName';
-    }
 
     Path generatedTestPath = new Path(buildDir)
         .append('generated_$name')
@@ -393,15 +384,14 @@ abstract class TestSuite {
    * pubspec checkouts ...).
    */
 
-  String createOutputDirectory(Path testPath, String optionsName) {
+  String createOutputDirectory(Path testPath) {
     var checked = configuration.isChecked ? '-checked' : '';
     var strong = configuration.isStrong ? '-strong' : '';
     var minified = configuration.isMinified ? '-minified' : '';
     var sdk = configuration.useSdk ? '-sdk' : '';
     var dirName = "${configuration.compiler.name}-${configuration.runtime.name}"
         "$checked$strong$minified$sdk";
-    return createGeneratedTestDirectoryHelper(
-        "tests", dirName, testPath, optionsName);
+    return createGeneratedTestDirectoryHelper("tests", dirName, testPath);
   }
 
   String createCompilationOutputDirectory(Path testPath) {
@@ -413,55 +403,37 @@ abstract class TestSuite {
     var dirName = "${configuration.compiler.name}"
         "$checked$strong$minified$csp$sdk";
     return createGeneratedTestDirectoryHelper(
-        "compilations", dirName, testPath, "");
+        "compilations", dirName, testPath);
   }
 
   String createPubspecCheckoutDirectory(Path directoryOfPubspecYaml) {
     var sdk = configuration.useSdk ? 'sdk' : '';
     return createGeneratedTestDirectoryHelper(
-        "pubspec_checkouts", sdk, directoryOfPubspecYaml, "");
+        "pubspec_checkouts", sdk, directoryOfPubspecYaml);
   }
 
   String createPubPackageBuildsDirectory(Path directoryOfPubspecYaml) {
     return createGeneratedTestDirectoryHelper(
-        "pub_package_builds", 'public_packages', directoryOfPubspecYaml, "");
+        "pub_package_builds", 'public_packages', directoryOfPubspecYaml);
   }
 }
 
-Future<Iterable<String>> ccTestLister(String runnerPath) {
-  return Process.run(runnerPath, ["--list"]).then((ProcessResult result) {
-    if (result.exitCode != 0) {
-      throw "Failed to list tests: '$runnerPath --list'. "
-          "Process exited with ${result.exitCode}";
-    }
-    return (result.stdout as String)
-        .split('\n')
-        .map((line) => line.trim())
-        .where((name) => name.isNotEmpty);
-  });
-}
-
-/**
- * A specialized [TestSuite] that runs tests written in C to unit test
- * the Dart virtual machine and its API.
- *
- * The tests are compiled into a monolithic executable by the build step.
- * The executable lists its tests when run with the --list command line flag.
- * Individual tests are run by specifying them on the command line.
- */
-class CCTestSuite extends TestSuite {
-  final String testPrefix;
+/// A specialized [TestSuite] that runs tests written in C to unit test
+/// the Dart virtual machine and its API.
+///
+/// The tests are compiled into a monolithic executable by the build step.
+/// The executable lists its tests when run with the --list command line flag.
+/// Individual tests are run by specifying them on the command line.
+class VMTestSuite extends TestSuite {
   String targetRunnerPath;
   String hostRunnerPath;
   final String dartDir;
 
-  CCTestSuite(Configuration configuration, String suiteName, String runnerName,
-      List<String> statusFilePaths,
-      {this.testPrefix: ''})
+  VMTestSuite(Configuration configuration)
       : dartDir = Repository.dir.toNativePath(),
-        super(configuration, suiteName, statusFilePaths) {
+        super(configuration, "vm", ["runtime/tests/vm/vm.status"]) {
     // For running the tests we use the given '$runnerName' binary
-    targetRunnerPath = '$buildDir/$runnerName';
+    targetRunnerPath = '$buildDir/run_vm_tests';
 
     // For listing the tests we use the '$runnerName.host' binary if it exists
     // and use '$runnerName' if it doesn't.
@@ -474,13 +446,28 @@ class CCTestSuite extends TestSuite {
     }
   }
 
-  void testNameHandler(ExpectationSet testExpectations, String testName) {
-    // Only run the tests that match the pattern. Use the name
-    // "suiteName/testName" for cc tests.
-    String constructedName = '$suiteName/$testPrefix$testName';
+  Future<Null> forEachTest(Function onTest, Map testCache,
+      [VoidFunction onDone]) async {
+    doTest = onTest;
 
-    var expectations = testExpectations.expectations('$testPrefix$testName');
+    var statusFiles =
+        statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
+    var expectations = ExpectationSet.read(statusFiles, configuration);
 
+    try {
+      for (var name in await _listTests(hostRunnerPath)) {
+        _addTest(expectations, name);
+      }
+
+      doTest = null;
+      if (onDone != null) onDone();
+    } catch (error) {
+      print("Fatal error occured: $error");
+      exit(1);
+    }
+  }
+
+  void _addTest(ExpectationSet testExpectations, String testName) {
     var args = configuration.standardOptions.toList();
     if (configuration.compilerConfiguration.useDfe) {
       args.add('--use-dart-frontend');
@@ -492,30 +479,22 @@ class CCTestSuite extends TestSuite {
 
     var command = Command.process(
         'run_vm_unittest', targetRunnerPath, args, environmentOverrides);
-    enqueueNewTestCase(
-        new TestCase(constructedName, [command], configuration, expectations));
+    var fullName = 'cc/$testName';
+    var expectations = testExpectations.expectations(fullName);
+    enqueueNewTestCase(fullName, [command], expectations);
   }
 
-  Future<Null> forEachTest(Function onTest, Map testCache,
-      [VoidFunction onDone]) async {
-    doTest = onTest;
-    var statusFiles =
-        statusFilePaths.map((statusFile) => "$dartDir/$statusFile").toList();
-
-    var expectations = ExpectationSet.read(statusFiles, configuration);
-
-    try {
-      var names = await ccTestLister(hostRunnerPath);
-      for (var name in names) {
-        testNameHandler(expectations, name);
-      }
-
-      doTest = null;
-      if (onDone != null) onDone();
-    } catch (error) {
-      print("Fatal error occured: $error");
-      exit(1);
+  Future<Iterable<String>> _listTests(String runnerPath) async {
+    var result = await Process.run(runnerPath, ["--list"]);
+    if (result.exitCode != 0) {
+      throw "Failed to list tests: '$runnerPath --list'. "
+          "Process exited with ${result.exitCode}";
     }
+
+    return (result.stdout as String)
+        .split('\n')
+        .map((line) => line.trim())
+        .where((name) => name.isNotEmpty);
   }
 }
 
@@ -762,9 +741,8 @@ class StandardTestSuite extends TestSuite {
         multitestName: info.optionsFromFile['isMultitest'] as bool
             ? info.multitestKey
             : "");
-    Set<Expectation> expectations = testExpectations.expectations(testName);
     if (info is HtmlTestInformation) {
-      _enqueueHtmlTest(info, testName, expectations);
+      _enqueueHtmlTest(info, testName);
       return;
     }
 
@@ -791,9 +769,9 @@ class StandardTestSuite extends TestSuite {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
-      enqueueStandardTest(info, testName, expectations);
+      enqueueStandardTest(info, testName);
     } else if (configuration.runtime.isBrowser) {
-      Map<String, Set<Expectation>> expectationsMap;
+      var expectationsMap = <String, Set<Expectation>>{};
 
       if (info.optionsFromFile['isMultiHtmlTest'] as bool) {
         // A browser multi-test has multiple expectations for one test file.
@@ -801,24 +779,22 @@ class StandardTestSuite extends TestSuite {
         // file.
         var subtestNames = info.optionsFromFile['subtestNames'] as List<String>;
         expectationsMap = <String, Set<Expectation>>{};
-        for (var name in subtestNames) {
-          var fullTestName = '$testName/$name';
-          expectationsMap[fullTestName] =
-              testExpectations.expectations(fullTestName);
+        for (var subtest in subtestNames) {
+          expectationsMap[subtest] =
+              testExpectations.expectations('$testName/$subtest');
         }
       } else {
-        expectationsMap = {testName: expectations};
+        expectationsMap[testName] = testExpectations.expectations(testName);
       }
 
       _enqueueBrowserTest(
           packageRoot, packages, info, testName, expectationsMap);
     } else {
-      enqueueStandardTest(info, testName, expectations);
+      enqueueStandardTest(info, testName);
     }
   }
 
-  void enqueueStandardTest(
-      TestInformation info, String testName, Set<Expectation> expectations) {
+  void enqueueStandardTest(TestInformation info, String testName) {
     var commonArguments =
         commonArgumentsFromFile(info.filePath, info.optionsFromFile);
 
@@ -837,30 +813,18 @@ class StandardTestSuite extends TestSuite {
       // TODO(rnystrom): Hack. When running the 2.0 tests, always implicitly
       // turn on reified generics in the VM.
       // Note that VMOptions=--no-reify-generic-functions in test is ignored.
+      // Also, enable Dart 2.0 fixed-size integers with --limit-ints-to-64-bits.
       if (suiteName.endsWith("_2")) {
-        allVmOptions = allVmOptions.toList()..add("--reify-generic-functions");
+        allVmOptions = allVmOptions.toList()
+          ..add("--reify-generic-functions")
+          ..add("--limit-ints-to-64-bits");
       }
 
       var commands =
           makeCommands(info, vmOptionsVariant, allVmOptions, commonArguments);
-      enqueueNewTestCase(new TestCase(
-          '$suiteName/$testName', commands, configuration, expectations,
-          isNegative: isNegative(info), info: info));
+      var expectations = testExpectations.expectations(testName);
+      enqueueNewTestCase(testName, commands, expectations, info);
     }
-  }
-
-  bool expectCompileError(TestInformation info) {
-    return info.hasCompileError ||
-        (configuration.isChecked && info.hasCompileErrorIfChecked);
-  }
-
-  bool isNegative(TestInformation info) {
-    bool negative = expectCompileError(info) ||
-        (configuration.isChecked && info.isNegativeIfChecked);
-    if (info.hasRuntimeError && hasRuntime) {
-      negative = true;
-    }
-    return negative;
   }
 
   List<Command> makeCommands(TestInformation info, int vmOptionsVariant,
@@ -980,11 +944,11 @@ class StandardTestSuite extends TestSuite {
     return null;
   }
 
-  Uri _getUriForBrowserTest(String pathComponent, String subtestName) {
+  String _uriForBrowserTest(String pathComponent, [String subtestName]) {
     // Note: If we run test.py with the "--list" option, no http servers
     // will be started. So we return a dummy url instead.
     if (configuration.listTests) {
-      return Uri.parse('http://listing_the_tests_only');
+      return Uri.parse('http://listing_the_tests_only').toString();
     }
 
     var serverPort = configuration.servers.port;
@@ -994,52 +958,31 @@ class StandardTestSuite extends TestSuite {
       parameters['group'] = subtestName;
     }
     return new Uri(
-        scheme: 'http',
-        host: configuration.localIP,
-        port: serverPort,
-        path: pathComponent,
-        queryParameters: parameters);
+            scheme: 'http',
+            host: configuration.localIP,
+            port: serverPort,
+            path: pathComponent,
+            queryParameters: parameters)
+        .toString();
   }
 
-  /**
-   * The [StandardTestSuite] has support for tests that
-   * compile a test from Dart to JavaScript, and then run the resulting
-   * JavaScript.  This function creates a working directory to hold the
-   * JavaScript version of the test, and copies the appropriate framework
-   * files to that directory.  It creates a [BrowserTestCase], which has
-   * two sequential steps to be run by the [ProcessQueue] when the test is
-   * executed: a compilation step and an execution step, both with the
-   * appropriate executable and arguments. The [expectations] object can be
-   * either a Set<String> if the test is a regular test, or a Map<String
-   * subTestName, Set<String>> if we are running a browser multi-test (one
-   * compilation and many browser runs).
-   */
+  /// Enqueues a test that runs in a browser.
+  ///
+  /// Creates a [Command] that compiles the test to JavaScript and writes that
+  /// in a generated output directory. Any additional framework and HTML files
+  /// are put there too. Then adds another [Command] the spawn the browser and
+  /// run the test.
+  ///
+  /// In order to handle browser multitests, [expectations] is a map of subtest
+  /// names to expectation sets. If the test is not a multitest, the map has
+  /// a single key, [testName].
   void _enqueueBrowserTest(
       Path packageRoot,
       Path packages,
       TestInformation info,
       String testName,
       Map<String, Set<Expectation>> expectations) {
-    var badChars = new RegExp('[-=/]');
-    var vmOptionsList = getVmOptions(info.optionsFromFile);
-    var multipleOptions = vmOptionsList.length > 1;
-    for (var vmOptions in vmOptionsList) {
-      var optionsName =
-          multipleOptions ? vmOptions.join('-').replaceAll(badChars, '') : '';
-      var tempDir = createOutputDirectory(info.filePath, optionsName);
-      _enqueueBrowserTestWithOptions(packageRoot, packages, info, testName,
-          expectations, vmOptions, tempDir);
-    }
-  }
-
-  void _enqueueBrowserTestWithOptions(
-      Path packageRoot,
-      Path packages,
-      TestInformation info,
-      String testName,
-      Map<String, Set<Expectation>> expectations,
-      List<String> vmOptions,
-      String tempDir) {
+    var tempDir = createOutputDirectory(info.filePath);
     var fileName = info.filePath.toNativePath();
     var optionsFromFile = info.optionsFromFile;
     var compilationTempDir = createCompilationOutputDirectory(info.filePath);
@@ -1119,11 +1062,11 @@ class StandardTestSuite extends TestSuite {
       var subtestNames = info.optionsFromFile['subtestNames'] as List<String>;
       for (var subtestName in subtestNames) {
         _enqueueSingleBrowserTest(commands, info, '$testName/$subtestName',
-            subtestName, expectations, vmOptions, htmlPath);
+            subtestName, expectations[subtestName], htmlPath);
       }
     } else {
       _enqueueSingleBrowserTest(
-          commands, info, testName, null, expectations, vmOptions, htmlPath);
+          commands, info, testName, null, expectations[testName], htmlPath);
     }
   }
 
@@ -1133,15 +1076,13 @@ class StandardTestSuite extends TestSuite {
       TestInformation info,
       String testName,
       String subtestName,
-      Map<String, Set<Expectation>> expectations,
-      List<String> vmOptions,
+      Set<Expectation> expectations,
       String htmlPath) {
     // Construct the command that executes the browser test.
     commands = commands.toList();
 
     var htmlPathSubtest = _createUrlPathFromFile(new Path(htmlPath));
-    var fullHtmlPath =
-        _getUriForBrowserTest(htmlPathSubtest, subtestName).toString();
+    var fullHtmlPath = _uriForBrowserTest(htmlPathSubtest, subtestName);
 
     if (configuration.runtime == Runtime.drt) {
       var dartFlags = <String>[];
@@ -1165,16 +1106,12 @@ class StandardTestSuite extends TestSuite {
           retry: !isNegative(info)));
     }
 
-    // Create BrowserTestCase and queue it.
-    var expectation = expectations[testName];
-    var testCase = new BrowserTestCase('$suiteName/$testName', commands,
-        configuration, expectation, info, isNegative(info), fullHtmlPath);
-
-    enqueueNewTestCase(testCase);
+    var fullName = testName;
+    if (subtestName != null) fullName += "/$subtestName";
+    enqueueNewTestCase(fullName, commands, expectations, info);
   }
 
-  void _enqueueHtmlTest(HtmlTestInformation info, String testName,
-      Set<Expectation> expectations) {
+  void _enqueueHtmlTest(HtmlTestInformation info, String testName) {
     var compiler = configuration.compiler;
     var runtime = configuration.runtime;
 
@@ -1191,7 +1128,7 @@ class StandardTestSuite extends TestSuite {
     var compileToJS = compiler == Compiler.dart2js;
 
     var filePath = info.filePath;
-    var tempDir = createOutputDirectory(filePath, '');
+    var tempDir = createOutputDirectory(filePath);
     var tempUri = new Uri.file('$tempDir/');
     var contents = html_test.getContents(info, compileToJS);
     var commands = <Command>[];
@@ -1244,14 +1181,12 @@ class StandardTestSuite extends TestSuite {
     new File.fromUri(htmlFile).writeAsStringSync(contents);
 
     var htmlPath = _createUrlPathFromFile(new Path(htmlFile.toFilePath()));
-    var fullHtmlPath = _getUriForBrowserTest(htmlPath, null).toString();
+    var fullHtmlPath = _uriForBrowserTest(htmlPath);
     commands.add(Command.browserHtmlTest(
         fullHtmlPath, configuration, info.expectedMessages,
         retry: !isNegative(info)));
-    var testDisplayName = '$suiteName/$testName';
-    var testCase = new BrowserTestCase(testDisplayName, commands, configuration,
-        expectations, info, isNegative(info), fullHtmlPath);
-    enqueueNewTestCase(testCase);
+    enqueueNewTestCase(
+        testName, commands, testExpectations.expectations(testName), info);
   }
 
   /// Creates a [Command] to compile a single .dart file using dart2js.
@@ -1281,8 +1216,6 @@ class StandardTestSuite extends TestSuite {
         dart2JsBootstrapDependencies, compilerPath, args, environmentOverrides,
         alwaysCompile: !useSdk);
   }
-
-  bool get hasRuntime => configuration.runtime != Runtime.none;
 
   String get contentShellFilename {
     if (configuration.drtPath != null) return configuration.drtPath;
@@ -1688,72 +1621,38 @@ class PKGTestSuite extends StandardTestSuite {
       super._enqueueBrowserTest(
           packageRoot, packages, info, testName, expectations);
     } else {
-      var relativeHtml = customHtmlPath.relativeTo(Repository.dir);
       var fullPath = _createUrlPathFromFile(customHtmlPath);
-
-      var commands = [
-        Command.browserTest(fullPath, configuration, retry: !isNegative(info))
-      ];
-      var testDisplayName = '$suiteName/$testName';
-      enqueueNewTestCase(new BrowserTestCase(
-          testDisplayName,
-          commands,
-          configuration,
-          expectations as Set<Expectation>,
-          info,
-          isNegative(info),
-          relativeHtml.toNativePath()));
+      var command = Command.browserTest(fullPath, configuration,
+          retry: !isNegative(info));
+      enqueueNewTestCase(testName, [command], expectations[testName], info);
     }
   }
 }
 
-/// A DartcCompilationTestSuite will run dartc on all of the tests.
-///
-/// Usually, the result of a dartc run is determined by the output of
-/// dartc in connection with annotations in the test file.
-class DartcCompilationTestSuite extends StandardTestSuite {
-  List<String> _testDirs;
+class AnalyzeLibraryTestSuite extends StandardTestSuite {
+  static Path _libraryPath(Configuration configuration) =>
+      new Path(configuration.useSdk
+          ? '${configuration.buildDirectory}/dart-sdk'
+          : 'sdk');
 
-  DartcCompilationTestSuite(
-      Configuration configuration,
-      String suiteName,
-      String directoryPath,
-      List<String> this._testDirs,
-      List<String> expectations)
-      : super(configuration, suiteName, new Path(directoryPath), expectations);
+  bool get listRecursively => true;
 
-  List<String> additionalOptions(Path filePath) {
-    return ['--fatal-warnings', '--fatal-type-errors'];
-  }
+  AnalyzeLibraryTestSuite(Configuration configuration)
+      : super(configuration, 'analyze_library', _libraryPath(configuration),
+            ['tests/lib/analyzer/analyze_library.status']);
+
+  List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) =>
+      const ['--fatal-warnings', '--fatal-type-errors', '--sdk-warnings'];
 
   Future enqueueTests() {
     var group = new FutureGroup();
 
-    for (String testDir in _testDirs) {
-      Directory dir = new Directory(suiteDir.append(testDir).toNativePath());
-      if (dir.existsSync()) {
-        enqueueDirectory(dir, group);
-      }
+    var dir = new Directory(suiteDir.append('lib').toNativePath());
+    if (dir.existsSync()) {
+      enqueueDirectory(dir, group);
     }
 
     return group.future;
-  }
-}
-
-// TODO(rnystrom): Merge with DartcCompilationTestSuite since that class isn't
-// used for anything but this now.
-class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
-  static String libraryPath(Configuration configuration) =>
-      configuration.useSdk ? '${configuration.buildDirectory}/dart-sdk' : 'sdk';
-
-  AnalyzeLibraryTestSuite(Configuration configuration)
-      : super(configuration, 'analyze_library', libraryPath(configuration),
-            ['lib'], ['tests/lib/analyzer/analyze_library.status']);
-
-  List<String> additionalOptions(Path filePath, {bool showSdkWarnings}) {
-    var options = super.additionalOptions(filePath);
-    options.add('--sdk-warnings');
-    return options;
   }
 
   bool isTestFile(String filename) {
@@ -1762,6 +1661,4 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
         !filename.endsWith("_test.dart") &&
         !filename.contains("_internal/js_runtime/lib");
   }
-
-  bool get listRecursively => true;
 }

@@ -10,10 +10,10 @@ void testInstantiateToBounds() {
   g<T extends List<U>, U extends int>() => [T, U];
   h<T extends num, U extends T>(T x, U y) => h.runtimeType.toString();
 
-  Expect.listEquals((f as dynamic)(), [num, num]);
-  Expect.equals((g as dynamic)().join('|'), 'List<int>|int');
-  Expect.equals((h as dynamic)(null, null),
-      '<T extends num, U extends T>(T, U) => String');
+  Expect.listEquals([num, num], (f as dynamic)());
+  Expect.equals('List<int>|int', (g as dynamic)().join('|'));
+  Expect.equals('<T extends num, U extends T>(T, U) => String',
+      (h as dynamic)(null, null));
 
   i<T extends Iterable<T>>() => null;
   j<T extends Iterable<S>, S extends T>() => null;

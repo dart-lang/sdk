@@ -293,6 +293,7 @@ type Class extends Node {
   List<Field> fields;
   List<Constructor> constructors;
   List<Procedure> procedures;
+  List<RedirectingFactoryConstructor> redirectingFactoryConstructors;
 
   // Class index. Offsets are used to get start (inclusive) and end (exclusive) byte positions for
   // a specific procedure. Note the "+1" to account for needing the end of the last entry.
@@ -354,6 +355,23 @@ type Procedure extends Member {
   List<Expression> annotations;
   // Can only be absent if abstract, but tag is there anyway.
   Option<FunctionNode> function;
+}
+
+type RedirectingFactoryConstructor extends Member {
+  Byte tag = 107;
+  CanonicalNameReference canonicalName;
+  FileOffset fileOffset;
+  FileOffset fileEndOffset;
+  Byte flags;
+  Name name;
+  List<Expression> annotations;
+  List<DartType> typeArguments;
+  MemberReference targetReference;
+  List<TypeParameter> typeParameters;
+  UInt parameterCount; // positionalParameters.length + namedParameters.length.
+  UInt requiredParameterCount;
+  List<VariableDeclaration> positionalParameters;
+  List<VariableDeclaration> namedParameters;
 }
 
 abstract type Initializer extends Node {}
@@ -491,6 +509,7 @@ type PropertyGet extends Expression {
 type PropertySet extends Expression {
   Byte tag = 23;
   FileOffset fileOffset;
+  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   Name name;
   Expression value;
@@ -523,6 +542,7 @@ type DirectPropertyGet extends Expression {
 type DirectPropertySet extends Expression {
   Byte tag = 16; // Note: tag is out of order
   FileOffset fileOffset;
+  Byte flags (dispatchCategoryLowBit, dispatchCategoryHighBit);
   Expression receiver;
   MemberReference target;
   Expression value;

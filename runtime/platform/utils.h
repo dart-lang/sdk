@@ -308,6 +308,17 @@ class Utils {
     return (1ll << n) - 1;
   }
 
+  static word SignedNBitMask(uint32_t n) {
+    uword mask = NBitMask(n);
+    return bit_cast<word>(mask);
+  }
+
+  static uword Bit(uint32_t n) {
+    ASSERT(n < kBitsPerWord);
+    uword bit = 1;
+    return bit << n;
+  }
+
   static char* StrError(int err, char* buffer, size_t bufsize);
 };
 

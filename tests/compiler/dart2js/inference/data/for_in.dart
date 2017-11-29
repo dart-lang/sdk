@@ -19,7 +19,7 @@ main() {
 
 /*element: forInDirect:[null]*/
 forInDirect() {
-  /*iterator: Container mask: [exact=JSUInt31] length: 3 type: [exact=JSExtendableArray]*/
+  /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (var a in [1, 2, 3]) {
@@ -33,7 +33,7 @@ forInDirect() {
 
 /*element: forInReturn:[null|subclass=Object]*/
 forInReturn() {
-  /*iterator: Container mask: [exact=JSUInt31] length: 3 type: [exact=JSExtendableArray]*/
+  /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (var a in [1, 2, 3]) {
@@ -48,8 +48,8 @@ forInReturn() {
 
 /*element: _forInReturn:[null|subclass=Object]*/
 _forInReturn(
-    /*Container mask: [exact=JSUInt31] length: null type: [exact=JSExtendableArray]*/ list) {
-  /*iterator: Container mask: [exact=JSUInt31] length: null type: [exact=JSExtendableArray]*/
+    /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/ list) {
+  /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (var a in list) {
@@ -71,7 +71,7 @@ forInReturnMulti() {
 
 /*element: forInReturnRefined:[null|subclass=JSInt]*/
 forInReturnRefined() {
-  /*iterator: Container mask: [exact=JSUInt31] length: 3 type: [exact=JSExtendableArray]*/
+  /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (var a in [1, 2, 3]) {
@@ -95,8 +95,8 @@ class Class1 {
 
 /*element: _testInForIn:[null|exact=Class1]*/
 _testInForIn(
-    /*Container mask: [exact=Class1] length: 2 type: [exact=JSExtendableArray]*/ list) {
-  /*iterator: Container mask: [exact=Class1] length: 2 type: [exact=JSExtendableArray]*/
+    /*Container([exact=JSExtendableArray], element: [exact=Class1], length: 2)*/ list) {
+  /*iterator: Container([exact=JSExtendableArray], element: [exact=Class1], length: 2)*/
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (var t in list) {
@@ -126,8 +126,8 @@ class Class2 {
 
 /*element: _operatorInForIn:[null|exact=Class2]*/
 _operatorInForIn(
-    /*Container mask: [exact=Class2] length: 2 type: [exact=JSExtendableArray]*/ list) {
-  /*iterator: Container mask: [exact=Class2] length: 2 type: [exact=JSExtendableArray]*/
+    /*Container([exact=JSExtendableArray], element: [exact=Class2], length: 2)*/ list) {
+  /*iterator: Container([exact=JSExtendableArray], element: [exact=Class2], length: 2)*/
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (var t in list) {
@@ -158,8 +158,8 @@ class Class3 {
 
 /*element: _updateInForIn:[null]*/
 _updateInForIn(
-    /*Container mask: [exact=Class3] length: 2 type: [exact=JSExtendableArray]*/ list) {
-  /*iterator: Container mask: [exact=Class3] length: 2 type: [exact=JSExtendableArray]*/
+    /*Container([exact=JSExtendableArray], element: [exact=Class3], length: 2)*/ list) {
+  /*iterator: Container([exact=JSExtendableArray], element: [exact=Class3], length: 2)*/
   /*current: [exact=ArrayIterator]*/
   /*moveNext: [exact=ArrayIterator]*/
   for (var t in list) {

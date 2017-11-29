@@ -39,7 +39,7 @@ setStaticFieldUninitialized() => Class1.field = 42;
 /// Static set of an initialized top level field.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: field2:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: field2:Union([exact=JSString], [exact=JSUInt31])*/
 dynamic field2 = '';
 
 /*element: setTopLevelFieldInitialized:[exact=JSUInt31]*/
@@ -50,7 +50,7 @@ setTopLevelFieldInitialized() => field2 = 42;
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*element: Class2.field:Union of [[exact=JSString], [exact=JSUInt31]]*/
+  /*element: Class2.field:Union([exact=JSString], [exact=JSUInt31])*/
   static dynamic field = '';
 }
 

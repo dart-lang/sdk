@@ -65,6 +65,142 @@ const char* Assembler::FpuRegisterName(FpuRegister reg) {
   return fpu_reg_names[reg];
 }
 
+int32_t Assembler::BindImm19Branch(int64_t position, int64_t dest) {
+  if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
+    // Far branches are enabled, and we can't encode the branch offset in
+    // 19 bits.
+
+    // Grab the guarding branch instruction.
+    const int32_t guard_branch =
+        buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
+
+    // Grab the far branch instruction.
+    const int32_t far_branch =
+        buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+    const Condition c = DecodeImm19BranchCondition(guard_branch);
+
+    // Grab the link to the next branch.
+    const int32_t next = DecodeImm26BranchOffset(far_branch);
+
+    // dest is the offset is from the guarding branch instruction.
+    // Correct it to be from the following instruction.
+    const int64_t offset = dest - Instr::kInstrSize;
+
+    // Encode the branch.
+    const int32_t encoded_branch = EncodeImm26BranchOffset(offset, far_branch);
+
+    // If the guard branch is conditioned on NV, replace it with a nop.
+    if (c == NV) {
+      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
+                             Instr::kNopInstruction);
+    }
+
+    // Write the far branch into the buffer and link to the next branch.
+    buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
+    return next;
+  } else if (use_far_branches() && CanEncodeImm19BranchOffset(dest)) {
+    // We assembled a far branch, but we don't need it. Replace it with a near
+    // branch.
+
+    // Grab the guarding branch instruction.
+    const int32_t guard_branch =
+        buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
+
+    // Grab the far branch instruction.
+    const int32_t far_branch =
+        buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+
+    // Grab the link to the next branch.
+    const int32_t next = DecodeImm26BranchOffset(far_branch);
+
+    // Re-target the guarding branch and flip the conditional sense.
+    int32_t encoded_guard_branch = EncodeImm19BranchOffset(dest, guard_branch);
+    const Condition c = DecodeImm19BranchCondition(encoded_guard_branch);
+    encoded_guard_branch =
+        EncodeImm19BranchCondition(InvertCondition(c), encoded_guard_branch);
+
+    // Write back the re-encoded instructions. The far branch becomes a nop.
+    buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
+                           encoded_guard_branch);
+    buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize,
+                           Instr::kNopInstruction);
+    return next;
+  } else {
+    const int32_t next = buffer_.Load<int32_t>(position);
+    const int32_t encoded = EncodeImm19BranchOffset(dest, next);
+    buffer_.Store<int32_t>(position, encoded);
+    return DecodeImm19BranchOffset(next);
+  }
+}
+
+int32_t Assembler::BindImm14Branch(int64_t position, int64_t dest) {
+  if (use_far_branches() && !CanEncodeImm14BranchOffset(dest)) {
+    // Far branches are enabled, and we can't encode the branch offset in
+    // 14 bits.
+
+    // Grab the guarding branch instruction.
+    const int32_t guard_branch =
+        buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
+
+    // Grab the far branch instruction.
+    const int32_t far_branch =
+        buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+    const Condition c = DecodeImm14BranchCondition(guard_branch);
+
+    // Grab the link to the next branch.
+    const int32_t next = DecodeImm26BranchOffset(far_branch);
+
+    // dest is the offset is from the guarding branch instruction.
+    // Correct it to be from the following instruction.
+    const int64_t offset = dest - Instr::kInstrSize;
+
+    // Encode the branch.
+    const int32_t encoded_branch = EncodeImm26BranchOffset(offset, far_branch);
+
+    // If the guard branch is conditioned on NV, replace it with a nop.
+    if (c == NV) {
+      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
+                             Instr::kNopInstruction);
+    }
+
+    // Write the far branch into the buffer and link to the next branch.
+    buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
+    return next;
+  } else if (use_far_branches() && CanEncodeImm14BranchOffset(dest)) {
+    // We assembled a far branch, but we don't need it. Replace it with a near
+    // branch.
+
+    // Grab the guarding branch instruction.
+    const int32_t guard_branch =
+        buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
+
+    // Grab the far branch instruction.
+    const int32_t far_branch =
+        buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
+
+    // Grab the link to the next branch.
+    const int32_t next = DecodeImm26BranchOffset(far_branch);
+
+    // Re-target the guarding branch and flip the conditional sense.
+    int32_t encoded_guard_branch = EncodeImm14BranchOffset(dest, guard_branch);
+    const Condition c = DecodeImm14BranchCondition(encoded_guard_branch);
+    encoded_guard_branch =
+        EncodeImm14BranchCondition(InvertCondition(c), encoded_guard_branch);
+
+    // Write back the re-encoded instructions. The far branch becomes a nop.
+    buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
+                           encoded_guard_branch);
+    buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize,
+                           Instr::kNopInstruction);
+    return next;
+  } else {
+    const int32_t next = buffer_.Load<int32_t>(position);
+    const int32_t encoded = EncodeImm14BranchOffset(dest, next);
+    buffer_.Store<int32_t>(position, encoded);
+    return DecodeImm14BranchOffset(next);
+  }
+}
+
 void Assembler::Bind(Label* label) {
   ASSERT(!label->IsBound());
   const intptr_t bound_pc = buffer_.Size();
@@ -72,73 +208,10 @@ void Assembler::Bind(Label* label) {
   while (label->IsLinked()) {
     const int64_t position = label->Position();
     const int64_t dest = bound_pc - position;
-    if (use_far_branches() && !CanEncodeImm19BranchOffset(dest)) {
-      // Far branches are enabled, and we can't encode the branch offset in
-      // 19 bits.
-
-      // Grab the guarding branch instruction.
-      const int32_t guard_branch =
-          buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
-
-      // Grab the far branch instruction.
-      const int32_t far_branch =
-          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
-
-      const Condition c = DecodeImm19BranchCondition(guard_branch);
-
-      // Grab the link to the next branch.
-      const int32_t next = DecodeImm26BranchOffset(far_branch);
-
-      // dest is the offset is from the guarding branch instruction.
-      // Correct it to be from the following instruction.
-      const int64_t offset = dest - Instr::kInstrSize;
-
-      // Encode the branch.
-      const int32_t encoded_branch =
-          EncodeImm26BranchOffset(offset, far_branch);
-
-      // If the guard branch is conditioned on NV, replace it with a nop.
-      if (c == NV) {
-        buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
-                               Instr::kNopInstruction);
-      }
-
-      // Write the far branch into the buffer and link to the next branch.
-      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize, encoded_branch);
-      label->position_ = next;
-    } else if (use_far_branches() && CanEncodeImm19BranchOffset(dest)) {
-      // We assembled a far branch, but we don't need it. Replace it with a near
-      // branch.
-
-      // Grab the guarding branch instruction.
-      const int32_t guard_branch =
-          buffer_.Load<int32_t>(position + 0 * Instr::kInstrSize);
-
-      // Grab the far branch instruction.
-      const int32_t far_branch =
-          buffer_.Load<int32_t>(position + 1 * Instr::kInstrSize);
-
-      // Grab the link to the next branch.
-      const int32_t next = DecodeImm26BranchOffset(far_branch);
-
-      // Re-target the guarding branch and flip the conditional sense.
-      int32_t encoded_guard_branch =
-          EncodeImm19BranchOffset(dest, guard_branch);
-      const Condition c = DecodeImm19BranchCondition(encoded_guard_branch);
-      encoded_guard_branch =
-          EncodeImm19BranchCondition(InvertCondition(c), encoded_guard_branch);
-
-      // Write back the re-encoded instructions. The far branch becomes a nop.
-      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
-                             encoded_guard_branch);
-      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize,
-                             Instr::kNopInstruction);
-      label->position_ = next;
+    if (IsTestAndBranch(buffer_.Load<int32_t>(position))) {
+      label->position_ = BindImm14Branch(position, dest);
     } else {
-      const int32_t next = buffer_.Load<int32_t>(position);
-      const int32_t encoded = EncodeImm19BranchOffset(dest, next);
-      buffer_.Store<int32_t>(position, encoded);
-      label->position_ = DecodeImm19BranchOffset(next);
+      label->position_ = BindImm19Branch(position, dest);
     }
   }
   label->BindTo(bound_pc);

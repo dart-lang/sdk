@@ -194,6 +194,9 @@ class CanonicalName {
     if (member is Constructor) {
       return '@constructors';
     }
+    if (member is RedirectingFactoryConstructor) {
+      return '@factories';
+    }
     throw 'Unexpected member: $member';
   }
 }

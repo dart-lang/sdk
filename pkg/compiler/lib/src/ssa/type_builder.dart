@@ -5,7 +5,6 @@
 import 'graph_builder.dart';
 import 'nodes.dart';
 import '../common.dart';
-import '../elements/elements.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../io/source_information.dart';
@@ -40,18 +39,26 @@ abstract class TypeBuilder {
   final GraphBuilder builder;
   TypeBuilder(this.builder);
 
+  /// Create a type mask for 'trusting' a DartType. Returns `null` if there is
+  /// no approximating type mask (i.e. the type mask would be `dynamic`).
+  TypeMask trustTypeMask(DartType type) {
+    if (type == null) return null;
+    type = builder.localsHandler.substInContext(type);
+    type = type.unaliased;
+    if (type.isDynamic) return null;
+    if (!type.isInterfaceType) return null;
+    if (type == builder.commonElements.objectType) return null;
+    // The type element is either a class or the void element.
+    ClassEntity element = (type as InterfaceType).element;
+    return new TypeMask.subtype(element, builder.closedWorld);
+  }
+
   /// Create an instruction to simply trust the provided type.
   HInstruction _trustType(HInstruction original, DartType type) {
     assert(builder.options.trustTypeAnnotations);
     assert(type != null);
-    type = builder.localsHandler.substInContext(type);
-    type = type.unaliased;
-    if (type.isDynamic) return original;
-    if (!type.isInterfaceType) return original;
-    if (type == builder.commonElements.objectType) return original;
-    // The type element is either a class or the void element.
-    ClassEntity element = (type as InterfaceType).element;
-    TypeMask mask = new TypeMask.subtype(element, builder.closedWorld);
+    TypeMask mask = trustTypeMask(type);
+    if (mask == null) return original;
     return new HTypeKnown.pinned(mask, original);
   }
 
@@ -144,7 +151,8 @@ abstract class TypeBuilder {
       {SourceInformation sourceInformation}) {
     assert(member.isInstanceMember);
     assert(variable.element.typeDeclaration is ClassEntity);
-    HInstruction target = builder.localsHandler.readThis();
+    HInstruction target =
+        builder.localsHandler.readThis(sourceInformation: sourceInformation);
     builder.push(new HTypeInfoReadVariable(
         variable, target, builder.commonMasks.dynamicType)
       ..sourceInformation = sourceInformation);
@@ -152,7 +160,8 @@ abstract class TypeBuilder {
   }
 
   HInstruction buildTypeArgumentRepresentations(
-      DartType type, MemberEntity sourceElement) {
+      DartType type, MemberEntity sourceElement,
+      [SourceInformation sourceInformation]) {
     assert(!type.isTypeVariable);
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
@@ -160,13 +169,15 @@ abstract class TypeBuilder {
     InterfaceType interface = type;
     List<HInstruction> inputs = <HInstruction>[];
     for (DartType argument in interface.typeArguments) {
-      inputs.add(analyzeTypeArgument(argument, sourceElement));
+      inputs.add(analyzeTypeArgument(argument, sourceElement,
+          sourceInformation: sourceInformation));
     }
     HInstruction representation = new HTypeInfoExpression(
         TypeInfoExpressionKind.INSTANCE,
         builder.closedWorld.elementEnvironment.getThisType(interface.element),
         inputs,
-        builder.commonMasks.dynamicType);
+        builder.commonMasks.dynamicType)
+      ..sourceInformation = sourceInformation;
     return representation;
   }
 
@@ -220,16 +231,7 @@ abstract class TypeBuilder {
 
   /// In checked mode, generate type tests for the parameters of the inlined
   /// function.
-  void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
-    if (!checkOrTrustTypes) return;
-
-    FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((_parameter) {
-      ParameterElement parameter = _parameter;
-      HInstruction argument = builder.localsHandler.readLocal(parameter);
-      potentiallyCheckOrTrustType(argument, parameter.type);
-    });
-  }
+  void potentiallyCheckInlinedParameterTypes(FunctionEntity function);
 
   bool get checkOrTrustTypes =>
       builder.options.enableTypeAssertions ||
@@ -240,7 +242,8 @@ abstract class TypeBuilder {
   /// Invariant: [type] must be valid in the context.
   /// See [LocalsHandler.substInContext].
   HInstruction buildTypeConversion(
-      HInstruction original, DartType type, int kind) {
+      HInstruction original, DartType type, int kind,
+      {SourceInformation sourceInformation}) {
     if (type == null) return original;
     if (type.isTypeVariable) {
       TypeVariableType typeVariable = type;
@@ -257,26 +260,30 @@ abstract class TypeBuilder {
       InterfaceType interfaceType = type;
       TypeMask subtype =
           new TypeMask.subtype(interfaceType.element, builder.closedWorld);
-      HInstruction representations =
-          buildTypeArgumentRepresentations(type, builder.sourceElement);
+      HInstruction representations = buildTypeArgumentRepresentations(
+          type, builder.sourceElement, sourceInformation);
       builder.add(representations);
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, subtype, original, representations);
+          type, kind, subtype, original, representations)
+        ..sourceInformation = sourceInformation;
     } else if (type.isTypeVariable) {
       TypeMask subtype = original.instructionType;
       HInstruction typeVariable =
           addTypeVariableReference(type, builder.sourceElement);
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, subtype, original, typeVariable);
+          type, kind, subtype, original, typeVariable)
+        ..sourceInformation = sourceInformation;
     } else if (type.isFunctionType) {
       HInstruction reifiedType =
           analyzeTypeArgument(type, builder.sourceElement);
       // TypeMasks don't encode function types.
       TypeMask refinedMask = original.instructionType;
       return new HTypeConversion.withTypeRepresentation(
-          type, kind, refinedMask, original, reifiedType);
+          type, kind, refinedMask, original, reifiedType)
+        ..sourceInformation = sourceInformation;
     } else {
-      return original.convertType(builder.closedWorld, type, kind);
+      return original.convertType(builder.closedWorld, type, kind)
+        ..sourceInformation = sourceInformation;
     }
   }
 }

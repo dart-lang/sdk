@@ -751,6 +751,7 @@ class OptionsTest extends BaseTest {
     expect(outSink.toString(), contains('Avoid empty else statements'));
   }
 
+  @failingTest
   test_previewDart2() async {
     await drive('data/options_tests_project/test_file.dart',
         args: ['--preview-dart-2']);

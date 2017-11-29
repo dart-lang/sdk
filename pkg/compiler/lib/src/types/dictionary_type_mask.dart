@@ -104,6 +104,7 @@ class DictionaryTypeMask<T> extends MapTypeMask<T> {
   }
 
   String toString() {
-    return 'Dictionary mask: [$keyType/$valueType with $typeMap] type: $forwardTo';
+    return 'Dictionary($forwardTo, key: $keyType, '
+        'value: $valueType, map: $typeMap)';
   }
 }

@@ -18,7 +18,7 @@ isomain1(replyPort) {
     var killCapability = v[1];
     firstEvent = false;
     var isolate = new Isolate(controlPort, terminateCapability: killCapability);
-    isolate.kill(priority: Isolate.IMMEDIATE);
+    isolate.kill(priority: Isolate.immediate);
   };
   replyPort.send(port.sendPort);
 }

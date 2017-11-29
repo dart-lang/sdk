@@ -1094,7 +1094,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     // thrown a CCE if any of the elements in the arrays were not of the
     // expected types.
     //
-    for (ConstructorElement constructor in _constructors) {
+    for (ConstructorElement constructor in constructors) {
       ConstructorElementImpl constructorImpl = constructor;
       if (constructorImpl.identifier == identifier) {
         return constructorImpl;

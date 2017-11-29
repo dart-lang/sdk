@@ -14,12 +14,12 @@ static method f() → dynamic {
   self::printInt(math::min<core::int>(1, 2));
   self::printDouble(math::max<core::double>(1.0, 2.0));
   self::printDouble(math::min<core::double>(1.0, 2.0));
-  self::printInt(self::myMax(1, 2));
+  self::printInt(self::myMax(1, 2) as{TypeError} core::int);
   self::printInt(self::myMax(1, 2) as core::int);
-  self::printInt(math::max<core::int>(1, 2.0));
-  self::printInt(math::min<core::int>(1, 2.0));
-  self::printDouble(math::max<core::double>(1, 2.0));
-  self::printDouble(math::min<core::double>(1, 2.0));
-  self::printInt(math::min<core::int>("hi", "there"));
+  self::printInt(math::max<core::int>(1, 2.0 as{TypeError} core::int));
+  self::printInt(math::min<core::int>(1, 2.0 as{TypeError} core::int));
+  self::printDouble(math::max<core::double>(1 as{TypeError} core::double, 2.0));
+  self::printDouble(math::min<core::double>(1 as{TypeError} core::double, 2.0));
+  self::printInt(math::min<core::int>("hi" as{TypeError} core::int, "there" as{TypeError} core::int));
 }
 static method main() → dynamic {}

@@ -107,6 +107,8 @@ class WeakTable {
     return 0;
   }
 
+  void Forward(ObjectPointerVisitor* visitor);
+
   void Reset();
 
  private:
@@ -142,6 +144,12 @@ class WeakTable {
   intptr_t ObjectIndex(intptr_t i) const { return index(i) + kObjectOffset; }
 
   intptr_t ValueIndex(intptr_t i) const { return index(i) + kValueOffset; }
+
+  RawObject** ObjectPointerAt(intptr_t i) const {
+    ASSERT(i >= 0);
+    ASSERT(i < size());
+    return reinterpret_cast<RawObject**>(&data_[ObjectIndex(i)]);
+  }
 
   void SetObjectAt(intptr_t i, RawObject* key) {
     ASSERT(i >= 0);

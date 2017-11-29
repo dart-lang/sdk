@@ -10,7 +10,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/inferrer/inferrer_engine.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
@@ -21,7 +20,6 @@ import '../equivalence/id_equivalence_helper.dart';
 
 main(List<String> args) {
   asyncTest(() async {
-    InferrerEngineImpl.useSorterForTesting = true;
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('side_effects'));
     await checkTests(

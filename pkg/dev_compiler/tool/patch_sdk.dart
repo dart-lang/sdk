@@ -18,22 +18,22 @@ void main(List<String> argv) {
   if (argv.length < 3) {
     var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
 
-    var inputExample = path.join(toolDir, '..', '..', '..');
+    var repoExample = path.join(toolDir, '..', '..', '..');
     var patchExample = path.join(toolDir, 'input_sdk');
     var outExample =
         path.relative(path.normalize(path.join('gen', 'patched_sdk')));
 
-    print('Usage: $self INPUT_SDK_DIR PATCH_DIR OUTPUT_DIR');
+    print('Usage: $self DART_REPO_DIR PATCH_DIR OUTPUT_DIR');
     print('For example:');
-    print('\$ $self $inputExample $patchExample $outExample');
+    print('\$ $self $repoExample $patchExample $outExample');
     exit(1);
   }
 
   var selfModifyTime = new File(self).lastModifiedSync().millisecondsSinceEpoch;
 
-  var inputDir = argv[0];
+  var repoDir = argv[0];
   var patchDir = argv[1];
-  var sdkLibIn = path.join(inputDir, 'sdk', 'lib');
+  var sdkLibIn = path.join(repoDir, 'sdk', 'lib');
   var patchIn = path.join(patchDir, 'patch');
   var privateIn = path.join(patchDir, 'private');
   var sdkOut = path.join(argv[2], 'lib');
@@ -52,7 +52,7 @@ void main(List<String> argv) {
           sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'),
       libContents);
   _writeSync(path.join(sdkOut, '..', 'version'),
-      new File(path.join(inputDir, 'tools', 'VERSION')).readAsStringSync());
+      new File(path.join(repoDir, 'tools', 'VERSION')).readAsStringSync());
 
   // Parse libraries.dart
   var sdkLibraries = _getSdkLibraries(libContents);

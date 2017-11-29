@@ -35,7 +35,7 @@ class C extends Base {
 
 main() {
   var c = new C([1, 2, 3]);
-  Expect.listEquals(results, [1, 2, 3]);
-  Expect.listEquals(c.f, [1, 2, 3]);
+  Expect.listEquals([1, 2, 3], results);
+  Expect.listEquals([1, 2, 3], c.f);
   Expect.equals(42, c.z);
 }

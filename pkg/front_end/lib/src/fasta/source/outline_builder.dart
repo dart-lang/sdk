@@ -380,8 +380,18 @@ class OutlineBuilder extends UnhandledListener {
     }
     int modifiers = Modifier.validate(pop());
     List<MetadataBuilder> metadata = pop();
-    library.addClass(documentationComment, metadata, modifiers, name,
-        typeVariables, supertype, interfaces, charOffset, supertypeOffset);
+
+    library.addClass(
+        documentationComment,
+        metadata,
+        modifiers,
+        name,
+        typeVariables,
+        supertype,
+        interfaces,
+        charOffset,
+        endToken.charOffset,
+        supertypeOffset);
     checkEmpty(beginToken.charOffset);
   }
 

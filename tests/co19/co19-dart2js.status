@@ -726,76 +726,71 @@ LayoutTests/fast/forms/submit-nil-value-field-assert_t01: Skip # Test reloads it
 LayoutTests/fast/forms/textarea-submit-crash_t01: Skip # Test reloads itself. Issue 18558.
 LibTest/html/IFrameElement/appendHtml_A01_t01: Pass, RuntimeError # Issue 23462
 LibTest/html/IFrameElement/appendHtml_A01_t02: Pass, RuntimeError # Issue 23462
-#
-# Everything below this point is associated with co19 Issue 747
-#
-LayoutTests/fast/dynamic/insertAdjacentHTML_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/balance-unbreakable_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t02: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t04: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t05: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t06: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t07: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t08: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t09: Pass, RuntimeError
-LayoutTests/fast/multicol/newmulticol/balance_t10: Pass, RuntimeError # I don't understand how, but sometimes passes.
-LayoutTests/fast/multicol/newmulticol/balance-images_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/column-width-zero_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError
-LayoutTests/fast/multicol/orphans-relayout_t01: Pass, RuntimeError
-LayoutTests/fast/media/mq-parsing_t01: Pass, RuntimeError # False passes on Firefox, but trying to keep these grouped with the issue.
+
+LayoutTests/fast/dynamic/insertAdjacentHTML_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/balance-unbreakable_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance-maxheight_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t02: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t04: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t05: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t06: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t07: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t08: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t09: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/newmulticol/balance_t10: Pass, RuntimeError  # Issue 747, I don't understand how, but sometimes passes.
+LayoutTests/fast/multicol/newmulticol/balance-images_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/column-width-zero_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/multicol/orphans-relayout_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/media/mq-parsing_t01: Pass, RuntimeError  # Issue 747, False passes on Firefox, but trying to keep these grouped with the issue.
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Passes on Safari, Issue 23475
-LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: Pass, RuntimeError # False pass on Safari
-LayoutTests/fast/lists/list-style-position-inside_t01: Pass, RuntimeError
-LayoutTests/fast/overflow/overflow-rtl-vertical-origin_t01: Pass, RuntimeError # False passes on Firefox, but trying to keep these grouped with the issue.
-LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass # False pass
-LayoutTests/fast/table/col-width-span-expand_t01: Skip
-LayoutTests/fast/text/font-fallback-synthetic-italics_t01: Pass, RuntimeError
-LayoutTests/fast/text/glyph-reordering_t01: Pass, RuntimeError # This is a false pass. The font gets sanitized, so whether it works or not probably depends on default sizes.
-LayoutTests/fast/text/international/rtl-text-wrapping_t01: Pass # This is a false pass. All the content gets sanitized, so there's nothing to assert fail on. If the code did anything it would fail.
-LayoutTests/fast/text/line-break-after-empty-inline-hebrew_t01: Pass, RuntimeError
-LayoutTests/fast/text/regional-indicator-symobls_t01: Pass, Fail
-LayoutTests/fast/text/font-fallback-synthetic-italics_t01: RuntimeError
-LayoutTests/fast/text/font-ligatures-linebreak_t01: Skip
-LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Skip
-LayoutTests/fast/text/ipa-tone-letters_t01: Pass, RuntimeError
-LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Pass, RuntimeError
-LayoutTests/fast/writing-mode/positionForPoint_t01: Pass, RuntimeError
-LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Skip
-LayoutTests/fast/html/adjacent-html-context-element_t01:RuntimeError
-LayoutTests/fast/dom/HTMLElement/insertAdjacentHTML-errors_t01: RuntimeError
-LayoutTests/fast/transforms/transform-hit-test-flipped_t01: Pass, RuntimeError # Passes on Firefox, but is clearly not testing what it's trying to test.
-LayoutTests/fast/transforms/scrollIntoView-transformed_t01: Pass, RuntimeError # False passes on Firefox.
-LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError, Pass # Erratic, but only passes because divs have been entirely removed.
-LayoutTests/fast/table/anonymous-table-section-removed_t01: Skip
-LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Skip
-LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Skip
-LayoutTests/fast/table/table-width-exceeding-max-width_t01: Pass, RuntimeError
-LayoutTests/fast/table/min-max-width-preferred-size_t01: Pass, RuntimeError
-LayoutTests/fast/table/margins-flipped-text-direction_t01: Pass, RuntimeError
-LayoutTests/fast/table/html-table-width-max-width-constrained_t01: Pass, RuntimeError
-LayoutTests/fast/table/fixed-table-layout-width-change_t01: Pass, RuntimeError # False passes on Firefox
-LayoutTests/fast/sub-pixel/replaced-element-baseline_t01: Pass, RuntimeError # Fails on Safari, false pass on others
-LayoutTests/fast/ruby/parse-rp_t01: Pass, RuntimeError
-LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: RuntimeError, Pass # Spurious intermittent pass
-LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError, Pass # Spurious intermittent pass.
-LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: RuntimeError, Pass # Spurious intermittent pass
-LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: RuntimeError, Pass # Spurious intermittent pass
-LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError
-LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError
-LayoutTests/fast/parser/parse-wbr_t01: Pass, RuntimeError
-WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError, Pass
-WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: Pass,RuntimeError
-WebPlatformTest/html/semantics/grouping-content/the-ol-element/ol.start-reflection_t02: Skip
-WebPlatformTest/html/semantics/scripting-1/the-script-element/async_t11: Skip
-WebPlatformTest/html/semantics/selectors/pseudo-classes/disabled_t01: Pass, RuntimeError # Spurious pass
-WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: Pass,RuntimeError
-WebPlatformTest/html/semantics/forms/the-form-element/form-nameditem_t01: RuntimeError
-#
-# End of Issue 747
-#
+LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: Pass, RuntimeError # Issue 747, False pass on Safari
+LayoutTests/fast/lists/list-style-position-inside_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/overflow/overflow-rtl-vertical-origin_t01: Pass, RuntimeError # Issue 747, False passes on Firefox, but trying to keep these grouped with the issue.
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass # Issue 747, False pass
+LayoutTests/fast/table/col-width-span-expand_t01: Skip # Issue 747
+LayoutTests/fast/text/font-fallback-synthetic-italics_t01: Pass, RuntimeError  # Issue 747
+LayoutTests/fast/text/glyph-reordering_t01: Pass, RuntimeError # Issue 747, This is a false pass. The font gets sanitized, so whether it works or not probably depends on default sizes.
+LayoutTests/fast/text/international/rtl-text-wrapping_t01: Pass # Issue 747, This is a false pass. All the content gets sanitized, so there's nothing to assert fail on. If the code did anything it would fail.
+LayoutTests/fast/text/line-break-after-empty-inline-hebrew_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/text/regional-indicator-symobls_t01: Pass, Fail # Issue 747
+LayoutTests/fast/text/font-fallback-synthetic-italics_t01: RuntimeError # Issue 747
+LayoutTests/fast/text/font-ligatures-linebreak_t01: Skip # Issue 747
+LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Skip # Issue 747
+LayoutTests/fast/text/ipa-tone-letters_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/writing-mode/percentage-margins-absolute-replaced_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/writing-mode/positionForPoint_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Skip # Issue 747
+LayoutTests/fast/html/adjacent-html-context-element_t01:RuntimeError # Issue 747
+LayoutTests/fast/dom/HTMLElement/insertAdjacentHTML-errors_t01: RuntimeError # Issue 747
+LayoutTests/fast/transforms/transform-hit-test-flipped_t01: Pass, RuntimeError # Issue 747, Passes on Firefox, but is clearly not testing what it's trying to test.
+LayoutTests/fast/transforms/scrollIntoView-transformed_t01: Pass, RuntimeError # Issue 747, False passes on Firefox.
+LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError, Pass # Issue 747, Erratic, but only passes because divs have been entirely removed.
+LayoutTests/fast/table/anonymous-table-section-removed_t01: Skip # Issue 747
+LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Skip # Issue 747
+LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Skip # Issue 747
+LayoutTests/fast/table/table-width-exceeding-max-width_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/table/min-max-width-preferred-size_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/table/margins-flipped-text-direction_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/table/html-table-width-max-width-constrained_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/table/fixed-table-layout-width-change_t01: Pass, RuntimeError # Issue 747, False passes on Firefox
+LayoutTests/fast/sub-pixel/replaced-element-baseline_t01: Pass, RuntimeError # Issue 747, Fails on Safari, false pass on others
+LayoutTests/fast/ruby/parse-rp_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: RuntimeError, Pass # Issue 747, Spurious intermittent pass
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError, Pass # Issue 747, Spurious intermittent pass.
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: RuntimeError, Pass # Issue 747, Spurious intermittent pass
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: RuntimeError, Pass # Issue 747, Spurious intermittent pass
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-ancestor-vertical-lr_t01: Pass, RuntimeError # Issue 747
+LayoutTests/fast/parser/parse-wbr_t01: Pass, RuntimeError # Issue 747
+WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t01: RuntimeError, Pass # Issue 747
+WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: Pass,RuntimeError # Issue 747
+WebPlatformTest/html/semantics/grouping-content/the-ol-element/ol.start-reflection_t02: Skip # Issue 747
+WebPlatformTest/html/semantics/scripting-1/the-script-element/async_t11: Skip # Issue 747
+WebPlatformTest/html/semantics/selectors/pseudo-classes/disabled_t01: Pass, RuntimeError # Issue 747, Spurious pass
+WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: Pass,RuntimeError # Issue 747
+WebPlatformTest/html/semantics/forms/the-form-element/form-nameditem_t01: RuntimeError # Issue 747
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 LayoutTests/fast/multicol/newmulticol/balance-maxheight_t02: RuntimeError
@@ -1211,7 +1206,6 @@ LayoutTests/fast/filesystem/*: Skip # Roll 50 failure
 LayoutTests/fast/filesystem/async-operations_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/directory-entry-to-uri_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/file-entry-to-uri_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/filesystem/file-writer-abort-continue_t01: RuntimeError
 LayoutTests/fast/filesystem/file-writer-abort-continue_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/filesystem/filesystem-reference_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/ValidityState-tooLong-input_t01: RuntimeError # https://github.com/dart-lang/co19/issues/48
@@ -1783,14 +1777,12 @@ WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: RuntimeEr
 WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
-# ROLL 50 FAILURES START
 LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: Skip # Roll 50 failure
 LayoutTests/fast/dom/icon-size-property_t01: Skip # Roll 50 failure
 LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Skip # Roll 50 failure
 LayoutTests/fast/filesystem/*: Skip # Roll 50 failure
 LibTest/html/Window/requestFileSystem_A01_t01: Skip # Roll 50 failure
 LibTest/html/Window/requestFileSystem_A01_t02: Skip # Roll 50 failure
-# ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError # Please triage this failure
@@ -2501,7 +2493,6 @@ WebPlatformTest/webstorage/event_session_newvalue_t01: Skip # Times out. Please 
 WebPlatformTest/webstorage/event_session_oldvalue_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/webstorage/event_session_storagearea_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/webstorage/event_session_url_t01: Skip # Times out. Please triage this failure
-# Roll 50 FAILURES
 LayoutTests/fast/canvas/canvas-currentTransform_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: Pass, RuntimeError # Issue 29634
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: Pass, RuntimeError # Issue 29634
@@ -2641,7 +2632,6 @@ WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-006_t01: P
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: Pass, RuntimeError # Issue 29634
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-008_t01: Pass, RuntimeError # Issue 29634
 WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-009_t01: Pass, RuntimeError # Issue 29634
-# End Roll 50 failures
 
 [ $compiler == dart2js && $runtime == drt && $minified && $csp ]
 LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution_t01: RuntimeError # Please triage this failure
@@ -4205,10 +4195,8 @@ LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Skip # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Skip
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip # Please triage this failure
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Skip
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Skip
 LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
@@ -4289,7 +4277,6 @@ LayoutTests/fast/css/font-face-unicode-range-load_t01: RuntimeError # Please tri
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Fails 10 out of 10.
-LayoutTests/fast/css/font-property-priority_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/fontface-properties_t01: RuntimeError # Uses FontFace class, not defined for this browser.
 LayoutTests/fast/css/fontfaceset-download-error_t01: RuntimeError # Please triage this failure
@@ -4307,9 +4294,7 @@ LayoutTests/fast/css/id-or-class-before-stylesheet_t01: RuntimeError # Please tr
 LayoutTests/fast/css/important-js-override_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/inherited-properties-rare-text_t01: RuntimeError # Fails 10 out of 10.
-LayoutTests/fast/css/inherited-properties-rare-text_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-not-with-simple-selector-sequence_t01: RuntimeError # Fails 10 out of 10.
-LayoutTests/fast/css/invalid-not-with-simple-selector-sequence_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/detach-reattach-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalidation/shadow-host-toggle_t01: RuntimeError # Please triage this failure
@@ -4328,7 +4313,6 @@ LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage 
 LayoutTests/fast/css/parsing-css-nonascii_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-css-nth-child_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-font-variant-ligatures_t01: RuntimeError # Fails 10 out of 10.
-LayoutTests/fast/css/parsing-font-variant-ligatures_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-object-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-selector-error-recovery_t01: RuntimeError # Please triage this failure
@@ -4417,7 +4401,6 @@ LayoutTests/fast/dom/HTMLLinkElement/prefetch-onerror_t01: Skip # Times out. Ple
 LayoutTests/fast/dom/HTMLLinkElement/prefetch-onload_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/prefetch_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/dom/HTMLLinkElement/resolve-url-on-insertion_t01: RuntimeError # Fails 10 out of 10.
-LayoutTests/fast/dom/HTMLLinkElement/resolve-url-on-insertion_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLOutputElement/dom-settable-token-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLScriptElement/async-false-inside-async-false-load_t01: RuntimeError # Please triage this failure
@@ -4472,7 +4455,6 @@ LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError # Please tri
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Fails 10 out of 10.
-LayoutTests/fast/dom/css-selectorText_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/constructor-calls-created-synchronously_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/custom/created-callback_t01: RuntimeError # Please triage this failure
@@ -4673,7 +4655,6 @@ LayoutTests/fast/forms/clone-input-with-dirty-value_t01: RuntimeError # Please t
 LayoutTests/fast/forms/color/color-setrangetext_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/color/input-value-sanitization-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/datalist-child-validation_t01: RuntimeError # Fails 10 out of 10.
-LayoutTests/fast/forms/datalist/datalist-child-validation_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/datalist_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/datalist/input-list_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/forms/date-multiple-fields/date-multiple-fields-change-layout-by-value_t01: RuntimeError # Please triage this failure
@@ -4779,7 +4760,6 @@ LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # Pleas
 LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/overflow/replaced-child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/overflow/scrollbar-restored_t01: RuntimeError # Fails 10 out of 10.
-LayoutTests/fast/overflow/scrollbar-restored_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/parser/foster-parent-adopted_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/parser/fragment-parser-doctype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/parser/innerhtml-with-prefixed-elements_t01: RuntimeError # Please triage this failure
@@ -4954,7 +4934,6 @@ LibTest/html/Element/dataset_A02_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/enteredView_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Element/getAttributeNS_A02_t01: RuntimeError # Please triage this failure
-LibTest/html/Element/getBoundingClientRect_A01_t02: Pass, RuntimeError # Fails 3 out of 10.
 LibTest/html/Element/getBoundingClientRect_A01_t02: Pass, RuntimeError # Issue 53
 LibTest/html/Element/getClientRects_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Please triage this failure
@@ -5284,12 +5263,10 @@ WebPlatformTest/webstorage/event_local_key_t01: RuntimeError # Please triage thi
 WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_session_storagearea_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure
 WebPlatformTest/webstorage/event_session_url_t01: Skip # Times out. Please triage this failure
-# ROLL 50 FAILURES START
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: RuntimeError # Roll 50 failure
 LayoutTests/fast/dom/HTMLOutputElement/htmloutputelement_t01: Pass, RuntimeError # Issue 29632
 LayoutTests/fast/dom/icon-size-property_t01: Pass, RuntimeError # Issue 29632
 LayoutTests/fast/events/event-fire-order_t01: Pass, RuntimeError # Issue 29632
-# ROLL 50 FAILURES END
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
@@ -8431,6 +8408,9 @@ WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage th
 LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/XMLSerializer-attribute-entities_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/serialize-attribute_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == ie11 && $builder_tag == win7]
+LayoutTests/fast/files/file-reader-result-twice_t01: Pass, RuntimeError # Issue 31430
 
 [ $compiler == dart2js && $host_checked ]
 Language/Types/Function_Types/call_t01: Crash # Issue 28894

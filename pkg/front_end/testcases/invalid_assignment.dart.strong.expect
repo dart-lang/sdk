@@ -13,7 +13,7 @@ static method test(core::int i, core::String s, self::A a) → dynamic {
   i = 1;
   i = s as{TypeError} core::int;
   i.{core::num::==}(null) ?{core::int} i = 1 : null;
-  i.{core::num::==}(null) ?{core::int} i = s as{TypeError} core::int : null;
+  i.{core::num::==}(null) ?{core::Object} i = s as{TypeError} core::int : null;
   a = new self::A::•();
   a = a.{self::A::+}(1) as{TypeError} self::A;
 }

@@ -7,9 +7,9 @@ class C<T extends core::Object> extends core::Object {
     : super core::Object::•()
     ;
   method method() → invalid-type
-    return "Hello, World!";
+    return "Hello, World!" as{TypeError} invalid-type;
 }
 static method main() → dynamic {
-  core::String s = new self::C::•<dynamic>().{self::C::method}();
+  core::String s = new self::C::•<dynamic>().{self::C::method}() as{TypeError} core::String;
   core::print(s);
 }

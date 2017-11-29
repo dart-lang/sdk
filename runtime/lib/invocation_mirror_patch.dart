@@ -79,7 +79,8 @@ class _InvocationMirror implements Invocation {
 
   List<Type> get typeArguments {
     if (_typeArguments == null) {
-      int typeArgsLen = _argumentsDescriptor[_TYPE_ARGS_LEN];
+      int typeArgsLen =
+          _decodeTypeArgsLenEntry(_argumentsDescriptor[_TYPE_ARGS_LEN]);
       if (typeArgsLen == 0) {
         return _typeArguments = const <Type>[];
       }
@@ -95,37 +96,62 @@ class _InvocationMirror implements Invocation {
   static List<Type> _unpackTypeArguments(typeArguments)
       native "InvocationMirror_unpackTypeArguments";
 
+  // Extract the compressed representation of the number of positional arguments
+  // from the corresponding entry in the 'ArgumentsDescriptor'.
+  static int _decodePositionalCountEntry(positionalCountEntry)
+      native "InvocationMirror_decodePositionalCountEntry";
+
+  // Extract the compressed representation of the number of type arguments
+  // from the corresponding entry in the 'ArgumentsDescriptor'.
+  static int _decodeTypeArgsLenEntry(typeArgsLenEntry)
+      native "InvocationMirror_decodeTypeArgsLenEntry";
+
   List get positionalArguments {
     if (_positionalArguments == null) {
       // The argument descriptor counts the receiver, but not the type arguments
       // as positional arguments.
-      int numPositionalArguments = _argumentsDescriptor[_POSITIONAL_COUNT] - 1;
+      int numPositionalArguments =
+          _decodePositionalCountEntry(_argumentsDescriptor[_POSITIONAL_COUNT]) -
+              1;
       if (numPositionalArguments == 0) {
         return _positionalArguments = const [];
       }
       // Exclude receiver and type args in the returned list.
-      int receiverIndex = _argumentsDescriptor[_TYPE_ARGS_LEN] > 0 ? 1 : 0;
+      int receiverIndex =
+          _decodeTypeArgsLenEntry(_argumentsDescriptor[_TYPE_ARGS_LEN]) > 0
+              ? 1
+              : 0;
       _positionalArguments = new _ImmutableList._from(
           _arguments, receiverIndex + 1, numPositionalArguments);
     }
     return _positionalArguments;
   }
 
+  // Extract the position of a named argument from the corresponding entry in
+  // the 'ArgumentsDescriptor'.
+  static int _decodePositionEntry(positionEntry)
+      native "InvocationMirror_decodePositionEntry";
+
   Map<Symbol, dynamic> get namedArguments {
     if (_namedArguments == null) {
       int numArguments = _argumentsDescriptor[_COUNT] - 1; // Exclude receiver.
-      int numPositionalArguments = _argumentsDescriptor[_POSITIONAL_COUNT] - 1;
+      int numPositionalArguments =
+          _decodePositionalCountEntry(_argumentsDescriptor[_POSITIONAL_COUNT]) -
+              1;
       int numNamedArguments = numArguments - numPositionalArguments;
       if (numNamedArguments == 0) {
         return _namedArguments = const {};
       }
-      int receiverIndex = _argumentsDescriptor[_TYPE_ARGS_LEN] > 0 ? 1 : 0;
+      int receiverIndex =
+          _decodeTypeArgsLenEntry(_argumentsDescriptor[_TYPE_ARGS_LEN]) > 0
+              ? 1
+              : 0;
       _namedArguments = new Map<Symbol, dynamic>();
       for (int i = 0; i < numNamedArguments; i++) {
         int namedEntryIndex = _FIRST_NAMED_ENTRY + 2 * i;
         String arg_name = _argumentsDescriptor[namedEntryIndex];
-        var arg_value = _arguments[
-            receiverIndex + _argumentsDescriptor[namedEntryIndex + 1]];
+        var arg_value = _arguments[receiverIndex +
+            _decodePositionEntry(_argumentsDescriptor[namedEntryIndex + 1])];
         _namedArguments[new internal.Symbol.unvalidated(arg_name)] = arg_value;
       }
       _namedArguments = new Map.unmodifiable(_namedArguments);

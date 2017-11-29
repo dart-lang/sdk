@@ -3476,7 +3476,7 @@ class CodeGenerator extends Object
     if (accessor is PropertyAccessorElement) {
       var field = accessor.variable;
       if (field is FieldElement) {
-        return _emitSetField(right, field, _visitExpression(target));
+        return _emitSetField(right, field, _visitExpression(target), id);
       }
     }
 
@@ -3524,7 +3524,7 @@ class CodeGenerator extends Object
     // Unqualified class member. This could mean implicit `this`, or implicit
     // static from the same class.
     if (element is FieldElement) {
-      return _emitSetField(right, element, new JS.This());
+      return _emitSetField(right, element, new JS.This(), node);
     }
 
     // We should not get here.
@@ -3553,8 +3553,8 @@ class CodeGenerator extends Object
   }
 
   /// Emits assignment to a static field element or property.
-  JS.Expression _emitSetField(
-      Expression right, FieldElement field, JS.Expression jsTarget) {
+  JS.Expression _emitSetField(Expression right, FieldElement field,
+      JS.Expression jsTarget, SimpleIdentifier id) {
     var classElem = field.enclosingElement;
     var isStatic = field.isStatic;
     var member = _emitMemberName(field.name,
@@ -3563,7 +3563,7 @@ class CodeGenerator extends Object
         ? new JS.PropertyAccess(_emitStaticAccess(classElem), member)
         : _emitTargetAccess(jsTarget, member, field.setter);
     return _visitExpression(right)
-        .toAssignExpression(jsTarget..sourceInformation = field);
+        .toAssignExpression(jsTarget..sourceInformation = id);
   }
 
   JS.Expression _emitNullSafeSet(PropertyAccess node, Expression right) {

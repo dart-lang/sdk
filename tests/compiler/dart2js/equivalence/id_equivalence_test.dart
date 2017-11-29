@@ -16,7 +16,7 @@ import 'package:compiler/src/resolution/access_semantics.dart';
 import 'package:compiler/src/resolution/send_structure.dart';
 import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:kernel/ast.dart' as ir;
-import '../annotated_code_helper.dart';
+import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 

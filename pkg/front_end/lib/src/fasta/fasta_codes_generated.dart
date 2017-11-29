@@ -1061,6 +1061,16 @@ const MessageCode messageExpectedAnInitializer = const MessageCode(
     message: r"""Expected an initializer.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedBlock = messageExpectedBlock;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedBlock = const MessageCode("ExpectedBlock",
+    analyzerCode: "EXPECTED_TOKEN",
+    dart2jsCode: "*fatal*",
+    message: r"""Expected a block.""",
+    tip: r"""Try adding {}.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedBlockToSkip = messageExpectedBlockToSkip;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

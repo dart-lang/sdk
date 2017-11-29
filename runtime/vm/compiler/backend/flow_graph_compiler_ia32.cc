@@ -725,6 +725,11 @@ void FlowGraphCompiler::CheckTypeArgsLen(bool expect_type_args,
     // If expect_type_args, a non-zero length must match the declaration length.
     __ movl(EAX,
             FieldAddress(EDX, ArgumentsDescriptor::type_args_len_offset()));
+    if (isolate()->strong()) {
+      __ andl(EAX,
+              Immediate(Smi::RawValue(
+                  ArgumentsDescriptor::TypeArgsLenField::mask_in_place())));
+    }
     __ cmpl(EAX, Immediate(Smi::RawValue(0)));
     __ j(EQUAL, &correct_type_args_len, Assembler::kNearJump);
     __ cmpl(EAX, Immediate(Smi::RawValue(function.NumTypeParameters())));
@@ -762,6 +767,13 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
 
   __ movl(ECX,
           FieldAddress(EDX, ArgumentsDescriptor::positional_count_offset()));
+
+  if (isolate()->strong()) {
+    __ andl(ECX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+  }
+
   // Check that min_num_pos_args <= num_pos_args.
   __ cmpl(ECX, Immediate(Smi::RawValue(min_num_pos_args)));
   __ j(LESS, &wrong_num_arguments);
@@ -849,6 +861,12 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
       // Load EAX with passed-in argument at provided arg_pos, i.e. at
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ movl(EAX, Address(EDI, ArgumentsDescriptor::position_offset()));
+      if (isolate()->strong()) {
+        __ andl(
+            EAX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+      }
       // EAX is arg_pos as Smi.
       // Point to next named entry.
       __ addl(EDI, Immediate(ArgumentsDescriptor::named_entry_size()));
@@ -883,6 +901,11 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
     __ movl(ECX,
             FieldAddress(EDX, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(ECX);
+    if (isolate()->strong()) {
+      __ andl(ECX,
+              Immediate(
+                  ArgumentsDescriptor::PositionalCountField::mask_in_place()));
+    }
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
       // Handle this optional positional parameter only if k or fewer positional
@@ -1037,8 +1060,20 @@ void FlowGraphCompiler::CompileGraph() {
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
       __ cmpl(EAX, Immediate(Smi::RawValue(num_fixed_params)));
       __ j(NOT_EQUAL, &wrong_num_arguments, Assembler::kNearJump);
-      __ cmpl(EAX, FieldAddress(
-                       EDX, ArgumentsDescriptor::positional_count_offset()));
+
+      if (isolate()->strong()) {
+        __ movl(ECX, FieldAddress(
+                         EDX, ArgumentsDescriptor::positional_count_offset()));
+        __ andl(
+            ECX,
+            Immediate(Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+        __ cmpl(EAX, ECX);
+      } else {
+        __ cmpl(EAX, FieldAddress(
+                         EDX, ArgumentsDescriptor::positional_count_offset()));
+      }
+
       __ j(EQUAL, &correct_num_arguments, Assembler::kNearJump);
 
       __ Bind(&wrong_num_arguments);

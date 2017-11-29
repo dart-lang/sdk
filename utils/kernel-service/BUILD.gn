@@ -6,11 +6,10 @@ import("../../build/dart_host_sdk_toolchain.gni")
 import("../application_snapshot.gni")
 
 application_snapshot("kernel-service") {
-  dfe_script = "kernel-service.dart"
+  main_dart = "../../pkg/vm/bin/kernel_service.dart"
   deps = [
     "../../runtime/vm:kernel_platform_files($dart_host_toolchain)",
   ]
-  main_dart = dfe_script
   training_args = [
     "--train",
     "file://" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart"),

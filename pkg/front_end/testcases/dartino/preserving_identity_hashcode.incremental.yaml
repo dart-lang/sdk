@@ -1,0 +1,23 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  class Foo {
+  <<<< "Generated firstHashCode"
+  ==== "firstHashCode == secondHashCode: true"
+    var bar;
+  >>>>
+  }
+  Foo foo;
+  int firstHashCode;
+  main() {
+  <<<<
+    foo = new Foo();
+    firstHashCode = foo.hashCode;
+    print("Generated firstHashCode");
+  ====
+    int secondHashCode = foo.hashCode;
+    print("firstHashCode == secondHashCode: ${firstHashCode == secondHashCode}");
+  >>>>
+  }

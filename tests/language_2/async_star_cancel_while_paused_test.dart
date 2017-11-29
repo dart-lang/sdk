@@ -27,15 +27,15 @@ main() {
 
   asyncStart();
   return sync.wait().whenComplete(() {
-    Expect.listEquals(list, ["*1", 1]);
+    Expect.listEquals(["*1", 1], list);
     sub.pause();
     return sync.wait();
   }).whenComplete(() {
-    Expect.listEquals(list, ["*1", 1, "*2"]);
+    Expect.listEquals(["*1", 1, "*2"], list);
     sub.cancel();
     new Future.delayed(new Duration(milliseconds: 200), () {
       // Should not have yielded 2 or added *3 while paused.
-      Expect.listEquals(list, ["*1", 1, "*2"]);
+      Expect.listEquals(["*1", 1, "*2"], list);
       asyncEnd();
     });
   });

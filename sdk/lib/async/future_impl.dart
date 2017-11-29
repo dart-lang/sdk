@@ -103,18 +103,18 @@ class _FutureListener<S, T> {
 
   _FutureOnValue<S, T> get _onValue {
     assert(handlesValue);
-    return callback as Object/*=_FutureOnValue<S, T>*/;
+    return callback;
   }
 
   Function get _onError => errorCallback;
   _FutureErrorTest get _errorTest {
     assert(hasErrorTest);
-    return callback as Object/*=_FutureErrorTest*/;
+    return callback;
   }
 
   _FutureAction get _whenCompleteAction {
     assert(handlesComplete);
-    return callback as Object/*=_FutureAction*/;
+    return callback;
   }
 
   /// Whether this listener has an error callback.
@@ -463,7 +463,7 @@ class _Future<T> implements Future<T> {
       }
     } else {
       _FutureListener listeners = _removeListeners();
-      _setValue(value as Object/*=T*/);
+      _setValue(value);
       _propagateToListeners(this, listeners);
     }
   }
@@ -502,11 +502,9 @@ class _Future<T> implements Future<T> {
       _chainFuture(value);
       return;
     }
-    T typedValue = value as Object/*=T*/;
-
     _setPendingComplete();
     _zone.scheduleMicrotask(() {
-      _completeWithValue(typedValue);
+      _completeWithValue(value);
     });
   }
 

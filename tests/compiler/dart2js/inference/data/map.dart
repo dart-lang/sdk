@@ -14,26 +14,26 @@ main() {
   constIntStringMap();
 }
 
-/*element: emptyMap:Dictionary mask: [[empty]/[null] with {}] type: [subclass=JsLinkedHashMap]*/
+/*element: emptyMap:Dictionary([subclass=JsLinkedHashMap], key: [empty], value: [null], map: {})*/
 emptyMap() => {};
 
-/*element: constMap:Dictionary mask: [[empty]/[null] with {}] type: [subclass=ConstantMap]*/
+/*element: constMap:Dictionary([subclass=ConstantMap], key: [empty], value: [null], map: {})*/
 constMap() => const {};
 
-/*element: nullMap:Map mask: [[null]/[null]] type: [subclass=JsLinkedHashMap]*/
+/*element: nullMap:Map([subclass=JsLinkedHashMap], key: [null], value: [null])*/
 nullMap() => {null: null};
 
-/*element: constNullMap:Map mask: [[null]/[null]] type: [subclass=ConstantMap]*/
+/*element: constNullMap:Map([subclass=ConstantMap], key: [null], value: [null])*/
 constNullMap() => const {null: null};
 
-/*element: stringIntMap:Dictionary mask: [[exact=JSString]/[null|exact=JSUInt31] with {a: [exact=JSUInt31], b: [exact=JSUInt31], c: [exact=JSUInt31]}] type: [subclass=JsLinkedHashMap]*/
+/*element: stringIntMap:Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSUInt31], map: {a: [exact=JSUInt31], b: [exact=JSUInt31], c: [exact=JSUInt31]})*/
 stringIntMap() => {'a': 1, 'b': 2, 'c': 3};
 
-/*element: intStringMap:Map mask: [[exact=JSUInt31]/[null|exact=JSString]] type: [subclass=JsLinkedHashMap]*/
+/*element: intStringMap:Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSString])*/
 intStringMap() => {1: 'a', 2: 'b', 3: 'c'};
 
-/*element: constStringIntMap:Dictionary mask: [[exact=JSString]/[null|exact=JSUInt31] with {a: [exact=JSUInt31], b: [exact=JSUInt31], c: [exact=JSUInt31]}] type: [subclass=ConstantMap]*/
+/*element: constStringIntMap:Dictionary([subclass=ConstantMap], key: [exact=JSString], value: [null|exact=JSUInt31], map: {a: [exact=JSUInt31], b: [exact=JSUInt31], c: [exact=JSUInt31]})*/
 constStringIntMap() => const {'a': 1, 'b': 2, 'c': 3};
 
-/*element: constIntStringMap:Map mask: [[exact=JSUInt31]/[null|exact=JSString]] type: [subclass=ConstantMap]*/
+/*element: constIntStringMap:Map([subclass=ConstantMap], key: [exact=JSUInt31], value: [null|exact=JSString])*/
 constIntStringMap() => const {1: 'a', 2: 'b', 3: 'c'};

@@ -9,11 +9,11 @@ class Test1 extends core::Object {
     ;
   method test() → void {
     core::int v1 = this.{self::Test1::t} = self::getInt();
-    core::int v2 = this.{self::Test1::t} = self::getNum() as{TypeError} core::int;
+    core::num v2 = this.{self::Test1::t} = self::getNum() as{TypeError} core::int;
     core::int v4 = let final core::int #t1 = this.{self::Test1::t} in #t1.{core::num::==}(null) ?{core::int} this.{self::Test1::t} = self::getInt() : #t1;
-    core::int v5 = let final core::int #t2 = this.{self::Test1::t} in #t2.{core::num::==}(null) ?{core::int} this.{self::Test1::t} = self::getNum() as{TypeError} core::int : #t2;
+    core::num v5 = let final core::int #t2 = this.{self::Test1::t} in #t2.{core::num::==}(null) ?{core::num} this.{self::Test1::t} = self::getNum() as{TypeError} core::int : #t2;
     core::int v7 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getInt());
-    core::int v8 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getNum()) as{TypeError} core::int;
+    core::num v8 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(self::getNum()) as{TypeError} core::int;
     core::int v10 = this.{self::Test1::t} = this.{self::Test1::t}.{core::num::+}(1);
     core::int v11 = let final core::int #t3 = this.{self::Test1::t} in let final core::int #t4 = this.{self::Test1::t} = #t3.{core::num::+}(1) in #t3;
   }
@@ -43,9 +43,9 @@ class Test3 extends core::Object {
     : super core::Object::•()
     ;
   method test3() → void {
-    core::double v2 = this.{self::Test3::t} = self::getNum() as{TypeError} core::double;
+    core::num v2 = this.{self::Test3::t} = self::getNum() as{TypeError} core::double;
     core::double v3 = this.{self::Test3::t} = self::getDouble();
-    core::double v5 = let final core::double #t10 = this.{self::Test3::t} in #t10.{core::num::==}(null) ?{core::double} this.{self::Test3::t} = self::getNum() as{TypeError} core::double : #t10;
+    core::num v5 = let final core::double #t10 = this.{self::Test3::t} in #t10.{core::num::==}(null) ?{core::num} this.{self::Test3::t} = self::getNum() as{TypeError} core::double : #t10;
     core::double v6 = let final core::double #t11 = this.{self::Test3::t} in #t11.{core::num::==}(null) ?{core::double} this.{self::Test3::t} = self::getDouble() : #t11;
     core::double v7 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(self::getInt());
     core::double v8 = this.{self::Test3::t} = this.{self::Test3::t}.{core::double::+}(self::getNum());

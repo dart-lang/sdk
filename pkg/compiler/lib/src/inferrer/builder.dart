@@ -27,7 +27,7 @@ import '../types/constants.dart' show computeTypeMask;
 import '../types/types.dart' show TypeMask, GlobalTypeInferenceElementData;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/side_effects.dart' show SideEffects;
+import '../universe/side_effects.dart' show SideEffectsBuilder;
 import '../util/util.dart' show Link, Setlet;
 import '../world.dart' show ClosedWorld;
 import 'inferrer_engine.dart';
@@ -71,7 +71,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
   bool seenSuperConstructorCall = false;
-  SideEffects sideEffects = new SideEffects.empty();
+  final SideEffectsBuilder sideEffectsBuilder;
   final MemberElement outermostElement;
   final InferrerEngine inferrer;
   final Setlet<Entity> capturedVariables = new Setlet<Entity>();
@@ -87,7 +87,10 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       : this.analyzedElement = analyzedElement,
         this.inferrer = inferrer,
         this.types = inferrer.types,
-        this.memberData = inferrer.dataOfMember(analyzedElement.memberContext) {
+        this.memberData = inferrer.dataOfMember(analyzedElement.memberContext),
+        this.sideEffectsBuilder = analyzedElement is MethodElement
+            ? inferrer.closedWorldRefiner.getSideEffectsBuilder(analyzedElement)
+            : new SideEffectsBuilder.free(analyzedElement) {
     assert(analyzedElement.isDeclaration);
     assert(outermostElement != null);
     assert(outermostElement.isDeclaration);
@@ -1016,7 +1019,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
           ArgumentsTypes arguments = new ArgumentsTypes([], {});
           analyzeSuperConstructorCall(target);
           inferrer.registerCalledMember(node, null, null, outermostElement,
-              target, arguments, sideEffects, inLoop);
+              target, arguments, sideEffectsBuilder, inLoop);
         }
         visit(node.body);
         inferrer.recordExposesThis(analyzedConstructor, isThisExposed);
@@ -1083,8 +1086,6 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
       }
     }
 
-    MethodElement declaration = analyzedElement.declaration;
-    inferrer.closedWorldRefiner.registerSideEffects(declaration, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;
@@ -1150,7 +1151,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // code in the toString methods for intercepted primitive types is assumed
     // to have all effects.  Effect annotations on JS code would be needed to
     // get the benefit.
-    sideEffects.setAllSideEffects();
+    sideEffectsBuilder.setAllSideEffects();
     node.visitChildren(this);
     return types.stringType;
   }
@@ -2085,8 +2086,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         inferrer.typeOfMember(element),
         outermostElement,
         argumentTypes,
-        sideEffects,
-        inLoop);
+        sideEffectsBuilder,
+        inLoop: inLoop);
   }
 
   /// Handle an invocation of super [method].
@@ -2423,8 +2424,8 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         inferrer.typeOfMember(element),
         outermostElement,
         arguments,
-        sideEffects,
-        inLoop);
+        sideEffectsBuilder,
+        inLoop: inLoop);
   }
 
   /// Handle invocation of a top level or static [function].
@@ -2538,12 +2539,12 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
         name == JavaScriptBackend.JS_EMBEDDED_GLOBAL ||
         name == JavaScriptBackend.JS_BUILTIN) {
       native.NativeBehavior nativeBehavior = elements.getNativeData(node);
-      sideEffects.add(nativeBehavior.sideEffects);
+      sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == JavaScriptBackend.JS_STRING_CONCAT) {
       return types.stringType;
     } else {
-      sideEffects.setAllSideEffects();
+      sideEffectsBuilder.setAllSideEffects();
       return types.dynamicType;
     }
   }
@@ -2734,7 +2735,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // more sophisticated type system with function types to support
     // more.
     return inferrer.registerCalledMember(node, selector, mask, outermostElement,
-        function.callMethod, argumentTypes, sideEffects, inLoop);
+        function.callMethod, argumentTypes, sideEffectsBuilder, inLoop);
   }
 
   @override
@@ -2759,7 +2760,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     // need to pay attention if the constructor is pointing to an erroneous
     // element.
     return inferrer.registerCalledMember(node, selector, mask, outermostElement,
-        element, arguments, sideEffects, inLoop);
+        element, arguments, sideEffectsBuilder, inLoop);
   }
 
   TypeInformation handleDynamicSend(
@@ -2810,7 +2811,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
     }
 
     return inferrer.registerCalledSelector(callType, node, selector, mask,
-        receiverType, outermostElement, arguments, sideEffects,
+        receiverType, outermostElement, arguments, sideEffectsBuilder,
         inLoop: inLoop, isConditional: isConditional);
   }
 
@@ -2897,7 +2898,7 @@ class ElementGraphBuilder extends ast.Visitor<TypeInformation>
 
     ArgumentsTypes arguments = new ArgumentsTypes(unnamed, named);
     return inferrer.registerCalledMember(node, null, null, outermostElement,
-        element, arguments, sideEffects, inLoop);
+        element, arguments, sideEffectsBuilder, inLoop);
   }
 
   TypeInformation visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {

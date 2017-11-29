@@ -395,7 +395,7 @@ class Selection {
 // we currently reach into the full emitter and as a result we don't support
 // dump-info when using the startup-emitter (issue #24190).
 abstract class InfoReporter {
-  void reportInlined(Element element, Element inlinedFrom);
+  void reportInlined(FunctionEntity element, MemberEntity inlinedFrom);
 }
 
 class DumpInfoTask extends CompilerTask implements InfoReporter {
@@ -441,13 +441,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     _programSize = programSize;
   }
 
-  void reportInlined(Element element, Element inlinedFrom) {
-    element = element.declaration;
-    inlinedFrom = inlinedFrom.declaration;
+  void reportInlined(FunctionEntity element, MemberEntity inlinedFrom) {
+    assert(!(element is MethodElement && !element.isDeclaration));
+    assert(!(inlinedFrom is MemberElement && !inlinedFrom.isDeclaration));
 
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
-    inlineMap.putIfAbsent(inlinedFrom, () => new List<Element>());
+    inlineMap.putIfAbsent(inlinedFrom, () => new List<Entity>());
     inlineMap[inlinedFrom].add(element);
   }
 

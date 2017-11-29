@@ -265,50 +265,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy<ir.Node> {
 
   @override
   void forEachParameter(FunctionEntity function, void f(Local parameter)) {
-    KernelToLocalsMap localsMap = _globalLocalsMap.getLocalsMap(function);
-
-    void processFunctionNode(ir.FunctionNode node) {
-      for (ir.VariableDeclaration variable in node.positionalParameters) {
-        f(localsMap.getLocalVariable(variable));
-      }
-      for (ir.VariableDeclaration variable in node.namedParameters) {
-        f(localsMap.getLocalVariable(variable));
-      }
-    }
-
-    MemberDefinition definition = _elementMap.getMemberDefinition(function);
-    switch (definition.kind) {
-      case MemberKind.regular:
-        ir.Node node = definition.node;
-        if (node is ir.Procedure) {
-          processFunctionNode(node.function);
-          return;
-        }
-        break;
-      case MemberKind.constructor:
-      case MemberKind.constructorBody:
-        ir.Node node = definition.node;
-        if (node is ir.Procedure) {
-          processFunctionNode(node.function);
-          return;
-        } else if (node is ir.Constructor) {
-          processFunctionNode(node.function);
-          return;
-        }
-        break;
-      case MemberKind.closureCall:
-        ir.Node node = definition.node;
-        if (node is ir.FunctionDeclaration) {
-          processFunctionNode(node.function);
-          return;
-        } else if (node is ir.FunctionExpression) {
-          processFunctionNode(node.function);
-          return;
-        }
-        break;
-      default:
-    }
-    failedAt(function, "Unexpected function definition $definition.");
+    forEachOrderedParameter(_globalLocalsMap, _elementMap, function, f);
   }
 
   @override

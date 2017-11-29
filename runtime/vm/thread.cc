@@ -104,6 +104,9 @@ Thread::Thread(Isolate* isolate)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT) safepoint_state_(0),
       execution_state_(kThreadInNative),
+#if defined(USING_SAFE_STACK)
+      saved_safestack_limit_(0),
+#endif
       next_(NULL) {
 #if !defined(PRODUCT)
   dart_stream_ = Timeline::GetDartStream();

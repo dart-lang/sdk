@@ -36,9 +36,9 @@ static method test() → void {
     v = <T extends core::Object>(core::int x) → core::List<core::String> => null;
     v = <T extends core::Object>(core::int x) → core::List<core::String> => <core::String>["hello"];
     v = (<T extends core::Object>(core::String x) → core::List<core::String> => <core::String>["hello"]) as{TypeError} <S extends core::Object>(core::int) → core::List<core::String>;
-    v = <T extends core::Object>(core::int x) → core::List<core::String> => <core::String>[3];
+    v = <T extends core::Object>(core::int x) → core::List<core::String> => <core::String>[3 as{TypeError} core::String];
     v = <T extends core::Object>(core::int x) → core::List<core::String> {
-      return <core::String>[3];
+      return <core::String>[3 as{TypeError} core::String];
     };
   }
   {

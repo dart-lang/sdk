@@ -8,7 +8,7 @@ static method a() → (core::int) → core::int {
   return (core::int x) → core::int => x;
 }
 static method b() → asy::Future<(core::int) → core::int> async {
-  return (dynamic x) → dynamic => x;
+  return ((dynamic x) → dynamic => x) as{TypeError} asy::FutureOr<(core::int) → core::int>;
 }
 static method c() → core::Iterable<(core::int) → core::int> sync* {
   yield(core::int x) → core::int => x;

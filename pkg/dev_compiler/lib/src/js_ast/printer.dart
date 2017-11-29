@@ -500,7 +500,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
     visitNestedExpression(node.declaration, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(")");
-    blockBody(node.body, needsSeparation: false, needsNewline: true);
+    blockBody(node.body, needsSeparation: false, needsNewline: false);
   }
 
   visitSwitch(Switch node) {

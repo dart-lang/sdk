@@ -60,8 +60,8 @@ instanceAssignAnd() {
 assignIndexPlus() {
   var i = [87];
   return i
-      /*Container mask: [subclass=JSPositiveInt] length: 1 type: [exact=JSExtendableArray]*/
-      /*update: Container mask: [subclass=JSPositiveInt] length: 1 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
+      /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
       [0] /*invoke: [subclass=JSPositiveInt]*/ += 42;
 }
 
@@ -69,8 +69,8 @@ assignIndexPlus() {
 assignIndexAnd() {
   var i = [87];
   return i
-      /*Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/
-      /*update: Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+      /*update: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
       [0] /*invoke: [exact=JSUInt31]*/ &= 42;
 }
 
@@ -78,8 +78,8 @@ assignIndexAnd() {
 assignIndexInc() {
   var i = [87];
   return i
-      /*Container mask: [subclass=JSPositiveInt] length: 1 type: [exact=JSExtendableArray]*/
-      /*update: Container mask: [subclass=JSPositiveInt] length: 1 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
+      /*update: Container([exact=JSExtendableArray], element: [subclass=JSPositiveInt], length: 1)*/
       [0] /*invoke: [subclass=JSPositiveInt]*/ ++;
 }
 
@@ -88,7 +88,7 @@ assignIndexDec() {
   var i = [87];
   return
       /*invoke: [subclass=JSInt]*/ --i
-          /*Container mask: [subclass=JSInt] length: 1 type: [exact=JSExtendableArray]*/
-          /*update: Container mask: [subclass=JSInt] length: 1 type: [exact=JSExtendableArray]*/
+          /*Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
+          /*update: Container([exact=JSExtendableArray], element: [subclass=JSInt], length: 1)*/
           [0];
 }

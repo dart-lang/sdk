@@ -75,31 +75,31 @@ void main() {
   var mock3 = new MockCat3();
   Expect.isTrue(mock3.eatFood("cat food", amount: 0.9));
   Expect.isFalse(mock3.eatFood("cat food", amount: 0.3));
-  Expect.equals(mock3.scratch("chair"), "chair");
-  Expect.equals(mock3.scratch("chair", "couch"), "chair,couch");
-  Expect.equals(mock3.scratch("chair", null), "chair,null");
-  Expect.equals(mock3.scratch("chair", ""), "chair,");
+  Expect.equals("chair", mock3.scratch("chair"));
+  Expect.equals("chair,couch", mock3.scratch("chair", "couch"));
+  Expect.equals("chair,null", mock3.scratch("chair", null));
+  Expect.equals("chair,", mock3.scratch("chair", ""));
 
   var g = new MockWithGenerics();
-  Expect.listEquals(g.doStuff(42), [int]);
-  Expect.listEquals(g.doStuff<num>(42), [num]);
-  Expect.listEquals(g.doStuff('hi'), [String]);
+  Expect.listEquals([int], g.doStuff(42));
+  Expect.listEquals([num], g.doStuff<num>(42));
+  Expect.listEquals([String], g.doStuff('hi'));
 
   var s = new MockWithGetterSetter();
   s.getter;
-  Expect.equals(s.invocation.positionalArguments.length, 0);
-  Expect.equals(s.invocation.isGetter, true);
-  Expect.equals(s.invocation.isSetter, false);
-  Expect.equals(s.invocation.isMethod, false);
+  Expect.equals(0, s.invocation.positionalArguments.length);
+  Expect.isTrue(s.invocation.isGetter);
+  Expect.isFalse(s.invocation.isSetter);
+  Expect.isFalse(s.invocation.isMethod);
   s.setter = 42;
-  Expect.equals(s.invocation.positionalArguments.single, 42);
-  Expect.equals(s.invocation.isGetter, false);
-  Expect.equals(s.invocation.isSetter, true);
-  Expect.equals(s.invocation.isMethod, false);
+  Expect.equals(42, s.invocation.positionalArguments.single);
+  Expect.isFalse(s.invocation.isGetter);
+  Expect.isTrue(s.invocation.isSetter);
+  Expect.isFalse(s.invocation.isMethod);
 
   Callable call = new MockCallable();
-  Expect.equals(call(), 42);
-  Expect.equals((call as dynamic)(), 42);
-  Expect.equals(call.m(), 0);
-  Expect.equals((call as dynamic).m(), 0);
+  Expect.equals(42, call());
+  Expect.equals(42, (call as dynamic)());
+  Expect.equals(0, call.m());
+  Expect.equals(0, (call as dynamic).m());
 }

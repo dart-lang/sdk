@@ -6,8 +6,6 @@ library fasta.dill_target;
 
 import 'dart:async' show Future;
 
-import 'package:kernel/ast.dart' show Class;
-
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../kernel/kernel_builder.dart' show ClassBuilder;
@@ -33,11 +31,13 @@ class DillTarget extends TargetImplementation {
     loader = new DillLoader(this);
   }
 
+  @override
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {
     unsupported("addSourceInformation", -1, null);
   }
 
+  @override
   void read(Uri uri) {
     unsupported("read", -1, null);
   }
@@ -56,18 +56,20 @@ class DillTarget extends TargetImplementation {
     isLoaded = true;
   }
 
+  @override
   DillLibraryBuilder createLibraryBuilder(Uri uri, Uri fileUri, origin) {
     assert(origin == null);
     return new DillLibraryBuilder(uri, loader);
   }
 
+  @override
   void addDirectSupertype(ClassBuilder cls, Set<ClassBuilder> set) {}
 
+  @override
   List<ClassBuilder> collectAllClasses() {
     return null;
   }
 
+  @override
   void breakCycle(ClassBuilder cls) {}
-
-  Class get objectClass => loader.coreLibrary["Object"].target;
 }

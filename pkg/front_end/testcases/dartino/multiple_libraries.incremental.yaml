@@ -1,0 +1,39 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart: |
+  // Test that changes in multiple libraries is handled
+  import 'library1.dart' as lib1;
+  import 'library2.dart' as lib2;
+
+  main() {
+    lib1.method();
+    lib2.method();
+  }
+
+library1.dart.patch: |
+  library test.library1;
+
+  method() {
+  <<<< ["lib1.v1","lib2.v1"]
+    print('lib1.v1');
+  ==== ["lib1.v2","lib2.v2"]
+    print('lib1.v2');
+  ==== ["lib1.v3","lib2.v3"]
+    print('lib1.v3');
+  >>>>
+  }
+
+library2.dart.patch: |
+  library test.library2;
+
+  method() {
+  <<<<
+    print('lib2.v1');
+  ====
+    print('lib2.v2');
+  ====
+    print('lib2.v3');
+  >>>>
+  }

@@ -26,6 +26,7 @@ import 'package:kernel/ast.dart'
         StringLiteral,
         SuperInitializer,
         ThisExpression,
+        TreeNode,
         VariableGet;
 
 import '../fasta_codes.dart'
@@ -85,7 +86,7 @@ class KernelEnumBuilder extends SourceClassBuilder
       LibraryBuilder parent,
       int charOffset)
       : super(metadata, 0, name, null, null, null, scope, constructors, parent,
-            null, charOffset, cls);
+            null, charOffset, TreeNode.noOffset, cls);
 
   factory KernelEnumBuilder(
       MetadataCollector metadataCollector,

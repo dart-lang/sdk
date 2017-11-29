@@ -75,7 +75,7 @@ main(List<String> arguments) {
 
   var sdkDir = path.join(repoDirectory, 'gen', 'patched_sdk');
   var sdkSummaryFile =
-      path.join(testDirectory, '..', 'lib', 'sdk', 'ddc_sdk.sum');
+      path.join(testDirectory, '..', 'gen', 'sdk', 'ddc_sdk.sum');
 
   var summaryPaths = new Directory(path.join(codegenOutputDir, 'pkg'))
       .listSync()

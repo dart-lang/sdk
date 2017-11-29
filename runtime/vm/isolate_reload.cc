@@ -1395,16 +1395,8 @@ void IsolateReloadContext::Commit() {
   }
 
 #ifdef DEBUG
-  {
-    // Verify that all canonical instances are correctly setup in the
-    // corresponding canonical tables.
-    Thread* thread = Thread::Current();
-    I->heap()->CollectAllGarbage();
-    HeapIterationScope iteration(thread);
-    VerifyCanonicalVisitor check_canonical(thread);
-    iteration.IterateObjects(&check_canonical);
-  }
-#endif  // DEBUG
+  I->ValidateConstants();
+#endif
 
   if (FLAG_identity_reload) {
     if (saved_num_cids_ != I->class_table()->NumCids()) {

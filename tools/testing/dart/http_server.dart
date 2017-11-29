@@ -155,6 +155,7 @@ class TestingServers {
     }
   }
 
+  String get network => _serverList[0].address.address;
   int get port => _serverList[0].port;
   int get crossOriginPort => _serverList[1].port;
   DispatchingServer get server => _server;
@@ -192,6 +193,8 @@ class TestingServers {
       port,
       '-c',
       crossOriginPort,
+      '--network',
+      network,
       '--build-directory=$buildDirectory',
       '--runtime=${runtime.name}'
     ];

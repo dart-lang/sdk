@@ -14,7 +14,7 @@
 #
 D8=$(type -P d8)
 if [ ! $D8 ]; then
-  echo "Please add d8 to your PATH"
+  echo "Please add d8 to your PATH."
   exit 1
 fi
 set -e
@@ -22,16 +22,21 @@ DDC_PATH=$( cd $( dirname "${BASH_SOURCE[0]}" )/.. && pwd )
 BASENAME=$( basename "${1%.*}")
 LIBROOT=$(cd $( dirname "${1%.*}") && pwd)
 
+# Build the SDK in a place where we can find it if it's not already there.
+if [ ! -e gen/sdk/ddc_sdk.sum ]; then
+  ./tool/build_sdk.sh
+fi
+
 # D8 uses relative paths.  That won't work for the sdk right now as the
 # summary is in a slightly different location.
 # D8/ES6 imports also do not add a ".js" extension, so this is "dart_sdk"
 # instead of "dart_sdk.js".
 if [ ! -f dart_sdk ]; then
-    ln -s $DDC_PATH/lib/js/es6/dart_sdk.js dart_sdk
+    ln -s $DDC_PATH/gen/sdk/es6/dart_sdk.js dart_sdk
 fi
 
 dart -c $DDC_PATH/bin/dartdevc.dart --modules=es6 --library-root=$LIBROOT \
-    --dart-sdk-summary=$DDC_PATH/lib/sdk/ddc_sdk.sum \
+    --dart-sdk-summary=$DDC_PATH/gen/sdk/ddc_sdk.sum \
     -o $LIBROOT/$BASENAME.js $*
 pushd $LIBROOT > /dev/null
 echo "

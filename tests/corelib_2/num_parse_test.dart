@@ -135,9 +135,7 @@ void main() {
   testIntAround(0x10000000000000); // 2^52
   testIntAround(0x20000000000000); // 2^53
   testIntAround(0x40000000000000); // 2^54
-  testIntAround(0x8000000000000000); // 2^63
-  testIntAround(0x10000000000000000); // 2^64
-  testIntAround(0x100000000000000000000); // 2^80
+  testIntAround(0x7ffffffffffffffe); // 2^63
 
   testDouble(0.0);
   testDouble(5e-324);

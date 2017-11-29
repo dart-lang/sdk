@@ -232,10 +232,10 @@ template("build_libdart_builtin") {
   }
   static_library(target_name) {
     configs += [
-      "..:dart_arch_config",
-      "..:dart_config",
-      "..:dart_os_config",
-    ] + extra_configs
+                 "..:dart_arch_config",
+                 "..:dart_config",
+                 "..:dart_os_config",
+               ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -404,9 +404,7 @@ template("build_gen_snapshot_dart_io") {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
 
-    deps += [
-      "$dart_zlib_path",
-    ]
+    deps += [ "$dart_zlib_path" ]
 
     custom_sources_filter = [
       "*_test.cc",
@@ -459,10 +457,10 @@ template("dart_io") {
   }
   source_set(target_name) {
     configs += [
-      "..:dart_arch_config",
-      "..:dart_config",
-      "..:dart_os_config",
-    ] + extra_configs
+                 "..:dart_arch_config",
+                 "..:dart_config",
+                 "..:dart_os_config",
+               ] + extra_configs
     if (is_fuchsia) {
       configs -= [ "//build/config:symbol_visibility_hidden" ]
     }
@@ -569,6 +567,7 @@ compiled_action("generate_snapshot_bin") {
   ]
   tool = ":gen_snapshot"
   args = [
+    "--deterministic",
     "--snapshot_kind=" + dart_core_snapshot_kind,
     "--vm_snapshot_data=" + rebase_path(vm_snapshot_data, root_build_dir),
     "--vm_snapshot_instructions=" +
@@ -921,7 +920,7 @@ if (is_fuchsia) {
   #   ]
   # }
 
-  import("//packages/package.gni")
+  import("//build/package.gni")
 
   package("package") {
     system_image = true
@@ -946,15 +945,14 @@ if (is_fuchsia) {
   package("dart_tests") {
     system_image = true
 
-    deps = [ ":hello_fuchsia" ]
-
-    binaries = [
-      {
-        name = "hello_fuchsia.dart"
-      },
+    deps = [
+      ":hello_fuchsia",
     ]
-  }
 
+    binaries = [ {
+          name = "hello_fuchsia.dart"
+        } ]
+  }
 }
 
 executable("process_test") {

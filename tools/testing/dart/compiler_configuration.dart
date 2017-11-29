@@ -402,11 +402,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var moduleRoot =
         new Path(outputFile).directoryPath.directoryPath.toNativePath();
 
+    var sdkSummary = new Path(_configuration.buildDirectory)
+        .append("/gen/utils/dartdevc/ddc_sdk.sum")
+        .absolute
+        .toNativePath();
+
     var args = _useSdk
         ? ["--dart-sdk", "${_configuration.buildDirectory}/dart-sdk"]
-        // TODO(jmesserly): once we can build DDC's SDK summary+JS as part of
-        // the main build, change this to reflect that output path.
-        : ["--dart-sdk-summary", "pkg/dev_compiler/lib/sdk/ddc_sdk.sum"];
+        : ["--dart-sdk-summary", sdkSummary];
 
     args.addAll(sharedOptions);
     args.addAll([
@@ -462,7 +465,10 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
   DevKernelCompilerConfiguration(Configuration configuration)
       : super._subclass(configuration);
 
-  String computeCompilerPath() => "pkg/dev_compiler/bin/dartdevk.dart";
+  String computeCompilerPath() {
+    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
+    return "$dir/bin/dartdevk$executableScriptSuffix";
+  }
 
   List<String> computeCompilerArguments(
       List<String> vmOptions, List<String> sharedOptions, List<String> args) {
@@ -639,7 +645,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var args = <String>[];
     if (useDfe) {
       if (!_isStrong) {
-        args.add('--dfe=utils/kernel-service/kernel-service.dart');
+        args.add('--dfe=pkg/vm/bin/kernel_service.dart');
       }
       // TODO(dartbug.com/30480): avoid using additional kernel binaries
       args.add('--kernel-binaries=' +

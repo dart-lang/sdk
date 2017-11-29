@@ -158,6 +158,7 @@ class PositionSourceInformationBuilder
 
   SourceInformation buildDeclaration(MemberElement member) {
     ResolvedAst resolvedAst = member.resolvedAst;
+    SourceFile sourceFile = computeSourceFile(member.resolvedAst);
     if (resolvedAst.kind != ResolvedAstKind.PARSED) {
       SourceSpan span = resolvedAst.element.sourcePosition;
       return new PositionSourceInformation(
@@ -177,11 +178,20 @@ class PositionSourceInformationBuilder
         sourceFile, node.getBeginToken().charOffset, name));
   }
 
+  /// Builds a source information object pointing the end position of [node].
+  SourceInformation buildEnd(Node node) {
+    return new PositionSourceInformation(new OffsetSourceLocation(
+        sourceFile, node.getEndToken().charOffset, name));
+  }
+
   @override
   SourceInformation buildGeneric(Node node) => buildBegin(node);
 
   @override
   SourceInformation buildCreate(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildListLiteral(Node node) => buildBegin(node);
 
   @override
   SourceInformation buildReturn(Node node) => buildBegin(node);
@@ -245,8 +255,7 @@ class PositionSourceInformationBuilder
   @override
   SourceInformation buildAssignment(Node node) => buildBegin(node);
 
-  @override
-  SourceInformation buildVariableDeclaration() {
+  SourceInformation _buildMemberBody() {
     if (resolvedAst.kind == ResolvedAstKind.PARSED) {
       Node body = resolvedAst.body;
       if (body != null) {
@@ -255,6 +264,38 @@ class PositionSourceInformationBuilder
       // TODO(johnniwinther): Are there other cases?
     }
     return null;
+  }
+
+  SourceInformation _buildMemberExit() {
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      Node body = resolvedAst.body;
+      if (body != null) {
+        return buildEnd(body);
+      }
+      // TODO(johnniwinther): Are there other cases?
+    }
+    return null;
+  }
+
+  @override
+  SourceInformation buildVariableDeclaration() {
+    return _buildMemberBody();
+  }
+
+  @override
+  SourceInformation buildAwait(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildYield(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildAsyncBody() {
+    return _buildMemberBody();
+  }
+
+  @override
+  SourceInformation buildAsyncExit() {
+    return _buildMemberExit();
   }
 
   @override
@@ -288,6 +329,9 @@ class PositionSourceInformationBuilder
 
   @override
   SourceInformation buildBinary(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildTry(Node node) => buildBegin(node);
 
   @override
   SourceInformation buildCatch(Node node) => buildBegin(node);
@@ -396,7 +440,8 @@ SourceLocation getSourceLocation(SourceInformation sourceInformation,
     case SourcePositionKind.START:
       return sourceInformation.startPosition;
     case SourcePositionKind.INNER:
-      return sourceInformation.closingPosition;
+      return sourceInformation.closingPosition ??
+          sourceInformation.startPosition;
   }
 }
 
@@ -871,8 +916,7 @@ class JavaScriptTracer extends js.BaseVisitor {
     }
   }
 
-  @override
-  visitFun(js.Fun node) {
+  void _handleFunction(js.Node node, js.Node body) {
     bool activeBefore = active;
     if (!active) {
       active = reader.getSourceInformation(node) != null;
@@ -882,7 +926,7 @@ class JavaScriptTracer extends js.BaseVisitor {
     Offset entryOffset = getOffsetForNode(node, statementOffset);
     notifyStep(node, entryOffset, StepKind.FUN_ENTRY);
 
-    visit(node.body);
+    visit(body);
 
     leftToRightOffset =
         statementOffset = getSyntaxOffset(node, kind: CodePositionKind.CLOSING);
@@ -894,6 +938,16 @@ class JavaScriptTracer extends js.BaseVisitor {
       notifyStep(node, endOffset, StepKind.NO_INFO);
     }
     active = activeBefore;
+  }
+
+  @override
+  visitFun(js.Fun node) {
+    _handleFunction(node, node.body);
+  }
+
+  @override
+  visitNamedFunction(js.NamedFunction node) {
+    _handleFunction(node, node.function.body);
   }
 
   @override

@@ -91,6 +91,6 @@ class ContainerTypeMask<T> extends ForwardingTypeMask {
   }
 
   String toString() {
-    return 'Container mask: $elementType length: $length type: $forwardTo';
+    return 'Container($forwardTo, element: $elementType, length: $length)';
   }
 }

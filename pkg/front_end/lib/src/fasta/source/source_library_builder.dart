@@ -254,6 +254,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       T supertype,
       List<T> interfaces,
       int charOffset,
+      int charEndOffset,
       int supertypeOffset);
 
   void addNamedMixinApplication(

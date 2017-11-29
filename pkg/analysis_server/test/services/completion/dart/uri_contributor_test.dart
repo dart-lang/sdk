@@ -272,6 +272,24 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_import_only_dart_files() async {
+    testFile = '/proj/completion.dart';
+    addSource('/proj/other.dart', 'library other;');
+    newFile('/proj/analysis_options.yaml', '# analysis options');
+    addTestSource('import "package:^";');
+    await computeSuggestions();
+    assertNotSuggested('analysis_options.yaml');
+  }
+
+  test_import_no_dot_folders() async {
+    testFile = '/proj/completion.dart';
+    addSource('/proj/other.dart', 'library other;');
+    newFolder('/proj/.fooFolder');
+    addTestSource('import "package:^";');
+    await computeSuggestions();
+    assertNotSuggested('.fooFolder/');
+  }
+
   test_import_package() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');

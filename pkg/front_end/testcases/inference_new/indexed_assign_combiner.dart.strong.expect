@@ -51,8 +51,8 @@ class G extends core::Object {
 static method f<T extends core::Object>() → self::f::T
   return null;
 static method test1(self::G g) → void {
-  let final self::G #t1 = g in let final core::int #t2 = 0 in #t1.{self::G::[]=}(#t2, #t1.{self::G::[]}(#t2).{self::A::*}(self::f<dynamic>()));
-  self::C x = let final self::G #t3 = g in let final core::int #t4 = 0 in let final self::C #t5 = #t3.{self::G::[]}(#t4).{self::A::*}(self::f<dynamic>()) in let final void #t6 = #t3.{self::G::[]=}(#t4, #t5) in #t5;
+  let final self::G #t1 = g in let final core::int #t2 = 0 in #t1.{self::G::[]=}(#t2, #t1.{self::G::[]}(#t2).{self::A::*}(self::f<dynamic>() as{TypeError} self::D));
+  self::C x = let final self::G #t3 = g in let final core::int #t4 = 0 in let final self::C #t5 = #t3.{self::G::[]}(#t4).{self::A::*}(self::f<dynamic>() as{TypeError} self::D) in let final void #t6 = #t3.{self::G::[]=}(#t4, #t5) in #t5;
 }
 static method test2(self::G g) → void {
   let final self::G #t7 = g in let final core::int #t8 = 0 in let final self::C #t9 = #t7.{self::G::[]}(#t8).{self::A::+}(1) in let final void #t10 = #t7.{self::G::[]=}(#t8, #t9) in #t9;

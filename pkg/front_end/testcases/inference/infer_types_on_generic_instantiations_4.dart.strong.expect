@@ -17,7 +17,7 @@ class B<E extends core::Object> extends self::A<self::B::E> {
     return this.{self::B::y};
 }
 static method foo() → dynamic {
-  core::int y = new self::B::•<core::String>().{self::B::x};
+  core::int y = new self::B::•<core::String>().{self::B::x} as{TypeError} core::int;
   core::String z = new self::B::•<core::String>().{self::B::x};
 }
 static method main() → dynamic {

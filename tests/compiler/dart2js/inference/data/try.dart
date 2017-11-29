@@ -110,7 +110,7 @@ tryFinallyAssignmentInFinally() {
 /// block.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: tryCatchAssignmentInTryCatch:Union of [[exact=JSUInt31], [null|exact=JSString]]*/
+/*element: tryCatchAssignmentInTryCatch:Union([exact=JSUInt31], [null|exact=JSString])*/
 tryCatchAssignmentInTryCatch() {
   dynamic o = 0;
   try {
@@ -196,7 +196,7 @@ tryFinallyParameterAssignmentInFinally() {
 /// catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _tryCatchParameterAssignmentInTryCatch:Union of [[exact=JSUInt31], [null|exact=JSString]]*/
+/*element: _tryCatchParameterAssignmentInTryCatch:Union([exact=JSUInt31], [null|exact=JSString])*/
 _tryCatchParameterAssignmentInTryCatch(/*[exact=JSUInt31]*/ o) {
   try {
     o = '';

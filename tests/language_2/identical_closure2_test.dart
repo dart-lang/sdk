@@ -7,10 +7,10 @@ import "package:expect/expect.dart";
 var myIdentical = identical;
 
 main() {
-  // Bigint (2^76).
+  // Mint (2^63).
   // TODO(rnystrom): Figure out how to change this to work on the web.
-  Expect.isTrue(myIdentical(75557863725914323419136, 75557863725914323419136));
-  Expect.isFalse(myIdentical(75557863725914323419136, 75557863725914323419137));
+  Expect.isTrue(myIdentical(0x8000000000000000, 0x8000000000000000));
+  Expect.isFalse(myIdentical(0x8000000000000000, 0x8000000000000001));
 
   // Different types.
   Expect.isFalse(myIdentical(42, 42.0));

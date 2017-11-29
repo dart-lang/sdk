@@ -255,11 +255,6 @@ uword GCCompactor::SlideBlock(uword first_object,
         // Slide the object down.
         memmove(reinterpret_cast<void*>(new_addr),
                 reinterpret_cast<void*>(old_addr), size);
-
-        // TODO(rmacnak): Most objects do not have weak table entries.
-        // For both compaction and become, it's probably faster to visit
-        // the weak tables once during forwarding instead of per-object.
-        heap_->ForwardWeakEntries(old_obj, new_obj);
       }
       new_obj->ClearMarkBit();
     } else {
@@ -414,46 +409,9 @@ void GCCompactor::ForwardPointersForSliding() {
 
   // Remembered set.
   isolate()->store_buffer()->VisitObjectPointers(this);
-}
 
-// Moves live objects to fresh pages. Returns the number of bytes moved.
-intptr_t GCCompactor::EvacuatePages(HeapPage* pages) {
-  TIMELINE_FUNCTION_GC_DURATION(thread(), "EvacuatePages");
-
-  intptr_t moved_bytes = 0;
-  for (HeapPage* page = pages; page != NULL; page = page->next()) {
-    uword old_addr = page->object_start();
-    uword end = page->object_end();
-    while (old_addr < end) {
-      RawObject* old_obj = RawObject::FromAddr(old_addr);
-      const intptr_t size = old_obj->Size();
-      if (old_obj->IsMarked()) {
-        ASSERT(!old_obj->IsFreeListElement());
-        ASSERT(!old_obj->IsForwardingCorpse());
-        uword new_addr = heap_->old_space()->TryAllocateDataBumpLocked(
-            size, PageSpace::kForceGrowth);
-        if (new_addr == 0) {
-          OUT_OF_MEMORY();
-        }
-
-        memmove(reinterpret_cast<void*>(new_addr),
-                reinterpret_cast<void*>(old_addr), size);
-
-        RawObject* new_obj = RawObject::FromAddr(new_addr);
-        new_obj->ClearMarkBit();
-
-        ForwardingCorpse* forwarder =
-            ForwardingCorpse::AsForwarder(old_addr, size);
-        forwarder->set_target(new_obj);
-        heap_->ForwardWeakEntries(old_obj, new_obj);
-
-        moved_bytes += size;
-      }
-      old_addr += size;
-    }
-  }
-
-  return moved_bytes;
+  // Weak tables.
+  heap_->ForwardWeakTables(this);
 }
 
 }  // namespace dart

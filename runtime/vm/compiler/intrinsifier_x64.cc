@@ -53,7 +53,7 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
 }
 
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     return;
   }
 
@@ -117,7 +117,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+2), value (+1), return-address (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
-  if (Isolate::Current()->type_checks()) return;
+  if (Isolate::Current()->argument_type_checks()) return;
   Label fall_through;
   __ movq(RAX, Address(RSP, +2 * kWordSize));  // Array.
   __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
@@ -199,7 +199,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
     __ jmp(&done, Assembler::kNearJump);                                       \
                                                                                \
     __ Bind(&size_tag_overflow);                                               \
-    __ movq(RDI, Immediate(0));                                                \
+    __ LoadImmediate(RDI, Immediate(0));                                       \
     __ Bind(&done);                                                            \
                                                                                \
     /* Get the class index and insert it into the tags. */                     \
@@ -1768,7 +1768,7 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
 
   __ SmiUntag(RBX);            // start
   __ SmiUntag(R9);             // other.length
-  __ movq(R11, Immediate(0));  // i = 0
+  __ LoadImmediate(R11, Immediate(0));  // i = 0
 
   // do
   Label loop;

@@ -3,19 +3,15 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == vm ]
-# These tests are timing dependent and should be non-flaky once the fix for
-# https://github.com/dart-lang/co19/issues/86 is merged into master.
-# (They are skipped on $runtime == pre_compiled below.)
-LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269
-LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail  # Issue 28269
-LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269
+LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
+LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail  # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
+LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
 
 [ $runtime == vm && $checked ]
-# These tests fail in checked mode because they are incorrect.
-LibTest/typed_data/Float64List/firstWhere_A02_t01: Fail
-LibTest/typed_data/Float64List/reduce_A01_t01: Fail
-LibTest/typed_data/Float64List/add_A01_t01: Fail
-LibTest/typed_data/Float32List/reduce_A01_t01: Fail
+LibTest/typed_data/Float64List/firstWhere_A02_t01: Fail # These tests fail in checked mode because they are incorrect.
+LibTest/typed_data/Float64List/reduce_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
+LibTest/typed_data/Float64List/add_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
+LibTest/typed_data/Float32List/reduce_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
 
 [$runtime == vm && $compiler == none && $system == fuchsia]
 *: Skip  # Tests not included in the image.
@@ -37,8 +33,7 @@ LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
 Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError, fail # Dart issue 12916
 
-# Skip until Issue 29895 is fixed.
-Language/Libraries_and_Scripts/Scripts/top_level_main_t01: skip
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: skip # Issue 29895
 
 Language/Statements/Assert/execution_t02: skip # co19 issue 734
 Language/Statements/Assert/execution_t03: skip # co19 issue 734
@@ -60,7 +55,6 @@ LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 [ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
-# With asynchronous loading, the load errors in these tests are no longer recognized as compile errors:
 
 [ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
@@ -69,11 +63,9 @@ LibTest/core/List/List_class_A01_t02: Pass, Slow
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == arm64 ]
-# These tests take too much memory (300 MB) for our 1 GB test machine.
-# co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
-LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
-LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
+LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
+LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
 
 [ ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
 LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Timeout
@@ -117,7 +109,6 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: Pass
 Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: Pass
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) && $compiler != dartk && $compiler != dartkp ]
-# co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
 Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
 Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
@@ -167,9 +158,8 @@ Language/Mixins/Mixin_Application/error_t02: Pass
 Language/Mixins/declaring_constructor_t01: Pass
 
 [ ($arch == simdbc || $arch == simdbc64) && $mode == debug ]
-# TODO(vegorov) These tests are very slow on unoptimized SIMDBC
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout
-LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
+LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 *: Skip # Issue 27294
@@ -225,6 +215,8 @@ LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
 [ $runtime == vm && $mode == release && $system == linux && $arch == ia32]
 service/dev_fs_spawn_test: Pass, Fail # Issue 28411
 
+# flutter uses --error_on_bad_type, --error_on_bad_override and
+# --await_is_keyword so that tests failing with a Compilation Error is fine.
 [ $runtime == flutter ]
 LibTest/isolate/Isolate/spawnUri* : Skip # spawnUri is not supported by flutter
 LibTest/collection/SplayTreeSet/SplayTreeSet.from_A02_t04: Pass, Timeout
@@ -240,11 +232,6 @@ LibTest/async/Stream/timeout_A03_t01: Pass, RuntimeError # Flutter Issue 9109
 LibTest/async/Stream/timeout_A04_t01: Pass, RuntimeError # Flutter Issue 9109
 LibTest/isolate/ReceivePort/sendPort_A01_t01: Pass, Timeout # Flutter Issue 9109
 
-#
-# flutter uses --error_on_bad_type, --error_on_bad_override and
-# --await_is_keyword so the following tests fail with a Compilation
-# Error which is fine.
-#
 Language/Classes/Abstract_Instance_Members/override_more_required_parameters_t01: CompileTimeError
 Language/Classes/Abstract_Instance_Members/override_no_named_parameters_t01: CompileTimeError
 Language/Classes/Abstract_Instance_Members/override_not_a_subtype_t01: CompileTimeError

@@ -92,6 +92,29 @@
     },
     {
       "builders": [
+        "vm-canary-linux-debug"
+      ],
+      "meta": {
+        "description": "This configuration is used to get fast feedback on vm builds."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["--arch=ia32,x64", "runtime"]
+        },
+        {
+          "name": "vm ia32 tests",
+          "arguments": ["--arch=ia32", "vm"]
+        },
+        {
+          "name": "vm x64 tests",
+          "arguments": ["--arch=x64", "vm"]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-precomp-linux-release-x64"
       ],
       "meta": {
@@ -297,11 +320,43 @@
         {
           "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["dart2js_bot"]
+          "arguments": ["dart2js_bot", "dartdevc_test"]
         },
         {
           "name": "ddc tests",
-          "script": "tools/bots/ddc_tests.py"
+          "arguments": [
+            "-cdartdevc",
+            "-rchrome",
+            "--checked",
+            "--strong",
+            "--use-sdk",
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "lib_strong"
+          ]
+        },
+        {
+          "name": "ddc kernel tests",
+          "arguments": [
+            "-cdartdevk",
+            "-rchrome",
+            "--checked",
+            "--strong",
+            "--use-sdk",
+            "language_2"
+          ]
+        },
+        {
+          "name": "ddc kernel -rnone tests",
+          "arguments": [
+            "-cdartdevk",
+            "-rnone",
+            "--checked",
+            "--strong",
+            "--use-sdk",
+            "language_2"
+          ]
         }
       ]
     },
@@ -975,9 +1030,9 @@
       },
       "steps": [
         {
-          "name": "build dart x64",
+          "name": "build dart",
           "script": "tools/build.py",
-          "arguments": [ "create_sdk" ]
+          "arguments": ["--arch=ia32,x64", "create_sdk" ]
         },
         {
           "name": "trigger analyzer",
@@ -987,11 +1042,6 @@
             "analyzer-analysis-server-linux"
           ],
           "fileset": "analyzer"
-        },
-        {
-          "name": "build dart ia32",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32","create_sdk"]
         },
         {
           "name": "generate API docs",
@@ -1007,14 +1057,9 @@
       },
       "steps": [
         {
-          "name": "build dart x64",
+          "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["create_sdk"]
-        },
-        {
-          "name": "build dart ia32",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32","create_sdk"]
+          "arguments": ["--arch=ia32,x64", "create_sdk" ]
         }
       ]
     },
@@ -1025,14 +1070,9 @@
       },
       "steps": [
         {
-          "name": "build dart x64",
+          "name": "build dart",
           "script": "tools/build.py",
-          "arguments": ["create_sdk"]
-        },
-        {
-          "name": "build dart ia32",
-          "script": "tools/build.py",
-          "arguments": ["--arch=ia32","create_sdk"]
+          "arguments": ["--arch=ia32,x64", "create_sdk" ]
         }
       ]
     },

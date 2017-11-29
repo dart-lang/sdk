@@ -51,18 +51,18 @@ static method main() → dynamic {
   self::caller(() → dynamic {
     core::print("<anon> was called");
   });
-  function g([dynamic message]) → dynamic {
+  function g([dynamic message = null]) → dynamic {
     core::print(message);
   }
   g.call("Hello, World");
-  self::caller(([dynamic x]) → dynamic {
+  self::caller(([dynamic x = null]) → dynamic {
     core::print("<anon> was called with ${x}");
   });
-  function h({dynamic message}) → dynamic {
+  function h({dynamic message = null}) → dynamic {
     core::print(message);
   }
   h.call(message: "Hello, World");
-  self::caller(({dynamic x}) → dynamic {
+  self::caller(({dynamic x = null}) → dynamic {
     core::print("<anon> was called with ${x}");
   });
   core::print(core::int.toString());

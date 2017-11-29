@@ -74,7 +74,7 @@ script:
   - if [[ "$TEST" == sdk ]]; then ./tool/build_sdk.sh && git diff --exit-code ; fi
   - if [[ "$TEST" == coverage ]]; then ./tool/build_sdk.sh && ./tool/coverage.sh ; fi
   - if [[ "$TEST" == node ]]; then ./tool/node_test.sh ; fi
-  - if [[ "$TEST" == package ]]; then ./tool/build_sdk.sh && ./tool/build_pkgs.dart gen/codegen_output/pkg travis; fi
+  - if [[ "$TEST" == package ]]; then ./tool/build_sdk.sh && ./tool/build_pkgs.dart --analyzer-sdk=gen/sdk/ddc_gen.sum --output=gen/codegen_output/pkg --travis; fi
 env:
   - ANALYZER=master DDC_BROWSERS=ChromeTravis
   - ANALYZER=master DDC_BROWSERS=Firefox

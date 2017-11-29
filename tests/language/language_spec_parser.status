@@ -3,8 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == spec_parser ]
-
-# Negative tests with syntax errors.
 factory3_negative_test: Fail # Negative, puts `default` in class header.
 field3_negative_test: Fail # Negative, uses `final var a`.
 getter_declaration_negative_test: Fail # Negative, uses getter with parameter.
@@ -30,17 +28,14 @@ test_negative_test: Fail # Negative, uses non-terminated string literal.
 unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
 unhandled_exception_negative_test: Fail # Negative, defaults required parameter.
 
-# Tests using constructs which are not Dart syntax.
 vm/debug_break_enabled_vm_test: Fail # Uses debug break.
 const_native_factory_test/01: Fail # Uses `native`.
 
-# Tests containing conditional imports.
 conditional_import_string_test: Fail # Not yet supported.
 conditional_import_test: Fail # Not yet supported.
 config_import_corelib_test: Fail # Not yet supported.
 config_import_test: Fail # Not yet supported.
 
-# Not working for miscellaneous other reasons.
 deep_nesting1_negative_test: Skip # Stack overflow.
 deep_nesting2_negative_test: Skip # Stack overflow.
 issue_1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.

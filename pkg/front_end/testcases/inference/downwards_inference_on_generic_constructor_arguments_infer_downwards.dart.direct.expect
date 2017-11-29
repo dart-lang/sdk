@@ -22,7 +22,7 @@ class F4<T extends core::Object> extends core::Object {
   constructor •({core::Iterable<core::Iterable<self::F4::T>> a = null}) → void
     : super core::Object::•() {}
 }
-static method main() → void {
+static method test() → void {
   new self::F0::•<core::int>(<dynamic>[]);
   new self::F0::•<core::int>(<dynamic>[3]);
   new self::F0::•<core::int>(<dynamic>["hello"]);
@@ -52,3 +52,4 @@ static method main() → void {
   new self::F4::•<dynamic>(a: <dynamic>[<dynamic>["hello"]]);
   new self::F4::•<dynamic>(a: <dynamic>[<dynamic>["hello"], <dynamic>[3]]);
 }
+static method main() → dynamic {}

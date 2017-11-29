@@ -1090,7 +1090,8 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
     }
   }
 
-  if (ServiceIsolate::NameEquals(script_uri)) {
+  if (ServiceIsolate::NameEquals(script_uri) ||
+      (strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0)) {
     return strdup(script_uri);
   }
 
@@ -5430,7 +5431,8 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   Dart_Handle result;
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (I->use_dart_frontend()) {
-    result = LoadKernelProgram(T, url_str, reinterpret_cast<void*>(source));
+    void* kernel_pgm = reinterpret_cast<void*>(source);
+    result = LoadKernelProgram(T, url_str, kernel_pgm);
     if (::Dart_IsError(result)) {
       return result;
     }

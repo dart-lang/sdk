@@ -1,15 +1,11 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Testing Bigints.
+// Testing int.bitLength, int.toUnsigned and int.toSigned.
 
 library bit_twiddling_test;
 
 import "package:expect/expect.dart";
-
-bool haveBigints() {
-  return 100000000000000000000 + 1 != 100000000000000000000;
-}
 
 testBitLength() {
   check(int i, width) {
@@ -45,18 +41,9 @@ testBitLength() {
   check(0x2000000000000, 50);
   check(0x2000000000001, 50);
 
-  if (haveBigints()) {
-    check(0xffffffffffffff, 56);
-    check(0xffffffffffffffff, 64);
-    check(0xffffffffffffffffff, 72);
-    check(0x1000000000000000000, 73);
-    check(0x1000000000000000001, 73);
-
-    check(0xfffffffffffffffffffffffffffffffffffffe, 152);
-    check(0xffffffffffffffffffffffffffffffffffffff, 152);
-    check(0x100000000000000000000000000000000000000, 153);
-    check(0x100000000000000000000000000000000000001, 153);
-  }
+  check(0xffffffffffffff, 56); //   //# int64: ok
+  check(0x7fffffffffffffff, 63); // //# int64: continued
+  check(0xffffffffffffffff, 0); //  //# int64: continued
 }
 
 testToUnsigned() {
@@ -112,6 +99,18 @@ testToUnsigned() {
   checkU(2, 3, 2);
   checkU(3, 3, 3);
   checkU(4, 3, 4);
+
+  checkU(0x0100000000000001, 2, 1); //                   //# int64: continued
+  checkU(0x0200000000000001, 60, 0x200000000000001); //  //# int64: continued
+  checkU(0x0200000000000001, 59, 0x200000000000001); //  //# int64: continued
+  checkU(0x0200000000000001, 58, 0x200000000000001); //  //# int64: continued
+  checkU(0x0200000000000001, 57, 1); //                  //# int64: continued
+
+  checkU(0x8100000000000001, 2, 1); //                   //# int64: continued
+  checkU(0x8200000000000001, 60, 0x200000000000001); //  //# int64: continued
+  checkU(0x8200000000000001, 59, 0x200000000000001); //  //# int64: continued
+  checkU(0x8200000000000001, 58, 0x200000000000001); //  //# int64: continued
+  checkU(0x8200000000000001, 57, 1); //                  //# int64: continued
 }
 
 testToSigned() {
@@ -164,6 +163,18 @@ testToSigned() {
   checkS(2, 3, 2);
   checkS(3, 3, 3);
   checkS(4, 3, -4);
+
+  checkS(0x0100000000000001, 2, 1); //                       //# int64: continued
+  checkS(0x0200000000000001, 60, 0x200000000000001); //      //# int64: continued
+  checkS(0x0200000000000001, 59, 0x200000000000001); //      //# int64: continued
+  checkS(0x0200000000000001, 58, -0x200000000000000 + 1); // //# int64: continued
+  checkS(0x0200000000000001, 57, 1); //                      //# int64: continued
+
+  checkS(0x8100000000000001, 2, 1); //                       //# int64: continued
+  checkS(0x8200000000000001, 60, 0x200000000000001); //      //# int64: continued
+  checkS(0x8200000000000001, 59, 0x200000000000001); //      //# int64: continued
+  checkS(0x8200000000000001, 58, -0x200000000000000 + 1); // //# int64: continued
+  checkS(0x8200000000000001, 57, 1); //                      //# int64: continued
 }
 
 main() {

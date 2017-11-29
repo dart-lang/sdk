@@ -93,10 +93,10 @@ class Class2 {
   var field;
 }
 
-/*element: _doUnion:Union of [[null|exact=Class1], [null|exact=Class2]]*/
+/*element: _doUnion:Union([null|exact=Class1], [null|exact=Class2])*/
 _doUnion(/*[exact=Class1]*/ o) {
   do {
-    o = o. /*Union of [[exact=Class1], [null|exact=Class2]]*/ field;
+    o = o. /*Union([exact=Class1], [null|exact=Class2])*/ field;
   } while (o != null);
   return o;
 }

@@ -9,7 +9,7 @@ import "package:compiler/src/js_backend/js_backend.dart" show StringBackedName;
 
 void testTransform(String source, String expected, AsyncRewriterBase rewriter) {
   Fun fun = js(source);
-  Fun rewritten = rewriter.rewrite(fun);
+  Fun rewritten = rewriter.rewrite(fun, null, null);
 
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
   SimpleJavaScriptPrintingContext context =

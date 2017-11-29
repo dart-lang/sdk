@@ -110,6 +110,18 @@ class SourceInformationBuilder<T> {
   /// first statement of a function.
   SourceInformation buildVariableDeclaration() => null;
 
+  /// Generate [SourceInformation] for the await [node].
+  SourceInformation buildAwait(T node) => null;
+
+  /// Generate [SourceInformation] for the yield or yield* [node].
+  SourceInformation buildYield(T node) => null;
+
+  /// Generate [SourceInformation] for async/await boiler plate code.
+  SourceInformation buildAsyncBody() => null;
+
+  /// Generate [SourceInformation] for exiting async/await code.
+  SourceInformation buildAsyncExit() => null;
+
   /// Generate [SourceInformation] for an invocation of a foreign method.
   SourceInformation buildForeignCode(T node) => null;
 
@@ -137,6 +149,9 @@ class SourceInformationBuilder<T> {
   /// Generate [SourceInformation] for the binary operation in [node].
   SourceInformation buildBinary(T node) => null;
 
+  /// Generate [SourceInformation] for the try statement in [node].
+  SourceInformation buildTry(T node) => null;
+
   /// Generate [SourceInformation] for the unary operator in [node].
   SourceInformation buildCatch(T node) => null;
 
@@ -151,6 +166,9 @@ class SourceInformationBuilder<T> {
 
   /// Generate [SourceInformation] for the switch case in [node].
   SourceInformation buildSwitchCase(T node) => null;
+
+  /// Generate [SourceInformation] for the list literal in [node].
+  SourceInformation buildListLiteral(T node) => null;
 }
 
 /// A location in a source file.

@@ -12,8 +12,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, remove_script_timestamps_for_test);
-
 #define OFFSET_OF_FROM(obj)                                                    \
   obj.raw()->from() - reinterpret_cast<RawObject**>(obj.raw()->ptr())
 
@@ -1049,6 +1047,7 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   script.StoreNonPointer(&script.raw_ptr()->kind_, reader->Read<int8_t>());
   script.StoreNonPointer(&script.raw_ptr()->kernel_script_index_,
                          reader->Read<int32_t>());
+  script.StoreNonPointer(&script.raw_ptr()->load_timestamp_, 0);
 
   *reader->StringHandle() ^= String::null();
   script.set_source(*reader->StringHandle());
@@ -1064,9 +1063,6 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
     script.StorePointer((script.raw()->from() + i),
                         reader->PassiveObjectHandle()->raw());
   }
-
-  script.set_load_timestamp(
-      FLAG_remove_script_timestamps_for_test ? 0 : OS::GetCurrentTimeMillis());
 
   return script.raw();
 }

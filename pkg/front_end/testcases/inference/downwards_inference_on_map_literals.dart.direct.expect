@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method foo([core::Map<core::int, core::String> m1 = const <dynamic, dynamic>{1: "hello"}, core::Map<core::int, core::String> m2 = const <dynamic, dynamic>{"hello": "world"}]) → void {}
-static method main() → void {
+static method test() → void {
   {
     core::Map<core::int, core::String> l0 = <dynamic, dynamic>{};
     core::Map<core::int, core::String> l1 = <dynamic, dynamic>{3: "hello"};
@@ -45,3 +45,4 @@ static method main() → void {
     const core::Map<core::int, core::String> l4 = const <dynamic, dynamic>{3: "hello", "hello": 3};
   }
 }
+static method main() → dynamic {}

@@ -14,6 +14,7 @@ class Tag {
   static const int Field = 4;
   static const int Constructor = 5;
   static const int Procedure = 6;
+  static const int RedirectingFactoryConstructor = 108;
 
   static const int InvalidInitializer = 7;
   static const int FieldInitializer = 8;
@@ -114,6 +115,8 @@ class Tag {
   static const int ClosureCreation = 106;
 
   static const int ConstantExpression = 107;
+
+  // Note that 108 is occupied by [RedirectingFactoryConstructor] above.
 
   static const int SpecializedTagHighBit = 0x80; // 10000000
   static const int SpecializedTagMask = 0xF8; // 11111000

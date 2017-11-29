@@ -16,8 +16,6 @@ void train() {
     IsAnInt(42); // Smi - always goes first in the generated code.
     IsAnInt(1 << 62); // Mint on 64 bit platforms.
     IsAnInt(1 << 62);
-    IsAnInt(4200000000000000000000000000000000000); // BigInt
-    IsAnInt(4200000000000000000000000000000000000);
     // This one that is not an int goes last in the IC because it is called
     // less frequently.
     IsAnInt(4.2);

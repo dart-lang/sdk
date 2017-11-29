@@ -53,11 +53,10 @@
   R(break_at_isolate_spawn, false, bool, false,                                \
     "Insert a one-time breakpoint at the entrypoint for all spawned isolates") \
   P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
-  C(collect_code, false, true, bool, true,                                     \
-    "Attempt to GC infrequently used code.")                                   \
+  P(collect_code, bool, true, "Attempt to GC infrequently used code.")         \
   P(collect_dynamic_function_names, bool, true,                                \
     "Collects all dynamic function names to identify unique targets")          \
-  R(concurrent_sweep, USING_MULTICORE, bool, USING_MULTICORE,                  \
+  P(concurrent_sweep, bool, USING_MULTICORE,                                   \
     "Concurrent sweep for old generation.")                                    \
   R(dedup_instructions, true, bool, false,                                     \
     "Canonicalize instructions when precompiling.")                            \
@@ -175,10 +174,7 @@
   D(trace_zones, bool, false, "Traces allocation sizes in the zone.")          \
   P(truncating_left_shift, bool, true,                                         \
     "Optimize left shift to truncate if possible")                             \
-  R(use_compactor_evacuating, false, bool, false,                              \
-    "Compact the heap during old-space GC.")                                   \
-  R(use_compactor_sliding, false, bool, false,                                 \
-    "Compact the heap during old-space GC.")                                   \
+  P(use_compactor, bool, false, "Compact the heap during old-space GC.")       \
   P(use_cha_deopt, bool, true,                                                 \
     "Use class hierarchy analysis even if it can cause deoptimization.")       \
   P(use_field_guards, bool, !USING_DBC,                                        \

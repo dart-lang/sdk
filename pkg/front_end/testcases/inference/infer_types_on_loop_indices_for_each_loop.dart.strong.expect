@@ -14,7 +14,7 @@ class Bar<T extends core::Iterable<core::String>> extends core::Object {
     ;
   method foo(generic-covariant-impl generic-covariant-interface self::Bar::T t) → void {
     for (core::String i in t) {
-      core::int x = i;
+      core::int x = i as{TypeError} core::int;
     }
   }
 }
@@ -24,7 +24,7 @@ class Baz<T extends core::Object, E extends core::Iterable<self::Baz::T>, S exte
     ;
   method foo(generic-covariant-impl generic-covariant-interface self::Baz::S t) → void {
     for (self::Baz::T i in t) {
-      core::int x = i;
+      core::int x = i as{TypeError} core::int;
       self::Baz::T y = i;
     }
   }
@@ -32,10 +32,10 @@ class Baz<T extends core::Object, E extends core::Iterable<self::Baz::T>, S exte
 static method test() → dynamic {
   core::List<self::Foo> list = <self::Foo>[];
   for (self::Foo x in list) {
-    core::String y = x;
+    core::String y = x as{TypeError} core::String;
   }
   for (dynamic x in list) {
-    core::String y = x;
+    core::String y = x as{TypeError} core::String;
   }
   for (core::String x in list) {
     core::String y = x;
@@ -43,7 +43,7 @@ static method test() → dynamic {
   dynamic z;
   for (final dynamic #t1 in list) {
     z = #t1;
-    core::String y = z;
+    core::String y = z as{TypeError} core::String;
   }
   core::Iterable<dynamic> iter = list;
   for (self::Foo x in iter) {
@@ -55,7 +55,7 @@ static method test() → dynamic {
   }
   core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
   for (dynamic x in map) {
-    core::String y = x;
+    core::String y = x as{TypeError} core::String;
   }
   for (core::String x in map.{core::Map::keys}) {
     core::String y = x;

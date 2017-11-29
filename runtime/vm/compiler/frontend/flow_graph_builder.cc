@@ -3909,7 +3909,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
-  if (Isolate::Current()->type_checks() && is_top_level_sequence) {
+  if (is_top_level_sequence && isolate()->argument_type_checks()) {
     const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsFactory() || function.IsDynamicFunction() ||

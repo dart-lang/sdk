@@ -97,8 +97,7 @@ class KernelSsaBuilder implements SsaBuilder {
         _elementMap.getMemberThisType(work.element),
         _compiler,
         _elementMap,
-        new KernelToTypeInferenceMapImpl(
-            work.element, _compiler.globalInference.results),
+        _compiler.globalInference.results,
         _globalLocalsMap,
         closedWorld,
         _compiler.codegenWorldBuilder,

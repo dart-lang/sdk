@@ -234,6 +234,7 @@ config("compiler") {
       "-Wl,-z,noexecstack",
       "-Wl,-z,now",
       "-Wl,-z,relro",
+      "-Wl,--build-id=none",
     ]
   }
 

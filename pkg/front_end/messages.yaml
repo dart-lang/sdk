@@ -112,6 +112,13 @@ EmptyOptionalParameterList:
       foo();
     }
 
+ExpectedBlock:
+  template: "Expected a block."
+  tip: "Try adding {}."
+  analyzerCode: EXPECTED_TOKEN
+  dart2jsCode: "*fatal*"
+  script: "try finally {}"
+
 ExpectedBlockToSkip:
   template: "Expected a function body or '=>'."
   # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.

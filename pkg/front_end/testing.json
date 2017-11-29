@@ -51,6 +51,7 @@
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
         "/testcases/shaker/"
       ]
     },
@@ -67,6 +68,7 @@
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
         "/testcases/shaker/"
       ]
     },
@@ -83,6 +85,7 @@
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
         "/testcases/shaker/"
       ]
     },
@@ -99,6 +102,7 @@
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
+        "/testcases/dartino/",
         "/testcases/shaker/"
       ]
     },
@@ -113,6 +117,7 @@
         "\\.dart$"
       ],
       "exclude": [
+        "/testcases/dartino/",
         "/shaker/lib/.*\\.dart$",
         "/shaker/.*_lib[0-9]*\\.dart$"
       ]

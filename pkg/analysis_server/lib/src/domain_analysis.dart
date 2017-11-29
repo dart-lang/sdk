@@ -28,6 +28,9 @@ import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 
+// TODO(devoncarew): See #31456 for the tracking issue to remove this flag.
+final bool disableManageImportsOnPaste = true;
+
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
  * that handles requests in the `analysis` domain.
@@ -108,12 +111,20 @@ class AnalysisDomainHandler extends AbstractRequestHandler {
     if (result == null) {
       server.sendResponse(new Response.getImportedElementsInvalidFile(request));
     }
+
+    List<ImportedElements> elements;
+
     //
     // Compute the list of imported elements.
     //
-    List<ImportedElements> elements =
-        new ImportedElementsComputer(result.unit, params.offset, params.length)
-            .compute();
+    if (disableManageImportsOnPaste) {
+      elements = <ImportedElements>[];
+    } else {
+      elements = new ImportedElementsComputer(
+              result.unit, params.offset, params.length)
+          .compute();
+    }
+
     //
     // Send the response.
     //

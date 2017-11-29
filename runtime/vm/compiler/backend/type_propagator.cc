@@ -64,7 +64,7 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     types_.Add(NULL);
   }
 
-  if (Isolate::Current()->type_checks()) {
+  if (Isolate::Current()->argument_type_checks()) {
     asserts_ = new ZoneGrowableArray<AssertAssignableInstr*>(
         flow_graph->current_ssa_temp_index());
     for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {

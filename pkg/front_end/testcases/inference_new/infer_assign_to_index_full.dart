@@ -40,7 +40,7 @@ class Test {
         /*@typeArgs=dynamic*/ f()] = /*@typeArgs=B*/ f();
     var /*@type=B*/ v2 = t /*@target=Test::[]=*/ [
         /*@typeArgs=dynamic*/ f()] ??= /*@typeArgs=B*/ f();
-    var /*@type=B*/ v3 = t /*@target=Test::[]=*/ [
+    var /*@type=A*/ v3 = t /*@target=Test::[]=*/ [
         /*@typeArgs=dynamic*/ f()] += /*@typeArgs=dynamic*/ f();
     var /*@type=B*/ v4 = t /*@target=Test::[]=*/ [
         /*@typeArgs=dynamic*/ f()] *= /*@typeArgs=dynamic*/ f();

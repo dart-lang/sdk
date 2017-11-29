@@ -31,32 +31,56 @@ class TypeInferenceBase {
 /// Mixin which can be applied to [TypeInferenceListener] to cause debug info to
 /// be printed.
 class TypeInferenceDebugging implements TypeInferenceBase {
+  int _indentLevel = 0;
+
+  String get _indent => '| ' * _indentLevel;
+
   bool genericExpressionEnter(
       String expressionType, Expression expression, DartType typeContext) {
-    print('Enter $expressionType($expression) (context=$typeContext)');
+    _enter('genericExpressionEnter', '$expressionType($expression)',
+        '(offset=${expression.fileOffset}, context=$typeContext)');
     return true;
   }
 
   void genericExpressionExit(
       String expressionType, Expression expression, DartType inferredType) {
-    print('Exit $expressionType($expression) (type=$inferredType)');
+    _exit('genericExpressionExit', '$expressionType($expression)',
+        '(offset=${expression.fileOffset}, type=$inferredType)');
   }
 
   void genericInitializerEnter(
       String initializerType, Initializer initializer) {
-    print('Enter $initializerType($initializer)');
+    _enter('genericInitializerEnter', '$initializerType($initializer)',
+        '(offset=${initializer.fileOffset})');
   }
 
   void genericInitializerExit(String initializerType, Initializer initializer) {
-    print('Exit $initializerType($initializer)');
+    _exit('genericInitializerExit', '$initializerType($initializer)',
+        '(offset=${initializer.fileOffset})');
   }
 
   void genericStatementEnter(String statementType, Statement statement) {
-    print('Enter $statementType($statement)');
+    _enter('genericStatementEnter', '$statementType($statement)',
+        '(offset=${statement.fileOffset})');
   }
 
   void genericStatementExit(String statementType, Statement statement) {
-    print('Exit $statementType($statement)');
+    _exit('genericStatementExit', '$statementType($statement)',
+        '(offset=${statement.fileOffset})');
+  }
+
+  void _enter(String methodName, String description, String details) {
+    print('$_indent$methodName');
+    print('$_indent|   $description');
+    print('$_indent|   $details');
+    _indentLevel++;
+  }
+
+  void _exit(String methodName, String description, String details) {
+    _indentLevel--;
+    print('$_indent$methodName');
+    print('$_indent    $description');
+    print('$_indent    $details');
   }
 }
 
@@ -216,7 +240,10 @@ class TypeInferenceListener
   bool indexAssignEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("indexAssign", expression, typeContext);
 
-  void indexAssignExit(Expression expression, DartType inferredType) =>
+  void indexAssignAfterReceiver(Expression expression, DartType typeContext) {}
+
+  void indexAssignExit(Expression expression, Expression write,
+          Member writeMember, Procedure combiner, DartType inferredType) =>
       genericExpressionExit("indexAssign", expression, inferredType);
 
   bool intLiteralEnter(IntLiteral expression, DartType typeContext) =>
@@ -275,7 +302,7 @@ class TypeInferenceListener
       genericExpressionEnter("methodInvocation", expression, typeContext);
 
   void methodInvocationExit(Expression expression, Arguments arguments,
-          bool isImplicitCall, DartType inferredType) =>
+          bool isImplicitCall, Object interfaceMember, DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
 
   bool namedFunctionExpressionEnter(Let expression, DartType typeContext) =>
@@ -298,16 +325,24 @@ class TypeInferenceListener
   void nullLiteralExit(NullLiteral expression, DartType inferredType) =>
       genericExpressionExit("nullLiteral", expression, inferredType);
 
-  bool propertyAssignEnter(Expression expression, DartType typeContext) =>
+  bool propertyAssignEnter(
+          Expression expression, Expression write, DartType typeContext) =>
       genericExpressionEnter("propertyAssign", expression, typeContext);
 
-  void propertyAssignExit(Expression expression, DartType inferredType) =>
+  void propertyAssignExit(
+          Expression expression,
+          Expression write,
+          Member writeMember,
+          DartType writeContext,
+          Procedure combiner,
+          DartType inferredType) =>
       genericExpressionExit("propertyAssign", expression, inferredType);
 
   bool propertyGetEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("propertyGet", expression, typeContext);
 
-  void propertyGetExit(Expression expression, DartType inferredType) =>
+  void propertyGetExit(
+          Expression expression, Object member, DartType inferredType) =>
       genericExpressionExit("propertyGet", expression, inferredType);
 
   bool propertySetEnter(PropertySet expression, DartType typeContext) =>
@@ -419,13 +454,15 @@ class TypeInferenceListener
   bool variableAssignEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("variableAssign", expression, typeContext);
 
-  void variableAssignExit(Expression expression, DartType inferredType) =>
+  void variableAssignExit(Expression expression, DartType writeContext,
+          Procedure combiner, DartType inferredType) =>
       genericExpressionExit("variableAssign", expression, inferredType);
 
   void variableDeclarationEnter(VariableDeclaration statement) =>
       genericStatementEnter('variableDeclaration', statement);
 
-  void variableDeclarationExit(VariableDeclaration statement) =>
+  void variableDeclarationExit(
+          VariableDeclaration statement, DartType inferredType) =>
       genericStatementExit('variableDeclaration', statement);
 
   bool variableGetEnter(VariableGet expression, DartType typeContext) =>

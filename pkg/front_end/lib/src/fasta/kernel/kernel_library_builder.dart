@@ -148,6 +148,7 @@ class KernelLibraryBuilder
       KernelTypeBuilder supertype,
       List<KernelTypeBuilder> interfaces,
       int charOffset,
+      int charEndOffset,
       int supertypeOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     var declaration = endNestedDeclaration(className)
@@ -179,7 +180,8 @@ class KernelLibraryBuilder
         constructorScope,
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
-        charOffset);
+        charOffset,
+        charEndOffset);
     loader.target.metadataCollector
         ?.setDocumentationComment(cls.target, documentationComment);
 
@@ -284,6 +286,7 @@ class KernelLibraryBuilder
           this,
           <ConstructorReferenceBuilder>[],
           charOffset,
+          TreeNode.noOffset,
           null,
           mixin);
       loader.target.metadataCollector

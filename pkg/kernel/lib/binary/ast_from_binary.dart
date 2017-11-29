@@ -621,7 +621,8 @@ class BinaryBuilder {
       library.fileUri = fileUri;
     }
 
-    debugPath.add(library.name ?? library.importUri?.toString() ?? 'library');
+    assert(((_) => true)(debugPath
+        .add(library.name ?? library.importUri?.toString() ?? 'library')));
 
     if (shouldWriteData) {
       _fillTreeNodeList(
@@ -646,7 +647,7 @@ class BinaryBuilder {
     }, library);
     _byteOffset = procedureOffsets.last;
 
-    debugPath.removeLast();
+    assert(((_) => true)(debugPath.removeLast()));
     _currentLibrary = null;
     return library;
   }
@@ -779,7 +780,7 @@ class BinaryBuilder {
     var name = readStringOrNullIfEmpty();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
-    debugPath.add(node.name ?? 'normal-class');
+    assert(((_) => true)(debugPath.add(node.name ?? 'normal-class')));
     readAndPushTypeParameterList(node.typeParameters, node);
     var supertype = readSupertypeOption();
     var mixedInType = readSupertypeOption();
@@ -796,8 +797,10 @@ class BinaryBuilder {
       return readProcedure(procedureOffsets[index + 1]);
     }, node);
     _byteOffset = procedureOffsets.last;
+    _mergeNamedNodeList(node.redirectingFactoryConstructors,
+        (index) => readRedirectingFactoryConstructor(), node);
     typeParameterStack.length = 0;
-    debugPath.removeLast();
+    assert(debugPath.removeLast() != null);
     if (shouldWriteData) {
       node.name = name;
       node.fileUri = fileUri;
@@ -839,11 +842,11 @@ class BinaryBuilder {
     var name = readName();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
-    debugPath.add(node.name?.name ?? 'field');
+    assert(((_) => true)(debugPath.add(node.name?.name ?? 'field')));
     var type = readDartType();
     var initializer = readExpressionOption();
     int transformerFlags = getAndResetTransformerFlags();
-    debugPath.removeLast();
+    assert(((_) => true)(debugPath.removeLast()));
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
@@ -875,7 +878,7 @@ class BinaryBuilder {
     var flags = readByte();
     var name = readName();
     var annotations = readAnnotationList(node);
-    debugPath.add(node.name?.name ?? 'constructor');
+    assert(((_) => true)(debugPath.add(node.name?.name ?? 'constructor')));
     var function = readFunctionNode(false, -1);
     pushVariableDeclarations(function.positionalParameters);
     pushVariableDeclarations(function.namedParameters);
@@ -886,7 +889,7 @@ class BinaryBuilder {
     }
     variableStack.length = 0;
     var transformerFlags = getAndResetTransformerFlags();
-    debugPath.removeLast();
+    assert(((_) => true)(debugPath.removeLast()));
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
@@ -917,7 +920,7 @@ class BinaryBuilder {
     var name = readName();
     var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
-    debugPath.add(node.name?.name ?? 'procedure');
+    assert(((_) => true)(debugPath.add(node.name?.name ?? 'procedure')));
     int functionNodeSize = endOffset - _byteOffset;
     // Read small factories up front. Postpone everything else.
     bool readFunctionNodeNow =
@@ -925,7 +928,7 @@ class BinaryBuilder {
             _disableLazyReading;
     var function = readFunctionNodeOption(!readFunctionNodeNow, endOffset);
     var transformerFlags = getAndResetTransformerFlags();
-    debugPath.removeLast();
+    assert(((_) => true)(debugPath.removeLast()));
     if (shouldWriteData) {
       node.fileOffset = fileOffset;
       node.fileEndOffset = fileEndOffset;
@@ -939,6 +942,50 @@ class BinaryBuilder {
       node.transformerFlags = transformerFlags;
     }
     _byteOffset = endOffset;
+    return node;
+  }
+
+  RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
+    int tag = readByte();
+    assert(tag == Tag.RedirectingFactoryConstructor);
+    var canonicalName = readCanonicalNameReference();
+    var reference = canonicalName.getReference();
+    RedirectingFactoryConstructor node = reference.node;
+    bool shouldWriteData = node == null || _isReadingLibraryImplementation;
+    if (node == null) {
+      node = new RedirectingFactoryConstructor(null, reference: reference);
+    }
+    var fileOffset = readOffset();
+    var fileEndOffset = readOffset();
+    var flags = readByte();
+    var name = readName();
+    var annotations = readAnnotationList(node);
+    debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
+    var targetReference = readMemberReference();
+    var typeArguments = readDartTypeList();
+    int typeParameterStackHeight = typeParameterStack.length;
+    var typeParameters = readAndPushTypeParameterList();
+    readUInt(); // Total parameter count.
+    var requiredParameterCount = readUInt();
+    int variableStackHeight = variableStack.length;
+    var positional = readAndPushVariableDeclarationList();
+    var named = readAndPushVariableDeclarationList();
+    variableStack.length = variableStackHeight;
+    typeParameterStack.length = typeParameterStackHeight;
+    debugPath.removeLast();
+    if (shouldWriteData) {
+      node.fileOffset = fileOffset;
+      node.fileEndOffset = fileEndOffset;
+      node.flags = flags;
+      node.name = name;
+      node.annotations = annotations;
+      node.targetReference = targetReference;
+      node.typeArguments.addAll(typeArguments);
+      node.typeParameters = typeParameters;
+      node.requiredParameterCount = requiredParameterCount;
+      node.positionalParameters = positional;
+      node.namedParameters = named;
+    }
     return node;
   }
 
@@ -1133,9 +1180,11 @@ class BinaryBuilder {
           ..flags = flags;
       case Tag.PropertySet:
         int offset = readOffset();
+        int flags = readByte();
         return new PropertySet.byReference(readExpression(), readName(),
             readExpression(), readMemberReference(allowNull: true))
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.SuperPropertyGet:
         int offset = readOffset();
         addTransformerFlag(TransformerFlag.superCalls);
@@ -1157,9 +1206,11 @@ class BinaryBuilder {
           ..flags = flags;
       case Tag.DirectPropertySet:
         int offset = readOffset();
+        int flags = readByte();
         return new DirectPropertySet.byReference(
             readExpression(), readMemberReference(), readExpression())
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.StaticGet:
         int offset = readOffset();
         return new StaticGet.byReference(readMemberReference())
@@ -1906,6 +1957,13 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   Procedure readProcedure(int endOffset) {
     final nodeOffset = _byteOffset;
     final result = super.readProcedure(endOffset);
+    return _associateMetadata(result, nodeOffset);
+  }
+
+  @override
+  RedirectingFactoryConstructor readRedirectingFactoryConstructor() {
+    final nodeOffset = _byteOffset;
+    final result = super.readRedirectingFactoryConstructor();
     return _associateMetadata(result, nodeOffset);
   }
 

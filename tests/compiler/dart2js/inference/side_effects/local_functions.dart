@@ -4,31 +4,31 @@
 
 var field;
 
-/*element: anonymousClosureUnused:Depends on nothing, Changes nothing.*/
+/*element: anonymousClosureUnused:SideEffects(reads nothing; writes nothing)*/
 anonymousClosureUnused() {
-  /*Depends on static store, Changes nothing.*/
+  /*SideEffects(reads static; writes nothing)*/
   () => field;
 }
 
-/*element: anonymousClosureCalled:Depends on [] field store static store, Changes [] field static.*/
+/*element: anonymousClosureCalled:SideEffects(reads anything; writes anything)*/
 anonymousClosureCalled() {
-  var localFunction = /*Depends on static store, Changes nothing.*/ () => field;
+  var localFunction = /*SideEffects(reads static; writes nothing)*/ () => field;
   return localFunction();
 }
 
-/*element: localFunctionUnused:Depends on nothing, Changes nothing.*/
+/*element: localFunctionUnused:SideEffects(reads nothing; writes nothing)*/
 localFunctionUnused() {
   // ignore: UNUSED_ELEMENT
-  /*Depends on static store, Changes nothing.*/ localFunction() => field;
+  /*SideEffects(reads static; writes nothing)*/ localFunction() => field;
 }
 
-/*element: localFunctionCalled:Depends on static store, Changes nothing.*/
+/*element: localFunctionCalled:SideEffects(reads static; writes nothing)*/
 localFunctionCalled() {
-  /*Depends on static store, Changes nothing.*/ localFunction() => field;
+  /*SideEffects(reads static; writes nothing)*/ localFunction() => field;
   return localFunction();
 }
 
-/*element: main:Depends on [] field store static store, Changes [] field static.*/
+/*element: main:SideEffects(reads anything; writes anything)*/
 main() {
   anonymousClosureUnused();
   anonymousClosureCalled();

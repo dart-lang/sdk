@@ -19,11 +19,11 @@ abstract class Test1 extends self::Base<core::int, core::int> {
     ;
   method test() → void {
     core::int v1 = let final core::String #t1 = "x" in let final core::int #t2 = self::getInt() in let final void #t3 = super.{self::Base::[]=}(#t1, #t2) in #t2;
-    core::int v2 = let final core::String #t4 = "x" in let final core::int #t5 = self::getNum() as{TypeError} core::int in let final void #t6 = super.{self::Base::[]=}(#t4, #t5) in #t5;
+    core::num v2 = let final core::String #t4 = "x" in let final core::num #t5 = self::getNum() as{TypeError} core::int in let final void #t6 = super.{self::Base::[]=}(#t4, #t5) in #t5;
     core::int v4 = let final core::String #t7 = "x" in let final core::int #t8 = super.{self::Base::[]}(#t7) in #t8.{core::num::==}(null) ?{core::int} let final core::int #t9 = self::getInt() in let final void #t10 = super.{self::Base::[]=}(#t7, #t9) in #t9 : #t8;
-    core::int v5 = let final core::String #t11 = "x" in let final core::int #t12 = super.{self::Base::[]}(#t11) in #t12.{core::num::==}(null) ?{core::int} let final core::int #t13 = self::getNum() as{TypeError} core::int in let final void #t14 = super.{self::Base::[]=}(#t11, #t13) in #t13 : #t12;
+    core::num v5 = let final core::String #t11 = "x" in let final core::int #t12 = super.{self::Base::[]}(#t11) in #t12.{core::num::==}(null) ?{core::num} let final core::num #t13 = self::getNum() as{TypeError} core::int in let final void #t14 = super.{self::Base::[]=}(#t11, #t13) in #t13 : #t12;
     core::int v7 = let final core::String #t15 = "x" in let final core::int #t16 = super.{self::Base::[]}(#t15).{core::num::+}(self::getInt()) in let final void #t17 = super.{self::Base::[]=}(#t15, #t16) in #t16;
-    core::int v8 = let final core::String #t18 = "x" in let final core::int #t19 = super.{self::Base::[]}(#t18).{core::num::+}(self::getNum()) as{TypeError} core::int in let final void #t20 = super.{self::Base::[]=}(#t18, #t19) in #t19;
+    core::num v8 = let final core::String #t18 = "x" in let final core::num #t19 = super.{self::Base::[]}(#t18).{core::num::+}(self::getNum()) as{TypeError} core::int in let final void #t20 = super.{self::Base::[]=}(#t18, #t19) in #t19;
     core::int v10 = let final core::String #t21 = "x" in let final core::int #t22 = super.{self::Base::[]}(#t21).{core::num::+}(1) in let final void #t23 = super.{self::Base::[]=}(#t21, #t22) in #t22;
     core::int v11 = let final core::String #t24 = "x" in let final core::int #t25 = super.{self::Base::[]}(#t24) in let final void #t26 = super.{self::Base::[]=}(#t24, #t25.{core::num::+}(1)) in #t25;
   }
@@ -55,14 +55,14 @@ abstract class Test3 extends self::Base<core::int, core::double> {
     : super self::Base::•()
     ;
   method test() → void {
-    core::double v2 = let final core::String #t63 = "x" in let final core::double #t64 = self::getNum() as{TypeError} core::double in let final void #t65 = super.{self::Base::[]=}(#t63, #t64) in #t64;
+    core::num v2 = let final core::String #t63 = "x" in let final core::num #t64 = self::getNum() as{TypeError} core::double in let final void #t65 = super.{self::Base::[]=}(#t63, #t64) in #t64;
     core::double v3 = let final core::String #t66 = "x" in let final core::double #t67 = self::getDouble() in let final void #t68 = super.{self::Base::[]=}(#t66, #t67) in #t67;
-    core::num v5 = let final core::String #t69 = "x" in let final core::int #t70 = super.{self::Base::[]}(#t69) in #t70.{core::num::==}(null) ?{core::num} let final core::double #t71 = self::getNum() as{TypeError} core::double in let final void #t72 = super.{self::Base::[]=}(#t69, #t71) in #t71 : #t70;
+    core::num v5 = let final core::String #t69 = "x" in let final core::int #t70 = super.{self::Base::[]}(#t69) in #t70.{core::num::==}(null) ?{core::num} let final core::num #t71 = self::getNum() as{TypeError} core::double in let final void #t72 = super.{self::Base::[]=}(#t69, #t71) in #t71 : #t70;
     core::num v6 = let final core::String #t73 = "x" in let final core::int #t74 = super.{self::Base::[]}(#t73) in #t74.{core::num::==}(null) ?{core::num} let final core::double #t75 = self::getDouble() in let final void #t76 = super.{self::Base::[]=}(#t73, #t75) in #t75 : #t74;
-    core::double v7 = let final core::String #t77 = "x" in let final core::double #t78 = super.{self::Base::[]}(#t77).{core::num::+}(self::getInt()) as{TypeError} core::double in let final void #t79 = super.{self::Base::[]=}(#t77, #t78) in #t78;
-    core::double v8 = let final core::String #t80 = "x" in let final core::double #t81 = super.{self::Base::[]}(#t80).{core::num::+}(self::getNum()) as{TypeError} core::double in let final void #t82 = super.{self::Base::[]=}(#t80, #t81) in #t81;
+    core::int v7 = let final core::String #t77 = "x" in let final core::int #t78 = super.{self::Base::[]}(#t77).{core::num::+}(self::getInt()) as{TypeError} core::double in let final void #t79 = super.{self::Base::[]=}(#t77, #t78) in #t78;
+    core::num v8 = let final core::String #t80 = "x" in let final core::num #t81 = super.{self::Base::[]}(#t80).{core::num::+}(self::getNum()) as{TypeError} core::double in let final void #t82 = super.{self::Base::[]=}(#t80, #t81) in #t81;
     core::double v9 = let final core::String #t83 = "x" in let final core::double #t84 = super.{self::Base::[]}(#t83).{core::num::+}(self::getDouble()) in let final void #t85 = super.{self::Base::[]=}(#t83, #t84) in #t84;
-    core::double v10 = let final core::String #t86 = "x" in let final core::double #t87 = super.{self::Base::[]}(#t86).{core::num::+}(1) as{TypeError} core::double in let final void #t88 = super.{self::Base::[]=}(#t86, #t87) in #t87;
+    core::int v10 = let final core::String #t86 = "x" in let final core::int #t87 = super.{self::Base::[]}(#t86).{core::num::+}(1) as{TypeError} core::double in let final void #t88 = super.{self::Base::[]=}(#t86, #t87) in #t87;
     core::int v11 = let final core::String #t89 = "x" in let final core::int #t90 = super.{self::Base::[]}(#t89) in let final void #t91 = super.{self::Base::[]=}(#t89, #t90.{core::num::+}(1) as{TypeError} core::double) in #t90;
   }
   abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::double v) → void;
@@ -74,12 +74,12 @@ abstract class Test4 extends self::Base<core::num, core::int> {
     ;
   method test() → void {
     core::int v1 = let final core::String #t92 = "x" in let final core::int #t93 = self::getInt() in let final void #t94 = super.{self::Base::[]=}(#t92, #t93) in #t93;
-    core::int v2 = let final core::String #t95 = "x" in let final core::int #t96 = self::getNum() as{TypeError} core::int in let final void #t97 = super.{self::Base::[]=}(#t95, #t96) in #t96;
+    core::num v2 = let final core::String #t95 = "x" in let final core::num #t96 = self::getNum() as{TypeError} core::int in let final void #t97 = super.{self::Base::[]=}(#t95, #t96) in #t96;
     core::num v4 = let final core::String #t98 = "x" in let final core::num #t99 = super.{self::Base::[]}(#t98) in #t99.{core::num::==}(null) ?{core::num} let final core::int #t100 = self::getInt() in let final void #t101 = super.{self::Base::[]=}(#t98, #t100) in #t100 : #t99;
-    core::num v5 = let final core::String #t102 = "x" in let final core::num #t103 = super.{self::Base::[]}(#t102) in #t103.{core::num::==}(null) ?{core::num} let final core::int #t104 = self::getNum() as{TypeError} core::int in let final void #t105 = super.{self::Base::[]=}(#t102, #t104) in #t104 : #t103;
-    core::int v7 = let final core::String #t106 = "x" in let final core::int #t107 = super.{self::Base::[]}(#t106).{core::num::+}(self::getInt()) as{TypeError} core::int in let final void #t108 = super.{self::Base::[]=}(#t106, #t107) in #t107;
-    core::int v8 = let final core::String #t109 = "x" in let final core::int #t110 = super.{self::Base::[]}(#t109).{core::num::+}(self::getNum()) as{TypeError} core::int in let final void #t111 = super.{self::Base::[]=}(#t109, #t110) in #t110;
-    core::int v10 = let final core::String #t112 = "x" in let final core::int #t113 = super.{self::Base::[]}(#t112).{core::num::+}(1) as{TypeError} core::int in let final void #t114 = super.{self::Base::[]=}(#t112, #t113) in #t113;
+    core::num v5 = let final core::String #t102 = "x" in let final core::num #t103 = super.{self::Base::[]}(#t102) in #t103.{core::num::==}(null) ?{core::num} let final core::num #t104 = self::getNum() as{TypeError} core::int in let final void #t105 = super.{self::Base::[]=}(#t102, #t104) in #t104 : #t103;
+    core::num v7 = let final core::String #t106 = "x" in let final core::num #t107 = super.{self::Base::[]}(#t106).{core::num::+}(self::getInt()) as{TypeError} core::int in let final void #t108 = super.{self::Base::[]=}(#t106, #t107) in #t107;
+    core::num v8 = let final core::String #t109 = "x" in let final core::num #t110 = super.{self::Base::[]}(#t109).{core::num::+}(self::getNum()) as{TypeError} core::int in let final void #t111 = super.{self::Base::[]=}(#t109, #t110) in #t110;
+    core::num v10 = let final core::String #t112 = "x" in let final core::num #t113 = super.{self::Base::[]}(#t112).{core::num::+}(1) as{TypeError} core::int in let final void #t114 = super.{self::Base::[]=}(#t112, #t113) in #t113;
     core::num v11 = let final core::String #t115 = "x" in let final core::num #t116 = super.{self::Base::[]}(#t115) in let final void #t117 = super.{self::Base::[]=}(#t115, #t116.{core::num::+}(1) as{TypeError} core::int) in #t116;
   }
   abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::int v) → void;
@@ -110,14 +110,14 @@ abstract class Test6 extends self::Base<core::num, core::double> {
     : super self::Base::•()
     ;
   method test() → void {
-    core::double v2 = let final core::String #t154 = "x" in let final core::double #t155 = self::getNum() as{TypeError} core::double in let final void #t156 = super.{self::Base::[]=}(#t154, #t155) in #t155;
+    core::num v2 = let final core::String #t154 = "x" in let final core::num #t155 = self::getNum() as{TypeError} core::double in let final void #t156 = super.{self::Base::[]=}(#t154, #t155) in #t155;
     core::double v3 = let final core::String #t157 = "x" in let final core::double #t158 = self::getDouble() in let final void #t159 = super.{self::Base::[]=}(#t157, #t158) in #t158;
-    core::num v5 = let final core::String #t160 = "x" in let final core::num #t161 = super.{self::Base::[]}(#t160) in #t161.{core::num::==}(null) ?{core::num} let final core::double #t162 = self::getNum() as{TypeError} core::double in let final void #t163 = super.{self::Base::[]=}(#t160, #t162) in #t162 : #t161;
+    core::num v5 = let final core::String #t160 = "x" in let final core::num #t161 = super.{self::Base::[]}(#t160) in #t161.{core::num::==}(null) ?{core::num} let final core::num #t162 = self::getNum() as{TypeError} core::double in let final void #t163 = super.{self::Base::[]=}(#t160, #t162) in #t162 : #t161;
     core::num v6 = let final core::String #t164 = "x" in let final core::num #t165 = super.{self::Base::[]}(#t164) in #t165.{core::num::==}(null) ?{core::num} let final core::double #t166 = self::getDouble() in let final void #t167 = super.{self::Base::[]=}(#t164, #t166) in #t166 : #t165;
-    core::double v7 = let final core::String #t168 = "x" in let final core::double #t169 = super.{self::Base::[]}(#t168).{core::num::+}(self::getInt()) as{TypeError} core::double in let final void #t170 = super.{self::Base::[]=}(#t168, #t169) in #t169;
-    core::double v8 = let final core::String #t171 = "x" in let final core::double #t172 = super.{self::Base::[]}(#t171).{core::num::+}(self::getNum()) as{TypeError} core::double in let final void #t173 = super.{self::Base::[]=}(#t171, #t172) in #t172;
-    core::double v9 = let final core::String #t174 = "x" in let final core::double #t175 = super.{self::Base::[]}(#t174).{core::num::+}(self::getDouble()) as{TypeError} core::double in let final void #t176 = super.{self::Base::[]=}(#t174, #t175) in #t175;
-    core::double v10 = let final core::String #t177 = "x" in let final core::double #t178 = super.{self::Base::[]}(#t177).{core::num::+}(1) as{TypeError} core::double in let final void #t179 = super.{self::Base::[]=}(#t177, #t178) in #t178;
+    core::num v7 = let final core::String #t168 = "x" in let final core::num #t169 = super.{self::Base::[]}(#t168).{core::num::+}(self::getInt()) as{TypeError} core::double in let final void #t170 = super.{self::Base::[]=}(#t168, #t169) in #t169;
+    core::num v8 = let final core::String #t171 = "x" in let final core::num #t172 = super.{self::Base::[]}(#t171).{core::num::+}(self::getNum()) as{TypeError} core::double in let final void #t173 = super.{self::Base::[]=}(#t171, #t172) in #t172;
+    core::num v9 = let final core::String #t174 = "x" in let final core::num #t175 = super.{self::Base::[]}(#t174).{core::num::+}(self::getDouble()) as{TypeError} core::double in let final void #t176 = super.{self::Base::[]=}(#t174, #t175) in #t175;
+    core::num v10 = let final core::String #t177 = "x" in let final core::num #t178 = super.{self::Base::[]}(#t177).{core::num::+}(1) as{TypeError} core::double in let final void #t179 = super.{self::Base::[]=}(#t177, #t178) in #t178;
     core::num v11 = let final core::String #t180 = "x" in let final core::num #t181 = super.{self::Base::[]}(#t180) in let final void #t182 = super.{self::Base::[]=}(#t180, #t181.{core::num::+}(1) as{TypeError} core::double) in #t181;
   }
   abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::double v) → void;
@@ -129,12 +129,12 @@ abstract class Test7 extends self::Base<core::double, core::int> {
     ;
   method test() → void {
     core::int v1 = let final core::String #t183 = "x" in let final core::int #t184 = self::getInt() in let final void #t185 = super.{self::Base::[]=}(#t183, #t184) in #t184;
-    core::int v2 = let final core::String #t186 = "x" in let final core::int #t187 = self::getNum() as{TypeError} core::int in let final void #t188 = super.{self::Base::[]=}(#t186, #t187) in #t187;
+    core::num v2 = let final core::String #t186 = "x" in let final core::num #t187 = self::getNum() as{TypeError} core::int in let final void #t188 = super.{self::Base::[]=}(#t186, #t187) in #t187;
     core::num v4 = let final core::String #t189 = "x" in let final core::double #t190 = super.{self::Base::[]}(#t189) in #t190.{core::num::==}(null) ?{core::num} let final core::int #t191 = self::getInt() in let final void #t192 = super.{self::Base::[]=}(#t189, #t191) in #t191 : #t190;
-    core::num v5 = let final core::String #t193 = "x" in let final core::double #t194 = super.{self::Base::[]}(#t193) in #t194.{core::num::==}(null) ?{core::num} let final core::int #t195 = self::getNum() as{TypeError} core::int in let final void #t196 = super.{self::Base::[]=}(#t193, #t195) in #t195 : #t194;
-    core::int v7 = let final core::String #t197 = "x" in let final core::int #t198 = super.{self::Base::[]}(#t197).{core::double::+}(self::getInt()) as{TypeError} core::int in let final void #t199 = super.{self::Base::[]=}(#t197, #t198) in #t198;
-    core::int v8 = let final core::String #t200 = "x" in let final core::int #t201 = super.{self::Base::[]}(#t200).{core::double::+}(self::getNum()) as{TypeError} core::int in let final void #t202 = super.{self::Base::[]=}(#t200, #t201) in #t201;
-    core::int v10 = let final core::String #t203 = "x" in let final core::int #t204 = super.{self::Base::[]}(#t203).{core::double::+}(1) as{TypeError} core::int in let final void #t205 = super.{self::Base::[]=}(#t203, #t204) in #t204;
+    core::num v5 = let final core::String #t193 = "x" in let final core::double #t194 = super.{self::Base::[]}(#t193) in #t194.{core::num::==}(null) ?{core::num} let final core::num #t195 = self::getNum() as{TypeError} core::int in let final void #t196 = super.{self::Base::[]=}(#t193, #t195) in #t195 : #t194;
+    core::double v7 = let final core::String #t197 = "x" in let final core::double #t198 = super.{self::Base::[]}(#t197).{core::double::+}(self::getInt()) as{TypeError} core::int in let final void #t199 = super.{self::Base::[]=}(#t197, #t198) in #t198;
+    core::double v8 = let final core::String #t200 = "x" in let final core::double #t201 = super.{self::Base::[]}(#t200).{core::double::+}(self::getNum()) as{TypeError} core::int in let final void #t202 = super.{self::Base::[]=}(#t200, #t201) in #t201;
+    core::double v10 = let final core::String #t203 = "x" in let final core::double #t204 = super.{self::Base::[]}(#t203).{core::double::+}(1) as{TypeError} core::int in let final void #t205 = super.{self::Base::[]=}(#t203, #t204) in #t204;
     core::double v11 = let final core::String #t206 = "x" in let final core::double #t207 = super.{self::Base::[]}(#t206) in let final void #t208 = super.{self::Base::[]=}(#t206, #t207.{core::double::+}(1) as{TypeError} core::int) in #t207;
   }
   abstract forwarding-stub operator []=(core::String s, generic-covariant-impl core::int v) → void;
@@ -165,9 +165,9 @@ abstract class Test9 extends self::Base<core::double, core::double> {
     : super self::Base::•()
     ;
   method test() → void {
-    core::double v2 = let final core::String #t245 = "x" in let final core::double #t246 = self::getNum() as{TypeError} core::double in let final void #t247 = super.{self::Base::[]=}(#t245, #t246) in #t246;
+    core::num v2 = let final core::String #t245 = "x" in let final core::num #t246 = self::getNum() as{TypeError} core::double in let final void #t247 = super.{self::Base::[]=}(#t245, #t246) in #t246;
     core::double v3 = let final core::String #t248 = "x" in let final core::double #t249 = self::getDouble() in let final void #t250 = super.{self::Base::[]=}(#t248, #t249) in #t249;
-    core::double v5 = let final core::String #t251 = "x" in let final core::double #t252 = super.{self::Base::[]}(#t251) in #t252.{core::num::==}(null) ?{core::double} let final core::double #t253 = self::getNum() as{TypeError} core::double in let final void #t254 = super.{self::Base::[]=}(#t251, #t253) in #t253 : #t252;
+    core::num v5 = let final core::String #t251 = "x" in let final core::double #t252 = super.{self::Base::[]}(#t251) in #t252.{core::num::==}(null) ?{core::num} let final core::num #t253 = self::getNum() as{TypeError} core::double in let final void #t254 = super.{self::Base::[]=}(#t251, #t253) in #t253 : #t252;
     core::double v6 = let final core::String #t255 = "x" in let final core::double #t256 = super.{self::Base::[]}(#t255) in #t256.{core::num::==}(null) ?{core::double} let final core::double #t257 = self::getDouble() in let final void #t258 = super.{self::Base::[]=}(#t255, #t257) in #t257 : #t256;
     core::double v7 = let final core::String #t259 = "x" in let final core::double #t260 = super.{self::Base::[]}(#t259).{core::double::+}(self::getInt()) in let final void #t261 = super.{self::Base::[]=}(#t259, #t260) in #t260;
     core::double v8 = let final core::String #t262 = "x" in let final core::double #t263 = super.{self::Base::[]}(#t262).{core::double::+}(self::getNum()) in let final void #t264 = super.{self::Base::[]=}(#t262, #t263) in #t263;

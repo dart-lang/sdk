@@ -1993,8 +1993,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   // Double values bitwise compare.
   __ LoadFieldFromOffset(left, left, Double::value_offset());
   __ LoadFieldFromOffset(right, right, Double::value_offset());
-  __ CompareRegisters(left, right);
-  __ b(&done);
+  __ b(&reference_compare);
 
   __ Bind(&check_mint);
   __ CompareClassId(left, kMintCid);
@@ -2003,7 +2002,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ b(&done, NE);
   __ LoadFieldFromOffset(left, left, Mint::value_offset());
   __ LoadFieldFromOffset(right, right, Mint::value_offset());
-  __ b(&done);
+  __ b(&reference_compare);
 
   __ Bind(&check_bigint);
   __ CompareClassId(left, kBigintCid);

@@ -10,7 +10,7 @@
 listIndexSingle() {
   var list = [0];
   return list
-      /*Container mask: [exact=JSUInt31] length: 1 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
       [0];
 }
 
@@ -22,7 +22,7 @@ listIndexSingle() {
 listIndexMultiple() {
   var list = [0, 1, 2, 3];
   return list
-      /*Container mask: [exact=JSUInt31] length: 4 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 4)*/
       [2];
 }
 
@@ -34,7 +34,7 @@ listIndexMultiple() {
 listIndexBad() {
   var list = [0, 1];
   return list
-      /*Container mask: [exact=JSUInt31] length: 2 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 2)*/
       [3];
 }
 
@@ -42,11 +42,11 @@ listIndexBad() {
 // Lookup into a list with mixed element types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexMixed:Union of [[exact=JSString], [exact=JSUInt31]]*/
+/*element: listIndexMixed:Union([exact=JSString], [exact=JSUInt31])*/
 listIndexMixed() {
   var list = [0, ''];
   return list
-      /*Container mask: Union of [[exact=JSString], [exact=JSUInt31]] length: 2 type: [exact=JSExtendableArray]*/
+      /*Container([exact=JSExtendableArray], element: Union([exact=JSString], [exact=JSUInt31]), length: 2)*/
       [0];
 }
 
@@ -58,7 +58,7 @@ listIndexMixed() {
 mapLookupSingle() {
   var map = {0: 1};
   return map
-      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [0];
 }
 
@@ -70,7 +70,7 @@ mapLookupSingle() {
 mapLookupMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
-      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [2];
 }
 
@@ -82,7 +82,7 @@ mapLookupMultiple() {
 mapLookupMissing() {
   var map = {0: 1};
   return map
-      /*Map mask: [[exact=JSUInt31]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: [null|exact=JSUInt31])*/
       [2];
 }
 
@@ -94,7 +94,7 @@ mapLookupMissing() {
 mapLookupMixedKeys() {
   var map = {0: 1, '': 2};
   return map
-      /*Map mask: [Union of [[exact=JSString], [exact=JSUInt31]]/[null|exact=JSUInt31]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: Union([exact=JSString], [exact=JSUInt31]), value: [null|exact=JSUInt31])*/
       [''];
 }
 
@@ -102,11 +102,11 @@ mapLookupMixedKeys() {
 // Lookup into a map with mixed value types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapLookupMixedValues:Union of [[exact=JSUInt31], [null|exact=JSString]]*/
+/*element: mapLookupMixedValues:Union([exact=JSUInt31], [null|exact=JSString])*/
 mapLookupMixedValues() {
   var map = {0: 1, 2: ''};
   return map
-      /*Map mask: [[exact=JSUInt31]/Union of [[exact=JSUInt31], [null|exact=JSString]]] type: [subclass=JsLinkedHashMap]*/
+      /*Map([subclass=JsLinkedHashMap], key: [exact=JSUInt31], value: Union([exact=JSUInt31], [null|exact=JSString]))*/
       [2];
 }
 
@@ -114,11 +114,11 @@ mapLookupMixedValues() {
 // Lookup into a singleton map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryLookupSingle:Value mask: ["bar"] type: [exact=JSString]*/
+/*element: dictionaryLookupSingle:Value([exact=JSString], value: "bar")*/
 dictionaryLookupSingle() {
   var map = {'foo': 'bar'};
   return map
-      /*Dictionary mask: [Value mask: ["foo"] type: [exact=JSString]/Value mask: ["bar"] type: [null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: Value([null|exact=JSString], value: "bar"), map: {foo: Value([exact=JSString], value: "bar")})*/
       ['foo'];
 }
 
@@ -126,11 +126,11 @@ dictionaryLookupSingle() {
 // Lookup into a map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryLookupMultiple:Value mask: ["boz"] type: [exact=JSString]*/
+/*element: dictionaryLookupMultiple:Value([exact=JSString], value: "boz")*/
 dictionaryLookupMultiple() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-      /*Dictionary mask: [[exact=JSString]/[null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString], baz: Value mask: ["boz"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
       ['baz'];
 }
 
@@ -142,7 +142,7 @@ dictionaryLookupMultiple() {
 dictionaryLookupMissing() {
   var map = {'foo': 'bar', 'baz': 'boz'};
   return map
-      /*Dictionary mask: [[exact=JSString]/[null|exact=JSString] with {foo: Value mask: ["bar"] type: [exact=JSString], baz: Value mask: ["boz"] type: [exact=JSString]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: [exact=JSString], value: [null|exact=JSString], map: {foo: Value([exact=JSString], value: "bar"), baz: Value([exact=JSString], value: "boz")})*/
       ['unknown'];
 }
 
@@ -154,7 +154,7 @@ dictionaryLookupMissing() {
 intDictionaryLookupSingle() {
   var map = {'foo': 0};
   return map
-      /*Dictionary mask: [Value mask: ["foo"] type: [exact=JSString]/[null|exact=JSUInt31] with {foo: [exact=JSUInt31]}] type: [subclass=JsLinkedHashMap]*/
+      /*Dictionary([subclass=JsLinkedHashMap], key: Value([exact=JSString], value: "foo"), value: [null|exact=JSUInt31], map: {foo: [exact=JSUInt31]})*/
       ['foo'];
 }
 

@@ -4,7 +4,6 @@
 
 [ $compiler == spec_parser ]
 
-# Negative tests with syntax errors.
 getter_declaration_negative_test: Fail # Negative, uses getter with parameter.
 interface_injection1_negative_test: Fail # Negative, uses interface injection.
 interface_injection2_negative_test: Fail # Negative, uses interface injection.
@@ -28,14 +27,6 @@ test_negative_test: Fail # Negative, uses non-terminated string literal.
 unary_plus_negative_test: Fail # Negative, uses non-existing unary plus.
 unhandled_exception_negative_test: Fail # Negative, defaults required parameter.
 
-# Negative tests with non-syntax compile-time errors.
-bad_initializer1_negative_test: Skip # Negative, not syntax.
-bad_initializer2_negative_test: Skip # Negative, not syntax.
-bad_named_constructor_negative_test: Skip # Negative, not syntax.
-body_less_constructor_wrong_arg_negative_test: Skip # Negative, not syntax.
-closure_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.
-const_optional_args_negative_test: Skip # Negative, not syntax.
-constructor3_negative_test: Skip # Negative, not syntax.
 constructor_call_wrong_argument_count_negative_test: Skip # Negative, not syntax.
 constructor_redirect1_negative_test/01: Skip # Negative, not syntax.
 constructor_redirect1_negative_test/none: Skip # Negative, not syntax.
@@ -92,19 +83,14 @@ string_unicode3_negative_test: Skip # Negative, not syntax.
 string_unicode4_negative_test: Skip # Negative, not syntax.
 unhandled_exception_negative_test: Skip # Negative, not syntax.
 
-# Tests containing intentional syntax errors.
 double_invalid_test: Skip # Contains illegaly formatted double.
 
-# Tests containing `native` (not part of the Dart grammar).
 const_native_factory_test: Skip # Uses `native`.
 
-# Wrong tests.
 built_in_identifier_prefix_test: Skip # A built-in identifier can _not_ be a prefix.
 
-# Tests with unintended syntax errors.
 external_test/21: Fail # Test expects `runtime error`, it is a syntax error.
 
-# Tests using constructs which are not Dart syntax.
 conditional_import_string_test: Fail # Uses conditional import.
 conditional_import_test: Fail # Uses conditional import.
 config_import_corelib_test: Fail # Uses conditional import.
@@ -112,13 +98,10 @@ config_import_test: Fail # Uses conditional import.
 vm/debug_break_enabled_vm_test/01: Fail # Uses debug break.
 vm/debug_break_enabled_vm_test/none: Fail # Uses debug break.
 
-# Tests using generalized void.
 void_type_function_types_test: Skip # Not yet supported.
 
-# Tests that fail because of the deep nesting.
 deep_nesting1_negative_test: Skip # Stack overflow.
 deep_nesting2_negative_test: Skip # Stack overflow.
 issue_1751477_test: Skip # Times out: 9 levels, exponential blowup => 430 secs.
 
-# Tests that succeed, but are marked as failing elsewhere.
 closure_type_test: Pass # Marked as RuntimeError for all in language_2.status.

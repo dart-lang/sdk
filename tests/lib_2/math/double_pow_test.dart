@@ -166,7 +166,7 @@ test() {
 
   // The second argument is an odd integer as int, but not when converted
   // to double.
-  Expect.identical(Infinity, pow(-0.0, -9223372036854775809));
+  Expect.identical(Infinity, pow(-0.0, -9223372036854775807));
 }
 
 main() {

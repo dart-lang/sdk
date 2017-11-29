@@ -31,9 +31,11 @@ import '../enqueue.dart'
         ResolutionEnqueuer,
         TreeShakingEnqueuerStrategy;
 import '../frontend_strategy.dart';
-import '../io/source_information.dart' show SourceInformationStrategy;
+import '../io/source_information.dart'
+    show SourceInformation, SourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../js_model/elements.dart';
 import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_emitter/sorter.dart' show Sorter;
@@ -112,20 +114,23 @@ class FunctionInlineCache {
   ///
   /// For a [MethodElement] this means it must be the declaration element.
   bool checkFunction(FunctionEntity method) {
-    if (method is MethodElement) return method.isDeclaration;
-    return true;
+    if (method is MethodElement) {
+      return method.isDeclaration;
+    } else {
+      return '$method'.startsWith(jsElementPrefix);
+    }
   }
 
   /// Returns the current cache decision. This should only be used for testing.
   int getCurrentCacheDecisionForTesting(FunctionEntity element) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     return _cachedDecisions[element];
   }
 
   // Returns `true`/`false` if we have a cached decision.
   // Returns `null` otherwise.
   bool canInline(FunctionEntity element, {bool insideLoop}) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     int decision = _cachedDecisions[element];
 
     if (decision == null) {
@@ -181,7 +186,7 @@ class FunctionInlineCache {
   }
 
   void markAsInlinable(FunctionEntity element, {bool insideLoop}) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -237,7 +242,7 @@ class FunctionInlineCache {
   }
 
   void markAsNonInlinable(FunctionEntity element, {bool insideLoop: true}) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     int oldDecision = _cachedDecisions[element];
 
     if (oldDecision == null) {
@@ -296,7 +301,7 @@ class FunctionInlineCache {
   }
 
   void markAsMustInline(FunctionEntity element) {
-    assert(checkFunction(element));
+    assert(checkFunction(element), failedAt(element));
     _cachedDecisions[element] = _mustInline;
   }
 }
@@ -640,11 +645,7 @@ class JavaScriptBackend {
   /// Called when the closed world from resolution has been computed.
   void onResolutionClosedWorld(
       ClosedWorld closedWorld, ClosedWorldRefiner closedWorldRefiner) {
-    for (MemberEntity entity
-        in compiler.enqueuer.resolution.processedEntities) {
-      processAnnotations(closedWorld.elementEnvironment,
-          closedWorld.commonElements, entity, closedWorldRefiner);
-    }
+    processAnnotations(closedWorldRefiner);
     mirrorsDataBuilder.computeMembersNeededForReflection(
         compiler.enqueuer.resolution.worldBuilder, closedWorld);
     mirrorsResolutionAnalysis.onResolutionComplete();
@@ -814,6 +815,9 @@ class JavaScriptBackend {
             nativeCodegenEnqueuer));
   }
 
+  static bool cacheCodegenImpactForTesting = false;
+  Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
+
   WorldImpact codegen(CodegenWorkItem work, ClosedWorld closedWorld) {
     MemberEntity element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
@@ -842,6 +846,10 @@ class JavaScriptBackend {
             sourceInformationStrategy.buildSourceMappedMarker());
       }
       generatedCode[element] = function;
+    }
+    if (cacheCodegenImpactForTesting) {
+      codegenImpactsForTesting ??= <MemberEntity, WorldImpact>{};
+      codegenImpactsForTesting[element] = work.registry.worldImpact;
     }
     WorldImpact worldImpact = _codegenImpactTransformer
         .transformCodegenImpact(work.registry.worldImpact);
@@ -951,10 +959,6 @@ class JavaScriptBackend {
       assert(loadedLibraries.containsLibrary(Uris.dart_core));
       assert(loadedLibraries.containsLibrary(Uris.dart__interceptors));
       assert(loadedLibraries.containsLibrary(Uris.dart__js_helper));
-
-      // These methods are overwritten with generated versions.
-      inlineCache.markAsNonInlinable(commonElements.getInterceptorMethod,
-          insideLoop: true);
     }
   }
 
@@ -1018,7 +1022,19 @@ class JavaScriptBackend {
   /// Process backend specific annotations.
   // TODO(johnniwinther): Merge this with [AnnotationProcessor] and use
   // [ElementEnvironment.getMemberMetadata] in [AnnotationProcessor].
-  void processAnnotations(
+  void processAnnotations(ClosedWorldRefiner closedWorldRefiner) {
+    ClosedWorld closedWorld = closedWorldRefiner.closedWorld;
+    // These methods are overwritten with generated versions.
+    inlineCache.markAsNonInlinable(
+        closedWorld.commonElements.getInterceptorMethod,
+        insideLoop: true);
+    for (MemberEntity entity in closedWorld.processedMembers) {
+      _processMemberAnnotations(closedWorld.elementEnvironment,
+          closedWorld.commonElements, entity, closedWorldRefiner);
+    }
+  }
+
+  void _processMemberAnnotations(
       ElementEnvironment elementEnvironment,
       CommonElements commonElements,
       MemberEntity element,
@@ -1128,8 +1144,12 @@ class JavaScriptBackend {
   /// supported by the backend.
   bool enableCodegenWithErrorsIfSupported(Spannable node) => true;
 
-  jsAst.Expression rewriteAsync(CommonElements commonElements,
-      FunctionEntity element, jsAst.Expression code) {
+  jsAst.Expression rewriteAsync(
+      CommonElements commonElements,
+      FunctionEntity element,
+      jsAst.Expression code,
+      SourceInformation bodySourceInformation,
+      SourceInformation exitSourceInformation) {
     AsyncRewriterBase rewriter = null;
     jsAst.Name name = namer.methodPropertyName(element);
     switch (element.asyncMarker) {
@@ -1182,7 +1202,7 @@ class JavaScriptBackend {
         assert(element.asyncMarker == AsyncMarker.SYNC);
         return code;
     }
-    return rewriter.rewrite(code);
+    return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
   }
 
   /// Creates an impact strategy to use for compilation.

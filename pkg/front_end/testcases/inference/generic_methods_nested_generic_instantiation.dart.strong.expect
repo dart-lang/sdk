@@ -18,6 +18,6 @@ class Frame extends core::Object {
 static method main() → dynamic {
   core::List<self::Trace> traces = <self::Trace>[];
   core::int longest = traces.{core::Iterable::map}<core::int>((self::Trace trace) → core::int {
-    return trace.{self::Trace::frames}.{core::Iterable::map}<core::int>((self::Frame frame) → core::int => frame.{self::Frame::location}.{core::String::length}).{core::Iterable::fold}<core::int>(0, math::max);
-  }).{core::Iterable::fold}<core::int>(0, math::max);
+    return trace.{self::Trace::frames}.{core::Iterable::map}<core::int>((self::Frame frame) → core::int => frame.{self::Frame::location}.{core::String::length}).{core::Iterable::fold}<core::int>(0, math::max as{TypeError} (core::int, core::int) → core::int);
+  }).{core::Iterable::fold}<core::int>(0, math::max as{TypeError} (core::int, core::int) → core::int);
 }

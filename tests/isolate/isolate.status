@@ -21,9 +21,6 @@ kill3_test: Pass, Fail    # Bad test: expects total message order
 
 message3_test/int32x4: Fail, Crash, Timeout # Issue 21818
 
-[ $runtime == vm && $compiler == app_jit && $mode == debug ]
-compile_time_error_test/none: Crash # Issue 31376
-
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 compile_time_error_test/none: Pass, Slow
 
@@ -134,8 +131,7 @@ spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
 [ $compiler == precompiler || $runtime == flutter ]
-# Imports dart:mirrors
-count_test: SkipByDesign
+count_test: SkipByDesign # Imports dart:mirrors
 cross_isolate_message_test: SkipByDesign
 illegal_msg_function_test: SkipByDesign
 illegal_msg_mirror_test: SkipByDesign
@@ -158,7 +154,6 @@ unresolved_ports_test: SkipByDesign
 count_test: Skip # Isolate.spawnUri
 cross_isolate_message_test: Skip # Isolate.spawnUri
 deferred_in_isolate2_test: Skip # Isolate.spawnUri
-deferred_in_isolate_test: Skip # Isolate.spawnUri
 deferred_in_isolate_test: Skip # Isolate.spawnUri
 error_at_spawnuri_test: Skip # Isolate.spawnUri
 error_exit_at_spawnuri_test: Skip # Isolate.spawnUri

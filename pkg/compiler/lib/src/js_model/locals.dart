@@ -441,3 +441,56 @@ class LocalData {
 
   ir.FunctionNode get functionNode => node.parent;
 }
+
+/// Calls [f] for each parameter in [function] in the canonical order:
+/// Positional parameters by index, then named parameters lexicographically.
+void forEachOrderedParameter(
+    GlobalLocalsMap globalLocalsMap,
+    KernelToElementMapForBuilding elementMap,
+    FunctionEntity function,
+    void f(Local parameter)) {
+  KernelToLocalsMap localsMap = globalLocalsMap.getLocalsMap(function);
+
+  void processFunctionNode(ir.FunctionNode node) {
+    for (ir.VariableDeclaration variable in node.positionalParameters) {
+      f(localsMap.getLocalVariable(variable));
+    }
+    for (ir.VariableDeclaration variable in node.namedParameters) {
+      f(localsMap.getLocalVariable(variable));
+    }
+  }
+
+  MemberDefinition definition = elementMap.getMemberDefinition(function);
+  switch (definition.kind) {
+    case MemberKind.regular:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        processFunctionNode(node.function);
+        return;
+      }
+      break;
+    case MemberKind.constructor:
+    case MemberKind.constructorBody:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        processFunctionNode(node.function);
+        return;
+      } else if (node is ir.Constructor) {
+        processFunctionNode(node.function);
+        return;
+      }
+      break;
+    case MemberKind.closureCall:
+      ir.Node node = definition.node;
+      if (node is ir.FunctionDeclaration) {
+        processFunctionNode(node.function);
+        return;
+      } else if (node is ir.FunctionExpression) {
+        processFunctionNode(node.function);
+        return;
+      }
+      break;
+    default:
+  }
+  failedAt(function, "Unexpected function definition $definition.");
+}

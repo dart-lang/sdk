@@ -6,9 +6,12 @@
 #define RUNTIME_VM_RANDOM_H_
 
 #include "vm/allocation.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
 
 namespace dart {
+
+DECLARE_FLAG(uint64_t, random_seed);
 
 class Random {
  public:

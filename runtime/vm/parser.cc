@@ -3598,7 +3598,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
   }
 
   // Function level is now correctly set to parse the (possibly async) body.
-  if (I->type_checks() && (FunctionLevel() > 0)) {
+  if (I->argument_type_checks() && (FunctionLevel() > 0)) {
     // We are parsing, but not compiling, a local function.
     // The instantiator may be required at run time for generic type checks.
     // Note that the source of this local function may not reference the

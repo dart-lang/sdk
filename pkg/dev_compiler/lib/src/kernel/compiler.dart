@@ -1196,7 +1196,7 @@ class ProgramCompiler
       for (var ctor in c.constructors) {
         var memberName = _constructorName(ctor.name.name);
         var type = _emitAnnotatedFunctionType(
-            ctor.function.functionType, ctor.annotations,
+            ctor.function.functionType.withoutTypeParameters, ctor.annotations,
             function: ctor.function, nameType: false, definite: true);
         constructors.add(new JS.Property(memberName, type));
       }
@@ -1272,6 +1272,16 @@ class ProgramCompiler
     return _finishConstructorFunction(params, body, isCallable);
   }
 
+  void addStatementToList(JS.Statement statement, List<JS.Statement> list) {
+    // If the statement is a nested block, flatten it into the list when
+    // possible.  If the statement is empty, discard it.
+    if (statement is JS.Block && (list.isEmpty || !statement.isScope)) {
+      list.addAll(statement.statements);
+    } else if (statement is! JS.EmptyStatement) {
+      list.add(statement);
+    }
+  }
+
   JS.Block _emitConstructorBody(
       Constructor node, List<Field> fields, JS.Expression className) {
     var cls = node.enclosingClass;
@@ -1299,7 +1309,7 @@ class ProgramCompiler
     // These are expanded into each non-redirecting constructor.
     // In the future we may want to create an initializer function if we have
     // multiple constructors, but it needs to be balanced against readability.
-    body.add(_initializeFields(fields, node));
+    addStatementToList(_initializeFields(fields, node), body);
 
     var superCall = node.initializers.firstWhere((i) => i is SuperInitializer,
         orElse: () => null) as SuperInitializer;
@@ -1308,9 +1318,12 @@ class ProgramCompiler
     // form `super()` is added at the end of the initializer list, unless the
     // enclosing class is class Object.
     var jsSuper = _emitSuperConstructorCallIfNeeded(cls, className, superCall);
-    if (jsSuper != null) body.add(jsSuper..sourceInformation = superCall);
+    if (jsSuper != null) {
+      addStatementToList(jsSuper..sourceInformation = superCall, body);
+    }
 
-    body.add(_visitStatement(node.function.body));
+    var jsBody = _visitStatement(node.function.body);
+    if (jsBody != null) addStatementToList(jsBody, body);
     _initTempVars(body);
     return new JS.Block(body)..sourceInformation = node;
   }
@@ -1383,7 +1396,9 @@ class ProgramCompiler
     // We consider a class callable if it inherits from anything with a `call`
     // method. As a result, we can know the callable JS function was created
     // at the first constructor that was hit.
-    if (!isCallable) return new JS.Fun(params, body);
+    if (!isCallable)
+      return new JS.Fun(params, body)
+        ..sourceInformation = body.sourceInformation;
     return js.call(r'''function callableClass(#) {
           if (typeof this !== "function") {
             function self(...args) {
@@ -1415,16 +1430,19 @@ class ProgramCompiler
     }
 
     var body = <JS.Statement>[];
-    emitFieldInit(Field f, Expression initializer) {
+    emitFieldInit(Field f, Expression initializer,
+        [TreeNode sourceInfo = null]) {
       var access = _classProperties.virtualFields[f] ?? _declareMemberName(f);
       var jsInit = _visitInitializer(initializer, f.annotations);
       body.add(jsInit
-          .toAssignExpression(
-              js.call('this.#', [access])..sourceInformation = f)
-          .toStatement());
+          .toAssignExpression(js.call('this.#', [access])
+            ..sourceInformation = sourceInfo == null ? f : null)
+          .toStatement()
+            ..sourceInformation = sourceInfo);
     }
 
     for (var f in fields) {
+      if (f.isStatic) continue;
       var init = f.initializer;
       if (init == null ||
           ctorFields != null &&
@@ -1439,7 +1457,7 @@ class ProgramCompiler
     if (ctor != null) {
       for (var init in ctor.initializers) {
         if (init is FieldInitializer) {
-          emitFieldInit(init.field, init.value);
+          emitFieldInit(init.field, init.value, init);
         } else if (init is LocalInitializer) {
           body.add(visitVariableDeclaration(init.variable));
         }
@@ -1585,7 +1603,8 @@ class ProgramCompiler
     return new JS.Method(_declareMemberName(member), fn,
         isGetter: member.isGetter,
         isSetter: member.isSetter,
-        isStatic: member.isStatic);
+        isStatic: member.isStatic)
+      ..sourceInformation = member;
   }
 
   JS.Fun _emitNativeFunctionBody(Procedure node) {
@@ -1669,7 +1688,8 @@ class ProgramCompiler
         _constructorName(node.name.name),
         new JS.Fun(_emitFormalParameters(node.function),
             _emitFunctionBody(node.function)),
-        isStatic: true);
+        isStatic: true)
+      ..sourceInformation = node;
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
@@ -1779,7 +1799,8 @@ class ProgramCompiler
     var mocks = _classProperties.mockMembers;
     if (!mocks.containsKey(field.name.name)) {
       var getter = js.call('function() { return this[#]; }', [virtualField]);
-      result.add(new JS.Method(name, getter, isGetter: true));
+      result.add(new JS.Method(name, getter, isGetter: true)
+        ..sourceInformation = field);
     }
 
     if (!mocks.containsKey(field.name.name + '=')) {
@@ -1795,7 +1816,8 @@ class ProgramCompiler
         jsCode = 'function(value) { #[#] = value; }';
       }
 
-      result.add(new JS.Method(name, js.call(jsCode, args), isSetter: true));
+      result.add(new JS.Method(name, js.call(jsCode, args), isSetter: true)
+        ..sourceInformation = field);
     }
 
     return result;
@@ -2279,12 +2301,13 @@ class ProgramCompiler
     var name = node.name.name;
     return new JS.Method(
         _propertyName(name), _emitFunction(node.function, node.name.name),
-        isGetter: node.isGetter, isSetter: node.isSetter);
+        isGetter: node.isGetter, isSetter: node.isSetter)
+      ..sourceInformation = node;
   }
 
   JS.Statement _emitLibraryFunction(Procedure p) {
     var body = <JS.Statement>[];
-    var fn = _emitFunction(p.function, p.name.name);
+    var fn = _emitFunction(p.function, p.name.name)..sourceInformation = p;
 
     if (_currentLibrary.importUri.scheme == 'dart' &&
         _isInlineJSFunction(p.function.body)) {
@@ -2690,7 +2713,8 @@ class ProgramCompiler
     var gen = emitGeneratorFn((_) => []);
     var returnType = _getExpectedReturnType(function, coreTypes.futureClass);
     return js.call('#.async(#, #)',
-        [emitLibraryName(coreTypes.asyncLibrary), _emitType(returnType), gen]);
+        [emitLibraryName(coreTypes.asyncLibrary), _emitType(returnType), gen])
+      ..sourceInformation = function;
   }
 
   // TODO(leafp): Various analyzer pieces computed similar things.
@@ -2712,14 +2736,7 @@ class ProgramCompiler
 
     var block = _emitArgumentInitializers(f);
     var jsBody = _visitStatement(f.body);
-    if (jsBody != null) {
-      if (jsBody is JS.Block && (block.isEmpty || !jsBody.isScope)) {
-        // If the body is a nested block that can be flattened, do so.
-        block.addAll(jsBody.statements);
-      } else {
-        block.add(jsBody);
-      }
-    }
+    if (jsBody != null) addStatementToList(jsBody, block);
 
     _initTempVars(block);
     _currentFunction = savedFunction;
@@ -2789,14 +2806,16 @@ class ProgramCompiler
           namedArgumentTemp,
           paramName,
           defaultValue,
-        ]));
+        ])
+          ..sourceInformation = p);
       } else {
         body.add(js.statement('let # = # && #.#;', [
           jsParam,
           namedArgumentTemp,
           namedArgumentTemp,
           paramName,
-        ]));
+        ])
+          ..sourceInformation = p);
       }
       initParameter(p, jsParam);
     }
@@ -2866,9 +2885,10 @@ class ProgramCompiler
   }
 
   JS.Statement _visitStatement(Statement s) {
-    // TODO(jmesserly): attach source mapping to statements
     var result = s?.accept(this);
     if (result != null) {
+      result.sourceInformation = s;
+
       // The statement might be the target of a break or continue with a label.
       var name = _labelNames[s];
       if (name != null) result = new JS.LabeledStatement(name, result);
@@ -2878,7 +2898,7 @@ class ProgramCompiler
 
   /// Visits [nodes] with [_visitExpression].
   List<JS.Expression> _visitExpressionList(Iterable<Expression> nodes) {
-    return nodes?.map(_visitExpression)?.toList();
+    return nodes?.map(_visitAndMarkExpression)?.toList();
   }
 
   /// Generates an expression for a boolean conversion context (if, while, &&,
@@ -2919,12 +2939,14 @@ class ProgramCompiler
   }
 
   JS.Expression _visitExpression(e) {
-    return e?.accept(this);
+    JS.Expression result = e?.accept(this);
+    return result;
   }
 
   JS.Expression _visitAndMarkExpression(Expression e) {
-    // TODO(jmesserly): attach source mapping to expressions if needed
-    return e?.accept(this);
+    JS.Expression result = e?.accept(this);
+    if (result != null) result.sourceInformation = e;
+    return result;
   }
 
   @override
@@ -2935,7 +2957,7 @@ class ProgramCompiler
 
   @override
   visitExpressionStatement(ExpressionStatement node) =>
-      _visitExpression(node.expression).toStatement();
+      _visitAndMarkExpression(node.expression).toStatement();
 
   @override
   visitBlock(Block node) =>
@@ -3062,70 +3084,86 @@ class ProgramCompiler
     return body;
   }
 
+  JS.Statement translateLoop(Statement node, JS.Statement action()) {
+    var savedBreakTargets;
+    if (_currentBreakTargets.isNotEmpty &&
+        _effectiveTargets[_currentBreakTargets.first] != node) {
+      // If breaking without a label targets some other (outer) loop, then
+      // this loop prevents breaking to that loop without a label.  This loop
+      // was not labeled for a break in Kernel, otherwise it would be the
+      // effective target of the current break targets, so it is not itself the
+      // target of a break.
+      savedBreakTargets = _currentBreakTargets;
+      _currentBreakTargets = <LabeledStatement>[];
+    }
+    var savedContinueTargets = _currentContinueTargets;
+    var result = action();
+    if (savedBreakTargets != null) _currentBreakTargets = savedBreakTargets;
+    _currentContinueTargets = savedContinueTargets;
+    return result;
+  }
+
   @override
   JS.While visitWhileStatement(WhileStatement node) {
-    var condition = _visitTest(node.condition);
-
-    var saved = _currentContinueTargets;
-    var body = _visitScope(effectiveBodyOf(node, node.body));
-    _currentContinueTargets = saved;
-
-    return new JS.While(condition, body);
+    return translateLoop(node, () {
+      var condition = _visitTest(node.condition);
+      var body = _visitScope(effectiveBodyOf(node, node.body));
+      return new JS.While(condition, body);
+    });
   }
 
   @override
   JS.Do visitDoStatement(DoStatement node) {
-    var saved = _currentContinueTargets;
-    var body = _visitScope(effectiveBodyOf(node, node.body));
-    _currentContinueTargets = saved;
-
-    return new JS.Do(body, _visitTest(node.condition));
+    return translateLoop(node, () {
+      var body = _visitScope(effectiveBodyOf(node, node.body));
+      var condition = _visitTest(node.condition);
+      return new JS.Do(body, condition);
+    });
   }
 
   @override
   JS.For visitForStatement(ForStatement node) {
-    emitForInitializer(VariableDeclaration v) => new JS.VariableInitialization(
-        _emitVariableRef(v)..sourceInformation = v,
-        _visitInitializer(v.initializer, v.annotations));
+    return translateLoop(node, () {
+      emitForInitializer(VariableDeclaration v) =>
+          new JS.VariableInitialization(
+              _emitVariableRef(v)..sourceInformation = v,
+              _visitInitializer(v.initializer, v.annotations));
 
-    var init = node.variables.map(emitForInitializer).toList();
-    var initList =
-        init.isEmpty ? null : new JS.VariableDeclarationList('let', init);
-    var updates = node.updates;
-    JS.Expression update;
-    if (updates.isNotEmpty) {
-      update = new JS.Expression.binary(
-              updates.map(_visitAndMarkExpression).toList(), ',')
-          .toVoidExpression();
-    }
-    var condition = _visitTest(node.condition);
+      var init = node.variables.map(emitForInitializer).toList();
+      var initList =
+          init.isEmpty ? null : new JS.VariableDeclarationList('let', init);
+      var updates = node.updates;
+      JS.Expression update;
+      if (updates.isNotEmpty) {
+        update = new JS.Expression.binary(
+                updates.map(_visitAndMarkExpression).toList(), ',')
+            .toVoidExpression();
+      }
+      var condition = _visitTest(node.condition);
+      var body = _visitScope(effectiveBodyOf(node, node.body));
 
-    var saved = _currentContinueTargets;
-    var body = _visitScope(effectiveBodyOf(node, node.body));
-    _currentContinueTargets = saved;
-
-    return new JS.For(initList, condition, update, body);
+      return new JS.For(initList, condition, update, body);
+    });
   }
 
   @override
   JS.Statement visitForInStatement(ForInStatement node) {
-    if (node.isAsync) {
-      return _emitAwaitFor(node);
-    }
+    return translateLoop(node, () {
+      if (node.isAsync) {
+        return _emitAwaitFor(node);
+      }
 
-    var iterable = _visitAndMarkExpression(node.iterable);
+      var iterable = _visitAndMarkExpression(node.iterable);
+      var body = _visitScope(effectiveBodyOf(node, node.body));
 
-    var saved = _currentContinueTargets;
-    var body = _visitScope(effectiveBodyOf(node, node.body));
-    _currentContinueTargets = saved;
+      var v = _emitVariableRef(node.variable);
+      var init = js.call('let #', v);
+      if (_annotatedNullCheck(node.variable.annotations)) {
+        body = new JS.Block([_nullParameterCheck(v), body]);
+      }
 
-    var v = _emitVariableRef(node.variable);
-    var init = js.call('let #', v);
-    if (_annotatedNullCheck(node.variable.annotations)) {
-      body = new JS.Block([_nullParameterCheck(v), body]);
-    }
-
-    return new JS.ForOf(init, iterable, body);
+      return new JS.ForOf(init, iterable, body);
+    });
   }
 
   JS.Statement _emitAwaitFor(ForInStatement node) {
@@ -3244,7 +3282,7 @@ class ProgramCompiler
   JS.Statement visitReturnStatement(ReturnStatement node) {
     var e = node.expression;
     if (e == null) return new JS.Return();
-    return _visitExpression(e).toReturn();
+    return _visitAndMarkExpression(e).toReturn();
   }
 
   @override
@@ -3273,7 +3311,7 @@ class ProgramCompiler
 
     var catchVarDecl = _emitVariableRef(_catchParameter);
     _catchParameter = savedCatch;
-    return new JS.Catch(catchVarDecl, new JS.Block([catchBody]));
+    return new JS.Catch(catchVarDecl, catchBody.toBlock());
   }
 
   JS.Statement _catchClauseGuard(Catch node, JS.Statement otherwise) {
@@ -3312,12 +3350,18 @@ class ProgramCompiler
   @override
   visitTryFinally(TryFinally node) {
     var body = _visitStatement(node.body);
-    var catchPart = body is JS.Try ? body.catchPart : null;
     var savedSuperAllowed = _superAllowed;
     _superAllowed = false;
-    var finallyBlock = _visitStatement(node.finalizer);
+    var finallyBlock = _visitStatement(node.finalizer).toBlock();
     _superAllowed = savedSuperAllowed;
-    return new JS.Try(body.toBlock(), catchPart, finallyBlock.toBlock());
+
+    if (body is JS.Try && (body as JS.Try).finallyPart == null) {
+      // Kernel represents Dart try/catch/finally as try/catch nested inside of
+      // try/finally.  Flatten that pattern in the output into JS try/catch/
+      // finally.
+      return new JS.Try(body.body, body.catchPart, finallyBlock);
+    }
+    return new JS.Try(body.toBlock(), null, finallyBlock);
   }
 
   @override
@@ -3475,7 +3519,7 @@ class ProgramCompiler
         type: receiver.getStaticType(types), member: member);
 
     var jsReceiver = _visitExpression(receiver);
-    var jsValue = _visitExpression(value);
+    var jsValue = _visitAndMarkExpression(value);
 
     if (member == null) {
       return _callHelper('#(#, #, #)',
@@ -3539,7 +3583,7 @@ class ProgramCompiler
       }
     }
 
-    var jsReceiver = _visitExpression(receiver);
+    var jsReceiver = _visitAndMarkExpression(receiver);
     var args = _emitArgumentList(arguments);
     var receiverType = receiver.getStaticType(types);
     var typeArgs = arguments.types;
@@ -3901,7 +3945,7 @@ class ProgramCompiler
             [_visitExpression(receiver), _visitExpressionList(args)]);
       } else {
         return _callHelper('dsend(#, #, #)', [
-          _visitExpression(receiver),
+          _visitAndMarkExpression(receiver),
           memberName,
           _visitExpressionList(args)
         ]);
@@ -4015,13 +4059,13 @@ class ProgramCompiler
         args.add(new JS.RestParameter(
             _visitExpression(arg.arguments.positional[0])));
       } else {
-        args.add(_visitExpression(arg));
+        args.add(_visitAndMarkExpression(arg));
       }
     }
     var named = <JS.Property>[];
     for (var arg in node.named) {
       named.add(new JS.Property(
-          _propertyName(arg.name), _visitExpression(arg.value)));
+          _propertyName(arg.name), _visitAndMarkExpression(arg.value)));
     }
     if (named.isNotEmpty) {
       args.add(new JS.ObjectInitializer(named));
@@ -4152,7 +4196,7 @@ class ProgramCompiler
     if (expr is StaticGet) {
       var target = expr.target;
       // tear-offs are not null, other accessors are nullable.
-      return target is Procedure && target.isAccessor;
+      return target is Field || (target is Procedure && target.isGetter);
     }
 
     if (expr is TypeLiteral) return false;
@@ -4431,7 +4475,7 @@ class ProgramCompiler
     Expression fromExpr = node.operand;
     var from = fromExpr.getStaticType(types);
     var to = node.type;
-    var jsFrom = _visitExpression(fromExpr);
+    var jsFrom = _visitAndMarkExpression(fromExpr);
 
     // If the check was put here by static analysis to ensure soundness, we
     // can't skip it. For example, one could implement covariant generic caller
@@ -4607,7 +4651,7 @@ class ProgramCompiler
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    JS.Fun fn = _emitFunction(node.function, null);
+    JS.Fun fn = _emitFunction(node.function, null)..sourceInformation = node;
     return _toArrowFunction(fn);
   }
 

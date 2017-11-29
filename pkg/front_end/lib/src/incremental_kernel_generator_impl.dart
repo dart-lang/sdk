@@ -83,12 +83,19 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   List<Uri> _invalidatedFiles = [];
 
   /// The set of libraries for which the content of the library file, or
-  /// one of its parts, changed using [invalidate].
+  /// one of its parts, changed using [invalidate], and during
+  /// [_refreshInvalidatedFiles] it was found that that changes are only in
+  /// method bodies.
+  ///
+  /// If any library had an API change, this set will be empty.
   final Set<FileState> _changedLibrariesWithSameApi = new Set<FileState>();
 
   /// The [Program] with currently valid libraries. When a file is invalidated,
   /// we remove the file, its library, and everything affected from [_program].
   Program _program = new Program();
+
+  /// The [DillTarget] that represents the current [Program] state.
+  DillTarget _dillTarget;
 
   /// Each key is the file system URI of a library.
   /// Each value is the libraries that directly depend on the key library.
@@ -141,6 +148,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
     // Pre-populate the Program with SDK.
     _loadSdkOutline();
+
+    _createDillTarget();
   }
 
   /// Return the object that provides additional information for tests.
@@ -180,27 +189,29 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         // The file graph might have changed, perform GC.
         await _gc();
 
-        DillTarget dillTarget = new DillTarget(
-            new Ticker(isVerbose: false), uriTranslator, options.target);
-
         // Compile just libraries with changes to function bodies, or
         // compile multiple libraries because of API changes.
         if (_changedLibrariesWithSameApi.isNotEmpty) {
           await _logger.runAsync('Compile libraries with body changes',
               () async {
-            await _compileLibrariesWithBodyChanges(dillTarget);
+            await _compileLibrariesWithBodyChanges();
           });
         } else {
+          _createDillTarget();
+
           // Append all libraries what we still have in the current program.
-          var dillCount = _program.libraries.length;
-          await _logger.runAsync('Load $dillCount dill libraries', () async {
-            dillTarget.loader.appendLibraries(_program);
-            await dillTarget.buildOutlines();
+          Set<Uri> validLibraries =
+              _program.libraries.map((library) => library.importUri).toSet();
+          var validDillCount = validLibraries.length;
+          await _logger.runAsync('Load $validDillCount dill libraries',
+              () async {
+            _dillTarget.loader.appendLibraries(_program);
+            await _dillTarget.buildOutlines();
           });
 
           // Configure KernelTarget to compile the entry point.
           var kernelTarget =
-              new KernelTarget(_fileSystem, false, dillTarget, uriTranslator);
+              new KernelTarget(_fileSystem, false, _dillTarget, uriTranslator);
           kernelTarget.read(_entryPoint);
 
           // Compile the entry point.
@@ -211,6 +222,15 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           _program.computeCanonicalNames();
 
           _logger.run('Compute dependencies', _computeDependencies);
+
+          // Append new libraries to the DillTarget.
+          int newDillCount = _program.libraries.length - validDillCount;
+          await _logger.runAsync('Append $newDillCount dill libraries',
+              () async {
+            _dillTarget.loader.appendLibraries(
+                _program, (uri) => !validLibraries.contains(uri));
+            await _dillTarget.buildOutlines();
+          });
         }
 
         _logger.run('Index references', () {
@@ -218,12 +238,12 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         });
 
         // Prepare libraries that changed relatively to the current state.
-        var newLibraries = new Set<String>();
+        var changedLibraries = new Set<String>();
         for (var library in _program.libraries) {
           var uri = library.importUri;
           var file = _fsState.getFileOrNull(uri);
           if (file != null && _currentSignatures[uri] != file.signatureStr) {
-            newLibraries.add(library.fileUri);
+            changedLibraries.add(library.fileUri);
             _lastSignatures[uri] = file.signatureStr;
             _testView.compiledUris.add(uri);
           }
@@ -241,7 +261,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           }
         }
 
-        newLibraries.forEach(gatherVmRequiredLibraries);
+        changedLibraries.forEach(gatherVmRequiredLibraries);
 
         // Compose the resulting program with new libraries.
         var program = new Program(nameRoot: _program.root);
@@ -261,7 +281,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           }
         }
         program.mainMethod = _program.mainMethod;
-        _logger.writeln('Returning ${_lastSignatures.length} libraries.');
+        _logger.writeln('Returning ${program.libraries.length} libraries.');
+        _logger.writeln('There are ${_dillTarget.loader.libraries.length} '
+            'libraries in DillTarget.');
 
         var stateString = _ExternalState.asString(_lastSignatures);
         return new DeltaProgram(stateString, program);
@@ -302,15 +324,10 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
   /// which should be recompiled, but all other libraries are fine.
   ///
   /// Compile the changed libraries and update referenced in other libraries.
-  Future<Null> _compileLibrariesWithBodyChanges(DillTarget dillTarget) async {
-    await _logger.runAsync('Append dill libraries', () async {
-      dillTarget.loader.appendLibraries(_program);
-      await dillTarget.buildOutlines();
-    });
-
+  Future<Null> _compileLibrariesWithBodyChanges() async {
     if (_changedLibrariesWithSameApi.isNotEmpty) {
       var kernelTarget =
-          new KernelTarget(_fileSystem, false, dillTarget, uriTranslator);
+          new KernelTarget(_fileSystem, false, _dillTarget, uriTranslator);
 
       // Schedule URIs of changed libraries for compilation.
       for (var changedLibrary in _changedLibrariesWithSameApi) {
@@ -319,12 +336,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         var oldLibrary = _uriToLibrary[changedLibrary.fileUriStr];
         _program.root.removeChild(changedLibrary.uriStr);
         _program.libraries.remove(oldLibrary);
+        _dillTarget.loader.builders.remove(changedLibrary.uri);
+        _dillTarget.loader.libraries.remove(oldLibrary);
         _referenceIndex.removeLibrary(oldLibrary);
-        // We finished loading outlines, including additional exports.
-        // So, we don't need changed libraries anymore.
-        // Remove them from DillLoader so that they are recompiled.
-        dillTarget.loader.builders.remove(changedLibrary.uri);
-        dillTarget.loader.libraries.remove(oldLibrary);
         // Schedule the library for compilation.
         kernelTarget.read(changedLibrary.uri);
       }
@@ -353,6 +367,11 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           _uriToLibrary[changedLibrary.fileUriStr] = newLibrary;
           _referenceIndex.replaceLibrary(oldLibrary, newLibrary);
 
+          // Schedule the new outline for loading.
+          // TODO(scheglov): Add a more efficient API to add one library.
+          _dillTarget.loader
+              .appendLibraries(_program, (uri) => uri == newLibrary.importUri);
+
           // If main() was defined in the recompiled library, replace it.
           if (mainReference?.asProcedure?.enclosingLibrary == oldLibrary) {
             mainReference = newLibrary.procedures
@@ -361,6 +380,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           }
         }
       });
+
+      // Load outlines of replaced libraries.
+      await _dillTarget.buildOutlines();
 
       // Restore the main() procedure reference.
       _program.mainMethodName = mainReference;
@@ -408,6 +430,12 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       saltBuilder.addBytes(_sdkOutlineBytes);
     }
     _salt = saltBuilder.toByteList();
+  }
+
+  /// Create a new, empty [_dillTarget].
+  void _createDillTarget() {
+    _dillTarget = new DillTarget(
+        new Ticker(isVerbose: false), uriTranslator, options.target);
   }
 
   /// Find files which are not referenced from the entry point and report
