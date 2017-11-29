@@ -1310,6 +1310,42 @@ void main() {
     }
   }
 
+  test_methodInvocation_topLevelFunction() async {
+    addTestFile(r'''
+void main() {
+  f(1, '2');
+}
+double f(int a, String b) {}
+''');
+    String fTypeString = '(int, String) → double';
+
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType doubleType = typeProvider.doubleType;
+
+    FunctionDeclaration fNode = result.unit.declarations[1];
+    FunctionElement fElement = fNode.element;
+
+    ExpressionStatement statement = mainStatements[0];
+    MethodInvocation invocation = statement.expression;
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    expect(invocation.methodName.staticElement, same(fElement));
+    expect(invocation.methodName.staticType.toString(), fTypeString);
+    expect(invocation.staticType, same(doubleType));
+    expect(invocation.staticInvokeType.toString(), fTypeString);
+
+    Expression aArgument = arguments[0];
+    ParameterElement aElement = fElement.parameters[0];
+    expect(aArgument.staticParameterElement, same(aElement));
+
+    Expression bArgument = arguments[1];
+    ParameterElement bElement = fElement.parameters[1];
+    expect(bArgument.staticParameterElement, same(bElement));
+  }
+
   test_namedArgument() async {
     addTestFile(r'''
 void main() {

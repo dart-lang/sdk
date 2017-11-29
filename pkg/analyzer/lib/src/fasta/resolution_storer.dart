@@ -397,10 +397,8 @@ class ResolutionStorer extends TypeInferenceListener {
       StaticInvocation expression, DartType inferredType) {
     _replaceType(inferredType);
     _replaceReference(expression.target);
-    // TODO(paulberry): get the actual callee function type from the inference
-    // engine
-    var calleeType = const DynamicType();
-    _replaceType(calleeType);
+    _replaceType(new MemberReferenceDartType(
+        expression.target, expression.arguments.types));
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
