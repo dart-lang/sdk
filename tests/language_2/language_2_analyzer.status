@@ -180,8 +180,6 @@ if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 is_not_class2_test/*: MissingCompileTimeError
-int64_literal_test/03: MissingCompileTimeError
-int64_literal_test/30: MissingCompileTimeError
 library_ambiguous_test/04: MissingCompileTimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
@@ -473,6 +471,8 @@ built_in_identifier_type_annotation_test/85: Crash # Issue 28813
 [ $compiler == dart2analyzer && !$strong ]
 constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
+int64_literal_test/03: MissingCompileTimeError
+int64_literal_test/30: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $checked ]
 assertion_initializer_const_error2_test/none: Pass
