@@ -1,0 +1,40 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that deleting a static method works
+
+  class B {
+  <<<< ["instance is null","v1"]
+    static staticMethod() {
+      print('v1');
+    }
+  ==== "threw"
+  >>>>
+  }
+  class C {
+    m() {
+      try {
+        B.staticMethod();
+      } catch (e) {
+        print('threw');
+      }
+      try {
+        // Ensure that noSuchMethod support is compiled. This test is not about
+        // adding new classes.
+        B.missingMethod();
+        print('bad');
+      } catch (e) {
+      }
+    }
+  }
+  var instance;
+  main() {
+    new B(); // TODO(ahe): Work around dart2js assertion in World.subclassesOf
+    if (instance == null) {
+      print('instance is null');
+      instance = new C();
+    }
+    instance.m();
+  }

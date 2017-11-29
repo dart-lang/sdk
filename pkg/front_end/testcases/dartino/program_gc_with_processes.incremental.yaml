@@ -1,0 +1,53 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that we can do a program rewrite (which implies a big GC) while there
+  // are multiple processes alive that depend on the program.
+  import 'dart:dartino';
+
+  class Comms {
+  <<<< "comms is null"
+  ==== "Hello world"
+    int late_arrival;
+  >>>>
+    var paused;
+    var pausedPort;
+    var resumePort;
+    Process process;
+  }
+
+  Comms comms;
+
+  void SubProcess(Port pausedPort) {
+    // This function, used by the spawned processes, does not exist after the
+    // rewrite, but it will be on the stack, so it is kept alive across the GC.
+    var c = new Channel();
+    pausedPort.send(new Port(c));
+    c.receive();
+    print("Hello world");
+  }
+
+  main() {
+    if (comms == null) {
+      print("comms is null");
+      // The setup takes place before the rewrite.
+      comms = new Comms();
+
+      comms.paused = new Channel();
+      var pausedPort = comms.pausedPort = new Port(comms.paused);
+
+      comms.process = Process.spawnDetached(() => SubProcess(pausedPort));
+    } else {
+      // After the rewrite we get the port from the sub-process and send the
+      // data it needs to resume running.
+      comms.resumePort = comms.paused.receive();
+
+      var monitor = new Channel();
+
+      comms.process.monitor(new Port(monitor));
+
+      comms.resumePort.send(null);
+    }
+  }

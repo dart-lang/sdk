@@ -1,0 +1,15 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that the test framework handles more than one update
+  main() { print(
+  <<<< "Hello darkness, my old friend"
+  'Hello darkness, my old friend'
+  ==== "I've come to talk with you again"
+  'I\'ve come to talk with you again'
+  ==== "Because a vision softly creeping"
+  'Because a vision softly creeping'
+  >>>>
+  ); }

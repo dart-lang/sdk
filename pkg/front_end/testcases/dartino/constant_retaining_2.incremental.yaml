@@ -1,0 +1,30 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that constants are handled correctly when stored in a top-level
+  // variable.
+  var constant;
+
+  class Foo {
+    const Foo();
+  }
+
+  class C {
+    foo() {
+  <<<< ["v1", "true"]
+      print("v1");
+      constant = const Foo();
+  ==== ["v2", "true"]
+      print("v2");
+  ==== ["v3", "true"]
+      print("v3");
+  >>>>
+      print(constant == const Foo());
+    }
+  }
+
+  main() {
+    new C().foo();
+  }

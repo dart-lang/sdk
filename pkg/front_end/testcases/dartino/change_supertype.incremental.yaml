@@ -1,0 +1,36 @@
+# Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+main.dart.patch: |
+  // Test that changing the supertype of a class works
+
+  class A {
+    m() {
+      print('v2');
+    }
+  }
+  class B extends A {
+    m() {
+      print('v1');
+    }
+  }
+  <<<< ["instance is null","v1"]
+  class C extends B {
+  ==== ["v2"]
+  class C extends A {
+  >>>>
+    m() {
+      super.m();
+    }
+  }
+
+  var instance;
+
+  main() {
+    if (instance == null) {
+      print('instance is null');
+      instance = new C();
+    }
+    instance.m();
+  }
