@@ -1636,6 +1636,8 @@ class Parser {
           // match the default constructor.
           token = insertSyntheticIdentifier(
               token, context, '#synthetic_field_name_${token.offset}');
+        } else if (context == IdentifierContext.constructorReference) {
+          token = insertSyntheticIdentifier(token, context);
         }
       }
     } else if (token.type.isBuiltIn && !context.isBuiltInIdentifierAllowed) {
@@ -4752,13 +4754,15 @@ class Parser {
 
   Token parseRequiredArguments(Token token) {
     Token next = token.next;
-    if (optional('(', next)) {
-      token = parseArguments(token);
-    } else {
-      listener.handleNoArguments(next);
-      // TODO(brianwilkerson): Consider recovering by inserting parentheses.
-      token = reportUnexpectedToken(next);
+    if (!optional('(', next)) {
+      reportRecoverableError(
+          token, fasta.templateExpectedButGot.withArguments('('));
+      BeginToken replacement = link(
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, token.offset),
+          new SyntheticToken(TokenType.CLOSE_PAREN, token.offset));
+      rewriter.insertToken(replacement, next);
     }
+    token = parseArguments(token);
     return token;
   }
 

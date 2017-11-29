@@ -11,6 +11,7 @@ import 'do_statement_test.dart' as do_statement;
 import 'export_directive_test.dart' as export_directive;
 import 'if_statement_test.dart' as if_statement;
 import 'import_directive_test.dart' as import_directive;
+import 'instance_creation_test.dart' as instance_creation;
 import 'library_directive_test.dart' as library_directive;
 import 'local_variable_test.dart' as local_variable;
 import 'part_directive_test.dart' as part_directive;
@@ -29,6 +30,7 @@ main() {
     export_directive.main();
     if_statement.main();
     import_directive.main();
+    instance_creation.main();
     library_directive.main();
     local_variable.main();
     part_directive.main();
