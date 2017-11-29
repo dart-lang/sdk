@@ -200,6 +200,12 @@ class ResolutionStorer extends TypeInferenceListener {
   ResolutionStorer(this._declarations, this._references, this._types);
 
   @override
+  void asExpressionExit(AsExpression expression, DartType inferredType) {
+    _recordType(expression.type, expression.fileOffset);
+    _recordType(inferredType, expression.fileOffset);
+  }
+
+  @override
   bool constructorInvocationEnter(
       InvocationExpression expression, DartType typeContext) {
     return super.constructorInvocationEnter(expression, typeContext);

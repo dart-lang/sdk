@@ -217,6 +217,46 @@ var b = new C<num, String>.named(4, 'five');
     }
   }
 
+  test_asExpression() async {
+    String content = r'''
+void main() {
+  num v = 42;
+  v as int;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    expect(result.errors, isEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    NodeList<Statement> statements = _getMainStatements(result);
+
+    // num v = 42;
+    VariableElement vElement;
+    {
+      VariableDeclarationStatement statement = statements[0];
+      vElement = statement.variables.variables[0].name.staticElement;
+      expect(vElement.type, typeProvider.numType);
+    }
+
+    // v as int;
+    {
+      ExpressionStatement statement = statements[1];
+      AsExpression asExpression = statement.expression;
+      expect(asExpression.staticType, typeProvider.intType);
+
+      SimpleIdentifier target = asExpression.expression;
+      expect(target.staticElement, vElement);
+      expect(target.staticType, typeProvider.numType);
+
+      TypeName intName = asExpression.type;
+      expect(intName.name.staticElement, typeProvider.intType.element);
+      expect(intName.name.staticType, typeProvider.intType);
+    }
+  }
+
   test_assignmentExpression_compound_indexExpression() async {
     String content = r'''
 main() {
