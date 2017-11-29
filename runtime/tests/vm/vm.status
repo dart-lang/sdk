@@ -49,8 +49,6 @@ dart/spawn_shutdown_test: Skip # OOM crash can bring down the OS.
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
 dart/data_uri_spawn_test: Skip # TODO(zra): package:unittest is not in the image.
 cc/Read: Fail  # TODO(zra): Investigate, ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
-dart/byte_array_test: Crash # TODO(zra): Investigate
-dart/byte_array_optimized_test: Crash # TODO(zra): Investigate
 
 # Profiler is completely disabled in SIMDBC builds.
 # On the simluator stack traces produced by the Profiler do not match
