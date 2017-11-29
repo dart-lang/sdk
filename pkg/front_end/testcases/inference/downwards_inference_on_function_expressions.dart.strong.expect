@@ -10,7 +10,7 @@ static method main() → void {
     (core::int) → core::String l2 = ((core::String x) → core::String => "hello") as{TypeError} (core::int) → core::String;
     (core::int) → core::String l3 = ((core::int x) → core::int => 3) as{TypeError} (core::int) → core::String;
     (core::int) → core::String l4 = (core::int x) → core::String {
-      return 3;
+      return 3 as{TypeError} core::String;
     };
   }
   {
@@ -18,10 +18,10 @@ static method main() → void {
     (core::int) → core::String l1 = (core::int x) → core::String => "hello";
     (core::int) → core::String l2 = ((core::int x) → core::int => 3) as{TypeError} (core::int) → core::String;
     (core::int) → core::String l3 = (core::int x) → core::String {
-      return 3;
+      return 3 as{TypeError} core::String;
     };
     (core::int) → core::String l4 = (core::int x) → core::String {
-      return x;
+      return x as{TypeError} core::String;
     };
   }
   {

@@ -151,6 +151,7 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
+implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue #31436
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
 interface_test/00: MissingCompileTimeError

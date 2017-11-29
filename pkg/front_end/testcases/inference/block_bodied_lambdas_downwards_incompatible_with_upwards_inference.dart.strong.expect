@@ -7,6 +7,6 @@ static method main() → dynamic {
     return null;
   () → core::String g = f;
   g = () → core::String {
-    return 1;
+    return 1 as{TypeError} core::String;
   };
 }

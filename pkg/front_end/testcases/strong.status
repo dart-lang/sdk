@@ -64,7 +64,6 @@ void_methods: Fail
 warn_unresolved_sends: TypeCheckError
 
 inference/abstract_class_instantiation: Fail # Issue #30040
-inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: TypeCheckError
 inference/block_bodied_lambdas_infer_bottom_async_star: RuntimeError
 inference/conflicts_can_happen: TypeCheckError
 inference/conflicts_can_happen2: TypeCheckError

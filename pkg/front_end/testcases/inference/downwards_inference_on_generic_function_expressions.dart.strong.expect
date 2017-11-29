@@ -12,7 +12,7 @@ static method test() → void {
     v = (<T extends core::Object>(core::String x) → core::String => "hello") as{TypeError} <S extends core::Object>(core::int) → core::String;
     v = (<T extends core::Object>(core::int x) → core::int => 3) as{TypeError} <S extends core::Object>(core::int) → core::String;
     v = <T extends core::Object>(core::int x) → core::String {
-      return 3;
+      return 3 as{TypeError} core::String;
     };
   }
   {
@@ -23,10 +23,10 @@ static method test() → void {
     v = <T extends core::Object>(core::int x) → core::String => "hello";
     v = (<T extends core::Object>(core::int x) → core::int => 3) as{TypeError} <S extends core::Object>(core::int) → core::String;
     v = <T extends core::Object>(core::int x) → core::String {
-      return 3;
+      return 3 as{TypeError} core::String;
     };
     v = <T extends core::Object>(core::int x) → core::String {
-      return x;
+      return x as{TypeError} core::String;
     };
   }
   {

@@ -91,10 +91,16 @@ class ClosureContext {
 
   final bool _needToInferReturnType;
 
+  final bool _needImplicitDowncasts;
+
   DartType _inferredReturnType;
 
-  factory ClosureContext(TypeInferrerImpl inferrer, AsyncMarker asyncMarker,
-      DartType returnContext, bool needToInferReturnType) {
+  factory ClosureContext(
+      TypeInferrerImpl inferrer,
+      AsyncMarker asyncMarker,
+      DartType returnContext,
+      bool needToInferReturnType,
+      bool needImplicitDowncasts) {
     bool isAsync = asyncMarker == AsyncMarker.Async ||
         asyncMarker == AsyncMarker.AsyncStar;
     bool isGenerator = asyncMarker == AsyncMarker.SyncStar ||
@@ -111,12 +117,12 @@ class ClosureContext {
       returnContext = inferrer.wrapFutureOrType(
           inferrer.typeSchemaEnvironment.flattenFutures(returnContext));
     }
-    return new ClosureContext._(
-        isAsync, isGenerator, returnContext, needToInferReturnType);
+    return new ClosureContext._(isAsync, isGenerator, returnContext,
+        needToInferReturnType, needImplicitDowncasts);
   }
 
   ClosureContext._(this.isAsync, this.isGenerator, this.returnContext,
-      this._needToInferReturnType);
+      this._needToInferReturnType, this._needImplicitDowncasts);
 
   /// Updates the inferred return type based on the presence of a return
   /// statement returning the given [type].
@@ -195,7 +201,8 @@ class ClosureContext {
         _inferredReturnType = inferrer.typeSchemaEnvironment
             .getLeastUpperBound(_inferredReturnType, unwrappedType);
       }
-    } else {
+    }
+    if (_needImplicitDowncasts) {
       var expectedType = isYieldStar
           ? _wrapAsyncOrGenerator(inferrer, returnContext)
           : returnContext;
@@ -783,7 +790,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   void inferFunctionBody(
       DartType returnType, AsyncMarker asyncMarker, Statement body) {
     assert(closureContext == null);
-    closureContext = new ClosureContext(this, asyncMarker, returnType, false);
+    closureContext =
+        new ClosureContext(this, asyncMarker, returnType, false, true);
     inferStatement(body);
     closureContext = null;
   }
@@ -1004,8 +1012,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     bool isExpressionFunction = function.body is ReturnStatement;
     bool needToSetReturnType = hasImplicitReturnType && strongMode;
     ClosureContext oldClosureContext = this.closureContext;
+    bool needImplicitDowncasts = returnContext != null && !isExpressionFunction;
     ClosureContext closureContext = new ClosureContext(
-        this, function.asyncMarker, returnContext, needToSetReturnType);
+        this,
+        function.asyncMarker,
+        returnContext,
+        needToSetReturnType,
+        needImplicitDowncasts);
     this.closureContext = closureContext;
     inferStatement(function.body);
 
