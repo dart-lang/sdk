@@ -102,9 +102,7 @@ inference/field_initializer_context_this: Crash
 inference/field_initializer_parameter: Crash
 inference/for_each_downcast_iterable: Crash
 inference/for_in_loop_promotion: Crash
-inference/for_loop_empty_condition: Crash
 inference/for_loop_initializer_expression: Crash
-inference/for_loop_promotion: Crash
 inference/future_or_subtyping: Crash
 inference/future_then: Crash
 inference/future_then_2: Crash
@@ -214,9 +212,7 @@ inference/null_coalescing_operator_2: Crash
 inference/null_literal_should_not_infer_as_bottom: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
-inference/promote_bounds: Crash
 inference/promote_from_logical_rhs: Crash
-inference/promotion_subtype_check: Crash
 inference/property_set: Crash
 inference/refine_binary_expression_type_type_parameter_t_double: Crash
 inference/refine_binary_expression_type_type_parameter_t_int: Crash
@@ -242,12 +238,7 @@ inference/try_catch: Crash
 inference/try_catch_finally: Crash
 inference/try_catch_promotion: Crash
 inference/type_cast: Crash
-inference/type_promotion_ignores_local_functions: Crash
 inference/type_promotion_not_and_not: Crash
-inference/type_promotion_simple: Crash
-inference/type_promotion_stopped_by_access_in_a_closure: Crash
-inference/type_promotion_stopped_by_assignment_in_scope: Crash
-inference/type_promotion_stopped_by_mutation_in_a_closure: Crash
 inference/unresolved_super: Crash
 inference/unsafe_block_closure_inference_closure_call: Crash
 inference/unsafe_block_closure_inference_constructor_call_explicit_dynamic_param: Crash
@@ -421,7 +412,6 @@ super_rasta_copy: Crash
 top_level_accessors: Crash
 type_variable_as_super: Crash
 type_variable_prefix: Crash
-typedef: Crash
 uninitialized_fields: Crash
 unused_methods: Crash
 void_methods: Crash

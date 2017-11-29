@@ -779,6 +779,45 @@ main() {
     expect(actualElement.parameters[0].type, intType);
   }
 
+  test_isExpression() async {
+    String content = r'''
+void main() {
+  var v = 42;
+  v is num;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    expect(result.errors, isEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    NodeList<Statement> statements = _getMainStatements(result);
+
+    // var v = 42;
+    VariableElement vElement;
+    {
+      VariableDeclarationStatement statement = statements[0];
+      vElement = statement.variables.variables[0].name.staticElement;
+    }
+
+    // v;
+    {
+      ExpressionStatement statement = statements[1];
+      IsExpression isExpression = statement.expression;
+      expect(isExpression.staticType, typeProvider.boolType);
+
+      SimpleIdentifier target = isExpression.expression;
+      expect(target.staticElement, vElement);
+      expect(target.staticType, typeProvider.intType);
+
+      TypeName numName = isExpression.type;
+      expect(numName.name.staticElement, typeProvider.numType.element);
+      expect(numName.name.staticType, typeProvider.numType);
+    }
+  }
+
   test_local_function() async {
     addTestFile(r'''
 void main() {

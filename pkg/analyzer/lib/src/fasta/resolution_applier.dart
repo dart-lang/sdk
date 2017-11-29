@@ -189,6 +189,13 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitIsExpression(IsExpression node) {
+    node.expression.accept(this);
+    applyToTypeAnnotation(_getTypeFor(node.isOperator), node.type);
+    node.staticType = _getTypeFor(node.isOperator);
+  }
+
+  @override
   void visitListLiteral(ListLiteral node) {
     node.elements.accept(this);
     DartType type = _getTypeFor(node.constKeyword ?? node.leftBracket);
