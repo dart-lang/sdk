@@ -601,10 +601,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       '--platform=${buildDir}/vm_platform_strong.dill',
       '--strong-mode',
       '--fatal=errors',
+      '--target-options=strong-aot',
     ];
-    if (_enableStrongModeOptimizations) {
-      args.add('--target-options=strong-aot');
-    }
     args.add('-o');
     args.add(tempKernelFile(tempDir));
     args.addAll(arguments.where((name) => name.endsWith('.dart')));
