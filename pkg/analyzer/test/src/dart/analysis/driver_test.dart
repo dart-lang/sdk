@@ -1263,6 +1263,7 @@ class C {
     String content = r'''
 void main() {
   var v = 42;
+  '$v$v $v';
   ' ${v + 1} ';
 }
 ''';
@@ -1294,11 +1295,31 @@ void main() {
       StringInterpolation interpolation = statement.expression;
 
       InterpolationExpression element_1 = interpolation.elements[1];
+      SimpleIdentifier expression_1 = element_1.expression;
+      expect(expression_1.staticElement, same(vElement));
+      expect(expression_1.staticType, typeProvider.intType);
+
+      InterpolationExpression element_3 = interpolation.elements[3];
+      SimpleIdentifier expression_3 = element_3.expression;
+      expect(expression_3.staticElement, same(vElement));
+      expect(expression_3.staticType, typeProvider.intType);
+
+      InterpolationExpression element_5 = interpolation.elements[5];
+      SimpleIdentifier expression_5 = element_5.expression;
+      expect(expression_5.staticElement, same(vElement));
+      expect(expression_5.staticType, typeProvider.intType);
+    }
+
+    {
+      ExpressionStatement statement = statements[2];
+      StringInterpolation interpolation = statement.expression;
+
+      InterpolationExpression element_1 = interpolation.elements[1];
       BinaryExpression expression = element_1.expression;
       expect(expression.staticType, typeProvider.intType);
 
       SimpleIdentifier left = expression.leftOperand;
-      expect(left.staticElement, vElement);
+      expect(left.staticElement, same(vElement));
       expect(left.staticType, typeProvider.intType);
     }
   }

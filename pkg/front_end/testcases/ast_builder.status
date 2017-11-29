@@ -352,7 +352,6 @@ rasta/issue_000036: Crash
 rasta/issue_000039: Crash
 rasta/issue_000041: Crash
 rasta/issue_000042: Crash
-rasta/issue_000043: Crash
 rasta/issue_000044: Crash
 rasta/issue_000052: Crash
 rasta/issue_000053: Crash
@@ -442,7 +441,6 @@ runtime_checks_new/mixin_forwarding_stub_setter: Crash
 runtime_checks_new/stub_checked_via_target: Crash
 statements: Crash
 static_setter: Crash
-stringliteral: Crash
 super_rasta_copy: Crash
 top_level_accessors: Crash
 type_variable_as_super: Crash

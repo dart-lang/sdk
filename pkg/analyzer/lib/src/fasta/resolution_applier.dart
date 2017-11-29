@@ -278,7 +278,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitStringInterpolation(StringInterpolation node) {
     for (var element in node.elements) {
       if (element is InterpolationString) {
-        _getTypeFor(element);
+        if (element.value.isNotEmpty) {
+          _getTypeFor(element);
+        }
       } else if (element is InterpolationExpression) {
         element.expression.accept(this);
       }
