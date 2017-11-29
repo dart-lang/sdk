@@ -33,9 +33,7 @@ generic_list_checked_test: CompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 generic_tearoff_test: CompileTimeError
-implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
-implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
-import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
+import_core_prefix_test: CompileTimeError
 internal_library_test/02: Crash
 method_override7_test/03: MissingCompileTimeError # Issue 30514
 multiline_newline_test/04: MissingCompileTimeError
@@ -459,6 +457,72 @@ function_propagation_test: CompileTimeError
 function_subtype_bound_closure7_test: CompileTimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
+function_type/function_type79_test: CompileTimeError
+function_type/function_type20_test: CompileTimeError
+function_type/function_type71_test: CompileTimeError
+function_type/function_type55_test: CompileTimeError
+function_type/function_type82_test: CompileTimeError
+function_type/function_type25_test: CompileTimeError
+function_type/function_type35_test: CompileTimeError
+function_type/function_type7_test: CompileTimeError
+function_type/function_type54_test: CompileTimeError
+function_type/function_type70_test: CompileTimeError
+function_type/function_type30_test: CompileTimeError
+function_type/function_type58_test: CompileTimeError
+function_type/function_type42_test: CompileTimeError
+function_type/function_type2_test: CompileTimeError
+function_type/function_type11_test: CompileTimeError
+function_type/function_type63_test: CompileTimeError
+function_type/function_type47_test: CompileTimeError
+function_type/function_type83_test: CompileTimeError
+function_type/function_type59_test: CompileTimeError
+function_type/function_type36_test: CompileTimeError
+function_type/function_type10_test: CompileTimeError
+function_type/function_type24_test: CompileTimeError
+function_type/function_type40_test: CompileTimeError
+function_type/function_type75_test: CompileTimeError
+function_type/function_type33_test: CompileTimeError
+function_type/function_type95_test: CompileTimeError
+function_type/function_type34_test: CompileTimeError
+function_type/function_type51_test: CompileTimeError
+function_type/function_type43_test: CompileTimeError
+function_type/function_type41_test: CompileTimeError
+function_type/function_type49_test: CompileTimeError
+function_type/function_type38_test: CompileTimeError
+function_type/function_type67_test: CompileTimeError
+function_type/function_type27_test: CompileTimeError
+function_type/function_type19_test: CompileTimeError
+function_type/function_type46_test: CompileTimeError
+function_type/function_type28_test: CompileTimeError
+function_type/function_type99_test: CompileTimeError
+function_type/function_type44_test: CompileTimeError
+function_type/function_type50_test: CompileTimeError
+function_type/function_type18_test: CompileTimeError
+function_type/function_type29_test: CompileTimeError
+function_type/function_type32_test: CompileTimeError
+function_type/function_type31_test: CompileTimeError
+function_type/function_type14_test: CompileTimeError
+function_type/function_type66_test: CompileTimeError
+function_type/function_type39_test: CompileTimeError
+function_type/function_type48_test: CompileTimeError
+function_type/function_type87_test: CompileTimeError
+function_type/function_type37_test: CompileTimeError
+function_type/function_type21_test: CompileTimeError
+function_type/function_type86_test: CompileTimeError
+function_type/function_type98_test: CompileTimeError
+function_type/function_type91_test: CompileTimeError
+function_type/function_type26_test: CompileTimeError
+function_type/function_type6_test: CompileTimeError
+function_type/function_type74_test: CompileTimeError
+function_type/function_type90_test: CompileTimeError
+function_type/function_type23_test: CompileTimeError
+function_type/function_type45_test: CompileTimeError
+function_type/function_type22_test: CompileTimeError
+function_type/function_type62_test: CompileTimeError
+function_type/function_type15_test: CompileTimeError
+function_type/function_type78_test: CompileTimeError
+function_type/function_type94_test: CompileTimeError
+function_type/function_type3_test: CompileTimeError
 generalized_void_syntax_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: CompileTimeError
@@ -505,6 +569,7 @@ invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'd
 issue18628_2_test/01: MissingCompileTimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
+issue13179_test: RuntimeError
 least_upper_bound_expansive_test/01: MissingCompileTimeError
 least_upper_bound_expansive_test/02: MissingCompileTimeError
 least_upper_bound_expansive_test/03: MissingCompileTimeError
@@ -1111,6 +1176,8 @@ generic_method_types_test/02: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
 implicit_downcast_during_assert_initializer_test: Crash
 implicit_downcast_during_compound_assignment_test: RuntimeError
+implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
+implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
 label_test: RuntimeError
 lazy_static3_test: RuntimeError # Issue 30852
 lazy_static8_test: RuntimeError # Issue 30852
