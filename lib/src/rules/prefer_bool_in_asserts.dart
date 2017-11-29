@@ -5,6 +5,7 @@
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -48,14 +49,26 @@ class PreferBoolInAsserts extends LintRule {
 }
 
 class Visitor extends SimpleAstVisitor {
-  final LintRule rule;
   Visitor(this.rule);
+
+  final LintRule rule;
+  DartType boolType;
+
+  @override
+  visitCompilationUnit(CompilationUnit node) {
+    boolType = node.element.context.typeProvider.boolType;
+  }
 
   @override
   visitAssertStatement(AssertStatement node) {
-    if (!DartTypeUtilities.isClass(
-        node.condition.bestType, 'bool', 'dart.core')) {
+    if (!_unbound(node.condition.bestType).isAssignableTo(boolType)) {
       rule.reportLint(node.condition);
     }
+  }
+
+  DartType _unbound(DartType type) {
+    DartType t = type;
+    while (t is TypeParameterType) t = (t as TypeParameterType).bound;
+    return t;
   }
 }
