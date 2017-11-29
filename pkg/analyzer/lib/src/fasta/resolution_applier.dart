@@ -275,6 +275,18 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitStringInterpolation(StringInterpolation node) {
+    for (var element in node.elements) {
+      if (element is InterpolationString) {
+        _getTypeFor(element);
+      } else if (element is InterpolationExpression) {
+        element.expression.accept(this);
+      }
+    }
+    node.staticType = _getTypeFor(node.endToken.next);
+  }
+
+  @override
   void visitTypeAnnotation(TypeAnnotation node) {
     applyToTypeAnnotation(_getTypeFor(node), node);
   }

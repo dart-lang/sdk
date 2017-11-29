@@ -266,6 +266,7 @@ abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
   E get first;
+  int get length;
 
   Iterable<R> map<R>(R f(E e));
 

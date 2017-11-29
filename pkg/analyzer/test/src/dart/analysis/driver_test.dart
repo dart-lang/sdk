@@ -1259,6 +1259,50 @@ class C {
     }
   }
 
+  test_stringInterpolation() async {
+    String content = r'''
+void main() {
+  var v = 42;
+  ' ${v + 1} ';
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    expect(result.errors, isEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    FunctionDeclaration main = result.unit.declarations[0];
+    expect(main.element, isNotNull);
+    expect(main.name.staticElement, isNotNull);
+    expect(main.name.staticType.toString(), '() → void');
+
+    BlockFunctionBody body = main.functionExpression.body;
+    NodeList<Statement> statements = body.block.statements;
+
+    // var v = 42;
+    VariableElement vElement;
+    {
+      VariableDeclarationStatement statement = statements[0];
+      vElement = statement.variables.variables[0].name.staticElement;
+    }
+
+    {
+      ExpressionStatement statement = statements[1];
+      StringInterpolation interpolation = statement.expression;
+
+      InterpolationExpression element_1 = interpolation.elements[1];
+      BinaryExpression expression = element_1.expression;
+      expect(expression.staticType, typeProvider.intType);
+
+      SimpleIdentifier left = expression.leftOperand;
+      expect(left.staticElement, vElement);
+      expect(left.staticType, typeProvider.intType);
+    }
+  }
+
   test_top_executables_class() async {
     String content = r'''
 class C {
