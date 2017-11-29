@@ -36,7 +36,6 @@ arithmetic2_test: RuntimeError # Throws CastError instead of TypeError
 assert_message_test: CompileTimeError # Issue 31402 (Assert statement)
 assertion_initializer_test: CompileTimeError # Issue 31402 (Assert statement)
 assertion_test: CompileTimeError # Issue 31402 (Assert statement)
-assign_static_type_test/06: MissingCompileTimeError
 assign_to_type_test/01: MissingCompileTimeError
 assign_to_type_test/02: MissingCompileTimeError
 assign_to_type_test/03: MissingCompileTimeError
@@ -654,7 +653,7 @@ is_malformed_type_test/99: MissingCompileTimeError
 is_not_class2_test/01: MissingCompileTimeError
 isnot_malformed_type_test/01: MissingCompileTimeError
 issue11724_test/01: MissingCompileTimeError
-issue13179_test: RuntimeError
+issue13179_test: CompileTimeError # Issue 31402 (Parameter default value)
 issue15606_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue_1751477_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -1495,7 +1494,6 @@ assertion_initializer_const_error_test/01: Pass
 assertion_initializer_test: CompileTimeError # Issue 31402 (Assert statement)
 assertion_test: CompileTimeError # Issue 31402 (Assert statement)
 assertion_test: RuntimeError # Issue 30326
-assign_static_type_test/06: MissingCompileTimeError
 assign_to_type_test/01: MissingCompileTimeError
 assign_to_type_test/02: MissingCompileTimeError
 assign_to_type_test/03: MissingCompileTimeError
@@ -1689,7 +1687,6 @@ compile_time_constant_o_test/01: RuntimeError # KernelVM bug: Constant map dupli
 compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_o_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_static2_test/04: MissingCompileTimeError
-compile_time_constant_static3_test/03: Crash
 compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31402 (Field declaration)
 conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -2223,6 +2220,7 @@ is_malformed_type_test/99: MissingCompileTimeError
 is_not_class2_test/01: MissingCompileTimeError
 isnot_malformed_type_test/01: MissingCompileTimeError
 issue11724_test/01: MissingCompileTimeError
+issue13179_test: CompileTimeError # Issue 31402 (Parameter default value)
 issue15606_test/01: MissingCompileTimeError
 issue18628_2_test/01: MissingCompileTimeError
 issue21079_test: SkipByDesign

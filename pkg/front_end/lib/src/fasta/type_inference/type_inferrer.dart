@@ -1106,7 +1106,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   void inferParameterInitializer(
       Expression initializer, DartType declaredType) {
     assert(closureContext == null);
-    inferExpression(initializer, declaredType, false);
+    assert(declaredType != null);
+    var actualType = inferExpression(initializer, declaredType, true);
+    checkAssignability(
+        declaredType, actualType, initializer, initializer.fileOffset);
   }
 
   /// Performs the core type inference algorithm for property gets (this handles
