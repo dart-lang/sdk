@@ -44,6 +44,7 @@ declare_args() {
 # ........dartfmt.dart.snapshot
 # ........dartdevc.dart.snapshot
 # ........dartdevk.dart.snapshot
+# ........front_end_worker.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
 #.........resources/
@@ -160,6 +161,10 @@ _full_sdk_snapshots = [
   [
     "dartfmt",
     "../utils/dartfmt",
+  ],
+  [
+    "front_end_worker",
+    "../utils/front_end:front_end_worker",
   ],
   [
     "pub",

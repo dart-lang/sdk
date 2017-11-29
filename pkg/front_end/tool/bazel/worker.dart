@@ -73,6 +73,7 @@ List<String> preprocessArgs(List<String> args) {
 
 /// An [ArgParser] for generating kernel summaries.
 final summaryArgsParser = new ArgParser()
+  ..addFlag('help', negatable: false)
   ..addOption('dart-sdk-summary')
   ..addOption('input-summary', allowMultiple: true)
   ..addOption('multi-root', allowMultiple: true)
@@ -92,6 +93,12 @@ Future<bool> computeSummary(List<String> args,
     {bool isWorker: false, StringBuffer outputBuffer}) async {
   bool succeeded = true;
   var parsedArgs = summaryArgsParser.parse(args);
+
+  if (parsedArgs['help']) {
+    print(summaryArgsParser.usage);
+    exit(0);
+  }
+
   var options = new CompilerOptions()
     ..packagesFileUri = Uri.parse(parsedArgs['packages-file'])
     ..inputSummaries = parsedArgs['input-summary'].map(Uri.parse).toList()
