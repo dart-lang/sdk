@@ -717,6 +717,29 @@ main() {
     expect(value.staticType, typeProvider.intType);
   }
 
+  test_binaryExpression_notEqual() async {
+    // TODO(scheglov) Add similar test for `v is! T`.
+    String content = r'''
+main() {
+  1 != 2;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+    ExpressionStatement statement = statements[0];
+    BinaryExpression expression = statement.expression;
+    expect(expression.operator.type, TokenType.BANG_EQ);
+    expect(expression.leftOperand.staticType, typeProvider.intType);
+    expect(expression.rightOperand.staticType, typeProvider.intType);
+    expect(expression.staticElement.name, '==');
+    expect(expression.staticType, typeProvider.boolType);
+  }
+
   test_indexExpression() async {
     String content = r'''
 main() {
@@ -1361,6 +1384,42 @@ main() {
       SimpleIdentifier operand = prefix.operand;
       expect(operand.staticElement, same(v));
       expect(operand.staticType, typeProvider.intType);
+    }
+  }
+
+  test_prefixExpression_local_not() async {
+    String content = r'''
+main() {
+  bool v = true;
+  !v;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement v;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      v = statement.variables.variables[0].element;
+      expect(v.type, typeProvider.boolType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      PrefixExpression prefix = statement.expression;
+      expect(prefix.operator.type, TokenType.BANG);
+      expect(prefix.staticElement, isNull);
+      expect(prefix.staticType, typeProvider.boolType);
+
+      SimpleIdentifier operand = prefix.operand;
+      expect(operand.staticElement, same(v));
+      expect(operand.staticType, typeProvider.boolType);
     }
   }
 

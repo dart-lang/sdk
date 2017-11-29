@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
+import 'package:front_end/src/scanner/token.dart';
 
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST.
@@ -71,6 +72,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.staticType = _getTypeFor(node.operator);
 
     node.rightOperand.accept(this);
+
+    // Skip the synthetic Not for `!=`.
+    if (node.operator.type == TokenType.BANG_EQ) {
+      _getTypeFor(node.operator, synthetic: true);
+    }
   }
 
   @override
@@ -261,12 +267,16 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitPrefixExpression(PrefixExpression node) {
     node.operand.accept(this);
-    if (node.operator.type.isIncrementOperator) {
+    TokenType tokenType = node.operator.type;
+    if (tokenType.isIncrementOperator) {
       // ++v;
       // This is an assignment, it is associated with the operand.
       SyntacticEntity entity = _getAssignmentEntity(node.operand);
       node.staticElement = _getReferenceFor(entity);
       node.staticType = _getTypeFor(entity);
+    } else if (tokenType == TokenType.BANG) {
+      // !boolExpression;
+      node.staticType = _getTypeFor(node);
     } else {
       // ~v;
       // This is a method invocation, it is associated with the operator.
