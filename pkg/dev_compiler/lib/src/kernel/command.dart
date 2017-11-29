@@ -25,7 +25,7 @@ import 'compiler.dart';
 import 'native_types.dart';
 import 'source_map_printer.dart';
 
-const _binaryName = 'dartdevc';
+const _binaryName = 'dartdevk';
 
 /// Invoke the compiler with [args].
 ///
@@ -48,9 +48,18 @@ any other information that may help us track it down. Thanks!
   }
 }
 
+String _usageMessage(ArgParser ddcArgParser) =>
+    'The Dart Development Compiler compiles Dart sources into a JavaScript '
+    'module.\n\n'
+    'Usage: $_binaryName [options...] <sources...>\n\n'
+    '${ddcArgParser.usage}';
+
 Future<bool> _compile(List<String> args) async {
   var argParser = new ArgParser(allowTrailingOptions: true)
+    ..addFlag('help',
+        abbr: 'h', help: 'Display this message.', negatable: false)
     ..addOption('out', abbr: 'o', help: 'Output file (required).')
+    ..addOption('packages', help: 'The package spec file to use.')
     ..addOption('dart-sdk-summary',
         help: 'The path to the Dart SDK summary file.', hide: true)
     ..addOption('summary',
@@ -60,8 +69,12 @@ Future<bool> _compile(List<String> args) async {
   addModuleFormatOptions(argParser, singleOutFile: false);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
-
   var argResults = argParser.parse(args);
+
+  if (argResults['help'] || args.isEmpty) {
+    print(_usageMessage(argParser));
+    return true;
+  }
 
   var moduleFormat = parseModuleFormatOption(argResults).first;
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
@@ -71,6 +84,9 @@ Future<bool> _compile(List<String> args) async {
 
   var sdkSummaryPath = argResults['dart-sdk-summary'] ??
       path.absolute(ddcPath, 'gen', 'sdk', 'ddc_sdk.dill');
+
+  var packageFile =
+      argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
 
   var succeeded = true;
   void errorHandler(CompilationMessage error) {
@@ -85,8 +101,7 @@ Future<bool> _compile(List<String> args) async {
 
   var options = new CompilerOptions()
     ..sdkSummary = path.toUri(sdkSummaryPath)
-    ..packagesFileUri =
-        path.toUri(path.absolute(ddcPath, '..', '..', '.packages'))
+    ..packagesFileUri = path.toUri(packageFile)
     ..inputSummaries = summaryUris
     ..target = new DevCompilerTarget()
     ..onError = errorHandler
@@ -105,6 +120,7 @@ Future<bool> _compile(List<String> args) async {
   // options, which has info needed to compute library -> module mapping without
   // re-parsing inputs.
   var processedOpts = new ProcessedOptions(options, true, inputs);
+
   var compilerResult = await generateKernel(processedOpts);
   var program = compilerResult?.program;
 

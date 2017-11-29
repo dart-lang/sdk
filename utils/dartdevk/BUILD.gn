@@ -8,61 +8,7 @@ import("../create_timestamp.gni")
 
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
-sdk_dill = "$target_gen_dir/ddc_sdk.dill"
 dart_root = rebase_path("../..")
-
-application_snapshot("dartdevc") {
-  main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
-
-  training_args = [
-    "--dart-sdk",
-    rebase_path("../../sdk"),
-    "--dart-sdk-summary",
-    rebase_path(sdk_summary),
-    "--library-root",
-    rebase_path("../../pkg/dev_compiler"),
-    "-o",
-    "dartdevc.js",
-    "--unsafe-force-compile",
-    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
-  ]
-
-  deps = [
-    ":dartdevc_sdk",
-  ]
-
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
-  inputs += [ sdk_summary ]
-}
-
-application_snapshot("dartdevk") {
-  main_dart = "../../pkg/dev_compiler/bin/dartdevk.dart"
-
-  # TODO: Train this on real input.
-  training_args = [
-    "--dart-sdk-summary",
-    rebase_path(sdk_dill),
-    "--help",
-  ]
-
-  deps = [
-    ":dartdevc_sdk",
-    ":dartdevc_sdk_kernel_summary",
-  ]
-
-  inputs = exec_script("../../tools/list_dart_files.py",
-                       [
-                         "absolute",
-                         rebase_path("../../pkg/dev_compiler/bin"),
-                       ],
-                       "list lines")
-  inputs += [ sdk_dill ]
-}
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
                             [
@@ -114,23 +60,23 @@ template("dart2js_compile") {
   }
 }
 
-dart2js_compile("dartdevc_web") {
+dart2js_compile("dartdevk_web") {
   main = rebase_path("../../pkg/dev_compiler/web/main.dart")
-  out = "$root_out_dir/dev_compiler/build/web/ddc_web_compiler.js"
+  out = "$root_out_dir/dev_compiler/build/web/ddk_web_compiler.js"
 }
 
-dart2js_compile("stack_trace_mapper") {
-  main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
-  out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
-}
+#dart2js_compile("stack_trace_mapper") {
+#  main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
+#  out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
+#}
 
-# Apply dev_compiler's patch files to create the Dart version of the dartdevc
+# Apply dev_compiler's patch files to create the Dart version of the dartdevk
 # SDK.
-action("dartdevc_patch_sdk") {
+action("dartdevk_patch_sdk") {
   # TODO(rnystrom): Unfork DDC's patch_sdk.dart script with the
   # tools/patch_sdk.dart and then change this to use generate_patch_sdk().
   deps = [
-    ":dartdevc_files_stamp",
+    ":dartdevk_files_stamp",
 
     # The patch script uses several packages, including analyzer, so consider
     # it dirty if any of those change.
@@ -191,10 +137,10 @@ action("dartdevc_patch_sdk") {
 
 # Compiles the Dart core libraries and DDC runtime to an analyzer summary and
 # JS.
-action("dartdevc_sdk") {
+action("dartdevk_sdk") {
   deps = [
-    ":dartdevc_files_stamp",
-    ":dartdevc_patch_sdk",
+    ":dartdevk_files_stamp",
+    ":dartdevk_patch_sdk",
     "../../pkg:pkg_files_stamp",
   ]
 
@@ -220,8 +166,6 @@ action("dartdevc_sdk") {
   args = [
     "--quiet",
     rebase_path("../../pkg/dev_compiler/tool/build_sdk.dart"),
-    "--dart-sdk",
-    rebase_path(patched_sdk_dir),
     "--dart-sdk-summary=build",
     "--summary-out",
     rebase_path(sdk_summary),
@@ -247,13 +191,13 @@ action("dartdevc_sdk") {
 
     # Since the entire patched SDK is built in one step, if any file changes,
     # they all will. Instead of listing them all as outputs of
-    # dartdevc_patch_sdk (which would require something like a depfile), just
+    # dartdevk_patch_sdk (which would require something like a depfile), just
     # use version as the token file whose timestamp we track.
     # TODO(rnystrom): Do something better?
     "$patched_sdk_dir/version",
 
     # If dev_compiler itself changes, it can affect the generated SDK.
-    "$target_gen_dir/dartdevc_files.stamp",
+    "$target_gen_dir/dartdevk_files.stamp",
 
     # Likewise, the packages dev_compiler depends on may affect its output.
     "$root_gen_dir/pkg_files.stamp",
@@ -272,39 +216,38 @@ action("dartdevc_sdk") {
   ]
 }
 
-# Builds everything needed to run dartdevc and dartdevk tests using test.dart.
-group("dartdevc_test") {
+# Builds everything needed to run dartdevk and dartdevk tests using test.dart.
+group("dartdevk_test") {
   deps = [
-    ":dartdevc",
     ":dartdevk",
-    ":dartdevc_sdk",
-    ":dartdevc_sdk_kernel_summary",
-    ":dartdevc_test_pkg",
+    ":dartdevk_sdk",
+    ":dartdevk_sdk_kernel_summary",
+    ":dartdevk_test_pkg",
     "../../sdk:create_sdk",
   ]
 }
 
-create_timestamp_file("dartdevc_files_stamp") {
+create_timestamp_file("dartdevk_files_stamp") {
   path = rebase_path("../../pkg/dev_compiler/lib")
-  output = "$target_gen_dir/dartdevc_files.stamp"
+  output = "$target_gen_dir/dartdevk_files.stamp"
 }
 
-# Compiles the packages used by the tests to JS with dartdevc so that they are
+# Compiles the packages used by the tests to JS with dartdevk so that they are
 # available for loading by the tests.
-compiled_action("dartdevc_test_pkg") {
+compiled_action("dartdevk_test_pkg") {
   tool = "../../runtime/bin:dart"
 
   deps = [
-    ":dartdevc_files_stamp",
-    ":dartdevc_sdk",
-    ":dartdevc_sdk_kernel_summary",
+    ":dartdevk_files_stamp",
+    ":dartdevk_sdk",
+    ":dartdevk_sdk_kernel_summary",
     "../../pkg:pkg_files_stamp",
   ]
 
   inputs = [
     "$target_gen_dir/ddc_sdk.dill",
     sdk_summary,
-    "$target_gen_dir/dartdevc_files.stamp",
+    "$target_gen_dir/dartdevk_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
   ]
 
@@ -353,15 +296,15 @@ compiled_action("dartdevc_test_pkg") {
 }
 
 # Compiles the DDC SDK's kernel summary.
-compiled_action("dartdevc_sdk_kernel_summary") {
+compiled_action("dartdevk_sdk_kernel_summary") {
   tool = "../../runtime/bin:dart"
 
   deps = [
-    ":dartdevc_files_stamp",
+    ":dartdevk_files_stamp",
   ]
 
   inputs = [
-    "$target_gen_dir/dartdevc_files.stamp",
+    "$target_gen_dir/dartdevk_files.stamp",
   ]
 
   outputs = [

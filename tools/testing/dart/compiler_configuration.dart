@@ -465,7 +465,10 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
   DevKernelCompilerConfiguration(Configuration configuration)
       : super._subclass(configuration);
 
-  String computeCompilerPath() => "pkg/dev_compiler/bin/dartdevk.dart";
+  String computeCompilerPath() {
+    var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
+    return "$dir/bin/dartdevk$executableScriptSuffix";
+  }
 
   List<String> computeCompilerArguments(
       List<String> vmOptions, List<String> sharedOptions, List<String> args) {
