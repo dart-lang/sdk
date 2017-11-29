@@ -1189,6 +1189,111 @@ class C {
     }
   }
 
+  test_prefixExpression_local() async {
+    String content = r'''
+main() {
+  int v = 0;
+  ++v;
+  ~v;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement v;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      v = statement.variables.variables[0].element;
+      expect(v.type, typeProvider.intType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      PrefixExpression prefix = statement.expression;
+      expect(prefix.operator.type, TokenType.PLUS_PLUS);
+      expect(prefix.staticElement.name, '+');
+      expect(prefix.staticType, typeProvider.intType);
+
+      SimpleIdentifier operand = prefix.operand;
+      expect(operand.staticElement, same(v));
+      expect(operand.staticType, typeProvider.intType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[2];
+
+      PrefixExpression prefix = statement.expression;
+      expect(prefix.operator.type, TokenType.TILDE);
+      expect(prefix.staticElement.name, '~');
+      expect(prefix.staticType, typeProvider.intType);
+
+      SimpleIdentifier operand = prefix.operand;
+      expect(operand.staticElement, same(v));
+      expect(operand.staticType, typeProvider.intType);
+    }
+  }
+
+  test_prefixExpression_propertyAccess() async {
+    String content = r'''
+main() {
+  ++new C().f;
+  ~new C().f;
+}
+class C {
+  int f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+
+      PrefixExpression prefix = statement.expression;
+      expect(prefix.operator.type, TokenType.PLUS_PLUS);
+      expect(prefix.staticElement.name, '+');
+      expect(prefix.staticType, typeProvider.intType);
+
+      PropertyAccess propertyAccess = prefix.operand;
+      expect(propertyAccess.staticType, typeProvider.intType);
+
+      SimpleIdentifier propertyName = propertyAccess.propertyName;
+      expect(propertyName.staticElement, same(fElement.setter));
+      expect(propertyName.staticType, typeProvider.intType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      PrefixExpression prefix = statement.expression;
+      expect(prefix.operator.type, TokenType.TILDE);
+      expect(prefix.staticElement.name, '~');
+      expect(prefix.staticType, typeProvider.intType);
+
+      PropertyAccess propertyAccess = prefix.operand;
+      expect(propertyAccess.staticType, typeProvider.intType);
+
+      SimpleIdentifier propertyName = propertyAccess.propertyName;
+      expect(propertyName.staticElement, same(fElement.getter));
+      expect(propertyName.staticType, typeProvider.intType);
+    }
+  }
+
   test_propertyAccess_field() async {
     String content = r'''
 main() {

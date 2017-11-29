@@ -262,6 +262,25 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitPrefixExpression(PrefixExpression node) {
+    node.operand.accept(this);
+    if (node.operator.type.isIncrementOperator) {
+      // ++v;
+      // This is an assignment, it is associated with the operand.
+      SyntacticEntity entity = _getAssignmentEntity(node.operand);
+      node.staticElement = _getReferenceFor(entity);
+      node.staticType = _getTypeFor(entity);
+    } else {
+      // ~v;
+      // This is a method invocation, it is associated with the operator.
+      SyntacticEntity entity = node.operator;
+      node.staticElement = _getReferenceFor(entity);
+      _getTypeFor(entity); // The function type of the operator.
+      node.staticType = _getTypeFor(entity);
+    }
+  }
+
+  @override
   void visitPropertyAccess(PropertyAccess node) {
     node.target?.accept(this);
     node.propertyName.accept(this);
