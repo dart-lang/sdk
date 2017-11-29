@@ -344,7 +344,7 @@
             "--checked",
             "--strong",
             "--use-sdk",
-            "language_2",
+            "language_2"
           ]
         },
         {
@@ -355,7 +355,7 @@
             "--checked",
             "--strong",
             "--use-sdk",
-            "language_2",
+            "language_2"
           ]
         }
       ]
