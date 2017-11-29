@@ -1971,6 +1971,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
   if (CurrentToken() == Token::kCOVARIANT &&
       (LookaheadToken(1) == Token::kFINAL || LookaheadToken(1) == Token::kVAR ||
+       LookaheadToken(1) == Token::kVOID ||
        Token::IsIdentifier(LookaheadToken(1)))) {
     parameter.is_covariant = true;
     ConsumeToken();
@@ -8231,6 +8232,12 @@ bool Parser::TryParseTypeArguments() {
       nesting_level--;
     } else if (ct == Token::kSHR) {
       nesting_level -= 2;
+    } else if (ct == Token::kVOID) {
+      ConsumeToken();
+      if (!IsFunctionTypeSymbol()) {
+        return false;
+      }
+      continue;
     } else if (ct == Token::kIDENT) {
       if (IsFunctionTypeSymbol()) {
         if (!TryParseType(false)) {
