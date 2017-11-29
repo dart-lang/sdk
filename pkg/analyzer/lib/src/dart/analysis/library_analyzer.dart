@@ -450,6 +450,8 @@ class LibraryAnalyzer {
         // TODO(scheglov) Instantiate the executable type with arguments.
         assert(kernelType.typeArguments.isEmpty);
         astType = element.type;
+      } else if (kernelType is kernel.IndexAssignNullFunctionType) {
+        astType = null;
       } else {
         astType = _kernelResynthesizer.getType(context, kernelType);
       }

@@ -983,6 +983,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
     typeNeeded = inferrer.listener.indexAssignEnter(desugared, typeContext) ||
         typeNeeded;
     var receiverType = _inferReceiver(inferrer);
+    inferrer.listener.indexAssignAfterReceiver(write, typeContext);
     var writeMember = inferrer.findMethodInvocationMember(receiverType, write);
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member
@@ -1036,7 +1037,8 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
       _storeLetType(inferrer, replacedRead, readType);
     }
     var inferredResult = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.indexAssignExit(desugared, inferredResult.type);
+    inferrer.listener.indexAssignExit(desugared, write, writeMember,
+        inferredResult.combiner, inferredResult.type);
     _replaceWithDesugared();
     return inferredResult.type;
   }
@@ -1539,7 +1541,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     var receiverType = _inferReceiver(inferrer);
     typeNeeded =
-        inferrer.listener.propertyAssignEnter(desugared, typeContext) ||
+        inferrer.listener.propertyAssignEnter(desugared, write, typeContext) ||
             typeNeeded;
     DartType readType;
     if (read != null) {
@@ -1560,8 +1562,8 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     var writeContext = inferrer.getSetterType(writeMember, receiverType);
     var inferredResult = _inferRhs(inferrer, readType, writeContext);
     if (inferrer.strongMode) nullAwareGuard?.staticType = inferredResult.type;
-    inferrer.listener.propertyAssignExit(desugared, writeMember, writeContext,
-        inferredResult.combiner, inferredResult.type);
+    inferrer.listener.propertyAssignExit(desugared, write, writeMember,
+        writeContext, inferredResult.combiner, inferredResult.type);
     _replaceWithDesugared();
     return inferredResult.type;
   }

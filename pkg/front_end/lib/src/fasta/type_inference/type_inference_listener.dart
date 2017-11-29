@@ -240,7 +240,10 @@ class TypeInferenceListener
   bool indexAssignEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("indexAssign", expression, typeContext);
 
-  void indexAssignExit(Expression expression, DartType inferredType) =>
+  void indexAssignAfterReceiver(Expression expression, DartType typeContext) {}
+
+  void indexAssignExit(Expression expression, Expression write,
+          Member writeMember, Procedure combiner, DartType inferredType) =>
       genericExpressionExit("indexAssign", expression, inferredType);
 
   bool intLiteralEnter(IntLiteral expression, DartType typeContext) =>
@@ -322,11 +325,17 @@ class TypeInferenceListener
   void nullLiteralExit(NullLiteral expression, DartType inferredType) =>
       genericExpressionExit("nullLiteral", expression, inferredType);
 
-  bool propertyAssignEnter(Expression expression, DartType typeContext) =>
+  bool propertyAssignEnter(
+          Expression expression, Expression write, DartType typeContext) =>
       genericExpressionEnter("propertyAssign", expression, typeContext);
 
-  void propertyAssignExit(Expression expression, Member writeMember,
-          DartType writeContext, Procedure combiner, DartType inferredType) =>
+  void propertyAssignExit(
+          Expression expression,
+          Expression write,
+          Member writeMember,
+          DartType writeContext,
+          Procedure combiner,
+          DartType inferredType) =>
       genericExpressionExit("propertyAssign", expression, inferredType);
 
   bool propertyGetEnter(Expression expression, DartType typeContext) =>

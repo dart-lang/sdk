@@ -311,8 +311,6 @@ inference_new/infer_assign_to_property_upwards: Crash
 inference_new/infer_assign_to_ref: Crash
 inference_new/infer_assign_to_static: Crash
 inference_new/infer_assign_to_static_upwards: Crash
-inference_new/infer_instance_accessor_ref: Crash
-inference_new/infer_instance_field_ref: Crash
 inference_new/infer_logical: Crash
 inference_new/invalid_assignment_during_toplevel_inference: Crash
 inference_new/property_assign_combiner: Crash

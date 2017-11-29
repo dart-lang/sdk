@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -216,6 +217,59 @@ var b = new C<num, String>.named(4, 'five');
     }
   }
 
+  test_assignmentExpression_compound_indexExpression() async {
+    String content = r'''
+main() {
+  var items = <num>[1, 2, 3];
+  items[0] += 4;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    var typeProvider = unit.element.context.typeProvider;
+    InterfaceType numType = typeProvider.numType;
+    InterfaceType intType = typeProvider.intType;
+    InterfaceType listType = typeProvider.listType;
+    InterfaceType listNumType = listType.instantiate([numType]);
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement itemsElement;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      VariableDeclaration itemsNode = statement.variables.variables[0];
+      itemsElement = itemsNode.element;
+      expect(itemsElement.type, listNumType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.PLUS_EQ);
+      expect(assignment.staticElement, isNotNull);
+      expect(assignment.staticElement.name, '+');
+      expect(assignment.staticType, typeProvider.numType); // num + int = num
+
+      IndexExpression indexExpression = assignment.leftHandSide;
+      expect(indexExpression.staticType, numType);
+      expect(indexExpression.index.staticType, intType);
+
+      MethodMember actualElement = indexExpression.staticElement;
+      MethodMember expectedElement = listNumType.getMethod('[]=');
+      expect(actualElement.name, '[]=');
+      expect(actualElement.baseElement, same(expectedElement.baseElement));
+      expect(actualElement.returnType, VoidTypeImpl.instance);
+      expect(actualElement.parameters[0].type, intType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
   test_assignmentExpression_compound_local() async {
     String content = r'''
 main() {
@@ -353,12 +407,62 @@ class C {
     }
   }
 
+  test_assignmentExpression_simple_indexExpression() async {
+    String content = r'''
+main() {
+  var items = <int>[1, 2, 3];
+  items[0] = 4;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    var typeProvider = unit.element.context.typeProvider;
+    InterfaceType intType = typeProvider.intType;
+    InterfaceType listType = typeProvider.listType;
+    InterfaceType listIntType = listType.instantiate([intType]);
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement itemsElement;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      VariableDeclaration itemsNode = statement.variables.variables[0];
+      itemsElement = itemsNode.element;
+      expect(itemsElement.type, listIntType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.EQ);
+      expect(assignment.staticElement, isNull);
+      expect(assignment.staticType, typeProvider.intType);
+
+      IndexExpression indexExpression = assignment.leftHandSide;
+      expect(indexExpression.staticType, intType);
+      expect(indexExpression.index.staticType, intType);
+
+      MethodMember actualElement = indexExpression.staticElement;
+      MethodMember expectedElement = listIntType.getMethod('[]=');
+      expect(actualElement.name, '[]=');
+      expect(actualElement.baseElement, same(expectedElement.baseElement));
+      expect(actualElement.returnType, VoidTypeImpl.instance);
+      expect(actualElement.parameters[0].type, intType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
   test_assignmentExpression_simple_local() async {
     String content = r'''
 main() {
   num v = 0;
   v = 2;
-  v += 3;
 }
 ''';
     addTestFile(content);
@@ -383,23 +487,6 @@ main() {
       expect(assignment.operator.type, TokenType.EQ);
       expect(assignment.staticElement, isNull);
       expect(assignment.staticType, typeProvider.intType);
-
-      SimpleIdentifier left = assignment.leftHandSide;
-      expect(left.staticElement, same(v));
-      expect(left.staticType, typeProvider.numType);
-
-      Expression right = assignment.rightHandSide;
-      expect(right.staticType, typeProvider.intType);
-    }
-
-    {
-      ExpressionStatement statement = mainStatements[2];
-
-      AssignmentExpression assignment = statement.expression;
-      expect(assignment.operator.type, TokenType.PLUS_EQ);
-      expect(assignment.staticElement, isNotNull);
-      expect(assignment.staticElement.name, '+');
-      expect(assignment.staticType, typeProvider.numType); // num + int = num
 
       SimpleIdentifier left = assignment.leftHandSide;
       expect(left.staticElement, same(v));
@@ -628,6 +715,45 @@ main() {
     expect(value.rightOperand.staticType, typeProvider.intType);
     expect(value.staticElement.name, '+');
     expect(value.staticType, typeProvider.intType);
+  }
+
+  test_indexExpression() async {
+    String content = r'''
+main() {
+  var items = <int>[1, 2, 3];
+  items[0];
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    var typeProvider = unit.element.context.typeProvider;
+    InterfaceType intType = typeProvider.intType;
+    InterfaceType listType = typeProvider.listType;
+    InterfaceType listIntType = listType.instantiate([intType]);
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement itemsElement;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      VariableDeclaration itemsNode = statement.variables.variables[0];
+      itemsElement = itemsNode.element;
+      expect(itemsElement.type, listIntType);
+    }
+
+    ExpressionStatement statement = mainStatements[1];
+    IndexExpression indexExpression = statement.expression;
+    expect(indexExpression.staticType, intType);
+
+    MethodMember actualElement = indexExpression.staticElement;
+    MethodMember expectedElement = listIntType.getMethod('[]');
+    expect(actualElement.name, '[]');
+    expect(actualElement.baseElement, same(expectedElement.baseElement));
+    expect(actualElement.returnType, intType);
+    expect(actualElement.parameters[0].type, intType);
   }
 
   test_local_function() async {

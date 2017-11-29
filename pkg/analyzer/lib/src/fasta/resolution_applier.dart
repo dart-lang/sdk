@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
@@ -53,19 +54,21 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.rightHandSide.accept(this);
 
     // Assignment reference and type are recorded recorded for LHS.
-    SimpleIdentifier assignmentNode;
+    SyntacticEntity assignmentEntity;
     Expression left = node.leftHandSide;
     if (left is SimpleIdentifier) {
-      assignmentNode = left;
+      assignmentEntity = left;
     } else if (left is PrefixedIdentifier) {
-      assignmentNode = left.identifier;
+      assignmentEntity = left.identifier;
     } else if (left is PropertyAccess) {
-      assignmentNode = left.propertyName;
+      assignmentEntity = left.propertyName;
+    } else if (left is IndexExpressionImpl) {
+      assignmentEntity = left.leftBracket;
     } else {
-      throw new StateError('Unexpected LHT (${left.runtimeType}) $left');
+      throw new StateError('Unexpected LHS (${left.runtimeType}) $left');
     }
-    node.staticType = _getTypeFor(assignmentNode);
-    node.staticElement = _getReferenceFor(assignmentNode);
+    node.staticElement = _getReferenceFor(assignmentEntity);
+    node.staticType = _getTypeFor(assignmentEntity);
   }
 
   @override
@@ -77,10 +80,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     // Skip the function type of the operator.
     _getTypeFor(node.operator);
 
-    node.rightOperand.accept(this);
-
     // Record the return type of the expression.
     node.staticType = _getTypeFor(node.operator);
+
+    node.rightOperand.accept(this);
   }
 
   @override
@@ -142,6 +145,24 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitIndexExpression(IndexExpression node) {
+    node.target.accept(this);
+
+    // Convert the raw element into a member.
+    InterfaceType targetType = node.target.staticType;
+    MethodElement element = _getReferenceFor(node.leftBracket);
+    MethodElement member = MethodMember.from(element, targetType);
+    node.staticElement = member;
+
+    // We cannot use the detached FunctionType of `[]` or `[]=`.
+    _getTypeFor(node.leftBracket);
+
+    node.staticType = _getTypeFor(node.leftBracket);
+
+    node.index.accept(this);
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.argumentList?.accept(this);
 
@@ -180,7 +201,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitListLiteral(ListLiteral node) {
     node.elements.accept(this);
-    DartType type = _getTypeFor(node);
+    DartType type = _getTypeFor(node.constKeyword ?? node.leftBracket);
     node.staticType = type;
     if (node.typeArguments != null) {
       _applyTypeArgumentsToList(type, node.typeArguments.arguments);
@@ -201,16 +222,21 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitMethodInvocation(MethodInvocation node) {
     node.target?.accept(this);
 
+    ArgumentList argumentList = node.argumentList;
+
     ExecutableElement calleeElement = _getReferenceFor(node.methodName);
     DartType invokeType = _getTypeFor(node.methodName);
+    DartType resultType = _getTypeFor(argumentList);
 
     node.staticInvokeType = invokeType;
+    node.methodName.staticElement = calleeElement;
     node.methodName.staticType = invokeType;
     // TODO(paulberry): store resolution of node.typeArguments.
 
+    node.staticType = resultType;
+
     // Apply resolution to arguments.
     // Skip names of named arguments.
-    ArgumentList argumentList = node.argumentList;
     for (var argument in argumentList.arguments) {
       if (argument is NamedExpression) {
         argument.expression.accept(this);
@@ -218,9 +244,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         argument.accept(this);
       }
     }
-
-    node.methodName.staticElement = calleeElement;
-    node.staticType = _getTypeFor(argumentList);
 
     _associateArgumentsWithParameters(calleeElement, argumentList);
   }
