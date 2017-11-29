@@ -35,6 +35,7 @@ generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 generic_tearoff_test: CompileTimeError
 import_core_prefix_test: CompileTimeError
 internal_library_test/02: Crash
+int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 method_override7_test/03: MissingCompileTimeError # Issue 30514
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError

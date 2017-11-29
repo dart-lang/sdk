@@ -796,6 +796,7 @@ unresolved_top_level_var_test: MissingCompileTimeError
 
 [ ($runtime == vm && $compiler != dartk) || ($runtime == dart_precompiled && $compiler != dartkp) ]
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
+int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 
 [ $runtime == vm && $compiler != dartk ]
 async_congruence_top_level_test: RuntimeError

@@ -634,6 +634,8 @@ if_null_assignment_static_test/39: MissingCompileTimeError
 if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_evaluation_order_test: Pass
 if_null_precedence_test/none: RuntimeError
+int64_literal_test/03: MissingCompileTimeError  # http://dartbug.com/31479
+int64_literal_test/30: MissingCompileTimeError  # http://dartbug.com/31479
 implicit_downcast_during_return_async_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
@@ -2214,6 +2216,8 @@ invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign
 invocation_mirror_test: CompileTimeError # Issue 31402 (Invocation arguments)
+int64_literal_test/03: MissingCompileTimeError  # http://dartbug.com/31479
+int64_literal_test/30: MissingCompileTimeError  # http://dartbug.com/31479
 is_malformed_type_test/95: MissingCompileTimeError
 is_malformed_type_test/97: MissingCompileTimeError
 is_malformed_type_test/99: MissingCompileTimeError

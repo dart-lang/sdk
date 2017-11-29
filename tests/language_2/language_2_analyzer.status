@@ -180,6 +180,8 @@ if_null_assignment_static_test/42: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
 is_not_class2_test/*: MissingCompileTimeError
+int64_literal_test/03: MissingCompileTimeError
+int64_literal_test/30: MissingCompileTimeError
 library_ambiguous_test/04: MissingCompileTimeError
 list_literal1_test/01: MissingCompileTimeError
 malformed2_test/00: MissingCompileTimeError
@@ -1044,6 +1046,8 @@ generic_test: CompileTimeError
 generics_test: CompileTimeError
 import_core_prefix_test: CompileTimeError # "dynamic" should be defined in core.
 interceptor6_test: CompileTimeError
+int64_literal_test/03: MissingCompileTimeError  # http://dartbug.com/31479
+int64_literal_test/30: MissingCompileTimeError  # http://dartbug.com/31479
 malformed2_test: Pass, MissingCompileTimeError # Issue 31056.
 mixin_super_2_test/01: MissingCompileTimeError
 mixin_super_2_test/03: MissingCompileTimeError

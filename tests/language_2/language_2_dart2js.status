@@ -6,6 +6,7 @@
 
 [ $compiler == dart2js ]
 vm/*: SkipByDesign # Tests for the VM.
+int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 
 # dart2js does not implement the Dart 2.0 static type errors yet.
 [ $compiler == dart2js ]
