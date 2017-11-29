@@ -18,6 +18,7 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/kernel/body_builder.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
@@ -752,6 +753,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
         : inferrer.coreTypes.iterableClass;
     DartType context;
     bool typeNeeded = false;
+    bool typeChecksNeeded = !inferrer.isTopLevel;
     ShadowVariableDeclaration variable;
     if (_declaresVariable) {
       variable = this.variable;
@@ -770,10 +772,16 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
       // that occur related to this assignment are reported at the correct
       // locations.
     }
-    var inferredExpressionType = inferrer.resolveTypeParameter(
-        inferrer.inferExpression(iterable, context, typeNeeded));
-    if (typeNeeded) {
-      var inferredType = const DynamicType();
+    var inferredExpressionType = inferrer.resolveTypeParameter(inferrer
+        .inferExpression(iterable, context, typeNeeded || typeChecksNeeded));
+    inferrer.checkAssignability(
+        inferrer.wrapType(const DynamicType(), iterableClass),
+        inferredExpressionType,
+        iterable,
+        iterable.fileOffset);
+    DartType inferredType;
+    if (typeNeeded || typeChecksNeeded) {
+      inferredType = const DynamicType();
       if (inferredExpressionType is InterfaceType) {
         InterfaceType supertype = inferrer.classHierarchy
             .getTypeAsInstanceOf(inferredExpressionType, iterableClass);
@@ -781,14 +789,31 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
           inferredType = supertype.typeArguments[0];
         }
       }
-      inferrer.instrumentation?.record(
-          Uri.parse(inferrer.uri),
-          variable.fileOffset,
-          'type',
-          new InstrumentationValueForType(inferredType));
-      variable.type = inferredType;
+      if (typeNeeded) {
+        inferrer.instrumentation?.record(
+            Uri.parse(inferrer.uri),
+            variable.fileOffset,
+            'type',
+            new InstrumentationValueForType(inferredType));
+        variable.type = inferredType;
+      }
+      if (!_declaresVariable) {
+        this.variable.type = inferredType;
+      }
     }
     inferrer.inferStatement(body);
+    if (_declaresVariable) {
+      var tempVar =
+          new VariableDeclaration(null, type: inferredType, isFinal: true);
+      var variableGet = new VariableGet(tempVar);
+      var implicitDowncast = inferrer.checkAssignability(
+          variable.type, inferredType, variableGet, fileOffset);
+      if (implicitDowncast != null) {
+        this.variable = tempVar..parent = this;
+        variable.initializer = implicitDowncast..parent = variable;
+        body = combineStatements(variable, body)..parent = this;
+      }
+    }
     inferrer.listener.forInStatementExit(this);
   }
 }
@@ -1225,6 +1250,23 @@ class ShadowLogicalExpression extends LogicalExpression
     var inferredType = typeNeeded ? boolType : null;
     inferrer.listener.logicalExpressionExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Shadow object for synthetic assignments added at the top of a for-in loop.
+///
+/// This covers the case where a for-in loop refers to a variable decleared
+/// elsewhere, so it is desugared into a for-in loop that assigns to the
+/// variable at the top of the loop body.
+class ShadowLoopAssignmentStatement extends ExpressionStatement
+    implements ShadowStatement {
+  ShadowLoopAssignmentStatement(Expression expression) : super(expression);
+
+  @override
+  void _inferStatement(ShadowTypeInferrer inferrer) {
+    inferrer.listener.loopAssignmentStatementEnter(this);
+    inferrer.inferExpression(expression, null, false);
+    inferrer.listener.loopAssignmentStatementExit(this);
   }
 }
 

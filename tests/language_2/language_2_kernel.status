@@ -433,7 +433,6 @@ flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
-for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_malformed_result_type_test/00: MissingCompileTimeError
 function_propagation_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -1954,7 +1953,6 @@ flatten_test/05: MissingRuntimeError
 flatten_test/08: MissingRuntimeError
 flatten_test/09: MissingRuntimeError
 flatten_test/12: MissingRuntimeError
-for_in3_test: MissingCompileTimeError
 for_in_side_effects_test/01: MissingCompileTimeError
 function_malformed_result_type_test/00: MissingCompileTimeError
 function_propagation_test: CompileTimeError # Issue 31402 (Variable declaration)

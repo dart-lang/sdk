@@ -102,6 +102,7 @@ inference/field_initializer_context_explicit: Crash
 inference/field_initializer_context_implicit: Crash
 inference/field_initializer_context_this: Crash
 inference/field_initializer_parameter: Crash
+inference/for_each_downcast_iterable: Crash
 inference/for_in_loop_promotion: Crash
 inference/for_loop_empty_condition: Crash
 inference/for_loop_initializer_expression: Crash
@@ -199,6 +200,7 @@ inference/infer_types_on_generic_instantiations_4: Crash
 inference/infer_types_on_generic_instantiations_in_library_cycle: Crash
 inference/infer_types_on_generic_instantiations_in_library_cycle_a: Crash
 inference/infer_types_on_loop_indices_for_each_loop: Crash
+inference/infer_types_on_loop_indices_for_each_loop_async: Crash
 inference/inferred_initializing_formal_checks_default_value: Crash
 inference/inferred_type_cascade: Crash
 inference/inferred_type_custom_index_op: Crash
@@ -284,6 +286,8 @@ inference/unsafe_block_closure_inference_method_call_explicit_dynamic_param: Cra
 inference/unsafe_block_closure_inference_method_call_explicit_type_param: Crash
 inference/unsafe_block_closure_inference_method_call_implicit_type_param: Crash
 inference/void_return_type_subtypes_dynamic: Crash
+inference_new/for_each_invalid_iterable: Crash
+inference_new/for_each_outer_var_type: Crash
 inference_new/indexed_assign_combiner: Crash
 inference_new/infer_assign_to_implicit_this: Crash
 inference_new/infer_assign_to_implicit_this_upwards: Crash

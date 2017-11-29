@@ -1,0 +1,69 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+class Foo extends core::Object {
+  field core::int bar = 42;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+}
+class Bar<T extends asy::Stream<core::String>> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(generic-covariant-impl generic-covariant-interface self::Bar::T t) → dynamic async {
+    await for (core::String i in t) {
+      core::int x = i as{TypeError} core::int;
+    }
+  }
+}
+class Baz<T extends core::Object, E extends asy::Stream<self::Baz::T>, S extends self::Baz::E> extends core::Object {
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method foo(generic-covariant-impl generic-covariant-interface self::Baz::S t) → dynamic async {
+    await for (self::Baz::T i in t) {
+      core::int x = i as{TypeError} core::int;
+      self::Baz::T y = i;
+    }
+  }
+}
+abstract class MyStream<T extends core::Object> extends asy::Stream<self::MyStream::T> {
+  static factory •<T extends core::Object>() → self::MyStream<self::MyStream::•::T>
+    return null;
+}
+static method test() → dynamic async {
+  self::MyStream<self::Foo> myStream = self::MyStream::•<self::Foo>();
+  await for (self::Foo x in myStream) {
+    core::String y = x as{TypeError} core::String;
+  }
+  await for (dynamic x in myStream) {
+    core::String y = x as{TypeError} core::String;
+  }
+  await for (final self::Foo #t1 in myStream) {
+    core::String x = #t1 as{TypeError} core::String;
+    core::String y = x;
+  }
+  dynamic z;
+  await for (final self::Foo #t2 in myStream) {
+    z = #t2;
+    core::String y = z as{TypeError} core::String;
+  }
+  asy::Stream<dynamic> stream = myStream;
+  await for (final dynamic #t3 in stream) {
+    self::Foo x = #t3 as{TypeError} self::Foo;
+    self::Foo y = x;
+  }
+  dynamic stream2 = myStream;
+  await for (final dynamic #t4 in stream2 as{TypeError} asy::Stream<dynamic>) {
+    self::Foo x = #t4 as{TypeError} self::Foo;
+    self::Foo y = x;
+  }
+  core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
+  await for (dynamic x in map as{TypeError} asy::Stream<dynamic>) {
+    core::String y = x as{TypeError} core::String;
+  }
+}
+static method main() → dynamic {}

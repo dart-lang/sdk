@@ -2797,10 +2797,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       ///       lvalue = #t;
       ///       body;
       ///     }
-      variable = new VariableDeclaration.forValue(null);
+      variable =
+          new ShadowVariableDeclaration.forValue(null, functionNestingLevel);
+      var fact = typePromoter.getFactForAccess(variable, functionNestingLevel);
+      var scope = typePromoter.currentScope;
       body = combineStatements(
-          new ShadowExpressionStatement(lvalue
-              .buildAssignment(new VariableGet(variable), voidContext: true)),
+          new ShadowLoopAssignmentStatement(lvalue.buildAssignment(
+              new ShadowVariableGet(variable, fact, scope),
+              voidContext: true)),
           body);
     } else {
       variable = new VariableDeclaration.forValue(

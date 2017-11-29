@@ -394,7 +394,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         var typeCheck = new AsExpression(expression, expectedType)
           ..isTypeError = true
           ..fileOffset = fileOffset;
-        parent.replaceChild(expression, typeCheck);
+        parent?.replaceChild(expression, typeCheck);
         return typeCheck;
       } else {
         return null;

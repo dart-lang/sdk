@@ -779,6 +779,7 @@ generic_function_typedef_test/01: RuntimeError
 generic_instanceof_test: RuntimeError
 generic_typedef_test: RuntimeError
 implicit_downcast_during_assert_initializer_test: CompileTimeError
+implicit_downcast_during_for_in_iterable_test: RuntimeError
 implicit_downcast_during_list_literal_test: RuntimeError
 implicit_downcast_during_redirecting_initializer_test: RuntimeError
 implicit_downcast_during_return_async_test: RuntimeError
@@ -1058,6 +1059,7 @@ implicit_downcast_during_do_test: RuntimeError
 implicit_downcast_during_factory_constructor_invocation_test: RuntimeError
 implicit_downcast_during_field_declaration_test: RuntimeError
 implicit_downcast_during_for_condition_test: RuntimeError
+implicit_downcast_during_for_in_element_test: RuntimeError
 implicit_downcast_during_for_initializer_expression_test: RuntimeError
 implicit_downcast_during_for_initializer_var_test: RuntimeError
 implicit_downcast_during_if_null_assignment_test: RuntimeError
@@ -2960,6 +2962,8 @@ built_in_identifier_type_annotation_test/66: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 28815
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28815
 implicit_downcast_during_constructor_invocation_test: RuntimeError
+implicit_downcast_during_for_in_element_test: RuntimeError
+implicit_downcast_during_for_in_iterable_test: RuntimeError
 implicit_downcast_during_invocation_test: RuntimeError
 implicit_downcast_during_list_literal_test: RuntimeError
 implicit_downcast_during_redirecting_initializer_test: RuntimeError
@@ -3168,6 +3172,8 @@ symbol_conflict_test: RuntimeError # Issue 23857
 mixin_generic_test: Fail # Issue 12605
 
 [ $compiler == dart2js && $host_checked && !$dart2js_with_kernel ]
+implicit_downcast_during_for_in_element_test: Crash
+implicit_downcast_during_for_in_iterable_test: Crash
 regress_26855_test/1: Crash # Issue 26867
 regress_26855_test/2: Crash # Issue 26867
 regress_26855_test/3: Crash # Issue 26867

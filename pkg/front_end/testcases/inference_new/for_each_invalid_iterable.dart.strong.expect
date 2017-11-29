@@ -1,0 +1,22 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method test() → dynamic async {
+  core::String s;
+  for (final dynamic #t1 in s as{TypeError} core::Iterable<dynamic>) {
+    core::int x = #t1 as{TypeError} core::int;
+  }
+  await for (final dynamic #t2 in s as{TypeError} asy::Stream<dynamic>) {
+    core::int x = #t2 as{TypeError} core::int;
+  }
+  core::int y;
+  for (final dynamic #t3 in s as{TypeError} core::Iterable<dynamic>) {
+    y = #t3 as{TypeError} core::int;
+  }
+  await for (final dynamic #t4 in s as{TypeError} asy::Stream<dynamic>) {
+    y = #t4 as{TypeError} core::int;
+  }
+}
+static method main() → dynamic {}
