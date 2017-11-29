@@ -380,7 +380,7 @@ class Isolate {
   external void resume(Capability resumeCapability);
 
   /**
-   * Requests an exist message on [responsePort] when the isolate terminates.
+   * Requests an exit message on [responsePort] when the isolate terminates.
    *
    * The isolate will send [response] as a message on [responsePort] as the last
    * thing before it terminates. It will run no further code after the message
