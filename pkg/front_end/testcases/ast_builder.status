@@ -13,7 +13,6 @@ call: Crash
 cascade: Crash
 casts: Crash
 classes: Crash
-closure: Crash
 covariant_generic: Crash
 default_values: Crash
 duplicated_named_args_3: Crash
@@ -38,7 +37,6 @@ inference/block_bodied_lambdas_async_mix_of_values_and_futures: Crash
 inference/block_bodied_lambdas_async_star: Crash
 inference/block_bodied_lambdas_basic: Crash
 inference/block_bodied_lambdas_basic_void: Crash
-inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: Crash
 inference/block_bodied_lambdas_infer_bottom_async: Crash
 inference/block_bodied_lambdas_infer_bottom_async_star: Crash
 inference/block_bodied_lambdas_infer_bottom_sync_star: Crash
@@ -175,7 +173,6 @@ inference/infer_generic_method_type_positional2: Crash
 inference/infer_generic_method_type_positional: Crash
 inference/infer_list_literal_nested_in_map_literal: Crash
 inference/infer_local_function_referenced_before_declaration: Crash
-inference/infer_local_function_return_type: Crash
 inference/infer_method_missing_params: Crash
 inference/infer_prefix_expression: Crash
 inference/infer_rethrow: Crash
@@ -276,7 +273,6 @@ inference/unsafe_block_closure_inference_in_map_typed: Crash
 inference/unsafe_block_closure_inference_method_call_explicit_dynamic_param: Crash
 inference/unsafe_block_closure_inference_method_call_explicit_type_param: Crash
 inference/unsafe_block_closure_inference_method_call_implicit_type_param: Crash
-inference/void_return_type_subtypes_dynamic: Crash
 inference_new/for_each_invalid_iterable: Crash
 inference_new/for_each_outer_var_type: Crash
 inference_new/indexed_assign_combiner: Crash
@@ -339,7 +335,6 @@ rasta/issue_000039: Crash
 rasta/issue_000041: Crash
 rasta/issue_000042: Crash
 rasta/issue_000044: Crash
-rasta/issue_000052: Crash
 rasta/issue_000053: Crash
 rasta/issue_000067: Crash
 rasta/issue_000068: Crash

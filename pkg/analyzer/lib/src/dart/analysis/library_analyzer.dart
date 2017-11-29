@@ -431,9 +431,10 @@ class LibraryAnalyzer {
     List<Element> declaredElements = [];
     Map<kernel.Statement, Element> declarationToElement = {};
     for (var declaredNode in resolution.kernelDeclarations) {
-      var element = _translateKernelDeclaration(context, declaredNode);
-      declaredElements.add(element);
-      declarationToElement[declaredNode] = element;
+      var translated = _translateKernelDeclaration(context, declaredNode);
+      declaredElements.add(translated.element);
+      declarationToElement[declaredNode] = translated.element;
+      declarationToElement.addAll(translated.parameters);
     }
 
     // TODO(scheglov) Add tests for using the context element.
@@ -468,11 +469,16 @@ class LibraryAnalyzer {
           element = declarationToElement[referencedNode];
         } else {
           assert(parent is kernel.FunctionNode);
-          ExecutableElementImpl contextExecutable = context;
-          for (var parameter in contextExecutable.parameters) {
-            if (parameter.name == referencedNode.name) {
-              element = parameter;
-              break;
+          // Might be a parameter of a local function.
+          element = declarationToElement[referencedNode];
+          // If no element, then it is a parameter of the context executable.
+          if (element == null) {
+            ExecutableElementImpl contextExecutable = context;
+            for (var parameter in contextExecutable.parameters) {
+              if (parameter.name == referencedNode.name) {
+                element = parameter;
+                break;
+              }
             }
           }
         }
@@ -922,14 +928,14 @@ class LibraryAnalyzer {
   }
 
   /// Return the local [Element] for the given local kernel [declaration].
-  Element _translateKernelDeclaration(
+  _TranslatedDeclaration _translateKernelDeclaration(
       ElementImpl context, kernel.Statement declaration) {
     if (declaration is kernel.VariableDeclaration) {
       kernel.TreeNode functionDeclaration = declaration.parent;
       if (functionDeclaration is kernel.FunctionDeclaration) {
         var element =
             new FunctionElementImpl(declaration.name, declaration.fileOffset);
-        kernel.FunctionType kernelType = declaration.type;
+        var result = new _TranslatedDeclaration(element);
 
         // Set formal parameters.
         {
@@ -949,6 +955,7 @@ class LibraryAnalyzer {
             astParameter.type =
                 _kernelResynthesizer.getType(context, kernelParameter.type);
             astParameters.add(astParameter);
+            result.parameters[kernelParameter] = astParameter;
           }
 
           // Add named parameters.
@@ -959,18 +966,23 @@ class LibraryAnalyzer {
             astParameter.type =
                 _kernelResynthesizer.getType(context, kernelParameter.type);
             astParameters.add(astParameter);
+            result.parameters[kernelParameter] = astParameter;
           }
 
           element.parameters = astParameters;
         }
 
+        kernel.FunctionType kernelType = declaration.type;
         element.returnType =
             _kernelResynthesizer.getType(context, kernelType.returnType);
+
         element.type = new FunctionTypeImpl(element);
-        return element;
+        return result;
       } else {
-        return new LocalVariableElementImpl(
+        // TODO(scheglov) Do we need ConstLocalVariableElementImpl?
+        var element = new LocalVariableElementImpl(
             declaration.name, declaration.fileOffset);
+        return new _TranslatedDeclaration(element);
       }
     } else {
       throw new UnimplementedError(
@@ -1124,4 +1136,15 @@ class _ResolutionProvider {
   _ResolutionProvider(this.resolutions);
 
   CollectedResolution next() => resolutions[index++];
+}
+
+/// The Analyzer [element] and the local function [parameters].
+class _TranslatedDeclaration {
+  final Element element;
+
+  /// If the [element] is a local [FunctionElement], the mapping from
+  /// parameter declarations to Analyzer elements.
+  final Map<kernel.VariableDeclaration, ParameterElement> parameters = {};
+
+  _TranslatedDeclaration(this.element);
 }

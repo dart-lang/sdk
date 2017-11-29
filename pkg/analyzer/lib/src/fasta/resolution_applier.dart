@@ -98,8 +98,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     FunctionExpression functionExpression = node.functionExpression;
     FormalParameterList parameterList = functionExpression.parameters;
 
-    // Apply resolution to default values of formal parameters.
+    functionExpression.typeParameters?.accept(this);
     parameterList.accept(this);
+    functionExpression.body?.accept(this);
 
     DartType returnType = _getTypeFor(node);
     if (node.returnType != null) {
@@ -110,17 +111,13 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     FunctionElementImpl element = _getDeclarationFor(node);
     if (element != null && enclosingExecutable != null) {
       enclosingExecutable.encloseElement(element);
+      functionExpression.element = element;
 
       node.name.staticElement = element;
       node.name.staticType = element.type;
 
       _applyParameters(element.parameters, parameterList.parameters);
     }
-
-    // Visit components of the FunctionExpression.
-    functionExpression.element = element;
-    functionExpression.typeParameters?.accept(this);
-    functionExpression.body?.accept(this);
   }
 
   @override

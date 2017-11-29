@@ -1036,6 +1036,66 @@ void main(int p) {
     }
   }
 
+  test_local_parameter_ofLocalFunction() async {
+    addTestFile(r'''
+void main() {
+  void f(int a) {
+    a;
+    void g(double b) {
+      b;
+    }
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    // f(int a) {}
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionExpression fExpression = fNode.functionExpression;
+    FunctionElement fElement = fNode.element;
+    ParameterElement aElement = fElement.parameters[0];
+    _assertSimpleParameter(fExpression.parameters.parameters[0], aElement,
+        name: 'a',
+        offset: 27,
+        kind: ParameterKind.REQUIRED,
+        type: typeProvider.intType);
+
+    BlockFunctionBody fBody = fExpression.body;
+    List<Statement> fStatements = fBody.block.statements;
+
+    // a;
+    ExpressionStatement aStatement = fStatements[0];
+    SimpleIdentifier aNode = aStatement.expression;
+    expect(aNode.staticElement, same(aElement));
+    expect(aNode.staticType, typeProvider.intType);
+
+    // g(double b) {}
+    FunctionDeclarationStatement gStatement = fStatements[1];
+    FunctionDeclaration gNode = gStatement.functionDeclaration;
+    FunctionExpression gExpression = gNode.functionExpression;
+    FunctionElement gElement = gNode.element;
+    ParameterElement bElement = gElement.parameters[0];
+    _assertSimpleParameter(gExpression.parameters.parameters[0], bElement,
+        name: 'b',
+        offset: 57,
+        kind: ParameterKind.REQUIRED,
+        type: typeProvider.doubleType);
+
+    BlockFunctionBody gBody = gExpression.body;
+    List<Statement> gStatements = gBody.block.statements;
+
+    // b;
+    ExpressionStatement bStatement = gStatements[0];
+    SimpleIdentifier bNode = bStatement.expression;
+    expect(bNode.staticElement, same(bElement));
+    expect(bNode.staticType, typeProvider.doubleType);
+  }
+
   test_local_variable() async {
     String content = r'''
 void main() {
@@ -1080,6 +1140,71 @@ void main() {
       SimpleIdentifier identifier = statement.expression;
       expect(identifier.staticElement, vElement);
       expect(identifier.staticType, intType);
+    }
+  }
+
+  test_local_variable_ofLocalFunction() async {
+    addTestFile(r'''
+void main() {
+  void f() {
+    int a;
+    a;
+    void g() {
+      double b;
+      a;
+      b;
+    }
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    // f() {}
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    BlockFunctionBody fBody = fNode.functionExpression.body;
+    List<Statement> fStatements = fBody.block.statements;
+
+    // int a;
+    VariableDeclarationStatement aDeclaration = fStatements[0];
+    VariableElement aElement = aDeclaration.variables.variables[0].element;
+
+    // a;
+    {
+      ExpressionStatement aStatement = fStatements[1];
+      SimpleIdentifier aNode = aStatement.expression;
+      expect(aNode.staticElement, same(aElement));
+      expect(aNode.staticType, typeProvider.intType);
+    }
+
+    // g(double b) {}
+    FunctionDeclarationStatement gStatement = fStatements[2];
+    FunctionDeclaration gNode = gStatement.functionDeclaration;
+    BlockFunctionBody gBody = gNode.functionExpression.body;
+    List<Statement> gStatements = gBody.block.statements;
+
+    // double b;
+    VariableDeclarationStatement bDeclaration = gStatements[0];
+    VariableElement bElement = bDeclaration.variables.variables[0].element;
+
+    // a;
+    {
+      ExpressionStatement aStatement = gStatements[1];
+      SimpleIdentifier aNode = aStatement.expression;
+      expect(aNode.staticElement, same(aElement));
+      expect(aNode.staticType, typeProvider.intType);
+    }
+
+    // b;
+    {
+      ExpressionStatement bStatement = gStatements[2];
+      SimpleIdentifier bNode = bStatement.expression;
+      expect(bNode.staticElement, same(bElement));
+      expect(bNode.staticType, typeProvider.doubleType);
     }
   }
 
