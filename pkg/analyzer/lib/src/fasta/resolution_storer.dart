@@ -293,7 +293,7 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void methodInvocationExit(Expression expression, Arguments arguments,
-      bool isImplicitCall, Object interfaceMember, DartType inferredType) {
+      bool isImplicitCall, Member interfaceMember, DartType inferredType) {
     _replaceType(
         inferredType,
         arguments.fileOffset != -1
@@ -301,8 +301,22 @@ class ResolutionStorer extends TypeInferenceListener {
             : expression.fileOffset);
     if (!isImplicitCall) {
       _replaceReference(interfaceMember);
-      _replaceType(new MemberReferenceDartType(
-          interfaceMember as Member, arguments.types));
+      _replaceType(
+          new MemberReferenceDartType(interfaceMember, arguments.types));
+    }
+    super.genericExpressionExit("methodInvocation", expression, inferredType);
+  }
+
+  @override
+  void methodInvocationExitCall(Expression expression, Arguments arguments,
+      bool isImplicitCall, DartType inferredType) {
+    _replaceType(
+        inferredType,
+        arguments.fileOffset != -1
+            ? arguments.fileOffset
+            : expression.fileOffset);
+    if (!isImplicitCall) {
+      throw new UnimplementedError(); // TODO(scheglov): handle this case
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -332,9 +346,15 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void propertyGetExit(
-      Expression expression, Object member, DartType inferredType) {
+      Expression expression, Member member, DartType inferredType) {
     _recordReference(new MemberGetterNode(member), expression.fileOffset);
     super.propertyGetExit(expression, member, inferredType);
+  }
+
+  @override
+  void propertyGetExitCall(Expression expression, DartType inferredType) {
+    throw new UnimplementedError(); // TODO(scheglov): handle this case
+    // super.propertyGetExitCall(expression, inferredType);
   }
 
   @override

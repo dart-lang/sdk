@@ -1110,8 +1110,13 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         receiverType: receiverType);
     handleInvocationContravariance(checkKind, desugaredInvocation, arguments,
         expression, inferredType, calleeType, fileOffset);
-    listener.methodInvocationExit(
-        expression, arguments, isImplicitCall, interfaceMember, inferredType);
+    if (identical(interfaceMember, 'call')) {
+      listener.methodInvocationExitCall(
+          expression, arguments, isImplicitCall, inferredType);
+    } else {
+      listener.methodInvocationExit(
+          expression, arguments, isImplicitCall, interfaceMember, inferredType);
+    }
     return inferredType;
   }
 
@@ -1153,7 +1158,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // TODO(paulberry): Infer tear-off type arguments if appropriate.
     handlePropertyGetContravariance(receiver, interfaceMember, desugaredGet,
         expression, inferredType, fileOffset);
-    listener.propertyGetExit(expression, interfaceMember, inferredType);
+    if (identical(interfaceMember, 'call')) {
+      listener.propertyGetExitCall(expression, inferredType);
+    } else {
+      listener.propertyGetExit(expression, interfaceMember, inferredType);
+    }
     return typeNeeded ? inferredType : null;
   }
 

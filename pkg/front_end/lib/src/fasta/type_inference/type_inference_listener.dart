@@ -237,10 +237,10 @@ class TypeInferenceListener
   void ifStatementExit(IfStatement statement) =>
       genericStatementExit('ifStatement', statement);
 
+  void indexAssignAfterReceiver(Expression expression, DartType typeContext) {}
+
   bool indexAssignEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("indexAssign", expression, typeContext);
-
-  void indexAssignAfterReceiver(Expression expression, DartType typeContext) {}
 
   void indexAssignExit(Expression expression, Expression write,
           Member writeMember, Procedure combiner, DartType inferredType) =>
@@ -308,7 +308,11 @@ class TypeInferenceListener
       genericExpressionEnter("methodInvocation", expression, typeContext);
 
   void methodInvocationExit(Expression expression, Arguments arguments,
-          bool isImplicitCall, Object interfaceMember, DartType inferredType) =>
+          bool isImplicitCall, Member interfaceMember, DartType inferredType) =>
+      genericExpressionExit("methodInvocation", expression, inferredType);
+
+  void methodInvocationExitCall(Expression expression, Arguments arguments,
+          bool isImplicitCall, DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
 
   bool namedFunctionExpressionEnter(Let expression, DartType typeContext) =>
@@ -348,7 +352,10 @@ class TypeInferenceListener
       genericExpressionEnter("propertyGet", expression, typeContext);
 
   void propertyGetExit(
-          Expression expression, Object member, DartType inferredType) =>
+          Expression expression, Member member, DartType inferredType) =>
+      genericExpressionExit("propertyGet", expression, inferredType);
+
+  void propertyGetExitCall(Expression expression, DartType inferredType) =>
       genericExpressionExit("propertyGet", expression, inferredType);
 
   bool propertySetEnter(PropertySet expression, DartType typeContext) =>
