@@ -53,22 +53,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.leftHandSide.accept(this);
     node.rightHandSide.accept(this);
 
-    // Assignment reference and type are recorded recorded for LHS.
-    SyntacticEntity assignmentEntity;
-    Expression left = node.leftHandSide;
-    if (left is SimpleIdentifier) {
-      assignmentEntity = left;
-    } else if (left is PrefixedIdentifier) {
-      assignmentEntity = left.identifier;
-    } else if (left is PropertyAccess) {
-      assignmentEntity = left.propertyName;
-    } else if (left is IndexExpressionImpl) {
-      assignmentEntity = left.leftBracket;
-    } else {
-      throw new StateError('Unexpected LHS (${left.runtimeType}) $left');
-    }
-    node.staticElement = _getReferenceFor(assignmentEntity);
-    node.staticType = _getTypeFor(assignmentEntity);
+    SyntacticEntity entity = _getAssignmentEntity(node.leftHandSide);
+    node.staticElement = _getReferenceFor(entity);
+    node.staticType = _getTypeFor(entity);
   }
 
   @override
@@ -260,6 +247,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitPostfixExpression(PostfixExpression node) {
+    node.operand.accept(this);
+    SyntacticEntity entity = _getAssignmentEntity(node.operand);
+    node.staticElement = _getReferenceFor(entity);
+    node.staticType = _getTypeFor(entity);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     node.prefix.accept(this);
     node.identifier.accept(this);
@@ -354,6 +349,23 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         }
       }
       argumentList.correspondingStaticParameters = correspondingParameters;
+    }
+  }
+
+  /// Return the [SyntacticEntity] with which the front-end associates
+  /// assignment to the given [leftHandSide].
+  SyntacticEntity _getAssignmentEntity(Expression leftHandSide) {
+    if (leftHandSide is SimpleIdentifier) {
+      return leftHandSide;
+    } else if (leftHandSide is PrefixedIdentifier) {
+      return leftHandSide.identifier;
+    } else if (leftHandSide is PropertyAccess) {
+      return leftHandSide.propertyName;
+    } else if (leftHandSide is IndexExpressionImpl) {
+      return leftHandSide.leftBracket;
+    } else {
+      throw new StateError(
+          'Unexpected LHS (${leftHandSide.runtimeType}) $leftHandSide');
     }
   }
 

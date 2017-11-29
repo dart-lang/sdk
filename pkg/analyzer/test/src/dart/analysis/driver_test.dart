@@ -1115,6 +1115,80 @@ void foo(int a, {bool b, double c}) {}
     expect(cArgument.staticParameterElement, same(cElement));
   }
 
+  test_postfixExpression_local() async {
+    String content = r'''
+main() {
+  int v = 0;
+  v++;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement v;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      v = statement.variables.variables[0].element;
+      expect(v.type, typeProvider.intType);
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      PostfixExpression postfix = statement.expression;
+      expect(postfix.operator.type, TokenType.PLUS_PLUS);
+      expect(postfix.staticElement.name, '+');
+      expect(postfix.staticType, typeProvider.intType);
+
+      SimpleIdentifier operand = postfix.operand;
+      expect(operand.staticElement, same(v));
+      expect(operand.staticType, typeProvider.intType);
+    }
+  }
+
+  test_postfixExpression_propertyAccess() async {
+    String content = r'''
+main() {
+  new C().f++;
+}
+class C {
+  int f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+
+      PostfixExpression postfix = statement.expression;
+      expect(postfix.operator.type, TokenType.PLUS_PLUS);
+      expect(postfix.staticElement.name, '+');
+      expect(postfix.staticType, typeProvider.intType);
+
+      PropertyAccess propertyAccess = postfix.operand;
+      expect(propertyAccess.staticType, typeProvider.intType);
+
+      SimpleIdentifier propertyName = propertyAccess.propertyName;
+      expect(propertyName.staticElement, same(fElement.setter));
+      expect(propertyName.staticType, typeProvider.intType);
+    }
+  }
+
   test_propertyAccess_field() async {
     String content = r'''
 main() {

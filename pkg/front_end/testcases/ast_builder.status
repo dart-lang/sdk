@@ -8,7 +8,6 @@ DeltaBlue: Crash
 accessors: Crash
 annotation_top: Crash
 argument_mismatch: Crash
-arithmetic: Crash
 bad_setter_abstract: Crash
 call: Crash
 cascade: Crash
@@ -22,7 +21,6 @@ escape: Crash
 expressions: Crash
 external: Crash
 fallthrough: Crash
-fibonacci: Crash
 for_in_scope: Crash
 function_type_is_check: Crash
 function_type_recovery: Crash
@@ -201,7 +199,6 @@ inference/infer_types_on_generic_instantiations_4: Crash
 inference/infer_types_on_generic_instantiations_in_library_cycle: Crash
 inference/infer_types_on_generic_instantiations_in_library_cycle_a: Crash
 inference/infer_types_on_loop_indices_for_each_loop: Crash
-inference/infer_types_on_loop_indices_for_loop_with_inference: Crash
 inference/inferred_initializing_formal_checks_default_value: Crash
 inference/inferred_type_cascade: Crash
 inference/inferred_type_custom_index_op: Crash
