@@ -2441,8 +2441,10 @@ String arrowReturnWithType(String type, expression) {
   return "$type foo() => $expression;";
 }
 
-Node parseExpression(String text) =>
-    parseBodyCode(text, (parser, token) => parser.parseExpression(token).next);
+Node parseExpression(String text) => parseBodyCode(
+    text,
+    (parser, token) =>
+        parser.parseExpression(parser.syntheticPreviousToken(token)).next);
 
 const Map<String, String> ALT_SOURCE = const <String, String>{
   'num': r'''

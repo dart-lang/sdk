@@ -2175,7 +2175,7 @@ class Parser {
       case TypeContinuation.ExpressionStatementOrDeclaration:
         assert(begin.isIdentifier || identical(begin.stringValue, 'void'));
         if (!inPlainSync && optional("await", begin)) {
-          return parseExpressionStatement(beforeBegin.next);
+          return parseExpressionStatement(beforeBegin);
         }
 
         if (looksLikeType && token.isIdentifier) {
@@ -2207,7 +2207,7 @@ class Parser {
                 commitType();
               }
               return parseNamedFunctionRest(
-                  begin, beforeToken.next, beforeFormals, false);
+                  begin, beforeToken, beforeFormals, false);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
@@ -2227,7 +2227,7 @@ class Parser {
                   commitType();
                 }
                 return parseNamedFunctionRest(
-                    begin, beforeToken.next, beforeFormals, false);
+                    begin, beforeToken, beforeFormals, false);
               }
             }
           }
@@ -2236,7 +2236,7 @@ class Parser {
           beforeToken = beforeBegin;
           token = begin;
           if (optional(':', token.next)) {
-            return parseLabeledStatement(beforeToken.next);
+            return parseLabeledStatement(beforeToken);
           } else if (optional('(', token.next)) {
             if (looksLikeFunctionBody(closeBraceTokenFor(token.next).next)) {
               // We are looking at `identifier '(' ... ')'` followed by `'{'`,
@@ -2249,8 +2249,7 @@ class Parser {
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
               listener.handleNoType(token);
-              return parseNamedFunctionRest(
-                  begin, beforeToken.next, formals, false);
+              return parseNamedFunctionRest(begin, beforeToken, formals, false);
             }
           } else if (optional('<', token.next)) {
             Token gt = closeBraceTokenFor(token.next);
@@ -2262,14 +2261,13 @@ class Parser {
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
                 listener.handleNoType(token);
-                return parseNamedFunctionRest(
-                    begin, beforeToken.next, gt, false);
+                return parseNamedFunctionRest(begin, beforeToken, gt, false);
               }
             }
             // Fall through to expression statement.
           }
         }
-        return parseExpressionStatement(beforeBegin.next);
+        return parseExpressionStatement(beforeBegin);
 
       case TypeContinuation.ExpressionStatementOrConstDeclaration:
         Token identifier;
@@ -2290,7 +2288,7 @@ class Parser {
           // Fall-through to expression statement.
         }
 
-        return parseExpressionStatement(beforeBegin.next);
+        return parseExpressionStatement(beforeBegin);
 
       case TypeContinuation.SendOrFunctionLiteral:
         Token beforeName;
@@ -2307,7 +2305,7 @@ class Parser {
           hasReturnType = false;
           // Fall-through to parseNamedFunctionRest below.
         } else {
-          return parseSend(beforeBegin.next, continuationContext);
+          return parseSend(beforeBegin, continuationContext);
         }
 
         Token formals = parseTypeVariablesOpt(name);
@@ -2326,7 +2324,7 @@ class Parser {
         }
         if (beforeName.next != name)
           throw new StateError("beforeName.next != name");
-        return parseNamedFunctionRest(begin, beforeName.next, formals, true);
+        return parseNamedFunctionRest(begin, beforeName, formals, true);
 
       case TypeContinuation.VariablesDeclarationOrExpression:
         if (looksLikeType &&
@@ -2336,7 +2334,7 @@ class Parser {
           // parseVariablesDeclarationNoSemicolonRest instead.
           return parseVariablesDeclarationNoSemicolon(beforeBegin);
         }
-        return parseExpression(beforeBegin.next);
+        return parseExpression(beforeBegin);
 
       case TypeContinuation.NormalFormalParameter:
       case TypeContinuation.NormalFormalParameterAfterVar:
@@ -2514,7 +2512,7 @@ class Parser {
         String value = token.stringValue;
         if ((identical('=', value)) || (identical(':', value))) {
           Token equal = token;
-          beforeToken = parseExpression(token.next);
+          beforeToken = parseExpression(token);
           token = beforeToken.next;
           listener.handleValuedFormalParameter(equal, token);
           if (isMandatoryFormalParameterKind(parameterKind)) {
@@ -3023,7 +3021,7 @@ class Parser {
     if (optional('=', next)) {
       Token assignment = next;
       listener.beginFieldInitializer(next);
-      token = parseExpression(next.next);
+      token = parseExpression(next);
       listener.endFieldInitializer(assignment, token.next);
     } else {
       if (varFinalOrConst != null) {
@@ -3048,7 +3046,7 @@ class Parser {
     if (optional('=', token.next)) {
       Token assignment = token.next;
       listener.beginVariableInitializer(assignment);
-      token = parseExpression(assignment.next);
+      token = parseExpression(assignment);
       listener.endVariableInitializer(assignment);
     } else {
       listener.handleNoVariableInitializer(token.next);
@@ -3103,7 +3101,7 @@ class Parser {
     if (optional('assert', next)) {
       token = parseAssert(token, Assert.Initializer);
     } else {
-      token = parseExpression(token.next);
+      token = parseExpression(token);
     }
     listener.endInitializer(token.next);
     return token;
@@ -3707,16 +3705,17 @@ class Parser {
   /// - Modifiers.
   /// - Return type.
   Token parseNamedFunctionRest(
-      Token begin, Token name, Token formals, bool isFunctionExpression) {
+      Token begin, Token beforeName, Token formals, bool isFunctionExpression) {
     // TODO(brianwilkerson): Move `name` to be the first parameter (and consider
     // renaming it to `token`).
-    // TODO(brianwilkerson) Accept the last consumed token.
-    Token token = name;
+    Token token = beforeName.next;
     listener.beginFunctionName(token);
-    token = ensureIdentifier(token, IdentifierContext.localFunctionDeclaration)
+    token = ensureIdentifier(
+            beforeName.next, IdentifierContext.localFunctionDeclaration)
         .next;
     if (isFunctionExpression) {
-      reportRecoverableError(name, fasta.messageNamedFunctionExpression);
+      reportRecoverableError(
+          beforeName.next, fasta.messageNamedFunctionExpression);
     }
     listener.endFunctionName(begin, token);
     token = parseFormalParametersOpt(formals, MemberKind.Local);
@@ -3805,7 +3804,7 @@ class Parser {
       listener.handleNoFunctionBody(token);
     } else {
       if (identical(value, '=>')) {
-        token = parseExpression(token.next);
+        token = parseExpression(token);
         // There ought to be a semicolon following the expression, but we check
         // before advancing in order to be consistent with the way the method
         // [parseFunctionBody] recovers when the semicolon is missing.
@@ -3815,7 +3814,7 @@ class Parser {
         listener.handleFunctionBodySkipped(token, true);
       } else if (identical(value, '=')) {
         reportRecoverableError(token, fasta.messageExpectedBody);
-        token = parseExpression(token.next);
+        token = parseExpression(token);
         // There ought to be a semicolon following the expression, but we check
         // before advancing in order to be consistent with the way the method
         // [parseFunctionBody] recovers when the semicolon is missing.
@@ -3860,7 +3859,7 @@ class Parser {
       return next;
     } else if (optional('=>', next)) {
       Token begin = next;
-      token = parseExpression(next.next);
+      token = parseExpression(next);
       if (!ofFunctionExpression) {
         token = ensureSemicolon(token);
         listener.handleExpressionFunctionBody(begin, token);
@@ -3876,7 +3875,7 @@ class Parser {
       Token begin = next;
       // Recover from a bad factory method.
       reportRecoverableError(next, fasta.messageExpectedBody);
-      token = parseExpression(next.next);
+      token = parseExpression(next);
       if (!ofFunctionExpression) {
         token = ensureSemicolon(token);
         listener.handleExpressionFunctionBody(begin, token);
@@ -4041,7 +4040,7 @@ class Parser {
     } else if (identical(value, '@')) {
       return parseVariablesDeclaration(token);
     } else {
-      return parseExpressionStatement(token.next);
+      return parseExpressionStatement(token);
     }
   }
 
@@ -4058,7 +4057,7 @@ class Parser {
     if (optional('*', token.next)) {
       starToken = token = token.next;
     }
-    token = parseExpression(token.next);
+    token = parseExpression(token);
     token = ensureSemicolon(token);
     listener.endYieldStatement(begin, starToken, token);
     return token;
@@ -4078,7 +4077,7 @@ class Parser {
       listener.endReturnStatement(false, begin, next);
       return next;
     }
-    token = parseExpression(token.next);
+    token = parseExpression(token);
     token = ensureSemicolon(token);
     listener.endReturnStatement(true, begin, token);
     if (inGenerator) {
@@ -4109,12 +4108,12 @@ class Parser {
   /// ;
   /// ```
   Token parseLabel(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson): Enable this assert.
     // `parseType` is allowing `void` to be a label.
-//    assert(token.isIdentifier);
-    assert(optional(':', token.next));
-    token = ensureIdentifier(token, IdentifierContext.labelDeclaration).next;
+//    assert(token.next.isIdentifier);
+    assert(optional(':', token.next.next));
+    token =
+        ensureIdentifier(token.next, IdentifierContext.labelDeclaration).next;
     expect(':', token);
     listener.handleLabel(token);
     return token;
@@ -4126,20 +4125,19 @@ class Parser {
   /// ;
   /// ```
   Token parseLabeledStatement(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    Token next = token.next;
     // TODO(brianwilkerson): Enable this assert.
     // `parseType` is allowing `void` to be a label.
-//    assert(token.isIdentifier);
-    assert(optional(':', token.next));
+//    assert(next.isIdentifier);
+    assert(optional(':', next.next));
     int labelCount = 0;
     do {
-      token = parseLabel(token).next;
+      token = parseLabel(token);
+      next = token.next;
       labelCount++;
-    } while (token.isIdentifier && optional(':', token.next));
-    listener.beginLabeledStatement(token, labelCount);
-    // TODO(brianwilkerson): Remove the invocation of `previous` when this
-    // method accepts the last consumed token.
-    token = parseStatementOpt(token.previous);
+    } while (next.isIdentifier && optional(':', next.next));
+    listener.beginLabeledStatement(next, labelCount);
+    token = parseStatementOpt(token);
     listener.endLabeledStatement(labelCount);
     return token;
   }
@@ -4155,11 +4153,10 @@ class Parser {
   /// semicolon will be inserted before [token] and the semicolon will be
   /// returned.
   Token parseExpressionStatement(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
     // TODO(brianwilkerson): If the next token is not the start of a valid
     // expression, then this method shouldn't report that we have an expression
     // statement.
-    listener.beginExpressionStatement(token);
+    listener.beginExpressionStatement(token.next);
     token = parseExpression(token);
     token = ensureSemicolon(token);
     listener.endExpressionStatement(token);
@@ -4232,15 +4229,11 @@ class Parser {
   }
 
   Token parseRecoverExpression(Token token, Message message) {
-    return parseExpression(token.next);
+    return parseExpression(token);
   }
 
   int expressionDepth = 0;
   Token parseExpression(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    // TODO(brianwilkerson): Remove the invocation of `previous` when this
-    // method can accept the last consumed token.
-    token = token.previous;
     if (expressionDepth++ > 500) {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for example, the language test
@@ -4376,7 +4369,7 @@ class Parser {
     if (optional('[', token.next)) {
       token = parseArgumentOrIndexStar(token, null);
     } else if (token.next.isIdentifier) {
-      token = parseSend(token.next, IdentifierContext.expressionContinuation);
+      token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.endBinaryExpression(cascadeOperator);
     } else {
       return reportUnexpectedToken(token.next);
@@ -4387,7 +4380,7 @@ class Parser {
       mark = token;
       if (optional('.', next)) {
         Token period = next;
-        token = parseSend(next.next, IdentifierContext.expressionContinuation);
+        token = parseSend(next, IdentifierContext.expressionContinuation);
         next = token.next;
         listener.endBinaryExpression(period);
       }
@@ -4461,7 +4454,7 @@ class Parser {
         Token openSquareBracket = next;
         bool old = mayParseFunctionExpressions;
         mayParseFunctionExpressions = true;
-        token = parseExpression(next.next);
+        token = parseExpression(next);
         next = token.next;
         mayParseFunctionExpressions = old;
         if (!optional(']', next)) {
@@ -4566,7 +4559,7 @@ class Parser {
       } while (token is ErrorToken);
       return parsePrimary(previous, context);
     } else {
-      return parseSend(token.next, context);
+      return parseSend(token, context);
     }
   }
 
@@ -4606,7 +4599,7 @@ class Parser {
       token = rewriter.insertToken(replacement, token);
     }
     BeginToken begin = token;
-    token = parseExpression(token.next).next;
+    token = parseExpression(token).next;
     if (!identical(begin.endGroup, token)) {
       reportUnexpectedToken(token).next;
       token = begin.endGroup;
@@ -4670,7 +4663,7 @@ class Parser {
           token = token.next;
           break;
         }
-        token = parseExpression(token.next).next;
+        token = parseExpression(token).next;
         ++count;
       } while (optional(',', token));
       mayParseFunctionExpressions = old;
@@ -4781,17 +4774,17 @@ class Parser {
     // Assume the listener rejects non-string keys.
     // TODO(brianwilkerson): Change the assumption above by moving error
     // checking into the parser, making it possible to recover.
-    token = parseExpression(token.next).next;
+    token = parseExpression(token).next;
     Token colon = token;
     expect(':', colon);
-    token = parseExpression(token.next);
+    token = parseExpression(token);
     listener.endLiteralMapEntry(colon, token.next);
     return token;
   }
 
   Token parseSendOrFunctionLiteral(Token token, IdentifierContext context) {
     if (!mayParseFunctionExpressions) {
-      return parseSend(token.next, context);
+      return parseSend(token, context);
     } else {
       return parseType(token, TypeContinuation.SendOrFunctionLiteral, context);
     }
@@ -4965,7 +4958,7 @@ class Parser {
     while (kind != EOF_TOKEN) {
       if (identical(kind, STRING_INTERPOLATION_TOKEN)) {
         // Parsing ${expression}.
-        token = parseExpression(token.next.next).next;
+        token = parseExpression(token.next).next;
         expect('}', token);
       } else if (identical(kind, STRING_INTERPOLATION_IDENTIFIER_TOKEN)) {
         // Parsing $identifier.
@@ -4988,7 +4981,7 @@ class Parser {
       listener.handleThisExpression(next, IdentifierContext.expression);
       return next;
     } else {
-      return parseSend(token.next, IdentifierContext.expression);
+      return parseSend(token, IdentifierContext.expression);
     }
   }
 
@@ -5018,8 +5011,7 @@ class Parser {
   }
 
   Token parseSend(Token token, IdentifierContext context) {
-    // TODO(brianwilkerson) Accept the last consumed token.
-    Token beginToken = ensureIdentifier(token, context);
+    Token beginToken = ensureIdentifier(token.next, context);
     // TODO(brianwilkerson): Remove the invocation of `previous` when
     // `injectGenericCommentTypeList` returns the last consumed token.
     token = listener.injectGenericCommentTypeList(beginToken.next).previous;
@@ -5092,7 +5084,7 @@ class Parser {
         // Positional argument after named argument.
         reportRecoverableError(next, fasta.messagePositionalAfterNamedArgument);
       }
-      token = parseExpression(token.next);
+      token = parseExpression(token);
       next = token.next;
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
@@ -5314,7 +5306,7 @@ class Parser {
     if (optional(';', leftSeparator.next)) {
       token = parseEmptyStatement(leftSeparator);
     } else {
-      token = parseExpressionStatement(leftSeparator.next);
+      token = parseExpressionStatement(leftSeparator);
     }
     int expressionCount = 0;
     while (true) {
@@ -5323,7 +5315,7 @@ class Parser {
         token = next;
         break;
       }
-      token = parseExpression(token.next).next;
+      token = parseExpression(token).next;
       ++expressionCount;
       if (!optional(',', token)) {
         break;
@@ -5354,7 +5346,7 @@ class Parser {
     Token inKeyword = token.next;
     assert(optional('in', inKeyword) || optional(':', inKeyword));
     listener.beginForInExpression(inKeyword.next);
-    token = parseExpression(inKeyword.next).next;
+    token = parseExpression(inKeyword).next;
     listener.endForInExpression(token);
     expect(')', token);
     listener.beginForInBody(token.next);
@@ -5463,7 +5455,7 @@ class Parser {
     Token throwToken = token.next;
     assert(optional('throw', throwToken));
     token = allowCascades
-        ? parseExpression(throwToken.next)
+        ? parseExpression(throwToken)
         : parseExpressionWithoutCascade(throwToken);
     listener.handleThrowExpression(throwToken, token.next);
     return token;
@@ -5650,7 +5642,7 @@ class Parser {
       String value = peek.stringValue;
       if (identical(value, 'default')) {
         while (!identical(token.next, peek)) {
-          token = parseLabel(token.next);
+          token = parseLabel(token);
           labelCount++;
         }
         defaultKeyword = token.next;
@@ -5659,12 +5651,12 @@ class Parser {
         break;
       } else if (identical(value, 'case')) {
         while (!identical(token.next, peek)) {
-          token = parseLabel(token.next);
+          token = parseLabel(token);
           labelCount++;
         }
         Token caseKeyword = token.next;
         listener.beginCaseExpression(caseKeyword);
-        token = parseExpression(caseKeyword.next).next;
+        token = parseExpression(caseKeyword).next;
         listener.endCaseExpression(token);
         Token colonToken = token;
         expect(':', colonToken);
@@ -5743,13 +5735,13 @@ class Parser {
     expect('(', token);
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    token = parseExpression(token.next).next;
+    token = parseExpression(token).next;
     if (optional(',', token)) {
       if (optional(')', token.next)) {
         token = token.next;
       } else {
         commaToken = token;
-        token = parseExpression(token.next).next;
+        token = parseExpression(token).next;
       }
     }
     if (optional(',', token)) {
@@ -5759,7 +5751,7 @@ class Parser {
       } else {
         while (optional(',', token)) {
           Token begin = token.next;
-          token = parseExpression(token.next).next;
+          token = parseExpression(token).next;
           listener.handleExtraneousExpression(
               begin, fasta.messageAssertExtraneousArgument);
         }

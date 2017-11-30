@@ -21,9 +21,7 @@ class ClassMemberParser extends Parser {
 
   @override
   Token parseExpression(Token token) {
-    // TODO(brianwilkerson): Remove the invocation of `syntheticPreviousToken`
-    // when `parseExpression` accepts the last consumed token.
-    return skipExpression(syntheticPreviousToken(token));
+    return skipExpression(token);
   }
 
   @override
