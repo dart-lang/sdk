@@ -1148,6 +1148,20 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+        if (!flow_graph->IsCompiledForOsr()) {
+          CheckStackOverflowElimination::EliminateStackOverflow(flow_graph);
+
+          if (flow_graph->Canonicalize()) {
+            // To fully remove redundant boxing (e.g. BoxDouble used only in
+            // environments and UnboxDouble instructions) instruction we
+            // first need to replace all their uses and then fold them away.
+            // For now we just repeat Canonicalize twice to do that.
+            // TODO(vegorov): implement a separate representation folding pass.
+            flow_graph->Canonicalize();
+          }
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
+
         if (sinking != NULL) {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(
               thread(), compiler_timeline,

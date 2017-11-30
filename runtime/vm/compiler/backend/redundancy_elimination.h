@@ -133,6 +133,12 @@ class LICM : public ValueObject {
   FlowGraph* const flow_graph_;
 };
 
+class CheckStackOverflowElimination : public AllStatic {
+ public:
+  // For leaf functions with only a single [StackOverflowInstr] we remove it.
+  static void EliminateStackOverflow(FlowGraph* graph);
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_BACKEND_REDUNDANCY_ELIMINATION_H_
