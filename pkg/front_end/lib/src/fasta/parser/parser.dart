@@ -1912,6 +1912,9 @@ class Parser {
     /// True if we've seen the `var` keyword.
     bool hasVar = false;
 
+    /// The token before [token].
+    Token beforeToken;
+
     /// The token before the `begin` token.
     Token beforeBegin;
 
@@ -1953,31 +1956,38 @@ class Parser {
         // analyze the tokens following the const keyword.
         assert(optional("const", token.next));
         beforeBegin = token;
-        begin = token.next;
-        token = listener.injectGenericCommentTypeAssign(begin.next);
+        token = listener.injectGenericCommentTypeAssign(token.next.next);
+        // TODO(brianwilkerson): Remove the invocation of `previous` when
+        // `injectGenericCommentTypeAssign` returns the last consumed token.
+        begin = beforeToken = token.previous;
+        // TODO(brianwilkerson): Figure out how to remove the invocation of
+        // `previous`.
+        beforeBegin = begin.previous;
         assert(begin.next == token);
       } else {
         // Modify [begin] in case generic type are injected from a comment.
         begin = token = listener.injectGenericCommentTypeAssign(token.next);
         // TODO(brianwilkerson): Remove the invocation of `previous` when
         // `injectGenericCommentTypeAssign` returns the last consumed token.
-        beforeBegin = begin.previous;
+        beforeToken = beforeBegin = begin.previous;
       }
 
       if (optional("void", token)) {
         // `void` is a type.
         looksLikeType = true;
-        voidToken = token;
+        beforeToken = voidToken = token;
         token = token.next;
       } else if (isValidTypeReference(token) &&
           !isGeneralizedFunctionType(token)) {
         // We're looking at an identifier that could be a type (or `dynamic`).
         looksLikeType = true;
+        beforeToken = token;
         token = token.next;
         if (optional(".", token) && isValidTypeReference(token.next)) {
           // We're looking at `prefix '.' identifier`.
           context = IdentifierContext.prefixedTypeReference;
-          token = token.next.next;
+          beforeToken = token.next;
+          token = beforeToken.next;
         }
         if (optional("<", token)) {
           Token close = closeBraceTokenFor(token);
@@ -1985,6 +1995,7 @@ class Parser {
               (optional(">", close) || optional(">>", close))) {
             // We found some type arguments.
             typeArguments = token;
+            beforeToken = close;
             token = close.next;
           }
         }
@@ -1999,6 +2010,7 @@ class Parser {
         if (optional("<", token.next)) {
           Token close = closeBraceTokenFor(token.next);
           if (close != null && optional(">", close)) {
+            beforeToken = previousToken(token, close);
             token = close;
           } else {
             break; // Not a function type.
@@ -2012,6 +2024,7 @@ class Parser {
           functionTypes++;
           typeVariableStarters =
               typeVariableStarters.prepend(typeVariableStart);
+          beforeToken = close;
           token = close.next;
         } else {
           break; // Not a function type.
@@ -2079,7 +2092,7 @@ class Parser {
       }
 
       // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // this method accepts the last consumed token.
+      // `commitType` accepts the last consumed token.
       return token.previous;
     }
 
@@ -2127,9 +2140,7 @@ class Parser {
             reportRecoverableError(
                 begin, fasta.messageMissingConstFinalVarOrType);
             listener.handleNoType(begin);
-            // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // this method accepts the last consumed token.
-            return begin.previous;
+            return beforeBegin;
           }
         }
         return commitType();
@@ -2149,9 +2160,7 @@ class Parser {
           }
         }
         listener.handleNoType(begin);
-        // TODO(brianwilkerson): Remove the invocation of `previous` when
-        // this method accepts the last consumed token.
-        return begin.previous;
+        return beforeBegin;
 
       case TypeContinuation.OptionalAfterVar:
         hasVar = true;
@@ -2166,7 +2175,7 @@ class Parser {
       case TypeContinuation.ExpressionStatementOrDeclaration:
         assert(begin.isIdentifier || identical(begin.stringValue, 'void'));
         if (!inPlainSync && optional("await", begin)) {
-          return parseExpressionStatement(begin);
+          return parseExpressionStatement(beforeBegin.next);
         }
 
         if (looksLikeType && token.isIdentifier) {
@@ -2179,9 +2188,7 @@ class Parser {
 
             // TODO(ahe): Generate type events and call
             // parseVariablesDeclarationRest instead.
-            // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // this method accepts the last consumed token.
-            return parseVariablesDeclaration(begin.previous);
+            return parseVariablesDeclaration(beforeBegin);
           } else if (OPEN_PAREN_TOKEN == afterIdKind) {
             // We are looking at `type identifier '('`.
             if (looksLikeFunctionBody(closeBraceTokenFor(afterId).next)) {
@@ -2199,7 +2206,8 @@ class Parser {
               } else {
                 commitType();
               }
-              return parseNamedFunctionRest(begin, token, beforeFormals, false);
+              return parseNamedFunctionRest(
+                  begin, beforeToken.next, beforeFormals, false);
             }
           } else if (identical(afterIdKind, LT_TOKEN)) {
             // We are looking at `type identifier '<'`.
@@ -2219,15 +2227,16 @@ class Parser {
                   commitType();
                 }
                 return parseNamedFunctionRest(
-                    begin, token, beforeFormals, false);
+                    begin, beforeToken.next, beforeFormals, false);
               }
             }
           }
           // Fall-through to expression statement.
         } else {
+          beforeToken = beforeBegin;
           token = begin;
           if (optional(':', token.next)) {
-            return parseLabeledStatement(token);
+            return parseLabeledStatement(beforeToken.next);
           } else if (optional('(', token.next)) {
             if (looksLikeFunctionBody(closeBraceTokenFor(token.next).next)) {
               // We are looking at `identifier '(' ... ')'` followed by `'{'`,
@@ -2240,7 +2249,8 @@ class Parser {
               listener.beginLocalFunctionDeclaration(token);
               listener.handleModifiers(0);
               listener.handleNoType(token);
-              return parseNamedFunctionRest(begin, token, formals, false);
+              return parseNamedFunctionRest(
+                  begin, beforeToken.next, formals, false);
             }
           } else if (optional('<', token.next)) {
             Token gt = closeBraceTokenFor(token.next);
@@ -2252,13 +2262,14 @@ class Parser {
                 listener.beginLocalFunctionDeclaration(token);
                 listener.handleModifiers(0);
                 listener.handleNoType(token);
-                return parseNamedFunctionRest(begin, token, gt, false);
+                return parseNamedFunctionRest(
+                    begin, beforeToken.next, gt, false);
               }
             }
             // Fall through to expression statement.
           }
         }
-        return parseExpressionStatement(begin);
+        return parseExpressionStatement(beforeBegin.next);
 
       case TypeContinuation.ExpressionStatementOrConstDeclaration:
         Token identifier;
@@ -2274,28 +2285,29 @@ class Parser {
 
             // TODO(ahe): Generate type events and call
             // parseVariablesDeclarationRest instead.
-            // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // this method accepts the last consumed token.
-            return parseVariablesDeclaration(begin.previous);
+            return parseVariablesDeclaration(beforeBegin);
           }
           // Fall-through to expression statement.
         }
 
-        return parseExpressionStatement(begin);
+        return parseExpressionStatement(beforeBegin.next);
 
       case TypeContinuation.SendOrFunctionLiteral:
+        Token beforeName;
         Token name;
         bool hasReturnType;
         if (looksLikeType && looksLikeFunctionDeclaration(token)) {
+          beforeName = beforeToken;
           name = token;
           hasReturnType = true;
           // Fall-through to parseNamedFunctionRest below.
         } else if (looksLikeFunctionDeclaration(begin)) {
+          beforeName = beforeBegin;
           name = begin;
           hasReturnType = false;
           // Fall-through to parseNamedFunctionRest below.
         } else {
-          return parseSend(begin, continuationContext);
+          return parseSend(beforeBegin.next, continuationContext);
         }
 
         Token formals = parseTypeVariablesOpt(name);
@@ -2312,7 +2324,9 @@ class Parser {
         } else {
           listener.handleNoType(begin);
         }
-        return parseNamedFunctionRest(begin, name, formals, true);
+        if (beforeName.next != name)
+          throw new StateError("beforeName.next != name");
+        return parseNamedFunctionRest(begin, beforeName.next, formals, true);
 
       case TypeContinuation.VariablesDeclarationOrExpression:
         if (looksLikeType &&
@@ -2320,11 +2334,9 @@ class Parser {
             isOneOf4(token.next, '=', ';', ',', 'in')) {
           // TODO(ahe): Generate type events and call
           // parseVariablesDeclarationNoSemicolonRest instead.
-          // TODO(brianwilkerson): Remove the invocation of `previous` when
-          // this method accepts the last consumed token.
-          return parseVariablesDeclarationNoSemicolon(begin.previous);
+          return parseVariablesDeclarationNoSemicolon(beforeBegin);
         }
-        return parseExpression(begin);
+        return parseExpression(beforeBegin.next);
 
       case TypeContinuation.NormalFormalParameter:
       case TypeContinuation.NormalFormalParameterAfterVar:
@@ -2353,19 +2365,23 @@ class Parser {
         bool untyped = false;
         if (!looksLikeType || optional("this", begin)) {
           untyped = true;
+          beforeToken = beforeBegin;
           token = begin;
         }
 
         Token thisKeyword;
         Token periodAfterThis;
+        Token beforeNameToken = beforeToken;
         Token nameToken = token;
         IdentifierContext nameContext =
             IdentifierContext.formalParameterDeclaration;
+        beforeToken = token;
         token = token.next;
         if (inFunctionType) {
           if (isNamedParameter) {
             nameContext = IdentifierContext.formalParameterDeclaration;
             if (!nameToken.isKeywordOrIdentifier) {
+              beforeToken = beforeNameToken;
               token = nameToken;
             }
           } else if (nameToken.isIdentifier) {
@@ -2373,6 +2389,7 @@ class Parser {
           } else {
             // No name required in a function type.
             nameContext = null;
+            beforeToken = beforeNameToken;
             token = nameToken;
           }
         } else if (optional('this', nameToken)) {
@@ -2386,24 +2403,28 @@ class Parser {
           } else {
             periodAfterThis = token;
           }
+          beforeToken = periodAfterThis;
           token = periodAfterThis.next;
           nameContext = IdentifierContext.fieldInitializer;
           if (!token.isIdentifier) {
             // Recover from a missing identifier by inserting one.
-            token = insertSyntheticIdentifier(token, nameContext);
+            token = insertSyntheticIdentifier(beforeToken.next, nameContext);
+            beforeToken = previousToken(periodAfterThis, token);
           }
-          nameToken = token;
+          beforeNameToken = beforeToken;
+          beforeToken = nameToken = token;
           token = token.next;
         } else if (!nameToken.isIdentifier) {
           if (optional('.', nameToken)) {
             // Looks like a prefixed type, but missing the type and param names.
             // Set the nameToken so that a synthetic identifier is inserted
             // after the `.` token.
-            nameToken = nameToken.next;
-            token = nameToken;
+            beforeToken = beforeNameToken = nameToken;
+            token = nameToken = nameToken.next;
           } else {
             untyped = true;
-            nameToken = begin;
+            beforeNameToken = beforeBegin;
+            beforeToken = nameToken = begin;
             token = nameToken.next;
           }
         }
@@ -2414,25 +2435,31 @@ class Parser {
 
         // TODO(brianwilkerson): Remove the invocation of `previous` when
         // `injectGenericCommentTypeList` returns the last consumed token.
-        Token previous = listener.injectGenericCommentTypeList(token).previous;
-        token = previous.next;
+        beforeToken = listener.injectGenericCommentTypeList(token).previous;
+        token = beforeToken.next;
 
         Token inlineFunctionTypeStart;
         if (optional("<", token)) {
           Token closer = closeBraceTokenFor(token);
           if (closer != null) {
             if (optional("(", closer.next)) {
-              inlineFunctionTypeStart = previous;
+              inlineFunctionTypeStart = beforeToken;
+              beforeToken = token;
               token = token.next;
             }
           }
         } else if (optional("(", token)) {
-          inlineFunctionTypeStart = previous;
-          token = closeBraceTokenFor(token).next;
+          inlineFunctionTypeStart = beforeToken;
+          beforeToken = closeBraceTokenFor(token);
+          token = beforeToken.next;
         }
 
         if (inlineFunctionTypeStart != null) {
           token = parseTypeVariablesOpt(inlineFunctionTypeStart);
+          // TODO(brianwilkerson): Figure out how to remove the invocation of
+          // `previous`. The method `parseTypeVariablesOpt` returns the last
+          // consumed token.
+          beforeToken = token.previous;
           listener
               .beginFunctionTypedFormalParameter(inlineFunctionTypeStart.next);
           if (!untyped) {
@@ -2442,13 +2469,17 @@ class Parser {
               Token saved = token;
               commitType();
               token = saved;
+              // We need to recompute the before tokens because [commitType] can
+              // cause synthetic tokens to be inserted.
+              beforeToken = previousToken(beforeToken, token);
+              beforeNameToken = previousToken(beforeNameToken, nameToken);
             }
           } else {
             listener.handleNoType(begin);
           }
-          token = parseFormalParametersRequiredOpt(
-                  token, MemberKind.FunctionTypedParameter)
-              .next;
+          beforeToken = parseFormalParametersRequiredOpt(
+              token, MemberKind.FunctionTypedParameter);
+          token = beforeToken.next;
           listener.endFunctionTypedFormalParameter();
 
           // Generalized function types don't allow inline function types.
@@ -2464,10 +2495,18 @@ class Parser {
           Token saved = token;
           commitType();
           token = saved;
+          // We need to recompute the before tokens because [commitType] can
+          // cause synthetic tokens to be inserted.
+          beforeToken = previousToken(beforeToken, token);
+          beforeNameToken = previousToken(beforeNameToken, nameToken);
         }
 
         if (nameContext != null) {
-          nameToken = ensureIdentifier(nameToken, nameContext);
+          nameToken = ensureIdentifier(beforeNameToken.next, nameContext);
+          // We need to recompute the before tokens because [ensureIdentifier]
+          // can cause synthetic tokens to be inserted.
+          beforeToken = previousToken(beforeToken, token);
+          beforeNameToken = previousToken(beforeNameToken, nameToken);
         } else {
           listener.handleNoName(nameToken);
         }
@@ -2475,7 +2514,8 @@ class Parser {
         String value = token.stringValue;
         if ((identical('=', value)) || (identical(':', value))) {
           Token equal = token;
-          token = parseExpression(token.next).next;
+          beforeToken = parseExpression(token.next);
+          token = beforeToken.next;
           listener.handleValuedFormalParameter(equal, token);
           if (isMandatoryFormalParameterKind(parameterKind)) {
             reportRecoverableError(
@@ -2495,10 +2535,7 @@ class Parser {
         }
         listener.endFormalParameter(
             thisKeyword, periodAfterThis, nameToken, parameterKind, memberKind);
-
-        // TODO(brianwilkerson): Remove the invocation of `previous` when this
-        // method accepts the last consumed token.
-        return token.previous;
+        return beforeToken;
     }
 
     throw "Internal error: Unhandled continuation '$continuation'.";
@@ -3563,14 +3600,14 @@ class Parser {
       int modifierCount = 0;
       if (optional('external', next)) {
         externalToken = next;
-        parseModifier(next);
+        parseModifier(token.next);
         ++modifierCount;
         token = next;
         next = token.next;
       }
       if (optional('const', next)) {
         constToken = next;
-        parseModifier(next);
+        parseModifier(token.next);
         ++modifierCount;
         token = next;
         next = token.next;
@@ -5773,6 +5810,17 @@ class Parser {
     return token;
   }
 
+  /// Given a token ([beforeToken]) that is known to be before another [token],
+  /// return the token that is immediately before the [token].
+  Token previousToken(Token beforeToken, Token token) {
+    Token next = beforeToken.next;
+    while (next != token && next != beforeToken) {
+      beforeToken = next;
+      next = beforeToken.next;
+    }
+    return beforeToken;
+  }
+
   /// Report that the given [token] was expected to be the beginning of a block
   /// but isn't, insert a synthetic pair of curly braces, and return the opening
   /// curly brace.
@@ -5903,7 +5951,7 @@ class Parser {
 
   /// Create and return a token whose next token is the given [token].
   Token syntheticPreviousToken(Token token) {
-    Token before = new Token.eof(0);
+    Token before = new Token.eof(-1);
     before.next = token;
     return before;
   }
