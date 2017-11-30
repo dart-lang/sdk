@@ -1811,7 +1811,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }
-      if (!BackgroundCompiler::IsDisabled()) {
+      if (!BackgroundCompiler::IsDisabled(isolate)) {
         if (FLAG_background_compilation_stop_alot) {
           BackgroundCompiler::Stop(isolate);
         }
@@ -1820,8 +1820,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         // takes long time to trigger optimization.
         // Note that the background compilation queue rejects duplicate entries.
         function.SetUsageCounter(INT_MIN);
-        BackgroundCompiler::EnsureInit(thread);
-        ASSERT(isolate->background_compiler() != NULL);
+        BackgroundCompiler::Start(isolate);
         isolate->background_compiler()->CompileOptimized(function);
         // Continue in the same code.
         arguments.SetReturn(function);

@@ -1490,7 +1490,7 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
   if (::Dart_IsError(state)) {
     return state;
   }
-  I->StopBackgroundCompiler();
+  BackgroundCompiler::Stop(I);
 
 #if defined(DEBUG)
   I->heap()->CollectAllGarbage();
@@ -6671,7 +6671,7 @@ DART_EXPORT Dart_Handle Dart_CreateCoreJITSnapshotAsBlobs(
   if (::Dart_IsError(state)) {
     return state;
   }
-  I->StopBackgroundCompiler();
+  BackgroundCompiler::Stop(I);
 
   ProgramVisitor::Dedup();
   Symbols::Compact(I);
@@ -6726,7 +6726,7 @@ Dart_CreateAppJITSnapshotAsBlobs(uint8_t** isolate_snapshot_data_buffer,
   if (::Dart_IsError(state)) {
     return state;
   }
-  I->StopBackgroundCompiler();
+  BackgroundCompiler::Stop(I);
 
   ProgramVisitor::Dedup();
   Symbols::Compact(I);

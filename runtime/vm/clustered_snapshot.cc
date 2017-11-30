@@ -5619,8 +5619,6 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
   isolate()->ValidateClassTable();
   isolate()->ValidateConstants();
 #endif  // DEBUG
-  // Can't have any mutation happening while we're serializing.
-  ASSERT(isolate()->background_compiler() == NULL);
 
   // TODO(rmacnak): The special case for AOT causes us to always generate the
   // same VM isolate snapshot for every app. AOT snapshots should be cleaned up
