@@ -2493,11 +2493,9 @@ typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
 arithmetic_canonicalization_test: RuntimeError
-assert_message_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_foreign_test: RuntimeError
 async_await_syntax_test/a06a: RuntimeError
 async_await_syntax_test/b06a: RuntimeError
 async_await_syntax_test/c06a: RuntimeError
@@ -2505,10 +2503,6 @@ async_await_syntax_test/d06a: RuntimeError
 async_await_test/02: RuntimeError
 async_await_test/03: RuntimeError
 async_await_test/none: RuntimeError
-async_break_in_finally_test: RuntimeError
-async_cascade_test: RuntimeError
-async_control_structures_test: RuntimeError
-async_regression_23058_test: RuntimeError
 async_return_types_test/none: RuntimeError
 async_star_await_pauses_test: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
@@ -2527,26 +2521,17 @@ async_star_test/03: RuntimeError
 async_star_test/04: RuntimeError
 async_star_test/05: RuntimeError
 async_star_test/none: RuntimeError
-async_switch_test/none: RuntimeError
-async_switch_test/withDefault: RuntimeError
-async_test: RuntimeError
 async_throw_in_catch_test/forceAwait: RuntimeError
 async_throw_in_catch_test/none: RuntimeError
 asyncstar_concat_test: RuntimeError
 asyncstar_throw_in_catch_test: RuntimeError
 asyncstar_yield_test: RuntimeError
 asyncstar_yieldstar_test: RuntimeError
-await_and_ifnull_test: RuntimeError
 await_exceptions_test: RuntimeError
 await_for_cancel_test: RuntimeError
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
-await_future_test: RuntimeError
-await_in_cascade_test: RuntimeError
-await_nonfuture_test: RuntimeError
 await_not_started_immediately_test: RuntimeError
-await_postfix_expr_test: RuntimeError
-await_regression_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -2675,19 +2660,16 @@ deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
 deferred_constraints_type_annotation_test/type_annotation_null: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_top_level: MissingCompileTimeError
-deferred_import_core_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_load_constants_test/none: RuntimeError
-deferred_load_library_wrong_args_test/none: RuntimeError
+deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
 deferred_shared_and_unshared_classes_test: RuntimeError
-deferred_type_dependency_test/none: RuntimeError
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -2713,7 +2695,6 @@ final_attempt_reinitialization_test/02: MissingCompileTimeError
 function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_async_star_test: RuntimeError
-generic_async_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
@@ -2744,7 +2725,6 @@ internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' 
 invocation_mirror2_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
-issue_1751477_test: RuntimeError
 left_shift_test: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
@@ -2898,7 +2878,6 @@ regress_22976_test/none: CompileTimeError
 regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError
 regress_24935_test/none: RuntimeError
-regress_26175_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
@@ -2907,6 +2886,7 @@ regress_28341_test: RuntimeError
 regress_29405_test: RuntimeError
 regress_29784_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ok).
 regress_29784_test/02: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in () for j:constructor(A.ko).
+regress_30339_test: RuntimeError # Issue 26429
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
@@ -2914,12 +2894,6 @@ shadow_parameter_and_local_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
 stacktrace_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
-super_in_async1_test: RuntimeError
-super_in_async2_test: RuntimeError
-super_in_async3_test: RuntimeError
-super_in_async4_test: RuntimeError
-super_in_async5_test: RuntimeError
-super_in_async6_test: RuntimeError
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
 switch_case_test/00: MissingCompileTimeError
@@ -2940,7 +2914,6 @@ type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was 
 type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
 type_parameter_test/09: Crash # Internal Error: Unexpected type variable in static context.
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
-unused_overridden_async_test: RuntimeError
 yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel ]

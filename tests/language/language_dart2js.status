@@ -1303,7 +1303,6 @@ type_checks_in_factory_method_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
 arithmetic_canonicalization_test: RuntimeError
-assert_message_test: RuntimeError
 assertion_initializer_const_function_test/01: RuntimeError
 assertion_initializer_test: CompileTimeError
 assign_static_type_test/01: Fail
@@ -1313,9 +1312,6 @@ async_await_syntax_test/b06a: RuntimeError
 async_await_syntax_test/c06a: RuntimeError
 async_await_syntax_test/d06a: RuntimeError
 async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
-async_break_in_finally_test: RuntimeError
-async_control_structures_test: RuntimeError
-async_regression_23058_test: RuntimeError
 async_return_types_test/none: RuntimeError
 async_return_types_test/tooManyTypeParameters: RuntimeError
 async_star_cancel_and_throw_in_finally_test: RuntimeError
@@ -1329,9 +1325,6 @@ async_star_regression_fisk_test: RuntimeError
 async_star_stream_take_test: RuntimeError
 async_star_take_reyield_test: RuntimeError
 async_star_test: RuntimeError
-async_switch_test/none: RuntimeError
-async_switch_test/withDefault: RuntimeError
-async_test/none: RuntimeError
 async_throw_in_catch_test/forceAwait: RuntimeError
 async_throw_in_catch_test/none: RuntimeError
 asyncstar_concat_test: RuntimeError
@@ -1342,11 +1335,7 @@ await_exceptions_test: RuntimeError
 await_for_cancel_test: RuntimeError
 await_for_test: RuntimeError
 await_for_use_local_test: RuntimeError
-await_future_test: RuntimeError
-await_nonfuture_test: RuntimeError
 await_not_started_immediately_test: RuntimeError
-await_postfix_expr_test: RuntimeError
-await_regression_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
@@ -1441,17 +1430,14 @@ deferred_constraints_type_annotation_test/is_check: RuntimeError
 deferred_constraints_type_annotation_test/type_annotation1: Fail
 deferred_constraints_type_annotation_test/type_annotation_generic1: Fail
 deferred_constraints_type_annotation_test/type_annotation_generic4: Fail
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError
-deferred_import_core_test: RuntimeError
 deferred_inheritance_constraints_test/extends: MissingCompileTimeError
 deferred_inheritance_constraints_test/implements: MissingCompileTimeError
 deferred_inheritance_constraints_test/mixin: MissingCompileTimeError
 deferred_load_constants_test/none: RuntimeError
-deferred_load_library_wrong_args_test/none: RuntimeError
+deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
 deferred_shared_and_unshared_classes_test: RuntimeError
-deferred_type_dependency_test/none: RuntimeError
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -1509,7 +1495,6 @@ invocation_mirror2_test: RuntimeError
 invocation_mirror_empty_arguments_test: RuntimeError
 invocation_mirror_test: RuntimeError
 issue21079_test: RuntimeError
-issue_1751477_test: RuntimeError
 left_shift_test: RuntimeError
 library_env_test/has_no_html_support: RuntimeError
 library_env_test/has_no_io_support: RuntimeError
@@ -1717,8 +1702,7 @@ regress_22976_test/none: CompileTimeError
 regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError
 regress_24935_test/none: RuntimeError
-regress_26175_test: RuntimeError
-regress_26668_test: RuntimeError
+regress_26133_test: RuntimeError # Issue 26429
 regress_27572_test: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
