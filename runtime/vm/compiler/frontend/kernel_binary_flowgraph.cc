@@ -3830,6 +3830,14 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   Fragment body(normal_entry);
   body += flow_graph_builder_->CheckStackOverflowInPrologue();
 
+  intptr_t type_args_len = 0;
+  if (I->reify_generic_functions() && function.IsGeneric()) {
+    type_args_len = target.NumTypeParameters();
+    ASSERT(parsed_function()->function_type_arguments() != NULL);
+    body += LoadLocal(parsed_function()->function_type_arguments());
+    body += PushArgument();
+  }
+
   // Load all the arguments.
   if (!target.is_static()) {
     // The context has a fixed shape: a single variable which is the
@@ -3874,7 +3882,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   intptr_t argument_count = positional_argument_count + named_argument_count;
   if (!target.is_static()) ++argument_count;
   body += StaticCall(TokenPosition::kNoSource, target, argument_count,
-                     argument_names, ICData::kNoRebind);
+                     argument_names, ICData::kNoRebind, type_args_len);
 
   // Return the result.
   body += Return(function_node_helper.end_position_);
