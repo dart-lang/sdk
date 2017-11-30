@@ -3486,7 +3486,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfStaticFieldInitializer() {
 
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->next_block_id_ - 1);
+                flow_graph_builder_->last_used_block_id_);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
@@ -3544,7 +3544,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
 
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->next_block_id_ - 1);
+                flow_graph_builder_->last_used_block_id_);
 }
 
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
@@ -3881,7 +3881,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
 
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->next_block_id_ - 1);
+                flow_graph_builder_->last_used_block_id_);
 }
 
 LocalVariable* StreamingFlowGraphBuilder::LookupParameterDirect(
@@ -4234,10 +4234,11 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
   if (flow_graph_builder_->osr_id_ != Compiler::kNoOSRDeoptId) {
-    graph_entry->RelinkToOsrEntry(Z, flow_graph_builder_->next_block_id_);
+    graph_entry->RelinkToOsrEntry(Z,
+                                  flow_graph_builder_->last_used_block_id_ + 1);
   }
   return new (Z) FlowGraph(*parsed_function(), graph_entry,
-                           flow_graph_builder_->next_block_id_ - 1);
+                           flow_graph_builder_->last_used_block_id_);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
