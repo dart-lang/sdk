@@ -1374,6 +1374,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
   visitCatch(Catch node) {
     // Note: there is no tag on Catch.
     _variableIndexer.pushScope();
+    writeOffset(node.fileOffset);
     writeNode(node.guard);
     writeOptionalVariableDeclaration(node.exception);
     writeOptionalVariableDeclaration(node.stackTrace);

@@ -1030,6 +1030,7 @@ type TryCatch extends Statement {
 }
 
 type Catch {
+  FileOffset fileOffset;
   DartType guard;
   Option<VariableDeclaration> exception;
   Option<VariableDeclaration> stackTrace;

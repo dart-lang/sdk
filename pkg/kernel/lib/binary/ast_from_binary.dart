@@ -1557,12 +1557,14 @@ class BinaryBuilder {
 
   Catch readCatch() {
     int variableStackHeight = variableStack.length;
+    var offset = readOffset();
     var guard = readDartType();
     var exception = readAndPushVariableDeclarationOption();
     var stackTrace = readAndPushVariableDeclarationOption();
     var body = readStatement();
     variableStack.length = variableStackHeight;
-    return new Catch(exception, body, guard: guard, stackTrace: stackTrace);
+    return new Catch(exception, body, guard: guard, stackTrace: stackTrace)
+      ..fileOffset = offset;
   }
 
   Block readBlock() {

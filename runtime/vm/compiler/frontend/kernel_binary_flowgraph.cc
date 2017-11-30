@@ -1607,6 +1607,7 @@ void StreamingScopeBuilder::VisitStatement() {
 
         EnterScope(offset);
 
+        builder_->ReadPosition();   // read position.
         VisitDartType();            // Read the guard.
         tag = builder_->ReadTag();  // read first part of exception.
         if (tag == kSomething) {
@@ -5065,6 +5066,7 @@ void StreamingFlowGraphBuilder::SkipStatement() {
       ReadBool();       // read any_catch_needs_stack_trace.
       intptr_t catch_count = ReadListLength();  // read number of catches.
       for (intptr_t i = 0; i < catch_count; ++i) {
+        ReadPosition();   // read position.
         SkipDartType();   // read guard.
         tag = ReadTag();  // read first part of exception.
         if (tag == kSomething) {
@@ -8384,8 +8386,9 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
       CatchBlockEntry(handler_types, try_handler_index, needs_stacktrace);
   // Fill in the body of the catch.
   for (intptr_t i = 0; i < catch_count; ++i) {
-    intptr_t catch_offset = ReaderOffset();  // Catch has no tag.
-    Tag tag = PeekTag();                     // peek guard type.
+    intptr_t catch_offset = ReaderOffset();   // Catch has no tag.
+    TokenPosition position = ReadPosition();  // read position.
+    Tag tag = PeekTag();                      // peek guard type.
     AbstractType* type_guard = NULL;
     if (tag != kDynamicType) {
       type_guard = &T.BuildType();  // read guard.
@@ -8453,8 +8456,8 @@ Fragment StreamingFlowGraphBuilder::BuildTryCatch() {
         catch_body += Constant(*type_guard);
         catch_body += PushArgument();  // guard type
         catch_body += InstanceCall(
-            TokenPosition::kNoSource,
-            Library::PrivateCoreLibName(Symbols::_instanceOf()), Token::kIS, 4);
+            position, Library::PrivateCoreLibName(Symbols::_instanceOf()),
+            Token::kIS, 4);
 
         TargetEntryInstr* catch_entry;
         TargetEntryInstr* next_catch_entry;
