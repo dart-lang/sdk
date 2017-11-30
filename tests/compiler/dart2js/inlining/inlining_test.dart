@@ -31,6 +31,8 @@ main(List<String> args) {
           // TODO(sra,johnniwinther): Handle this for kernel.
           'constructor.dart',
           'dynamic.dart',
+          'force_inline_loops.dart',
+          'too_difficult.dart',
         ]);
   });
 }
