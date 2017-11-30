@@ -645,13 +645,11 @@ class KernelTarget extends TargetImplementation {
     });
   }
 
-  /// Run all transformations that are needed when building a program for the
-  /// first time.
+  /// Run all transformations that are needed when building a bundle of
+  /// libraries for the first time.
   void runBuildTransformations() {
     backendTarget.performModularTransformationsOnLibraries(
         loader.coreTypes, loader.hierarchy, loader.libraries,
-        logger: (String msg) => ticker.logMs(msg));
-    backendTarget.performGlobalTransformations(loader.coreTypes, program,
         logger: (String msg) => ticker.logMs(msg));
   }
 
