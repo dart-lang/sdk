@@ -104,9 +104,7 @@ class KernelSsaBuilder implements SsaBuilder {
         work.registry,
         _compiler.backendStrategy.closureDataLookup,
         _compiler.backend.emitter.nativeEmitter,
-        _compiler.backend.sourceInformationStrategy
-            .createBuilderForContext(work.element),
-        null); // Function node used as capture scope id.
+        _compiler.backend.sourceInformationStrategy);
     return builder.build();
   }
 }

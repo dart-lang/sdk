@@ -34,7 +34,6 @@ import '../kernel/element_map.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
-import '../tree/nodes.dart' show Node;
 import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
@@ -53,15 +52,22 @@ import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 
+// TODO(johnniwinther): Merge this with [KernelInliningState].
+class StackFrame {
+  final StackFrame parent;
+  final MemberEntity member;
+  final KernelToLocalsMap localsMap;
+  final KernelToTypeInferenceMap typeInferenceMap;
+  final SourceInformationBuilder<ir.Node> sourceInformationBuilder;
+
+  StackFrame(this.parent, this.member, this.localsMap, this.typeInferenceMap,
+      this.sourceInformationBuilder);
+}
+
 class KernelSsaGraphBuilder extends ir.Visitor
     with GraphBuilder, SsaBuilderFieldMixin {
   final MemberEntity targetElement;
 
-  /// The root node of [targetElement]. This is used as the key into the
-  /// [startFunction] of the locals handler.
-  // TODO(johnniwinther,efortuna): Avoid the need for AST nodes in the locals
-  // handler.
-  final Node functionNode;
   final ClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
@@ -96,12 +102,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   TreeElements get elements =>
       throw new UnsupportedError('KernelSsaGraphBuilder.elements');
 
-  SourceInformationBuilder<ir.Node> _sourceInformationBuilder;
+  SourceInformationStrategy<ir.Node> _sourceInformationStrategy;
   final KernelToElementMapForBuilding _elementMap;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final GlobalLocalsMap _globalLocalsMap;
-  KernelToTypeInferenceMap _typeInferenceMap;
-  KernelToLocalsMap _localsMap;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
@@ -115,12 +119,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
 
-  // TODO(johnniwinther): Normalize the use of properties that are updated
-  // for inlining.
   final List<KernelInliningState> _inliningStack = <KernelInliningState>[];
   Local _returnLocal;
   DartType _returnType;
   bool _inLazyInitializerExpression = false;
+
+  StackFrame _currentFrame;
 
   KernelSsaGraphBuilder(
       this.targetElement,
@@ -134,13 +138,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.registry,
       this.closureDataLookup,
       this.nativeEmitter,
-      // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
-      this._sourceInformationBuilder,
-      this.functionNode)
+      this._sourceInformationStrategy)
       : _infoReporter = compiler.dumpInfoTask {
-    _localsMap = _globalLocalsMap.getLocalsMap(targetElement);
-    _typeInferenceMap = new KernelToTypeInferenceMapImpl(
-        targetElement, _globalInferenceResults);
+    _enterFrame(targetElement);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
     graph.element = targetElement;
@@ -148,12 +148,32 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(this, targetElement, targetElement,
         instanceType, nativeData, interceptorData);
-    _targetStack.add(targetElement);
   }
 
-  KernelToLocalsMap get localsMap => _localsMap;
+  KernelToLocalsMap get localsMap => _currentFrame.localsMap;
 
   CommonElements get _commonElements => _elementMap.commonElements;
+
+  KernelToTypeInferenceMap get _typeInferenceMap =>
+      _currentFrame.typeInferenceMap;
+
+  SourceInformationBuilder get _sourceInformationBuilder =>
+      _currentFrame.sourceInformationBuilder;
+
+  void _enterFrame(MemberEntity member) {
+    _currentFrame = new StackFrame(
+        _currentFrame,
+        member,
+        _globalLocalsMap.getLocalsMap(member),
+        new KernelToTypeInferenceMapImpl(member, _globalInferenceResults),
+        _currentFrame != null
+            ? _currentFrame.sourceInformationBuilder.forContext(member)
+            : _sourceInformationStrategy.createBuilderForContext(member));
+  }
+
+  void _leaveFrame() {
+    _currentFrame = _currentFrame.parent;
+  }
 
   HGraph build() {
     return reporter.withCurrentElement(localsMap.currentMember, () {
@@ -479,46 +499,46 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       ConstructorEntity constructorElement = _elementMap.getConstructor(body);
 
-      KernelToLocalsMap oldLocalsMap = _localsMap;
-      _localsMap = _globalLocalsMap.getLocalsMap(constructorElement);
-
-      void handleParameter(ir.VariableDeclaration node) {
-        Local parameter = localsMap.getLocalVariable(node);
-        // If [parameter] is boxed, it will be a field in the box passed as the
-        // last parameter. So no need to directly pass it.
-        if (!localsHandler.isBoxed(parameter)) {
-          bodyCallInputs.add(localsHandler.readLocal(parameter));
+      inlinedFrom(constructorElement, () {
+        void handleParameter(ir.VariableDeclaration node) {
+          Local parameter = localsMap.getLocalVariable(node);
+          // If [parameter] is boxed, it will be a field in the box passed as
+          // the last parameter. So no need to directly pass it.
+          if (!localsHandler.isBoxed(parameter)) {
+            bodyCallInputs.add(localsHandler.readLocal(parameter));
+          }
         }
-      }
 
-      // Provide the parameters to the generative constructor body.
-      body.function.positionalParameters.forEach(handleParameter);
-      body.function.namedParameters.toList()
-        ..sort(namedOrdering)
-        ..forEach(handleParameter);
+        // Provide the parameters to the generative constructor body.
+        body.function.positionalParameters.forEach(handleParameter);
+        body.function.namedParameters.toList()
+          ..sort(namedOrdering)
+          ..forEach(handleParameter);
 
-      // If there are locals that escape (i.e. mutated in closures), we pass the
-      // box to the constructor.
-      CapturedScope scopeData =
-          closureDataLookup.getCapturedScope(constructorElement);
-      if (scopeData.requiresContextBox) {
-        bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
-      }
-
-      // Pass type arguments.
-      ir.Class currentClass = body.enclosingClass;
-      if (closedWorld.rtiNeed
-          .classNeedsRti(_elementMap.getClass(currentClass))) {
-        for (ir.DartType typeParameter in currentClass.thisType.typeArguments) {
-          HInstruction argument = localsHandler.readLocal(localsHandler
-              .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)));
-          bodyCallInputs.add(argument);
+        // If there are locals that escape (i.e. mutated in closures), we pass the
+        // box to the constructor.
+        CapturedScope scopeData =
+            closureDataLookup.getCapturedScope(constructorElement);
+        if (scopeData.requiresContextBox) {
+          bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
         }
-      }
 
-      // TODO(redemption): Try to inline [body].
-      _invokeConstructorBody(body, bodyCallInputs);
-      _localsMap = oldLocalsMap;
+        // Pass type arguments.
+        ir.Class currentClass = body.enclosingClass;
+        if (closedWorld.rtiNeed
+            .classNeedsRti(_elementMap.getClass(currentClass))) {
+          for (ir.DartType typeParameter
+              in currentClass.thisType.typeArguments) {
+            HInstruction argument = localsHandler.readLocal(
+                localsHandler.getTypeVariableAsLocal(
+                    _elementMap.getDartType(typeParameter)));
+            bodyCallInputs.add(argument);
+          }
+        }
+
+        // TODO(redemption): Try to inline [body].
+        _invokeConstructorBody(body, bodyCallInputs);
+      });
     }
 
     if (_inliningStack.isEmpty) {
@@ -549,16 +569,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// [inlinedTarget].
   inlinedFrom(MemberEntity inlinedTarget, f()) {
     reporter.withCurrentElement(inlinedTarget, () {
-      SourceInformationBuilder oldSourceInformationBuilder =
-          _sourceInformationBuilder;
-      // TODO(sra): Update sourceInformationBuilder to Kernel.
-      // _sourceInformationBuilder =
-      //   _sourceInformationBuilder.forContext(resolvedAst);
-
-      _targetStack.add(inlinedTarget);
+      _enterFrame(inlinedTarget);
       var result = f();
-      _sourceInformationBuilder = oldSourceInformationBuilder;
-      _targetStack.removeLast();
+      _leaveFrame();
       return result;
     });
   }
@@ -796,35 +809,32 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.Constructor caller) {
     var index = 0;
 
-    KernelToLocalsMap oldLocalsMap = _localsMap;
     ConstructorEntity element = _elementMap.getConstructor(constructor);
-    _localsMap = _globalLocalsMap.getLocalsMap(element);
-    void handleParameter(ir.VariableDeclaration node) {
-      Local parameter = localsMap.getLocalVariable(node);
-      HInstruction argument = arguments[index++];
-      // Because we are inlining the initializer, we must update
-      // what was given as parameter. This will be used in case
-      // there is a parameter check expression in the initializer.
-      parameters[parameter] = argument;
-      localsHandler.updateLocal(parameter, argument);
-    }
-
-    constructor.function.positionalParameters.forEach(handleParameter);
-    constructor.function.namedParameters.toList()
-      ..sort(namedOrdering)
-      ..forEach(handleParameter);
-
-    // Set the locals handler state as if we were inlining the constructor.
     ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
-    ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
-    localsHandler.scopeInfo = newScopeInfo;
-    localsHandler.enterScope(closureDataLookup.getCapturedScope(element),
-        _sourceInformationBuilder.buildDeclaration(element));
     inlinedFrom(element, () {
+      void handleParameter(ir.VariableDeclaration node) {
+        Local parameter = localsMap.getLocalVariable(node);
+        HInstruction argument = arguments[index++];
+        // Because we are inlining the initializer, we must update
+        // what was given as parameter. This will be used in case
+        // there is a parameter check expression in the initializer.
+        parameters[parameter] = argument;
+        localsHandler.updateLocal(parameter, argument);
+      }
+
+      constructor.function.positionalParameters.forEach(handleParameter);
+      constructor.function.namedParameters.toList()
+        ..sort(namedOrdering)
+        ..forEach(handleParameter);
+
+      // Set the locals handler state as if we were inlining the constructor.
+      ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
+      localsHandler.scopeInfo = newScopeInfo;
+      localsHandler.enterScope(closureDataLookup.getCapturedScope(element),
+          _sourceInformationBuilder.buildDeclaration(element));
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
     localsHandler.scopeInfo = oldScopeInfo;
-    _localsMap = oldLocalsMap;
   }
 
   /// Builds generative constructor body.
@@ -1055,9 +1065,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   // TODO(sra): Re-implement type builder using Kernel types and the
   // `target` for context.
   @override
-  MemberEntity get sourceElement => _targetStack.last;
-
-  List<MemberEntity> _targetStack = <MemberEntity>[];
+  MemberEntity get sourceElement => _currentFrame.member;
 
   @override
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
@@ -4379,10 +4387,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         stack,
         localsHandler,
         inTryStatement,
-        _isCalledOnce(function),
-        _typeInferenceMap);
-    _typeInferenceMap =
-        new KernelToTypeInferenceMapImpl(function, _globalInferenceResults);
+        _isCalledOnce(function));
     _inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -4459,7 +4464,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     localsHandler = state.oldLocalsHandler;
     _returnLocal = state.oldReturnLocal;
     inTryStatement = state.inTryStatement;
-    _typeInferenceMap = state.oldTypeInferenceMap;
     _returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
@@ -4571,7 +4575,6 @@ class KernelInliningState {
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
   final bool allFunctionsCalledOnce;
-  final KernelToTypeInferenceMap oldTypeInferenceMap;
 
   KernelInliningState(
       this.function,
@@ -4580,8 +4583,7 @@ class KernelInliningState {
       this.oldStack,
       this.oldLocalsHandler,
       this.inTryStatement,
-      this.allFunctionsCalledOnce,
-      this.oldTypeInferenceMap);
+      this.allFunctionsCalledOnce);
 }
 
 class InlineWeeder {
