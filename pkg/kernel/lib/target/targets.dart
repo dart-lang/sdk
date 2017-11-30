@@ -79,9 +79,6 @@ abstract class Target {
   /// promotion do not slow down compilation too much.
   bool get disableTypeInference => false;
 
-  /// If true, the SDK should be loaded in strong mode.
-  bool get strongModeSdk => strongMode;
-
   /// Perform target-specific modular transformations on the given program.
   ///
   /// These transformations should not be whole-program transformations.  They
