@@ -469,6 +469,10 @@ built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/85: Crash # Issue 28813
 
 [ $compiler == dart2analyzer && !$strong ]
+combiner_type_lookup_indexed_test: StaticWarning # Issue #31484
+combiner_type_lookup_instance_test: StaticWarning # Issue #31484
+combiner_type_lookup_static_test: StaticWarning # Issue #31484
+combiner_type_lookup_top_level_test: StaticWarning # Issue #31484
 constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
 int64_literal_test/03: MissingCompileTimeError
@@ -1032,6 +1036,10 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 async_return_types_test/nestedFuture: MissingCompileTimeError
+combiner_type_lookup_indexed_test: CompileTimeError # Issue #31484
+combiner_type_lookup_instance_test: CompileTimeError # Issue #31484
+combiner_type_lookup_static_test: CompileTimeError # Issue #31484
+combiner_type_lookup_top_level_test: CompileTimeError # Issue #31484
 config_import_corelib_test: CompileTimeError
 const_types_test/07: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
 const_types_test/08: MissingCompileTimeError # Incorrectly allows using type parameter in const expression.
