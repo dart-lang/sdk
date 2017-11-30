@@ -452,10 +452,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
 
       newObject = new HCreate(cls, constructorArguments,
-          new TypeMask.nonNullExact(cls, closedWorld),
+          new TypeMask.nonNullExact(cls, closedWorld), sourceInformation,
           instantiatedTypes: <InterfaceType>[thisType],
-          hasRtiInput: hasRtiInput)
-        ..sourceInformation = sourceInformation;
+          hasRtiInput: hasRtiInput);
 
       add(newObject);
     }
@@ -2258,8 +2257,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // ir.LogicalExpression claims to allow '??' as an operator but currently
     // that is expanded into a let-tree.
     assert(operator == '&&' || operator == '||');
-    _handleLogicalExpression(
-        node.left, () => node.right.accept(this), brancher, operator);
+    _handleLogicalExpression(node.left, () => node.right.accept(this), brancher,
+        operator, _sourceInformationBuilder.buildBinary(node));
   }
 
   /// Optimizes logical binary expression where the left has the same logical
@@ -2271,19 +2270,25 @@ class KernelSsaGraphBuilder extends ir.Visitor
   ///
   /// For example, `(x && y) && z` is transformed into `x && (y && z)`:
   ///
-  void _handleLogicalExpression(ir.Expression left, void visitRight(),
-      SsaBranchBuilder brancher, String operator) {
+  void _handleLogicalExpression(
+      ir.Expression left,
+      void visitRight(),
+      SsaBranchBuilder brancher,
+      String operator,
+      SourceInformation sourceInformation) {
     if (left is ir.LogicalExpression && left.operator == operator) {
       ir.Expression innerLeft = left.left;
       ir.Expression middle = left.right;
       _handleLogicalExpression(
           innerLeft,
-          () =>
-              _handleLogicalExpression(middle, visitRight, brancher, operator),
+          () => _handleLogicalExpression(middle, visitRight, brancher, operator,
+              _sourceInformationBuilder.buildBinary(middle)),
           brancher,
-          operator);
+          operator,
+          sourceInformation);
     } else {
-      brancher.handleLogicalBinary(() => left.accept(this), visitRight,
+      brancher.handleLogicalBinary(
+          () => left.accept(this), visitRight, sourceInformation,
           isAnd: operator == '&&');
     }
   }
@@ -3654,9 +3659,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     // TODO(efortuna): Add source information here.
-    push(new HCreate(closureClassEntity, capturedVariables, type,
-        callMethod: closureInfo.callMethod)
-      ..sourceInformation = sourceInformation);
+    push(new HCreate(
+        closureClassEntity, capturedVariables, type, sourceInformation,
+        callMethod: closureInfo.callMethod));
   }
 
   @override
@@ -4024,9 +4029,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitNot(ir.Not not) {
-    not.operand.accept(this);
-    push(new HNot(popBoolified(), commonMasks.boolType));
+  void visitNot(ir.Not node) {
+    node.operand.accept(this);
+    push(new HNot(popBoolified(), commonMasks.boolType)
+      ..sourceInformation = _sourceInformationBuilder.buildUnary(node));
   }
 
   @override

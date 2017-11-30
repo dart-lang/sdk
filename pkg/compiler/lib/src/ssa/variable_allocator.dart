@@ -389,10 +389,12 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
  * also uses this class to represent a copy from one variable to
  * another.
  */
-class Copy {
-  final source;
-  final destination;
+class Copy<T> {
+  final T source;
+  final T destination;
+
   Copy(this.source, this.destination);
+
   String toString() => '$destination <- $source';
 }
 
@@ -404,27 +406,28 @@ class CopyHandler {
   /**
    * The copies from an instruction to a phi of the successor.
    */
-  final List<Copy> copies;
+  final List<Copy<HInstruction>> copies;
 
   /**
    * Assignments from an instruction that does not need a name (e.g. a
    * constant) to the phi of a successor.
    */
-  final List<Copy> assignments;
+  final List<Copy<HInstruction>> assignments;
 
   CopyHandler()
-      : copies = new List<Copy>(),
-        assignments = new List<Copy>();
+      : copies = new List<Copy<HInstruction>>(),
+        assignments = new List<Copy<HInstruction>>();
 
   void addCopy(HInstruction source, HInstruction destination) {
-    copies.add(new Copy(source, destination));
+    copies.add(new Copy<HInstruction>(source, destination));
   }
 
   void addAssignment(HInstruction source, HInstruction destination) {
-    assignments.add(new Copy(source, destination));
+    assignments.add(new Copy<HInstruction>(source, destination));
   }
 
   String toString() => 'Copies: $copies, assignments: $assignments';
+
   bool get isEmpty => copies.isEmpty && assignments.isEmpty;
 }
 

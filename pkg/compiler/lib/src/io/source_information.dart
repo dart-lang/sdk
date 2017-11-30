@@ -149,6 +149,9 @@ class SourceInformationBuilder<T> {
   /// Generate [SourceInformation] for the binary operation in [node].
   SourceInformation buildBinary(T node) => null;
 
+  /// Generate [SourceInformation] for the unary operation in [node].
+  SourceInformation buildUnary(T node) => null;
+
   /// Generate [SourceInformation] for the try statement in [node].
   SourceInformation buildTry(T node) => null;
 

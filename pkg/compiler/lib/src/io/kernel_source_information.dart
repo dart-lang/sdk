@@ -244,7 +244,14 @@ class KernelSourceInformationBuilder
   }
 
   @override
-  SourceInformation buildBinary(ir.Node node) => null;
+  SourceInformation buildBinary(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildUnary(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildIndexSet(ir.Node node) => null;

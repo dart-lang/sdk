@@ -331,6 +331,9 @@ class PositionSourceInformationBuilder
   SourceInformation buildBinary(Node node) => buildBegin(node);
 
   @override
+  SourceInformation buildUnary(Node node) => buildBegin(node);
+
+  @override
   SourceInformation buildTry(Node node) => buildBegin(node);
 
   @override

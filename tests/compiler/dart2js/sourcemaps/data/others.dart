@@ -23,6 +23,8 @@ main() {
   c.property2 = 2;
   equals(c, null);
   c.captureTwice();
+  equals2(c, null);
+  equals2(c, c);
   switchStatement(1);
   switchStatement(0);
   switchStatementConst(const Const(0));
@@ -119,6 +121,10 @@ class Class {
 
 equals(a, b) {
   return a.property1 == b;
+}
+
+equals2(a, b) {
+  return b != null && a.property1 == b.property1 && a.property2 == b.property2;
 }
 
 switchStatement(a) {

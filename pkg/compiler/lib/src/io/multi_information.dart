@@ -127,6 +127,12 @@ class MultiSourceInformationBuilder<T> implements SourceInformationBuilder<T> {
   }
 
   @override
+  SourceInformation buildUnary(T node) {
+    return new MultiSourceInformation(
+        builders.map((b) => b.buildUnary(node)).toList());
+  }
+
+  @override
   SourceInformation buildIndexSet(T node) {
     return new MultiSourceInformation(
         builders.map((b) => b.buildIndexSet(node)).toList());
