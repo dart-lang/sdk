@@ -708,16 +708,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
+  // All arguments are already @RSP due to preceding PushArgument()s.
+  ASSERT(ArgumentCount() == function().NumParameters());
+
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
+
   // Pass a pointer to the first argument in RAX.
-  if (!function().HasOptionalParameters()) {
-    __ leaq(RAX,
-            Address(RBP, (kParamEndSlotFromFp + function().NumParameters()) *
-                             kWordSize));
-  } else {
-    __ leaq(RAX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
-  }
+  __ leaq(RAX, Address(RSP, ArgumentCount() * kWordSize));
+
   __ LoadImmediate(R10, Immediate(argc_tag));
   const StubEntry* stub_entry;
   if (link_lazily()) {
@@ -740,6 +739,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            locs());
   }
   __ popq(result);
+
+  __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
 static bool CanBeImmediateIndex(Value* index, intptr_t cid) {

@@ -805,15 +805,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   SetupNative();
   const Register result = locs()->out(0).reg();
 
+  // All arguments are already @SP due to preceding PushArgument()s.
+  ASSERT(ArgumentCount() == function().NumParameters());
+
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
+
   // Pass a pointer to the first argument in R2.
-  if (!function().HasOptionalParameters()) {
-    __ AddImmediate(
-        R2, FP, (kParamEndSlotFromFp + function().NumParameters()) * kWordSize);
-  } else {
-    __ AddImmediate(R2, FP, kFirstLocalSlotFromFp * kWordSize);
-  }
+  __ add(R2, SP, Operand(ArgumentCount() * kWordSize));
+
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
@@ -854,6 +854,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            locs());
   }
   __ Pop(result);
+
+  __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(

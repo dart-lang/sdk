@@ -3516,27 +3516,28 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
 
-class NativeCallInstr : public TemplateDefinition<0, Throws> {
+class NativeCallInstr : public TemplateDartCall<0> {
  public:
-  explicit NativeCallInstr(NativeBodyNode* node)
-      : native_name_(&node->native_c_function_name()),
-        function_(&node->function()),
-        native_c_function_(NULL),
-        is_bootstrap_native_(false),
-        link_lazily_(node->link_lazily()),
-        token_pos_(node->token_pos()) {}
-
   NativeCallInstr(const String* name,
                   const Function* function,
                   bool link_lazily,
-                  TokenPosition position)
-      : native_name_(name),
+                  TokenPosition position,
+                  ZoneGrowableArray<PushArgumentInstr*>* args)
+      : TemplateDartCall(Thread::kNoDeoptId,
+                         0,
+                         Array::null_array(),
+                         args,
+                         position),
+        native_name_(name),
         function_(function),
         native_c_function_(NULL),
         is_bootstrap_native_(false),
         is_auto_scope_(true),
         link_lazily_(link_lazily),
-        token_pos_(position) {}
+        token_pos_(position) {
+    ASSERT(name->IsZoneHandle());
+    ASSERT(function->IsZoneHandle());
+  }
 
   DECLARE_INSTRUCTION(NativeCall)
 

@@ -737,16 +737,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
+  // All arguments are already @ESP due to preceding PushArgument()s.
+  ASSERT(ArgumentCount() == function().NumParameters());
+
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
+
   // Pass a pointer to the first argument in EAX.
-  if (!function().HasOptionalParameters()) {
-    __ leal(EAX,
-            Address(EBP, (kParamEndSlotFromFp + function().NumParameters()) *
-                             kWordSize));
-  } else {
-    __ leal(EAX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
-  }
+  __ leal(EAX, Address(ESP, ArgumentCount() * kWordSize));
+
   __ movl(EDX, Immediate(argc_tag));
 
   const StubEntry* stub_entry;
@@ -766,6 +765,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          locs());
 
   __ popl(result);
+
+  __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
 static bool CanBeImmediateIndex(Value* value, intptr_t cid) {
