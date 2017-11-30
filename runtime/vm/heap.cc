@@ -386,7 +386,7 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
     NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
     RecordAfterGC(kNew);
     PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
     EndNewSpaceGC();
   }
 }
@@ -404,7 +404,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
       NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
       RecordAfterGC(kNew);
       PrintStats();
-      NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
+      NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
       EndNewSpaceGC();
     }
     if ((reason == kNewSpace) && old_space_.NeedsGarbageCollection()) {
@@ -421,10 +421,11 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
     NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kOld));
-    old_space_.MarkSweep();
+    bool compact = (reason == kCompaction) || FLAG_use_compactor;
+    old_space_.CollectGarbage(compact);
     RecordAfterGC(kOld);
     PrintStats();
-    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds));
+    NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
     // Some Code objects may have been collected so invalidate handler cache.
     thread->isolate()->handler_info_cache()->Clear();
     thread->isolate()->catch_entry_state_cache()->Clear();
@@ -636,6 +637,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "promotion";
     case kOldSpace:
       return "old space";
+    case kCompaction:
+      return "compaction";
     case kFull:
       return "full";
     case kIdle:
@@ -829,38 +832,39 @@ void Heap::PrintStats() {
 #endif  // !defined(PRODUCT)
 }
 
-void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
+void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 #if !defined(PRODUCT)
   if ((event == NULL) || !event->enabled()) {
     return;
   }
   intptr_t arguments = event->GetNumArguments();
-  event->SetNumArguments(arguments + 12);
-  event->FormatArgument(arguments + 0, "Before.New.Used (kB)", "%" Pd "",
+  event->SetNumArguments(arguments + 13);
+  event->CopyArgument(arguments + 0, "Reason", GCReasonToString(reason));
+  event->FormatArgument(arguments + 1, "Before.New.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.used_in_words));
-  event->FormatArgument(arguments + 1, "After.New.Used (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 2, "After.New.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.used_in_words));
-  event->FormatArgument(arguments + 2, "Before.Old.Used (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 3, "Before.Old.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.used_in_words));
-  event->FormatArgument(arguments + 3, "After.Old.Used (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 4, "After.Old.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.used_in_words));
 
-  event->FormatArgument(arguments + 4, "Before.New.Capacity (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 5, "Before.New.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.capacity_in_words));
-  event->FormatArgument(arguments + 5, "After.New.Capacity (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 6, "After.New.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.capacity_in_words));
-  event->FormatArgument(arguments + 6, "Before.Old.Capacity (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 7, "Before.Old.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.capacity_in_words));
-  event->FormatArgument(arguments + 7, "After.Old.Capacity (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 8, "After.Old.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.capacity_in_words));
 
-  event->FormatArgument(arguments + 8, "Before.New.External (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 9, "Before.New.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.external_in_words));
-  event->FormatArgument(arguments + 9, "After.New.External (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 10, "After.New.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.external_in_words));
-  event->FormatArgument(arguments + 10, "Before.Old.External (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 11, "Before.Old.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.external_in_words));
-  event->FormatArgument(arguments + 11, "After.Old.External (kB)", "%" Pd "",
+  event->FormatArgument(arguments + 12, "After.Old.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.external_in_words));
 #endif  // !defined(PRODUCT)
 }

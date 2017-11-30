@@ -22,6 +22,45 @@ var tests = [
     expect(result['pages'][0]['objects'].length, isPositive);
     expect(result['pages'][0]['objects'][0], isPositive);
   },
+  (Isolate isolate) async {
+    var params = {'gc': 'scavenge'};
+    var result = await isolate.invokeRpcNoUpgrade('_getHeapMap', params);
+    expect(result['type'], equals('HeapMap'));
+    expect(result['freeClassId'], isPositive);
+    expect(result['unitSizeBytes'], isPositive);
+    expect(result['pageSizeBytes'], isPositive);
+    expect(result['classList'], isNotNull);
+    expect(result['pages'].length, isPositive);
+    expect(result['pages'][0]['objectStart'], new isInstanceOf<String>());
+    expect(result['pages'][0]['objects'].length, isPositive);
+    expect(result['pages'][0]['objects'][0], isPositive);
+  },
+  (Isolate isolate) async {
+    var params = {'gc': 'mark-sweep'};
+    var result = await isolate.invokeRpcNoUpgrade('_getHeapMap', params);
+    expect(result['type'], equals('HeapMap'));
+    expect(result['freeClassId'], isPositive);
+    expect(result['unitSizeBytes'], isPositive);
+    expect(result['pageSizeBytes'], isPositive);
+    expect(result['classList'], isNotNull);
+    expect(result['pages'].length, isPositive);
+    expect(result['pages'][0]['objectStart'], new isInstanceOf<String>());
+    expect(result['pages'][0]['objects'].length, isPositive);
+    expect(result['pages'][0]['objects'][0], isPositive);
+  },
+  (Isolate isolate) async {
+    var params = {'gc': 'mark-compact'};
+    var result = await isolate.invokeRpcNoUpgrade('_getHeapMap', params);
+    expect(result['type'], equals('HeapMap'));
+    expect(result['freeClassId'], isPositive);
+    expect(result['unitSizeBytes'], isPositive);
+    expect(result['pageSizeBytes'], isPositive);
+    expect(result['classList'], isNotNull);
+    expect(result['pages'].length, isPositive);
+    expect(result['pages'][0]['objectStart'], new isInstanceOf<String>());
+    expect(result['pages'][0]['objects'].length, isPositive);
+    expect(result['pages'][0]['objects'][0], isPositive);
+  },
 ];
 
 main(args) async => runIsolateTests(args, tests);

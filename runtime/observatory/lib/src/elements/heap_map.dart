@@ -108,8 +108,12 @@ class HeapMapElement extends HtmlElement implements Renderable {
         new NavVMMenuElement(_vm, _events, queue: _r.queue),
         new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
         navMenu('heap map'),
-        new NavRefreshElement(label: 'GC', queue: _r.queue)
-          ..onRefresh.listen((_) => _refresh(gc: true)),
+        new NavRefreshElement(label: 'Mark-Compact', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: "mark-compact")),
+        new NavRefreshElement(label: 'Mark-Sweep', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: "mark-sweep")),
+        new NavRefreshElement(label: 'Scavenge', queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh(gc: "scavenge")),
         new NavRefreshElement(queue: _r.queue)
           ..onRefresh.listen((_) => _refresh()),
         new NavNotifyElement(_notifications, queue: _r.queue)
@@ -279,11 +283,11 @@ class HeapMapElement extends HtmlElement implements Renderable {
     });
   }
 
-  Future _refresh({gc: false}) {
+  Future _refresh({String gc}) {
     final isolate = _isolate as S.Isolate;
     var params = {};
-    if (gc) {
-      params['gc'] = 'full';
+    if (gc != null) {
+      params['gc'] = gc;
     }
     return isolate
         .invokeRpc('_getHeapMap', params)
