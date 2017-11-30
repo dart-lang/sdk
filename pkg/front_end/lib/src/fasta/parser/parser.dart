@@ -3806,14 +3806,22 @@ class Parser {
     } else {
       if (identical(value, '=>')) {
         token = parseExpression(token.next);
-        expectSemicolon(token.next);
-        token = token.next;
+        // There ought to be a semicolon following the expression, but we check
+        // before advancing in order to be consistent with the way the method
+        // [parseFunctionBody] recovers when the semicolon is missing.
+        if (optional(';', token.next)) {
+          token = token.next;
+        }
         listener.handleFunctionBodySkipped(token, true);
       } else if (identical(value, '=')) {
         reportRecoverableError(token, fasta.messageExpectedBody);
         token = parseExpression(token.next);
-        expectSemicolon(token.next);
-        token = token.next;
+        // There ought to be a semicolon following the expression, but we check
+        // before advancing in order to be consistent with the way the method
+        // [parseFunctionBody] recovers when the semicolon is missing.
+        if (optional(';', token.next)) {
+          token = token.next;
+        }
         listener.handleFunctionBodySkipped(token, true);
       } else {
         token = skipBlock(token);
