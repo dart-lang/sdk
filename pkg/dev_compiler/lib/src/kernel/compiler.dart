@@ -1480,7 +1480,7 @@ class ProgramCompiler
 
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
-    var jsExpr = _visitExpression(expr);
+    var jsExpr = _visitAndMarkExpression(expr);
     if (!isNullable(expr)) return jsExpr;
     return _callHelper('notNull(#)', jsExpr);
   }
@@ -2570,7 +2570,9 @@ class ProgramCompiler
 
     JS.Block code = isSync
         ? _emitFunctionBody(f)
-        : new JS.Block([_emitGeneratorFunction(f, name).toReturn()]);
+        : new JS.Block([
+            _emitGeneratorFunction(f, name).toReturn()..sourceInformation = f
+          ]);
 
     if (name != null && formals.isNotEmpty) {
       if (name == '[]=') {
@@ -2637,7 +2639,7 @@ class ProgramCompiler
       //
       // TODO(jmesserly): this will emit argument initializers (for default
       // values) inside the generator function body. Is that the best place?
-      var jsBody = _emitFunctionBody(function);
+      var jsBody = _emitFunctionBody(function)..sourceInformation = function;
       JS.Expression gen =
           new JS.Fun(getParameters(jsBody), jsBody, isGenerator: true);
 
@@ -2696,7 +2698,8 @@ class ProgramCompiler
       var gen = emitGeneratorFn((_) => [_asyncStarController]);
 
       var returnType = _getExpectedReturnType(function, coreTypes.streamClass);
-      return _callHelper('asyncStar(#, #)', [_emitType(returnType), gen]);
+      return _callHelper('asyncStar(#, #)', [_emitType(returnType), gen])
+        ..sourceInformation = function;
     }
 
     assert(function.asyncMarker == AsyncMarker.Async);
@@ -2930,7 +2933,7 @@ class ProgramCompiler
       if (op == '||') return shortCircuit('# || #');
     }
 
-    var result = _visitExpression(node);
+    var result = _visitAndMarkExpression(node);
     if (node.getStaticType(types) != coreTypes.boolClass.rawType) {
       return finish(_callHelper('dtest(#)', result));
     }
@@ -3157,7 +3160,7 @@ class ProgramCompiler
       var body = _visitScope(effectiveBodyOf(node, node.body));
 
       var v = _emitVariableRef(node.variable);
-      var init = js.call('let #', v);
+      var init = js.call('let #', v)..sourceInformation = node.variable;
       if (_annotatedNullCheck(node.variable.annotations)) {
         body = new JS.Block([_nullParameterCheck(v), body]);
       }
@@ -3190,7 +3193,8 @@ class ProgramCompiler
             streamIterator,
             _asyncStreamIteratorClass.procedures
                 .firstWhere((p) => p.isFactory && p.name.name == '')),
-        [_visitExpression(node.iterable)]);
+        [_visitExpression(node.iterable)])
+      ..sourceInformation = node.iterable;
 
     var iter = new JS.TemporaryId('iter');
     var init =
@@ -3205,10 +3209,12 @@ class ProgramCompiler
         [
           iter,
           createStreamIter,
-          new JS.Yield(js.call('#.moveNext()', iter)),
+          new JS.Yield(js.call('#.moveNext()', iter))
+            ..sourceInformation = node.variable,
           init,
           _visitStatement(node.body),
           new JS.Yield(js.call('#.cancel()', iter))
+            ..sourceInformation = node.variable
         ]);
   }
 
@@ -3322,13 +3328,15 @@ class ProgramCompiler
       var name = node.exception;
       if (name != null && name != _catchParameter) {
         body.add(js.statement('let # = #;',
-            [_emitVariableRef(name), _emitVariableRef(_catchParameter)]));
+            [_emitVariableRef(name), _emitVariableRef(_catchParameter)])
+          ..sourceInformation = name);
         _catchParameter = name;
       }
       if (node.stackTrace != null) {
         var stackVar = _emitVariableRef(node.stackTrace);
         body.add(js.statement('let # = #.stackTrace(#);',
-            [stackVar, _runtimeModule, _emitVariableRef(name)]));
+            [stackVar, _runtimeModule, _emitVariableRef(name)])
+          ..sourceInformation = node.stackTrace);
       }
     }
 
@@ -3344,7 +3352,8 @@ class ProgramCompiler
         js.call('#.is(#)',
             [_emitType(node.guard), _emitVariableRef(_catchParameter)]),
         then,
-        otherwise);
+        otherwise)
+      ..sourceInformation = node;
   }
 
   @override
@@ -3366,7 +3375,7 @@ class ProgramCompiler
 
   @override
   visitYieldStatement(YieldStatement node) {
-    var jsExpr = _visitExpression(node.expression);
+    var jsExpr = _visitAndMarkExpression(node.expression);
     var star = node.isYieldStar;
     if (_asyncStarController != null) {
       // async* yields are generated differently from sync* yields. `yield e`
@@ -3380,8 +3389,12 @@ class ProgramCompiler
       //     if (stream.addStream(e)) return;
       //     yield;
       var helperName = star ? 'addStream' : 'add';
-      return js.statement('{ if(#.#(#)) return; #; }',
-          [_asyncStarController, helperName, jsExpr, new JS.Yield(null)]);
+      return js.statement('{ if(#.#(#)) return; #; }', [
+        _asyncStarController,
+        helperName,
+        jsExpr,
+        new JS.Yield(null)..sourceInformation = node
+      ]);
     }
     // A normal yield in a sync*
     return jsExpr.toYieldStatement(star: star);
@@ -3459,7 +3472,7 @@ class ProgramCompiler
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
   @override
-  visitVariableSet(VariableSet node) => _visitExpression(node.value)
+  visitVariableSet(VariableSet node) => _visitAndMarkExpression(node.value)
       .toAssignExpression(_emitVariableRef(node.variable));
 
   @override
@@ -3554,7 +3567,7 @@ class ProgramCompiler
 
   @override
   visitStaticSet(StaticSet node) {
-    return _visitExpression(node.value)
+    return _visitAndMarkExpression(node.value)
         .toAssignExpression(_emitStaticTarget(node.target));
   }
 
@@ -3914,8 +3927,8 @@ class ProgramCompiler
     // a measurable performance effect (possibly the helper is simple enough to
     // be inlined).
     if (isNullable(left)) {
-      return _callHelper(
-          'equals(#, #)', [_visitExpression(left), _visitExpression(right)]);
+      return _callHelper('equals(#, #)',
+          [_visitAndMarkExpression(left), _visitAndMarkExpression(right)]);
     }
 
     // Otherwise we emit a call to the == method.
@@ -4246,7 +4259,10 @@ class ProgramCompiler
     }
     var left = args[0];
     var right = args[1];
-    var jsArgs = [_visitExpression(left), _visitExpression(right)];
+    var jsArgs = [
+      _visitAndMarkExpression(left),
+      _visitAndMarkExpression(right)
+    ];
     if (_tripleEqIsIdentity(left, right)) {
       return _emitJSTripleEq(jsArgs, negated: negated);
     }
@@ -4404,8 +4420,8 @@ class ProgramCompiler
   visitConditionalExpression(ConditionalExpression node) {
     return js.call('# ? # : #', [
       _visitTest(node.condition),
-      _visitExpression(node.then),
-      _visitExpression(node.otherwise)
+      _visitAndMarkExpression(node.then),
+      _visitAndMarkExpression(node.otherwise)
     ]);
   }
 
@@ -4435,7 +4451,7 @@ class ProgramCompiler
         expectString = false;
       } else {
         if (expectString) strings.add('');
-        interpolations.add(_visitExpression(e));
+        interpolations.add(_visitAndMarkExpression(e));
         expectString = true;
       }
     }
@@ -4449,7 +4465,7 @@ class ProgramCompiler
     // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
     JS.Expression result;
     var type = node.type;
-    var lhs = _visitExpression(node.operand);
+    var lhs = _visitAndMarkExpression(node.operand);
     var typeofName = _jsTypeofName(type);
     // Inline primitives other than int (which requires a Math.floor check).
     if (typeofName != null && type != coreTypes.intClass.rawType) {
@@ -4584,7 +4600,7 @@ class ProgramCompiler
 
   @override
   visitThrow(Throw node) =>
-      _callHelper('throw(#)', _visitExpression(node.expression));
+      _callHelper('throw(#)', _visitAndMarkExpression(node.expression));
 
   @override
   visitListLiteral(ListLiteral node) {
@@ -4622,8 +4638,8 @@ class ProgramCompiler
     emitEntries() {
       var entries = <JS.Expression>[];
       for (var e in node.entries) {
-        entries.add(_visitExpression(e.key));
-        entries.add(_visitExpression(e.value));
+        entries.add(_visitAndMarkExpression(e.key));
+        entries.add(_visitAndMarkExpression(e.value));
       }
       return new JS.ArrayInitializer(entries);
     }

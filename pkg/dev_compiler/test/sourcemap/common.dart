@@ -287,7 +287,7 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
       var jsSnippet = getSnippet(jsFile, trace[i].jsLine, trace[i].jsColumn);
       var dartSnippet =
           getSnippet(dartFile, trace[i].line - 1, trace[i].column - 1);
-      var view = sideBySide(jsSnippet, dartSnippet, 60);
+      var view = sideBySide(jsSnippet, dartSnippet, 50);
       sb.writeAll(view, "\n");
     }
 
@@ -413,7 +413,7 @@ List<DartStackTraceDataEntry> extractStackTrace(
     Match m = ms.first;
     int l = int.parse(m.group(1));
     int c = int.parse(m.group(2));
-    SourceMapSpan span = sourceMap.spanFor(l, c);
+    SourceMapSpan span = getColumnOrPredecessor(sourceMap, l, c);
     if (span?.start == null) {
       result.add(new DartStackTraceDataEntry.errorWithJsPosition(
           "Source map not found for '$line'", l, c));
@@ -424,6 +424,15 @@ List<DartStackTraceDataEntry> extractStackTrace(
         file, span.start.line + 1, span.start.column + 1, l, c));
   }
   return result;
+}
+
+SourceMapSpan getColumnOrPredecessor(
+    SingleMapping sourceMap, int line, int column) {
+  SourceMapSpan span = sourceMap.spanFor(line, column);
+  if (span == null && line > 0) {
+    span = sourceMap.spanFor(line - 1, 999999);
+  }
+  return span;
 }
 
 void checkRecordedStops(List<String> recordStops, List<String> expectedStops,
@@ -438,7 +447,9 @@ void checkRecordedStops(List<String> recordStops, List<String> expectedStops,
   if (noBreaksStart.length > 0 && noBreaksStart[0] != null) {
     aliveNoBreaks.addAll(noBreaksStart[0]);
   }
+  int stopNumber = 0;
   for (String recorded in recordStops) {
+    stopNumber++;
     if (expectedIndex == expectedStops.length) break;
     if ("$recorded:".contains(expectedStops[expectedIndex])) {
       ++expectedIndex;
@@ -452,7 +463,8 @@ void checkRecordedStops(List<String> recordStops, List<String> expectedStops,
       }
     } else if (aliveNoBreaks
         .contains("${(recorded.split(":")..removeLast()).join(":")}:")) {
-      fail("Break '$recorded' was found when it wasn't allowed");
+      fail("Break '$recorded' was found when it wasn't allowed "
+          "(js step $stopNumber, after stop $expectedIndex)");
     }
   }
   if (expectedIndex != expectedStops.length) {

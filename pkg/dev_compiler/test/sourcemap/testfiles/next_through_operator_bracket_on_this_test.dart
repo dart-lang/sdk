@@ -2,13 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-main() {
-  /*bl*/
-  /*s:1*/ foo();
-/*nbb:0:3*/ /*s:3*/
+/*Debugger:stepOver*/
+
+class Class2 {
+  operator [](index) => index;
+
+  code() {
+    /*bl*/ this /*s:1*/ [42];
+    return this /*sl:2*/ [42];
+  }
 }
 
-foo() async {
-  /*nbb:0:4*/ /*bc:4*/ print("hello from foo");
-/*s:2*/
+main() {
+  Class2 c = new Class2();
+  c[42];
+  c.code();
 }

@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*Debugger:stepOver*/
+
 main() {
-  /*bl*/
-  /*s:1*/ foo();
-/*nbb:0:3*/ /*s:3*/
+  var qux;
+  qux = "${/*bc:1*/foo()} x ${/*bc:2*/bar()} x ${/*bc:3*/baz()}";
+  print(qux);
 }
 
-foo() async {
-  /*nbb:0:4*/ /*bc:4*/ print("hello from foo");
-/*s:2*/
-}
+String foo() => "a";
+String bar() => "b";
+String baz() => "c";
