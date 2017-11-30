@@ -3974,7 +3974,7 @@ class Parser {
       // This happens for degenerate programs, for example, a lot of nested
       // if-statements. The language test deep_nesting2_negative_test, for
       // example, provokes this.
-      return reportUnrecoverableError(token.next, fasta.messageStackOverflow);
+      return recoverFromStackOverflow(token.next);
     }
     Token result = parseStatementX(token);
     statementDepth--;
@@ -4245,7 +4245,7 @@ class Parser {
       // This happens in degenerate programs, for example, with a lot of nested
       // list literals. This is provoked by, for example, the language test
       // deep_nesting1_negative_test.
-      return reportUnrecoverableError(token.next, fasta.messageStackOverflow);
+      return reportUnmatchedToken(token.next);
     }
     Token result = optional('throw', token.next)
         ? parseThrowExpression(token, true)
@@ -5868,6 +5868,16 @@ class Parser {
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
     rewriter.insertToken(replacement, token);
     return replacement;
+  }
+
+  /// Report that the nesting depth of the code being parsed is too large for
+  /// the parser to safely handle. Return the EOF token in order to cause the
+  /// parser to unwind and exit.
+  Token recoverFromStackOverflow(Token token) {
+    listener.handleRecoverableError(fasta.messageStackOverflow, token, token);
+    Token semicolon = new SyntheticToken(TokenType.SEMICOLON, token.offset);
+    listener.handleEmptyStatement(semicolon);
+    return skipToEof(token);
   }
 
   /// Don't call this method. Should only be used as a last resort when there
