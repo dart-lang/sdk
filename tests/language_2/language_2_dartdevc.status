@@ -1213,16 +1213,6 @@ truncdiv_test: RuntimeError # Issue 29920
 yieldstar_pause_test: Skip # Times out
 
 [ $compiler == dartdevk && $runtime != none ]
-assertion_initializer_const_error2_test/cc01: RuntimeError # Assertion failed: is not true
-assertion_initializer_const_error2_test/cc02: RuntimeError # Assertion failed: is not true
-assertion_initializer_const_error2_test/cc03: RuntimeError # Assertion failed: is not true
-assertion_initializer_const_error2_test/cc05: RuntimeError # Assertion failed: is not true
-assertion_initializer_const_error2_test/cc06: RuntimeError # Assertion failed: is not true
-assertion_initializer_const_error2_test/cc07: RuntimeError # Assertion failed: is not true
-assertion_initializer_const_error2_test/cc08: RuntimeError # Assertion failed: is not true
-assertion_initializer_const_error2_test/cc09: RuntimeError # Assertion failed: "2 < 1"
-assertion_initializer_const_error2_test/cc10: RuntimeError # Assertion failed: is not true
-assertion_initializer_const_error2_test/cc11: RuntimeError # Assertion failed: "2 < 1"
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 compile_time_constant_static5_test/23: RuntimeError # Type 'A' is not a subtype of type 'B', issue 30546
 conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
