@@ -9174,51 +9174,19 @@ String& StreamingFlowGraphBuilder::GetSourceFor(intptr_t index) {
 }
 
 RawTypedData* StreamingFlowGraphBuilder::GetLineStartsFor(intptr_t index) {
-  // Line starts are delta encoded. So get the max delta first so that we
-  // can store them as tighly as possible.
   AlternativeReadingScope alt(reader_);
   SetOffset(GetOffsetForSourceInfo(index));
-  SkipBytes(ReadUInt());                         // skip uri.
-  SkipBytes(ReadUInt());                         // skip source.
-  const intptr_t line_start_count = ReadUInt();  // read number of line start
-                                                 // entries.
-  MallocGrowableArray<int32_t> line_starts_array;
+  SkipBytes(ReadUInt());       // skip uri.
+  SkipBytes(ReadUInt());       // skip source.
+  intptr_t size = ReadUInt();  // read line starts length.
 
-  intptr_t max_delta = 0;
-  for (intptr_t i = 0; i < line_start_count; ++i) {
-    int32_t delta = ReadUInt();
-    line_starts_array.Add(delta);
-    if (delta > max_delta) {
-      max_delta = delta;
-    }
-  }
-
-  intptr_t cid;
-  if (max_delta <= INT8_MAX) {
-    cid = kTypedDataInt8ArrayCid;
-  } else if (max_delta <= INT16_MAX) {
-    cid = kTypedDataInt16ArrayCid;
-  } else {
-    cid = kTypedDataInt32ArrayCid;
-  }
-
-  TypedData& line_starts_data =
-      TypedData::Handle(Z, TypedData::New(cid, line_start_count, Heap::kOld));
-  for (intptr_t j = 0; j < line_start_count; ++j) {
-    int32_t line_start = line_starts_array[j];
-    switch (cid) {
-      case kTypedDataInt8ArrayCid:
-        line_starts_data.SetInt8(j, static_cast<int8_t>(line_start));
-        break;
-      case kTypedDataInt16ArrayCid:
-        line_starts_data.SetInt16(j << 1, static_cast<int16_t>(line_start));
-        break;
-      case kTypedDataInt32ArrayCid:
-        line_starts_data.SetInt32(j << 2, line_start);
-        break;
-      default:
-        UNREACHABLE();
-    }
+  TypedData& line_starts_data = TypedData::Handle(
+      Z, TypedData::New(kTypedDataInt32ArrayCid, size, Heap::kOld));
+  intptr_t previous_line_start = 0;
+  for (intptr_t j = 0; j < size; ++j) {
+    intptr_t line_start = ReadUInt() + previous_line_start;
+    line_starts_data.SetInt32(j * 4, line_start);
+    previous_line_start = line_start;
   }
   return line_starts_data.raw();
 }
