@@ -172,6 +172,10 @@ static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTBlobs) || (snapshot_kind == kAppAOTAssembly);
 }
 
+static bool SnapshotKindAllowedFromKernel() {
+  return IsSnapshottingForPrecompilation() || (snapshot_kind == kCore);
+}
+
 // Parse out the command line arguments. Returns -1 if the arguments
 // are incorrect, 0 otherwise.
 static int ParseArguments(int argc,
@@ -1378,6 +1382,67 @@ static MappedMemory* MapFile(const char* filename,
   return mapping;
 }
 
+static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
+  ASSERT(SnapshotKindAllowedFromKernel());
+
+  char* error = NULL;
+  IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
+                                              commandline_packages_file, NULL);
+  Dart_Isolate isolate = Dart_CreateIsolateFromKernel(
+      NULL, NULL, kernel_program, NULL, isolate_data, &error);
+  if (isolate == NULL) {
+    delete isolate_data;
+    Log::PrintErr("%s\n", error);
+    free(error);
+    return kErrorExitCode;
+  }
+
+  Dart_EnterScope();
+  Dart_Handle result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+  CHECK_RESULT(result);
+
+  if (IsSnapshottingForPrecompilation()) {
+    // The root library has to be set to generate AOT snapshots.
+    // If the input dill file has a root library, then Dart_LoadScript will
+    // ignore this dummy uri and set the root library to the one reported in
+    // the dill file. Since dill files are not dart script files,
+    // trying to resolve the root library URI based on the dill file name
+    // would not help.
+    //
+    // If the input dill file does not have a root library, then
+    // Dart_LoadScript will error.
+    Dart_Handle dummy_uri =
+        DartUtils::NewString("____dummy_gen_snapshot_root_library_uri____");
+    Dart_Handle library =
+        Dart_LoadScript(dummy_uri, Dart_Null(),
+                        reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
+    if (Dart_IsError(library)) {
+      Log::PrintErr("Unable to load root library from the input dill file.\n");
+      return kErrorExitCode;
+    }
+
+    Dart_QualifiedFunctionName* entry_points =
+        ParseEntryPointsManifestIfPresent();
+    SetupStubNativeResolversForPrecompilation(entry_points);
+    SetupStubNativeResolvers();
+    CreateAndWritePrecompiledSnapshot(entry_points);
+
+    CleanupEntryPointsCollection(entry_points);
+  } else {
+    CreateAndWriteCoreSnapshot();
+  }
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+  error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
+  }
+  EventHandler::Stop();
+  return 0;
+}
+
 int main(int argc, char** argv) {
   const int EXTRA_VM_ARGUMENTS = 2;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
@@ -1393,6 +1458,19 @@ int main(int argc, char** argv) {
   // Parse command line arguments.
   if (ParseArguments(argc, argv, &vm_options, &app_script_name) < 0) {
     PrintUsage();
+    return kErrorExitCode;
+  }
+
+  // Sniff the script to check if it is actually a dill file.
+  void* kernel_program = NULL;
+  if (app_script_name != NULL) {
+    kernel_program = dfe.ReadScript(app_script_name);
+  }
+  if (kernel_program != NULL && !SnapshotKindAllowedFromKernel()) {
+    // TODO(sivachandra): Add check for the kernel program format (incremental
+    // vs batch).
+    Log::PrintErr(
+        "Can only generate core or aot snapshots from a kernel file.\n");
     return kErrorExitCode;
   }
 
@@ -1434,7 +1512,10 @@ int main(int argc, char** argv) {
   Dart_InitializeParams init_params;
   memset(&init_params, 0, sizeof(init_params));
   init_params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
-  if (app_script_name != NULL) {
+  if (app_script_name != NULL && kernel_program == NULL) {
+    // We need the service isolate to load script files.
+    // When generating snapshots from a kernel program, we do not need to load
+    // any script files.
     init_params.create = CreateServiceIsolate;
   }
   init_params.file_open = DartUtils::OpenFile;
@@ -1475,6 +1556,10 @@ int main(int argc, char** argv) {
     Log::PrintErr("VM initialization failed: %s\n", error);
     free(error);
     return kErrorExitCode;
+  }
+
+  if (kernel_program != NULL) {
+    return GenerateSnapshotFromKernelProgram(kernel_program);
   }
 
   Dart_IsolateFlags flags;
@@ -1543,15 +1628,9 @@ int main(int argc, char** argv) {
     }
 
     Dart_Isolate isolate = NULL;
-    void* kernel_program = dfe.ReadScript(app_script_name);
-    if (kernel_program != NULL) {
-      isolate = Dart_CreateIsolateFromKernel(NULL, NULL, kernel_program, NULL,
-                                             isolate_data, &error);
-    } else {
-      isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
-                                   isolate_snapshot_instructions, &flags,
-                                   isolate_data, &error);
-    }
+    isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
+                                 isolate_snapshot_instructions, &flags,
+                                 isolate_data, &error);
     if (isolate == NULL) {
       Log::PrintErr("%s\n", error);
       free(error);
@@ -1568,20 +1647,6 @@ int main(int argc, char** argv) {
 
     if (commandline_packages_file != NULL) {
       AddDependency(commandline_packages_file);
-    }
-
-    if (kernel_program != NULL) {
-      Dart_Handle resolved_uri = ResolveUriInWorkingDirectory(app_script_name);
-      CHECK_RESULT(resolved_uri);
-      Dart_Handle library =
-          Dart_LoadScript(resolved_uri, Dart_Null(),
-                          reinterpret_cast<Dart_Handle>(kernel_program), 0, 0);
-      CHECK_RESULT(library);
-    } else {
-      // Set up the library tag handler in such a manner that it will use the
-      // URL mapping specified on the command line to load the libraries.
-      result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
-      CHECK_RESULT(result);
     }
 
     SetupStubNativeResolversForPrecompilation(entry_points);
