@@ -226,7 +226,6 @@ additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 assert_message_test: CompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: CompileTimeError
-assign_static_type_test/06: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
@@ -322,9 +321,7 @@ compile_time_constant_k_test/03: MissingCompileTimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_p_test/01: Crash
-compile_time_constant_static2_test/03: MissingCompileTimeError
 compile_time_constant_static2_test/04: MissingCompileTimeError
-compile_time_constant_static3_test/03: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
 compile_time_constant_static4_test/03: MissingCompileTimeError
@@ -454,7 +451,6 @@ flatten_test/10: Crash
 flatten_test/11: Crash
 flatten_test/12: Crash
 flatten_test/none: Crash
-for_in3_test: MissingCompileTimeError
 function_propagation_test: CompileTimeError
 function_subtype_bound_closure7_test: CompileTimeError
 function_type_parameter2_negative_test: Fail
@@ -571,7 +567,6 @@ invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'd
 issue18628_2_test/01: MissingCompileTimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
-issue13179_test: RuntimeError
 least_upper_bound_expansive_test/01: MissingCompileTimeError
 least_upper_bound_expansive_test/02: MissingCompileTimeError
 least_upper_bound_expansive_test/03: MissingCompileTimeError
@@ -590,8 +585,6 @@ least_upper_bound_test/10: MissingCompileTimeError
 least_upper_bound_test/19: MissingCompileTimeError
 least_upper_bound_test/20: MissingCompileTimeError
 least_upper_bound_test/32: MissingCompileTimeError
-list_literal4_test/01: MissingCompileTimeError
-list_literal4_test/04: MissingCompileTimeError
 local_function3_test/01: MissingCompileTimeError
 local_function_test/01: MissingCompileTimeError
 local_function_test/02: MissingCompileTimeError
@@ -617,8 +610,6 @@ malformed_bound_test/01: MissingCompileTimeError
 map_literal3_test/01: MissingCompileTimeError
 map_literal3_test/02: MissingCompileTimeError
 map_literal3_test/03: MissingCompileTimeError
-map_literal4_test/02: MissingCompileTimeError
-map_literal4_test/06: MissingCompileTimeError
 method_override7_test/00: MissingCompileTimeError
 method_override7_test/01: MissingCompileTimeError
 method_override7_test/02: MissingCompileTimeError
