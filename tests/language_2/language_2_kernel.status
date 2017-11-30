@@ -3215,6 +3215,3 @@ vm/unaligned_integer_access_register_index_test: CompileTimeError # Issue 31339
 vm/unaligned_integer_access_literal_index_test: CompileTimeError  # Issue 31339
 mint_arithmetic_test: CompileTimeError                            # Issue 31339
 identical_closure2_test: CompileTimeError                         # Issue 31339
-mock_writable_final_field_test: RuntimeError                      # Issue 31424
-no_such_method_subtype_test: RuntimeError                         # Issue 31424
-generic_no_such_method_dispatcher_test: RuntimeError              # Issue 31424
