@@ -534,3 +534,5 @@ vm/no_such_method_error_message_callable_vm_test: Skip # Tests below rely on Sta
 vm/no_such_method_error_message_vm_test: Skip # Tests below rely on Stacktrace.toString()
 vm/regress_28325_test:Skip # Tests below rely on Stacktrace.toString()
 
+[ $runtime == vm && $mode == release && $arch == ia32 ]
+deep_nesting1_negative_test: Crash, Pass # Issue 31496

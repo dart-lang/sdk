@@ -1212,3 +1212,6 @@ type_promotion_functions_test/06: MissingCompileTimeError
 type_promotion_functions_test/07: MissingCompileTimeError
 type_promotion_functions_test/08: MissingCompileTimeError
 type_promotion_functions_test/10: MissingCompileTimeError
+
+[ $runtime == vm && $mode == release && $arch == ia32 ]
+deep_nesting1_negative_test: Crash, Pass # Issue 31496
