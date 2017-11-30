@@ -1346,6 +1346,102 @@ double f(int a, String b) {}
     expect(bArgument.staticParameterElement, same(bElement));
   }
 
+  test_methodInvocation_topLevelFunction_generic() async {
+    addTestFile(r'''
+void main() {
+  f<bool, String>(true, 'str');
+  f(1, 2.3);
+}
+void f<T, U>(T a, U b) {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    FunctionDeclaration fNode = result.unit.declarations[1];
+    FunctionElement fElement = fNode.element;
+
+    // f<bool, String>(true, 'str');
+    {
+      String fTypeString = '(bool, String) → void';
+      ExpressionStatement statement = mainStatements[0];
+      MethodInvocation invocation = statement.expression;
+
+      List<TypeAnnotation> typeArguments = invocation.typeArguments.arguments;
+      expect(typeArguments, hasLength(2));
+      {
+        TypeName typeArgument = typeArguments[0];
+        InterfaceType boolType = typeProvider.boolType;
+        expect(typeArgument.type, boolType);
+        expect(typeArgument.name.staticElement, boolType.element);
+        expect(typeArgument.name.staticType, boolType);
+      }
+      {
+        TypeName typeArgument = typeArguments[1];
+        InterfaceType stringType = typeProvider.stringType;
+        expect(typeArgument.type, stringType);
+        expect(typeArgument.name.staticElement, stringType.element);
+        expect(typeArgument.name.staticType, stringType);
+      }
+
+      List<Expression> arguments = invocation.argumentList.arguments;
+
+      expect(invocation.methodName.staticElement, same(fElement));
+      if (previewDart2) {
+        expect(invocation.methodName.staticType.toString(), fTypeString);
+      }
+      expect(invocation.staticType, VoidTypeImpl.instance);
+      expect(invocation.staticInvokeType.toString(), fTypeString);
+
+      Expression aArgument = arguments[0];
+      ParameterMember aArgumentParameter = aArgument.staticParameterElement;
+      ParameterElement aElement = fElement.parameters[0];
+      expect(aArgumentParameter.type, typeProvider.boolType);
+      if (previewDart2) {
+        expect(aArgumentParameter.baseElement, same(aElement));
+      }
+
+      Expression bArgument = arguments[1];
+      ParameterMember bArgumentParameter = bArgument.staticParameterElement;
+      ParameterElement bElement = fElement.parameters[1];
+      expect(bArgumentParameter.type, typeProvider.stringType);
+      if (previewDart2) {
+        expect(bArgumentParameter.baseElement, same(bElement));
+      }
+    }
+
+    // f(1, 2.3);
+    {
+      String fTypeString = '(int, double) → void';
+      ExpressionStatement statement = mainStatements[1];
+      MethodInvocation invocation = statement.expression;
+      List<Expression> arguments = invocation.argumentList.arguments;
+
+      expect(invocation.methodName.staticElement, same(fElement));
+      if (previewDart2) {
+        expect(invocation.methodName.staticType.toString(), fTypeString);
+      }
+      expect(invocation.staticType, VoidTypeImpl.instance);
+      expect(invocation.staticInvokeType.toString(), fTypeString);
+
+      Expression aArgument = arguments[0];
+      ParameterMember aArgumentParameter = aArgument.staticParameterElement;
+      ParameterElement aElement = fElement.parameters[0];
+      expect(aArgumentParameter.type, typeProvider.intType);
+      if (previewDart2) {
+        expect(aArgumentParameter.baseElement, same(aElement));
+      }
+
+      Expression bArgument = arguments[1];
+      ParameterMember bArgumentParameter = bArgument.staticParameterElement;
+      ParameterElement bElement = fElement.parameters[1];
+      expect(bArgumentParameter.type, typeProvider.doubleType);
+      if (previewDart2) {
+        expect(bArgumentParameter.baseElement, same(bElement));
+      }
+    }
+  }
+
   test_namedArgument() async {
     addTestFile(r'''
 void main() {

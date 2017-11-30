@@ -448,9 +448,19 @@ class LibraryAnalyzer {
       } else if (kernelType is kernel.MemberReferenceDartType) {
         ExecutableElementImpl element = _kernelResynthesizer
             .getElementFromCanonicalName(kernelType.member.canonicalName);
-        // TODO(scheglov) Instantiate the executable type with arguments.
-        assert(kernelType.typeArguments.isEmpty);
-        astType = element.type;
+        FunctionType type = element.type;
+        // If the type is generic, there are type arguments, explicit or
+        // inferred. Instantiate the type.
+        if (kernelType.typeArguments.isNotEmpty) {
+          var length = kernelType.typeArguments.length;
+          var typeArguments = new List<DartType>(length);
+          for (int i = 0; i < length; i++) {
+            typeArguments[i] = _kernelResynthesizer.getType(
+                context, kernelType.typeArguments[i]);
+          }
+          type = type.instantiate(typeArguments);
+        }
+        astType = type;
       } else if (kernelType is kernel.IndexAssignNullFunctionType) {
         astType = null;
       } else {

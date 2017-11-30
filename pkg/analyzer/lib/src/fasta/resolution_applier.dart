@@ -192,7 +192,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       constructorName.name.staticElement = element;
     }
 
-    _associateArgumentsWithParameters(element, node.argumentList);
+    _associateArgumentsWithParameters(element?.parameters, node.argumentList);
   }
 
   @override
@@ -228,16 +228,21 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
 
-    ExecutableElement calleeElement = _getReferenceFor(node.methodName);
+    _getReferenceFor(node.methodName); // raw element
     DartType invokeType = _getTypeFor(node.methodName);
     DartType resultType = _getTypeFor(argumentList);
 
     node.staticInvokeType = invokeType;
-    node.methodName.staticElement = calleeElement;
-    node.methodName.staticType = invokeType;
-    // TODO(paulberry): store resolution of node.typeArguments.
-
     node.staticType = resultType;
+    node.methodName.staticElement = invokeType.element;
+    node.methodName.staticType = invokeType;
+
+    if (invokeType is FunctionType) {
+      if (node.typeArguments != null) {
+        _applyTypeArgumentsToList(invokeType, node.typeArguments.arguments);
+      }
+      _associateArgumentsWithParameters(invokeType.parameters, argumentList);
+    }
 
     // Apply resolution to arguments.
     // Skip names of named arguments.
@@ -248,8 +253,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         argument.accept(this);
       }
     }
-
-    _associateArgumentsWithParameters(calleeElement, argumentList);
   }
 
   @override
@@ -378,18 +381,17 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
-  /// Associate arguments of the [argumentList] with parameters of the
-  /// given [executable].
+  /// Associate arguments of the [argumentList] with the [parameters].
   void _associateArgumentsWithParameters(
-      ExecutableElement executable, ArgumentList argumentList) {
-    if (executable != null) {
+      List<ParameterElement> parameters, ArgumentList argumentList) {
+    if (parameters != null) {
       List<Expression> arguments = argumentList.arguments;
       var correspondingParameters =
           new List<ParameterElement>(arguments.length);
       for (int i = 0; i < arguments.length; i++) {
         var argument = arguments[i];
         if (argument is NamedExpression) {
-          for (var parameter in executable.parameters) {
+          for (var parameter in parameters) {
             SimpleIdentifier label = argument.name.label;
             if (parameter.parameterKind == ParameterKind.NAMED &&
                 parameter.name == label.name) {
@@ -399,7 +401,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
             }
           }
         } else {
-          correspondingParameters[i] = executable.parameters[i];
+          correspondingParameters[i] = parameters[i];
         }
       }
       argumentList.correspondingStaticParameters = correspondingParameters;
@@ -523,10 +525,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   /// Recursively apply each of the type arguments of the [type] to the
-  /// corresponding type arguments of the [typeAnnotation].
+  /// corresponding type arguments of the [typeArguments].
   static void _applyTypeArgumentsToList(
-      DartType type, NodeList<TypeAnnotation> typeArguments) {
-    if (type is InterfaceType) {
+      DartType type, List<TypeAnnotation> typeArguments) {
+    if (type is ParameterizedType) {
       List<DartType> argumentTypes = type.typeArguments;
       int argumentCount = argumentTypes.length;
       if (argumentCount != typeArguments.length) {
@@ -536,11 +538,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       for (int i = 0; i < argumentCount; i++) {
         applyToTypeAnnotation(argumentTypes[i], typeArguments[i]);
       }
-    } else if (type is FunctionType) {
-      // TODO(brianwilkerson) Add support for function types.
-      throw new StateError('Support for function types is not yet implemented');
     } else {
-      throw new StateError('Attempting to apply a non-interface type '
+      throw new StateError('Attempting to apply a non-parameterized type '
           '(${type.runtimeType}) to type arguments');
     }
   }
