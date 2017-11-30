@@ -113,8 +113,8 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 assertion_initializer_const_error2_test/*: Crash # Issue #27809
-assertion_initializer_const_error2_test/cc10: CompileTimeError # Issue #31319
-assertion_initializer_const_error2_test/cc11: CompileTimeError # Issue #31319
+assertion_initializer_const_error2_test/cc10: Pass # Issue #31319
+assertion_initializer_const_error2_test/cc11: Pass # Issue #31319
 assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
@@ -151,6 +151,7 @@ generic_no_such_method_dispatcher_test: CompileTimeError
 generic_test: CompileTimeError
 generics_test: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
+implicit_downcast_during_assert_initializer_test: Crash
 implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue #31436
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
@@ -224,6 +225,16 @@ additional_interface_adds_optional_args_concrete_subclass_test: MissingCompileTi
 additional_interface_adds_optional_args_concrete_test: MissingCompileTimeError
 additional_interface_adds_optional_args_supercall_test: MissingCompileTimeError
 assert_message_test: CompileTimeError
+assertion_initializer_const_error2_test/cc01: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc02: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc03: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc05: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc06: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc07: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc08: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc09: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc10: MissingCompileTimeError
+assertion_initializer_const_error2_test/cc11: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: CompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
@@ -567,7 +578,6 @@ invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'd
 issue18628_2_test/01: MissingCompileTimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
-issue13179_test: RuntimeError
 least_upper_bound_expansive_test/01: MissingCompileTimeError
 least_upper_bound_expansive_test/02: MissingCompileTimeError
 least_upper_bound_expansive_test/03: MissingCompileTimeError
@@ -1168,7 +1178,6 @@ flatten_test/12: MissingRuntimeError # Issue 29920
 fuzzy_arrows_test/03: RuntimeError # Issue 29630
 generic_method_types_test/02: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920
-implicit_downcast_during_assert_initializer_test: Crash
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
@@ -1261,6 +1270,7 @@ generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails
 generic_no_such_method_dispatcher_test: RuntimeError # NoSuchMethodError: method not found: '+'
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
 implicit_downcast_during_function_literal_arrow_test: RuntimeError
+issue13179_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
