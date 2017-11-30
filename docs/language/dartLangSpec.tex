@@ -31,6 +31,8 @@
 % - Add >>> as overridable operator.
 % - If initializing formal has type annotation, require subtype of field.
 % - Constant `==` operations now also allowed if just one operand is null.
+% - Make flatten not be recursive.
+% - Disallow implementing two instantiations of the same generic interface.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -649,7 +651,7 @@ and let $T$ be the actual return type (\ref{actualTypeOfADeclaration})
 of the function that has this body.
 It is a static warning if $T$ is not \VOID{} and either
 the function is synchronous and the static type of $R$ is not assignable to $T$,
-or the function is asynchronous and \code{Future<$flatten$($R$)>}
+or the function is asynchronous and \code{Future<$flatten(R)$>}
 is not assignable to $T$.
 
 \end{itemize}
@@ -2058,6 +2060,10 @@ It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies 
 It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface.
 It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies a type $T$ as a superinterface more than once.
 It is a compile-time error if the superclass of a class $C$ is specified as a superinterface of $C$.
+It is a compile-time error if a class $C$ has two superinterfaces that are different instantiations of the same generic class. \commentary{For example, a class may not have both `List<int>` and `List<num>` as superinterfaces.}
+% If we need to allow multiple instantiations, they'll need to have a most
+% specific one, and then we can add the following clause
+%, unless it implements one that is a subtype of all the other. \commentary{This ensures that each class implements one {\em most specific} version of a generic class' interface.}
 
 \rationale{
 One might argue that it is harmless to repeat a type in the superinterface list, so why make it an error? The issue is not so much that the situation described in program source is erroneous, but that it is pointless. As such, it is an indication that the programmer may very well have meant to say something else - and that is a mistake that should be called to her or his attention.  Nevertheless, we could simply issue a warning; and perhaps we should and will. That said, problems like these are local and easily corrected on the spot, so we feel justified in taking a harder line.
@@ -3332,33 +3338,19 @@ $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow T
 The static type of a function literal of the form
 
 $(T_1$ $a_1, \ldots, T_n$ $a_n, [T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k])$ \ASYNC{} $=> e$
-is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow Future<flatten(T_0)>$, where $T_0$ is the static type of $e$ and  $flatten(T)$ is defined as follows:
+is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarrow \code{Future<$flatten(T_0)$>}$, where $T_0$ is the static type of $e$and $flatten(T)$ is defined as follows:
 
- If $T = Future<S>$ then $flatten(T) = flatten(S)$.
+If $T = FuturOr<S>$ then $flatten(T) = S$.
 
- Otherwise if $T <: Future$ then let $S$ be a type such that $T << Future<S>$ and for all $R$, if $T << Future<R>$ then $S << R$.
+Otherwise if $T <: Future$ then let $S$ be a type such that $T << Future<S>$ and for all $R$, if $T << Future<R>$ then $S << R$.
 
 \rationale{
-This ensures that $Future<S>$ is the most specific instantiation of \cd{Future} that is a super type of $T$.
+This ensures that \code{Future<$S$>} is the most specific instantiation of \cd{Future} that is a supertype of $T$. Note that $S$ is well-defined because of the requirements on superinterfaces.
 }
 
-Then $flatten(T) =  S$.
+Then $flatten(T) = S$.
 
 In any other circumstance, $flatten(T) = T$.
-
-
-
-\rationale{
-We collapse multiple layers of futures into one. If $e$ evaluates to a future $f$, the future will not invoke its \code{then()} callback until f completes to a non-future value, and so the result of an await is never a future, and the result of an \ASYNC{} function will never have type \code{Future$<X>$} where $X$ itself is an invocation of \code{Future}.
-
-The  exception to that would be a type $X$ that extended or implemented \code{Future}. In that case, only one unwrapping takes place. As an example of why this is done, consider
-
-\cd{\CLASS{} C<T>  \IMPLEMENTS{}  Future<C<C<T>>> \ldots }
-
-Here, a naive definition of $flatten$ diverges; there is not even a fixed point. A more sophisticated definition of $flatten$ is possible, but the existing rule deals with most realistic examples while remaining relatively simple to understand.
-
-}
-
 
 \LMHash{}
 The static type of a function literal of the form
@@ -5146,8 +5138,6 @@ It is not a static warning if the type of $e$ is not a subtype of \code{Future}.
 \LMHash{}
 The static type of $a$ is $flatten(T)$ (the $flatten$ function is defined in section \ref{functionExpressions}) where $T$ is the static type of $e$.
 
-
-
 \subsection{ Postfix Expressions}
 \LMLabel{postfixExpressions}
 
@@ -6478,29 +6468,32 @@ The {\em return statement} returns a result to the caller of a synchronous funct
 Executing a return statement \code{\RETURN{} $e$;} proceeds as follows:
 
 \LMHash{}
+Let $T$ be the static type of $e$, let $f$ be the immediately enclosing function, and let $S$ be the actual return type (\ref{actualTypeOfADeclaration}) of $f$.
+
+\LMHash{}
 First the expression $e$ is evaluated, producing an object $o$.
-Then the return statement returns the value $o$ (\ref{completion}).
+If the body of $f$ is marked \ASYNC{} (\ref{functions}) and the run-time type of $o$ is a subtype of \code{Future<$flatten(S)$>}, then let $r$ be the result of evaluating \code{await $v$} where $v$ is a fresh variable bound to $o$. Otherwise let $r$ be $o$.
+Then the return statement returns the value $r$ (\ref{completion}).
 
 \LMHash{}
-Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.
-
-\LMHash{}
-It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<$flatten$(T)>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
+It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<$flatten(T)$>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$. Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
 
 \LMHash{}
 Let $S$ be the run-time type of $o$. In checked mode:
 \begin{itemize}
 \item  If the body of $f$ is marked \ASYNC{} (\ref{functions})
 it is a dynamic type error if $o$ is not the null object (\ref{null}),
+% TODO(lrn): Remove the next line when void is a proper supertype of all types.
 the actual return type (\ref{actualTypeOfADeclaration}) of $f$ is not \VOID,
-and \code{Future<$flatten$(S)>} is not a subtype of the actual return type of $f$.
+and \code{Future<$flatten(S)$>} is not a subtype of the actual return type of $f$.
 % TODO(lrn): The "void foo() async { return e }" case is somewhat speculative.
 % When we disallow "return e" in a void function, we might also want to revisit
 % this rule. Currently it also covers the "void foo() async => e;" case, which
 % we might want to allow.
 \item Otherwise, it is a dynamic type error if $o$ is not the null object (\ref{null}),
+% TODO(lrn): Remove the next line when void is a proper supertype of all types.
 the actual return type of $f$ is not \VOID{},
-and the run-time type of $o$ is not a subtype of the actual return type of $f$.
+and $S$ is not a subtype of the actual return type of $f$.
 \end{itemize}
 
 \LMHash{}
