@@ -413,14 +413,6 @@ abstract class KernelToLocalsMap {
   /// The member currently being built.
   MemberEntity get currentMember;
 
-  // TODO(johnniwinther): Make these return the [KernelToLocalsMap] to use from
-  // now on.
-  /// Call to notify that [member] is currently being inlined.
-  void enterInlinedMember(covariant MemberEntity member);
-
-  /// Call to notify that [member] is no longer being inlined.
-  void leaveInlinedMember(covariant MemberEntity member);
-
   /// Returns the [Local] for [node].
   Local getLocalVariable(ir.VariableDeclaration node);
 

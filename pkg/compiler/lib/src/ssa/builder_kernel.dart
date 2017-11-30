@@ -555,12 +555,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // _sourceInformationBuilder =
       //   _sourceInformationBuilder.forContext(resolvedAst);
 
-      localsMap.enterInlinedMember(inlinedTarget);
       _targetStack.add(inlinedTarget);
       var result = f();
       _sourceInformationBuilder = oldSourceInformationBuilder;
       _targetStack.removeLast();
-      localsMap.leaveInlinedMember(inlinedTarget);
       return result;
     });
   }
