@@ -1248,6 +1248,7 @@ generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
 generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_no_such_method_dispatcher_test: RuntimeError # NoSuchMethodError: method not found: '+'
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
+implicit_downcast_during_assert_initializer_test: RuntimeError # Assertion failed: "Did not throw"
 implicit_downcast_during_function_literal_arrow_test: RuntimeError
 issue13179_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
