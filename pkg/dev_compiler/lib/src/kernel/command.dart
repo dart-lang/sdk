@@ -108,11 +108,7 @@ Future<bool> _compile(List<String> args) async {
     ..chaseDependencies = true
     ..reportMessages = true;
 
-  var inputs = argResults.rest
-      .map((a) => a.startsWith('package:') || a.startsWith('dart:')
-          ? Uri.parse(a)
-          : path.toUri(path.absolute(a)))
-      .toList();
+  var inputs = argResults.rest.map(Uri.base.resolve).toList();
   String output = argResults['out'];
 
   //var program = await kernelForBuildUnit(inputs, options);
