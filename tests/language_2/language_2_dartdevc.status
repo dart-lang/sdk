@@ -453,19 +453,6 @@ first_class_types_literals_test/07: MissingCompileTimeError
 first_class_types_literals_test/10: MissingCompileTimeError
 first_class_types_literals_test/11: MissingCompileTimeError
 first_class_types_literals_test/12: MissingCompileTimeError
-flatten_test/01: Crash
-flatten_test/02: Crash
-flatten_test/03: Crash
-flatten_test/04: Crash
-flatten_test/05: Crash
-flatten_test/06: Crash
-flatten_test/07: Crash
-flatten_test/08: Crash
-flatten_test/09: Crash
-flatten_test/10: Crash
-flatten_test/11: Crash
-flatten_test/12: Crash
-flatten_test/none: Crash
 function_propagation_test: CompileTimeError
 function_subtype_bound_closure7_test: CompileTimeError
 function_type_parameter2_negative_test: Fail
@@ -743,8 +730,6 @@ mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
-mock_writable_final_field_test: Crash
-mock_writable_final_private_field_test: Crash
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
@@ -1102,6 +1087,10 @@ expect_test: RuntimeError # Issue 29920; Expect.identical did not fail
 f_bounded_quantification3_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: (F1, F2) => {
 field_increment_bailout_test: RuntimeError # Issue 29920; UnimplementedError: JsInstanceMirror.delegate unimplemented
 field_initialization_order_test/none: RuntimeError # Expect.equals(expected: <b.a.ai.bi.>, actual: <b.bi.a.ai.>) fails.
+flatten_test/05: MissingRuntimeError # Issue 29920
+flatten_test/08: MissingRuntimeError # Issue 29920
+flatten_test/09: MissingRuntimeError # Issue 29920
+flatten_test/12: MissingRuntimeError # Issue 29920
 for_variable_capture_test: RuntimeError # Issue 29920; Expect.equals(expected: <1>, actual: <0>) fails.
 function_subtype_inline2_test: RuntimeError # Expect.fail('Missing type error: 'new C.c1(m2)'.')
 function_type_alias6_test/none: RuntimeError # Expect.isTrue(false) fails.
@@ -1175,10 +1164,6 @@ expect_test: RuntimeError # Issue 29920
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 final_field_initialization_order_test: RuntimeError # Issue 31058
 first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
-flatten_test/05: MissingRuntimeError # Issue 29920
-flatten_test/08: MissingRuntimeError # Issue 29920
-flatten_test/09: MissingRuntimeError # Issue 29920
-flatten_test/12: MissingRuntimeError # Issue 29920
 fuzzy_arrows_test/03: RuntimeError # Issue 29630
 generic_method_types_test/02: RuntimeError
 getter_closure_execution_order_test: RuntimeError # Issue 29920

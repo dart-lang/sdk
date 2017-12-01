@@ -1562,8 +1562,9 @@ class ProgramCompiler
       }
     }
 
-    jsMethods.addAll(_classProperties.mockMembers.values
-        .map((e) => _implementMockMember(e, c)));
+    for (Member m in _classProperties.mockMembers.values) {
+      _addMockMembers(m, c, jsMethods);
+    }
 
     // If the type doesn't have an `iterator`, but claims to implement Iterable,
     // we inject the adaptor method here, as it's less code size to put the
@@ -1719,69 +1720,108 @@ class ProgramCompiler
   ///       return core.bool.as(this.noSuchMethod(
   ///           new dart.InvocationImpl.new('eatFood', args)));
   ///     }
-  JS.Method _implementMockMember(Procedure method, Class c) {
-    var invocationProps = <JS.Property>[];
-    addProperty(String name, JS.Expression value) {
-      invocationProps.add(new JS.Property(js.string(name), value));
-    }
+  ///
+  /// Same technique is applied if interface I has fields, and C doesn't declare
+  /// neither the fields nor the corresponding getters and setters.
+  Iterable<JS.Method> _addMockMembers(
+      Member member, Class c, List<JS.Method> jsMethods) {
+    JS.Method implementMockMember(
+        List<TypeParameter> typeParameters,
+        List<VariableDeclaration> namedParameters,
+        ProcedureKind mockMemberKind,
+        DartType returnType) {
+      assert(mockMemberKind != ProcedureKind.Factory);
 
-    var args = new JS.TemporaryId('args');
-    var function = method.function;
-    var typeParams = _emitTypeFormals(function.typeParameters);
-    var fnArgs = new List<JS.Parameter>.from(typeParams);
-    JS.Expression positionalArgs;
-
-    if (function.namedParameters.isNotEmpty) {
-      addProperty('namedArguments', _callHelper('extractNamedArgs(#)', [args]));
-    }
-
-    if (!method.isAccessor) {
-      addProperty('isMethod', js.boolean(true));
-
-      fnArgs.add(new JS.RestParameter(args));
-      positionalArgs = args;
-    } else {
-      if (method.isGetter) {
-        addProperty('isGetter', js.boolean(true));
-
-        positionalArgs = new JS.ArrayInitializer([]);
-      } else if (method.isSetter) {
-        addProperty('isSetter', js.boolean(true));
-
-        fnArgs.add(args);
-        positionalArgs = new JS.ArrayInitializer([args]);
+      var invocationProps = <JS.Property>[];
+      addProperty(String name, JS.Expression value) {
+        invocationProps.add(new JS.Property(js.string(name), value));
       }
+
+      var args = new JS.TemporaryId('args');
+      var typeParams = _emitTypeFormals(typeParameters);
+      var fnArgs = new List<JS.Parameter>.from(typeParams);
+      JS.Expression positionalArgs;
+
+      if (namedParameters.isNotEmpty) {
+        addProperty(
+            'namedArguments', _callHelper('extractNamedArgs(#)', [args]));
+      }
+
+      if (mockMemberKind != ProcedureKind.Getter &&
+          mockMemberKind != ProcedureKind.Setter) {
+        addProperty('isMethod', js.boolean(true));
+
+        fnArgs.add(new JS.RestParameter(args));
+        positionalArgs = args;
+      } else {
+        if (mockMemberKind == ProcedureKind.Getter) {
+          addProperty('isGetter', js.boolean(true));
+
+          positionalArgs = new JS.ArrayInitializer([]);
+        } else if (mockMemberKind == ProcedureKind.Setter) {
+          addProperty('isSetter', js.boolean(true));
+
+          fnArgs.add(args);
+          positionalArgs = new JS.ArrayInitializer([args]);
+        }
+      }
+
+      if (typeParams.isNotEmpty) {
+        addProperty('typeArguments', new JS.ArrayInitializer(typeParams));
+      }
+
+      var fnBody =
+          js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
+        _runtimeModule,
+        _declareMemberName(member),
+        positionalArgs,
+        new JS.ObjectInitializer(invocationProps)
+      ]);
+
+      if (!types.isTop(returnType)) {
+        fnBody = js.call('#._check(#)', [_emitType(returnType), fnBody]);
+      }
+
+      var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
+          typeParams: typeParams);
+
+      return new JS.Method(
+          _declareMemberName(member,
+              useExtension: _extensionTypes.isNativeClass(c)),
+          fn,
+          isGetter: mockMemberKind == ProcedureKind.Getter,
+          isSetter: mockMemberKind == ProcedureKind.Setter,
+          isStatic: false);
     }
 
-    if (typeParams.isNotEmpty) {
-      addProperty('typeArguments', new JS.ArrayInitializer(typeParams));
+    if (member is Field) {
+      jsMethods.add(implementMockMember(
+          const <TypeParameter>[],
+          const <VariableDeclaration>[],
+          ProcedureKind.Getter,
+          Substitution
+              .fromSupertype(
+                  hierarchy.getClassAsInstanceOf(c, member.enclosingClass))
+              .substituteType(member.type)));
+      if (!member.isFinal) {
+        jsMethods.add(implementMockMember(
+            const <TypeParameter>[],
+            const <VariableDeclaration>[],
+            ProcedureKind.Setter,
+            new DynamicType()));
+      }
+    } else {
+      Procedure procedure = member as Procedure;
+      FunctionNode function = procedure.function;
+      jsMethods.add(implementMockMember(
+          function.typeParameters,
+          function.namedParameters,
+          procedure.kind,
+          Substitution
+              .fromSupertype(
+                  hierarchy.getClassAsInstanceOf(c, member.enclosingClass))
+              .substituteType(function.returnType)));
     }
-
-    var fnBody =
-        js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
-      _runtimeModule,
-      _declareMemberName(method),
-      positionalArgs,
-      new JS.ObjectInitializer(invocationProps)
-    ]);
-
-    var returnType = Substitution
-        .fromSupertype(hierarchy.getClassAsInstanceOf(c, method.enclosingClass))
-        .substituteType(method.function.functionType);
-    if (!types.isTop(returnType)) {
-      fnBody = js.call('#._check(#)', [_emitType(returnType), fnBody]);
-    }
-
-    var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: typeParams);
-
-    return new JS.Method(
-        _declareMemberName(method,
-            useExtension: _extensionTypes.isNativeClass(c)),
-        fn,
-        isGetter: method.isGetter,
-        isSetter: method.isSetter,
-        isStatic: false);
   }
 
   /// This is called whenever a derived class needs to introduce a new field,
