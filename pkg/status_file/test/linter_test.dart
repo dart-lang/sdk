@@ -174,8 +174,8 @@ a_test: Pass
 a_test: Pass
 """,
       r"Error at line 1: Section expressions are not correctly ordered in file."
-      r" $compiler == dart2js on line 4 should come before $runtime == ff at "
-      r"line 1.");
+      r" '$compiler == dart2js' on line 4 should come before '$runtime == ff' "
+      r"at line 1.");
 }
 
 void checkLintNormalizedSection_invalidAlphabeticalOrderingVariableArguments() {
@@ -187,7 +187,7 @@ a_test: Pass
 a_test: Pass
 """,
       r"Error at line 1: Section expressions are not correctly ordered in file."
-      r" $runtime == chrome on line 4 should come before $runtime == ff at "
+      r" '$runtime == chrome' on line 4 should come before '$runtime == ff' at "
       r"line 1.");
 }
 
@@ -204,7 +204,8 @@ a_test: Pass
 a_test: Pass
 """,
       r"Error at line 4: Section expressions are not correctly ordered in file."
-      r" $runtime == ff on line 7 should come before $runtime != ff at line 4.");
+      r" '$runtime == ff' on line 7 should come before '$runtime != ff' at "
+      r"line 4.");
 }
 
 void checkLintNormalizedSection_invalidOrderingWithNegation() {
@@ -221,7 +222,7 @@ a_test: Pass
 
 """,
       r"Error at line 4: Section expressions are not correctly ordered in file."
-      r" $checked on line 7 should come before !$checked at line 4.");
+      r" '$checked' on line 7 should come before '!$checked' at line 4.");
 }
 
 void checkLintNormalizedSection_correctOrdering() {
@@ -254,6 +255,6 @@ a_test: Pass
 [ ! $browser ]
 a_test: Pass
 """,
-      r"Error at line 4: The condition !$browser is duplicated on lines 1 "
+      r"Error at line 4: The condition '!$browser' is duplicated on lines 1 "
       r"and 4.");
 }

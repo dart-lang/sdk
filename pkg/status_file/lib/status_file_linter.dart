@@ -95,15 +95,18 @@ Iterable<LintingError> lintDisjunctionsInHeader(StatusSection section) {
 /// Checks for correct ordering of test entries in sections. They should be
 /// ordered alphabetically.
 Iterable<LintingError> lintAlphabeticalOrderingOfPaths(StatusSection section) {
-  var entries = section.entries.where((entry) => entry is StatusEntry).toList();
-  var sortedList = entries.toList()..sort((a, b) => a.path.compareTo(b.path));
-  var witness = _findNotEqualWitness<StatusEntry>(sortedList, entries);
+  var entries = section.entries
+      .where((entry) => entry is StatusEntry)
+      .map((entry) => (entry as StatusEntry).path)
+      .toList();
+  var sortedList = entries.toList()..sort((a, b) => a.compareTo(b));
+  var witness = _findNotEqualWitness<String>(sortedList, entries);
   if (witness != null) {
     return [
       new LintingError(
           section.lineNumber,
           "Test paths are not alphabetically ordered in section. "
-          "${witness.first.path} should come before ${witness.second.path}.")
+          "${witness.first} should come before ${witness.second}.")
     ];
   }
   return [];
@@ -112,11 +115,14 @@ Iterable<LintingError> lintAlphabeticalOrderingOfPaths(StatusSection section) {
 /// Checks that each section expression have been normalized.
 Iterable<LintingError> lintNormalizedSection(StatusSection section) {
   if (section.condition == null) return const [];
+  var nonNormalized = section.condition.toString();
   var normalized = section.condition.normalize().toString();
   if (section.condition.toString() != normalized) {
     return [
       new LintingError(
-          section.lineNumber, "Condition expression should be '$normalized'.")
+          section.lineNumber,
+          "Condition expression should be '$normalized' "
+          "but was '$nonNormalized'.")
     ];
   }
   return const [];
@@ -156,8 +162,8 @@ Iterable<LintingError> lintSectionHeaderOrdering(List<StatusSection> sections) {
       new LintingError(
           witness.second.lineNumber,
           "Section expressions are not correctly ordered in file. "
-          "${witness.first.condition} on line ${witness.first.lineNumber} "
-          "should come before ${witness.second.condition} at line "
+          "'${witness.first.condition}' on line ${witness.first.lineNumber} "
+          "should come before '${witness.second.condition}' at line "
           "${witness.second.lineNumber}.")
     ];
   }
@@ -168,10 +174,8 @@ Iterable<LintingError> lintSectionHeaderOrdering(List<StatusSection> sections) {
 Iterable<LintingError> lintSectionHeaderDuplicates(
     List<StatusSection> sections) {
   var errors = <LintingError>[];
-  var sorted = sections
-      .where((section) => section.condition != null)
-      .toList<StatusSection>()
-        ..sort((a, b) => a.condition.compareTo(b.condition));
+  var sorted = sections.where((section) => section.condition != null).toList()
+    ..sort((a, b) => a.condition.compareTo(b.condition));
   for (var i = 1; i < sorted.length; i++) {
     var section = sorted[i];
     var previousSection = sorted[i - 1];
@@ -181,7 +185,7 @@ Iterable<LintingError> lintSectionHeaderDuplicates(
       errors.add(new LintingError(
           section.lineNumber,
           "The condition "
-          "${section.condition} is duplicated on lines "
+          "'${section.condition}' is duplicated on lines "
           "${previousSection.lineNumber} and ${section.lineNumber}."));
     }
   }
