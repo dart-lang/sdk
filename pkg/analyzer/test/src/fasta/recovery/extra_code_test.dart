@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MiscellaneousTest);
     defineReflectiveTests(ModifiersTest);
+    defineReflectiveTests(PunctuationTest);
   });
 }
 
@@ -51,6 +52,79 @@ class ModifiersTest extends AbstractRecoveryTest {
 static class A {}
 ''', [ParserErrorCode.EXTRANEOUS_MODIFIER], '''
 class A {}
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when there is extra punctuation.
+ */
+@reflectiveTest
+class PunctuationTest extends AbstractRecoveryTest {
+  void test_extraSemicolon_afterLastClassMember() {
+    testRecovery('''
+class C {
+  foo() {};
+}
+''', [ParserErrorCode.EXPECTED_CLASS_MEMBER], '''
+class C {
+  foo() {}
+}
+''');
+  }
+
+  void test_extraSemicolon_afterLastTopLevelMember() {
+    testRecovery('''
+foo() {};
+''', [ParserErrorCode.EXPECTED_EXECUTABLE], '''
+foo() {}
+''');
+  }
+
+  void test_extraSemicolon_beforeFirstClassMember() {
+    testRecovery('''
+class C {
+  ;foo() {}
+}
+''', [ParserErrorCode.EXPECTED_CLASS_MEMBER], '''
+class C {
+  foo() {}
+}
+''');
+  }
+
+  @failingTest
+  void test_extraSemicolon_beforeFirstTopLevelMember() {
+    // This test fails because the beginning token for the invalid unit is the
+    // semicolon, despite the fact that it was skipped.
+    testRecovery('''
+;foo() {}
+''', [ParserErrorCode.EXPECTED_EXECUTABLE], '''
+foo() {}
+''');
+  }
+
+  void test_extraSemicolon_betweenClassMembers() {
+    testRecovery('''
+class C {
+  foo() {};
+  bar() {}
+}
+''', [ParserErrorCode.EXPECTED_CLASS_MEMBER], '''
+class C {
+  foo() {}
+  bar() {}
+}
+''');
+  }
+
+  void test_extraSemicolon_betweenTopLevelMembers() {
+    testRecovery('''
+foo() {};
+bar() {}
+''', [ParserErrorCode.EXPECTED_EXECUTABLE], '''
+foo() {}
+bar() {}
 ''');
   }
 }

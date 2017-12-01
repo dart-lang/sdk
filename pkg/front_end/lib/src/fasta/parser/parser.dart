@@ -3375,15 +3375,13 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(start);
     if (identifiers.isEmpty) {
-      return reportUnrecoverableErrorWithToken(
-          token, fasta.templateExpectedDeclaration);
+      return recoverFromInvalidClassMember(start);
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
 
     if (identifiers.isEmpty) {
-      return reportUnrecoverableErrorWithToken(
-          token, fasta.templateExpectedDeclaration);
+      return recoverFromInvalidClassMember(start);
     }
     Token beforeName = identifiers.head;
     identifiers = identifiers.tail;
@@ -5818,6 +5816,24 @@ class Parser {
       next = beforeToken.next;
     }
     return beforeToken;
+  }
+
+  /// Recover from finding an invalid class member. The metadata for the member,
+  /// if any, has already been parsed (and events have already been generated).
+  /// The member was expected to start with the token after [beforeMember].
+  Token recoverFromInvalidClassMember(Token beforeMember) {
+    Token next = beforeMember.next;
+    if (optional(';', next)) {
+      // Report and skip extra semicolons that appear between members.
+      // TODO(brianwilkerson) Provide a more specific error message.
+      reportRecoverableError(
+          next, fasta.templateExpectedClassMember.withArguments(next));
+      listener.handleInvalidMember(next);
+      listener.endMember();
+      return next;
+    }
+    return reportUnrecoverableErrorWithToken(
+        next, fasta.templateExpectedClassMember);
   }
 
   /// Report that the given [token] was expected to be the beginning of a block
