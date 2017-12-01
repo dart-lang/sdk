@@ -47,6 +47,8 @@ main() {
   });
 }
 
+Matcher isUndefinedType = new isInstanceOf<UndefinedTypeImpl>();
+
 /**
  * Returns a [Future] that completes after pumping the event queue [times]
  * times. By default, this should pump the event queue enough times to allow
@@ -778,6 +780,33 @@ main() {
     expect(expression.rightOperand.staticType, typeProvider.intType);
     expect(expression.staticElement.name, '==');
     expect(expression.staticType, typeProvider.boolType);
+  }
+
+  test_error_unresolvedTypeAnnotation() async {
+    String content = r'''
+main() {
+  Foo<int> v = null;
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    var statements = _getMainStatements(result);
+
+    VariableDeclarationStatement statement = statements[0];
+
+    TypeName typeName = statement.variables.type;
+    expect(typeName.type, isUndefinedType);
+    if (previewDart2) {
+      expect(typeName.typeArguments.arguments[0].type, isUndefinedType);
+    } else {
+      expect(typeName.typeArguments.arguments[0].type, typeProvider.intType);
+    }
+
+    VariableDeclaration vNode = statement.variables.variables[0];
+    expect(vNode.name.staticType, isUndefinedType);
+    expect(vNode.element.type, isUndefinedType);
   }
 
   test_indexExpression() async {

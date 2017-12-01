@@ -327,6 +327,6 @@ class _TestTypeContext implements TypeContext {
 
   @override
   ast.DartType translateType(kernel.DartType kernelType) {
-    return ast.DynamicTypeImpl.instance;
+    return ast.UndefinedTypeImpl.instance;
   }
 }

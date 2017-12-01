@@ -542,7 +542,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// corresponding type arguments of the [typeArguments].
   static void _applyTypeArgumentsToList(
       DartType type, List<TypeAnnotation> typeArguments) {
-    if (type is ParameterizedType) {
+    if (type != null && type.isUndefined) {
+      for (TypeAnnotation argument in typeArguments) {
+        applyToTypeAnnotation(type, argument);
+      }
+    } else if (type is ParameterizedType) {
       List<DartType> argumentTypes = type.typeArguments;
       int argumentCount = argumentTypes.length;
       if (argumentCount != typeArguments.length) {
