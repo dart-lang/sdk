@@ -5,6 +5,7 @@
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 /// TODO(scheglov) document
 class FunctionReferenceDartType implements DartType {
@@ -141,18 +142,18 @@ class MemberGetterNode implements TreeNode {
   }
 }
 
-/// TODO(scheglov) document
-class MemberReferenceDartType implements DartType {
+/// Information about invocation of the [member] and its instantiated [type].
+class MemberInvocationDartType implements DartType {
   final Member member;
-  final List<DartType> typeArguments;
+  final FunctionType type;
 
-  MemberReferenceDartType(this.member, this.typeArguments);
+  MemberInvocationDartType(this.member, this.type);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   String toString() {
-    return '<${typeArguments.join(', ')}>$member';
+    return '($member, $type)';
   }
 }
 
@@ -296,8 +297,14 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  void methodInvocationExit(Expression expression, Arguments arguments,
-      bool isImplicitCall, Member interfaceMember, DartType inferredType) {
+  void methodInvocationExit(
+      Expression expression,
+      Arguments arguments,
+      bool isImplicitCall,
+      Member interfaceMember,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {
     _replaceType(
         inferredType,
         arguments.fileOffset != -1
@@ -305,8 +312,10 @@ class ResolutionStorer extends TypeInferenceListener {
             : expression.fileOffset);
     if (!isImplicitCall) {
       _replaceReference(interfaceMember);
-      _replaceType(
-          new MemberReferenceDartType(interfaceMember, arguments.types));
+      FunctionType invokeType = substitution == null
+          ? calleeType
+          : substitution.substituteType(calleeType.withoutTypeParameters);
+      _replaceType(new MemberInvocationDartType(interfaceMember, invokeType));
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -392,11 +401,16 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void staticInvocationExit(
-      StaticInvocation expression, DartType inferredType) {
+      StaticInvocation expression,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {
     _replaceType(inferredType);
     _replaceReference(expression.target);
-    _replaceType(new MemberReferenceDartType(
-        expression.target, expression.arguments.types));
+    FunctionType invokeType = substitution == null
+        ? calleeType
+        : substitution.substituteType(calleeType.withoutTypeParameters);
+    _replaceType(new MemberInvocationDartType(expression.target, invokeType));
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 

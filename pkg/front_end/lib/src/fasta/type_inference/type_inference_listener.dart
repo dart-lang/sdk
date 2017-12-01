@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE.md file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 /// Base class for [TypeInferenceListener] that defines the API for debugging.
 ///
@@ -307,8 +308,14 @@ class TypeInferenceListener
   bool methodInvocationEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter("methodInvocation", expression, typeContext);
 
-  void methodInvocationExit(Expression expression, Arguments arguments,
-          bool isImplicitCall, Member interfaceMember, DartType inferredType) =>
+  void methodInvocationExit(
+          Expression expression,
+          Arguments arguments,
+          bool isImplicitCall,
+          Member interfaceMember,
+          FunctionType calleeType,
+          Substitution substitution,
+          DartType inferredType) =>
       genericExpressionExit("methodInvocation", expression, inferredType);
 
   void methodInvocationExitCall(Expression expression, Arguments arguments,
@@ -399,7 +406,10 @@ class TypeInferenceListener
       genericExpressionEnter("staticInvocation", expression, typeContext);
 
   void staticInvocationExit(
-          StaticInvocation expression, DartType inferredType) =>
+          StaticInvocation expression,
+          FunctionType calleeType,
+          Substitution substitution,
+          DartType inferredType) =>
       genericExpressionExit("staticInvocation", expression, inferredType);
 
   bool stringConcatenationEnter(

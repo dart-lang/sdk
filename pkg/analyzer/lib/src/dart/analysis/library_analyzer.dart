@@ -38,6 +38,7 @@ import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:front_end/src/dependency_walker.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
 import 'package:kernel/kernel.dart' as kernel;
+import 'package:kernel/type_algebra.dart' as kernel;
 
 /**
  * Analyzer of a single library.
@@ -969,7 +970,7 @@ class _NameOrSource {
 
 /// Concrete implementation of [TypeContext].
 class _ResolutionApplierContext implements TypeContext {
-  final KernelResynthesizer kernelResynthesizer;
+  final KernelResynthesizer resynthesizer;
   final TypeProvider typeProvider;
   final CollectedResolution resolution;
 
@@ -985,8 +986,8 @@ class _ResolutionApplierContext implements TypeContext {
 
   ResolutionApplier applier;
 
-  _ResolutionApplierContext(this.kernelResynthesizer, this.typeProvider,
-      this.resolution, this.context) {
+  _ResolutionApplierContext(
+      this.resynthesizer, this.typeProvider, this.resolution, this.context) {
     // Convert local declarations into elements.
     for (var declaredNode in resolution.kernelDeclarations) {
       translateKernelDeclaration(declaredNode);
@@ -1017,11 +1018,11 @@ class _ResolutionApplierContext implements TypeContext {
         }
         assert(element != null);
       } else if (referencedNode is kernel.NamedNode) {
-        element = kernelResynthesizer
+        element = resynthesizer
             .getElementFromCanonicalName(referencedNode.canonicalName);
         assert(element != null);
       } else if (referencedNode is kernel.MemberGetterNode) {
-        var memberElement = kernelResynthesizer
+        var memberElement = resynthesizer
             .getElementFromCanonicalName(referencedNode.member.canonicalName);
         assert(memberElement != null);
         if (memberElement is PropertyInducingElementImpl) {
@@ -1031,7 +1032,7 @@ class _ResolutionApplierContext implements TypeContext {
           element = memberElement;
         }
       } else if (referencedNode is kernel.MemberSetterNode) {
-        var memberElement = kernelResynthesizer
+        var memberElement = resynthesizer
             .getElementFromCanonicalName(referencedNode.member.canonicalName);
         assert(memberElement != null);
         if (memberElement is PropertyInducingElementImpl) {
@@ -1078,14 +1079,12 @@ class _ResolutionApplierContext implements TypeContext {
     var declaration = functionElementToDeclaration[element];
     kernel.FunctionType kernelType = declaration.type;
 
-    element.returnType =
-        kernelResynthesizer.getType(context, kernelType.returnType);
+    element.returnType = resynthesizer.getType(context, kernelType.returnType);
 
     for (var parameter in element.parameters) {
       ParameterElementImpl parameterImpl = parameter;
       var kernelParameter = parameterElementToDeclaration[parameter];
-      parameterImpl.type =
-          kernelResynthesizer.getType(context, kernelParameter.type);
+      parameterImpl.type = resynthesizer.getType(context, kernelParameter.type);
     }
 
     element.type = new FunctionTypeImpl(element);
@@ -1095,6 +1094,55 @@ class _ResolutionApplierContext implements TypeContext {
   void exitLocalFunction(FunctionElementImpl element) {
     assert(identical(context, element));
     context = contextStack.removeLast();
+  }
+
+  /// Given the [executable] element that corresponds to the [kernelNode],
+  /// and the [kernelType] that is the instantiated type of [kernelNode],
+  /// return the instantiated type of the [executable].
+  FunctionType instantiateFunctionType(ExecutableElement executable,
+      kernel.FunctionNode kernelNode, kernel.FunctionType kernelType) {
+    // Prepare all kernel type parameters.
+    var kernelTypeParameters = <kernel.TypeParameter>[];
+    for (kernel.TreeNode node = kernelNode; node != null; node = node.parent) {
+      if (node is kernel.Class) {
+        kernelTypeParameters.addAll(node.typeParameters);
+      } else if (node is kernel.FunctionNode) {
+        kernelTypeParameters.addAll(node.typeParameters);
+      }
+    }
+
+    // If no type parameters, the raw type of the element will do.
+    FunctionTypeImpl rawType = executable.type;
+    if (kernelTypeParameters.isEmpty) {
+      return rawType;
+    }
+
+    // Compute type arguments for kernel type parameters.
+    var kernelMap = kernel.unifyTypes(
+        kernelNode.functionType.withoutTypeParameters,
+        kernelType,
+        kernelTypeParameters.toSet());
+
+    // Prepare Analyzer type parameters, in the same order as kernel ones.
+    var astTypeParameters = <TypeParameterElement>[];
+    for (Element element = executable;
+        element != null;
+        element = element.enclosingElement) {
+      if (element is TypeParameterizedElement) {
+        astTypeParameters.addAll(element.typeParameters);
+      }
+    }
+
+    // Convert kernel type arguments into Analyzer types.
+    var astTypeArguments = new List<DartType>(astTypeParameters.length);
+    for (var i = 0; i < astTypeParameters.length; i++) {
+      var kernelParameter = kernelTypeParameters[i];
+      var kernelArgument = kernelMap[kernelParameter];
+      astTypeArguments[i] = resynthesizer.getType(null, kernelArgument);
+    }
+
+    // Replace Analyzer type parameters with type arguments.
+    return rawType.substitute4(astTypeParameters, astTypeArguments);
   }
 
   /// Translate the given [declaration].
@@ -1174,26 +1222,15 @@ class _ResolutionApplierContext implements TypeContext {
       kernel.VariableDeclaration variable = kernelType.function.variable;
       FunctionElement element = declarationToElement[variable];
       return element.type;
-    } else if (kernelType is kernel.MemberReferenceDartType) {
-      ExecutableElementImpl element = kernelResynthesizer
+    } else if (kernelType is kernel.MemberInvocationDartType) {
+      ExecutableElementImpl element = resynthesizer
           .getElementFromCanonicalName(kernelType.member.canonicalName);
-      FunctionType type = element.type;
-      // If the type is generic, there are type arguments, explicit or
-      // inferred. Instantiate the type.
-      if (kernelType.typeArguments.isNotEmpty) {
-        var length = kernelType.typeArguments.length;
-        var typeArguments = new List<DartType>(length);
-        for (int i = 0; i < length; i++) {
-          typeArguments[i] =
-              kernelResynthesizer.getType(context, kernelType.typeArguments[i]);
-        }
-        type = type.instantiate(typeArguments);
-      }
-      return type;
+      return instantiateFunctionType(
+          element, kernelType.member.function, kernelType.type);
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {
       return null;
     } else {
-      return kernelResynthesizer.getType(context, kernelType);
+      return resynthesizer.getType(context, kernelType);
     }
   }
 }

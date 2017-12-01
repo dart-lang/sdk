@@ -1420,6 +1420,53 @@ void main() {
     }
   }
 
+  test_methodInvocation_instanceMethod_generic() async {
+    addTestFile(r'''
+main() {
+  new C<int>().m(1, 2.3);
+}
+class C<T> {
+  Map<T, U> m<U>(T a, U b) => null;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    ClassDeclaration cNode = result.unit.declarations[1];
+    MethodDeclaration mNode = cNode.members[0];
+    MethodElement mElement = mNode.element;
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+      MethodInvocation invocation = statement.expression;
+      List<Expression> arguments = invocation.argumentList.arguments;
+
+      var invokeTypeStr = '(int, double) → Map<int, double>';
+      expect(invocation.staticType.toString(), 'Map<int, double>');
+      expect(invocation.staticInvokeType.toString(), invokeTypeStr);
+      if (previewDart2) {
+        expect(invocation.staticInvokeType.element, same(mElement));
+        expect(invocation.methodName.staticElement, same(mElement));
+        expect(invocation.methodName.staticType.toString(), invokeTypeStr);
+      }
+
+      Expression aArgument = arguments[0];
+      ParameterMember aArgumentParameter = aArgument.staticParameterElement;
+      ParameterElement aElement = mElement.parameters[0];
+      expect(aArgumentParameter.type, typeProvider.intType);
+      expect(aArgumentParameter.baseElement, same(aElement));
+
+      Expression bArgument = arguments[1];
+      ParameterMember bArgumentParameter = bArgument.staticParameterElement;
+      ParameterElement bElement = mElement.parameters[1];
+      expect(bArgumentParameter.type, typeProvider.doubleType);
+      if (previewDart2) {
+        expect(bArgumentParameter.baseElement, same(bElement));
+      }
+    }
+  }
+
   test_methodInvocation_topLevelFunction() async {
     addTestFile(r'''
 void main() {

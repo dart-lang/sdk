@@ -360,6 +360,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// inside a closure.
   ClosureContext closureContext;
 
+  /// The [Substitution] inferred by the last [inferInvocation], or `null` if
+  /// the last invocation didn't require any inference.
+  Substitution lastInferredSubstitution;
+
   TypeInferrerImpl(this.engine, this.uri, this.listener, bool topLevel,
       this.thisType, this.library)
       : coreTypes = engine.coreTypes,
@@ -804,6 +808,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       DartType receiverType,
       bool skipTypeArgumentInference: false,
       bool isConst: false}) {
+    lastInferredSubstitution = null;
     var calleeTypeParameters = calleeType.typeParameters;
     List<DartType> explicitTypeArguments = getExplicitTypeArguments(arguments);
     bool inferenceNeeded = !skipTypeArgumentInference &&
@@ -897,6 +902,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     DartType inferredType;
     if (typeNeeded) {
+      lastInferredSubstitution = substitution;
       inferredType = substitution == null
           ? returnType
           : substitution.substituteType(returnType);
@@ -1114,8 +1120,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       listener.methodInvocationExitCall(
           expression, arguments, isImplicitCall, inferredType);
     } else {
-      listener.methodInvocationExit(
-          expression, arguments, isImplicitCall, interfaceMember, inferredType);
+      listener.methodInvocationExit(expression, arguments, isImplicitCall,
+          interfaceMember, calleeType, lastInferredSubstitution, inferredType);
     }
     return inferredType;
   }

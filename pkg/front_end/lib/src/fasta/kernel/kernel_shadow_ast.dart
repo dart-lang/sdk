@@ -1785,7 +1785,8 @@ class ShadowStaticInvocation extends StaticInvocation
     var calleeType = target.function.functionType;
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
         fileOffset, calleeType, calleeType.returnType, arguments);
-    inferrer.listener.staticInvocationExit(this, inferredType);
+    inferrer.listener.staticInvocationExit(
+        this, calleeType, inferrer.lastInferredSubstitution, inferredType);
     return inferredType;
   }
 }
