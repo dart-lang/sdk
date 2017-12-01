@@ -89,4 +89,5 @@ class M {
   M._internal(int n); // LINT
 
   factory M(int a, int b) => new M._internal(a); // LINT
+  factory M.redirect(int n) = M._internal; // OK because target constructor have parameters
 }

@@ -51,6 +51,8 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.redirectedConstructor != null) return;
+
     final _constructorVisitor = new _ConstructorVisitor(rule, node);
     node?.body?.visitChildren(_constructorVisitor);
     node?.initializers?.forEach((i) => i.visitChildren(_constructorVisitor));
