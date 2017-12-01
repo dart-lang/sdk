@@ -2911,6 +2911,9 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
+    if (Assembler::EmittingComments()) {
+      compiler->EmitComment(parallel_move());
+    }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }

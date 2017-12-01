@@ -3484,9 +3484,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfStaticFieldInitializer() {
   }
   body += Return(TokenPosition::kNoSource);
 
+  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->last_used_block_id_);
+                flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
@@ -3542,9 +3543,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFieldAccessor(
   }
   body += Return(TokenPosition::kNoSource);
 
+  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->last_used_block_id_);
+                flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
@@ -3887,9 +3889,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // Return the result.
   body += Return(function_node_helper.end_position_);
 
+  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
-                flow_graph_builder_->last_used_block_id_);
+                flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 LocalVariable* StreamingFlowGraphBuilder::LookupParameterDirect(
@@ -4245,8 +4248,10 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     graph_entry->RelinkToOsrEntry(Z,
                                   flow_graph_builder_->last_used_block_id_ + 1);
   }
-  return new (Z) FlowGraph(*parsed_function(), graph_entry,
-                           flow_graph_builder_->last_used_block_id_);
+  PrologueInfo prologue_info(-1, -1);
+  return new (Z)
+      FlowGraph(*parsed_function(), graph_entry,
+                flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {

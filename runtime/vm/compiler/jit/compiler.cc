@@ -241,9 +241,9 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
   if (osr_id != Compiler::kNoOSRDeoptId) {
     result.graph_entry->RelinkToOsrEntry(zone, result.num_blocks);
   }
-
-  return new (zone)
-      FlowGraph(*parsed_function, result.graph_entry, result.num_blocks);
+  PrologueInfo prologue_info(-1, -1);
+  return new (zone) FlowGraph(*parsed_function, result.graph_entry,
+                              result.num_blocks, prologue_info);
 }
 
 void IrregexpCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {

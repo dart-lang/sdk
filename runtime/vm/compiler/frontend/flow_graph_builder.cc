@@ -4428,9 +4428,11 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
     graph_entry_->RelinkToOsrEntry(Z, last_used_block_id_);
   }
 
-  FlowGraph* graph =
-      new (Z) FlowGraph(parsed_function(), graph_entry_, last_used_block_id_);
+  PrologueInfo prologue_info(-1, -1);
+  FlowGraph* graph = new (Z) FlowGraph(parsed_function(), graph_entry_,
+                                       last_used_block_id_, prologue_info);
   graph->set_await_token_positions(await_token_positions_);
+
   return graph;
 }
 

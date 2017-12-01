@@ -2212,8 +2212,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
   body += BuildImplicitClosureCreation(function);
   body += Return(TokenPosition::kNoSource);
 
-  return new (Z)
-      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_);
+  // There is no prologue code for a method extractor.
+  PrologueInfo prologue_info(-1, -1);
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
@@ -2326,8 +2328,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodDispatcher(
                      /* argument_count = */ 2, ICData::kNSMDispatch);
   body += Return(TokenPosition::kNoSource);
 
-  return new (Z)
-      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_);
+  PrologueInfo prologue_info(-1, -1);
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
@@ -2426,8 +2429,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
 
   body += Return(TokenPosition::kNoSource);
 
-  return new (Z)
-      FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_);
+  PrologueInfo prologue_info(-1, -1);
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
 }
 
 TargetEntryInstr* BaseFlowGraphBuilder::BuildTargetEntry() {
