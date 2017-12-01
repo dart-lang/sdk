@@ -920,6 +920,87 @@ void main() {
     expect(fInvocation.staticInvokeType.toString(), fTypeString);
   }
 
+  test_local_function_generic() async {
+    addTestFile(r'''
+void main() {
+  T f<T, U>(T a, U b) {}
+  var v = f(1, '2');
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    FunctionDeclarationStatement fStatement = mainStatements[0];
+    FunctionDeclaration fNode = fStatement.functionDeclaration;
+    FunctionExpression fExpression = fNode.functionExpression;
+    FunctionElement fElement = fNode.element;
+
+    TypeParameterElement tElement = fElement.typeParameters[0];
+    TypeParameterElement uElement = fElement.typeParameters[1];
+
+    {
+      var fTypeParameters = fExpression.typeParameters.typeParameters;
+      expect(fTypeParameters, hasLength(2));
+
+      TypeParameter tNode = fTypeParameters[0];
+      expect(tNode.element, same(tElement));
+      expect(tNode.name.staticElement, same(tElement));
+      expect(tNode.name.staticType, typeProvider.typeType);
+
+      TypeParameter uNode = fTypeParameters[1];
+      expect(uNode.element, same(uElement));
+      expect(uNode.name.staticElement, same(uElement));
+      expect(uNode.name.staticType, typeProvider.typeType);
+    }
+
+    expect(fElement, isNotNull);
+    expect(fElement.type.toString(), '<T,U>(T, U) → T');
+
+    expect(fNode.name.staticElement, same(fElement));
+    expect(fNode.name.staticType, fElement.type);
+
+    TypeName fReturnTypeNode = fNode.returnType;
+    expect(fReturnTypeNode.name.staticElement, same(tElement));
+    expect(fReturnTypeNode.type, tElement.type);
+
+    expect(fExpression.element, same(fElement));
+
+    {
+      List<ParameterElement> elements = fElement.parameters;
+      expect(elements, hasLength(2));
+
+      List<FormalParameter> nodes = fExpression.parameters.parameters;
+      expect(nodes, hasLength(2));
+
+      _assertSimpleParameter(nodes[0], elements[0],
+          name: 'a',
+          offset: 28,
+          kind: ParameterKind.REQUIRED,
+          type: tElement.type);
+
+      _assertSimpleParameter(nodes[1], elements[1],
+          name: 'b',
+          offset: 33,
+          kind: ParameterKind.REQUIRED,
+          type: uElement.type);
+    }
+
+    VariableDeclarationStatement vStatement = mainStatements[1];
+    VariableDeclaration vDeclaration = vStatement.variables.variables[0];
+    expect(vDeclaration.element.type, typeProvider.intType);
+
+    MethodInvocation fInvocation = vDeclaration.initializer;
+    expect(fInvocation.methodName.staticElement, same(fElement));
+    expect(fInvocation.staticType, typeProvider.intType);
+    // TODO(scheglov) We don't support invoke types well.
+//    if (previewDart2) {
+//      String fInstantiatedType = '(int, String) → int';
+//      expect(fInvocation.methodName.staticType.toString(), fInstantiatedType);
+//      expect(fInvocation.staticInvokeType.toString(), fInstantiatedType);
+//    }
+  }
+
   test_local_function_namedParameters() async {
     addTestFile(r'''
 void main() {

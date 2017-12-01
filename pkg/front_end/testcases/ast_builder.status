@@ -199,7 +199,6 @@ inference/list_literals: Crash
 inference/list_literals_top_level: Crash
 inference/local_constructor_from_arguments: Crash
 inference/local_reference_upwards_local: Crash
-inference/local_return_and_yield: Crash
 inference/map_literals: Crash
 inference/map_literals_can_infer_null: Crash
 inference/map_literals_top_level: Crash

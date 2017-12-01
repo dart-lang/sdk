@@ -14,24 +14,24 @@ import 'package:analyzer/src/fasta/resolution_storer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/token.dart';
+import 'package:kernel/kernel.dart' as kernel;
 
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST.
 class ResolutionApplier extends GeneralizingAstVisitor {
+  final TypeContext _typeContext;
+
   final List<Element> _declaredElements;
   int _declaredElementIndex = 0;
 
   final List<Element> _referencedElements;
   int _referencedElementIndex = 0;
 
-  final List<DartType> _types;
+  final List<kernel.DartType> _types;
   int _typeIndex = 0;
 
-  /// The [ExecutableElementImpl] inside of which resolution is being applied.
-  ExecutableElementImpl enclosingExecutable;
-
-  ResolutionApplier(
-      this._declaredElements, this._referencedElements, this._types);
+  ResolutionApplier(this._typeContext, this._declaredElements,
+      this._referencedElements, this._types);
 
   /// Verifies that all types passed to the constructor have been applied.
   void checkDone() {
@@ -111,26 +111,39 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     FunctionExpression functionExpression = node.functionExpression;
     FormalParameterList parameterList = functionExpression.parameters;
 
-    functionExpression.typeParameters?.accept(this);
+    // Apply resolution to default values.
     parameterList.accept(this);
-    functionExpression.body?.accept(this);
 
-    DartType returnType = _getTypeFor(node);
-    if (node.returnType != null) {
-      applyToTypeAnnotation(returnType, node.returnType);
+    FunctionElementImpl element = _getDeclarationFor(node);
+    _typeContext.enterLocalFunction(element);
+
+    if (node.returnType != null && element != null) {
+      applyToTypeAnnotation(element.returnType, node.returnType);
     }
 
     // Associate the elements with the nodes.
-    FunctionElementImpl element = _getDeclarationFor(node);
-    if (element != null && enclosingExecutable != null) {
-      enclosingExecutable.encloseElement(element);
+    if (element != null) {
       functionExpression.element = element;
 
       node.name.staticElement = element;
       node.name.staticType = element.type;
 
+      TypeParameterList typeParameterList = functionExpression.typeParameters;
+      if (typeParameterList != null) {
+        List<TypeParameter> typeParameters = typeParameterList.typeParameters;
+        for (var i = 0; i < typeParameters.length; i++) {
+          TypeParameter typeParameter = typeParameters[i];
+          assert(typeParameter.bound == null);
+          typeParameter.name.staticElement = element.typeParameters[i];
+          typeParameter.name.staticType = _typeContext.typeType;
+        }
+      }
+
       _applyParameters(element.parameters, parameterList.parameters);
     }
+
+    functionExpression.body?.accept(this);
+    _typeContext.exitLocalFunction(element);
   }
 
   @override
@@ -348,10 +361,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       node.name.staticType = type;
 
       VariableElementImpl element = _getDeclarationFor(node.name);
-      if (element != null && enclosingExecutable != null) {
+      if (element != null) {
+        _typeContext.encloseVariable(element);
         node.name.staticElement = element;
         element.type = type;
-        enclosingExecutable.encloseElement(element);
       }
     }
     node.initializer?.accept(this);
@@ -444,7 +457,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// optional parameter (i.e. [Null]).
   DartType _getTypeFor(SyntacticEntity entity, {bool synthetic: false}) {
     assert(!synthetic || entity == null);
-    return _types[_typeIndex++];
+    kernel.DartType kernelType = _types[_typeIndex++];
+    return _typeContext.translateType(kernelType);
   }
 
   /// Apply the [type] to the [typeAnnotation] by setting the type of the
@@ -545,6 +559,24 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 }
 
+/// Context for translating types.
+abstract class TypeContext {
+  DartType get typeType;
+
+  /// Attach the variable [element] to the current executable.
+  void encloseVariable(ElementImpl element);
+
+  /// Finalize the given function [element] - set all types for it.
+  /// Then make it the current executable.
+  void enterLocalFunction(FunctionElementImpl element);
+
+  /// Restore the current executable that was before the [element].
+  void exitLocalFunction(FunctionElementImpl element);
+
+  /// Return the Analyzer [DartType] for the given [kernelType].
+  DartType translateType(kernel.DartType kernelType);
+}
+
 /// Visitor that applies resolution data from the front end (obtained via
 /// [ResolutionStorer]) to an analyzer AST, and also checks file offsets to
 /// verify that the types are applied to the correct subexpressions.
@@ -557,13 +589,14 @@ class ValidatingResolutionApplier extends ResolutionApplier {
   final List<int> _typeOffsets;
 
   ValidatingResolutionApplier(
+      TypeContext typeContext,
       List<Element> declaredElements,
       List<Element> referencedElements,
-      List<DartType> types,
+      List<kernel.DartType> types,
       this._declaredElementOffsets,
       this._referencedElementOffsets,
       this._typeOffsets)
-      : super(declaredElements, referencedElements, types);
+      : super(typeContext, declaredElements, referencedElements, types);
 
   @override
   void checkDone() {

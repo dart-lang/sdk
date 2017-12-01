@@ -12,12 +12,14 @@ import 'package:analyzer/dart/element/element.dart' as ast;
 
 import 'package:analyzer/dart/element/type.dart' as ast show DartType;
 
-import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart' as ast;
+
+import 'package:analyzer/src/dart/element/type.dart' as ast;
 
 import 'package:analyzer/src/fasta/ast_builder.dart' show AstBuilder;
 
 import 'package:analyzer/src/fasta/resolution_applier.dart'
-    show ValidatingResolutionApplier;
+    show TypeContext, ValidatingResolutionApplier;
 
 import 'package:analyzer/src/fasta/resolution_storer.dart'
     show InstrumentedResolutionStorer;
@@ -182,11 +184,11 @@ class AnalyzerDietListener extends DietListener {
     // Now apply the resolution data and inferred types to the analyzer AST.
     var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
     var translatedReferences = _translateReferences(_kernelReferences);
-    var translatedTypes = _translateTypes(_kernelTypes);
     var resolutionApplier = new ValidatingResolutionApplier(
+        new _TestTypeContext(),
         translatedDeclarations,
         translatedReferences,
-        translatedTypes,
+        _kernelTypes,
         _declarationOffsets,
         _referenceOffsets,
         _typeOffsets);
@@ -240,11 +242,11 @@ class AnalyzerDietListener extends DietListener {
     // Now apply the resolution data and inferred types to the analyzer AST.
     var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
     var translatedReferences = _translateReferences(_kernelReferences);
-    var translatedTypes = _translateTypes(_kernelTypes);
     var resolutionApplier = new ValidatingResolutionApplier(
+        new _TestTypeContext(),
         translatedDeclarations,
         translatedReferences,
-        translatedTypes,
+        _kernelTypes,
         _declarationOffsets,
         _referenceOffsets,
         _typeOffsets);
@@ -307,12 +309,24 @@ class AnalyzerDietListener extends DietListener {
     // TODO(scheglov): implement proper translation of elements.
     return new List<ast.Element>.filled(kernelDeclarations.length, null);
   }
+}
 
-  /// Translates the given kernel types into analyzer types.
-  static List<ast.DartType> _translateTypes(List<kernel.DartType> kernelTypes) {
-    // For now we just translate everything to `dynamic`.
-    // TODO(paulberry): implement proper translation of types.
-    return new List<ast.DartType>.filled(
-        kernelTypes.length, DynamicTypeImpl.instance);
+/// Test implementation of [TypeContext].
+class _TestTypeContext implements TypeContext {
+  @override
+  ast.DartType get typeType => null;
+
+  @override
+  void encloseVariable(ast.ElementImpl element) {}
+
+  @override
+  void enterLocalFunction(ast.FunctionElementImpl element) {}
+
+  @override
+  void exitLocalFunction(ast.FunctionElementImpl element) {}
+
+  @override
+  ast.DartType translateType(kernel.DartType kernelType) {
+    return ast.DynamicTypeImpl.instance;
   }
 }

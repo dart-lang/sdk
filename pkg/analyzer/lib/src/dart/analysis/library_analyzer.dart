@@ -51,7 +51,6 @@ class LibraryAnalyzer {
   final bool _enableKernelDriver;
   final bool _previewDart2;
   final KernelDriver _kernelDriver;
-  final KernelResynthesizer _kernelResynthesizer;
 
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContextImpl _context;
@@ -84,9 +83,7 @@ class LibraryAnalyzer {
       : _typeProvider = _context.typeProvider,
         _enableKernelDriver = enableKernelDriver,
         _previewDart2 = previewDart2,
-        _kernelDriver = kernelDriver,
-        _kernelResynthesizer =
-            (_resynthesizer is KernelResynthesizer) ? _resynthesizer : null;
+        _kernelDriver = kernelDriver;
 
   /**
    * Compute analysis results for all units of the library.
@@ -427,113 +424,9 @@ class LibraryAnalyzer {
   /// type parameters from the enclosing scopes.
   ResolutionApplier _createResolutionApplier(
       ElementImpl context, CollectedResolution resolution) {
-    // Convert local declarations into elements.
-    List<Element> declaredElements = [];
-    Map<kernel.Statement, Element> declarationToElement = {};
-    for (var declaredNode in resolution.kernelDeclarations) {
-      var translated = _translateKernelDeclaration(context, declaredNode);
-      declaredElements.add(translated.element);
-      declarationToElement[declaredNode] = translated.element;
-      declarationToElement.addAll(translated.parameters);
-    }
-
-    // TODO(scheglov) Add tests for using the context element.
-    var astTypes = <DartType>[];
-    for (var kernelType in resolution.kernelTypes) {
-      DartType astType;
-      if (kernelType is kernel.FunctionReferenceDartType) {
-        kernel.VariableDeclaration variable = kernelType.function.variable;
-        FunctionElement element = declarationToElement[variable];
-        astType = element.type;
-      } else if (kernelType is kernel.MemberReferenceDartType) {
-        ExecutableElementImpl element = _kernelResynthesizer
-            .getElementFromCanonicalName(kernelType.member.canonicalName);
-        FunctionType type = element.type;
-        // If the type is generic, there are type arguments, explicit or
-        // inferred. Instantiate the type.
-        if (kernelType.typeArguments.isNotEmpty) {
-          var length = kernelType.typeArguments.length;
-          var typeArguments = new List<DartType>(length);
-          for (int i = 0; i < length; i++) {
-            typeArguments[i] = _kernelResynthesizer.getType(
-                context, kernelType.typeArguments[i]);
-          }
-          type = type.instantiate(typeArguments);
-        }
-        astType = type;
-      } else if (kernelType is kernel.IndexAssignNullFunctionType) {
-        astType = null;
-      } else {
-        astType = _kernelResynthesizer.getType(context, kernelType);
-      }
-      astTypes.add(astType);
-    }
-
-    // Convert referenced nodes into elements.
-    List<Element> referencedElements = [];
-    for (var referencedNode in resolution.kernelReferences) {
-      Element element;
-      if (referencedNode is kernel.VariableDeclaration) {
-        kernel.TreeNode parent = referencedNode.parent;
-        if (parent is kernel.Statement) {
-          element = declarationToElement[referencedNode];
-        } else {
-          assert(parent is kernel.FunctionNode);
-          // Might be a parameter of a local function.
-          element = declarationToElement[referencedNode];
-          // If no element, then it is a parameter of the context executable.
-          if (element == null) {
-            ExecutableElementImpl contextExecutable = context;
-            for (var parameter in contextExecutable.parameters) {
-              if (parameter.name == referencedNode.name) {
-                element = parameter;
-                break;
-              }
-            }
-          }
-        }
-        assert(element != null);
-      } else if (referencedNode is kernel.NamedNode) {
-        element = _kernelResynthesizer
-            .getElementFromCanonicalName(referencedNode.canonicalName);
-        assert(element != null);
-      } else if (referencedNode is kernel.MemberGetterNode) {
-        var memberElement = _kernelResynthesizer
-            .getElementFromCanonicalName(referencedNode.member.canonicalName);
-        assert(memberElement != null);
-        if (memberElement is PropertyInducingElementImpl) {
-          element = memberElement.getter;
-          assert(element != null);
-        } else {
-          element = memberElement;
-        }
-      } else if (referencedNode is kernel.MemberSetterNode) {
-        var memberElement = _kernelResynthesizer
-            .getElementFromCanonicalName(referencedNode.member.canonicalName);
-        assert(memberElement != null);
-        if (memberElement is PropertyInducingElementImpl) {
-          element = memberElement.setter;
-          assert(element != null);
-        } else {
-          element = memberElement;
-        }
-      } else if (referencedNode is kernel.NullAssignmentCombinerNode) {
-        element = null;
-      } else {
-        // TODO(scheglov) Add more supported nodes.
-        throw new UnimplementedError(
-            'Declaration: (${referencedNode.runtimeType}) $referencedNode');
-      }
-      referencedElements.add(element);
-    }
-
-    return new ValidatingResolutionApplier(
-        declaredElements,
-        referencedElements,
-        astTypes,
-        resolution.declarationOffsets,
-        resolution.referenceOffsets,
-        resolution.typeOffsets);
+    return new _ResolutionApplierContext(
+            _resynthesizer, _typeProvider, resolution, context)
+        .applier;
   }
 
   /**
@@ -856,7 +749,6 @@ class LibraryAnalyzer {
         var context = declaration.element as ExecutableElementImpl;
         var resolution = resolutions.next();
         var applier = _createResolutionApplier(context, resolution);
-        applier.enclosingExecutable = context;
         declaration.functionExpression.parameters?.accept(applier);
         declaration.functionExpression.body.accept(applier);
         applier.checkDone();
@@ -934,69 +826,6 @@ class LibraryAnalyzer {
             file, directive is ImportDirective, uriLiteral, uriContent);
         directive.uriSource = defaultSource;
       }
-    }
-  }
-
-  /// Return the local [Element] for the given local kernel [declaration].
-  _TranslatedDeclaration _translateKernelDeclaration(
-      ElementImpl context, kernel.Statement declaration) {
-    if (declaration is kernel.VariableDeclaration) {
-      kernel.TreeNode functionDeclaration = declaration.parent;
-      if (functionDeclaration is kernel.FunctionDeclaration) {
-        var element =
-            new FunctionElementImpl(declaration.name, declaration.fileOffset);
-        var result = new _TranslatedDeclaration(element);
-
-        // Set formal parameters.
-        {
-          var astParameters = <ParameterElement>[];
-          var kernelFunction = functionDeclaration.function;
-
-          // Add positional parameters
-          var kernelPositionalParameters = kernelFunction.positionalParameters;
-          for (var i = 0; i < kernelPositionalParameters.length; i++) {
-            var kernelParameter = kernelPositionalParameters[i];
-            var astParameter = new ParameterElementImpl(
-                kernelParameter.name, kernelParameter.fileOffset);
-            astParameter.parameterKind =
-                i < kernelFunction.requiredParameterCount
-                    ? ParameterKind.REQUIRED
-                    : ParameterKind.POSITIONAL;
-            astParameter.type =
-                _kernelResynthesizer.getType(context, kernelParameter.type);
-            astParameters.add(astParameter);
-            result.parameters[kernelParameter] = astParameter;
-          }
-
-          // Add named parameters.
-          for (var kernelParameter in kernelFunction.namedParameters) {
-            var astParameter = new ParameterElementImpl(
-                kernelParameter.name, kernelParameter.fileOffset);
-            astParameter.parameterKind = ParameterKind.NAMED;
-            astParameter.type =
-                _kernelResynthesizer.getType(context, kernelParameter.type);
-            astParameters.add(astParameter);
-            result.parameters[kernelParameter] = astParameter;
-          }
-
-          element.parameters = astParameters;
-        }
-
-        kernel.FunctionType kernelType = declaration.type;
-        element.returnType =
-            _kernelResynthesizer.getType(context, kernelType.returnType);
-
-        element.type = new FunctionTypeImpl(element);
-        return result;
-      } else {
-        // TODO(scheglov) Do we need ConstLocalVariableElementImpl?
-        var element = new LocalVariableElementImpl(
-            declaration.name, declaration.fileOffset);
-        return new _TranslatedDeclaration(element);
-      }
-    } else {
-      throw new UnimplementedError(
-          'Declaration: (${declaration.runtimeType}) $declaration');
     }
   }
 
@@ -1138,6 +967,237 @@ class _NameOrSource {
   _NameOrSource(this.name, this.source);
 }
 
+/// Concrete implementation of [TypeContext].
+class _ResolutionApplierContext implements TypeContext {
+  final KernelResynthesizer kernelResynthesizer;
+  final TypeProvider typeProvider;
+  final CollectedResolution resolution;
+
+  List<ElementImpl> contextStack = [];
+  ElementImpl context;
+
+  List<Element> declaredElements = [];
+  Map<kernel.Statement, Element> declarationToElement = {};
+  Map<FunctionElementImpl, kernel.VariableDeclaration>
+      functionElementToDeclaration = {};
+  Map<ParameterElementImpl, kernel.VariableDeclaration>
+      parameterElementToDeclaration = {};
+
+  ResolutionApplier applier;
+
+  _ResolutionApplierContext(this.kernelResynthesizer, this.typeProvider,
+      this.resolution, this.context) {
+    // Convert local declarations into elements.
+    for (var declaredNode in resolution.kernelDeclarations) {
+      translateKernelDeclaration(declaredNode);
+    }
+
+    // Convert referenced nodes into elements.
+    List<Element> referencedElements = [];
+    for (var referencedNode in resolution.kernelReferences) {
+      Element element;
+      if (referencedNode is kernel.VariableDeclaration) {
+        kernel.TreeNode parent = referencedNode.parent;
+        if (parent is kernel.Statement) {
+          element = declarationToElement[referencedNode];
+        } else {
+          assert(parent is kernel.FunctionNode);
+          // Might be a parameter of a local function.
+          element = declarationToElement[referencedNode];
+          // If no element, then it is a parameter of the context executable.
+          if (element == null) {
+            ExecutableElementImpl contextExecutable = context;
+            for (var parameter in contextExecutable.parameters) {
+              if (parameter.name == referencedNode.name) {
+                element = parameter;
+                break;
+              }
+            }
+          }
+        }
+        assert(element != null);
+      } else if (referencedNode is kernel.NamedNode) {
+        element = kernelResynthesizer
+            .getElementFromCanonicalName(referencedNode.canonicalName);
+        assert(element != null);
+      } else if (referencedNode is kernel.MemberGetterNode) {
+        var memberElement = kernelResynthesizer
+            .getElementFromCanonicalName(referencedNode.member.canonicalName);
+        assert(memberElement != null);
+        if (memberElement is PropertyInducingElementImpl) {
+          element = memberElement.getter;
+          assert(element != null);
+        } else {
+          element = memberElement;
+        }
+      } else if (referencedNode is kernel.MemberSetterNode) {
+        var memberElement = kernelResynthesizer
+            .getElementFromCanonicalName(referencedNode.member.canonicalName);
+        assert(memberElement != null);
+        if (memberElement is PropertyInducingElementImpl) {
+          element = memberElement.setter;
+          assert(element != null);
+        } else {
+          element = memberElement;
+        }
+      } else if (referencedNode is kernel.NullAssignmentCombinerNode) {
+        element = null;
+      } else {
+        throw new UnimplementedError(
+            'Declaration: (${referencedNode.runtimeType}) $referencedNode');
+      }
+      referencedElements.add(element);
+    }
+
+    applier = new ValidatingResolutionApplier(
+        this,
+        declaredElements,
+        referencedElements,
+        resolution.kernelTypes,
+        resolution.declarationOffsets,
+        resolution.referenceOffsets,
+        resolution.typeOffsets);
+  }
+
+  @override
+  DartType get typeType => typeProvider.typeType;
+
+  @override
+  void encloseVariable(ElementImpl element) {
+    context.encloseElement(element);
+  }
+
+  @override
+  void enterLocalFunction(FunctionElementImpl element) {
+    context.encloseElement(element);
+
+    // The function is the new resolution context.
+    contextStack.add(context);
+    context = element;
+
+    var declaration = functionElementToDeclaration[element];
+    kernel.FunctionType kernelType = declaration.type;
+
+    element.returnType =
+        kernelResynthesizer.getType(context, kernelType.returnType);
+
+    for (var parameter in element.parameters) {
+      ParameterElementImpl parameterImpl = parameter;
+      var kernelParameter = parameterElementToDeclaration[parameter];
+      parameterImpl.type =
+          kernelResynthesizer.getType(context, kernelParameter.type);
+    }
+
+    element.type = new FunctionTypeImpl(element);
+  }
+
+  @override
+  void exitLocalFunction(FunctionElementImpl element) {
+    assert(identical(context, element));
+    context = contextStack.removeLast();
+  }
+
+  /// Translate the given [declaration].
+  void translateKernelDeclaration(kernel.Statement declaration) {
+    if (declaration is kernel.VariableDeclaration) {
+      kernel.TreeNode functionDeclaration = declaration.parent;
+      if (functionDeclaration is kernel.FunctionDeclaration) {
+        var kernelFunction = functionDeclaration.function;
+
+        var element =
+            new FunctionElementImpl(declaration.name, declaration.fileOffset);
+        functionElementToDeclaration[element] = declaration;
+
+        // Set type parameters.
+        {
+          var astParameters = <TypeParameterElement>[];
+          for (var kernelParameter in kernelFunction.typeParameters) {
+            var astParameter = new TypeParameterElementImpl(
+                kernelParameter.name, kernelParameter.fileOffset);
+            astParameter.type = new TypeParameterTypeImpl(astParameter);
+            // TODO(scheglov) remember mapping to set bounds later
+            astParameters.add(astParameter);
+          }
+          element.typeParameters = astParameters;
+        }
+
+        // Set formal parameters.
+        {
+          var astParameters = <ParameterElement>[];
+
+          // Add positional parameters
+          var kernelPositionalParameters = kernelFunction.positionalParameters;
+          for (var i = 0; i < kernelPositionalParameters.length; i++) {
+            var kernelParameter = kernelPositionalParameters[i];
+            var astParameter = new ParameterElementImpl(
+                kernelParameter.name, kernelParameter.fileOffset);
+            astParameter.parameterKind =
+                i < kernelFunction.requiredParameterCount
+                    ? ParameterKind.REQUIRED
+                    : ParameterKind.POSITIONAL;
+            astParameters.add(astParameter);
+            declarationToElement[kernelParameter] = astParameter;
+            parameterElementToDeclaration[astParameter] = kernelParameter;
+          }
+
+          // Add named parameters.
+          for (var kernelParameter in kernelFunction.namedParameters) {
+            var astParameter = new ParameterElementImpl(
+                kernelParameter.name, kernelParameter.fileOffset);
+            astParameter.parameterKind = ParameterKind.NAMED;
+            astParameters.add(astParameter);
+            declarationToElement[kernelParameter] = astParameter;
+            parameterElementToDeclaration[astParameter] = kernelParameter;
+          }
+
+          element.parameters = astParameters;
+
+          declaredElements.add(element);
+          declarationToElement[declaration] = element;
+        }
+      } else {
+        // TODO(scheglov) Do we need ConstLocalVariableElementImpl?
+        var element = new LocalVariableElementImpl(
+            declaration.name, declaration.fileOffset);
+        declaredElements.add(element);
+        declarationToElement[declaration] = element;
+      }
+    } else {
+      throw new UnimplementedError(
+          'Declaration: (${declaration.runtimeType}) $declaration');
+    }
+  }
+
+  @override
+  DartType translateType(kernel.DartType kernelType) {
+    if (kernelType is kernel.FunctionReferenceDartType) {
+      kernel.VariableDeclaration variable = kernelType.function.variable;
+      FunctionElement element = declarationToElement[variable];
+      return element.type;
+    } else if (kernelType is kernel.MemberReferenceDartType) {
+      ExecutableElementImpl element = kernelResynthesizer
+          .getElementFromCanonicalName(kernelType.member.canonicalName);
+      FunctionType type = element.type;
+      // If the type is generic, there are type arguments, explicit or
+      // inferred. Instantiate the type.
+      if (kernelType.typeArguments.isNotEmpty) {
+        var length = kernelType.typeArguments.length;
+        var typeArguments = new List<DartType>(length);
+        for (int i = 0; i < length; i++) {
+          typeArguments[i] =
+              kernelResynthesizer.getType(context, kernelType.typeArguments[i]);
+        }
+        type = type.instantiate(typeArguments);
+      }
+      return type;
+    } else if (kernelType is kernel.IndexAssignNullFunctionType) {
+      return null;
+    } else {
+      return kernelResynthesizer.getType(context, kernelType);
+    }
+  }
+}
+
 /// [Iterator] like object that provides [CollectedResolution]s.
 class _ResolutionProvider {
   final List<CollectedResolution> resolutions;
@@ -1146,15 +1206,4 @@ class _ResolutionProvider {
   _ResolutionProvider(this.resolutions);
 
   CollectedResolution next() => resolutions[index++];
-}
-
-/// The Analyzer [element] and the local function [parameters].
-class _TranslatedDeclaration {
-  final Element element;
-
-  /// If the [element] is a local [FunctionElement], the mapping from
-  /// parameter declarations to Analyzer elements.
-  final Map<kernel.VariableDeclaration, ParameterElement> parameters = {};
-
-  _TranslatedDeclaration(this.element);
 }

@@ -229,11 +229,9 @@ class ResolutionStorer extends TypeInferenceListener {
     assert(_deferredTypeSlots.isEmpty);
   }
 
-  @override
-  void functionDeclarationExit(FunctionDeclaration statement) {
+  void functionDeclarationEnter(FunctionDeclaration statement) {
     _recordDeclaration(statement.variable, statement.fileOffset);
-    _recordType(statement.function.returnType, statement.fileOffset);
-    super.functionDeclarationExit(statement);
+    super.functionDeclarationEnter(statement);
   }
 
   @override
