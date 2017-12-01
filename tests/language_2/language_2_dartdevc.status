@@ -1267,10 +1267,9 @@ mixin_mixin_type_arguments_test: RuntimeError
 mixin_naming_test: RuntimeError # Expect.isTrue(false) fails.
 mixin_regress_13688_test: RuntimeError
 mixin_type_parameter5_test: RuntimeError
+mock_writable_final_field_test: RuntimeError # Expect.listEquals(list length, expected: <1>, actual: <0>) fails: Next element <123>
+mock_writable_final_private_field_test: RuntimeError
 nested_generic_closure_test: RuntimeError # Expect.equals(at index 3: Expected <...(<F>(F) => F) => void>, Found: <...(<F extends Object>(F) => F) => void...>) fails.
-no_such_method_mock_test: RuntimeError # Type 'bool' is not a subtype of type '(String) => bool' in strong mode
-no_such_method_subtype_test: RuntimeError # Type 'int' is not a subtype of type '() => dynamic' in strong mode
-nsm4_test: RuntimeError # Type 'int' is not a subtype of type '() => int' in strong mode
 recursive_generic_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 recursive_inheritance_test: RuntimeError # Expect.isTrue(false) fails.
 redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
