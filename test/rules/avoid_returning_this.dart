@@ -20,7 +20,7 @@ class A {
     x++;
     return this.x;
   }
-  A getThing() { // OK
+  A getThing() { // LINT
     return this;
   }
 
@@ -74,4 +74,34 @@ class B extends A{
     x = a();
     return this;
   }
+}
+
+abstract class C<T> {
+  T m();
+  T get g;
+}
+
+class D implements C<D> {
+  @override
+  D m() { // OK defined in interface
+    return this;
+  }
+
+  @override
+  D get g { // OK defined in interface
+    return this;
+  }
+
+  D _m() { // LINT
+    return this;
+  }
+}
+class E implements C<E> {
+  @override
+  E m() => this; // OK defined in interface
+
+  @override
+  E get g => this; // OK defined in interface
+
+  E _m() => this; // LINT
 }

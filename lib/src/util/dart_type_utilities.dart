@@ -224,6 +224,20 @@ class DartTypeUtilities {
     }
     return false;
   }
+
+  static bool overridesMethod(MethodDeclaration node) {
+    final name = node.element.name;
+    final ClassDeclaration clazz = node.parent;
+    final classElement = clazz.element;
+    final library = classElement.library;
+    return classElement.allSupertypes
+        .map(node.isGetter
+            ? (InterfaceType t) => t.lookUpGetter
+            : node.isSetter
+                ? (InterfaceType t) => t.lookUpSetter
+                : (InterfaceType t) => t.lookUpMethod)
+        .any((lookUp) => lookUp(name, library) != null);
+  }
 }
 
 class InterfaceTypeDefinition {
