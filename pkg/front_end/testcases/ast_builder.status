@@ -15,7 +15,6 @@ classes: Crash
 covariant_generic: Crash
 default_values: Crash
 duplicated_named_args_3: Crash
-dynamic_and_void: Fail
 escape: Crash
 expressions: Crash
 external: Crash
