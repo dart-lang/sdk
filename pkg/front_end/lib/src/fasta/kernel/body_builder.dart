@@ -2780,6 +2780,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
     VariableDeclaration variable;
     bool declaresVariable = false;
+    ShadowSyntheticExpression syntheticAssignment;
     if (lvalue is VariableDeclaration) {
       declaresVariable = true;
       variable = lvalue;
@@ -2802,18 +2803,18 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           new ShadowVariableDeclaration.forValue(null, functionNestingLevel);
       var fact = typePromoter.getFactForAccess(variable, functionNestingLevel);
       var scope = typePromoter.currentScope;
+      syntheticAssignment = lvalue.buildAssignment(
+          new ShadowVariableGet(variable, fact, scope),
+          voidContext: true);
       body = combineStatements(
-          new ShadowLoopAssignmentStatement(lvalue.buildAssignment(
-              new ShadowVariableGet(variable, fact, scope),
-              voidContext: true)),
-          body);
+          new ShadowLoopAssignmentStatement(syntheticAssignment), body);
     } else {
       variable = new VariableDeclaration.forValue(
           deprecated_buildCompileTimeError("Expected lvalue, but got ${lvalue}",
               forToken.next.next.charOffset));
     }
     Statement result = new ShadowForInStatement(
-        variable, expression, body, declaresVariable,
+        variable, expression, body, declaresVariable, syntheticAssignment,
         isAsync: awaitToken != null)
       ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
       ..bodyOffset = body.fileOffset;

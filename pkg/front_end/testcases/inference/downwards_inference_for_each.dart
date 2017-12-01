@@ -16,16 +16,16 @@ T F<T>() => null;
 Future f() async {
   dynamic d;
   Object o;
-  for (var /*@type=dynamic*/ x in /*@typeArgs=dynamic*/ F()) {}
+  for (var /*@type=dynamic*/ x in /*@typeArgs=Iterable<dynamic>*/ F()) {}
   for (dynamic x in /*@typeArgs=Iterable<dynamic>*/ F()) {}
   for (Object x in /*@typeArgs=Iterable<Object>*/ F()) {}
-  for (d in /*@typeArgs=dynamic*/ F()) {}
-  for (o in /*@typeArgs=dynamic*/ F()) {}
-  await for (var /*@type=dynamic*/ x in /*@typeArgs=dynamic*/ F()) {}
+  for (d in /*@typeArgs=Iterable<dynamic>*/ F()) {}
+  for (o in /*@typeArgs=Iterable<Object>*/ F()) {}
+  await for (var /*@type=dynamic*/ x in /*@typeArgs=Stream<dynamic>*/ F()) {}
   await for (dynamic x in /*@typeArgs=Stream<dynamic>*/ F()) {}
   await for (Object x in /*@typeArgs=Stream<Object>*/ F()) {}
-  await for (d in /*@typeArgs=dynamic*/ F()) {}
-  await for (o in /*@typeArgs=dynamic*/ F()) {}
+  await for (d in /*@typeArgs=Stream<dynamic>*/ F()) {}
+  await for (o in /*@typeArgs=Stream<Object>*/ F()) {}
 }
 
 Future main() async {

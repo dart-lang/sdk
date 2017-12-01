@@ -409,6 +409,9 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     return parts;
   }
 
+  DartType _getWriteType(ShadowTypeInferrer inferrer) => unhandled(
+      '$runtimeType', 'ShadowComplexAssignment._getWriteType', -1, null);
+
   _ComplexAssignmentInferenceResult _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
     var writeOffset = write == null ? -1 : write.fileOffset;
@@ -736,8 +739,10 @@ class ShadowFieldInitializer extends FieldInitializer
 class ShadowForInStatement extends ForInStatement implements ShadowStatement {
   final bool _declaresVariable;
 
+  final ShadowSyntheticExpression _syntheticAssignment;
+
   ShadowForInStatement(VariableDeclaration variable, Expression iterable,
-      Statement body, this._declaresVariable,
+      Statement body, this._declaresVariable, this._syntheticAssignment,
       {bool isAsync: false})
       : super(variable, iterable, body, isAsync: isAsync);
 
@@ -751,23 +756,21 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     bool typeNeeded = false;
     bool typeChecksNeeded = !inferrer.isTopLevel;
     ShadowVariableDeclaration variable;
+    var syntheticAssignment = _syntheticAssignment;
     if (_declaresVariable) {
       variable = this.variable;
       if (inferrer.strongMode && variable._implicitlyTyped) {
         typeNeeded = true;
-        // TODO(paulberry): In this case, should the context be `Iterable<?>`?
+        context = const UnknownType();
       } else {
-        context = inferrer.wrapType(variable.type, iterableClass);
+        context = variable.type;
       }
+    } else if (syntheticAssignment is ShadowComplexAssignment) {
+      context = syntheticAssignment._getWriteType(inferrer);
     } else {
-      // TODO(paulberry): In this case, should the context be based on the
-      // declared type of the loop variable?
-      // TODO(paulberry): Note that when [_declaresVariable] is `false`, the
-      // body starts with an assignment from the synthetic loop variable to
-      // another variable.  We need to make sure any type inference diagnostics
-      // that occur related to this assignment are reported at the correct
-      // locations.
+      context = const UnknownType();
     }
+    context = inferrer.wrapType(context, iterableClass);
     var inferredExpressionType = inferrer.resolveTypeParameter(inferrer
         .inferExpression(iterable, context, typeNeeded || typeChecksNeeded));
     inferrer.checkAssignability(
@@ -957,6 +960,11 @@ class ShadowIfStatement extends IfStatement implements ShadowStatement {
 /// assignment is not allowed.
 class ShadowIllegalAssignment extends ShadowComplexAssignment {
   ShadowIllegalAssignment(Expression rhs) : super(rhs);
+
+  @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    return const UnknownType();
+  }
 
   @override
   DartType _inferExpression(
@@ -1575,6 +1583,14 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
   }
 
   @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    assert(receiver == null);
+    var receiverType = inferrer.thisType;
+    var writeMember = inferrer.findPropertySetMember(receiverType, write);
+    return inferrer.getSetterType(writeMember, receiverType);
+  }
+
+  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     var receiverType = _inferReceiver(inferrer);
@@ -1690,6 +1706,12 @@ abstract class ShadowStatement extends Statement {
 /// Concrete shadow object representing an assignment to a static variable.
 class ShadowStaticAssignment extends ShadowComplexAssignment {
   ShadowStaticAssignment(Expression rhs) : super(rhs);
+
+  @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    StaticSet write = this.write;
+    return write.target.setterType;
+  }
 
   @override
   DartType _inferExpression(
@@ -2268,6 +2290,12 @@ class ShadowTypePromoter extends TypePromoterImpl {
 /// Concrete shadow object representing an assignment to a local variable.
 class ShadowVariableAssignment extends ShadowComplexAssignment {
   ShadowVariableAssignment(Expression rhs) : super(rhs);
+
+  @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    VariableSet write = this.write;
+    return write.variable.type;
+  }
 
   @override
   DartType _inferExpression(

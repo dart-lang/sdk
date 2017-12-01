@@ -40,11 +40,11 @@ static method test() → dynamic async {
   await for (final self::A #t6 in stream) {
     i = #t6 as{TypeError} core::int;
   }
-  for (final dynamic #t7 in self::f<dynamic>() as{TypeError} core::Iterable<dynamic>) {
-    a = #t7 as{TypeError} self::A;
+  for (final self::A #t7 in self::f<core::Iterable<self::A>>()) {
+    a = #t7;
   }
-  await for (final dynamic #t8 in self::f<dynamic>() as{TypeError} asy::Stream<dynamic>) {
-    a = #t8 as{TypeError} self::A;
+  await for (final self::A #t8 in self::f<asy::Stream<self::A>>()) {
+    a = #t8;
   }
 }
 static method main() → dynamic {}

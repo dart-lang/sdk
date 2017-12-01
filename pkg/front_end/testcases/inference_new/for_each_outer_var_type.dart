@@ -25,8 +25,8 @@ test() async {
   await for (b in stream) {}
   for (/*@error=InvalidAssignment*/ i in iterable) {}
   await for (/*@error=InvalidAssignment*/ i in stream) {}
-  for (a in /*@typeArgs=dynamic*/ f()) {}
-  await for (a in /*@typeArgs=dynamic*/ f()) {}
+  for (a in /*@typeArgs=Iterable<A>*/ f()) {}
+  await for (a in /*@typeArgs=Stream<A>*/ f()) {}
 }
 
 main() {}
