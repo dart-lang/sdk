@@ -139,14 +139,6 @@ Future<CompilerResult> generateKernelInternal(
       options.ticker.logMs("Generated program");
     }
 
-    if (kernelTarget.errors.isNotEmpty) {
-      // TODO(sigmund): remove duplicate error reporting. Currently
-      // kernelTarget.errors contains recoverable and unrecoverable errors. We
-      // are reporting unrecoverable errors twice.
-      kernelTarget.errors.forEach((e) => options.report(e, Severity.error));
-      return null;
-    }
-
     return new CompilerResult(
         summary: summary,
         program: program,

@@ -1095,7 +1095,6 @@ const MessageCode messageExpectedBody = const MessageCode("ExpectedBody",
 const Template<Message Function(String string)> templateExpectedButGot =
     const Template<Message Function(String string)>(
         messageTemplate: r"""Expected '#string' before this.""",
-        tipTemplate: r"""DONT_KNOW_HOW_TO_FIX,""",
         withArguments: _withArgumentsExpectedButGot);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1109,7 +1108,6 @@ const Code<Message Function(String string)> codeExpectedButGot =
 Message _withArgumentsExpectedButGot(String string) {
   return new Message(codeExpectedButGot,
       message: """Expected '$string' before this.""",
-      tip: """DONT_KNOW_HOW_TO_FIX,""",
       arguments: {'string': string});
 }
 
@@ -2302,10 +2300,10 @@ const MessageCode messageInterpolationInUri = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
-        DartType type,
+        DartType _type,
         DartType
-            type2)> templateInvalidAssignment = const Template<
-        Message Function(DartType type, DartType type2)>(
+            _type2)> templateInvalidAssignment = const Template<
+        Message Function(DartType _type, DartType _type2)>(
     messageTemplate:
         r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
     tipTemplate:
@@ -2313,19 +2311,28 @@ const Template<
     withArguments: _withArgumentsInvalidAssignment);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(DartType type, DartType type2)>
+const Code<Message Function(DartType _type, DartType _type2)>
     codeInvalidAssignment =
-    const Code<Message Function(DartType type, DartType type2)>(
+    const Code<Message Function(DartType _type, DartType _type2)>(
         "InvalidAssignment", templateInvalidAssignment,
         analyzerCode: "INVALID_ASSIGNMENT", dart2jsCode: "*ignored*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsInvalidAssignment(DartType type, DartType type2) {
+Message _withArgumentsInvalidAssignment(DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
   return new Message(codeInvalidAssignment,
       message:
           """A value of type '$type' can't be assigned to a variable of type '$type2'.""",
       tip: """Try changing the type of the left hand side, or casting the right hand side to '$type2'.""",
-      arguments: {'type': type, 'type2': type2});
+      arguments: {'type': _type, 'type2': _type2});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

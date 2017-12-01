@@ -122,8 +122,7 @@ abstract class BuilderHelper {
 
   StaticGet makeStaticGet(Member readTarget, Token token);
 
-  dynamic deprecated_addCompileTimeError(int charOffset, String message,
-      {bool silent});
+  dynamic deprecated_addCompileTimeError(int charOffset, String message);
 
   bool isIdentical(Member member);
 
@@ -138,7 +137,7 @@ abstract class BuilderHelper {
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError);
 
-  void warning(Message message, int offset, int length);
+  void addWarning(Message message, int charOffset, int length);
 
   Message warnUnresolvedGet(Name name, int charOffset, {bool isSuper});
 
@@ -792,7 +791,7 @@ class LoadLibraryAccessor extends kernel.LoadLibraryAccessor
 
   Expression doInvocation(int offset, Arguments arguments) {
     if (arguments.positional.length > 0 || arguments.named.length > 0) {
-      helper.warning(
+      helper.addWarning(
           messageLoadLibraryTakesNoArguments, offset, 'loadLibrary'.length);
     }
     return builder.createLoadLibrary(offset);
@@ -998,7 +997,7 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         KernelInvalidTypeBuilder declaration = this.declaration;
         helper.library.addWarning(
             declaration.message, declaration.charOffset, declaration.fileUri);
-        helper.warning(declaration.message, offset, token.length);
+        helper.addWarning(declaration.message, offset, token.length);
         super.expression = new Throw(
             new StringLiteral(declaration.message.message)
               ..fileOffset = offsetForToken(token))

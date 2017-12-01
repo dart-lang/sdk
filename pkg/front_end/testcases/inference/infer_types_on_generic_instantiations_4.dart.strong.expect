@@ -16,6 +16,7 @@ class B<E extends core::Object> extends self::A<self::B::E> {
   get x() → self::B::E
     return this.{self::B::y};
 }
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_4.dart:18:7: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  int y = /*error:INVALID_ASSIGNMENT*/ new B<String>(). /*@target=B::x*/ x;\n      ^"]/* from null */;
 static method foo() → dynamic {
   core::int y = new self::B::•<core::String>().{self::B::x} as{TypeError} core::int;
   core::String z = new self::B::•<core::String>().{self::B::x};
