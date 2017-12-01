@@ -31,6 +31,7 @@
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate_reload.h"
+#include "vm/kernel.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -9224,18 +9225,21 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
       info.Add(line_separator);  // New line.
       return info.raw();
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
     intptr_t line_count = line_starts_data.Length();
     ASSERT(line_count > 0);
     const Array& debug_positions_array = Array::Handle(debug_positions());
     intptr_t token_count = debug_positions_array.Length();
     int token_index = 0;
 
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    intptr_t previous_start = 0;
     for (int line_index = 0; line_index < line_count; ++line_index) {
-      intptr_t start = line_starts_data.GetInt32(line_index * 4);
+      intptr_t start = previous_start + line_starts_reader.DeltaAt(line_index);
       // Output the rest of the tokens if we have no next line.
       intptr_t end = TokenPosition::kMaxSourcePos;
       if (line_index + 1 < line_count) {
-        end = line_starts_data.GetInt32((line_index + 1) * 4);
+        end = start + line_starts_reader.DeltaAt(line_index + 1);
       }
       bool first = true;
       while (token_index < token_count) {
@@ -9256,7 +9260,9 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
         info.Add(value);
         ++token_index;
       }
+      previous_start = start;
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return info.raw();
   }
 
@@ -9490,22 +9496,31 @@ intptr_t Script::GetTokenLineUsingLineStarts(
     set_line_starts(line_starts_data);
   }
 
-  ASSERT(line_starts_data.Length() > 0);
-  intptr_t offset = target_token_pos.Pos();
-  intptr_t min = 0;
-  intptr_t max = line_starts_data.Length() - 1;
+  if (kind() == RawScript::kKernelTag) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    return line_starts_reader.LineNumberForPosition(target_token_pos.value());
+#else
+    return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  } else {
+    ASSERT(line_starts_data.Length() > 0);
+    intptr_t offset = target_token_pos.Pos();
+    intptr_t min = 0;
+    intptr_t max = line_starts_data.Length() - 1;
 
-  // Binary search to find the line containing this offset.
-  while (min < max) {
-    int midpoint = (max - min + 1) / 2 + min;
-    int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
-    if (token_pos > offset) {
-      max = midpoint - 1;
-    } else {
-      min = midpoint;
+    // Binary search to find the line containing this offset.
+    while (min < max) {
+      int midpoint = (max - min + 1) / 2 + min;
+      int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
+      if (token_pos > offset) {
+        max = midpoint - 1;
+      } else {
+        min = midpoint;
+      }
     }
+    return min + 1;  // Line numbers start at 1.
   }
-  return min + 1;  // Line numbers start at 1.
 }
 
 void Script::GetTokenLocation(TokenPosition token_pos,
@@ -9528,31 +9543,15 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       }
       return;
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(line_starts_data.Length() > 0);
-    intptr_t offset = token_pos.value();
-    intptr_t min = 0;
-    intptr_t max = line_starts_data.Length() - 1;
-
-    // Binary search to find the line containing this offset.
-    while (min < max) {
-      intptr_t midpoint = (max - min + 1) / 2 + min;
-
-      int32_t value = line_starts_data.GetInt32(midpoint * 4);
-      if (value > offset) {
-        max = midpoint - 1;
-      } else {
-        min = midpoint;
-      }
-    }
-    *line = min + 1;  // Line numbers start at 1.
-    int32_t min_value = line_starts_data.GetInt32(min * 4);
-    if (column != NULL) {
-      *column = offset - min_value + 1;
-    }
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    line_starts_reader.LocationForPosition(token_pos.value(), line, column);
     if (token_len != NULL) {
       // We don't explicitly save this data: Load the source
       // and find it from there.
       const String& source = String::Handle(zone, Source());
+      intptr_t offset = token_pos.value();
       *token_len = 1;
       if (offset < source.Length() &&
           Scanner::IsIdentStartChar(source.CharAt(offset))) {
@@ -9563,6 +9562,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
         }
       }
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return;
   }
 
@@ -9626,16 +9626,13 @@ void Script::TokenRangeAtLine(intptr_t line_number,
       *last_token_index = TokenPosition::kNoSource;
       return;
     }
-    ASSERT(line_starts_data.Length() >= line_number);
-    int32_t value = line_starts_data.GetInt32((line_number - 1) * 4);
-    *first_token_index = TokenPosition(value);
-    if (line_starts_data.Length() > line_number) {
-      value = line_starts_data.GetInt32(line_number * 4);
-      *last_token_index = TokenPosition(value - 1);
-    } else {
-      // Length of source is last possible token in this script.
-      *last_token_index = TokenPosition(String::Handle(Source()).Length());
-    }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel::KernelLineStartsReader line_starts_reader(
+        line_starts_data, Thread::Current()->zone());
+    line_starts_reader.TokenRangeAtLine(String::Handle(Source()).Length(),
+                                        line_number, first_token_index,
+                                        last_token_index);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return;
   }
 
