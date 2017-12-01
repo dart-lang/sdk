@@ -1,8 +1,8 @@
 \def\keyword#1{\textbf{#1}}
 \def\builtinId#1{\textbf{#1}}
+\def\code#1{\textsf{#1}}
 \def\comment#1{\textit{#1}}
 \def\capt#1{\rmfamily \caption{#1}}
-\newcommand{\cd}[1]{\textsf{#1}}
 \def\lt{\ensuremath{<}}
 \def\gt{\ensuremath{>}}
 \def\<{\ensuremath{\langle}}
@@ -69,6 +69,13 @@
 \def\WHILE{\keyword{while}}
 \def\WITH{\keyword{with}}
 \def\YIELD{\keyword{yield}}
+
+% A quoted comma as used in the grammar: needs spacing fix.
+\newcommand{\gcomma}{\mbox{`,\hspace{-0.1em}'}}
+
+% Used as line break in the right hand side of a grammar
+% alternative, that is, when starting a "continuation line".
+\newcommand{\gnewline}{\\\mbox{}\qquad{}}
 
 \newenvironment{Q}[1]{{\bf #1}}{}
 \newenvironment{rationale}[1]{{\it #1}}{}
