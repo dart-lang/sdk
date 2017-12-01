@@ -727,13 +727,12 @@ StreamingScopeBuilder::StreamingScopeBuilder(ParsedFunction* parsed_function)
       needs_expr_temp_(false),
       builder_(new StreamingFlowGraphBuilder(
           &translation_helper_,
-          parsed_function->function().script(),
+          Script::Handle(Z, parsed_function->function().script()),
           zone_,
           TypedData::Handle(Z, parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset())),
       type_translator_(builder_, /*finalize=*/true) {
-  Script& script = Script::Handle(Z, parsed_function->function().script());
-  H.InitFromScript(script);
+  H.InitFromScript(builder_->script());
   type_translator_.active_class_ = &active_class_;
 }
 
@@ -2506,7 +2505,7 @@ StreamingConstantEvaluator::StreamingConstantEvaluator(
       zone_(builder_->zone_),
       translation_helper_(builder_->translation_helper_),
       type_translator_(builder_->type_translator_),
-      script_(Script::Handle(zone_, builder_->Script())),
+      script_(builder_->script()),
       result_(Instance::Handle(zone_)) {}
 
 bool StreamingConstantEvaluator::IsCached(intptr_t offset) {
@@ -6442,8 +6441,7 @@ intptr_t StreamingFlowGraphBuilder::ArgumentCheckBitsForSetter(
       AlternativeReadingScope r(reader_, &kernel_data,
                                 target_field.kernel_offset());
       AlternativeScriptScope s(&translation_helper_,
-                               Script::Handle(target_field.Script()),
-                               Script::Handle(Script()));
+                               Script::Handle(target_field.Script()), script());
 
       FieldHelper helper(this);
       helper.ReadUntilIncluding(FieldHelper::kFlags);
@@ -6510,7 +6508,7 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
                                  interface_target.kernel_offset());
       AlternativeScriptScope _s(&translation_helper_,
                                 Script::Handle(interface_target.script()),
-                                Script::Handle(Script()));
+                                script());
       ReadUntilFunctionNode();
 
       FunctionNodeHelper fn_helper(this);
@@ -8886,10 +8884,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       TokenPosition::kNoSource, Closure::context_offset());
 
   return instructions;
-}
-
-RawScript* StreamingFlowGraphBuilder::Script() {
-  return script_;
 }
 
 void StreamingFlowGraphBuilder::LoadAndSetupTypeParameters(

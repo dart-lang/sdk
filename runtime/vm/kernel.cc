@@ -19,7 +19,8 @@ bool FieldHasFunctionLiteralInitializer(const Field& field,
   TranslationHelper translation_helper(Thread::Current());
   translation_helper.InitFromScript(script);
 
-  StreamingFlowGraphBuilder builder(&translation_helper, field.Script(), zone,
+  StreamingFlowGraphBuilder builder(&translation_helper,
+                                    Script::Handle(zone, field.Script()), zone,
                                     TypedData::Handle(zone, field.KernelData()),
                                     field.KernelDataProgramOffset());
   builder.SetOffset(field.kernel_offset());

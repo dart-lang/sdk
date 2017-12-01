@@ -14,6 +14,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
@@ -82,7 +83,6 @@ DEFINE_FLAG(bool,
             "Remove script timestamps to allow for deterministic testing.");
 
 DECLARE_FLAG(bool, show_invisible_frames);
-DECLARE_FLAG(bool, strong);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
@@ -6924,6 +6924,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   if (implicit_closure_function() != Function::null()) {
     return implicit_closure_function();
   }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // In AOT mode all implicit closures are pre-created.
+  UNREACHABLE();
+  return Function::null();
+#else
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -6985,6 +6990,50 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   closure_function.set_kernel_offset(kernel_offset());
 
+  // In strong mode, change covariant parameter types to Object in the implicit
+  // closure of a method compiled by kernel.
+  // The VM's parser erases covariant types immediately in strong mode.
+  if (thread->isolate()->strong() && !is_static() && (kernel_offset() > 0)) {
+    const Script& function_script = Script::Handle(zone, script());
+    kernel::TranslationHelper translation_helper(thread);
+    kernel::StreamingFlowGraphBuilder builder(
+        &translation_helper, function_script, zone,
+        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
+    translation_helper.InitFromScript(function_script);
+    builder.SetOffset(kernel_offset());
+
+    builder.ReadUntilFunctionNode();
+    kernel::FunctionNodeHelper fn_helper(&builder);
+
+    // Check the positional parameters, including the optional positional ones.
+    fn_helper.ReadUntilExcluding(
+        kernel::FunctionNodeHelper::kPositionalParameters);
+    intptr_t num_pos_params = builder.ReadListLength();
+    ASSERT(num_pos_params ==
+           num_fixed_params - 1 + (has_opt_pos_params ? num_opt_params : 0));
+    const Type& object_type = Type::Handle(zone, Type::ObjectType());
+    for (intptr_t i = 0; i < num_pos_params; ++i) {
+      kernel::VariableDeclarationHelper var_helper(&builder);
+      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
+      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
+        closure_function.SetParameterTypeAt(i + 1, object_type);
+      }
+    }
+    fn_helper.SetJustRead(kernel::FunctionNodeHelper::kPositionalParameters);
+
+    // Check the optional named parameters.
+    fn_helper.ReadUntilExcluding(kernel::FunctionNodeHelper::kNamedParameters);
+    intptr_t num_named_params = builder.ReadListLength();
+    ASSERT(num_named_params == (has_opt_pos_params ? 0 : num_opt_params));
+    for (intptr_t i = 0; i < num_named_params; ++i) {
+      kernel::VariableDeclarationHelper var_helper(&builder);
+      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
+      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
+        closure_function.SetParameterTypeAt(num_pos_params + 1 + i,
+                                            object_type);
+      }
+    }
+  }
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
@@ -6993,6 +7042,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Function::DropUncompiledImplicitClosureFunction() const {
@@ -7066,7 +7116,7 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 // and take the rest of the arguments from the invocation.
 //
 // Converted closure functions in VM follow same discipline as implicit closure
-// functions, because they are similar in many ways. For further deatils, please
+// functions, because they are similar in many ways. For further details, please
 // refer to the following methods:
 //   -> Function::ConvertedClosureFunction
 //   -> StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction
@@ -7077,9 +7127,6 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 //
 // Function::ConvertedClosureFunction method follows the logic of
 // Function::ImplicitClosureFunction method.
-//
-// TODO(29181): Adjust the method to correctly pass type parameters after they
-// are enabled in closure conversion.
 RawFunction* Function::ConvertedClosureFunction() const {
   // Return the existing converted closure function if any.
   if (converted_closure_function() != Function::null()) {

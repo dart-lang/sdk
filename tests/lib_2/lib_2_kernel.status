@@ -56,7 +56,6 @@ async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/zone_run_unary_test: RuntimeError # Issue 31402 (Variable declaration)
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
-convert/streamed_conversion_utf8_encode_test: RuntimeError # Issue 31402 (Invocation arguments)
 html/*: DartkCompileTimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: MissingCompileTimeError

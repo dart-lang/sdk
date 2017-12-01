@@ -2492,7 +2492,7 @@ RawObject* EvaluateMetadata(const Field& metadata_field) {
     helper.InitFromScript(script);
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, metadata_field.Script(), zone_,
+        &helper, Script::Handle(Z, metadata_field.Script()), Z,
         TypedData::Handle(Z, metadata_field.KernelData()),
         metadata_field.KernelDataProgramOffset());
     return streaming_flow_graph_builder.EvaluateMetadata(
@@ -2516,7 +2516,7 @@ RawObject* BuildParameterDescriptor(const Function& function) {
     helper.InitFromScript(script);
 
     StreamingFlowGraphBuilder streaming_flow_graph_builder(
-        &helper, function.script(), zone_,
+        &helper, Script::Handle(Z, function.script()), Z,
         TypedData::Handle(Z, function.KernelData()),
         function.KernelDataProgramOffset());
     return streaming_flow_graph_builder.BuildParameterDescriptor(
@@ -2582,7 +2582,7 @@ static void ProcessTokenPositionsEntry(
   }
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      helper, script.raw(), zone_, data, data_kernel_offset);
+      helper, script, zone_, data, data_kernel_offset);
   streaming_flow_graph_builder.CollectTokenPositionsFor(
       script.kernel_script_index(), entry_script.kernel_script_index(),
       kernel_offset, token_positions, yield_positions);
