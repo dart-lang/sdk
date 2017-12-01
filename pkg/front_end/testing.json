@@ -124,6 +124,19 @@
     },
 
     {
+      "name": "incremental",
+      "kind": "Chain",
+      "source": "test/fasta/incremental_test.dart",
+      "path": "testcases/",
+      "status": "testcases/incremental.status",
+      "pattern": [
+        "\\.incremental\\.yaml$"
+      ],
+      "exclude": [
+      ]
+    },
+
+    {
       "name": "sdk",
       "kind": "Chain",
       "source": "test/fasta/sdk_test.dart",
