@@ -1,3 +1,10 @@
+# 0.1.40
+
+* `avoid_unused_constructor_parameters` updated to better handle redirecting factory constructors
+* `avoid_returning_this` improvements
+* `prefer_bool_in_asserts` improvements
+* miscellaneous documentation fixes
+
 # 0.1.39
 
 * `prefer_interpolation_to_compose_strings` updated to allow concatenation of two non-literal strings
