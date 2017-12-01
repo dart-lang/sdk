@@ -32,7 +32,6 @@ main(List<String> args) {
           'constructor.dart',
           'dynamic.dart',
           'force_inline_loops.dart',
-          'too_difficult.dart',
         ]);
   });
 }

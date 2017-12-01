@@ -4101,6 +4101,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.Node currentNode,
       SourceInformation sourceInformation,
       {InterfaceType instanceType}) {
+    // TODO(johnniwinther,sra): Remove this when inlining is more mature.
+    if (function.library.canonicalUri.scheme == 'dart') {
+      // Temporarily disable inlining of platform libraries.
+      return false;
+    }
+
     if (nativeData.isJsInteropMember(function) &&
         !(function is ConstructorEntity && function.isFactoryConstructor)) {
       // We only inline factory JavaScript interop constructors.
@@ -4124,6 +4130,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           selector != null ||
               function.isStatic ||
               function.isTopLevel ||
+              function.isConstructor ||
               function is ConstructorBodyEntity,
           failedAt(function, "Missing selector for inlining of $function."));
       if (selector != null) {
@@ -4165,7 +4172,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1,
+      return InlineWeeder.canBeInlined(_elementMap, function, 1,
           enableUserAssertions: options.enableUserAssertions);
     }
 
@@ -4173,7 +4180,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (_isCalledOnce(function)) {
-        return InlineWeeder.canBeInlined(function, null,
+        return InlineWeeder.canBeInlined(_elementMap, function, null,
             enableUserAssertions: options.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
@@ -4192,6 +4199,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         return false;
       }
 
+      // TODO(redemption): Do we still need this?
       //if (function.isSynthesized) return true;
 
       // Don't inline across deferred import to prevent leaking code. The only
@@ -4211,9 +4219,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (cachedCanBeInlined == true) {
         // We may have forced the inlining of some methods. Therefore check
         // if we can inline this method regardless of size.
-        assert(InlineWeeder.canBeInlined(function, null,
-            allowLoops: true,
-            enableUserAssertions: options.enableUserAssertions));
+        String reason;
+        assert(
+            (reason = InlineWeeder.cannotBeInlinedReason(
+                    _elementMap, function, null,
+                    allowLoops: true,
+                    enableUserAssertions: options.enableUserAssertions)) ==
+                null,
+            failedAt(function, "Cannot inline $function: $reason"));
         return true;
       }
 
@@ -4233,7 +4246,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (_isCalledOnce(function)) {
         maxInliningNodes = null;
       }
-      bool canInline = InlineWeeder.canBeInlined(function, maxInliningNodes,
+      bool canInline = InlineWeeder.canBeInlined(
+          _elementMap, function, maxInliningNodes,
           enableUserAssertions: options.enableUserAssertions);
       if (canInline) {
         inlineCache.markAsInlinable(function, insideLoop: insideLoop);
@@ -4494,8 +4508,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     MemberDefinition definition = _elementMap.getMemberDefinition(function);
     switch (definition.kind) {
-      case MemberKind.constructorBody:
-        buildConstructorBody(definition.node);
+      case MemberKind.constructor:
+        buildConstructor(definition.node);
         return;
       case MemberKind.regular:
         ir.Node node = definition.node;
@@ -4582,17 +4596,70 @@ class KernelInliningState {
       this.allFunctionsCalledOnce);
 }
 
-class InlineWeeder {
+class InlineWeeder extends ir.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 18;
   static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
   static const INLINING_NODES_INSIDE_LOOP = 42;
   static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
 
-  static bool canBeInlined(FunctionEntity function, int maxInliningNodes,
+  static bool canBeInlined(KernelToElementMapForBuilding elementMap,
+      FunctionEntity function, int maxInliningNodes,
+      {bool allowLoops: false, bool enableUserAssertions: null}) {
+    return cannotBeInlinedReason(elementMap, function, maxInliningNodes,
+            allowLoops: allowLoops,
+            enableUserAssertions: enableUserAssertions) ==
+        null;
+  }
+
+  static String cannotBeInlinedReason(KernelToElementMapForBuilding elementMap,
+      FunctionEntity function, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
     // TODO(redemption): Implement inlining heuristic.
-    return true;
+    MemberDefinition memberDefinition =
+        elementMap.getMemberDefinition(function);
+    InlineWeeder visitor = new InlineWeeder();
+    memberDefinition.node.accept(visitor);
+    return visitor.tooDifficultReason;
+  }
+
+  bool seenReturn = false;
+  String tooDifficultReason;
+  bool get tooDifficult => tooDifficultReason != null;
+
+  defaultNode(ir.Node node) {
+    if (tooDifficult) return;
+    if (seenReturn) {
+      tooDifficultReason = 'code after return';
+      return;
+    }
+    node.visitChildren(this);
+  }
+
+  visitReturnStatement(ir.ReturnStatement node) {
+    if (seenReturn) {
+      tooDifficultReason = 'multiple returns';
+    } else {
+      seenReturn = true;
+    }
+  }
+
+  visitThrow(ir.Throw node) {
+    if (seenReturn) {
+      tooDifficultReason = 'multiple returns';
+    } else {
+      seenReturn = true;
+    }
+  }
+
+  visitTryCatch(ir.TryCatch node) {
+    if (tooDifficult) return;
+    tooDifficultReason = 'try/catch';
+  }
+
+  visitTryFinally(ir.TryFinally node) {
+    if (tooDifficult) return;
+    tooDifficultReason = 'try/finally';
   }
 }
 
