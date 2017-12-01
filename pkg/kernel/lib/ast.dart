@@ -3,6 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// -----------------------------------------------------------------------
+///                          WHEN CHANGING THIS FILE:
+/// -----------------------------------------------------------------------
+///
+/// If you are adding/removing/modifying fields/classes of the AST, you must
+/// also update the following files:
+///
+///   - binary/ast_to_binary.dart
+///   - binary/ast_from_binary.dart
+///   - text/ast_to_text.dart
+///   - clone.dart
+///   - binary.md
+///   - type_checker.dart (if relevant)
+///
+/// -----------------------------------------------------------------------
 ///                           ERROR HANDLING
 /// -----------------------------------------------------------------------
 ///
