@@ -4,9 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   constructor •(core::Object o) → void
-    : final dynamic #t1 = (() → dynamic
-      assert(o);
-).call(), super core::Object::•()
+    : assert(o), super core::Object::•()
     ;
 }
 static method main() → dynamic {

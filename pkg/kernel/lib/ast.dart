@@ -1745,6 +1745,25 @@ class LocalInitializer extends Initializer {
   }
 }
 
+class AssertInitializer extends Initializer {
+  AssertStatement statement;
+
+  AssertInitializer(this.statement) {
+    statement.parent = this;
+  }
+
+  accept(InitializerVisitor v) => v.visitAssertInitializer(this);
+
+  visitChildren(Visitor v) {
+    statement.accept(v);
+  }
+
+  transformChildren(Transformer v) {
+    statement = statement.accept(v);
+    statement.parent = this;
+  }
+}
+
 // ------------------------------------------------------------------------
 //                            FUNCTIONS
 // ------------------------------------------------------------------------

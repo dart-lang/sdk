@@ -1010,6 +1010,8 @@ class BinaryBuilder {
             readMemberReference(), readArguments());
       case Tag.LocalInitializer:
         return new LocalInitializer(readAndPushVariableDeclaration());
+      case Tag.AssertInitializer:
+        return new AssertInitializer(readStatement());
       default:
         throw fail('Invalid initializer tag: $tag');
     }

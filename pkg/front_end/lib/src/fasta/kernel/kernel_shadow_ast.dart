@@ -119,18 +119,14 @@ class ShadowAsExpression extends AsExpression implements ShadowExpression {
 }
 
 /// Concrete shadow object representing an assert initializer in kernel form.
-class ShadowAssertInitializer extends LocalInitializer
+class ShadowAssertInitializer extends AssertInitializer
     implements ShadowInitializer {
-  /// The assert statement performing the check
-  AssertStatement _statement;
-
-  ShadowAssertInitializer(VariableDeclaration variable, this._statement)
-      : super(variable);
+  ShadowAssertInitializer(AssertStatement statement) : super(statement);
 
   @override
   void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.assertInitializerEnter(this);
-    inferrer.inferStatement(_statement);
+    inferrer.inferStatement(statement);
     inferrer.listener.assertInitializerExit(this);
   }
 }
