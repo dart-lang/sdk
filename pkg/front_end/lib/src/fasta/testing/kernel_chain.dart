@@ -32,7 +32,7 @@ import 'package:kernel/text/ast_to_text.dart' show Printer;
 import 'package:testing/testing.dart'
     show ChainContext, Result, StdioProcess, Step, TestDescription;
 
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;

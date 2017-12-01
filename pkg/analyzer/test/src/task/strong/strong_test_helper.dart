@@ -23,7 +23,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/byte_store.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';

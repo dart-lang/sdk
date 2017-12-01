@@ -6,12 +6,14 @@ import 'dart:async' show Future;
 
 import 'dart:convert' show UTF8;
 
-import 'package:front_end/compiler_options.dart' show CompilerOptions;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions;
 
-import 'package:front_end/file_system.dart'
+import 'package:front_end/src/api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 
-import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+import 'package:front_end/src/api_prototype/physical_file_system.dart'
+    show PhysicalFileSystem;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;

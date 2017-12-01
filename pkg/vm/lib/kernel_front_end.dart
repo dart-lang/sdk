@@ -7,8 +7,9 @@ library vm.kernel_front_end;
 
 import 'dart:async';
 
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/kernel_generator.dart' show kernelForProgram;
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/kernel_generator.dart'
+    show kernelForProgram;
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/core_types.dart' show CoreTypes;
 

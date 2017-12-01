@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:front_end/compiler_options.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/dependency_grapher_impl.dart' as impl;
 

@@ -8,8 +8,8 @@ library front_end.summary_generator;
 import 'dart:async';
 import 'compiler_options.dart';
 
-import 'src/base/processed_options.dart';
-import 'src/kernel_generator_impl.dart';
+import '../base/processed_options.dart';
+import '../kernel_generator_impl.dart';
 
 /// Creates a summary representation of the build unit whose source files are in
 /// [sources].

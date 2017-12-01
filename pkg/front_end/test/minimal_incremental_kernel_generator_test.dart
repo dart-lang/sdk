@@ -4,14 +4,14 @@
 
 import 'dart:async';
 
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/incremental_kernel_generator.dart';
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:front_end/src/minimal_incremental_kernel_generator.dart';
-import 'package:front_end/summary_generator.dart';
+import 'package:front_end/src/api_prototype/summary_generator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:test/test.dart';

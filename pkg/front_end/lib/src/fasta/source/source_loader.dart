@@ -20,7 +20,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/incremental_class_hierarchy.dart'
     show IncrementalClassHierarchy;
 
-import '../../../file_system.dart';
+import '../../api_prototype/file_system.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 

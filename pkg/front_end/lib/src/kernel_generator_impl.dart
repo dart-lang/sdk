@@ -21,8 +21,9 @@ import 'fasta/kernel/utils.dart';
 import 'fasta/kernel/verifier.dart';
 import 'fasta/uri_translator.dart' show UriTranslator;
 
-/// Implementation for the `package:front_end/kernel_generator.dart` and
-/// `package:front_end/summary_generator.dart` APIs.
+/// Implementation for the
+/// `package:front_end/src/api_prototype/kernel_generator.dart` and
+/// `package:front_end/src/api_prototype/summary_generator.dart` APIs.
 Future<CompilerResult> generateKernel(ProcessedOptions options,
     {bool buildSummary: false,
     bool buildProgram: true,

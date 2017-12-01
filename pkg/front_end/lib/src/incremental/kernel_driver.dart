@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';

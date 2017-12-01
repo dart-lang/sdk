@@ -7,7 +7,7 @@ library front_end.src.multi_roots_file_system;
 
 import 'dart:async';
 
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 
 /// Wraps a file system to create an overlay of files from multiple roots.
 ///

@@ -1,5 +1,5 @@
 import 'package:analyzer/src/fasta/resolution_storer.dart';
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/fasta/builder/builder.dart';
 import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';

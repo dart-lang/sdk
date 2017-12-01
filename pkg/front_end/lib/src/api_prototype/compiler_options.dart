@@ -4,7 +4,7 @@
 
 library front_end.compiler_options;
 
-import 'package:front_end/byte_store.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:kernel/target/targets.dart' show Target;
 

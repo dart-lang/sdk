@@ -10,9 +10,9 @@ import 'package:kernel/kernel.dart' show loadProgramFromBytes;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../../compiler_options.dart' show CompilerOptions;
+import '../api_prototype/compiler_options.dart' show CompilerOptions;
 
-import '../../file_system.dart' show FileSystem;
+import '../api_prototype/file_system.dart' show FileSystem;
 
 import '../base/processed_options.dart' show ProcessedOptions;
 

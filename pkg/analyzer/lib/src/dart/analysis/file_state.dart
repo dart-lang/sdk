@@ -27,7 +27,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:front_end/byte_store.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';

@@ -25,11 +25,11 @@ import 'dart:io' show Platform hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
-import 'package:front_end/file_system.dart';
-import 'package:front_end/front_end.dart';
-import 'package:front_end/incremental_kernel_generator.dart';
-import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/kernel/utils.dart';

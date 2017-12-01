@@ -6,7 +6,8 @@ library fasta.tool.command_line;
 
 import 'dart:io' show exit;
 
-import 'package:front_end/compiler_options.dart' show CompilerOptions;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;

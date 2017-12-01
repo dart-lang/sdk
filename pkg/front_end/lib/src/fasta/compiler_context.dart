@@ -6,8 +6,8 @@ library fasta.compiler_context;
 
 import 'dart:async' show Zone, runZoned;
 
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/ast.dart' show Source;

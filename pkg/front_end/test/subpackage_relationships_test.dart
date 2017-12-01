@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/dependency_grapher.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/dependency_grapher.dart';
 import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:path/path.dart' as pathos;
 
@@ -39,14 +39,8 @@ final allowedPackageDependencies = [
 /// TODO(paulberry): stuff in lib/src shouldn't depend on lib; lib should just
 /// re-export stuff in lib/src.
 final subpackageRules = {
-  'lib': new SubpackageRules(allowedDependencies: [
-    'lib/src',
-    'lib/src/base',
-    'lib/src/byte_store',
-    'lib/src/fasta',
-  ]),
   'lib/src': new SubpackageRules(allowedDependencies: [
-    'lib',
+    'lib/src/api_prototype',
     'lib/src/base',
     'lib/src/fasta',
     "lib/src/fasta/dill",
@@ -54,9 +48,15 @@ final subpackageRules = {
     'lib/src/fasta/source',
     'lib/src/incremental',
   ]),
-  'lib/src/base': new SubpackageRules(allowedDependencies: [
-    'lib',
+  'lib/src/api_prototype': new SubpackageRules(allowedDependencies: [
     'lib/src',
+    'lib/src/base',
+    'lib/src/byte_store',
+    'lib/src/fasta',
+  ]),
+  'lib/src/base': new SubpackageRules(allowedDependencies: [
+    'lib/src',
+    'lib/src/api_prototype',
     'lib/src/fasta',
     'lib/src/fasta/util',
   ]),
@@ -65,7 +65,7 @@ final subpackageRules = {
   'lib/src/byte_store': new SubpackageRules(allowedDependencies: []),
   'lib/src/codegen': new SubpackageRules(),
   'lib/src/fasta': new SubpackageRules(allowedDependencies: [
-    'lib',
+    'lib/src/api_prototype',
     'lib/src/base',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
@@ -87,7 +87,7 @@ final subpackageRules = {
     'lib/src/fasta/kernel',
   ]),
   'lib/src/fasta/kernel': new SubpackageRules(allowedDependencies: [
-    'lib',
+    'lib/src/api_prototype',
     'lib/src/fasta',
     'lib/src/base',
     'lib/src/fasta/builder',
@@ -112,7 +112,7 @@ final subpackageRules = {
     'lib/src/fasta/util',
   ]),
   'lib/src/fasta/source': new SubpackageRules(allowedDependencies: [
-    'lib',
+    'lib/src/api_prototype',
     'lib/src/fasta',
     'lib/src/base',
     'lib/src/fasta/builder',
@@ -123,7 +123,7 @@ final subpackageRules = {
     'lib/src/scanner',
   ]),
   'lib/src/fasta/testing': new SubpackageRules(allowedDependencies: [
-    'lib',
+    'lib/src/api_prototype',
     'lib/src',
     'lib/src/base',
     'lib/src/fasta',
@@ -139,7 +139,7 @@ final subpackageRules = {
   ]),
   'lib/src/fasta/util': new SubpackageRules(),
   'lib/src/incremental': new SubpackageRules(allowedDependencies: [
-    'lib',
+    'lib/src/api_prototype',
     'lib/src',
     'lib/src/base',
     'lib/src/fasta',
@@ -157,7 +157,7 @@ final subpackageRules = {
     'lib/src/fasta/scanner',
   ]),
   'lib/src/testing': new SubpackageRules(allowedDependencies: [
-    'lib',
+    'lib/src/api_prototype',
   ]),
 };
 

@@ -6,7 +6,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
-import 'package:front_end/front_end.dart' hide FileSystemException;
+import 'package:front_end/src/api_prototype/front_end.dart'
+    hide FileSystemException;
 import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:kernel/target/targets.dart';
 

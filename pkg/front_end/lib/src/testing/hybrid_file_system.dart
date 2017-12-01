@@ -8,9 +8,9 @@ library front_end.src.hybrid_file_system;
 
 import 'dart:async';
 
-import 'package:front_end/file_system.dart';
-import 'package:front_end/memory_file_system.dart';
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 
 /// A file system that mixes files from memory and a physical file system. All
 /// memory entities take priotity over file system entities.

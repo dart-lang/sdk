@@ -11,11 +11,11 @@ import 'dart:async';
 import 'package:kernel/kernel.dart' show Program;
 
 import 'compiler_options.dart';
-import 'src/base/processed_options.dart';
-import 'src/fasta/fasta_codes.dart';
-import 'src/fasta/compiler_context.dart';
-import 'src/fasta/severity.dart';
-import 'src/kernel_generator_impl.dart';
+import '../base/processed_options.dart';
+import '../fasta/fasta_codes.dart';
+import '../fasta/compiler_context.dart';
+import '../fasta/severity.dart';
+import '../kernel_generator_impl.dart';
 
 /// Generates a kernel representation of the program whose main library is in
 /// the given [source].

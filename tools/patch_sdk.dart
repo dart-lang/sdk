@@ -16,7 +16,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/kernel_generator_impl.dart';

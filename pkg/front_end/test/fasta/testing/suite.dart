@@ -10,7 +10,8 @@ import 'dart:io' show File, Platform;
 
 import 'dart:convert' show JSON;
 
-import 'package:front_end/physical_file_system.dart' show PhysicalFileSystem;
+import 'package:front_end/src/api_prototype/physical_file_system.dart'
+    show PhysicalFileSystem;
 
 import 'package:front_end/src/base/libraries_specification.dart'
     show TargetLibrariesSpecification;
@@ -33,7 +34,8 @@ import 'package:testing/testing.dart'
         TestDescription,
         StdioProcess;
 
-import 'package:front_end/compiler_options.dart' show CompilerOptions;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions;
 
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;

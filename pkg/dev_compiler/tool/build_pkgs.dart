@@ -3,9 +3,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:front_end/compilation_message.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/summary_generator.dart';
+import 'package:front_end/src/api_prototype/compilation_message.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/summary_generator.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:dev_compiler/src/analyzer/command.dart' as analyzer;
