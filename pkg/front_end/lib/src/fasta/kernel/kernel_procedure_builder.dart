@@ -50,7 +50,8 @@ import '../messages.dart'
         messageNonInstanceTypeVariableUse,
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
-        messagePatchNonExternal;
+        messagePatchNonExternal,
+        warning;
 
 import '../problems.dart' show internalProblem, unexpected;
 
@@ -184,8 +185,7 @@ abstract class KernelFunctionBuilder
               substitution[parameter] = const DynamicType();
             }
           }
-          library.addWarning(
-              messageNonInstanceTypeVariableUse, charOffset, fileUri);
+          warning(messageNonInstanceTypeVariableUse, charOffset, fileUri);
           return substitute(type, substitution);
         }
 

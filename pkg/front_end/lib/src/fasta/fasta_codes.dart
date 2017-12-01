@@ -6,8 +6,6 @@ library fasta.codes;
 
 import 'package:kernel/ast.dart' show DartType;
 
-import 'package:kernel/text/ast_to_text.dart' show NameSystem, Printer;
-
 import '../scanner/token.dart' show Token;
 
 import 'util/relativize.dart' as util show relativizeUri;

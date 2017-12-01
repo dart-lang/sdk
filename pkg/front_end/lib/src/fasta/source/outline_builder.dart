@@ -58,6 +58,12 @@ class OutlineBuilder extends UnhandledListener {
   final bool enableNative;
   final bool stringExpectedAfterNative;
 
+  /// When true, recoverable parser errors are silently ignored. This is
+  /// because they will be reported by the BodyBuilder later. However, typedefs
+  /// are fully compiled by the outline builder, so parser errors are turned on
+  /// when parsing typedefs.
+  bool silenceParserErrors = true;
+
   String nativeMethodName;
 
   OutlineBuilder(SourceLibraryBuilder library)
@@ -773,6 +779,7 @@ class OutlineBuilder extends UnhandledListener {
   @override
   void beginFunctionTypeAlias(Token token) {
     library.beginNestedDeclaration("#typedef", hasMembers: false);
+    silenceParserErrors = false;
   }
 
   @override
@@ -852,6 +859,7 @@ class OutlineBuilder extends UnhandledListener {
     library.addFunctionTypeAlias(documentationComment, metadata, name,
         typeVariables, functionType, charOffset);
     checkEmpty(typedefKeyword.charOffset);
+    silenceParserErrors = true;
   }
 
   @override
@@ -1037,18 +1045,18 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void addCompileTimeError(Message message, int charOffset, int length) {
-    library.addCompileTimeError(message, charOffset, uri);
+  void handleRecoverableError(
+      Message message, Token startToken, Token endToken) {
+    if (silenceParserErrors) {
+      debugEvent("RecoverableError");
+    } else {
+      super.handleRecoverableError(message, startToken, endToken);
+    }
   }
 
   @override
-  void addWarning(Message message, int charOffset, int length) {
-    library.addWarning(message, charOffset, uri);
-  }
-
-  @override
-  void addNit(Message message, int charOffset) {
-    library.addNit(message, charOffset, uri);
+  void addCompileTimeError(Message message, int offset, int length) {
+    library.addCompileTimeError(message, offset, uri);
   }
 
   /// Return the documentation comment for the entity that starts at the

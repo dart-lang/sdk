@@ -140,6 +140,7 @@ ExpectedButGot:
   # Consider the second example below: the parser expects a ')' before 'y', but
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
+  tip: DONT_KNOW_HOW_TO_FIX,
   analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: MISSING_TOKEN_BEFORE_THIS
   script:

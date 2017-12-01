@@ -12,7 +12,6 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
   method then<S extends core::Object>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
     return null;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/future_then_upwards_2.dart:21:17: Error: A value of type 'test::MyFuture<dart.core::double>' can't be assigned to a variable of type 'test::MyFuture<dart.core::int>'.\nTry changing the type of the left hand side, or casting the right hand side to 'test::MyFuture<dart.core::int>'.\n  MyFuture<int> f2 = /*error:INVALID_ASSIGNMENT*/ f;\n                ^"]/* from null */;
 static method main() → void {
   self::MyFuture<core::double> f = self::foo().{self::MyFuture::then}<core::double>((dynamic _) → core::double => 2.3);
   self::MyFuture<core::int> f2 = f as{TypeError} self::MyFuture<core::int>;

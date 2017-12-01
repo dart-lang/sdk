@@ -15,7 +15,6 @@ class Frame extends core::Object {
     : super core::Object::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/generic_methods_nested_generic_instantiation.dart:28:69: Error: A value of type '<T extends dart.core::num>(dart.math::max::T, dart.math::max::T) \u8594 dart.math::max::T' can't be assigned to a variable of type '(dart.core::int, dart.core::int) \u8594 dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::int, dart.core::int) \u8594 dart.core::int'.\n        . /*@typeArgs=int*/ /*@target=Iterable::fold*/ fold(0, math.max);\n                                                                    ^", "pkg/front_end/testcases/inference/generic_methods_nested_generic_instantiation.dart:29:65: Error: A value of type '<T extends dart.core::num>(dart.math::max::T, dart.math::max::T) \u8594 dart.math::max::T' can't be assigned to a variable of type '(dart.core::int, dart.core::int) \u8594 dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::int, dart.core::int) \u8594 dart.core::int'.\n  }). /*@typeArgs=int*/ /*@target=Iterable::fold*/ fold(0, math.max);\n                                                                ^"]/* from null */;
 static method main() → dynamic {
   core::List<self::Trace> traces = <self::Trace>[];
   core::int longest = traces.{core::Iterable::map}<core::int>((self::Trace trace) → core::int {

@@ -14,7 +14,7 @@ import 'builder.dart'
         Scope,
         TypeBuilder;
 
-import '../messages.dart' show templateConstructorNotFound;
+import '../messages.dart' show templateConstructorNotFound, warning;
 
 class ConstructorReferenceBuilder extends Builder {
   final Object name;
@@ -59,10 +59,8 @@ class ConstructorReferenceBuilder extends Builder {
           suffix ?? "", charOffset, fileUri, accessingLibrary);
     }
     if (target == null) {
-      accessingLibrary.addWarning(
-          templateConstructorNotFound.withArguments(fullNameForErrors),
-          charOffset,
-          fileUri);
+      warning(templateConstructorNotFound.withArguments(fullNameForErrors),
+          charOffset, fileUri);
     }
   }
 }

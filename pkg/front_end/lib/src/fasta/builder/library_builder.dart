@@ -16,9 +16,15 @@ import '../messages.dart'
     show
         LocatedMessage,
         Message,
+        error,
+        nit,
+        report,
         templateInternalProblemConstructorNotFound,
         templateInternalProblemNotFoundIn,
-        templateInternalProblemPrivateConstructorAccess;
+        templateInternalProblemPrivateConstructorAccess,
+        warning;
+
+import '../severity.dart' show Severity;
 
 import 'builder.dart'
     show
@@ -79,24 +85,37 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   /// arguments passed to this method.
   ///
   /// If [fileUri] is null, it defaults to `this.fileUri`.
-  void addCompileTimeError(Message message, int charOffset, Uri fileUri,
-      {bool wasHandled: false, LocatedMessage context}) {
-    fileUri ??= this.fileUri;
+  void addCompileTimeError(Message message, int charOffset, Uri uri,
+      {bool silent: false, bool wasHandled: false, LocatedMessage context}) {
     hasCompileTimeErrors = true;
-    loader.addCompileTimeError(message, charOffset, fileUri,
-        wasHandled: wasHandled, context: context);
+    loader.addCompileTimeError(message, charOffset, uri,
+        silent: silent, wasHandled: wasHandled, context: context);
   }
 
-  void addWarning(Message message, int charOffset, Uri fileUri,
-      {LocatedMessage context}) {
-    fileUri ??= this.fileUri;
-    loader.addWarning(message, charOffset, fileUri, context: context);
+  void addWarning(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    if (!silent) {
+      warning(message, charOffset, uri);
+      if (context != null) {
+        report(context, Severity.warning);
+      }
+    }
   }
 
-  void addNit(Message message, int charOffset, Uri fileUri,
-      {LocatedMessage context}) {
-    fileUri ??= this.fileUri;
-    loader.addNit(message, charOffset, fileUri, context: context);
+  void addError(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    if (!silent) {
+      error(message, charOffset, uri);
+      if (context != null) {
+        report(context, Severity.error);
+      }
+    }
+  }
+
+  void addNit(Message message, int charOffset, Uri uri, {bool silent: false}) {
+    if (!silent) {
+      nit(message, charOffset, uri);
+    }
   }
 
   /// Returns true if the export scope was modified.

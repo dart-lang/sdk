@@ -15,7 +15,6 @@ class MyFuture<T extends core::Object> extends core::Object implements asy::Futu
 static field self::MyFuture<dynamic> f;
 static field asy::Future<core::int> t1 = self::f.{self::MyFuture::then}<core::int>((dynamic _) → asy::Future<core::int> => asy::Future::value<core::int>("hi" as{TypeError} asy::FutureOr<core::int>));
 static field asy::Future<core::List<core::int>> t2 = self::f.{self::MyFuture::then}<core::List<core::int>>((dynamic _) → core::List<core::int> => <core::int>[3]);
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/future_union_downwards.dart:21:44: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.async::FutureOr<dart.core::int>'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.async::FutureOr<dart.core::int>'.\n        new /*@typeArgs=int*/ Future.value('hi'));\n                                           ^"]/* from null */;
 static method g2() → asy::Future<core::List<core::int>> async {
   return <core::int>[3];
 }

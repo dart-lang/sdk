@@ -392,7 +392,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         if (!isTopLevel &&
             !typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
           // Error: not assignable.
-          library.addCompileTimeError(
+          library.addError(
               templateInvalidAssignment.withArguments(actualType, expectedType),
               fileOffset,
               Uri.parse(uri));

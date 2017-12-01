@@ -19,7 +19,6 @@ class B extends core::Object implements self::A {
     : super core::Object::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:26:3: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::y*/ y;\n  ^", "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:28:3: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n  s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::w*/ w;\n  ^", "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:32:3: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::z*/ z;\n  ^"]/* from null */;
 static method foo() → dynamic {
   core::String s;
   core::int i;

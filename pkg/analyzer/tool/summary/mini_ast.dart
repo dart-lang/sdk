@@ -161,16 +161,6 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void addWarning(Message message, int charOffset, int length) {
-    // Ignore warnings.
-  }
-
-  @override
-  void addNit(Message message, int charOffset) {
-    // Ignore warnings.
-  }
-
-  @override
   void beginMetadata(Token token) {
     inMetadata = true;
   }

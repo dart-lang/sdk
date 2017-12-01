@@ -2,7 +2,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference.dart:12:5: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n    return /*error:RETURN_OF_INVALID_TYPE*/ 1;\n    ^"]/* from null */;
 static method main() → dynamic {
   function f() → core::String
     return null;

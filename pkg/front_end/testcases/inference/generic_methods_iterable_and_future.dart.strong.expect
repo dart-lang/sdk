@@ -3,7 +3,6 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:31:108: Error: A value of type '(dart.core::String, dart.core::int) \u8594 dart.core::String' can't be assigned to a variable of type '(dart.async::FutureOr<dart.core::String>, dart.core::int) \u8594 dart.async::FutureOr<dart.core::String>'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.async::FutureOr<dart.core::String>, dart.core::int) \u8594 dart.async::FutureOr<dart.core::String>'.\n                  /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=String*/ (String\n                                                                                                           ^"]/* from null */;
 static method make(core::int x) → asy::Future<core::int>
   return asy::Future::•<core::int>(() → core::int => x);
 static method main() → dynamic {

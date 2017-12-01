@@ -61,6 +61,7 @@ TEST_CASE(Mixin_PrivateSuperResolutionCrossLibraryShouldFail) {
       "  } catch (e) {\n"
       "    return e.toString().split('\\n').first;\n"
       "  }\n"
+      "}"
       "}\n",
     },
     {

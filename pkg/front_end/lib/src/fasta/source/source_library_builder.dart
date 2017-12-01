@@ -8,7 +8,8 @@ import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
-import '../../base/instrumentation.dart' show Instrumentation;
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueLiteral;
 
 import '../../scanner/token.dart' show Token;
 
@@ -41,6 +42,9 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
+        Message,
+        codeTypeNotFound,
         messageExpectedUri,
         messagePartOfSelf,
         messageMemberWithSameNameAsClass,
@@ -625,6 +629,41 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     forEach((String name, Builder member) {
       member.instrumentTopLevelInference(instrumentation);
     });
+  }
+
+  @override
+  void addWarning(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    super
+        .addWarning(message, charOffset, uri, silent: silent, context: context);
+    if (!silent) {
+      // TODO(ahe): All warnings should have a charOffset, but currently, some
+      // unresolved type warnings lack them.
+      if (message.code != codeTypeNotFound && charOffset != -1) {
+        // TODO(ahe): Should I add a value for messages?
+        loader.instrumentation?.record(uri, charOffset, "warning",
+            new InstrumentationValueLiteral(message.code.name));
+        if (context != null) {
+          loader.instrumentation?.record(context.uri, context.charOffset,
+              "context", new InstrumentationValueLiteral(context.code.name));
+        }
+      }
+    }
+  }
+
+  @override
+  void addError(Message message, int charOffset, Uri uri,
+      {bool silent: false, LocatedMessage context}) {
+    super.addError(message, charOffset, uri, silent: silent, context: context);
+    if (!silent) {
+      // TODO(ahe): Should I add a value for messages?
+      loader.instrumentation?.record(uri, charOffset, "error",
+          new InstrumentationValueLiteral(message.code.name));
+      if (context != null) {
+        loader.instrumentation?.record(context.uri, context.charOffset,
+            "context", new InstrumentationValueLiteral(context.code.name));
+      }
+    }
   }
 }
 

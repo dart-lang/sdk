@@ -114,24 +114,13 @@ String compileTemplate(String name, String template, String tip,
         break;
 
       case "#type":
-        parameters.add("DartType _type");
-        conversions.add(r"""
-NameSystem nameSystem = new NameSystem();
-StringBuffer buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
-String type = '$buffer';
-""");
-        arguments.add("'type': _type");
+        parameters.add("DartType type");
+        arguments.add("'type': type");
         break;
 
       case "#type2":
-        parameters.add("DartType _type2");
-        conversions.add(r"""
-buffer = new StringBuffer();
-new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
-String type2 = '$buffer';
-""");
-        arguments.add("'type2': _type2");
+        parameters.add("DartType type2");
+        arguments.add("'type2': type2");
         break;
 
       case "#uri":

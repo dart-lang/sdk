@@ -13,7 +13,6 @@ class B extends self::A {
     : super self::A::•()
     ;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:26:37: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  for (/*@error=InvalidAssignment*/ i in iterable) {}\n                                    ^", "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:27:43: Error: A value of type 'test::A' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  await for (/*@error=InvalidAssignment*/ i in stream) {}\n                                          ^"]/* from null */;
 static method f<T extends core::Object>() → self::f::T
   return null;
 static method test() → dynamic async {

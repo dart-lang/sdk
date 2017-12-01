@@ -2,7 +2,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/list_literals.dart:10:71: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');\n                                                                      ^", "pkg/front_end/testcases/inference/list_literals.dart:11:71: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);\n                                                                      ^", "pkg/front_end/testcases/inference/list_literals.dart:18:71: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::num'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::num'.\n  x. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');\n                                                                      ^"]/* from null */;
 static method test1() → dynamic {
   core::List<core::int> x = <core::int>[1, 2, 3];
   x.{core::List::add}("hi" as{TypeError} core::int);
