@@ -901,23 +901,6 @@ abstract class ElementCreatorMixin {
     });
   }
 
-  AsyncMarker _getAsyncMarker(ir.FunctionNode node) {
-    switch (node.asyncMarker) {
-      case ir.AsyncMarker.Async:
-        return AsyncMarker.ASYNC;
-      case ir.AsyncMarker.AsyncStar:
-        return AsyncMarker.ASYNC_STAR;
-      case ir.AsyncMarker.Sync:
-        return AsyncMarker.SYNC;
-      case ir.AsyncMarker.SyncStar:
-        return AsyncMarker.SYNC_STAR;
-      case ir.AsyncMarker.SyncYielding:
-      default:
-        throw new UnsupportedError(
-            "Async marker ${node.asyncMarker} is not supported.");
-    }
-  }
-
   FunctionEntity _getMethod(ir.Procedure node) {
     return _methodMap.putIfAbsent(node, () {
       LibraryEntity library;
@@ -933,7 +916,7 @@ abstract class ElementCreatorMixin {
       bool isExternal = node.isExternal;
       // TODO(johnniwinther): Remove `&& !node.isExternal` when #31233 is fixed.
       bool isAbstract = node.isAbstract && !node.isExternal;
-      AsyncMarker asyncMarker = _getAsyncMarker(node.function);
+      AsyncMarker asyncMarker = getAsyncMarker(node.function);
       IndexedFunction function;
       switch (node.kind) {
         case ir.ProcedureKind.Factory:
@@ -2330,7 +2313,7 @@ class JsKernelToElementMap extends KernelToElementMapBase
         recordFieldsVisibleInScope, memberMap);
 
     FunctionEntity callMethod = new JClosureCallMethod(
-        cls, _getParameterStructure(node), _getAsyncMarker(node));
+        cls, _getParameterStructure(node), getAsyncMarker(node));
     _members.register<IndexedFunction, FunctionData>(
         callMethod,
         new ClosureFunctionData(

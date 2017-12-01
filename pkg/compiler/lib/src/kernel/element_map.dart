@@ -498,3 +498,55 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
   }
   return null;
 }
+
+/// Returns the [ir.FunctionNode] that defines [member] or `null` if [member]
+/// is not a constructor, method or local function.
+ir.FunctionNode getFunctionNode(
+    KernelToElementMapForBuilding elementMap, MemberEntity member) {
+  MemberDefinition definition = elementMap.getMemberDefinition(member);
+  switch (definition.kind) {
+    case MemberKind.regular:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        return node.function;
+      }
+      break;
+    case MemberKind.constructor:
+    case MemberKind.constructorBody:
+      ir.Node node = definition.node;
+      if (node is ir.Procedure) {
+        return node.function;
+      } else if (node is ir.Constructor) {
+        return node.function;
+      }
+      break;
+    case MemberKind.closureCall:
+      ir.Node node = definition.node;
+      if (node is ir.FunctionDeclaration) {
+        return node.function;
+      } else if (node is ir.FunctionExpression) {
+        return node.function;
+      }
+      break;
+    default:
+  }
+  return null;
+}
+
+/// Returns the `AsyncMarker` corresponding to `node.asyncMarker`.
+AsyncMarker getAsyncMarker(ir.FunctionNode node) {
+  switch (node.asyncMarker) {
+    case ir.AsyncMarker.Async:
+      return AsyncMarker.ASYNC;
+    case ir.AsyncMarker.AsyncStar:
+      return AsyncMarker.ASYNC_STAR;
+    case ir.AsyncMarker.Sync:
+      return AsyncMarker.SYNC;
+    case ir.AsyncMarker.SyncStar:
+      return AsyncMarker.SYNC_STAR;
+    case ir.AsyncMarker.SyncYielding:
+    default:
+      throw new UnsupportedError(
+          "Async marker ${node.asyncMarker} is not supported.");
+  }
+}

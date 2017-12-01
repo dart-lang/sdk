@@ -56,12 +56,13 @@ import 'type_builder.dart';
 class StackFrame {
   final StackFrame parent;
   final MemberEntity member;
+  final AsyncMarker asyncMarker;
   final KernelToLocalsMap localsMap;
   final KernelToTypeInferenceMap typeInferenceMap;
   final SourceInformationBuilder<ir.Node> sourceInformationBuilder;
 
-  StackFrame(this.parent, this.member, this.localsMap, this.typeInferenceMap,
-      this.sourceInformationBuilder);
+  StackFrame(this.parent, this.member, this.asyncMarker, this.localsMap,
+      this.typeInferenceMap, this.sourceInformationBuilder);
 }
 
 class KernelSsaGraphBuilder extends ir.Visitor
@@ -73,13 +74,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   final CodegenRegistry registry;
   final ClosureDataLookup closureDataLookup;
 
-  /// Helper accessor for all kernel function-like targets (Procedure,
-  /// FunctionExpression, FunctionDeclaration) of the inner FunctionNode itself.
-  /// If the current target is not a function-like target, _targetFunction will
-  /// be null.
-  ir.FunctionNode _targetFunction;
-
-  /// A stack of [ResolutionDartType]s that have been seen during inlining of
+  /// A stack of [InterfaceType]s that have been seen during inlining of
   /// factory constructors.  These types are preserved in [HInvokeStatic]s and
   /// [HCreate]s inside the inline code and registered during code generation
   /// for these nodes.
@@ -102,7 +97,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   TreeElements get elements =>
       throw new UnsupportedError('KernelSsaGraphBuilder.elements');
 
-  SourceInformationStrategy<ir.Node> _sourceInformationStrategy;
+  final SourceInformationStrategy<ir.Node> _sourceInformationStrategy;
   final KernelToElementMapForBuilding _elementMap;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final GlobalLocalsMap _globalLocalsMap;
@@ -161,9 +156,15 @@ class KernelSsaGraphBuilder extends ir.Visitor
       _currentFrame.sourceInformationBuilder;
 
   void _enterFrame(MemberEntity member) {
+    AsyncMarker asyncMarker = AsyncMarker.SYNC;
+    ir.FunctionNode function = getFunctionNode(_elementMap, member);
+    if (function != null) {
+      asyncMarker = getAsyncMarker(function);
+    }
     _currentFrame = new StackFrame(
         _currentFrame,
         member,
+        asyncMarker,
         _globalLocalsMap.getLocalsMap(member),
         new KernelToTypeInferenceMapImpl(member, _globalInferenceResults),
         _currentFrame != null
@@ -187,11 +188,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
         case MemberKind.closureCall:
           ir.Node target = definition.node;
           if (target is ir.Procedure) {
-            _targetFunction = target.function;
             if (target.isExternal) {
-              buildExternalFunctionNode(_targetFunction);
+              buildExternalFunctionNode(
+                  _ensureDefaultArgumentValues(target.function));
             } else {
-              buildFunctionNode(_targetFunction);
+              buildFunctionNode(_ensureDefaultArgumentValues(target.function));
             }
           } else if (target is ir.Field) {
             if (handleConstantField(targetElement, registry, closedWorld)) {
@@ -203,11 +204,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
             }
             buildField(target);
           } else if (target is ir.FunctionExpression) {
-            _targetFunction = target.function;
-            buildFunctionNode(_targetFunction);
+            buildFunctionNode(_ensureDefaultArgumentValues(target.function));
           } else if (target is ir.FunctionDeclaration) {
-            _targetFunction = target.function;
-            buildFunctionNode(_targetFunction);
+            buildFunctionNode(_ensureDefaultArgumentValues(target.function));
           } else {
             throw 'No case implemented to handle target: '
                 '$target for $targetElement';
@@ -215,12 +214,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
           break;
         case MemberKind.constructor:
           ir.Constructor constructor = definition.node;
-          _targetFunction = constructor.function;
+          _ensureDefaultArgumentValues(constructor.function);
           buildConstructor(constructor);
           break;
         case MemberKind.constructorBody:
           ir.Constructor constructor = definition.node;
-          _targetFunction = constructor.function;
+          _ensureDefaultArgumentValues(constructor.function);
           buildConstructorBody(constructor);
           break;
         case MemberKind.closureField:
@@ -228,9 +227,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
           break;
       }
       assert(graph.isValid());
-      if (_targetFunction != null) {
-        _ensureDefaultArgumentValues(_targetFunction);
-      }
 
       if (backend.tracer.isEnabled) {
         MemberEntity member = definition.member;
@@ -251,7 +247,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     });
   }
 
-  void _ensureDefaultArgumentValues(ir.FunctionNode function) {
+  ir.FunctionNode _ensureDefaultArgumentValues(ir.FunctionNode function) {
     // Register all [function]'s default argument values.
     //
     // Default values might be (or contain) functions that are not referenced
@@ -279,6 +275,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         .skip(function.requiredParameterCount)
         .forEach(registerDefaultValue);
     function.namedParameters.forEach(registerDefaultValue);
+    return function;
   }
 
   @override
@@ -1160,10 +1157,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (node.expression == null) {
       value = graph.addConstantNull(closedWorld);
     } else {
-      assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       node.expression.accept(this);
       value = pop();
-      if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
+      if (_currentFrame.asyncMarker == AsyncMarker.ASYNC) {
         if (options.enableTypeAssertions &&
             !isValidAsyncReturnType(_returnType)) {
           generateTypeError(
