@@ -21,7 +21,6 @@ class Tag {
   static const int SuperInitializer = 9;
   static const int RedirectingInitializer = 10;
   static const int LocalInitializer = 11;
-  static const int AssertInitializer = 12;
 
   static const int CheckLibraryIsLoaded = 13;
   static const int LoadLibrary = 14;

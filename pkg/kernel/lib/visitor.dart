@@ -120,7 +120,6 @@ abstract class InitializerVisitor<R> {
   R visitRedirectingInitializer(RedirectingInitializer node) =>
       defaultInitializer(node);
   R visitLocalInitializer(LocalInitializer node) => defaultInitializer(node);
-  R visitAssertInitializer(AssertInitializer node) => defaultInitializer(node);
 }
 
 class TreeVisitor<R>
@@ -236,7 +235,6 @@ class TreeVisitor<R>
   R visitRedirectingInitializer(RedirectingInitializer node) =>
       defaultInitializer(node);
   R visitLocalInitializer(LocalInitializer node) => defaultInitializer(node);
-  R visitAssertInitializer(AssertInitializer node) => defaultInitializer(node);
 
   // Other tree nodes
   R visitLibrary(Library node) => defaultTreeNode(node);

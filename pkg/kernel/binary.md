@@ -408,12 +408,6 @@ type LocalInitializer extends Initializer {
   VariableDeclaration variable;
 }
 
-type AssertInitializer extends Initializer {
-  Byte tag = 12;
-  Byte isSynthetic;
-  AssertStatement statement;
-}
-
 /*
 enum AsyncMarker {
   Sync,

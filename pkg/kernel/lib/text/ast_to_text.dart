@@ -1425,10 +1425,8 @@ class Printer extends Visitor<Null> {
     endLine(';');
   }
 
-  visitAssertStatement(AssertStatement node, {bool asExpr = false}) {
-    if (asExpr != true) {
-      writeIndentation();
-    }
+  visitAssertStatement(AssertStatement node) {
+    writeIndentation();
     writeWord('assert');
     writeSymbol('(');
     writeExpression(node.condition);
@@ -1436,11 +1434,7 @@ class Printer extends Visitor<Null> {
       writeComma();
       writeExpression(node.message);
     }
-    if (asExpr != true) {
-      endLine(');');
-    } else {
-      writeSymbol(')');
-    }
+    endLine(');');
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -1710,10 +1704,6 @@ class Printer extends Visitor<Null> {
 
   visitLocalInitializer(LocalInitializer node) {
     writeVariableDeclaration(node.variable);
-  }
-
-  visitAssertInitializer(AssertInitializer node) {
-    visitAssertStatement(node.statement, asExpr: true);
   }
 
   defaultInitializer(Initializer node) {

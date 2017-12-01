@@ -833,12 +833,6 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeVariableDeclaration(node.variable);
   }
 
-  visitAssertInitializer(AssertInitializer node) {
-    writeByte(Tag.AssertInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
-    writeNode(node.statement);
-  }
-
   visitFunctionNode(FunctionNode node) {
     writeByte(Tag.FunctionNode);
     assert(_variableIndexer != null);

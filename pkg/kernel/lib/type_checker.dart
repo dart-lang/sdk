@@ -999,11 +999,6 @@ class TypeCheckingVisitor
   }
 
   @override
-  visitAssertInitializer(AssertInitializer node) {
-    visitAssertStatement(node.statement);
-  }
-
-  @override
   visitInvalidInitializer(InvalidInitializer node) {}
 
   @override

@@ -4,7 +4,9 @@ import "dart:core" as core;
 
 class C extends core::Object {
   constructor •(core::Object o) → void
-    : assert(o as{TypeError} core::bool), super core::Object::•()
+    : final dynamic #t1 = (() → dynamic
+      assert(o as{TypeError} core::bool);
+).call(), super core::Object::•()
     ;
 }
 static method main() → dynamic {

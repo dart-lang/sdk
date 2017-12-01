@@ -2941,9 +2941,31 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         break;
 
       case Assert.Initializer:
-        push(new ShadowAssertInitializer(statement));
+        push(buildAssertInitializer(statement));
         break;
     }
+  }
+
+  Initializer buildAssertInitializer(AssertStatement statement) {
+    // Since kernel only has asserts in statment form, we convert it to an
+    // expression by wrapping it in an anonymous function which we call
+    // immediately.
+    //
+    // Additionally, kernel has no initializer that evaluates an expression,
+    // but it does have `LocalInitializer` which requires a variable declartion.
+    //
+    // So we produce an initializer like this:
+    //
+    //    var #t0 = (() { statement; }) ()
+    return new ShadowAssertInitializer(
+        new VariableDeclaration.forValue(buildMethodInvocation(
+            new FunctionExpression(new FunctionNode(statement)),
+            callName,
+            new Arguments.empty(),
+            statement.fileOffset,
+            isConstantExpression: true,
+            isImplicitCall: true)),
+        statement);
   }
 
   @override
