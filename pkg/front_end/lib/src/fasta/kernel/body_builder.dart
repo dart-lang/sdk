@@ -1962,7 +1962,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression condition = pop();
     typePromoter.exitConditional();
     push(new ShadowConditionalExpression(
-        condition, thenExpression, elseExpression));
+        condition, thenExpression, elseExpression)
+      ..fileOffset = question.offset);
   }
 
   @override

@@ -15,6 +15,7 @@ classes: Crash
 covariant_generic: Crash
 default_values: Crash
 duplicated_named_args_3: Crash
+dynamic_and_void: Fail
 escape: Crash
 expressions: Crash
 external: Crash
@@ -34,14 +35,10 @@ inference/bug30251: Crash
 inference/bug30620: Crash
 inference/bug30620_b: Crash
 inference/bug30620_c: Crash
-inference/bug30620_d: Crash
 inference/bug30624: Crash
-inference/bug31132: Crash
 inference/bug31133: Crash
 inference/call_corner_cases: Crash
 inference/complex_predecrement: Crash
-inference/conditional_lub: Crash
-inference/conditional_upwards_inference: Crash
 inference/constructors_infer_from_arguments: Crash
 inference/constructors_infer_from_arguments_redirecting: Crash
 inference/constructors_inference_f_bounded: Crash
@@ -120,7 +117,6 @@ inference/infer_assign_to_property_super: Crash
 inference/infer_assign_to_property_super_upwards: Crash
 inference/infer_assign_to_static: Crash
 inference/infer_assign_to_static_upwards: Crash
-inference/infer_conditional: Crash
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
 inference/infer_from_variables_in_cycle_libs_when_flag_is_on2: Crash
@@ -142,7 +138,6 @@ inference/infer_statics_transitively_2_a: Crash
 inference/infer_statics_transitively_a: Crash
 inference/infer_statics_with_method_invocations: Crash
 inference/infer_statics_with_method_invocations_a: Crash
-inference/infer_throw: Crash
 inference/infer_type_on_var_from_field: Crash
 inference/infer_typed_map_literal: Crash
 inference/infer_types_on_generic_instantiations_4: Crash
@@ -224,7 +219,6 @@ inference_new/infer_assign_to_static_upwards: Crash
 inference_new/infer_logical: Crash
 inference_new/invalid_assignment_during_toplevel_inference: Crash
 inference_new/static_assign_combiner: Crash
-inference_new/strongly_connected_component: Crash
 inference_new/super_index_get: Crash
 inference_new/super_index_get_substitution: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
@@ -239,7 +233,6 @@ named_parameters: Crash
 null_aware: Crash
 operators: Crash
 optional: Crash
-override: Crash
 qualified: Crash
 rasta/abstract_constructor: Crash
 rasta/bad_continue: Crash

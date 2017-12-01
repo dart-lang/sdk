@@ -782,6 +782,26 @@ main() {
     expect(expression.staticType, typeProvider.boolType);
   }
 
+  test_conditionalExpression() async {
+    String content = r'''
+void main() {
+  true ? 1 : 2.3;
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ExpressionStatement statement = statements[0];
+    ConditionalExpression expression = statement.expression;
+    expect(expression.staticType, typeProvider.numType);
+    expect(expression.condition.staticType, typeProvider.boolType);
+    expect(expression.thenExpression.staticType, typeProvider.intType);
+    expect(expression.elseExpression.staticType, typeProvider.doubleType);
+  }
+
   test_error_unresolvedTypeAnnotation() async {
     String content = r'''
 main() {

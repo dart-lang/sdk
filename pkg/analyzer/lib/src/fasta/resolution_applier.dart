@@ -87,6 +87,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    node.condition.accept(this);
+    node.thenExpression.accept(this);
+    node.elseExpression.accept(this);
+    node.staticType = _getTypeFor(node.question);
+  }
+
+  @override
   void visitExpression(Expression node) {
     visitNode(node);
     node.staticType = _getTypeFor(node);
