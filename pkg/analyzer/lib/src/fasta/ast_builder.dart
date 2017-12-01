@@ -2075,6 +2075,8 @@ class AstBuilder extends ScopeListener {
     if (name is SimpleIdentifier) {
       if (name.name == classDeclaration.name.name && getOrSet == null) {
         constructor(name, null, null);
+      } else if (initializers.isNotEmpty) {
+        constructor(name, null, null);
       } else {
         method(null, name);
       }
