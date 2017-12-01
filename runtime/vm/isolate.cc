@@ -503,8 +503,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
 #ifndef PRODUCT
-  TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
-                            "HandleMessage");
+  TimelineDurationScope tds(
+      thread, Timeline::GetIsolateStream(),
+      message->IsOOB() ? "HandleOOBMessage" : "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 #endif

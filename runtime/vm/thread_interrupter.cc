@@ -83,7 +83,7 @@ void ThreadInterrupter::Startup() {
   ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadJoinId);
   {
     MonitorLocker startup_ml(monitor_);
-    OSThread::Start("ThreadInterrupter", ThreadMain, 0);
+    OSThread::Start("Dart Profiler ThreadInterrupter", ThreadMain, 0);
     while (!thread_running_) {
       startup_ml.Wait();
     }
