@@ -240,8 +240,7 @@ class KernelTarget extends TargetImplementation {
     try {
       loader.createTypeInferenceEngine();
       await loader.buildOutlines();
-      loader.coreLibrary
-          .becomeCoreLibrary(const DynamicType(), const VoidType());
+      loader.coreLibrary.becomeCoreLibrary(const DynamicType());
       dynamicType.bind(loader.coreLibrary["dynamic"]);
       loader.resolveParts();
       loader.computeLibraryScopes();

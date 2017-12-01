@@ -79,6 +79,7 @@ import 'kernel_builder.dart'
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
+        VoidTypeBuilder,
         compareProcedures,
         toKernelCombinators;
 
@@ -136,7 +137,8 @@ class KernelLibraryBuilder
   }
 
   KernelTypeBuilder addVoidType(int charOffset) {
-    return addNamedType("void", null, charOffset);
+    return addNamedType("void", null, charOffset)
+      ..bind(new VoidTypeBuilder(const VoidType(), this, charOffset));
   }
 
   void addClass(

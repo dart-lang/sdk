@@ -29,8 +29,7 @@ import 'builder.dart'
         PrefixBuilder,
         Scope,
         ScopeBuilder,
-        TypeBuilder,
-        VoidTypeBuilder;
+        TypeBuilder;
 
 abstract class LibraryBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
@@ -181,10 +180,9 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   int finishTypeVariables(ClassBuilder object) => 0;
 
-  void becomeCoreLibrary(dynamicType, voidType) {
+  void becomeCoreLibrary(dynamicType) {
     addBuilder("dynamic",
         new DynamicTypeBuilder<T, dynamic>(dynamicType, this, -1), -1);
-    addBuilder("void", new VoidTypeBuilder<T, dynamic>(voidType, this, -1), -1);
   }
 
   void forEach(void f(String name, Builder builder)) {
