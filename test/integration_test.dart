@@ -528,6 +528,10 @@ defineTests() {
         var configuredLints =
             ((options['linter'] as YamlMap)['rules'] as YamlList);
 
+        // rules are sorted
+        expect(
+            configuredLints, orderedEquals(configuredLints.toList()..sort()));
+
         registerLintRules();
         expect(
             configuredLints,
