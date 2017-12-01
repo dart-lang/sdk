@@ -2791,6 +2791,36 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   return result.raw();
 }
 
+bool AbstractType::InstantiateAndTestSubtype(
+    AbstractType* subtype,
+    AbstractType* supertype,
+    Error* bound_error,
+    const TypeArguments& instantiator_type_args,
+    const TypeArguments& function_type_args) {
+  if (!subtype->IsInstantiated()) {
+    *subtype =
+        subtype->InstantiateFrom(instantiator_type_args, function_type_args,
+                                 kAllFree, bound_error, NULL, NULL, Heap::kOld);
+  }
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  if (!supertype->IsInstantiated()) {
+    *supertype = supertype->InstantiateFrom(
+        instantiator_type_args, function_type_args, kAllFree, bound_error, NULL,
+        NULL, Heap::kOld);
+  }
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  bool is_subtype_of =
+      subtype->IsSubtypeOf(*supertype, bound_error, NULL, Heap::kOld);
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  return is_subtype_of;
+}
+
 RawArray* Class::invocation_dispatcher_cache() const {
   return raw_ptr()->invocation_dispatcher_cache_;
 }

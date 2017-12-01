@@ -322,6 +322,8 @@ void ConstantPropagator::VisitAssertAssignable(AssertAssignableInstr* instr) {
   }
 }
 
+void ConstantPropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
+
 void ConstantPropagator::VisitAssertBoolean(AssertBooleanInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {

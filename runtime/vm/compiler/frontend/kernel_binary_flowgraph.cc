@@ -4025,6 +4025,8 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   }
 
   FunctionNodeHelper function_node_helper(this);
+  function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
+  intptr_t type_parameters_offset = ReaderOffset();
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
   intptr_t first_parameter_offset = -1;
@@ -4072,8 +4074,40 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
   // If we run in checked mode or strong mode, we have to check the type of the
   // passed arguments.
   if (I->argument_type_checks()) {
-    // Positional.
+    AlternativeReadingScope _(reader_);
+    SetOffset(type_parameters_offset);
+
+    // Type parameters
     intptr_t list_length = ReadListLength();
+    for (intptr_t i = 0; i < list_length; ++i) {
+      ReadFlags();                                         // skip flags
+      SkipListOfExpressions();                             // skip annotations
+      String& name = H.DartSymbol(ReadStringReference());  // read name
+      const AbstractType& bound = T.BuildType();           // read bound
+
+      if (I->strong() && !bound.IsObjectType() &&
+          (I->reify_generic_functions() || dart_function.IsFactory())) {
+        ASSERT(!bound.IsDynamicType());
+        TypeParameter& param = TypeParameter::Handle(Z);
+        if (dart_function.IsFactory()) {
+          param ^= TypeArguments::Handle(
+                       Class::Handle(dart_function.Owner()).type_parameters())
+                       .TypeAt(i);
+        } else {
+          param ^=
+              TypeArguments::Handle(dart_function.type_parameters()).TypeAt(i);
+        }
+        ASSERT(param.IsFinalized());
+        body += CheckTypeArgumentBound(param, bound, name);
+      }
+    }
+
+    function_node_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
+    function_node_helper.ReadUntilExcluding(
+        FunctionNodeHelper::kPositionalParameters);
+
+    // Positional.
+    list_length = ReadListLength();
     for (intptr_t i = 0; i < list_length; ++i) {
       // ith variable offset.
       body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
@@ -4092,7 +4126,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
       SkipVariableDeclaration();  // read ith variable.
     }
 
-    function_node_helper.SetJustRead(FunctionNodeHelper::kNamedParameters);
+    function_node_helper.SetNext(FunctionNodeHelper::kPositionalParameters);
   }
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kBody);
@@ -5706,6 +5740,14 @@ Fragment StreamingFlowGraphBuilder::CheckArgumentType(
   LocalVariable* variable = LookupVariable(variable_kernel_position);
   return flow_graph_builder_->CheckAssignable(variable->type(),
                                               variable->name());
+}
+
+Fragment StreamingFlowGraphBuilder::CheckTypeArgumentBound(
+    const AbstractType& parameter,
+    const AbstractType& bound,
+    const String& dst_name) {
+  return flow_graph_builder_->AssertSubtype(TokenPosition::kNoSource, parameter,
+                                            bound, dst_name);
 }
 
 Fragment StreamingFlowGraphBuilder::CheckVariableTypeInCheckedMode(

@@ -266,9 +266,6 @@ constructor_redirect1_negative_test: MissingCompileTimeError
 constructor_redirect2_negative_test: MissingCompileTimeError
 constructor_redirect2_test/01: MissingCompileTimeError # Fasta bug: Body on redirecting constructor.
 constructor_redirect_test/01: MissingCompileTimeError # Fasta bug: Initializer refers to this.
-covariance_type_parameter_test/01: RuntimeError
-covariance_type_parameter_test/02: RuntimeError
-covariance_type_parameter_test/03: RuntimeError
 covariant_override/tear_off_type_test: RuntimeError
 covariant_subtyping_test: CompileTimeError
 covariant_subtyping_test: RuntimeError
@@ -1389,7 +1386,6 @@ function_subtype_checked0_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 function_subtype_setter0_test: RuntimeError
 generic_list_checked_test: RuntimeError
-generic_methods_bounds_test/02: MissingRuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/02: MissingCompileTimeError # KernelVM bug: Issue 15101
 mixin_forwarding_constructor4_test/03: MissingCompileTimeError # KernelVM bug: Issue 15101
@@ -1435,7 +1431,6 @@ const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
-covariance_type_parameter_test/none: RuntimeError
 default_factory2_test/01: Fail
 factory_redirection_test/08: Fail
 factory_redirection_test/09: Fail
@@ -2107,7 +2102,6 @@ generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_list_checked_test: RuntimeError
 generic_methods_bounds_test/01: Crash
 generic_methods_bounds_test/01: MissingCompileTimeError
-generic_methods_bounds_test/02: MissingRuntimeError
 generic_methods_generic_class_tearoff_test: RuntimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_optional_parameters_test: Pass
@@ -3107,10 +3101,6 @@ const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
 const_constructor2_test/24: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
-covariance_type_parameter_test/01: RuntimeError
-covariance_type_parameter_test/02: RuntimeError
-covariance_type_parameter_test/03: RuntimeError
-covariance_type_parameter_test/none: RuntimeError
 default_factory2_test/01: Fail
 factory_redirection_test/08: Fail
 factory_redirection_test/09: Fail
@@ -3169,9 +3159,6 @@ covariance_field_test/02: RuntimeError
 covariance_field_test/03: RuntimeError
 covariance_field_test/04: RuntimeError
 covariance_field_test/05: RuntimeError
-covariance_type_parameter_test/01: RuntimeError
-covariance_type_parameter_test/02: RuntimeError
-covariance_type_parameter_test/03: RuntimeError
 covariant_override/runtime_check_test: RuntimeError
 deferred_constraints_type_annotation_test/type_annotation1: Crash # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # KernelVM bug: Deferred loading kernel issue 28335.

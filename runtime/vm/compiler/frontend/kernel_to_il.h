@@ -753,6 +753,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment AssertAssignable(TokenPosition position,
                             const AbstractType& dst_type,
                             const String& dst_name);
+  Fragment AssertSubtype(TokenPosition position,
+                         const AbstractType& sub_type,
+                         const AbstractType& super_type,
+                         const String& dst_name);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);

@@ -462,6 +462,16 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(")");
 }
 
+void AssertSubtypeInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, %s, '%s',", sub_type().ToCString(), super_type().ToCString(),
+           dst_name().ToCString());
+  f->Print(" instantiator_type_args(");
+  instantiator_type_arguments()->PrintTo(f);
+  f->Print("), function_type_args(");
+  function_type_arguments()->PrintTo(f);
+  f->Print(")");
+}
+
 void AssertBooleanInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
 }

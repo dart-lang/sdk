@@ -2198,6 +2198,25 @@ Fragment FlowGraphBuilder::AssertAssignable(TokenPosition position,
   return instructions;
 }
 
+Fragment FlowGraphBuilder::AssertSubtype(TokenPosition position,
+                                         const AbstractType& sub_type,
+                                         const AbstractType& super_type,
+                                         const String& dst_name) {
+  Fragment instructions;
+
+  instructions += LoadInstantiatorTypeArguments();
+  Value* instantiator_type_args = Pop();
+  instructions += LoadFunctionTypeArguments();
+  Value* function_type_args = Pop();
+
+  AssertSubtypeInstr* instr = new (Z)
+      AssertSubtypeInstr(position, instantiator_type_args, function_type_args,
+                         sub_type, super_type, dst_name, GetNextDeoptId());
+  instructions += Fragment(instr);
+
+  return instructions;
+}
+
 FlowGraph* FlowGraphBuilder::BuildGraphOfMethodExtractor(
     const Function& method) {
   // A method extractor is the implicit getter for a method.

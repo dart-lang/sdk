@@ -1139,6 +1139,9 @@ class StreamingFlowGraphBuilder {
   Fragment CheckAssignableInCheckedMode(const AbstractType& dst_type,
                                         const String& dst_name);
   Fragment CheckArgumentType(intptr_t variable_kernel_position);
+  Fragment CheckTypeArgumentBound(const AbstractType& parameter,
+                                  const AbstractType& bound,
+                                  const String& dst_name);
   Fragment CheckVariableTypeInCheckedMode(intptr_t variable_kernel_position);
   Fragment CheckVariableTypeInCheckedMode(const AbstractType& dst_type,
                                           const String& name_symbol);

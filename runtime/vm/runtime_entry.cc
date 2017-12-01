@@ -356,6 +356,45 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 3) {
   arguments.SetReturn(type_arguments);
 }
 
+// Instantiate type.
+// Arg0: type to be a subtype of the other
+// Arg1: type to be a supertype of the other
+// Arg2: instantiator type arguments
+// Arg3: function type arguments
+// Arg4: variable name of the subtype parameter
+// No return value.
+DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
+  AbstractType& subtype = AbstractType::CheckedHandle(zone, arguments.ArgAt(0));
+  AbstractType& supertype =
+      AbstractType::CheckedHandle(zone, arguments.ArgAt(1));
+  const TypeArguments& instantiator_type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
+  const TypeArguments& function_type_args =
+      TypeArguments::CheckedHandle(zone, arguments.ArgAt(3));
+  const String& dst_name = String::CheckedHandle(zone, arguments.ArgAt(4));
+
+  ASSERT(!subtype.IsNull() && !subtype.IsMalformedOrMalbounded());
+  ASSERT(!supertype.IsNull() && !supertype.IsMalformedOrMalbounded());
+
+  // The supertype or subtype may not be instantiated.
+  Error& bound_error = Error::Handle(zone);
+  if (AbstractType::InstantiateAndTestSubtype(
+          &subtype, &supertype, &bound_error, instantiator_type_args,
+          function_type_args)) {
+    return;
+  }
+
+  // Throw a dynamic type error.
+  const TokenPosition location = GetCallerLocation();
+  String& bound_error_message = String::Handle(zone);
+  if (!bound_error.IsNull()) {
+    bound_error_message = String::New(bound_error.ToErrorCString());
+  }
+  Exceptions::CreateAndThrowTypeError(location, subtype, supertype, dst_name,
+                                      bound_error_message);
+  UNREACHABLE();
+}
+
 // Allocate a new context large enough to hold the given number of variables.
 // Arg0: number of variables.
 // Return value: newly allocated context.
