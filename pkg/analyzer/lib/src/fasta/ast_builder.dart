@@ -2399,6 +2399,16 @@ class AstBuilder extends ScopeListener {
     errorReporter.reportMessage(message, offset, length);
   }
 
+  @override
+  void addWarning(Message message, int charOffset, int length) {
+    library.addWarning(message, charOffset, uri);
+  }
+
+  @override
+  void addNit(Message message, int charOffset) {
+    library.addNit(message, charOffset, uri);
+  }
+
   /// Return `true` if [token] is either `null` or is the symbol or keyword
   /// [value].
   bool optionalOrNull(String value, Token token) {

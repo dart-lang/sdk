@@ -572,7 +572,6 @@ list_test/none: Crash
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 bool_from_environment2_test/03: MissingCompileTimeError
-collection_removes_test: RuntimeError
 compare_to2_test: RuntimeError
 int_modulo_arith_test/modPow: CompileTimeError # Issue 31402 (Assert statement)
 int_modulo_arith_test/none: CompileTimeError # Issue 31402 (Assert statement)

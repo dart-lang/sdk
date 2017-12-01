@@ -1052,7 +1052,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoGetter.withArguments(name.name)
         : fasta.templateGetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset, name.name.length, context: context);
+      addWarning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
@@ -1064,7 +1064,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoSetter.withArguments(name.name)
         : fasta.templateSetterNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset, name.name.length, context: context);
+      addWarning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
@@ -1076,14 +1076,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         ? fasta.templateSuperclassHasNoMethod.withArguments(name.name)
         : fasta.templateMethodNotFound.withArguments(name.name);
     if (reportWarning) {
-      warning(message, charOffset, name.name.length, context: context);
+      addWarning(message, charOffset, name.name.length, context: context);
     }
     return message;
   }
 
   @override
   void warnTypeArgumentsMismatch(String name, int expected, int charOffset) {
-    warning(
+    addWarning(
         fasta.templateTypeArgumentMismatch.withArguments(name, '${expected}'),
         charOffset,
         name.length);
@@ -3261,15 +3261,13 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation) {
+      // TODO(danrubel): Ignore this error until we deprecate `native` support.
       return;
     }
-    bool silent = hasParserError ||
-        message.code == fasta.codeFinalFieldWithoutInitializer ||
-        message.code == fasta.codeConstFieldWithoutInitializer;
-    deprecated_addCompileTimeError(offsetForToken(startToken), message.message,
-        silent: silent);
+    int start = offsetForToken(startToken);
+    int length = (start == -1) ? 1 : (offsetForToken(endToken) - start);
+    addCompileTimeError(message, start, length);
   }
 
   @override
@@ -3335,7 +3333,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   Expression buildAbstractClassInstantiationError(
       Message message, String className,
       [int charOffset = -1]) {
-    warning(message, charOffset, className.length);
+    addWarning(message, charOffset, className.length);
     Builder constructor = library.loader.getAbstractClassInstantiationError();
     return new Throw(buildStaticInvocation(constructor.target,
         new ShadowArguments(<Expression>[new StringLiteral(className)])));
@@ -3467,12 +3465,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   dynamic deprecated_addCompileTimeError(int charOffset, String message,
-      {bool silent: false, bool wasHandled: false}) {
+      {bool wasHandled: false}) {
     // TODO(ahe): If constantExpressionRequired is set, set it to false to
     // avoid a long list of errors.
     return library.addCompileTimeError(
         fasta.templateUnspecified.withArguments(message), charOffset, uri,
-        silent: silent, wasHandled: wasHandled);
+        wasHandled: wasHandled);
   }
 
   @override
@@ -3487,25 +3485,6 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     }
   }
 
-  void warningNotError(Message message, int charOffset) {
-    library.addWarning(message, charOffset, uri);
-  }
-
-  @override
-  void warning(Message message, int offset, int length,
-      {LocatedMessage context}) {
-    if (constantExpressionRequired) {
-      addCompileTimeError(message, offset, length);
-    } else {
-      library.addWarning(message, offset, uri, context: context);
-    }
-  }
-
-  @override
-  void nit(Message message, int charOffset) {
-    library.addNit(message, charOffset, uri);
-  }
-
   @override
   DartType validatedTypeVariableUse(
       TypeParameterType type, int offset, bool nonInstanceAccessIsError) {
@@ -3515,7 +3494,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       if (nonInstanceAccessIsError) {
         addCompileTimeError(message, offset, length);
       } else {
-        warning(message, offset, length);
+        addWarning(message, offset, length);
       }
       return const InvalidType();
     } else if (constantExpressionRequired) {
@@ -3568,7 +3547,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
           warnUnresolvedMethod(name, offset, isSuper: true);
         } else if (!areArgumentsCompatible(target.function, arguments)) {
           target = null;
-          warning(
+          addWarning(
               fasta.templateSuperclassMethodArgumentMismatch
                   .withArguments(name.name),
               offset,
@@ -3605,8 +3584,27 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void addCompileTimeError(Message message, int offset, int length) {
-    library.addCompileTimeError(message, offset, uri);
+  void addCompileTimeError(Message message, int charOffset, int length) {
+    library.addCompileTimeError(message, charOffset, uri);
+  }
+
+  void warningNotError(Message message, int charOffset) {
+    library.addWarning(message, charOffset, uri);
+  }
+
+  @override
+  void addWarning(Message message, int charOffset, int length,
+      {LocatedMessage context}) {
+    if (constantExpressionRequired) {
+      addCompileTimeError(message, charOffset, length);
+    } else {
+      library.addWarning(message, charOffset, uri, context: context);
+    }
+  }
+
+  @override
+  void addNit(Message message, int charOffset) {
+    library.addNit(message, charOffset, uri);
   }
 
   @override
