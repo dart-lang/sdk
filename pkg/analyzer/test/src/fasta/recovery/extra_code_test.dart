@@ -37,6 +37,22 @@ int get g() => 0;
 int get g => 0;
 ''');
   }
+
+  void test_multipleRedirectingInitializers() {
+    testRecovery('''
+class A {
+  A() : this.a(), this.b();
+  A.a() {}
+  A.b() {}
+}
+''', [], '''
+class A {
+  A() : this.a(), this.b();
+  A.a() {}
+  A.b() {}
+}
+''');
+  }
 }
 
 /**
