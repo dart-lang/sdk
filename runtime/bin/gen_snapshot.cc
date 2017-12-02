@@ -1388,6 +1388,10 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
   char* error = NULL;
   IsolateData* isolate_data = new IsolateData(NULL, commandline_package_root,
                                               commandline_packages_file, NULL);
+  if ((dependencies_filename != NULL) || print_dependencies) {
+    isolate_data->set_dependencies(new MallocGrowableArray<char*>());
+  }
+
   Dart_Isolate isolate = Dart_CreateIsolateFromKernel(
       NULL, NULL, kernel_program, NULL, isolate_data, &error);
   if (isolate == NULL) {
@@ -1421,11 +1425,17 @@ static int GenerateSnapshotFromKernelProgram(void* kernel_program) {
       return kErrorExitCode;
     }
 
+    if (commandline_packages_file != NULL) {
+      AddDependency(commandline_packages_file);
+    }
+
     Dart_QualifiedFunctionName* entry_points =
         ParseEntryPointsManifestIfPresent();
     SetupStubNativeResolversForPrecompilation(entry_points);
     SetupStubNativeResolvers();
     CreateAndWritePrecompiledSnapshot(entry_points);
+
+    CreateAndWriteDependenciesFile();
 
     CleanupEntryPointsCollection(entry_points);
   } else {
