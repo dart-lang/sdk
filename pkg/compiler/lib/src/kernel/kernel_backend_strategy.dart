@@ -92,20 +92,22 @@ class KernelSsaBuilder implements SsaBuilder {
 
   @override
   HGraph build(CodegenWorkItem work, ClosedWorld closedWorld) {
-    KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
-        work.element,
-        _elementMap.getMemberThisType(work.element),
-        _compiler,
-        _elementMap,
-        _compiler.globalInference.results,
-        _globalLocalsMap,
-        closedWorld,
-        _compiler.codegenWorldBuilder,
-        work.registry,
-        _compiler.backendStrategy.closureDataLookup,
-        _compiler.backend.emitter.nativeEmitter,
-        _compiler.backend.sourceInformationStrategy);
-    return builder.build();
+    return task.measure(() {
+      KernelSsaGraphBuilder builder = new KernelSsaGraphBuilder(
+          work.element,
+          _elementMap.getMemberThisType(work.element),
+          _compiler,
+          _elementMap,
+          _compiler.globalInference.results,
+          _globalLocalsMap,
+          closedWorld,
+          _compiler.codegenWorldBuilder,
+          work.registry,
+          _compiler.backendStrategy.closureDataLookup,
+          _compiler.backend.emitter.nativeEmitter,
+          _compiler.backend.sourceInformationStrategy);
+      return builder.build();
+    });
   }
 }
 

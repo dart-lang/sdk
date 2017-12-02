@@ -78,6 +78,8 @@ class SsaBuilderTask extends CompilerTask {
   SsaBuilderTask(this._backend, this._sourceInformationFactory)
       : super(_backend.compiler.measurer);
 
+  String get name => 'SSA builder';
+
   void onCodegenStart() {
     _builder = _backend.compiler.backendStrategy
         .createSsaBuilder(this, _backend, _sourceInformationFactory);
