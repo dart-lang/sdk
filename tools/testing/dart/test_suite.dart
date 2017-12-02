@@ -261,6 +261,15 @@ abstract class TestSuite {
       [TestInformation info]) {
     var displayName = '$suiteName/$testName';
 
+    // If the test is not going to be run at all, then a RuntimeError will
+    // never occur. Instead, treat that as Pass.
+    if (configuration.runtime == Runtime.none &&
+        expectations.contains(Expectation.runtimeError)) {
+      expectations = expectations.toSet();
+      expectations.remove(Expectation.runtimeError);
+      if (expectations.isEmpty) expectations.add(Expectation.pass);
+    }
+
     var negative = info != null ? isNegative(info) : false;
     var testCase = new TestCase(
         displayName, commands, configuration, expectations,
