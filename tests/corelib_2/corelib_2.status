@@ -565,10 +565,6 @@ symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 unicode_test: RuntimeError
 
-[ $compiler == dartk && $runtime == vm && $strong && $mode == debug ]
-list_test/01: Crash
-list_test/none: Crash
-
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 bool_from_environment2_test/03: MissingCompileTimeError
@@ -606,8 +602,6 @@ unicode_test: RuntimeError
 bit_twiddling_test/int64: CompileTimeError
 integer_parsed_arith_vm_test/01: RuntimeError
 integer_parsed_arith_vm_test/02: RuntimeError
-list_test/01: Crash
-list_test/none: Crash
 
 [ $compiler == dartdevk ]
 bool_from_environment2_test/01: MissingCompileTimeError
