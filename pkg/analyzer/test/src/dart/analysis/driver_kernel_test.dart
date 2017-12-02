@@ -62,13 +62,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_changeFile_selfConsistent() async {
-    await super.test_changeFile_selfConsistent();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_const_annotation_withArgs() async {
     await super.test_const_annotation_withArgs();
   }
@@ -223,13 +216,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_getResult_nameConflict_local_typeInference() async {
     await super.test_getResult_nameConflict_local_typeInference();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_getResult_selfConsistent() async {
-    await super.test_getResult_selfConsistent();
   }
 
   @failingTest

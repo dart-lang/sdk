@@ -200,7 +200,7 @@ class LibraryAnalyzer {
           (fileSystem, bool includeComments, dillTarget, uriTranslator,
                   {metadataCollector}) =>
               analyzerTarget ??= new AnalyzerTarget(fileSystem, dillTarget,
-                  uriTranslator, _analysisOptions.strongMode),
+                  uriTranslator, _analysisOptions.strongMode, _library.uri),
           _library.uri);
 
       var resolutions = new _ResolutionProvider(analyzerTarget.resolutions);
