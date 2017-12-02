@@ -16,6 +16,24 @@ main() {
 
 @reflectiveTest
 class AstBuilderTest extends FastaParserTestCase {
+  void test_constructor_factory_misnamed() {
+    CompilationUnit unit = parseCompilationUnit('''
+class A {
+  factory B() => null;
+}
+''');
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(1));
+    ClassDeclaration declaration = unit.declarations[0];
+    expect(declaration, isNotNull);
+    expect(declaration.members, hasLength(1));
+    ConstructorDeclaration member = declaration.members[0];
+    expect(member, isNotNull);
+    expect(member.factoryKeyword, isNotNull);
+    expect(member.name, isNull);
+    expect(member.returnType.name, 'B');
+  }
+
   void test_constructor_wrongName() {
     CompilationUnit unit = parseCompilationUnit('''
 class A {

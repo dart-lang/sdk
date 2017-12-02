@@ -2841,10 +2841,6 @@ class Parser {
     // In addition, the loop below will include things that can't be
     // identifiers. This may be desirable (for error recovery), or
     // not. Regardless, this method probably needs an overhaul.
-
-    // TODO(brianwilkerson) Return the tokens before the tokens that are
-    // currently being returned so that they can be passed in where the last
-    // consumed token is required.
     Link<Token> identifiers = const Link<Token>();
 
     // `true` if 'get' has been seen.
