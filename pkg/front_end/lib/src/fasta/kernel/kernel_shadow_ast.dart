@@ -2305,9 +2305,9 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.variableAssignEnter(desugared, typeContext) ||
-            typeNeeded;
+    typeNeeded = inferrer.listener
+            .variableAssignEnter(desugared, typeContext, this.write) ||
+        typeNeeded;
     DartType readType;
     var read = this.read;
     if (read is VariableGet) {
@@ -2322,8 +2322,8 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
       }
     }
     var inferredResult = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.variableAssignExit(
-        desugared, writeContext, inferredResult.combiner, inferredResult.type);
+    inferrer.listener.variableAssignExit(desugared, writeContext, write,
+        inferredResult.combiner, inferredResult.type);
     _replaceWithDesugared();
     return inferredResult.type;
   }

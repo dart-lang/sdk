@@ -449,6 +449,44 @@ class C {
     }
   }
 
+  test_assignmentExpression_nullAware_local() async {
+    String content = r'''
+main() {
+  String v;
+  v ??= 'test';
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableElement v;
+    {
+      VariableDeclarationStatement statement = mainStatements[0];
+      v = statement.variables.variables[0].element;
+    }
+
+    {
+      ExpressionStatement statement = mainStatements[1];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.QUESTION_QUESTION_EQ);
+      expect(assignment.staticElement, isNull);
+      expect(assignment.staticType, typeProvider.stringType);
+
+      SimpleIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(v));
+      expect(left.staticType, typeProvider.stringType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.stringType);
+    }
+  }
+
   test_assignmentExpression_simple_indexExpression() async {
     String content = r'''
 main() {

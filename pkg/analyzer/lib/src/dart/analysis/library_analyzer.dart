@@ -1041,7 +1041,7 @@ class _ResolutionApplierContext implements TypeContext {
         } else {
           element = memberElement;
         }
-      } else if (referencedNode is kernel.NullAssignmentCombinerNode) {
+      } else if (referencedNode is kernel.NullNode) {
         element = null;
       } else {
         throw new UnimplementedError(

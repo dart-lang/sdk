@@ -110,8 +110,6 @@ inference/greatest_closure_multiple_params: Crash
 inference/infer_assign_to_index_full: Crash
 inference/infer_assign_to_index_super: Crash
 inference/infer_assign_to_index_this: Crash
-inference/infer_assign_to_local: Crash
-inference/infer_assign_to_local_upwards: Crash
 inference/infer_assign_to_property_super: Crash
 inference/infer_assign_to_property_super_upwards: Crash
 inference/infer_assign_to_static: Crash
@@ -208,8 +206,6 @@ inference_new/infer_assign_to_index_super_upwards: Crash
 inference_new/infer_assign_to_index_this: Crash
 inference_new/infer_assign_to_index_this_upwards: Crash
 inference_new/infer_assign_to_index_upwards: Crash
-inference_new/infer_assign_to_local: Crash
-inference_new/infer_assign_to_local_upwards: Crash
 inference_new/infer_assign_to_property_super: Crash
 inference_new/infer_assign_to_property_super_upwards: Crash
 inference_new/infer_assign_to_ref: Crash
@@ -222,7 +218,6 @@ inference_new/super_index_get: Crash
 inference_new/super_index_get_substitution: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
-invalid_assignment: Crash
 invocations: Crash
 local_generic_function: Crash
 metadata_enum: Crash
@@ -242,7 +237,6 @@ rasta/breaking_bad: Crash
 rasta/cascades: Crash
 rasta/class_hierarchy: Crash
 rasta/deferred_load: Crash
-rasta/for_loop: Crash
 rasta/generic_factory: Crash
 rasta/issue_000001: Crash
 rasta/issue_000002: Crash

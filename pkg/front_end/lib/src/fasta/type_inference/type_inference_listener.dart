@@ -474,11 +474,12 @@ class TypeInferenceListener
   void typeLiteralExit(TypeLiteral expression, DartType inferredType) =>
       genericExpressionExit("typeLiteral", expression, inferredType);
 
-  bool variableAssignEnter(Expression expression, DartType typeContext) =>
+  bool variableAssignEnter(
+          Expression expression, DartType typeContext, Expression write) =>
       genericExpressionEnter("variableAssign", expression, typeContext);
 
   void variableAssignExit(Expression expression, DartType writeContext,
-          Procedure combiner, DartType inferredType) =>
+          Expression write, Procedure combiner, DartType inferredType) =>
       genericExpressionExit("variableAssign", expression, inferredType);
 
   void variableDeclarationEnter(VariableDeclaration statement) =>

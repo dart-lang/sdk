@@ -172,16 +172,17 @@ class MemberSetterNode implements TreeNode {
   }
 }
 
-/// The type of [TreeNode] node that is used as a marker for using `null`
-/// combiner for not compound assignments.
-class NullAssignmentCombinerNode implements TreeNode {
-  const NullAssignmentCombinerNode();
+/// The type of [TreeNode] node that is used as a marker for `null`.
+class NullNode implements TreeNode {
+  final String kind;
+
+  const NullNode(this.kind);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   String toString() {
-    return '(null-assignment-combiner)';
+    return '(null-$kind)';
   }
 }
 
@@ -262,7 +263,7 @@ class ResolutionStorer extends TypeInferenceListener {
     _replaceReference(writeMember);
     _replaceType(inferredType);
     _recordReference(
-        combiner ?? const NullAssignmentCombinerNode(), write.fileOffset);
+        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
     _recordType(inferredType, write.fileOffset);
   }
 
@@ -353,7 +354,7 @@ class ResolutionStorer extends TypeInferenceListener {
     _replaceReference(new MemberSetterNode(writeMember));
     _replaceType(writeContext);
     _recordReference(
-        combiner ?? const NullAssignmentCombinerNode(), write.fileOffset);
+        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
     _recordType(inferredType, write.fileOffset);
   }
 
@@ -420,21 +421,23 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool variableAssignEnter(Expression expression, DartType typeContext) {
-    _deferReference(expression.fileOffset);
-    _deferType(expression.fileOffset);
-    return super.variableAssignEnter(expression, typeContext);
+  bool variableAssignEnter(
+      Expression expression, DartType typeContext, Expression write) {
+    _deferReference(write.fileOffset);
+    _deferType(write.fileOffset);
+    return super.variableAssignEnter(expression, typeContext, write);
   }
 
   @override
   void variableAssignExit(Expression expression, DartType writeContext,
-      Procedure combiner, DartType inferredType) {
-    VariableSet variableSet = expression;
-    _replaceReference(variableSet.variable);
+      Expression write, Procedure combiner, DartType inferredType) {
+    _replaceReference(write is VariableSet
+        ? write.variable
+        : const NullNode('writable-variable'));
     _replaceType(writeContext);
     _recordReference(
-        combiner ?? const NullAssignmentCombinerNode(), variableSet.fileOffset);
-    super.variableAssignExit(expression, writeContext, combiner, inferredType);
+        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
+    _recordType(inferredType, write.fileOffset);
   }
 
   @override
