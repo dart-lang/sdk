@@ -1324,7 +1324,8 @@ class Parser {
       }
       token = parseMetadataStar(token);
       if (!identical(token.next, next)) {
-        reportRecoverableError(next, fasta.messageAnnotationOnEnumConstant);
+        listener.handleRecoverableError(
+            fasta.messageAnnotationOnEnumConstant, next, token);
       }
       token =
           ensureIdentifier(token, IdentifierContext.enumValueDeclaration).next;

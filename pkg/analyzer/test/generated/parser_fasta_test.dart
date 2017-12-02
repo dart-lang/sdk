@@ -72,22 +72,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     with ErrorParserTestMixin {
   @override
   @failingTest
-  void test_annotationOnEnumConstant_first() {
-    // TODO(brianwilkerson) Fix highlight region.
-    // This is highlighting the '@', but should highlight the whole annotation.
-    super.test_annotationOnEnumConstant_first();
-  }
-
-  @override
-  @failingTest
-  void test_annotationOnEnumConstant_middle() {
-    // TODO(brianwilkerson) Fix highlight region.
-    // This is highlighting the '@', but should highlight the whole annotation.
-    super.test_annotationOnEnumConstant_middle();
-  }
-
-  @override
-  @failingTest
   void test_breakOutsideOfLoop_breakInIfStatement() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.BREAK_OUTSIDE_OF_LOOP, found 0
