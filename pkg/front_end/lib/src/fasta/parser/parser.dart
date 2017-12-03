@@ -5985,6 +5985,14 @@ class Parser {
 
   /// Create and return a token whose next token is the given [token].
   Token syntheticPreviousToken(Token token) {
+    // Return the previous token if there is one so that any token inserted
+    // before `token` will be properly inserted into the token stream.
+    // TODO(danrubel): remove this once all methods have been converted to
+    // use and return the last token consumed and the `previous` field
+    // has been removed.
+    if (token.previous != null) {
+      return token.previous;
+    }
     Token before = new Token.eof(-1);
     before.next = token;
     return before;
