@@ -320,6 +320,9 @@ class _KernelWrapperOfType implements kernel.DartType {
 /// Test implementation of [TypeContext].
 class _TestTypeContext implements TypeContext {
   @override
+  ClassElement get enclosingClassElement => null;
+
+  @override
   DartType get typeType => null;
 
   @override

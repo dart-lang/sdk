@@ -736,9 +736,9 @@ class LibraryAnalyzer {
             member.fields.variables[0].initializer?.accept(applier);
             applier.checkDone();
           } else if (member is MethodDeclaration) {
-            // TODO(scheglov) Pass in the actual context element.
+            ExecutableElementImpl context = member.element;
             var resolution = resolutions.next();
-            var applier = _createResolutionApplier(null, resolution);
+            var applier = _createResolutionApplier(context, resolution);
             member.body.accept(applier);
             applier.checkDone();
           } else {
@@ -974,6 +974,9 @@ class _ResolutionApplierContext implements TypeContext {
   final TypeProvider typeProvider;
   final CollectedResolution resolution;
 
+  @override
+  ClassElement enclosingClassElement;
+
   List<ElementImpl> contextStack = [];
   ElementImpl context;
 
@@ -988,6 +991,15 @@ class _ResolutionApplierContext implements TypeContext {
 
   _ResolutionApplierContext(
       this.resynthesizer, this.typeProvider, this.resolution, this.context) {
+    for (Element element = context;
+        element != null;
+        element = element.enclosingElement) {
+      if (element is ClassElement) {
+        enclosingClassElement = element;
+        break;
+      }
+    }
+
     // Convert local declarations into elements.
     for (var declaredNode in resolution.kernelDeclarations) {
       translateKernelDeclaration(declaredNode);

@@ -2039,6 +2039,237 @@ void main() {
     }
   }
 
+  test_super() async {
+    String content = r'''
+class A {
+  void method(int p) {}
+  int get getter => 0;
+  void set setter(int p) {}
+  int operator+(int p) => 0;
+}
+class B extends A {
+  void test() {
+    method(1);
+    super.method(2);
+    getter;
+    super.getter;
+    setter = 3;
+    super.setter = 4;
+    this + 5;
+  }
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration aNode = result.unit.declarations[0];
+    ClassDeclaration bNode = result.unit.declarations[1];
+
+    MethodElement methodElement = aNode.members[0].element;
+    PropertyAccessorElement getterElement = aNode.members[1].element;
+    PropertyAccessorElement setterElement = aNode.members[2].element;
+    MethodElement operatorElement = aNode.members[3].element;
+
+    MethodDeclaration testNode = bNode.members[0];
+    BlockFunctionBody testBody = testNode.body;
+    List<Statement> testStatements = testBody.block.statements;
+
+    // method(1);
+    {
+      ExpressionStatement statement = testStatements[0];
+      MethodInvocation invocation = statement.expression;
+
+      expect(invocation.target, isNull);
+
+      expect(invocation.methodName.staticElement, same(methodElement));
+    }
+
+    // super.method(2);
+    {
+      ExpressionStatement statement = testStatements[1];
+      MethodInvocation invocation = statement.expression;
+
+      SuperExpression target = invocation.target;
+      expect(target.staticType, bNode.element.type); // raw
+
+      expect(invocation.methodName.staticElement, same(methodElement));
+    }
+
+    // getter;
+    {
+      ExpressionStatement statement = testStatements[2];
+      SimpleIdentifier identifier = statement.expression;
+
+      expect(identifier.staticElement, same(getterElement));
+      expect(identifier.staticType, same(typeProvider.intType));
+    }
+
+    // super.getter;
+    {
+      ExpressionStatement statement = testStatements[3];
+      PropertyAccess propertyAccess = statement.expression;
+      expect(propertyAccess.staticType, same(typeProvider.intType));
+
+      SuperExpression target = propertyAccess.target;
+      expect(target.staticType, bNode.element.type); // raw
+
+      expect(propertyAccess.propertyName.staticElement, same(getterElement));
+      expect(
+          propertyAccess.propertyName.staticType, same(typeProvider.intType));
+    }
+
+    // setter = 3;
+    {
+      ExpressionStatement statement = testStatements[4];
+      AssignmentExpression assignment = statement.expression;
+
+      SimpleIdentifier identifier = assignment.leftHandSide;
+      expect(identifier.staticElement, same(setterElement));
+      expect(identifier.staticType, same(typeProvider.intType));
+    }
+
+    // this.setter = 4;
+    {
+      ExpressionStatement statement = testStatements[5];
+      AssignmentExpression assignment = statement.expression;
+
+      PropertyAccess propertyAccess = assignment.leftHandSide;
+
+      SuperExpression target = propertyAccess.target;
+      expect(target.staticType, bNode.element.type); // raw
+
+      expect(propertyAccess.propertyName.staticElement, same(setterElement));
+      expect(
+          propertyAccess.propertyName.staticType, same(typeProvider.intType));
+    }
+
+    // super + 5;
+    {
+      ExpressionStatement statement = testStatements[6];
+      BinaryExpression binary = statement.expression;
+
+      ThisExpression target = binary.leftOperand;
+      expect(target.staticType, bNode.element.type); // raw
+
+      expect(binary.staticElement, same(operatorElement));
+      expect(binary.staticType, typeProvider.intType);
+    }
+  }
+
+  test_this() async {
+    String content = r'''
+class A {
+  void method(int p) {}
+  int get getter => 0;
+  void set setter(int p) {}
+  int operator+(int p) => 0;
+  void test() {
+    method(1);
+    this.method(2);
+    getter;
+    this.getter;
+    setter = 3;
+    this.setter = 4;
+    this + 5;
+  }
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration aNode = result.unit.declarations[0];
+
+    MethodElement methodElement = aNode.members[0].element;
+    PropertyAccessorElement getterElement = aNode.members[1].element;
+    PropertyAccessorElement setterElement = aNode.members[2].element;
+    MethodElement operatorElement = aNode.members[3].element;
+
+    MethodDeclaration testNode = aNode.members[4];
+    BlockFunctionBody testBody = testNode.body;
+    List<Statement> testStatements = testBody.block.statements;
+
+    // method(1);
+    {
+      ExpressionStatement statement = testStatements[0];
+      MethodInvocation invocation = statement.expression;
+
+      expect(invocation.target, isNull);
+
+      expect(invocation.methodName.staticElement, same(methodElement));
+    }
+
+    // this.method(2);
+    {
+      ExpressionStatement statement = testStatements[1];
+      MethodInvocation invocation = statement.expression;
+
+      ThisExpression target = invocation.target;
+      expect(target.staticType, aNode.element.type); // raw
+
+      expect(invocation.methodName.staticElement, same(methodElement));
+    }
+
+    // getter;
+    {
+      ExpressionStatement statement = testStatements[2];
+      SimpleIdentifier identifier = statement.expression;
+
+      expect(identifier.staticElement, same(getterElement));
+      expect(identifier.staticType, typeProvider.intType);
+    }
+
+    // this.getter;
+    {
+      ExpressionStatement statement = testStatements[3];
+      PropertyAccess propertyAccess = statement.expression;
+      expect(propertyAccess.staticType, typeProvider.intType);
+
+      ThisExpression target = propertyAccess.target;
+      expect(target.staticType, aNode.element.type); // raw
+
+      expect(propertyAccess.propertyName.staticElement, same(getterElement));
+      expect(propertyAccess.propertyName.staticType, typeProvider.intType);
+    }
+
+    // setter = 3;
+    {
+      ExpressionStatement statement = testStatements[4];
+      AssignmentExpression assignment = statement.expression;
+
+      SimpleIdentifier identifier = assignment.leftHandSide;
+      expect(identifier.staticElement, same(setterElement));
+      expect(identifier.staticType, typeProvider.intType);
+    }
+
+    // this.setter = 4;
+    {
+      ExpressionStatement statement = testStatements[5];
+      AssignmentExpression assignment = statement.expression;
+
+      PropertyAccess propertyAccess = assignment.leftHandSide;
+
+      ThisExpression target = propertyAccess.target;
+      expect(target.staticType, aNode.element.type); // raw
+
+      expect(propertyAccess.propertyName.staticElement, same(setterElement));
+      expect(propertyAccess.propertyName.staticType, typeProvider.intType);
+    }
+
+    // this + 5;
+    {
+      ExpressionStatement statement = testStatements[6];
+      BinaryExpression binary = statement.expression;
+
+      ThisExpression target = binary.leftOperand;
+      expect(target.staticType, aNode.element.type); // raw
+
+      expect(binary.staticElement, same(operatorElement));
+      expect(binary.staticType, typeProvider.intType);
+    }
+  }
+
   test_top_executables_class() async {
     String content = r'''
 class C {

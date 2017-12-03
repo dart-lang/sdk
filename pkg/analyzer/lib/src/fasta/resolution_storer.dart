@@ -415,6 +415,9 @@ class ResolutionStorer extends TypeInferenceListener {
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
 
+  @override
+  void thisExpressionExit(ThisExpression expression, DartType inferredType) {}
+
   void typeLiteralExit(TypeLiteral expression, DartType inferredType) {
     _recordReference(expression.type, expression.fileOffset);
     super.typeLiteralExit(expression, inferredType);

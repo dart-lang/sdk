@@ -353,6 +353,16 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitSuperExpression(SuperExpression node) {
+    node.staticType = _typeContext.enclosingClassElement?.type;
+  }
+
+  @override
+  void visitThisExpression(ThisExpression node) {
+    node.staticType = _typeContext.enclosingClassElement?.type;
+  }
+
+  @override
   void visitTypeAnnotation(TypeAnnotation node) {
     applyToTypeAnnotation(_getTypeFor(node), node);
   }
@@ -573,6 +583,9 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
 /// Context for translating types.
 abstract class TypeContext {
+  /// The enclosing [ClassElement], or `null` if not in a class.
+  ClassElement get enclosingClassElement;
+
   DartType get typeType;
 
   /// Attach the variable [element] to the current executable.

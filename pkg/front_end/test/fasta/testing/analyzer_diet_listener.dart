@@ -314,6 +314,9 @@ class AnalyzerDietListener extends DietListener {
 /// Test implementation of [TypeContext].
 class _TestTypeContext implements TypeContext {
   @override
+  ast.ClassElement get enclosingClassElement => null;
+
+  @override
   ast.DartType get typeType => null;
 
   @override
