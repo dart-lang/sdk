@@ -2721,28 +2721,32 @@ class Parser {
 
   Token parseTopLevelMethod(Token start, Token afterModifiers, Token beforeType,
       Token getOrSet, Token beforeName) {
+    Token beforeToken = start;
     Token token = start = start.next;
     Token name = beforeName.next;
 
     // Parse modifiers
+    Token beforeExternalToken;
     Token externalToken;
     if (token == afterModifiers) {
       listener.beginTopLevelMethod(start, name);
       listener.handleModifiers(0);
     } else if (optional('external', token) && token.next == afterModifiers) {
       listener.beginTopLevelMethod(start, name);
+      beforeExternalToken = beforeToken;
       externalToken = token;
-      parseModifier(externalToken);
+      parseModifier(beforeToken.next);
       listener.handleModifiers(1);
       token = token.next;
     } else {
       // If there are modifiers other than or in addition to `external`
       // then we need to recover.
       final context = new TopLevelMethodModifierContext(this, name);
-      // TODO(brianwilkerson): This use of `syntheticPreviousToken` should be
-      // removed when `parseTopLevelMethod` accepts the last consumed token.
-      token =
-          context.parseRecovery(syntheticPreviousToken(token), afterModifiers);
+      token = context.parseRecovery(beforeToken, afterModifiers);
+      // TODO(brianwilkerson): Remove the invocation of `previous` when
+      // `parseRecovery` returns the last consumed token.
+      beforeToken = token.previous;
+      beforeExternalToken = beforeToken;
       externalToken = context.externalToken;
       name = context.name;
       // TODO(brianwilkerson): Remove the invocation of `previous` when
@@ -2762,7 +2766,7 @@ class Parser {
       if (externalToken == null) {
         listener.handleModifiers(0);
       } else {
-        parseModifier(externalToken);
+        parseModifier(beforeExternalToken.next);
         listener.handleModifiers(1);
       }
       // Fall through to continue parsing the top level method.
@@ -3441,62 +3445,66 @@ class Parser {
       }
     }
 
-    Token afterModifiers =
-        identifiers.isNotEmpty ? identifiers.head.next.next : start.next;
+    Token lastModifier = identifiers.isNotEmpty ? identifiers.head.next : start;
     token = isField
         ? parseFields(
             start, identifiers.reverse(), beforeType?.next, beforeName, false)
-        : parseMethod(start, afterModifiers, beforeType, getOrSet, beforeName);
+        : parseMethod(start, lastModifier, beforeType, getOrSet, beforeName);
     listener.endMember();
     return token;
   }
 
-  Token parseMethod(Token token, Token afterModifiers, Token beforeType,
+  Token parseMethod(Token token, Token lastModifier, Token beforeType,
       Token getOrSet, Token beforeName) {
+    Token beforeToken = token;
     Token start = token = token.next;
     Token name = beforeName.next;
 
     Token externalModifier;
     Token staticModifier;
-    if (token != afterModifiers) {
+    if (token != lastModifier.next) {
       int modifierCount = 0;
       if (optional('external', token)) {
         externalModifier = token;
-        parseModifier(externalModifier);
+        parseModifier(beforeToken.next);
         ++modifierCount;
+        beforeToken = token;
         token = token.next;
       }
-      if (token != afterModifiers) {
+      if (token != lastModifier.next) {
         if (optional('static', token)) {
           staticModifier = token;
-          parseModifier(staticModifier);
+          parseModifier(beforeToken.next);
           ++modifierCount;
+          beforeToken = token;
           token = token.next;
         }
-        if (token != afterModifiers) {
+        if (token != lastModifier.next) {
           if (getOrSet == null) {
             if (optional("const", token)) {
-              if (token.next == afterModifiers) {
-                parseModifier(token);
+              if (token.next == lastModifier.next) {
+                parseModifier(beforeToken.next);
                 ++modifierCount;
+                beforeToken = token;
                 token = token.next;
               }
             }
           } else if (optional('set', getOrSet)) {
             if (staticModifier == null && optional('covariant', token)) {
-              if (token.next == afterModifiers) {
-                parseModifier(token);
+              if (token.next == lastModifier.next) {
+                parseModifier(beforeToken.next);
                 ++modifierCount;
+                beforeToken = token;
                 token = token.next;
               }
             }
           }
           // If the next token is a modifier,
           // then it's probably out of order and we need to recover from that.
-          if (token != afterModifiers) {
+          if (token != lastModifier.next) {
             final context = new ClassMethodModifierContext(this);
-            token = context.parseRecovery(token, externalModifier,
-                staticModifier, getOrSet, afterModifiers);
+            token = context.parseRecovery(beforeToken.next, externalModifier,
+                staticModifier, getOrSet, lastModifier.next);
 
             // If the modifiers form a partial top level directive
             // or declaration and we have found the start of a new top level
