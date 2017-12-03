@@ -2000,6 +2000,10 @@ class Parser {
             token = close.next;
           }
         }
+      } else if (token.isModifier && isValidTypeReference(token.next)) {
+        // Recovery - report error and skip modifier
+        reportRecoverableErrorWithToken(token, fasta.templateExpectedType);
+        return parseType(token, continuation, continuationContext, memberKind);
       }
 
       // If what we have seen so far looks like a type, that could be a return

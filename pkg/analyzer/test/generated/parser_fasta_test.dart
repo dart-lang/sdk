@@ -88,13 +88,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_classTypeAlias_abstractAfterEq() {
-    // TODO(brianwilkerson) Does not recover.
-    super.test_classTypeAlias_abstractAfterEq();
-  }
-
-  @override
-  @failingTest
   void test_constConstructorWithBody() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, found 0
