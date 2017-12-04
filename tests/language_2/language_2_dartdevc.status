@@ -33,7 +33,6 @@ generic_list_checked_test: CompileTimeError
 generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
 generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
 generic_tearoff_test: CompileTimeError
-import_core_prefix_test: CompileTimeError
 internal_library_test/02: Crash
 int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 method_override7_test/03: MissingCompileTimeError # Issue 30514
@@ -157,6 +156,7 @@ generics_test: CompileTimeError
 getter_setter_in_lib_test: CompileTimeError
 implicit_downcast_during_assert_initializer_test: Crash
 implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue #31436
+import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
 interface_test/00: MissingCompileTimeError
