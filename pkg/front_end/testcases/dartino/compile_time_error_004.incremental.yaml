@@ -4,7 +4,7 @@
 
 main.dart.patch: |
   // Reproduce a crash when a class has a bad hierarchy
-  <<<< []
+  <<<< {"messages":[],"hasCompileTimeError":1}
   typedef A(C c);
   ==== {"messages":[],"hasCompileTimeError":1}
   typedef A(Class c);

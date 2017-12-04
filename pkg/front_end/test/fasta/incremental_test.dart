@@ -10,10 +10,24 @@ import "dart:convert" show JsonEncoder;
 
 import "dart:io" show File;
 
+import "package:kernel/ast.dart" show Program;
+
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
 
 import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
+
+import "package:front_end/src/api_prototype/front_end.dart"
+    show CompilationMessage, CompilerOptions, Severity;
+
+import "package:front_end/src/api_prototype/incremental_kernel_generator.dart"
+    show IncrementalKernelGenerator;
+
+import "package:front_end/src/api_prototype/memory_file_system.dart"
+    show MemoryFileSystem;
+
+import 'package:front_end/src/compute_platform_binaries_location.dart'
+    show computePlatformBinariesLocation;
 
 import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;
@@ -22,9 +36,13 @@ import "incremental_source_files.dart" show expandDiff, expandUpdates;
 
 const JsonEncoder json = const JsonEncoder.withIndent("  ");
 
+final Uri base = Uri.parse('org-dartlang-test:///');
+
 class Context extends ChainContext {
   final List<Step> steps = const <Step>[
     const ReadTest(),
+    const FullCompile(),
+    const IncrementalUpdates(),
   ];
 
   const Context();
@@ -47,6 +65,7 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
       String fileName = _fileName; // Strong mode hurray!
       String contents = _contents; // Strong mode hurray!
       if (fileName.endsWith(".patch")) {
+        fileName = fileName.substring(0, fileName.length - ".patch".length);
         if (firstPatch) {
           expectations = extractJsonExpectations(contents);
         }
@@ -56,15 +75,83 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
         sources[fileName] = <String>[contents];
       }
     });
-    return new TestCase(sources, expectations).validate(this);
+    final Uri sdkSummary = base.resolve("vm_platform.dill");
+    final Uri sdkSummaryFile =
+        computePlatformBinariesLocation().resolve("vm_platform.dill");
+    final MemoryFileSystem fs = new MemoryFileSystem(base);
+    fs
+        .entityForUri(sdkSummary)
+        .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
+    final List<CompilationMessage> errors = <CompilationMessage>[];
+    final CompilerOptions options = new CompilerOptions()
+      ..strongMode = false
+      ..reportMessages = true
+      ..verbose = true
+      ..fileSystem = fs
+      ..sdkSummary = sdkSummary
+      ..onError = (CompilationMessage message) {
+        if (message.severity != Severity.nit &&
+            message.severity != Severity.warning) {
+          errors.add(message);
+        }
+      };
+    final IncrementalKernelGenerator generator =
+        await IncrementalKernelGenerator.newInstance(
+            options, base.resolve("main.dart"),
+            useMinimalGenerator: true);
+    final TestCase test =
+        new TestCase(description, sources, expectations, fs, generator, errors);
+    return test.validate(this);
+  }
+}
+
+class FullCompile extends Step<TestCase, TestCase, Context> {
+  String get name => "full compile";
+
+  const FullCompile();
+
+  Future<Result<TestCase>> run(TestCase test, Context context) async {
+    test.sources.forEach((String name, List<String> sources) {
+      Uri uri = base.resolve(name);
+      test.fs.entityForUri(uri).writeAsStringSync(sources.first);
+    });
+    test.program = (await test.generator.computeDelta()).newProgram;
+    List<CompilationMessage> errors = test.takeErrors();
+    if (errors.isNotEmpty && !test.expectations.first.hasCompileTimeError) {
+      return fail(test, errors.join("\n"));
+    } else {
+      return pass(test);
+    }
+  }
+}
+
+class IncrementalUpdates extends Step<TestCase, TestCase, Context> {
+  const IncrementalUpdates();
+
+  String get name => "incremental updates";
+
+  Future<Result<TestCase>> run(TestCase test, Context context) async {
+    return pass(test);
   }
 }
 
 class TestCase {
+  final TestDescription description;
+
   final Map<String, List<String>> sources;
+
   final List<IncrementalExpectation> expectations;
 
-  const TestCase(this.sources, this.expectations);
+  final MemoryFileSystem fs;
+
+  final IncrementalKernelGenerator generator;
+
+  final List<CompilationMessage> errors;
+
+  Program program;
+
+  TestCase(this.description, this.sources, this.expectations, this.fs,
+      this.generator, this.errors);
 
   String toString() {
     return "TestCase(${json.convert(sources)}, ${json.convert(expectations)})";
@@ -88,6 +175,12 @@ class TestCase {
       }
     }
     return step.pass(this);
+  }
+
+  List<CompilationMessage> takeErrors() {
+    List<CompilationMessage> result = new List<CompilationMessage>.from(errors);
+    errors.clear();
+    return result;
   }
 }
 
