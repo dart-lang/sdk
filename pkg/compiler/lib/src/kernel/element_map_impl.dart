@@ -1533,6 +1533,15 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       // [FunctionTypeParameter] type.
       return const DynamicType();
     }
+    if (node.parameter.parent is ir.FunctionNode &&
+        node.parameter.parent.parent is ir.Procedure) {
+      // Special case for Dart 1 compatibility in checked mode.
+      ir.Procedure typeParameterParent = node.parameter.parent.parent;
+      if (typeParameterParent.kind != ir.ProcedureKind.Factory) {
+        return new Dart1MethodTypeVariableType(
+            elementMap.getTypeVariable(node.parameter));
+      }
+    }
     return new TypeVariableType(elementMap.getTypeVariable(node.parameter));
   }
 

@@ -2495,42 +2495,8 @@ typevariable_substitution2_test/02: RuntimeError
 arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
-async_await_syntax_test/a06a: RuntimeError
-async_await_syntax_test/b06a: RuntimeError
-async_await_syntax_test/c06a: RuntimeError
-async_await_syntax_test/d06a: RuntimeError
-async_await_test/02: RuntimeError
-async_await_test/03: RuntimeError
-async_await_test/none: RuntimeError
-async_return_types_test/none: RuntimeError
-async_star_await_pauses_test: RuntimeError
-async_star_cancel_and_throw_in_finally_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
-async_star_no_cancel2_test: RuntimeError
-async_star_no_cancel_test: RuntimeError
-async_star_pause_test: RuntimeError
-async_star_regression_2238_test: RuntimeError
-async_star_regression_23116_test: RuntimeError
-async_star_regression_fisk_test: RuntimeError
-async_star_stream_take_test: RuntimeError
-async_star_take_reyield_test: RuntimeError
-async_star_test/01: RuntimeError
 async_star_test/02: RuntimeError
-async_star_test/03: RuntimeError
-async_star_test/04: RuntimeError
-async_star_test/05: RuntimeError
-async_star_test/none: RuntimeError
-async_throw_in_catch_test/forceAwait: RuntimeError
-async_throw_in_catch_test/none: RuntimeError
-asyncstar_concat_test: RuntimeError
-asyncstar_throw_in_catch_test: RuntimeError
-asyncstar_yield_test: RuntimeError
-asyncstar_yieldstar_test: RuntimeError
-await_exceptions_test: RuntimeError
-await_for_cancel_test: RuntimeError
-await_for_test: RuntimeError
-await_for_use_local_test: RuntimeError
-await_not_started_immediately_test: RuntimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
@@ -2670,7 +2636,6 @@ deferred_load_constants_test/none: RuntimeError
 deferred_load_library_wrong_args_test/01: MissingRuntimeError
 deferred_not_loaded_check_test: RuntimeError
 deferred_redirecting_factory_test: RuntimeError
-deferred_shared_and_unshared_classes_test: RuntimeError
 double_int_to_string_test: RuntimeError
 duplicate_export_negative_test: Fail
 duplicate_implements_test/01: MissingCompileTimeError
@@ -2695,7 +2660,6 @@ final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
 function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
-generic_async_star_test: RuntimeError
 generic_closure_test/01: RuntimeError
 generic_closure_test/none: RuntimeError
 generic_field_mixin4_test: Crash # Assertion failure: Runtime type information not available for type_variable_local(M.T) in () for j:constructor(C3.).
@@ -2879,9 +2843,7 @@ regress_20394_test/01: MissingCompileTimeError
 regress_22976_test/01: CompileTimeError
 regress_22976_test/02: CompileTimeError
 regress_22976_test/none: CompileTimeError
-regress_23996_test: RuntimeError
 regress_24283_test: RuntimeError
-regress_24935_test/none: RuntimeError
 regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constructor(Foo._) in ConstructorDataImpl._getConstructorConstant
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
@@ -2894,7 +2856,6 @@ regress_30339_test: RuntimeError # Issue 26429
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-shadow_parameter_and_local_test: RuntimeError
 stacktrace_demangle_ctors_test: RuntimeError
 stacktrace_test: RuntimeError
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
@@ -2920,7 +2881,6 @@ type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was 
 type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
 type_parameter_test/09: Crash # Internal Error: Unexpected type variable in static context.
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
-yieldstar_pause_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel ]
 checked_setter_test: RuntimeError # Issue 31128
