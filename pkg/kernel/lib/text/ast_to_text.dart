@@ -931,8 +931,7 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeModifier(node.isExternal, 'external');
     writeModifier(node.isConst, 'const');
-    writeModifier(node.isSyntheticDefault, 'default');
-    writeWord('factory');
+    writeWord('redirecting_factory');
 
     if (node.name != null) {
       writeName(node.name);

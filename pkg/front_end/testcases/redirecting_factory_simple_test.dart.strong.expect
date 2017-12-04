@@ -6,7 +6,7 @@ class A extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  factory redir() = self::A::•;
+  redirecting_factory redir() = self::A::•;
 }
 static method main() → dynamic {
   new self::A::•();

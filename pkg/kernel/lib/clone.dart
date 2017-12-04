@@ -428,7 +428,6 @@ class CloneVisitor extends TreeVisitor {
         name: node.name,
         isConst: node.isConst,
         isExternal: node.isExternal,
-        isSyntheticDefault: node.isSyntheticDefault,
         transformerFlags: node.transformerFlags,
         typeArguments: node.typeArguments.map(visitType).toList(),
         typeParameters: node.typeParameters.map(clone).toList(),

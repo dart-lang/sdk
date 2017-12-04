@@ -1318,10 +1318,6 @@ class Constructor extends Member {
 /// linking and are treated as non-runnable members of classes that merely serve
 /// as containers for that information.
 ///
-/// Existing transformers may easily ignore [RedirectingFactoryConstructor]s,
-/// because the class is implemented as a subclass of [Member], and not as a
-/// subclass of, for example, [Constructor] or [Procedure].
-///
 /// Redirecting factory constructors can be unnamed.  In this case, the name is
 /// an empty string (in a [Name]).
 class RedirectingFactoryConstructor extends Member {
@@ -1377,7 +1373,6 @@ class RedirectingFactoryConstructor extends Member {
     setParents(this.namedParameters, this);
     this.isConst = isConst;
     this.isExternal = isExternal;
-    this.isSyntheticDefault = isSyntheticDefault;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1388,22 +1383,12 @@ class RedirectingFactoryConstructor extends Member {
   bool get isConst => flags & FlagConst != 0;
   bool get isExternal => flags & FlagExternal != 0;
 
-  /// True if this is a synthetic default constructor inserted in a class that
-  /// does not otherwise declare any constructors.
-  bool get isSyntheticDefault => flags & FlagSyntheticDefault != 0;
-
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
   }
 
   void set isExternal(bool value) {
     flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
-  }
-
-  void set isSyntheticDefault(bool value) {
-    flags = value
-        ? (flags | FlagSyntheticDefault)
-        : (flags & ~FlagSyntheticDefault);
   }
 
   bool get isInstanceMember => false;
