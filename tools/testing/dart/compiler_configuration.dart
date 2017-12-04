@@ -597,14 +597,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     String exec = Platform.executable;
     var args = [
       '--packages=.packages',
-      'pkg/front_end/tool/_fasta/compile.dart',
+      'pkg/vm/bin/precompiler_kernel_front_end.dart',
       '--platform=${buildDir}/vm_platform_strong.dill',
-      '--strong-mode',
-      '--fatal=errors',
-      '--target-options=strong-aot',
+      '-o',
+      tempKernelFile(tempDir),
     ];
-    args.add('-o');
-    args.add(tempKernelFile(tempDir));
     args.addAll(arguments.where((name) => name.endsWith('.dart')));
     return Command.compilation('compile_to_kernel', tempDir,
         bootstrapDependencies(), exec, args, environmentOverrides,

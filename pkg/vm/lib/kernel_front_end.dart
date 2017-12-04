@@ -26,7 +26,7 @@ Future<Program> compileToKernel(Uri source, CompilerOptions options,
     {bool aot: false}) async {
   final program = await kernelForProgram(source, options);
 
-  if (aot) {
+  if (aot && (program != null)) {
     _runGlobalTransformations(program, options.strongMode);
   }
 

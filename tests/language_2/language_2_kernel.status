@@ -384,8 +384,6 @@ empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
 example_constructor_test: Fail, OK
-export_ambiguous_main_test: MissingCompileTimeError
-export_ambiguous_main_test: Pass
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
@@ -1828,8 +1826,6 @@ error_stacktrace_test/00: MissingCompileTimeError
 example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
 export_ambiguous_main_negative_test: Skip # Issue 29895
-export_ambiguous_main_test: Crash
-export_ambiguous_main_test: MissingCompileTimeError
 export_double_same_main_test: Crash # Issue 29895
 export_double_same_main_test: Skip # Issue 29895
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
@@ -3069,3 +3065,6 @@ vm/unaligned_integer_access_register_index_test: CompileTimeError # Issue 31339
 vm/unaligned_integer_access_literal_index_test: CompileTimeError  # Issue 31339
 mint_arithmetic_test: CompileTimeError                            # Issue 31339
 identical_closure2_test: CompileTimeError                         # Issue 31339
+mock_writable_final_field_test: RuntimeError                      # Issue 31424
+no_such_method_subtype_test: RuntimeError                         # Issue 31424
+generic_no_such_method_dispatcher_test: RuntimeError              # Issue 31424
