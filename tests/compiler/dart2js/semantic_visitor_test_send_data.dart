@@ -2034,13 +2034,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test('''
         m() => !0;
         ''', const Visit(VisitKind.VISIT_NOT, expression: '0')),
-    const Test('''
-        m() => +false;
-        ''',
-        // TODO(johnniwinther): Should this be an
-        // ERROR_UNDEFINED_UNARY_EXPRESSION? Currently the parser just skips
-        // the `+`.
-        const []),
   ],
   'Index set': const [
     // Index set

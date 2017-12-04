@@ -34,8 +34,8 @@ import '../scanner/token_constants.dart'
         EOF_TOKEN,
         EQ_TOKEN,
         FUNCTION_TOKEN,
-        GT_TOKEN,
         GT_GT_TOKEN,
+        GT_TOKEN,
         HASH_TOKEN,
         HEXADECIMAL_TOKEN,
         IDENTIFIER_TOKEN,
@@ -4420,8 +4420,13 @@ class Parser {
       }
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
-      reportRecoverableError(token.next, fasta.messageUnsupportedPrefixPlus);
-      return parseUnaryExpression(token.next, allowCascades);
+      rewriteAndRecover(
+          token,
+          // TODO(danrubel): Consider reporting "missing identifier" instead.
+          fasta.messageUnsupportedPrefixPlus,
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER, '', token.next.offset));
+      return parsePrimary(token, IdentifierContext.expression);
     } else if ((identical(value, '!')) ||
         (identical(value, '-')) ||
         (identical(value, '~'))) {

@@ -4139,6 +4139,7 @@ const Code<Null> codeUnsupportedPrefixPlus = messageUnsupportedPrefixPlus;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnsupportedPrefixPlus = const MessageCode(
     "UnsupportedPrefixPlus",
+    analyzerCode: "MISSING_IDENTIFIER",
     dart2jsCode: "UNSUPPORTED_PREFIX_PLUS",
     message: r"""'+' is not a prefix operator.""",
     tip: r"""Try removing '+'.""");

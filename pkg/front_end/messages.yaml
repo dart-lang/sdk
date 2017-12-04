@@ -660,6 +660,7 @@ UnmatchedToken:
 UnsupportedPrefixPlus:
   template: "'+' is not a prefix operator."
   tip: "Try removing '+'."
+  analyzerCode: MISSING_IDENTIFIER
   dart2jsCode: UNSUPPORTED_PREFIX_PLUS
   script: "main() => +2;  // No longer a valid way to write '2'"
 

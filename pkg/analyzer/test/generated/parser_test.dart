@@ -4945,8 +4945,16 @@ void main() {
     expectNotNullIfNoErrors(expression);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]);
-    var identifier = expression as SimpleIdentifier;
-    expect(identifier.isSynthetic, isTrue);
+    if (usingFastaParser) {
+      BinaryExpression binaryExpression = expression;
+      expect(binaryExpression.leftOperand.isSynthetic, isTrue);
+      expect(binaryExpression.rightOperand.isSynthetic, isFalse);
+      SimpleIdentifier identifier = binaryExpression.rightOperand;
+      expect(identifier.name, 'x');
+    } else {
+      var identifier = expression as SimpleIdentifier;
+      expect(identifier.isSynthetic, isTrue);
+    }
   }
 
   void test_varAndType_field() {
@@ -9972,13 +9980,24 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    BinaryExpression expression = parseExpression("is ==", codes: [
-      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ]);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is IsExpression, IsExpression, expression.leftOperand);
+    // Fasta recovers differently. It takes the `is` to be an identifier and
+    // assumes that the right operand of `==` is the only missing identifier.
+    BinaryExpression expression = parseExpression("is ==",
+        codes: usingFastaParser
+            ? [
+                //ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER
+              ]
+            : [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER
+              ]);
+    if (!usingFastaParser) {
+      EngineTestCase.assertInstanceOf(
+          (obj) => obj is IsExpression, IsExpression, expression.leftOperand);
+    }
   }
 
   void test_equalityExpression_precedence_relational_right() {
