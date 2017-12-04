@@ -375,11 +375,11 @@ class KernelDriver {
       }
 
       // Prepare file URIs for the cycle.
-      var cycleFileUris = new Set<String>();
+      var cycleFileUris = new Set<Uri>();
       for (FileState library in cycle.libraries) {
-        cycleFileUris.add(library.fileUriStr);
+        cycleFileUris.add(library.fileUri);
         for (var partFile in library.partFiles) {
-          cycleFileUris.add(partFile.fileUriStr);
+          cycleFileUris.add(partFile.fileUri);
         }
       }
 
@@ -429,10 +429,10 @@ class KernelDriver {
 
       // Remove source for libraries outside of the cycle.
       {
-        var urisToRemoveSources = <String>[];
+        var urisToRemoveSources = <Uri>[];
         for (var uri in program.uriToSource.keys) {
-          if (!cycleFileUris.contains("$uri")) {
-            urisToRemoveSources.add("$uri");
+          if (!cycleFileUris.contains(uri)) {
+            urisToRemoveSources.add(uri);
           }
         }
         urisToRemoveSources.forEach(program.uriToSource.remove);
