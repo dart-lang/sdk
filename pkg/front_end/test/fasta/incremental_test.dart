@@ -29,6 +29,12 @@ import "package:front_end/src/api_prototype/memory_file_system.dart"
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 
+import 'package:front_end/src/external_state_snapshot.dart'
+    show ExternalStateSnapshot;
+
+import 'package:front_end/src/base/processed_options.dart'
+    show ProcessedOptions;
+
 import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;
 
@@ -39,13 +45,22 @@ const JsonEncoder json = const JsonEncoder.withIndent("  ");
 final Uri base = Uri.parse('org-dartlang-test:///');
 
 class Context extends ChainContext {
+  final ProcessedOptions options;
+  final ExternalStateSnapshot snapshot;
+  final List<CompilationMessage> errors;
+
   final List<Step> steps = const <Step>[
     const ReadTest(),
     const FullCompile(),
     const IncrementalUpdates(),
   ];
 
-  const Context();
+  const Context(this.options, this.snapshot, this.errors);
+
+  void reset() {
+    errors.clear();
+    snapshot.restore();
+  }
 }
 
 class ReadTest extends Step<TestDescription, TestCase, Context> {
@@ -55,6 +70,7 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
 
   Future<Result<TestCase>> run(
       TestDescription description, Context context) async {
+    context.reset();
     Uri uri = description.uri;
     String contents = await new File.fromUri(uri).readAsString();
     Map<String, List<String>> sources = <String, List<String>>{};
@@ -75,32 +91,12 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
         sources[fileName] = <String>[contents];
       }
     });
-    final Uri sdkSummary = base.resolve("vm_platform.dill");
-    final Uri sdkSummaryFile =
-        computePlatformBinariesLocation().resolve("vm_platform.dill");
-    final MemoryFileSystem fs = new MemoryFileSystem(base);
-    fs
-        .entityForUri(sdkSummary)
-        .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
-    final List<CompilationMessage> errors = <CompilationMessage>[];
-    final CompilerOptions options = new CompilerOptions()
-      ..strongMode = false
-      ..reportMessages = true
-      ..verbose = true
-      ..fileSystem = fs
-      ..sdkSummary = sdkSummary
-      ..onError = (CompilationMessage message) {
-        if (message.severity != Severity.nit &&
-            message.severity != Severity.warning) {
-          errors.add(message);
-        }
-      };
     final IncrementalKernelGenerator generator =
         await IncrementalKernelGenerator.newInstance(
-            options, base.resolve("main.dart"),
-            useMinimalGenerator: true);
-    final TestCase test =
-        new TestCase(description, sources, expectations, fs, generator, errors);
+            null, context.options.inputs.first,
+            processedOptions: context.options, useMinimalGenerator: true);
+    final TestCase test = new TestCase(description, sources, expectations,
+        context.options.fileSystem, generator, context.errors);
     return test.validate(this);
   }
 }
@@ -184,8 +180,43 @@ class TestCase {
   }
 }
 
-Future<Context> createContext(Chain suite, Map<String, String> environment) {
-  return new Future<Context>.value(const Context());
+Future<Context> createContext(
+    Chain suite, Map<String, String> environment) async {
+  /// The custom URI used to locate the dill file in the MemoryFileSystem.
+  final Uri sdkSummary = base.resolve("vm_platform.dill");
+
+  /// The actual location of the dill file.
+  final Uri sdkSummaryFile =
+      computePlatformBinariesLocation().resolve("vm_platform.dill");
+
+  final MemoryFileSystem fs = new MemoryFileSystem(base);
+
+  fs
+      .entityForUri(sdkSummary)
+      .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
+
+  final List<CompilationMessage> errors = <CompilationMessage>[];
+
+  final CompilerOptions optionBuilder = new CompilerOptions()
+    ..strongMode = false
+    ..reportMessages = true
+    ..verbose = true
+    ..fileSystem = fs
+    ..sdkSummary = sdkSummary
+    ..onError = (CompilationMessage message) {
+      if (message.severity != Severity.nit &&
+          message.severity != Severity.warning) {
+        errors.add(message);
+      }
+    };
+
+  final ProcessedOptions options =
+      new ProcessedOptions(optionBuilder, false, [base.resolve("main.dart")]);
+
+  final ExternalStateSnapshot snapshot =
+      new ExternalStateSnapshot(await options.loadSdkSummary(null));
+
+  return new Context(options, snapshot, errors);
 }
 
 main([List<String> arguments = const []]) =>

@@ -138,8 +138,10 @@ abstract class IncrementalKernelGenerator {
   /// representation of the program, call [computeDelta].
   static Future<IncrementalKernelGenerator> newInstance(
       CompilerOptions options, Uri entryPoint,
-      {WatchUsedFilesFn watch, bool useMinimalGenerator: false}) async {
-    var processedOptions = new ProcessedOptions(options, false, [entryPoint]);
+      {ProcessedOptions processedOptions,
+      WatchUsedFilesFn watch,
+      bool useMinimalGenerator: false}) async {
+    processedOptions ??= new ProcessedOptions(options, false, [entryPoint]);
     return await CompilerContext.runWithOptions(processedOptions, (_) async {
       var uriTranslator = await processedOptions.getUriTranslator();
       var sdkOutlineBytes = await processedOptions.loadSdkSummaryBytes();

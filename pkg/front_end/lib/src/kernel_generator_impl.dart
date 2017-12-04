@@ -79,6 +79,7 @@ Future<CompilerResult> generateKernelInternal(
 
     // All summaries are considered external and shouldn't include source-info.
     dillTarget.loader.libraries.forEach((lib) {
+      // TODO(ahe): Don't do this, and remove [external_state_snapshot.dart].
       lib.isExternal = true;
       lib.dependencies.clear();
     });
