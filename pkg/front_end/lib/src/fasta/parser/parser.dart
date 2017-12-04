@@ -1287,7 +1287,7 @@ class Parser {
   }
 
   Token skipBlock(Token token) {
-    // TODO(brianwilkerson) Accept the last consumed token.
+    token = token.next;
     if (!optional('{', token)) {
       token = recoverFromMissingBlock(token);
     }
@@ -3784,7 +3784,6 @@ class Parser {
   }
 
   Token skipFunctionBody(Token token, bool isExpression, bool allowAbstract) {
-    // TODO(brianwilkerson) Return the last consumed token.
     assert(!isExpression);
     token = skipAsyncModifier(token);
     Token next = token.next;
@@ -3802,37 +3801,36 @@ class Parser {
       listener.handleNativeFunctionBodyIgnored(nativeToken, next);
       // Fall through to recover and skip function body
     }
-    token = next;
-    String value = token.stringValue;
+    String value = next.stringValue;
     if (identical(value, ';')) {
+      token = next;
       if (!allowAbstract) {
         reportRecoverableError(token, fasta.messageExpectedBody);
       }
       listener.handleNoFunctionBody(token);
-    } else {
-      if (identical(value, '=>')) {
-        token = parseExpression(token);
-        // There ought to be a semicolon following the expression, but we check
-        // before advancing in order to be consistent with the way the method
-        // [parseFunctionBody] recovers when the semicolon is missing.
-        if (optional(';', token.next)) {
-          token = token.next;
-        }
-        listener.handleFunctionBodySkipped(token, true);
-      } else if (identical(value, '=')) {
-        reportRecoverableError(token, fasta.messageExpectedBody);
-        token = parseExpression(token);
-        // There ought to be a semicolon following the expression, but we check
-        // before advancing in order to be consistent with the way the method
-        // [parseFunctionBody] recovers when the semicolon is missing.
-        if (optional(';', token.next)) {
-          token = token.next;
-        }
-        listener.handleFunctionBodySkipped(token, true);
-      } else {
-        token = skipBlock(token);
-        listener.handleFunctionBodySkipped(token, false);
+    } else if (identical(value, '=>')) {
+      token = parseExpression(next);
+      // There ought to be a semicolon following the expression, but we check
+      // before advancing in order to be consistent with the way the method
+      // [parseFunctionBody] recovers when the semicolon is missing.
+      if (optional(';', token.next)) {
+        token = token.next;
       }
+      listener.handleFunctionBodySkipped(token, true);
+    } else if (identical(value, '=')) {
+      token = next;
+      reportRecoverableError(token, fasta.messageExpectedBody);
+      token = parseExpression(token);
+      // There ought to be a semicolon following the expression, but we check
+      // before advancing in order to be consistent with the way the method
+      // [parseFunctionBody] recovers when the semicolon is missing.
+      if (optional(';', token.next)) {
+        token = token.next;
+      }
+      listener.handleFunctionBodySkipped(token, true);
+    } else {
+      token = skipBlock(token);
+      listener.handleFunctionBodySkipped(token, false);
     }
     return token;
   }
