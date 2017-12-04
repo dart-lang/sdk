@@ -35,9 +35,6 @@ final allowedPackageDependencies = [
 ///
 /// Each listed directory is considered a subpackage.  Each package contains all
 /// of its descendant files that are not in a more deeply nested subpackage.
-///
-/// TODO(paulberry): stuff in lib/src shouldn't depend on lib; lib should just
-/// re-export stuff in lib/src.
 final subpackageRules = {
   'lib/src': new SubpackageRules(allowedDependencies: [
     'lib/src/api_prototype',
@@ -53,6 +50,12 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/byte_store',
     'lib/src/fasta',
+  ]),
+  'lib/src/api_unstable': new SubpackageRules(allowedDependencies: [
+    'lib/src',
+    'lib/src/api_prototype',
+    'lib/src/base',
+    'lib/src/fasta/scanner',
   ]),
   'lib/src/base': new SubpackageRules(allowedDependencies: [
     'lib/src',

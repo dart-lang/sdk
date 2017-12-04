@@ -10,12 +10,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dev_compiler/src/kernel/command.dart';
+import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 
 Future main(List<String> args) async {
   if (args.isNotEmpty && args.last == "--batch") {
     await runBatch(args.sublist(0, args.length - 1));
   } else {
-    var succeeded = await compile(args);
+    var result = await compile(args);
+    var succeeded = result.result;
     exitCode = succeeded ? 0 : 1;
   }
 }
@@ -29,14 +31,17 @@ Future runBatch(List<String> batchArgs) async {
   print('>>> BATCH START');
 
   String line;
+  fe.InitializedCompilerState compilerState;
+
   while ((line = stdin.readLineSync(encoding: UTF8)).isNotEmpty) {
     tests++;
     var args = batchArgs.toList()..addAll(line.split(new RegExp(r'\s+')));
 
     String outcome;
     try {
-      // TODO(jmesserly): share SDK deserialization between compilations.
-      var succeeded = await compile(args);
+      var result = await compile(args, compilerState: compilerState);
+      compilerState = result.compilerState;
+      var succeeded = result.result;
       outcome = succeeded ? 'PASS' : 'FAIL';
     } catch (e, s) {
       outcome = 'CRASH';
