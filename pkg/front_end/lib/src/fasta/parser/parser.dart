@@ -4614,7 +4614,8 @@ class Parser {
     BeginToken begin = token;
     token = parseExpression(token).next;
     if (!identical(begin.endGroup, token)) {
-      reportUnexpectedToken(token).next;
+      reportRecoverableError(
+          token, fasta.templateExpectedButGot.withArguments(')'));
       token = begin.endGroup;
     }
     listener.handleParenthesizedExpression(begin);

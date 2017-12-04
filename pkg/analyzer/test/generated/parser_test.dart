@@ -10082,6 +10082,16 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
     parseExpression("m(f() => 0);", codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_ifStatement_noElse_statement() {
+    parseStatement('if (x v) f(x);');
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 1)]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
+          ]);
+  }
+
   void test_importDirectivePartial_as() {
     CompilationUnit unit = parseCompilationUnit("import 'b.dart' d as b;",
         codes: [ParserErrorCode.UNEXPECTED_TOKEN]);
