@@ -9,6 +9,8 @@ import 'package:bazel_worker/bazel_worker.dart';
 import 'package:front_end/src/api_prototype/front_end.dart'
     hide FileSystemException;
 import 'package:front_end/src/fasta/command_line_reporting.dart';
+import 'package:front_end/src/multi_root_file_system.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:kernel/target/targets.dart';
 
 main(List<String> args) async {
@@ -100,11 +102,18 @@ Future<bool> computeSummary(List<String> args,
     exit(0);
   }
 
+  // Bazel creates an overlay file system where some files may be located in the
+  // source tree, some in a gendir, and some in a bindir. The multi-root file
+  // system hides this from the front end.
+  var fileSystem = new MultiRootFileSystem(
+      'org-dartlang-multi-root',
+      parsedArgs['multi-root'].map(Uri.parse).toList(),
+      PhysicalFileSystem.instance);
   var options = new CompilerOptions()
     ..packagesFileUri = Uri.parse(parsedArgs['packages-file'])
     ..inputSummaries = parsedArgs['input-summary'].map(Uri.parse).toList()
     ..sdkSummary = Uri.parse(parsedArgs['dart-sdk-summary'])
-    ..multiRoots = parsedArgs['multi-root'].map(Uri.parse).toList()
+    ..fileSystem = fileSystem
     ..target = new NoneTarget(new TargetFlags());
 
   options.onError = (CompilationMessage error) {
