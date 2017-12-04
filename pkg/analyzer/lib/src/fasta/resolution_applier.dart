@@ -50,6 +50,12 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    node.strings.accept(this);
+    node.staticType = _getTypeFor(node.endToken.next);
+  }
+
+  @override
   void visitAsExpression(AsExpression node) {
     node.expression.accept(this);
     applyToTypeAnnotation(_getTypeFor(node.asOperator), node.type);

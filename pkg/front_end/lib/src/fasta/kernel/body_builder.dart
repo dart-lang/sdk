@@ -1400,7 +1400,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(int literalCount, Token endToken) {
     debugEvent("StringJuxtaposition");
     List<Expression> parts = popListForValue(literalCount);
     List<Expression> expressions;
@@ -1418,7 +1418,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
       }
     }
-    push(new ShadowStringConcatenation(expressions ?? parts));
+    push(new ShadowStringConcatenation(expressions ?? parts)
+      ..fileOffset = offsetForToken(endToken));
   }
 
   @override

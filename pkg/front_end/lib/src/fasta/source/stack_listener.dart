@@ -299,7 +299,7 @@ abstract class StackListener extends Listener {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(int literalCount, Token endToken) {
     debugEvent("StringJuxtaposition");
     push(popList(literalCount).join(""));
   }

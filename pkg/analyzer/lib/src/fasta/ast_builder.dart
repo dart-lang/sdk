@@ -218,7 +218,7 @@ class AstBuilder extends ScopeListener {
     scriptTag = ast.scriptTag(token);
   }
 
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(int literalCount, Token endToken) {
     debugEvent("StringJuxtaposition");
 
     push(ast.adjacentStrings(popList(literalCount)));

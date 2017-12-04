@@ -68,6 +68,32 @@ Future pumpEventQueue([int times = 5000]) {
  */
 @reflectiveTest
 class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
+  test_adjacentStrings() async {
+    String content = r'''
+void main() {
+  'aaa' 'bbb' 'ccc';
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ExpressionStatement statement = statements[0];
+    AdjacentStrings expression = statement.expression;
+    expect(expression.strings, hasLength(3));
+
+    StringLiteral literal_1 = expression.strings[0];
+    expect(literal_1.staticType, typeProvider.stringType);
+
+    StringLiteral literal_2 = expression.strings[1];
+    expect(literal_2.staticType, typeProvider.stringType);
+
+    StringLiteral literal_3 = expression.strings[2];
+    expect(literal_3.staticType, typeProvider.stringType);
+  }
+
   test_apply_instanceCreation_noTypeArguments() async {
     String content = r'''
 class C {
