@@ -62,6 +62,13 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
+  test_const_annotation_notConstConstructor() async {
+    await super.test_const_annotation_notConstConstructor();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  @override
   test_const_annotation_withArgs() async {
     await super.test_const_annotation_withArgs();
   }

@@ -30,8 +30,21 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   final List<kernel.DartType> _types;
   int _typeIndex = 0;
 
+  /// Indicates whether we are applying resolution to an annotation.
+  ///
+  /// When this field is `true`, [PropertyInducingElement]s should be replaced
+  /// with corresponding getters.
+  bool _inAnnotation = false;
+
   ResolutionApplier(this._typeContext, this._declaredElements,
       this._referencedElements, this._types);
+
+  /// Apply resolution to annotations of the given [node].
+  void applyToAnnotations(AnnotatedNode node) {
+    _inAnnotation = true;
+    node.metadata.accept(this);
+    _inAnnotation = false;
+  }
 
   /// Verifies that all types passed to the constructor have been applied.
   void checkDone() {
@@ -465,7 +478,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   /// Return the element associated with the reference represented by the
   /// given [entity].
   Element _getReferenceFor(SyntacticEntity entity) {
-    return _referencedElements[_referencedElementIndex++];
+    Element element = _referencedElements[_referencedElementIndex++];
+    if (_inAnnotation && element is PropertyInducingElement) {
+      return element.getter;
+    }
+    return element;
   }
 
   /// Return the type associated with the given [entity].

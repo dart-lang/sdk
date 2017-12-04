@@ -68,6 +68,117 @@ Future pumpEventQueue([int times = 5000]) {
  */
 @reflectiveTest
 class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
+  test_annotation() async {
+    String content = r'''
+const myAnnotation = 1;
+
+@myAnnotation
+class C {
+  @myAnnotation
+  int field = 2;
+
+  @myAnnotation
+  C() {}
+
+  @myAnnotation
+  void method() {}
+}
+
+@myAnnotation
+int topLevelVariable = 3;
+
+@myAnnotation
+void topLevelFunction() {}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    TopLevelVariableDeclaration myDeclaration = result.unit.declarations[0];
+    VariableDeclaration myVariable = myDeclaration.variables.variables[0];
+    TopLevelVariableElement myElement = myVariable.element;
+
+    void assertMyAnnotation(AnnotatedNode node) {
+      Annotation annotation = node.metadata[0];
+      expect(annotation.element, same(myElement.getter));
+
+      SimpleIdentifier identifier_1 = annotation.name;
+      expect(identifier_1.staticElement, same(myElement.getter));
+      expect(identifier_1.staticType, typeProvider.intType);
+    }
+
+    {
+      ClassDeclaration classNode = result.unit.declarations[1];
+      assertMyAnnotation(classNode);
+
+      {
+        FieldDeclaration node = classNode.members[0];
+        assertMyAnnotation(node);
+      }
+
+      {
+        ConstructorDeclaration node = classNode.members[1];
+        assertMyAnnotation(node);
+      }
+
+      {
+        MethodDeclaration node = classNode.members[2];
+        assertMyAnnotation(node);
+      }
+    }
+
+    {
+      TopLevelVariableDeclaration node = result.unit.declarations[2];
+      assertMyAnnotation(node);
+    }
+
+    {
+      FunctionDeclaration node = result.unit.declarations[3];
+      assertMyAnnotation(node);
+    }
+  }
+
+  test_annotation_kind_reference() async {
+    String content = r'''
+const annotation_1 = 1;
+const annotation_2 = 1;
+@annotation_1
+@annotation_2
+void main() {
+  print(42);
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    TopLevelVariableDeclaration declaration_1 = result.unit.declarations[0];
+    VariableDeclaration variable_1 = declaration_1.variables.variables[0];
+    TopLevelVariableElement element_1 = variable_1.element;
+
+    TopLevelVariableDeclaration declaration_2 = result.unit.declarations[1];
+    VariableDeclaration variable_2 = declaration_2.variables.variables[0];
+    TopLevelVariableElement element_2 = variable_2.element;
+
+    FunctionDeclaration main = result.unit.declarations[2];
+
+    Annotation annotation_1 = main.metadata[0];
+    expect(annotation_1.element, same(element_1.getter));
+
+    SimpleIdentifier identifier_1 = annotation_1.name;
+    expect(identifier_1.staticElement, same(element_1.getter));
+    expect(identifier_1.staticType, typeProvider.intType);
+
+    Annotation annotation_2 = main.metadata[1];
+    expect(annotation_2.element, same(element_2.getter));
+
+    SimpleIdentifier identifier_2 = annotation_2.name;
+    expect(identifier_2.staticElement, same(element_2.getter));
+    expect(identifier_2.staticType, typeProvider.intType);
+  }
+
   test_apply_instanceCreation_noTypeArguments() async {
     String content = r'''
 class C {

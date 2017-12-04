@@ -718,12 +718,19 @@ class LibraryAnalyzer {
 
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
+        if (declaration.metadata.isNotEmpty) {
+          var resolution = resolutions.next();
+          var applier = _createResolutionApplier(null, resolution);
+          applier.applyToAnnotations(declaration);
+          applier.checkDone();
+        }
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
             // TODO(scheglov) Pass in the actual context element.
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(null, resolution);
             member.body.accept(applier);
+            applier.applyToAnnotations(member);
             applier.checkDone();
           } else if (member is FieldDeclaration) {
             if (member.fields.variables.length != 1) {
@@ -734,12 +741,14 @@ class LibraryAnalyzer {
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(null, resolution);
             member.fields.variables[0].initializer?.accept(applier);
+            applier.applyToAnnotations(member);
             applier.checkDone();
           } else if (member is MethodDeclaration) {
             ExecutableElementImpl context = member.element;
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(context, resolution);
             member.body.accept(applier);
+            applier.applyToAnnotations(member);
             applier.checkDone();
           } else {
             // TODO(scheglov) Handle more cases.
@@ -752,6 +761,7 @@ class LibraryAnalyzer {
         var applier = _createResolutionApplier(context, resolution);
         declaration.functionExpression.parameters?.accept(applier);
         declaration.functionExpression.body.accept(applier);
+        applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else if (declaration is TopLevelVariableDeclaration) {
         if (declaration.variables.variables.length != 1) {
@@ -762,6 +772,7 @@ class LibraryAnalyzer {
         var resolution = resolutions.next();
         var applier = _createResolutionApplier(null, resolution);
         declaration.variables.variables[0].initializer?.accept(applier);
+        applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else {
         // TODO(scheglov) Handle more cases.
