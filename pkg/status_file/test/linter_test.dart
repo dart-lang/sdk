@@ -18,6 +18,8 @@ void main() {
   testCheckForAlphabeticalOrderingOfPaths_invalidOrdering();
   testCheckForAlphabeticalOrderingOfPaths_okOrdering();
 
+  testCheckForDuplicateEntries_hasDuplicates();
+
   testCheckForCorrectOrderingInSections_invalidRuntimeBeforeCompiler();
   testCheckForCorrectOrderingInSections_invalidRuntimeBeforeMode();
   testCheckForCorrectOrderingInSections_invalidSystemBeforeMode();
@@ -117,13 +119,25 @@ xyz_test: Skip
 """);
 }
 
+void testCheckForDuplicateEntries_hasDuplicates() {
+  expectError(
+      r"""[ $mode == debug ]
+a_test: Pass
+a_test: Pass
+bc_test: Pass
+xyz_test: Skip
+""",
+      "Error at line 1: The status entry 'a_test: Pass' is duplicated on lines "
+      "2 and 3.");
+}
+
 void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeCompiler() {
   expectError(
       r"""[ $runtime == ff && $compiler == dart2js]
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '$compiler == dart2js "
-      r"&& $runtime == ff'.");
+      r"&& $runtime == ff' but was '$runtime == ff && $compiler == dart2js'.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeMode() {
@@ -132,7 +146,7 @@ void testCheckForCorrectOrderingInSections_invalidRuntimeBeforeMode() {
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '$mode == debug && "
-      r"$runtime == ff'.");
+      r"$runtime == ff' but was '$runtime == ff && $mode == debug'.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidSystemBeforeMode() {
@@ -141,13 +155,16 @@ void testCheckForCorrectOrderingInSections_invalidSystemBeforeMode() {
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '$mode == debug && "
-      r"$system == win'.");
+      r"$system == win' but was '$system == win && $mode == debug'.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidStrongBeforeKernel() {
-  expectError(r"""[ !$strong && !$kernel ]
+  expectError(
+      r"""[ !$strong && !$kernel ]
 a_test: Pass
-""", r"Error at line 1: Condition expression should be '!$kernel && !$strong'.");
+""",
+      r"Error at line 1: Condition expression should be '!$kernel && !$strong' "
+      r"but was '!$strong && !$kernel'.");
 }
 
 void testCheckForCorrectOrderingInSections_invalidOrdering() {
@@ -156,7 +173,8 @@ void testCheckForCorrectOrderingInSections_invalidOrdering() {
 a_test: Pass
 """,
       r"Error at line 1: Condition expression should be '$builder_tag == "
-      r"strong && $compiler == dart2js && !$browser'.");
+      r"strong && $compiler == dart2js && !$browser' but was "
+      r"'$compiler == dart2js && $builder_tag == strong && !$browser'.");
 }
 
 void testCheckForCorrectOrderingInSections_okOrdering() {

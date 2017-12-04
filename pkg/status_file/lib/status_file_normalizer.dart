@@ -46,25 +46,22 @@ StatusFile _sortSectionsAndCombine(StatusFile statusFile) {
   // Create the new status file to be returned.
   StatusFile oldStatusFile =
       new StatusFile.parse(statusFile.path, statusFile.toString().split('\n'));
-  StatusFile newStatusFile = new StatusFile.parse(statusFile.path, []);
+  List<StatusSection> newSections = [];
   // Copy over all sections and normalize all the expressions.
-  newStatusFile.sections.clear();
   oldStatusFile.sections.forEach((section) {
     if (section.condition != null && section.isEmpty()) {
       return;
     }
     if (section.condition != null) {
-      newStatusFile.sections.add(new StatusSection(
-          section.condition.normalize(),
-          section.lineNumber,
-          section.sectionHeaderComments)
+      newSections.add(new StatusSection(section.condition.normalize(),
+          section.lineNumber, section.sectionHeaderComments)
         ..entries.addAll(section.entries));
     } else {
-      newStatusFile.sections.add(section);
+      newSections.add(section);
     }
   });
   // Sort the headers
-  newStatusFile.sections.sort((a, b) {
+  newSections.sort((a, b) {
     if (a.condition == null) {
       return -1;
     } else if (b.condition == null) {
@@ -73,12 +70,11 @@ StatusFile _sortSectionsAndCombine(StatusFile statusFile) {
     return a.condition.compareTo(b.condition);
   });
   // See if we can combine section headers by simple comparison.
-  var originalList = newStatusFile.sections.toList();
-  newStatusFile.sections.clear();
-  newStatusFile.sections.add(originalList[0]);
-  for (var i = 1; i < originalList.length; i++) {
-    var previousSection = originalList[i - 1];
-    var currentSection = originalList[i];
+  StatusFile newStatusFile = new StatusFile(statusFile.path);
+  newStatusFile.sections.add(newSections[0]);
+  for (var i = 1; i < newSections.length; i++) {
+    var previousSection = newSections[i - 1];
+    var currentSection = newSections[i];
     if (previousSection.condition != null &&
         previousSection.condition.compareTo(currentSection.condition) == 0) {
       newStatusFile.sections.last.entries.addAll(currentSection.entries);

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This tests tests if the modification of a status file is done correctly, by
+// This tests if the modification of a status file is done correctly, by
 // checking that all entries in the original status file are to be found in the
-// new status file. The check therefore allow the merging of section headers if
+// new status file. The check therefore allows the merging of section headers if
 // they are equal, alphabetizing sections and entries, removing line columns and
-// normalizing section conditions..
+// normalizing section conditions.
 
 import 'dart:io';
 
@@ -14,7 +14,7 @@ import 'package:status_file/canonical_status_file.dart';
 import 'package:status_file/src/expression.dart';
 import 'package:status_file/status_file_normalizer.dart';
 
-final Uri repoRoot = Platform.script.resolve("../../../");
+final Uri statusFilePath = Platform.script.resolve("data/");
 
 main() {
   sanityCheck();
@@ -22,7 +22,7 @@ main() {
 }
 
 void normalizeCheck() {
-  var files = getStatusFileInRepo();
+  var files = getStatusFiles();
   for (var file in files) {
     print("------- " + file.path + " -------");
     var statusFile = new StatusFile.read(file.path);
@@ -34,7 +34,7 @@ void normalizeCheck() {
 }
 
 void sanityCheck() {
-  var files = getStatusFileInRepo();
+  var files = getStatusFiles();
   for (var file in files) {
     print("------- " + file.path + " -------");
     var statusFile = new StatusFile.read(file.path);
@@ -45,22 +45,11 @@ void sanityCheck() {
   }
 }
 
-List<FileSystemEntity> getStatusFileInRepo() {
+List<FileSystemEntity> getStatusFiles() {
   var statusFiles = <FileSystemEntity>[];
-  for (var directory in ["tests", "runtime/tests"]) {
-    for (var entry in new Directory.fromUri(repoRoot.resolve(directory))
-        .listSync(recursive: true)) {
-      if (!entry.path.endsWith(".status")) continue;
-      // Inside the co19 repository, there is a status file that doesn't appear
-      // to be valid and looks more like some kind of template or help document.
-      // Ignore it.
-      var co19StatusFile = repoRoot.resolve('tests/co19/src/co19.status');
-      if (FileSystemEntity.identicalSync(
-          entry.path, new File.fromUri(co19StatusFile).path)) {
-        continue;
-      }
-      statusFiles.add(entry);
-    }
+  for (var entry
+      in new Directory.fromUri(statusFilePath).listSync(recursive: true)) {
+    statusFiles.add(entry);
   }
   return statusFiles;
 }
@@ -78,18 +67,13 @@ void checkSemanticallyEqual(StatusFile original, StatusFile normalized,
         "$entriesInNormalized. Those two numbers are not the same.");
   }
   for (var section in original.sections) {
-    for (var entry in section.entries) {
-      if (entry is! StatusEntry) {
-        continue;
-      }
-      findInStatusFile(normalized, entry, section.condition?.normalize(),
-          warnOnDuplicateHeader: warnOnDuplicateHeader);
-    }
+    section.entries.where((entry) => entry is StatusEntry).forEach((entry) =>
+        findInStatusFile(normalized, entry, section.condition?.normalize(),
+            warnOnDuplicateHeader: warnOnDuplicateHeader));
   }
 }
 
 int countEntries(StatusFile statusFile) {
-  return 0;
   return statusFile.sections
       .map((section) =>
           section.entries.where((entry) => entry is StatusEntry).length)
@@ -120,7 +104,7 @@ void findInStatusFile(
           "header matched on line number ${section.lineNumber}. Sections "
           "should be unique.";
       if (warnOnDuplicateHeader) {
-        //print(message);
+        print(message);
       } else {
         throw new Exception(message);
       }

@@ -240,26 +240,22 @@ class _LogicExpression extends Expression {
     // Recurse into the operands, sort them, and remove duplicates.
     var normalized = new _LogicExpression(
             op, operands.map((operand) => operand.normalize()).toList())
-        .flatten()
         .operands;
+    normalized = flatten(normalized);
     var ordered = new SplayTreeSet<Expression>.from(normalized).toList();
-    return new _LogicExpression(op, ordered).flatten();
+    return new _LogicExpression(op, ordered);
   }
 
-  _LogicExpression flatten() {
-    if (operands.every((operand) =>
-        operand is! _LogicExpression ||
-        (operand as _LogicExpression).op == op)) {
-      return new _LogicExpression(
-          op,
-          operands.expand((operand) {
-            if (operand is _LogicExpression) {
-              return operand.operands;
-            }
-            return [operand];
-          }).toList());
+  List<Expression> flatten(List<Expression> operands) {
+    var newOperands = <Expression>[];
+    for (var operand in operands) {
+      if (operand is _LogicExpression && operand.op == op) {
+        newOperands.addAll(operand.operands);
+      } else {
+        newOperands.add(operand);
+      }
     }
-    return this;
+    return newOperands;
   }
 
   int _compareToMyType(_LogicExpression other) {

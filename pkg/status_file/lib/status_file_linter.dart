@@ -23,7 +23,8 @@ List<LintingError> lint(StatusFile file, {checkForDisjunctions = false}) {
     errors
       ..addAll(lintCommentLinesInSection(section))
       ..addAll(lintAlphabeticalOrderingOfPaths(section))
-      ..addAll(lintNormalizedSection(section));
+      ..addAll(lintNormalizedSection(section))
+      ..addAll(lintSectionEntryDuplicates(section));
     if (checkForDisjunctions) {
       errors.addAll(lintDisjunctionsInHeader(section));
     }
@@ -126,6 +127,29 @@ Iterable<LintingError> lintNormalizedSection(StatusSection section) {
     ];
   }
   return const [];
+}
+
+/// Checks for duplicate section entries in the body of a section.
+Iterable<LintingError> lintSectionEntryDuplicates(StatusSection section) {
+  var errors = <LintingError>[];
+  List<StatusEntry> statusEntries =
+      section.entries.where((entry) => entry is StatusEntry).toList();
+  for (var i = 0; i < statusEntries.length; i++) {
+    var entry = statusEntries[i];
+    for (var j = i + 1; j < statusEntries.length; j++) {
+      var otherEntry = statusEntries[j];
+      if (entry.path == otherEntry.path &&
+          _findNotEqualWitness(entry.expectations, otherEntry.expectations) ==
+              null) {
+        errors.add(new LintingError(
+            section.lineNumber,
+            "The status entry "
+            "'${entry}' is duplicated on lines "
+            "${entry.lineNumber} and ${otherEntry.lineNumber}."));
+      }
+    }
+  }
+  return errors;
 }
 
 /// Checks for incorrect ordering of section headers. Section headers should be
