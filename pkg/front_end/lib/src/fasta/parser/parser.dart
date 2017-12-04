@@ -3896,8 +3896,8 @@ class Parser {
     int statementCount = 0;
     if (!optional('{', next)) {
       token = recoverFromMissingFunctionBody(next);
-      listener.handleInvalidFunctionBody(token.next);
-      return token;
+      listener.handleInvalidFunctionBody(token);
+      return token.endGroup;
     }
 
     listener.beginBlockFunctionBody(begin);

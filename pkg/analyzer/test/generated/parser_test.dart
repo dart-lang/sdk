@@ -10567,6 +10567,11 @@ class C<K {
         BinaryExpression, expression.rightOperand);
   }
 
+  void test_method_missingBody() {
+    parseCompilationUnit("class C { b() }",
+        errors: [expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 14, 1)]);
+  }
+
   void test_missing_commaInArgumentList() {
     parseExpression("f(x: 1 y: 2)",
         codes: usingFastaParser

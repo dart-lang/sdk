@@ -1273,8 +1273,14 @@ class AstBuilder extends ScopeListener {
   }
 
   @override
-  void handleInvalidFunctionBody(Token token) {
+  void handleInvalidFunctionBody(Token leftBracket) {
+    assert(optional('{', leftBracket));
+    assert(optional('}', leftBracket.endGroup));
     debugEvent("InvalidFunctionBody");
+    Block block = ast.block(leftBracket, [], leftBracket.endGroup);
+    Token star = pop();
+    Token asyncKeyword = pop();
+    push(ast.blockFunctionBody(asyncKeyword, star, block));
   }
 
   @override

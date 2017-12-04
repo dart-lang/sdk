@@ -220,7 +220,6 @@ rasta/issue_000068: Crash
 rasta/issue_000069: Crash
 rasta/issue_000070: Crash
 rasta/issue_000081: Crash
-rasta/malformed_const_constructor: Crash
 rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: VerificationError
 rasta/mixin_library: Crash
