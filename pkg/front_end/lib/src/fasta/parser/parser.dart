@@ -2749,17 +2749,14 @@ class Parser {
     } else {
       // If there are modifiers other than or in addition to `external`
       // then we need to recover.
-      final context = new TopLevelMethodModifierContext(this, name);
+      final context = new TopLevelMethodModifierContext(this, beforeName);
       token = context.parseRecovery(beforeToken, afterModifiers);
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `parseRecovery` returns the last consumed token.
-      beforeToken = token.previous;
+      beforeToken = token;
+      token = token.next;
       beforeExternalToken = beforeToken;
       externalToken = context.externalToken;
-      name = context.name;
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `context.name` returns the token before the name.
-      beforeName = name.previous;
+      beforeName = context.beforeName;
+      name = beforeName.next;
 
       // If the modifiers form a partial top level directive or declaration
       // and we have found the start of a new top level declaration
