@@ -942,7 +942,7 @@ class ElementListener extends Listener {
   }
 
   @override
-  void handleStringJuxtaposition(int stringCount, Token endToken) {
+  void handleStringJuxtaposition(int stringCount) {
     assert(stringCount != 0);
     Expression accumulator = popNode();
     stringCount--;

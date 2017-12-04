@@ -279,7 +279,7 @@ class OutlineBuilder extends UnhandledListener {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount, Token endToken) {
+  void handleStringJuxtaposition(int literalCount) {
     debugEvent("StringJuxtaposition");
     List<String> list =
         new List<String>.filled(literalCount, null, growable: false);

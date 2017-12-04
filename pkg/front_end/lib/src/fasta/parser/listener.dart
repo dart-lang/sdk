@@ -605,7 +605,7 @@ class Listener {
     logEvent("LiteralString");
   }
 
-  void handleStringJuxtaposition(int literalCount, Token endToken) {
+  void handleStringJuxtaposition(int literalCount) {
     logEvent("StringJuxtaposition");
   }
 
