@@ -12,6 +12,6 @@ part of dart._internal;
  *
  * This decouples the core library from the async library.
  */
-Function printToZone = null;
+void Function(String) printToZone = null;
 
 external void printToConsole(String line);
