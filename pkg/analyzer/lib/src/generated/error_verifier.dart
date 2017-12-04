@@ -6246,9 +6246,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           TypeParameterTypeImpl.getTypes(genericType.typeFormals);
       var typeArgs = typeArgumentList.map((t) => t.type).toList();
 
-      for (int i = 0, len = math.min(typeArgs.length, fnTypeParams.length);
-          i < len;
-          i++) {
+      // If the amount mismatches, clean up the lists to be substitutable. The
+      // mismatch in size is reported elsewhere, but we must successfully
+      // perform substitution to validate bounds on mismatched lists.
+      final providedLength = math.min(typeArgs.length, fnTypeParams.length);
+      fnTypeParams = fnTypeParams.sublist(0, providedLength);
+      typeArgs = typeArgs.sublist(0, providedLength);
+
+      for (int i = 0; i < providedLength; i++) {
         // Check the `extends` clause for the type parameter, if any.
         //
         // Also substitute to handle cases like this:

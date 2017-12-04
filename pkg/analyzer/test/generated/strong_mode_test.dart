@@ -3441,6 +3441,22 @@ void test<S>(T pf<T>(T e)) {
     expectIdentifierType('paramTearOff', "<T>(T) → T");
   }
 
+  test_genericMethod_partiallyAppliedErrorWithBound() async {
+    await resolveTestUnit(r'''
+void f<X extends List, Y>() => null;
+
+void test() {
+  f<int>();
+}
+''', noErrors: false);
+    assertErrors(testSource, [
+      // Make sure to catch both the missing parameter:
+      StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
+      // And the incorrect parameter:
+      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+    ]);
+  }
+
   test_genericMethod_then() async {
     String code = r'''
 import 'dart:async';
