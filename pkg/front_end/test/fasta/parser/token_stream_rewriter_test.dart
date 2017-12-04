@@ -70,7 +70,7 @@ abstract class TokenStreamRewriterTest {
     _link([a, b, e, f]);
     _link([c, d]);
     var rewriter = new TokenStreamRewriter();
-    rewriter.replaceToken(e, c);
+    rewriter.replaceToken(b.next, c);
     expect(a.next, same(b));
     expect(b.next, same(c));
     expect(c.next, same(d));
@@ -84,7 +84,7 @@ abstract class TokenStreamRewriterTest {
     var d = _makeToken(3, 'd');
     _link([a, b, d]);
     var rewriter = new TokenStreamRewriter();
-    rewriter.replaceToken(b, c);
+    rewriter.replaceToken(a.next, c);
     expect(a.next, same(c));
     expect(c.next, same(d));
   }

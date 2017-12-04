@@ -2548,7 +2548,7 @@ class Parser {
     return parseStuff(
         token,
         (t) => listener.beginTypeArguments(t),
-        (t) => parseType(t).next,
+        (t) => parseType(t),
         (c, bt, et) => listener.endTypeArguments(c, bt, et),
         (t) => listener.handleNoTypeArguments(t));
   }
@@ -2557,7 +2557,7 @@ class Parser {
     return parseStuff(
         token,
         (t) => listener.beginTypeVariables(t),
-        (t) => parseTypeVariable(t).next,
+        (t) => parseTypeVariable(t),
         (c, bt, et) => listener.endTypeVariables(c, bt, et),
         (t) => listener.handleNoTypeVariables(t));
   }
@@ -2571,30 +2571,34 @@ class Parser {
     token = listener.injectGenericCommentTypeList(token.next).previous;
     Token next = token.next;
     if (optional('<', next)) {
-      token = next;
-      Token begin = token;
+      Token begin = next;
       beginStuff(begin);
       int count = 0;
       do {
-        token = stuffParser(token);
+        token = stuffParser(token.next);
         ++count;
-      } while (optional(',', token));
+      } while (optional(',', token.next));
 
       // Rewrite `>>`, `>=`, and `>>=` tokens
-      String value = token.stringValue;
+      next = token.next;
+      String value = next.stringValue;
       if (value != null && value.length > 1) {
-        Token replacement = new Token(TokenType.GT, token.charOffset);
+        Token replacement = new Token(TokenType.GT, next.charOffset);
         if (identical(value, '>>')) {
-          replacement.next = new Token(TokenType.GT, token.charOffset + 1);
-          token = rewriter.replaceToken(token, replacement);
+          replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+          token = rewriter.replaceToken(token.next, replacement);
         } else if (identical(value, '>=')) {
-          replacement.next = new Token(TokenType.EQ, token.charOffset + 1);
-          token = rewriter.replaceToken(token, replacement);
+          replacement.next = new Token(TokenType.EQ, next.charOffset + 1);
+          token = rewriter.replaceToken(token.next, replacement);
         } else if (identical(value, '>>=')) {
-          replacement.next = new Token(TokenType.GT, token.charOffset + 1);
-          replacement.next.next = new Token(TokenType.EQ, token.charOffset + 2);
-          token = rewriter.replaceToken(token, replacement);
+          replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+          replacement.next.next = new Token(TokenType.EQ, next.charOffset + 2);
+          token = rewriter.replaceToken(token.next, replacement);
+        } else {
+          token = next;
         }
+      } else {
+        token = next;
       }
 
       endStuff(count, begin, token);
@@ -4328,7 +4332,7 @@ class Parser {
                 new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
             // TODO(brianwilkerson): Remove the invocation of `previous` when
             // `replaceToken` returns the last consumed token.
-            token = rewriter.replaceToken(next, replacement).previous;
+            token = rewriter.replaceToken(token.next, replacement).previous;
             token = parseArgumentOrIndexStar(token, null);
           } else {
             token = reportUnexpectedToken(token.next);
@@ -4661,6 +4665,7 @@ class Parser {
   /// if not. This is a suffix parser because it is assumed that type arguments
   /// have been parsed, or `listener.handleNoTypeArguments` has been executed.
   Token parseLiteralListSuffix(Token token, Token constKeyword) {
+    Token beforeToken = token;
     Token beginToken = token = token.next;
     assert(optional('[', token) || optional('[]', token));
     int count = 0;
@@ -4683,7 +4688,7 @@ class Parser {
     BeginToken replacement = link(
         new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.offset),
         new Token(TokenType.CLOSE_SQUARE_BRACKET, token.offset + 1));
-    rewriter.replaceToken(token, replacement);
+    rewriter.replaceToken(beforeToken.next, replacement);
     token = replacement.next;
     listener.handleLiteralList(0, replacement, constKeyword, token);
     return token;
