@@ -23,7 +23,7 @@ class DillLoader extends Loader<Library> {
   final libraries = <Library>[];
 
   /// Sources for all appended programs.
-  final Map<String, Source> uriToSource = <String, Source>{};
+  final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
   DillLoader(TargetImplementation target) : super(target);
 

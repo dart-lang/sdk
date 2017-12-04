@@ -99,15 +99,15 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
   /// Each key is the file system URI of a library.
   /// Each value is the libraries that directly depend on the key library.
-  Map<String, Set<String>> _directLibraryDependencies = {};
+  Map<Uri, Set<Uri>> _directLibraryDependencies = {};
 
   /// Each key is the file system URI of a library.
   /// Each value is the [Library] that is still in the [_program].
-  Map<String, Library> _uriToLibrary = {};
+  Map<Uri, Library> _uriToLibrary = {};
 
   /// Each key is the file system URI of a part.
   /// Each value is the file system URI of the library that sources the part.
-  Map<String, String> _partToLibrary = {};
+  Map<Uri, Uri> _partToLibrary = {};
 
   /// The index that keeps track of references and nodes that use them,
   /// and allows fast reference replacement on a single library compilation.
@@ -238,7 +238,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         });
 
         // Prepare libraries that changed relatively to the current state.
-        var changedLibraries = new Set<String>();
+        var changedLibraries = new Set<Uri>();
         for (var library in _program.libraries) {
           var uri = library.importUri;
           var file = _fsState.getFileOrNull(uri);
@@ -252,9 +252,9 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
         // The set of affected library cycles (have different signatures),
         // or libraries that import or export affected libraries (so VM might
         // have inlined some code from affected libraries into them).
-        final vmRequiredLibraries = new Set<String>();
+        final vmRequiredLibraries = new Set<Uri>();
 
-        void gatherVmRequiredLibraries(String libraryUri) {
+        void gatherVmRequiredLibraries(Uri libraryUri) {
           if (vmRequiredLibraries.add(libraryUri)) {
             var directUsers = _directLibraryDependencies[libraryUri];
             directUsers?.forEach(gatherVmRequiredLibraries);
@@ -333,7 +333,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       for (var changedLibrary in _changedLibrariesWithSameApi) {
         _testView.compiledUris.add(changedLibrary.uri);
         // Detach the old library.
-        var oldLibrary = _uriToLibrary[changedLibrary.fileUriStr];
+        var oldLibrary = _uriToLibrary[changedLibrary.fileUri];
         _program.root.removeChild(changedLibrary.uriStr);
         _program.libraries.remove(oldLibrary);
         _dillTarget.loader.builders.remove(changedLibrary.uri);
@@ -353,7 +353,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       _logger.run('Replace references', () {
         var builders = kernelTarget.loader.builders;
         for (var changedLibrary in _changedLibrariesWithSameApi) {
-          Library oldLibrary = _uriToLibrary[changedLibrary.fileUriStr];
+          Library oldLibrary = _uriToLibrary[changedLibrary.fileUri];
           Library newLibrary = builders[changedLibrary.uri].target;
 
           _program.root
@@ -364,7 +364,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           _program.root.adoptChild(newLibrary.canonicalName);
           _program.libraries.add(newLibrary);
 
-          _uriToLibrary[changedLibrary.fileUriStr] = newLibrary;
+          _uriToLibrary[changedLibrary.fileUri] = newLibrary;
           _referenceIndex.replaceLibrary(oldLibrary, newLibrary);
 
           // Schedule the new outline for loading.
@@ -410,7 +410,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
       for (LibraryDependency dependency in library.dependencies) {
         Library targetLibrary = dependency.targetLibrary;
         _directLibraryDependencies
-            .putIfAbsent(targetLibrary.fileUri, () => new Set<String>())
+            .putIfAbsent(targetLibrary.fileUri, () => new Set<Uri>())
             .add(library.fileUri);
         processLibrary(targetLibrary);
       }
@@ -445,7 +445,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
     if (removedFiles.isNotEmpty && _watchFn != null) {
       for (var removedFile in removedFiles) {
         // If a library, remove it from the program.
-        Library library = _uriToLibrary.remove(removedFile.fileUriStr);
+        Library library = _uriToLibrary.remove(removedFile.fileUri);
         if (library != null) {
           _currentSignatures.remove(library.importUri);
           _program.libraries.remove(library);
@@ -494,9 +494,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
             filesWithDifferentApiSignature.add(file);
           } else {
             FileState libraryFile = file;
-            String libraryFileUriStr = _partToLibrary[file.fileUriStr];
-            if (libraryFileUriStr != null) {
-              var libraryFileUri = Uri.parse(libraryFileUriStr);
+            Uri libraryFileUri = _partToLibrary[file.fileUri];
+            if (libraryFileUri != null) {
               libraryFile = _fsState.getFileByFileUri(libraryFileUri);
             }
             _changedLibrariesWithSameApi.add(libraryFile);
@@ -510,7 +509,7 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
         /// Invalidate the library with the given [libraryUri],
         /// and recursively all its clients.
-        void invalidateLibrary(String libraryUri) {
+        void invalidateLibrary(Uri libraryUri) {
           Library library = _uriToLibrary.remove(libraryUri);
           if (library == null) return;
 
@@ -522,15 +521,14 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           _referenceIndex.removeLibrary(library);
 
           // Recursively invalidate clients.
-          Set<String> directDependencies =
+          Set<Uri> directDependencies =
               _directLibraryDependencies.remove(libraryUri);
           directDependencies?.forEach(invalidateLibrary);
         }
 
         // TODO(scheglov): Some changes still might be incremental.
         for (var uri in invalidatedFiles) {
-          String uriStr = uri.toString();
-          String libraryUri = _partToLibrary.remove(uriStr) ?? uriStr;
+          Uri libraryUri = _partToLibrary.remove(uri) ?? uri;
           invalidateLibrary(libraryUri);
         }
       }

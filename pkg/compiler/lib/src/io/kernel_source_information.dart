@@ -407,6 +407,6 @@ class KernelSourceLocation extends AbstractSourceLocation {
   final Uri sourceUri;
 
   KernelSourceLocation(ir.Location location, this.offset, this.sourceName)
-      : sourceUri = Uri.base.resolve(location.file),
+      : sourceUri = location.file,
         super.fromLocation(location);
 }

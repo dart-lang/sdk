@@ -120,15 +120,17 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
     Library library = program.libraries
         .firstWhere((Library library) => library.importUri.scheme != "dart");
     Uri uri = library.importUri;
+    Uri base = uri.resolve(".");
     StringBuffer buffer = new StringBuffer();
     new Printer(buffer).writeLibraryFile(library);
+    String actual = "$buffer".replaceAll("$base", "org-dartlang-testcase:///");
 
     File expectedFile = new File("${uri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
       String expected = await expectedFile.readAsString();
-      if (expected.trim() != "$buffer".trim()) {
+      if (expected.trim() != actual.trim()) {
         if (!updateExpectations) {
-          String diff = await runDiff(expectedFile.uri, "$buffer");
+          String diff = await runDiff(expectedFile.uri, actual);
           return fail(null, "$uri doesn't match ${expectedFile.uri}\n$diff");
         }
       } else {
@@ -137,13 +139,13 @@ class MatchExpectation extends Step<Program, Program, ChainContext> {
     }
     if (updateExpectations) {
       await openWrite(expectedFile.uri, (IOSink sink) {
-        sink.writeln("$buffer".trim());
+        sink.writeln(actual.trim());
       });
       return pass(program);
     } else {
       return fail(program, """
 Please create file ${expectedFile.path} with this content:
-$buffer""");
+$actual""");
     }
   }
 }

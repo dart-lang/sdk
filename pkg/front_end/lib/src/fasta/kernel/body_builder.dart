@@ -994,9 +994,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Name kernelName = new Name(name, library.library);
     LocatedMessage context;
     if (candidate != null) {
-      // TODO(ahe): Not sure `candidate.location.file` is guaranteed to be
-      // relative to Uri.base.
-      Uri uri = Uri.base.resolve(candidate.location.file);
+      Uri uri = candidate.location.file;
       int offset = candidate.fileOffset;
       Message message;
       if (offset == -1 && candidate is Constructor) {
@@ -3302,7 +3300,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     return new Throw(buildStaticInvocation(
         library.loader.coreTypes.fallThroughErrorUrlAndLineConstructor,
         new Arguments(<Expression>[
-          new StringLiteral(location?.file ?? uri.toString()),
+          new StringLiteral("${location?.file ?? uri}"),
           new IntLiteral(location?.line ?? 0)
         ]),
         charOffset: charOffset));

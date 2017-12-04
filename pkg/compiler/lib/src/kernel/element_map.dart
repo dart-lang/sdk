@@ -488,7 +488,7 @@ SourceSpan computeSourceSpanFromTreeNode(ir.TreeNode node) {
   while (node != null) {
     if (node.fileOffset != ir.TreeNode.noOffset) {
       offset = node.fileOffset;
-      uri = Uri.parse(node.location.file);
+      uri = node.location.file;
       break;
     }
     node = node.parent;

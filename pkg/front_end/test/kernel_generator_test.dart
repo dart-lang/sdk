@@ -87,7 +87,8 @@ main() {
       // least one. Having more means that source-info is added.
       expect(program.uriToSource.keys.length, greaterThan(1));
       expect(
-          program.uriToSource['org-dartlang-test:///a/b/c/a.dart'], isNotNull);
+          program.uriToSource[Uri.parse('org-dartlang-test:///a/b/c/a.dart')],
+          isNotNull);
     });
 
     test('code from summary dependencies are marked external', () async {

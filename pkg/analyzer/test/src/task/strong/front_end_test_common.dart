@@ -22,7 +22,6 @@ import 'package:front_end/src/base/instrumentation.dart' as fasta;
 import 'package:front_end/src/fasta/compiler_context.dart' as fasta;
 import 'package:front_end/src/fasta/testing/validating_instrumentation.dart'
     as fasta;
-import 'package:front_end/src/fasta/util/relativize.dart' show relativizeUri;
 import 'package:front_end/src/testing/package_root.dart' as package_root;
 import 'package:kernel/kernel.dart' as fasta;
 import 'package:path/path.dart' as pathos;
@@ -268,7 +267,7 @@ class _FrontEndInferenceTest extends BaseAnalysisDriverTest {
       Uri uri = provider.pathContext.toUri(path);
 
       List<int> lineStarts = new LineInfo.fromContent(code).lineStarts;
-      fasta.CompilerContext.current.uriToSource[relativizeUri(uri).toString()] =
+      fasta.CompilerContext.current.uriToSource[uri] =
           new fasta.Source(lineStarts, UTF8.encode(code));
 
       var validation = new fasta.ValidatingInstrumentation();

@@ -189,7 +189,7 @@ abstract class NamedNode extends TreeNode {
 
 abstract class FileUriNode extends TreeNode {
   /// The uri of the source file this node was loaded from.
-  String get fileUri;
+  Uri get fileUri;
 }
 
 /// Indirection between a reference and its definition.
@@ -276,7 +276,7 @@ class Library extends NamedNode implements Comparable<Library>, FileUriNode {
   Uri importUri;
 
   /// The uri of the source file this library was loaded from.
-  String fileUri;
+  Uri fileUri;
 
   /// If true, the library is part of another build unit and its contents
   /// are only partially loaded.
@@ -525,9 +525,9 @@ class LibraryDependency extends TreeNode {
 /// optionally with metadata.
 class LibraryPart extends TreeNode implements FileUriNode {
   final List<Expression> annotations;
-  final String fileUri;
+  final Uri fileUri;
 
-  LibraryPart(List<Expression> annotations, String fileUri)
+  LibraryPart(List<Expression> annotations, Uri fileUri)
       : this.byReference(annotations, fileUri);
 
   LibraryPart.byReference(this.annotations, this.fileUri) {
@@ -576,7 +576,7 @@ class Combinator extends TreeNode {
 /// Declaration of a type alias.
 class Typedef extends NamedNode implements FileUriNode {
   /// The uri of the source file that contains the declaration of this typedef.
-  String fileUri;
+  Uri fileUri;
   List<Expression> annotations = const <Expression>[];
   String name;
   final List<TypeParameter> typeParameters;
@@ -718,7 +718,7 @@ class Class extends NamedNode implements FileUriNode {
   bool isSyntheticMixinImplementation;
 
   /// The uri of the source file this class was loaded from.
-  String fileUri;
+  Uri fileUri;
 
   final List<TypeParameter> typeParameters;
 
@@ -1041,7 +1041,7 @@ class Field extends Member implements FileUriNode {
   Expression initializer; // May be null.
 
   /// The uri of the source file this field was loaded from.
-  String fileUri;
+  Uri fileUri;
 
   Field(Name name,
       {this.type: const DynamicType(),
@@ -1465,7 +1465,7 @@ class Procedure extends Member implements FileUriNode {
   FunctionNode function;
 
   /// The uri of the source file this procedure was loaded from.
-  String fileUri;
+  Uri fileUri;
 
   Procedure(Name name, this.kind, this.function,
       {bool isAbstract: false,
@@ -5435,7 +5435,7 @@ class Program extends TreeNode {
   /// Map from a source file uri to a line-starts table and source code.
   /// Given a source file uri and a offset in that file one can translate
   /// it to a line:column position in that file.
-  final Map<String, Source> uriToSource;
+  final Map<Uri, Source> uriToSource;
 
   /// Mapping between string tags and [MetadataRepository] corresponding to
   /// those tags.
@@ -5448,10 +5448,10 @@ class Program extends TreeNode {
   Program(
       {CanonicalName nameRoot,
       List<Library> libraries,
-      Map<String, Source> uriToSource})
+      Map<Uri, Source> uriToSource})
       : root = nameRoot ?? new CanonicalName.root(),
         libraries = libraries ?? <Library>[],
-        uriToSource = uriToSource ?? <String, Source>{} {
+        uriToSource = uriToSource ?? <Uri, Source>{} {
     if (libraries != null) {
       for (int i = 0; i < libraries.length; ++i) {
         // The libraries are owned by this program, and so are their canonical
@@ -5497,7 +5497,7 @@ class Program extends TreeNode {
   Program get enclosingProgram => this;
 
   /// Translates an offset to line and column numbers in the given file.
-  Location getLocation(String file, int offset) {
+  Location getLocation(Uri file, int offset) {
     return uriToSource[file]?.getLocation(file, offset);
   }
 
@@ -5509,7 +5509,7 @@ class Program extends TreeNode {
 /// A tuple with file, line, and column number, for displaying human-readable
 /// locations.
 class Location {
-  final String file;
+  final Uri file;
   final int line; // 1-based.
   final int column; // 1-based.
 
@@ -5703,7 +5703,7 @@ class Source {
   }
 
   /// Translates an offset to line and column numbers in the given file.
-  Location getLocation(String file, int offset) {
+  Location getLocation(Uri file, int offset) {
     RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {
@@ -5817,7 +5817,7 @@ CanonicalName getCanonicalNameOfTypedef(Typedef typedef_) {
 /// static analysis and runtime behavior of the library are unaffected.
 const informative = null;
 
-Location _getLocationInProgram(Program program, String fileUri, int offset) {
+Location _getLocationInProgram(Program program, Uri fileUri, int offset) {
   if (program != null) {
     return program.getLocation(fileUri, offset);
   } else {

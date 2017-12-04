@@ -55,15 +55,15 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
 
   /// Each key is the file system URI of a library.
   /// Each value is the libraries that directly depend on the key library.
-  Map<String, Set<String>> _directLibraryDependencies = {};
+  Map<Uri, Set<Uri>> _directLibraryDependencies = {};
 
   /// Each key is the file system URI of a library.
   /// Each value is the [Library] that is still in the [_program].
-  Map<String, Library> _uriToLibrary = {};
+  Map<Uri, Library> _uriToLibrary = {};
 
   /// Each key is the file system URI of a part.
   /// Each value is the file system URI of the library that sources the part.
-  Map<String, String> _partToLibrary = {};
+  Map<Uri, Uri> _partToLibrary = {};
 
   /// Whether [computeDelta] is executing.
   bool _isComputeDeltaExecuting = false;
@@ -74,12 +74,12 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
   /// When we produce a new delta, we put newly compiled libraries into
   /// the [_lastLibraries] field, so [_currentLibraries] and [_lastLibraries]
   /// don't intersect.
-  final Set<String> _currentLibraries = new Set<String>();
+  final Set<Uri> _currentLibraries = new Set<Uri>();
 
   /// The set of new libraries (file system URIs) returned to the client by the
   /// last [computeDelta], or `null` if the last delta was either accepted or
   /// rejected.
-  Set<String> _lastLibraries;
+  Set<Uri> _lastLibraries;
 
   /// The object that provides additional information for tests.
   _TestView _testView;
@@ -123,7 +123,7 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
     if (_lastLibraries != null) {
       throw new StateError(MSG_HAS_LAST_DELTA);
     }
-    _lastLibraries = new Set<String>();
+    _lastLibraries = new Set<Uri>();
 
     _isComputeDeltaExecuting = true;
 
@@ -157,7 +157,7 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
         var program = new Program(nameRoot: _program.root);
         _testView.compiledUris.clear();
         for (var library in _program.libraries) {
-          String uri = library.fileUri;
+          Uri uri = library.fileUri;
           if (_currentLibraries.contains(uri)) continue;
 
           _lastLibraries.add(uri);
@@ -183,24 +183,23 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
 
   @override
   void invalidate(Uri uri) {
-    void invalidateLibrary(String libraryUri) {
+    void invalidateLibrary(Uri libraryUri) {
       Library library = _uriToLibrary.remove(libraryUri);
       if (library == null) return;
 
       // Invalidate the library.
       _program.libraries.remove(library);
-      _program.root.removeChild(library.importUri.toString());
+      _program.root.removeChild("${library.importUri}");
       _program.uriToSource.remove(libraryUri);
       _currentLibraries.remove(libraryUri);
 
       // Recursively invalidate dependencies.
-      Set<String> directDependencies =
+      Set<Uri> directDependencies =
           _directLibraryDependencies.remove(libraryUri);
       directDependencies?.forEach(invalidateLibrary);
     }
 
-    String uriStr = uri.toString();
-    String libraryUri = _partToLibrary.remove(uriStr) ?? uriStr;
+    Uri libraryUri = _partToLibrary.remove(uri) ?? uri;
     invalidateLibrary(libraryUri);
   }
 
@@ -248,7 +247,7 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
       for (LibraryDependency dependency in library.dependencies) {
         Library targetLibrary = dependency.targetLibrary;
         _directLibraryDependencies
-            .putIfAbsent(targetLibrary.fileUri, () => new Set<String>())
+            .putIfAbsent(targetLibrary.fileUri, () => new Set<Uri>())
             .add(library.fileUri);
         processLibrary(targetLibrary);
       }
@@ -284,7 +283,7 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
   /// remove all other files from [_program], and call [_watchFn] to unwatch
   /// known files that are not longer referenced.
   Future<Null> _unwatchFiles() async {
-    var entryPointFiles = new Set<String>();
+    var entryPointFiles = new Set<Uri>();
 
     // Don't remove SDK libraries.
     for (var library in _program.libraries) {
@@ -315,11 +314,10 @@ class MinimalIncrementalKernelGenerator implements IncrementalKernelGenerator {
     if (_fileSystem is _WatchingFileSystem) {
       _WatchingFileSystem fileSystem = _fileSystem;
       for (Uri knownUri in fileSystem.knownFiles.toList()) {
-        var knownUriStr = knownUri.toString();
-        if (!entryPointFiles.contains(knownUriStr)) {
+        if (!entryPointFiles.contains(knownUri)) {
           await _watchFn(knownUri, false);
           fileSystem.knownFiles.remove(knownUri);
-          _program.uriToSource.remove(knownUriStr);
+          _program.uriToSource.remove(knownUri);
         }
       }
     }

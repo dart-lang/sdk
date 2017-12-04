@@ -267,7 +267,7 @@ abstract class TypeInferrer {
 
   /// The URI of the code for which type inference is currently being
   /// performed--this is used for testing.
-  String get uri;
+  Uri get uri;
 
   /// Performs full type inference on the given field initializer.
   void inferFieldInitializer(DartType declaredType, Expression initializer);
@@ -301,7 +301,7 @@ class TypeInferrerDisabled extends TypeInferrer {
   TypeInferrerDisabled(this.typeSchemaEnvironment);
 
   @override
-  String get uri => null;
+  Uri get uri => null;
 
   @override
   void inferFieldInitializer(DartType declaredType, Expression initializer) {}
@@ -333,7 +333,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   final TypeInferenceEngineImpl engine;
 
   @override
-  final String uri;
+  final Uri uri;
 
   /// Indicates whether the construct we are currently performing inference for
   /// is outside of a method body, and hence top level type inference rules
@@ -399,7 +399,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           library.addCompileTimeError(
               templateInvalidAssignment.withArguments(actualType, expectedType),
               fileOffset,
-              Uri.parse(uri));
+              uri);
         }
         var parent = expression.parent;
         var typeCheck = new AsExpression(expression, expectedType)
@@ -437,7 +437,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     var interfaceMember = _getInterfaceMember(classNode, name, setter);
     if (!silent && interfaceMember != null) {
-      instrumentation?.record(Uri.parse(uri), fileOffset, 'target',
+      instrumentation?.record(uri, fileOffset, 'target',
           new InstrumentationValueForMember(interfaceMember));
     }
     return interfaceMember;
@@ -467,11 +467,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       return interfaceMember;
     } else {
-      throw unhandled(
-          "${methodInvocation.runtimeType}",
-          "findMethodInvocationMember",
-          methodInvocation.fileOffset,
-          Uri.parse(uri));
+      throw unhandled("${methodInvocation.runtimeType}",
+          "findMethodInvocationMember", methodInvocation.fileOffset, uri);
     }
   }
 
@@ -499,7 +496,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return interfaceMember;
     } else {
       return unhandled("${propertyGet.runtimeType}", "findPropertyGetMember",
-          propertyGet.fileOffset, Uri.parse(uri));
+          propertyGet.fileOffset, uri);
     }
   }
 
@@ -525,7 +522,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       return interfaceMember;
     } else {
       throw unhandled("${propertySet.runtimeType}", "findPropertySetMember",
-          propertySet.fileOffset, Uri.parse(uri));
+          propertySet.fileOffset, uri);
     }
   }
 
@@ -666,7 +663,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           int offset = arguments.fileOffset == -1
               ? expression.fileOffset
               : arguments.fileOffset;
-          instrumentation.record(Uri.parse(uri), offset, 'checkReturn',
+          instrumentation.record(uri, offset, 'checkReturn',
               new InstrumentationValueForType(inferredType));
         }
         return replacement;
@@ -684,7 +681,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           int offset = arguments.fileOffset == -1
               ? expression.fileOffset
               : arguments.fileOffset;
-          instrumentation.record(Uri.parse(uri), offset, 'checkGetterReturn',
+          instrumentation.record(uri, offset, 'checkGetterReturn',
               new InstrumentationValueForType(functionType));
         }
         return replacement;
@@ -729,18 +726,18 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       int offset = expression.fileOffset;
       switch (callKind) {
         case DispatchCategory.dynamicDispatch:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+          instrumentation.record(uri, offset, 'callKind',
               new InstrumentationValueLiteral('dynamic'));
           break;
         case DispatchCategory.viaThis:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
-              new InstrumentationValueLiteral('this'));
+          instrumentation.record(
+              uri, offset, 'callKind', new InstrumentationValueLiteral('this'));
           break;
         default:
           break;
       }
       if (checkReturn) {
-        instrumentation.record(Uri.parse(uri), offset, 'checkReturn',
+        instrumentation.record(uri, offset, 'checkReturn',
             new InstrumentationValueForType(inferredType));
       }
     }
@@ -883,7 +880,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           inferredTypes);
       substitution =
           Substitution.fromPairs(calleeTypeParameters, inferredTypes);
-      instrumentation?.record(Uri.parse(uri), offset, 'typeArgs',
+      instrumentation?.record(uri, offset, 'typeArgs',
           new InstrumentationValueForTypeArgs(inferredTypes));
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
@@ -1000,7 +997,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         } else {
           inferredType = const DynamicType();
         }
-        instrumentation?.record(Uri.parse(uri), formal.fileOffset, 'type',
+        instrumentation?.record(uri, formal.fileOffset, 'type',
             new InstrumentationValueForType(inferredType));
         formal.type = inferredType;
       }
@@ -1043,7 +1040,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // type `<T0, ..., Tn>(R0, ..., Rn) -> M’` (with some of the `Ri` and `xi`
     // denoted as optional or named parameters, if appropriate).
     if (needToSetReturnType) {
-      instrumentation?.record(Uri.parse(uri), fileOffset, 'returnType',
+      instrumentation?.record(uri, fileOffset, 'returnType',
           new InstrumentationValueForType(inferredReturnType));
       function.returnType = inferredReturnType;
     } else if (!strongMode && hasImplicitReturnType) {
@@ -1245,16 +1242,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           : arguments.fileOffset;
       switch (callKind) {
         case DispatchCategory.closure:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+          instrumentation.record(uri, offset, 'callKind',
               new InstrumentationValueLiteral('closure'));
           break;
         case DispatchCategory.dynamicDispatch:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
+          instrumentation.record(uri, offset, 'callKind',
               new InstrumentationValueLiteral('dynamic'));
           break;
         case DispatchCategory.viaThis:
-          instrumentation.record(Uri.parse(uri), offset, 'callKind',
-              new InstrumentationValueLiteral('this'));
+          instrumentation.record(
+              uri, offset, 'callKind', new InstrumentationValueLiteral('this'));
           break;
         default:
           break;

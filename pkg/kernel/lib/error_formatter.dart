@@ -95,7 +95,7 @@ Source:
     failures.add(failure);
   }
 
-  static String _fileUriOf(Member context) {
+  static Uri _fileUriOf(Member context) {
     if (context is Procedure) {
       return context.fileUri;
     } else if (context is Field) {

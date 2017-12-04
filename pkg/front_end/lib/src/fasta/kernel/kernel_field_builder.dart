@@ -49,7 +49,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       this.initializerTokenForInference,
       this.hasInitializer)
       : field = new ShadowField(null, type == null,
-            fileUri: compilationUnit?.relativeFileUri)
+            fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset,
         super(name, modifiers, compilationUnit, charOffset);
 
@@ -125,8 +125,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   @override
   void instrumentTopLevelInference(Instrumentation instrumentation) {
     if (isEligibleForInference) {
-      instrumentation.record(Uri.parse(field.fileUri), field.fileOffset,
-          'topType', new InstrumentationValueForType(field.type));
+      instrumentation.record(field.fileUri, field.fileOffset, 'topType',
+          new InstrumentationValueForType(field.type));
     }
   }
 

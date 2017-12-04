@@ -946,7 +946,7 @@ import 'b.dart';
 
   void _assertLibraryUris(KernelSequenceResult result,
       {List<Uri> includes: const [], List<Uri> excludes: const []}) {
-    Map<String, Source> uriToSource = {};
+    Map<Uri, Source> uriToSource = {};
     List<Uri> libraryUris = [];
     for (LibraryCycleResult cycleResult in result.results) {
       uriToSource.addAll(cycleResult.uriToSource);
@@ -1022,10 +1022,10 @@ import 'b.dart';
 
   /// Resolve the given `dart` or `package` [inputUri] into the corresponding
   /// file URI, or return the same URI if it is already a file URI.
-  String _resolveUriToFileUri(Uri inputUri) {
+  Uri _resolveUriToFileUri(Uri inputUri) {
     var translator = driver.uriTranslator;
     var outputUri = translator.translate(inputUri) ?? inputUri;
-    return outputUri.toString();
+    return outputUri;
   }
 
   /// Return the [Uri] for the given Posix [path].

@@ -39,7 +39,7 @@ class CompilerContext {
   /// This is populated as the compiler reads files, and it is used for error
   /// reporting and to generate source location information in the compiled
   /// programs.
-  final Map<String, Source> uriToSource = <String, Source>{};
+  final Map<Uri, Source> uriToSource = <Uri, Source>{};
 
   FileSystem get fileSystem => options.fileSystem;
 

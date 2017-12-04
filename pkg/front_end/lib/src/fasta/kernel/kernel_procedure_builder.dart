@@ -270,7 +270,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       [String nativeMethodName,
       this.redirectionTarget])
       : procedure = new ShadowProcedure(null, kind, null, returnType == null,
-            fileUri: compilationUnit?.relativeFileUri)
+            fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
@@ -339,10 +339,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   void instrumentTopLevelInference(Instrumentation instrumentation) {
     bool isEligibleForTopLevelInference = this.isEligibleForTopLevelInference;
     if ((isEligibleForTopLevelInference || isSetter) && returnType == null) {
-      instrumentation.record(
-          Uri.parse(procedure.fileUri),
-          procedure.fileOffset,
-          'topType',
+      instrumentation.record(procedure.fileUri, procedure.fileOffset, 'topType',
           new InstrumentationValueForType(procedure.function.returnType));
     }
     if (isEligibleForTopLevelInference) {
@@ -350,11 +347,8 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
         for (var formal in formals) {
           if (formal.type == null) {
             VariableDeclaration formalTarget = formal.target;
-            instrumentation.record(
-                Uri.parse(procedure.fileUri),
-                formalTarget.fileOffset,
-                'topType',
-                new InstrumentationValueForType(formalTarget.type));
+            instrumentation.record(procedure.fileUri, formalTarget.fileOffset,
+                'topType', new InstrumentationValueForType(formalTarget.type));
           }
         }
       }

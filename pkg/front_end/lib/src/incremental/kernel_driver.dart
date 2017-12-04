@@ -431,8 +431,8 @@ class KernelDriver {
       {
         var urisToRemoveSources = <String>[];
         for (var uri in program.uriToSource.keys) {
-          if (!cycleFileUris.contains(uri)) {
-            urisToRemoveSources.add(uri);
+          if (!cycleFileUris.contains("$uri")) {
+            urisToRemoveSources.add("$uri");
           }
         }
         urisToRemoveSources.forEach(program.uriToSource.remove);
@@ -593,7 +593,7 @@ class LibraryCycleResult {
   final String signature;
 
   /// Map from the [cycle] file URIs to their [Source]s.
-  final Map<String, Source> uriToSource;
+  final Map<Uri, Source> uriToSource;
 
   /// Kernel libraries for libraries in the [cycle].  Bodies of dependencies
   /// are not included, but but references to those dependencies are included.

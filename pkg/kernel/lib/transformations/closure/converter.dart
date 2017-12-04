@@ -157,7 +157,7 @@ class ClosureConverter extends Transformer {
     return currentFunction == null || currentMemberFunction == currentFunction;
   }
 
-  String get currentFileUri {
+  Uri get currentFileUri {
     if (currentMember is Constructor) return currentClass.fileUri;
     if (currentMember is Field) return (currentMember as Field).fileUri;
     if (currentMember is Procedure) return (currentMember as Procedure).fileUri;

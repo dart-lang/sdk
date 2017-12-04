@@ -5215,7 +5215,7 @@ void StreamingFlowGraphBuilder::SkipLibraryDependency() {
 
 void StreamingFlowGraphBuilder::SkipLibraryPart() {
   SkipListOfExpressions();  // Read annotations.
-  ReadStringReference();    // read uri_index.
+  ReadUInt();               // Read source_uri_index.
 }
 
 void StreamingFlowGraphBuilder::SkipLibraryTypedef() {

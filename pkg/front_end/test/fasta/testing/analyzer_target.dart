@@ -19,7 +19,7 @@ import 'analyzer_loader.dart' show AnalyzerLoader;
 class AnalyzerTarget extends KernelTarget {
   AnalyzerTarget(
       DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode,
-      [Map<String, Source> uriToSource])
+      [Map<Uri, Source> uriToSource])
       : super(PhysicalFileSystem.instance, false, dillTarget, uriTranslator,
             uriToSource: uriToSource);
 

@@ -276,7 +276,7 @@ abstract class TypeInferenceEngineImpl extends TypeInferenceEngine {
         if (location == null) {
           rethrow;
         } else {
-          throw new Crash(Uri.parse(location.file), formal.fileOffset, e, s);
+          throw new Crash(location.file, formal.fileOffset, e, s);
         }
       }
     }

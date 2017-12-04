@@ -70,8 +70,6 @@ import '../target_implementation.dart' show TargetImplementation;
 
 import '../uri_translator.dart' show UriTranslator;
 
-import '../util/relativize.dart' show relativizeUri;
-
 import 'kernel_builder.dart'
     show
         Builder,
@@ -102,7 +100,7 @@ class KernelTarget extends TargetImplementation {
   final DillTarget dillTarget;
 
   /// Shared with [CompilerContext].
-  final Map<String, Source> uriToSource;
+  final Map<Uri, Source> uriToSource;
 
   /// The [MetadataCollector] to write metadata to.
   final MetadataCollector metadataCollector;
@@ -121,7 +119,7 @@ class KernelTarget extends TargetImplementation {
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
       UriTranslator uriTranslator,
-      {Map<String, Source> uriToSource, MetadataCollector metadataCollector})
+      {Map<Uri, Source> uriToSource, MetadataCollector metadataCollector})
       : dillTarget = dillTarget,
         uriToSource = uriToSource ?? CompilerContext.current.uriToSource,
         metadataCollector = metadataCollector,
@@ -135,8 +133,7 @@ class KernelTarget extends TargetImplementation {
 
   void addSourceInformation(
       Uri uri, List<int> lineStarts, List<int> sourceCode) {
-    String fileUri = relativizeUri(uri);
-    uriToSource[fileUri] = new Source(lineStarts, sourceCode);
+    uriToSource[uri] = new Source(lineStarts, sourceCode);
   }
 
   void read(Uri uri) {
@@ -358,16 +355,11 @@ class KernelTarget extends TargetImplementation {
   /// Creates a program by combining [libraries] with the libraries of
   /// `dillTarget.loader.program`.
   Program link(List<Library> libraries, {CanonicalName nameRoot}) {
-    Map<String, Source> uriToSource =
-        new Map<String, Source>.from(this.uriToSource);
+    Map<Uri, Source> uriToSource = new Map<Uri, Source>.from(this.uriToSource);
 
     libraries.addAll(dillTarget.loader.libraries);
     uriToSource.addAll(dillTarget.loader.uriToSource);
 
-    // TODO(ahe): Remove this line. Kernel seems to generate a default line map
-    // that used when there's no fileUri on an element. Instead, ensure all
-    // elements have a fileUri.
-    uriToSource[""] = new Source(<int>[0], const <int>[]);
     Program program = new Program(
         nameRoot: nameRoot, libraries: libraries, uriToSource: uriToSource);
     if (loader.first != null) {

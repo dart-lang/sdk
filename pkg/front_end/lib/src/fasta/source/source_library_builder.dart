@@ -606,7 +606,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<TypeVariableBuilder> original);
 
   @override
-  String get fullNameForErrors => name ?? "<library '$relativeFileUri'>";
+  String get fullNameForErrors {
+    // TODO(ahe): Consider if we should use relativizeUri here. The downside to
+    // doing that is that this URI may be used in an error message. Ideally, we
+    // should create a class that represents qualified names that we can
+    // relativize when printing a message, but still store the full URI in
+    // .dill files.
+    return name ?? "<library '$fileUri'>";
+  }
 
   @override
   void prepareTopLevelInference(

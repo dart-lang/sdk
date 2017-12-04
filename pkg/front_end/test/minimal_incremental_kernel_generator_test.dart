@@ -124,7 +124,7 @@ static method main() → void {}
 ''');
       // The main method is set.
       expect(program.mainMethod, isNotNull);
-      expect(program.mainMethod.enclosingLibrary.fileUri, cUri.toString());
+      expect(program.mainMethod.enclosingLibrary.fileUri, cUri);
     }
 
     // Update b.dart and recompile c.dart
@@ -152,7 +152,7 @@ static method main() → void {}
 ''');
       // The main method is set even though not the entry point is updated.
       expect(program.mainMethod, isNotNull);
-      expect(program.mainMethod.enclosingLibrary.fileUri, cUri.toString());
+      expect(program.mainMethod.enclosingLibrary.fileUri, cUri);
     }
   }
 
@@ -226,8 +226,8 @@ part of lib;
     Program program = delta.newProgram;
 
     // Sources for library and its part must be present.
-    expect(program.uriToSource.keys, contains(aUri.toString()));
-    expect(program.uriToSource.keys, contains(bUri.toString()));
+    expect(program.uriToSource.keys, contains(aUri));
+    expect(program.uriToSource.keys, contains(bUri));
   }
 
   test_compile_update_part() async {
@@ -373,7 +373,7 @@ int getValue() {
     Program program = delta.newProgram;
 
     // The Source object is present in the map, but is empty.
-    Source source = program.uriToSource[uri.toString()];
+    Source source = program.uriToSource[uri];
     expect(source, isNotNull);
     expect(source.source, isEmpty);
   }
@@ -690,9 +690,9 @@ import 'a.dart';
 
   /// Resolve the given `dart` or `package` [inputUri] into the corresponding
   /// file URI, or return the same URI if it is already a file URI.
-  String _resolveUriToFileUri(Uri inputUri) {
+  Uri _resolveUriToFileUri(Uri inputUri) {
     var translator = generator.uriTranslator;
     var outputUri = translator.translate(inputUri) ?? inputUri;
-    return outputUri.toString();
+    return outputUri;
   }
 }

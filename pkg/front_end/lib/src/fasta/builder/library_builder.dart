@@ -198,10 +198,9 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   Builder operator [](String name) {
     return scope.local[name] ??
         internalProblem(
-            templateInternalProblemNotFoundIn.withArguments(
-                name, relativeFileUri),
+            templateInternalProblemNotFoundIn.withArguments(name, "$fileUri"),
             -1,
-            null);
+            fileUri);
   }
 
   Builder lookup(String name, int charOffset, Uri fileUri) {

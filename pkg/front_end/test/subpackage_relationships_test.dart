@@ -80,7 +80,6 @@ final subpackageRules = {
     'lib/src/fasta',
     'lib/src/fasta/parser',
     'lib/src/fasta/source',
-    'lib/src/fasta/util',
   ]),
   'lib/src/fasta/dill': new SubpackageRules(allowedDependencies: [
     'lib/src/fasta',
@@ -96,7 +95,6 @@ final subpackageRules = {
     'lib/src/fasta/scanner',
     'lib/src/fasta/source',
     'lib/src/fasta/type_inference',
-    'lib/src/fasta/util',
     'lib/src/scanner',
   ]),
   'lib/src/fasta/parser': new SubpackageRules(allowedDependencies: [

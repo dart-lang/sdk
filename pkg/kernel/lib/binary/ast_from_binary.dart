@@ -42,7 +42,7 @@ class BinaryBuilder {
   final List<int> _bytes;
   int _byteOffset = 0;
   final List<String> _stringTable = <String>[];
-  final List<String> _sourceUriTable = <String>[];
+  final List<Uri> _sourceUriTable = <Uri>[];
   List<Constant> _constantTable;
   List<CanonicalName> _linkTable;
   int _transformerFlags = 0;
@@ -228,7 +228,7 @@ class BinaryBuilder {
     return constant;
   }
 
-  String readUriReference() {
+  Uri readUriReference() {
     return _sourceUriTable[readUInt()];
   }
 
@@ -463,7 +463,7 @@ class BinaryBuilder {
     _disableLazyReading = _readMetadataSection(program) || _disableLazyReading;
 
     _byteOffset = index.binaryOffsetForSourceTable;
-    Map<String, Source> uriToSource = readUriToSource();
+    Map<Uri, Source> uriToSource = readUriToSource();
     program.uriToSource.addAll(uriToSource);
 
     _byteOffset = index.binaryOffsetForConstantTable;
@@ -484,15 +484,15 @@ class BinaryBuilder {
     _byteOffset = _programStartOffset + programFileSize;
   }
 
-  Map<String, Source> readUriToSource() {
+  Map<Uri, Source> readUriToSource() {
     int length = readUint32();
 
     // Read data.
     _sourceUriTable.length = length;
-    Map<String, Source> uriToSource = <String, Source>{};
+    Map<Uri, Source> uriToSource = <Uri, Source>{};
     for (int i = 0; i < length; ++i) {
       List<int> uriBytes = readByteList();
-      String uri = const Utf8Decoder().convert(uriBytes);
+      Uri uri = Uri.parse(const Utf8Decoder().convert(uriBytes));
       _sourceUriTable[i] = uri;
       List<int> sourceCode = readByteList();
       int lineCount = readUInt();
@@ -613,7 +613,7 @@ class BinaryBuilder {
     String name = readStringOrNullIfEmpty();
 
     // TODO(jensj): We currently save (almost the same) uri twice.
-    String fileUri = readUriReference();
+    Uri fileUri = readUriReference();
 
     if (shouldWriteData) {
       library.isExternal = isExternal;
@@ -713,7 +713,7 @@ class BinaryBuilder {
 
   LibraryPart readLibraryPart(Library library) {
     var annotations = readExpressionList();
-    var fileUri = readStringOrNullIfEmpty();
+    var fileUri = readUriReference();
     return new LibraryPart(annotations, fileUri)..parent = library;
   }
 
@@ -727,7 +727,7 @@ class BinaryBuilder {
     }
     int fileOffset = readOffset();
     String name = readStringReference();
-    String fileUri = readUriReference();
+    Uri fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
     readAndPushTypeParameterList(node.typeParameters, node);
     var type = readDartType();
