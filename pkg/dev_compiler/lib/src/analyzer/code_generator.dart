@@ -5091,7 +5091,8 @@ class CodeGenerator extends Object
       _emitNormalFormalParameter(node);
 
   @override
-  JS.This visitThisExpression(ThisExpression node) => new JS.This();
+  JS.This visitThisExpression(ThisExpression node) =>
+      new JS.This()..sourceInformation = node;
 
   @override
   JS.Expression visitSuperExpression(SuperExpression node) => new JS.Super();
