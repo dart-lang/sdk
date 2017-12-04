@@ -1,5 +1,5 @@
 @echo off
-REM Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+REM Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 REM for details. All rights reserved. Use of this source code is governed by a
 REM BSD-style license that can be found in the LICENSE file.
 
@@ -20,7 +20,7 @@ for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
 rem Remove trailing backslash if there is one
 if %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
-"%DART%" "%SNAPSHOT%" "--packages=$SDK_DIR\..\..\..\.packages" %*
+"%DART%" "%SNAPSHOT%" "--packages=%SDK_DIR%\.packages" %*
 
 endlocal
 
