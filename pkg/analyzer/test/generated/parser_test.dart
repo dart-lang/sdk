@@ -9909,6 +9909,13 @@ class A {}
 class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_combinator_missingIdentifier() {
+    createParser('import "/testB.dart" show ;');
+    parser.parseCompilationUnit2();
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1)]);
+  }
+
   void test_conditionalExpression_missingElse() {
     Expression expression =
         parseExpression('x ? y :', codes: [ParserErrorCode.MISSING_IDENTIFIER]);

@@ -1681,6 +1681,8 @@ class Parser {
     List<String> followingValues;
     if (context == IdentifierContext.classOrNamedMixinDeclaration) {
       followingValues = ['<', 'extends', 'with', 'implements', '{'];
+    } else if (context == IdentifierContext.combinator) {
+      followingValues = [';'];
     } else if (context == IdentifierContext.fieldDeclaration) {
       followingValues = [';', '=', ','];
     } else if (context == IdentifierContext.enumDeclaration) {
