@@ -1589,7 +1589,42 @@ void main() {
     }
   }
 
-  test_methodInvocation_instanceMethod_generic() async {
+  test_methodInvocation_instanceMethod_genericClass() async {
+    addTestFile(r'''
+main() {
+  new C<int, double>().m(1);
+}
+class C<T, U> {
+  void m(T p) {}
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    ClassDeclaration cNode = result.unit.declarations[1];
+    MethodDeclaration mNode = cNode.members[0];
+    MethodElement mElement = mNode.element;
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+      MethodInvocation invocation = statement.expression;
+      List<Expression> arguments = invocation.argumentList.arguments;
+
+      var invokeTypeStr = '(int) → void';
+      expect(invocation.staticType.toString(), 'void');
+      expect(invocation.staticInvokeType.toString(), invokeTypeStr);
+      if (previewDart2) {
+        expect(invocation.staticInvokeType.element, same(mElement));
+        expect(invocation.methodName.staticElement, same(mElement));
+        expect(invocation.methodName.staticType.toString(), invokeTypeStr);
+      }
+
+      Expression argument = arguments[0];
+      expect(argument.staticParameterElement, mElement.parameters[0]);
+    }
+  }
+
+  test_methodInvocation_instanceMethod_genericClass_genericMethod() async {
     addTestFile(r'''
 main() {
   new C<int>().m(1, 2.3);

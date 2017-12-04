@@ -1157,15 +1157,25 @@ class _ResolutionApplierContext implements TypeContext {
     }
 
     // Convert kernel type arguments into Analyzer types.
-    var astTypeArguments = new List<DartType>(astTypeParameters.length);
-    for (var i = 0; i < astTypeParameters.length; i++) {
+    int length = astTypeParameters.length;
+    var usedTypeParameters = <TypeParameterElement>[];
+    var usedTypeArguments = <DartType>[];
+    for (var i = 0; i < length; i++) {
       var kernelParameter = kernelTypeParameters[i];
       var kernelArgument = kernelMap[kernelParameter];
-      astTypeArguments[i] = resynthesizer.getType(null, kernelArgument);
+      if (kernelArgument != null) {
+        DartType astArgument = resynthesizer.getType(null, kernelArgument);
+        usedTypeParameters.add(astTypeParameters[i]);
+        usedTypeArguments.add(astArgument);
+      }
+    }
+
+    if (usedTypeParameters.isEmpty) {
+      return rawType;
     }
 
     // Replace Analyzer type parameters with type arguments.
-    return rawType.substitute4(astTypeParameters, astTypeArguments);
+    return rawType.substitute4(usedTypeParameters, usedTypeArguments);
   }
 
   /// Translate the given [declaration].
