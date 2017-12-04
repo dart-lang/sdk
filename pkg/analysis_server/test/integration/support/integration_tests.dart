@@ -574,7 +574,7 @@ class Server {
       if (trimmedLine.startsWith('Observatory listening on ')) {
         return;
       }
-      _recordStdio('RECV: $trimmedLine');
+      _recordStdio('<== $trimmedLine');
       var message;
       try {
         message = JSON.decoder.convert(trimmedLine);
@@ -646,7 +646,7 @@ class Server {
         new Completer<Map<String, dynamic>>();
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
-    _recordStdio('SEND: $line');
+    _recordStdio('==> $line');
     _process.stdin.add(UTF8.encoder.convert("$line\n"));
     return completer.future;
   }

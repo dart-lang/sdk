@@ -16,7 +16,7 @@ child(SendPort port) {
 }
 
 main() {
-  var port;
+  RawReceivePort port;
   port = new RawReceivePort((String childRootUri) {
     LibraryMirror root = currentMirrorSystem().isolate.rootLibrary;
     Expect.isNotNull(root);

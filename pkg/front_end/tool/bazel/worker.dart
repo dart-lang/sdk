@@ -6,7 +6,8 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
-import 'package:front_end/front_end.dart' hide FileSystemException;
+import 'package:front_end/src/api_prototype/front_end.dart'
+    hide FileSystemException;
 import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:kernel/target/targets.dart';
 
@@ -73,6 +74,7 @@ List<String> preprocessArgs(List<String> args) {
 
 /// An [ArgParser] for generating kernel summaries.
 final summaryArgsParser = new ArgParser()
+  ..addFlag('help', negatable: false)
   ..addOption('dart-sdk-summary')
   ..addOption('input-summary', allowMultiple: true)
   ..addOption('multi-root', allowMultiple: true)
@@ -92,6 +94,12 @@ Future<bool> computeSummary(List<String> args,
     {bool isWorker: false, StringBuffer outputBuffer}) async {
   bool succeeded = true;
   var parsedArgs = summaryArgsParser.parse(args);
+
+  if (parsedArgs['help']) {
+    print(summaryArgsParser.usage);
+    exit(0);
+  }
+
   var options = new CompilerOptions()
     ..packagesFileUri = Uri.parse(parsedArgs['packages-file'])
     ..inputSummaries = parsedArgs['input-summary'].map(Uri.parse).toList()

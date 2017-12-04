@@ -408,6 +408,12 @@ type LocalInitializer extends Initializer {
   VariableDeclaration variable;
 }
 
+type AssertInitializer extends Initializer {
+  Byte tag = 12;
+  Byte isSynthetic;
+  AssertStatement statement;
+}
+
 /*
 enum AsyncMarker {
   Sync,
@@ -1030,6 +1036,7 @@ type TryCatch extends Statement {
 }
 
 type Catch {
+  FileOffset fileOffset;
   DartType guard;
   Option<VariableDeclaration> exception;
   Option<VariableDeclaration> stackTrace;

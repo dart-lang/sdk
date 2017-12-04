@@ -14,6 +14,7 @@
 #include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
 #include "vm/compiler/intrinsifier.h"
 #include "vm/compiler/jit/compiler.h"
@@ -31,6 +32,7 @@
 #include "vm/hash_table.h"
 #include "vm/heap.h"
 #include "vm/isolate_reload.h"
+#include "vm/kernel.h"
 #include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -81,7 +83,6 @@ DEFINE_FLAG(bool,
             "Remove script timestamps to allow for deterministic testing.");
 
 DECLARE_FLAG(bool, show_invisible_frames);
-DECLARE_FLAG(bool, strong);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, trace_reload);
@@ -2788,6 +2789,36 @@ RawFunction* Function::GetMethodExtractor(const String& getter_name) const {
   }
   ASSERT(result.kind() == RawFunction::kMethodExtractor);
   return result.raw();
+}
+
+bool AbstractType::InstantiateAndTestSubtype(
+    AbstractType* subtype,
+    AbstractType* supertype,
+    Error* bound_error,
+    const TypeArguments& instantiator_type_args,
+    const TypeArguments& function_type_args) {
+  if (!subtype->IsInstantiated()) {
+    *subtype =
+        subtype->InstantiateFrom(instantiator_type_args, function_type_args,
+                                 kAllFree, bound_error, NULL, NULL, Heap::kOld);
+  }
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  if (!supertype->IsInstantiated()) {
+    *supertype = supertype->InstantiateFrom(
+        instantiator_type_args, function_type_args, kAllFree, bound_error, NULL,
+        NULL, Heap::kOld);
+  }
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  bool is_subtype_of =
+      subtype->IsSubtypeOf(*supertype, bound_error, NULL, Heap::kOld);
+  if (!bound_error->IsNull()) {
+    return false;
+  }
+  return is_subtype_of;
 }
 
 RawArray* Class::invocation_dispatcher_cache() const {
@@ -6893,6 +6924,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   if (implicit_closure_function() != Function::null()) {
     return implicit_closure_function();
   }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // In AOT mode all implicit closures are pre-created.
+  UNREACHABLE();
+  return Function::null();
+#else
   ASSERT(!IsSignatureFunction() && !IsClosureFunction());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -6954,6 +6990,50 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   closure_function.set_kernel_offset(kernel_offset());
 
+  // In strong mode, change covariant parameter types to Object in the implicit
+  // closure of a method compiled by kernel.
+  // The VM's parser erases covariant types immediately in strong mode.
+  if (thread->isolate()->strong() && !is_static() && (kernel_offset() > 0)) {
+    const Script& function_script = Script::Handle(zone, script());
+    kernel::TranslationHelper translation_helper(thread);
+    kernel::StreamingFlowGraphBuilder builder(
+        &translation_helper, function_script, zone,
+        TypedData::Handle(zone, KernelData()), KernelDataProgramOffset());
+    translation_helper.InitFromScript(function_script);
+    builder.SetOffset(kernel_offset());
+
+    builder.ReadUntilFunctionNode();
+    kernel::FunctionNodeHelper fn_helper(&builder);
+
+    // Check the positional parameters, including the optional positional ones.
+    fn_helper.ReadUntilExcluding(
+        kernel::FunctionNodeHelper::kPositionalParameters);
+    intptr_t num_pos_params = builder.ReadListLength();
+    ASSERT(num_pos_params ==
+           num_fixed_params - 1 + (has_opt_pos_params ? num_opt_params : 0));
+    const Type& object_type = Type::Handle(zone, Type::ObjectType());
+    for (intptr_t i = 0; i < num_pos_params; ++i) {
+      kernel::VariableDeclarationHelper var_helper(&builder);
+      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
+      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
+        closure_function.SetParameterTypeAt(i + 1, object_type);
+      }
+    }
+    fn_helper.SetJustRead(kernel::FunctionNodeHelper::kPositionalParameters);
+
+    // Check the optional named parameters.
+    fn_helper.ReadUntilExcluding(kernel::FunctionNodeHelper::kNamedParameters);
+    intptr_t num_named_params = builder.ReadListLength();
+    ASSERT(num_named_params == (has_opt_pos_params ? 0 : num_opt_params));
+    for (intptr_t i = 0; i < num_named_params; ++i) {
+      kernel::VariableDeclarationHelper var_helper(&builder);
+      var_helper.ReadUntilExcluding(kernel::VariableDeclarationHelper::kEnd);
+      if (var_helper.IsCovariant() || var_helper.IsGenericCovariantImpl()) {
+        closure_function.SetParameterTypeAt(num_pos_params + 1 + i,
+                                            object_type);
+      }
+    }
+  }
   const Type& signature_type =
       Type::Handle(zone, closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
@@ -6962,6 +7042,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   set_implicit_closure_function(closure_function);
   ASSERT(closure_function.IsImplicitClosureFunction());
   return closure_function.raw();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Function::DropUncompiledImplicitClosureFunction() const {
@@ -7035,7 +7116,7 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 // and take the rest of the arguments from the invocation.
 //
 // Converted closure functions in VM follow same discipline as implicit closure
-// functions, because they are similar in many ways. For further deatils, please
+// functions, because they are similar in many ways. For further details, please
 // refer to the following methods:
 //   -> Function::ConvertedClosureFunction
 //   -> StreamingFlowGraphBuilder::BuildGraphOfConvertedClosureFunction
@@ -7046,9 +7127,6 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 //
 // Function::ConvertedClosureFunction method follows the logic of
 // Function::ImplicitClosureFunction method.
-//
-// TODO(29181): Adjust the method to correctly pass type parameters after they
-// are enabled in closure conversion.
 RawFunction* Function::ConvertedClosureFunction() const {
   // Return the existing converted closure function if any.
   if (converted_closure_function() != Function::null()) {
@@ -9224,18 +9302,21 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
       info.Add(line_separator);  // New line.
       return info.raw();
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
     intptr_t line_count = line_starts_data.Length();
     ASSERT(line_count > 0);
     const Array& debug_positions_array = Array::Handle(debug_positions());
     intptr_t token_count = debug_positions_array.Length();
     int token_index = 0;
 
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    intptr_t previous_start = 0;
     for (int line_index = 0; line_index < line_count; ++line_index) {
-      intptr_t start = line_starts_data.GetInt32(line_index * 4);
+      intptr_t start = previous_start + line_starts_reader.DeltaAt(line_index);
       // Output the rest of the tokens if we have no next line.
       intptr_t end = TokenPosition::kMaxSourcePos;
       if (line_index + 1 < line_count) {
-        end = line_starts_data.GetInt32((line_index + 1) * 4);
+        end = start + line_starts_reader.DeltaAt(line_index + 1);
       }
       bool first = true;
       while (token_index < token_count) {
@@ -9256,7 +9337,9 @@ RawGrowableObjectArray* Script::GenerateLineNumberArray() const {
         info.Add(value);
         ++token_index;
       }
+      previous_start = start;
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return info.raw();
   }
 
@@ -9490,22 +9573,31 @@ intptr_t Script::GetTokenLineUsingLineStarts(
     set_line_starts(line_starts_data);
   }
 
-  ASSERT(line_starts_data.Length() > 0);
-  intptr_t offset = target_token_pos.Pos();
-  intptr_t min = 0;
-  intptr_t max = line_starts_data.Length() - 1;
+  if (kind() == RawScript::kKernelTag) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    return line_starts_reader.LineNumberForPosition(target_token_pos.value());
+#else
+    return 0;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  } else {
+    ASSERT(line_starts_data.Length() > 0);
+    intptr_t offset = target_token_pos.Pos();
+    intptr_t min = 0;
+    intptr_t max = line_starts_data.Length() - 1;
 
-  // Binary search to find the line containing this offset.
-  while (min < max) {
-    int midpoint = (max - min + 1) / 2 + min;
-    int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
-    if (token_pos > offset) {
-      max = midpoint - 1;
-    } else {
-      min = midpoint;
+    // Binary search to find the line containing this offset.
+    while (min < max) {
+      int midpoint = (max - min + 1) / 2 + min;
+      int32_t token_pos = line_starts_data.GetInt32(midpoint * 4);
+      if (token_pos > offset) {
+        max = midpoint - 1;
+      } else {
+        min = midpoint;
+      }
     }
+    return min + 1;  // Line numbers start at 1.
   }
-  return min + 1;  // Line numbers start at 1.
 }
 
 void Script::GetTokenLocation(TokenPosition token_pos,
@@ -9528,31 +9620,15 @@ void Script::GetTokenLocation(TokenPosition token_pos,
       }
       return;
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
     ASSERT(line_starts_data.Length() > 0);
-    intptr_t offset = token_pos.value();
-    intptr_t min = 0;
-    intptr_t max = line_starts_data.Length() - 1;
-
-    // Binary search to find the line containing this offset.
-    while (min < max) {
-      intptr_t midpoint = (max - min + 1) / 2 + min;
-
-      int32_t value = line_starts_data.GetInt32(midpoint * 4);
-      if (value > offset) {
-        max = midpoint - 1;
-      } else {
-        min = midpoint;
-      }
-    }
-    *line = min + 1;  // Line numbers start at 1.
-    int32_t min_value = line_starts_data.GetInt32(min * 4);
-    if (column != NULL) {
-      *column = offset - min_value + 1;
-    }
+    kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
+    line_starts_reader.LocationForPosition(token_pos.value(), line, column);
     if (token_len != NULL) {
       // We don't explicitly save this data: Load the source
       // and find it from there.
       const String& source = String::Handle(zone, Source());
+      intptr_t offset = token_pos.value();
       *token_len = 1;
       if (offset < source.Length() &&
           Scanner::IsIdentStartChar(source.CharAt(offset))) {
@@ -9563,6 +9639,7 @@ void Script::GetTokenLocation(TokenPosition token_pos,
         }
       }
     }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return;
   }
 
@@ -9626,16 +9703,13 @@ void Script::TokenRangeAtLine(intptr_t line_number,
       *last_token_index = TokenPosition::kNoSource;
       return;
     }
-    ASSERT(line_starts_data.Length() >= line_number);
-    int32_t value = line_starts_data.GetInt32((line_number - 1) * 4);
-    *first_token_index = TokenPosition(value);
-    if (line_starts_data.Length() > line_number) {
-      value = line_starts_data.GetInt32(line_number * 4);
-      *last_token_index = TokenPosition(value - 1);
-    } else {
-      // Length of source is last possible token in this script.
-      *last_token_index = TokenPosition(String::Handle(Source()).Length());
-    }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel::KernelLineStartsReader line_starts_reader(
+        line_starts_data, Thread::Current()->zone());
+    line_starts_reader.TokenRangeAtLine(String::Handle(Source()).Length(),
+                                        line_number, first_token_index,
+                                        last_token_index);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     return;
   }
 

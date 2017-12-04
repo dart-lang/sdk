@@ -4,7 +4,7 @@
 
 library fasta.analyzer_target;
 
-import 'package:front_end/physical_file_system.dart';
+import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:kernel/ast.dart' show Library, Source;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
@@ -19,7 +19,7 @@ import 'analyzer_loader.dart' show AnalyzerLoader;
 class AnalyzerTarget extends KernelTarget {
   AnalyzerTarget(
       DillTarget dillTarget, UriTranslator uriTranslator, bool strongMode,
-      [Map<String, Source> uriToSource])
+      [Map<Uri, Source> uriToSource])
       : super(PhysicalFileSystem.instance, false, dillTarget, uriTranslator,
             uriToSource: uriToSource);
 

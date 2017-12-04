@@ -244,7 +244,14 @@ class KernelSourceInformationBuilder
   }
 
   @override
-  SourceInformation buildBinary(ir.Node node) => null;
+  SourceInformation buildBinary(ir.Node node) {
+    return _buildTreeNode(node);
+  }
+
+  @override
+  SourceInformation buildUnary(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 
   @override
   SourceInformation buildIndexSet(ir.Node node) => null;
@@ -400,6 +407,6 @@ class KernelSourceLocation extends AbstractSourceLocation {
   final Uri sourceUri;
 
   KernelSourceLocation(ir.Location location, this.offset, this.sourceName)
-      : sourceUri = Uri.base.resolve(location.file),
+      : sourceUri = location.file,
         super.fromLocation(location);
 }

@@ -13,7 +13,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/fasta/util/relativize.dart';

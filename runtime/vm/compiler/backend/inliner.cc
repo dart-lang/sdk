@@ -152,6 +152,13 @@ class GraphInfoCollector : public ValueObject {
     instruction_count_ = 0;
     for (BlockIterator block_it = graph.postorder_iterator(); !block_it.Done();
          block_it.Advance()) {
+      // Skip any blocks from the prologue to make them not count towards the
+      // inlining instruction budget.
+      const intptr_t block_id = block_it.Current()->block_id();
+      if (graph.prologue_info().Contains(block_id)) {
+        continue;
+      }
+
       for (ForwardInstructionIterator it(block_it.Current()); !it.Done();
            it.Advance()) {
         Instruction* current = it.Current();

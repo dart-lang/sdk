@@ -4,6 +4,7 @@
 
 library dart2js.world;
 
+import 'dart:collection' show Queue;
 import 'closure.dart';
 import 'common.dart';
 import 'constants/constant_system.dart';
@@ -1155,14 +1156,21 @@ abstract class ClosedWorldBase implements ClosedWorld, ClosedWorldRefiner {
   static void emptyWorkList(Iterable<SideEffectsBuilder> sideEffectsBuilders) {
     // TODO(johnniwinther): Optimize this algorithm, possibly by using
     // `pkg/front_end/lib/src/dependency_walker.dart`.
-    Set<SideEffectsBuilder> workList =
-        new Set<SideEffectsBuilder>.from(sideEffectsBuilders);
-    while (workList.isNotEmpty) {
-      SideEffectsBuilder sideEffectsBuilder = workList.first;
-      workList.remove(sideEffectsBuilder);
+    Queue<SideEffectsBuilder> queue = new Queue<SideEffectsBuilder>();
+    Set<SideEffectsBuilder> inQueue = new Set<SideEffectsBuilder>();
+
+    for (SideEffectsBuilder builder in sideEffectsBuilders) {
+      queue.addLast(builder);
+      inQueue.add(builder);
+    }
+    while (queue.isNotEmpty) {
+      SideEffectsBuilder sideEffectsBuilder = queue.removeFirst();
+      inQueue.remove(sideEffectsBuilder);
       for (SideEffectsBuilder dependent in sideEffectsBuilder.depending) {
         if (dependent.add(sideEffectsBuilder.sideEffects)) {
-          workList.add(dependent);
+          if (inQueue.add(dependent)) {
+            queue.addLast(dependent);
+          }
         }
       }
     }

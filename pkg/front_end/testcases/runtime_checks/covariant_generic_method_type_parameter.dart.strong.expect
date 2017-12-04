@@ -8,7 +8,7 @@ class C<T extends core::Object> extends core::Object {
     ;
   method f<generic-covariant-impl generic-covariant-interface U extends self::C::T>(self::C::f::U x) → void {}
   method g1<generic-covariant-impl generic-covariant-interface U extends self::C::T>() → void {
-    this.{self::C::f}<self::C::g1::U>(1.5 as{TypeError} self::C::g1::U);
+    this.{self::C::f}<self::C::g1::U>(let final dynamic #t1 = 1.5 in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/runtime_checks/covariant_generic_method_type_parameter.dart:11:35: Error: A value of type 'dart.core::double' can't be assigned to a variable of type 'test::C::g1::U'.\nTry changing the type of the left hand side, or casting the right hand side to 'test::C::g1::U'.\n    this.f<U> /*@callKind=this*/ (1.5);\n                                  ^")));
   }
 }
 static method g2(self::C<core::Object> c) → void {

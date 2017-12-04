@@ -65,6 +65,7 @@ class CoreTypes {
   Procedure _printProcedure;
   Procedure _identicalProcedure;
   Constructor _constantExpressionErrorDefaultConstructor;
+  Procedure _constantExpressionErrorThrow;
   Constructor _duplicatedFieldInitializerErrorDefaultConstructor;
   Constructor _fallThroughErrorUrlAndLineConstructor;
   Constructor _compileTimeErrorDefaultConstructor;
@@ -364,6 +365,11 @@ class CoreTypes {
   Constructor get constantExpressionErrorDefaultConstructor {
     return _constantExpressionErrorDefaultConstructor ??=
         _index.getMember('dart:core', '_ConstantExpressionError', '');
+  }
+
+  Member get constantExpressionErrorThrow {
+    return _constantExpressionErrorThrow ??=
+        _index.getMember('dart:core', '_ConstantExpressionError', '_throw');
   }
 
   Constructor get duplicatedFieldInitializerErrorDefaultConstructor {

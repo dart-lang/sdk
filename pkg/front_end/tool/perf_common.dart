@@ -7,7 +7,7 @@ library front_end.tool.perf_common;
 
 import 'dart:io';
 
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 
 /// Error messages that we temporarily allow when compiling benchmarks in strong

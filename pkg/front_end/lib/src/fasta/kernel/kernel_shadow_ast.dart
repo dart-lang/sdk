@@ -18,6 +18,8 @@
 /// kernel class, because multiple constructs in Dart may desugar to a tree
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
+import 'package:front_end/src/fasta/kernel/body_builder.dart';
+import 'package:front_end/src/fasta/kernel/fasta_accessors.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
@@ -118,18 +120,14 @@ class ShadowAsExpression extends AsExpression implements ShadowExpression {
 }
 
 /// Concrete shadow object representing an assert initializer in kernel form.
-class ShadowAssertInitializer extends LocalInitializer
+class ShadowAssertInitializer extends AssertInitializer
     implements ShadowInitializer {
-  /// The assert statement performing the check
-  AssertStatement _statement;
-
-  ShadowAssertInitializer(VariableDeclaration variable, this._statement)
-      : super(variable);
+  ShadowAssertInitializer(AssertStatement statement) : super(statement);
 
   @override
   void _inferInitializer(ShadowTypeInferrer inferrer) {
     inferrer.listener.assertInitializerEnter(this);
-    inferrer.inferStatement(_statement);
+    inferrer.inferStatement(statement);
     inferrer.listener.assertInitializerExit(this);
   }
 }
@@ -411,6 +409,9 @@ abstract class ShadowComplexAssignment extends ShadowSyntheticExpression {
     if (isPreIncDec) parts.add('isPreIncDec=true');
     return parts;
   }
+
+  DartType _getWriteType(ShadowTypeInferrer inferrer) => unhandled(
+      '$runtimeType', 'ShadowComplexAssignment._getWriteType', -1, null);
 
   _ComplexAssignmentInferenceResult _inferRhs(
       ShadowTypeInferrer inferrer, DartType readType, DartType writeContext) {
@@ -704,12 +705,12 @@ class ShadowField extends Field implements ShadowMember {
 
   final bool _isImplicitlyTyped;
 
-  ShadowField(Name name, this._isImplicitlyTyped, {String fileUri})
+  ShadowField(Name name, this._isImplicitlyTyped, {Uri fileUri})
       : super(name, fileUri: fileUri) {}
 
   @override
   void setInferredType(
-      TypeInferenceEngineImpl engine, String uri, DartType inferredType) {
+      TypeInferenceEngineImpl engine, Uri uri, DartType inferredType) {
     type = inferredType;
   }
 
@@ -739,8 +740,10 @@ class ShadowFieldInitializer extends FieldInitializer
 class ShadowForInStatement extends ForInStatement implements ShadowStatement {
   final bool _declaresVariable;
 
+  final ShadowSyntheticExpression _syntheticAssignment;
+
   ShadowForInStatement(VariableDeclaration variable, Expression iterable,
-      Statement body, this._declaresVariable,
+      Statement body, this._declaresVariable, this._syntheticAssignment,
       {bool isAsync: false})
       : super(variable, iterable, body, isAsync: isAsync);
 
@@ -752,28 +755,33 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
         : inferrer.coreTypes.iterableClass;
     DartType context;
     bool typeNeeded = false;
+    bool typeChecksNeeded = !inferrer.isTopLevel;
     ShadowVariableDeclaration variable;
+    var syntheticAssignment = _syntheticAssignment;
     if (_declaresVariable) {
       variable = this.variable;
       if (inferrer.strongMode && variable._implicitlyTyped) {
         typeNeeded = true;
-        // TODO(paulberry): In this case, should the context be `Iterable<?>`?
+        context = const UnknownType();
       } else {
-        context = inferrer.wrapType(variable.type, iterableClass);
+        context = variable.type;
       }
+    } else if (syntheticAssignment is ShadowComplexAssignment) {
+      context = syntheticAssignment._getWriteType(inferrer);
     } else {
-      // TODO(paulberry): In this case, should the context be based on the
-      // declared type of the loop variable?
-      // TODO(paulberry): Note that when [_declaresVariable] is `false`, the
-      // body starts with an assignment from the synthetic loop variable to
-      // another variable.  We need to make sure any type inference diagnostics
-      // that occur related to this assignment are reported at the correct
-      // locations.
+      context = const UnknownType();
     }
-    var inferredExpressionType = inferrer.resolveTypeParameter(
-        inferrer.inferExpression(iterable, context, typeNeeded));
-    if (typeNeeded) {
-      var inferredType = const DynamicType();
+    context = inferrer.wrapType(context, iterableClass);
+    var inferredExpressionType = inferrer.resolveTypeParameter(inferrer
+        .inferExpression(iterable, context, typeNeeded || typeChecksNeeded));
+    inferrer.checkAssignability(
+        inferrer.wrapType(const DynamicType(), iterableClass),
+        inferredExpressionType,
+        iterable,
+        iterable.fileOffset);
+    DartType inferredType;
+    if (typeNeeded || typeChecksNeeded) {
+      inferredType = const DynamicType();
       if (inferredExpressionType is InterfaceType) {
         InterfaceType supertype = inferrer.classHierarchy
             .getTypeAsInstanceOf(inferredExpressionType, iterableClass);
@@ -781,14 +789,29 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
           inferredType = supertype.typeArguments[0];
         }
       }
-      inferrer.instrumentation?.record(
-          Uri.parse(inferrer.uri),
-          variable.fileOffset,
-          'type',
-          new InstrumentationValueForType(inferredType));
-      variable.type = inferredType;
+      if (typeNeeded) {
+        inferrer.instrumentation?.record(inferrer.uri, variable.fileOffset,
+            'type', new InstrumentationValueForType(inferredType));
+        variable.type = inferredType;
+      }
+      if (!_declaresVariable) {
+        this.variable.type = inferredType;
+      }
     }
     inferrer.inferStatement(body);
+    if (_declaresVariable) {
+      var tempVar =
+          new VariableDeclaration(null, type: inferredType, isFinal: true);
+      var variableGet = new VariableGet(tempVar)
+        ..fileOffset = this.variable.fileOffset;
+      var implicitDowncast = inferrer.checkAssignability(
+          variable.type, inferredType, variableGet, fileOffset);
+      if (implicitDowncast != null) {
+        this.variable = tempVar..parent = this;
+        variable.initializer = implicitDowncast..parent = variable;
+        body = combineStatements(variable, body)..parent = this;
+      }
+    }
     inferrer.listener.forInStatementExit(this);
   }
 }
@@ -938,6 +961,11 @@ class ShadowIllegalAssignment extends ShadowComplexAssignment {
   ShadowIllegalAssignment(Expression rhs) : super(rhs);
 
   @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    return const UnknownType();
+  }
+
+  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     if (write != null) {
@@ -966,7 +994,7 @@ class ShadowIndexAssign extends ShadowComplexAssignmentWithReceiver {
       return invocation.arguments;
     } else {
       throw unhandled("${invocation.runtimeType}", "_getInvocationArguments",
-          fileOffset, Uri.parse(inferrer.uri));
+          fileOffset, inferrer.uri);
     }
   }
 
@@ -1183,10 +1211,7 @@ class ShadowListLiteral extends ListLiteral implements ShadowExpression {
           typeContext,
           inferredTypes);
       inferredTypeArgument = inferredTypes[0];
-      inferrer.instrumentation?.record(
-          Uri.parse(inferrer.uri),
-          fileOffset,
-          'typeArgs',
+      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'typeArgs',
           new InstrumentationValueForTypeArgs([inferredTypeArgument]));
       typeArgument = inferredTypeArgument;
     }
@@ -1225,6 +1250,23 @@ class ShadowLogicalExpression extends LogicalExpression
     var inferredType = typeNeeded ? boolType : null;
     inferrer.listener.logicalExpressionExit(this, inferredType);
     return inferredType;
+  }
+}
+
+/// Shadow object for synthetic assignments added at the top of a for-in loop.
+///
+/// This covers the case where a for-in loop refers to a variable decleared
+/// elsewhere, so it is desugared into a for-in loop that assigns to the
+/// variable at the top of the loop body.
+class ShadowLoopAssignmentStatement extends ExpressionStatement
+    implements ShadowStatement {
+  ShadowLoopAssignmentStatement(Expression expression) : super(expression);
+
+  @override
+  void _inferStatement(ShadowTypeInferrer inferrer) {
+    inferrer.listener.loopAssignmentStatementEnter(this);
+    inferrer.inferExpression(expression, null, false);
+    inferrer.listener.loopAssignmentStatementExit(this);
   }
 }
 
@@ -1296,7 +1338,7 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
       inferrer.instrumentation?.record(
-          Uri.parse(inferrer.uri),
+          inferrer.uri,
           fileOffset,
           'typeArgs',
           new InstrumentationValueForTypeArgs(
@@ -1325,14 +1367,14 @@ class ShadowMapLiteral extends MapLiteral implements ShadowExpression {
 
 /// Abstract shadow object representing a field or procedure in kernel form.
 abstract class ShadowMember implements Member {
-  String get fileUri;
+  Uri get fileUri;
 
   InferenceNode get _inferenceNode;
 
   void set _inferenceNode(InferenceNode value);
 
   void setInferredType(
-      TypeInferenceEngineImpl engine, String uri, DartType inferredType);
+      TypeInferenceEngineImpl engine, Uri uri, DartType inferredType);
 
   static void resolveInferenceNode(Member member) {
     if (member is ShadowMember) {
@@ -1497,12 +1539,12 @@ class ShadowProcedure extends Procedure implements ShadowMember {
 
   ShadowProcedure(Name name, ProcedureKind kind, FunctionNode function,
       this._hasImplicitReturnType,
-      {String fileUri, bool isAbstract: false})
+      {Uri fileUri, bool isAbstract: false})
       : super(name, kind, function, fileUri: fileUri, isAbstract: isAbstract);
 
   @override
   void setInferredType(
-      TypeInferenceEngineImpl engine, String uri, DartType inferredType) {
+      TypeInferenceEngineImpl engine, Uri uri, DartType inferredType) {
     if (isSetter) {
       if (function.positionalParameters.length > 0) {
         function.positionalParameters[0].type = inferredType;
@@ -1510,7 +1552,7 @@ class ShadowProcedure extends Procedure implements ShadowMember {
     } else if (isGetter) {
       function.returnType = inferredType;
     } else {
-      unhandled("setInferredType", "not accessor", fileOffset, Uri.parse(uri));
+      unhandled("setInferredType", "not accessor", fileOffset, uri);
     }
   }
 
@@ -1534,6 +1576,14 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     var parts = super._getToStringParts();
     if (nullAwareGuard != null) parts.add('nullAwareGuard=$nullAwareGuard');
     return parts;
+  }
+
+  @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    assert(receiver == null);
+    var receiverType = inferrer.thisType;
+    var writeMember = inferrer.findPropertySetMember(receiverType, write);
+    return inferrer.getSetterType(writeMember, receiverType);
   }
 
   @override
@@ -1654,6 +1704,12 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
   ShadowStaticAssignment(Expression rhs) : super(rhs);
 
   @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    StaticSet write = this.write;
+    return write.target.setterType;
+  }
+
+  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     typeNeeded = inferrer.listener.staticAssignEnter(desugared, typeContext) ||
@@ -1721,7 +1777,8 @@ class ShadowStaticInvocation extends StaticInvocation
     var calleeType = target.function.functionType;
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
         fileOffset, calleeType, calleeType.returnType, arguments);
-    inferrer.listener.staticInvocationExit(this, inferredType);
+    inferrer.listener.staticInvocationExit(
+        this, calleeType, inferrer.lastInferredSubstitution, inferredType);
     return inferredType;
   }
 }
@@ -1801,8 +1858,8 @@ class ShadowSuperMethodInvocation extends SuperMethodInvocation
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     if (interfaceTarget != null) {
-      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-          'target', new InstrumentationValueForMember(interfaceTarget));
+      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
+          new InstrumentationValueForMember(interfaceTarget));
     }
     return inferrer.inferMethodInvocation(
         this, null, fileOffset, false, typeContext, typeNeeded,
@@ -1822,8 +1879,8 @@ class ShadowSuperPropertyGet extends SuperPropertyGet
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
     if (interfaceTarget != null) {
-      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-          'target', new InstrumentationValueForMember(interfaceTarget));
+      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'target',
+          new InstrumentationValueForMember(interfaceTarget));
     }
     return inferrer.inferPropertyGet(
         this, null, fileOffset, typeContext, typeNeeded,
@@ -2040,7 +2097,7 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngineImpl {
       InterfaceType thisType,
       SourceLibraryBuilder library) {
     return new ShadowTypeInferrer._(
-        this, uri.toString(), listener, false, thisType, library);
+        this, uri, listener, false, thisType, library);
   }
 
   @override
@@ -2064,7 +2121,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
 
   ShadowTypeInferrer._(
       ShadowTypeInferenceEngine engine,
-      String uri,
+      Uri uri,
       TypeInferenceListener listener,
       bool topLevel,
       InterfaceType thisType,
@@ -2084,6 +2141,10 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // because type inference might cause us to have to replace one expression
     // with another, and we can only replace a node if it has a parent pointer.
     assert(expression.parent != null);
+
+    // For full (non-top level) inference, we need access to the BuilderHelper
+    // so that we can perform error recovery.
+    assert(isTopLevel || helper != null);
 
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
@@ -2114,19 +2175,25 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  void inferInitializer(Initializer initializer) {
+  void inferInitializer(BuilderHelper helper, Initializer initializer) {
     assert(initializer is ShadowInitializer);
+    this.helper = helper;
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
     ShadowInitializer kernelInitializer = initializer;
-    return kernelInitializer._inferInitializer(this);
+    kernelInitializer._inferInitializer(this);
+    this.helper = null;
   }
 
   @override
   void inferStatement(Statement statement) {
+    // For full (non-top level) inference, we need access to the BuilderHelper
+    // so that we can perform error recovery.
+    if (!isTopLevel) assert(helper != null);
+
     if (statement is ShadowStatement) {
       // Use polymorphic dispatch on [KernelStatement] to perform whatever kind
       // of type inference is correct for this kind of statement.
@@ -2232,11 +2299,17 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
   ShadowVariableAssignment(Expression rhs) : super(rhs);
 
   @override
+  DartType _getWriteType(ShadowTypeInferrer inferrer) {
+    VariableSet write = this.write;
+    return write.variable.type;
+  }
+
+  @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.variableAssignEnter(desugared, typeContext) ||
-            typeNeeded;
+    typeNeeded = inferrer.listener
+            .variableAssignEnter(desugared, typeContext, this.write) ||
+        typeNeeded;
     DartType readType;
     var read = this.read;
     if (read is VariableGet) {
@@ -2251,8 +2324,8 @@ class ShadowVariableAssignment extends ShadowComplexAssignment {
       }
     }
     var inferredResult = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.variableAssignExit(
-        desugared, writeContext, inferredResult.combiner, inferredResult.type);
+    inferrer.listener.variableAssignExit(desugared, writeContext, write,
+        inferredResult.combiner, inferredResult.type);
     _replaceWithDesugared();
     return inferredResult.type;
   }
@@ -2315,8 +2388,8 @@ class ShadowVariableDeclaration extends VariableDeclaration
       inferredType = const DynamicType();
     }
     if (inferrer.strongMode && _implicitlyTyped) {
-      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-          'type', new InstrumentationValueForType(inferredType));
+      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'type',
+          new InstrumentationValueForType(inferredType));
       type = inferredType;
     }
     if (initializer != null) {
@@ -2358,8 +2431,8 @@ class ShadowVariableGet extends VariableGet implements ShadowExpression {
     DartType promotedType = inferrer.typePromoter
         .computePromotedType(_fact, _scope, mutatedInClosure);
     if (promotedType != null) {
-      inferrer.instrumentation?.record(Uri.parse(inferrer.uri), fileOffset,
-          'promotedType', new InstrumentationValueForType(promotedType));
+      inferrer.instrumentation?.record(inferrer.uri, fileOffset, 'promotedType',
+          new InstrumentationValueForType(promotedType));
     }
     this.promotedType = promotedType;
     var inferredType =

@@ -67,7 +67,7 @@ List<DartType> computeDefaultTypeArguments(LibraryBuilder library,
 }
 
 int compareProcedures(Procedure a, Procedure b) {
-  int i = a.fileUri.compareTo(b.fileUri);
+  int i = "${a.fileUri}".compareTo("${b.fileUri}");
   if (i != 0) return i;
   return a.fileOffset.compareTo(b.fileOffset);
 }

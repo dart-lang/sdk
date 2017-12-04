@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/libraries_specification.dart';
 
 final _ASYNC = r'''
@@ -259,6 +259,7 @@ class _CompileTimeError {
 
 class _ConstantExpressionError {
   const _ConstantExpressionError();
+  external _throw(error);
 }
 
 class _DuplicatedFieldInitializerError {

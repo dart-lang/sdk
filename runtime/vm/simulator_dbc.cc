@@ -1954,61 +1954,59 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(NativeBootstrapCall, 0);
-    RawFunction* function = FrameFunction(FP);
-    RawObject** incoming_args =
-        (function->ptr()->num_optional_parameters_ == 0)
-            ? FrameArguments(FP, function->ptr()->num_fixed_parameters_)
-            : FP;
+    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
+    const intptr_t num_arguments = NativeArguments::ArgcBits::decode(argc_tag);
 
+    RawObject** incoming_args = SP - 1 - num_arguments;
+    RawObject** return_slot = SP - 1;
     SimulatorBootstrapNativeCall native_target =
         reinterpret_cast<SimulatorBootstrapNativeCall>(SP[-1]);
-    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
     SP[-0] = 0;  // Note: argc_tag is not smi-tagged.
     SP[-1] = null_value;
     Exit(thread, FP, SP + 1, pc);
-    NativeArguments args(thread, argc_tag, incoming_args, SP - 1);
+    NativeArguments args(thread, argc_tag, incoming_args, return_slot);
     INVOKE_BOOTSTRAP_NATIVE(native_target, args);
-    SP -= 1;
+
+    *(SP - 1 - num_arguments) = *return_slot;
+    SP -= 1 + num_arguments;
     DISPATCH();
   }
 
   {
     BYTECODE(NativeNoScopeCall, 0);
-    RawFunction* function = FrameFunction(FP);
-    RawObject** incoming_args =
-        (function->ptr()->num_optional_parameters_ == 0)
-            ? FrameArguments(FP, function->ptr()->num_fixed_parameters_)
-            : FP;
+    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
+    const intptr_t num_arguments = NativeArguments::ArgcBits::decode(argc_tag);
 
+    RawObject** incoming_args = SP - 1 - num_arguments;
+    RawObject** return_slot = SP - 1;
     Dart_NativeFunction native_target =
         reinterpret_cast<Dart_NativeFunction>(SP[-1]);
-    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
     SP[-0] = 0;  // argc_tag is not smi tagged!
     SP[-1] = null_value;
     Exit(thread, FP, SP + 1, pc);
-    NativeArguments args(thread, argc_tag, incoming_args, SP - 1);
+    NativeArguments args(thread, argc_tag, incoming_args, return_slot);
     INVOKE_NATIVE_NO_SCOPE(native_target, args);
-    SP -= 1;
+    *(SP - 1 - num_arguments) = *return_slot;
+    SP -= 1 + num_arguments;
     DISPATCH();
   }
 
   {
     BYTECODE(NativeAutoScopeCall, 0);
-    RawFunction* function = FrameFunction(FP);
-    RawObject** incoming_args =
-        (function->ptr()->num_optional_parameters_ == 0)
-            ? FrameArguments(FP, function->ptr()->num_fixed_parameters_)
-            : FP;
+    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
+    const intptr_t num_arguments = NativeArguments::ArgcBits::decode(argc_tag);
 
+    RawObject** incoming_args = SP - 1 - num_arguments;
+    RawObject** return_slot = SP - 1;
     Dart_NativeFunction native_target =
         reinterpret_cast<Dart_NativeFunction>(SP[-1]);
-    intptr_t argc_tag = reinterpret_cast<intptr_t>(SP[-0]);
     SP[-0] = 0;  // argc_tag is not smi tagged!
     SP[-1] = null_value;
     Exit(thread, FP, SP + 1, pc);
-    NativeArguments args(thread, argc_tag, incoming_args, SP - 1);
+    NativeArguments args(thread, argc_tag, incoming_args, return_slot);
     INVOKE_NATIVE_AUTO_SCOPE(native_target, args);
-    SP -= 1;
+    *(SP - 1 - num_arguments) = *return_slot;
+    SP -= 1 + num_arguments;
     DISPATCH();
   }
 

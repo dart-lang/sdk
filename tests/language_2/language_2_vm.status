@@ -334,6 +334,9 @@ if_null_assignment_static_test/39: MissingCompileTimeError
 if_null_assignment_static_test/41: MissingCompileTimeError
 if_null_precedence_test/06: MissingCompileTimeError
 if_null_precedence_test/07: MissingCompileTimeError
+implicit_downcast_during_for_in_iterable_test: RuntimeError
+implicit_downcast_during_function_literal_arrow_test: RuntimeError
+implicit_downcast_during_function_literal_return_test: RuntimeError
 implicit_downcast_during_yield_star_test: RuntimeError
 implicit_downcast_during_yield_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
@@ -796,6 +799,7 @@ unresolved_top_level_var_test: MissingCompileTimeError
 
 [ ($runtime == vm && $compiler != dartk) || ($runtime == dart_precompiled && $compiler != dartkp) ]
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Error only in strong mode
+int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
 
 [ $runtime == vm && $compiler != dartk ]
 async_congruence_top_level_test: RuntimeError
@@ -990,6 +994,7 @@ implicit_downcast_during_constructor_initializer_test: RuntimeError
 implicit_downcast_during_constructor_invocation_test: RuntimeError
 implicit_downcast_during_factory_constructor_invocation_test: RuntimeError
 implicit_downcast_during_field_declaration_test: RuntimeError
+implicit_downcast_during_for_in_element_test: RuntimeError
 implicit_downcast_during_indexed_assignment_test: RuntimeError
 implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
 implicit_downcast_during_indexed_get_test: RuntimeError
@@ -1207,3 +1212,6 @@ type_promotion_functions_test/06: MissingCompileTimeError
 type_promotion_functions_test/07: MissingCompileTimeError
 type_promotion_functions_test/08: MissingCompileTimeError
 type_promotion_functions_test/10: MissingCompileTimeError
+
+[ $runtime == vm && $mode == release && $arch == ia32 ]
+deep_nesting1_negative_test: Crash, Pass # Issue 31496

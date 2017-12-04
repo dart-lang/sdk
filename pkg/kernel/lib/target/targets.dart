@@ -79,9 +79,6 @@ abstract class Target {
   /// promotion do not slow down compilation too much.
   bool get disableTypeInference => false;
 
-  /// If true, the SDK should be loaded in strong mode.
-  bool get strongModeSdk => strongMode;
-
   /// Perform target-specific modular transformations on the given program.
   ///
   /// These transformations should not be whole-program transformations.  They
@@ -184,11 +181,15 @@ abstract class Target {
         new Arguments.empty()..fileOffset = offset,
         isConst: true)
       ..fileOffset = offset;
-    return new MethodInvocation(
+    var methodInvocation = new MethodInvocation(
         receiver,
         new Name("_throw", coreTypes.coreLibrary),
         new Arguments(<Expression>[error])..fileOffset = error.fileOffset)
       ..fileOffset = offset;
+    if (strongMode) {
+      methodInvocation.interfaceTarget = coreTypes.constantExpressionErrorThrow;
+    }
+    return methodInvocation;
   }
 
   /// Builds an expression that represents a compile-time error which is

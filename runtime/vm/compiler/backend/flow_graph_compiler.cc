@@ -188,12 +188,10 @@ void FlowGraphCompiler::InitCompiler() {
   exception_handlers_list_ = new (zone()) ExceptionHandlerList();
   catch_entry_state_maps_builder_ = new (zone()) CatchEntryStateMapBuilder();
   block_info_.Clear();
-  // Conservative detection of leaf routines used to remove the stack check
-  // on function entry.
-  bool is_leaf = is_optimizing() && !flow_graph().IsCompiledForOsr();
   // Initialize block info and search optimized (non-OSR) code for calls
   // indicating a non-leaf routine and calls without IC data indicating
   // possible reoptimization.
+
   for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new (zone()) BlockInfo());
     if (is_optimizing() && !flow_graph().IsCompiledForOsr()) {
@@ -211,22 +209,8 @@ void FlowGraphCompiler::InitCompiler() {
         if ((ic_data != NULL) && (ic_data->NumberOfUsedChecks() == 0)) {
           may_reoptimize_ = true;
         }
-        if (is_leaf && !current->IsCheckStackOverflow() &&
-            !current->IsParallelMove()) {
-          // Note that we do not care if the code contains instructions that
-          // can deoptimize.
-          LocationSummary* locs = current->locs();
-          if ((locs != NULL) && locs->can_call()) {
-            is_leaf = false;
-          }
-        }
       }
     }
-  }
-  if (is_leaf) {
-    // Remove the stack overflow check at function entry.
-    Instruction* first = flow_graph_.graph_entry()->normal_entry()->next();
-    if (first->IsCheckStackOverflow()) first->RemoveFromGraph();
   }
   if (!is_optimizing()) {
     // Initialize edge counter array.

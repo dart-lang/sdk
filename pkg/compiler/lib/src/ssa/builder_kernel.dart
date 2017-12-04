@@ -34,7 +34,6 @@ import '../kernel/element_map.dart';
 import '../kernel/kernel_backend_strategy.dart';
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
-import '../tree/nodes.dart' show Node;
 import '../types/masks.dart';
 import '../types/types.dart';
 import '../universe/selector.dart';
@@ -53,27 +52,29 @@ import 'ssa_branch_builder.dart';
 import 'switch_continue_analysis.dart';
 import 'type_builder.dart';
 
+// TODO(johnniwinther): Merge this with [KernelInliningState].
+class StackFrame {
+  final StackFrame parent;
+  final MemberEntity member;
+  final AsyncMarker asyncMarker;
+  final KernelToLocalsMap localsMap;
+  final KernelToTypeInferenceMap typeInferenceMap;
+  final SourceInformationBuilder<ir.Node> sourceInformationBuilder;
+
+  StackFrame(this.parent, this.member, this.asyncMarker, this.localsMap,
+      this.typeInferenceMap, this.sourceInformationBuilder);
+}
+
 class KernelSsaGraphBuilder extends ir.Visitor
     with GraphBuilder, SsaBuilderFieldMixin {
   final MemberEntity targetElement;
 
-  /// The root node of [targetElement]. This is used as the key into the
-  /// [startFunction] of the locals handler.
-  // TODO(johnniwinther,efortuna): Avoid the need for AST nodes in the locals
-  // handler.
-  final Node functionNode;
   final ClosedWorld closedWorld;
   final CodegenWorldBuilder _worldBuilder;
   final CodegenRegistry registry;
   final ClosureDataLookup closureDataLookup;
 
-  /// Helper accessor for all kernel function-like targets (Procedure,
-  /// FunctionExpression, FunctionDeclaration) of the inner FunctionNode itself.
-  /// If the current target is not a function-like target, _targetFunction will
-  /// be null.
-  ir.FunctionNode _targetFunction;
-
-  /// A stack of [ResolutionDartType]s that have been seen during inlining of
+  /// A stack of [InterfaceType]s that have been seen during inlining of
   /// factory constructors.  These types are preserved in [HInvokeStatic]s and
   /// [HCreate]s inside the inline code and registered during code generation
   /// for these nodes.
@@ -96,12 +97,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   TreeElements get elements =>
       throw new UnsupportedError('KernelSsaGraphBuilder.elements');
 
-  SourceInformationBuilder<ir.Node> _sourceInformationBuilder;
+  final SourceInformationStrategy<ir.Node> _sourceInformationStrategy;
   final KernelToElementMapForBuilding _elementMap;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final GlobalLocalsMap _globalLocalsMap;
-  KernelToTypeInferenceMap _typeInferenceMap;
-  KernelToLocalsMap _localsMap;
   LoopHandler<ir.Node> loopHandler;
   TypeBuilder typeBuilder;
 
@@ -115,12 +114,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// this is a slow path.
   bool _inExpressionOfThrow = false;
 
-  // TODO(johnniwinther): Normalize the use of properties that are updated
-  // for inlining.
   final List<KernelInliningState> _inliningStack = <KernelInliningState>[];
   Local _returnLocal;
   DartType _returnType;
   bool _inLazyInitializerExpression = false;
+
+  StackFrame _currentFrame;
 
   KernelSsaGraphBuilder(
       this.targetElement,
@@ -134,13 +133,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       this.registry,
       this.closureDataLookup,
       this.nativeEmitter,
-      // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
-      this._sourceInformationBuilder,
-      this.functionNode)
+      this._sourceInformationStrategy)
       : _infoReporter = compiler.dumpInfoTask {
-    _localsMap = _globalLocalsMap.getLocalsMap(targetElement);
-    _typeInferenceMap = new KernelToTypeInferenceMapImpl(
-        targetElement, _globalInferenceResults);
+    _enterFrame(targetElement);
     this.loopHandler = new KernelLoopHandler(this);
     typeBuilder = new KernelTypeBuilder(this, _elementMap, _globalLocalsMap);
     graph.element = targetElement;
@@ -148,12 +143,38 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _sourceInformationBuilder.buildVariableDeclaration();
     this.localsHandler = new LocalsHandler(this, targetElement, targetElement,
         instanceType, nativeData, interceptorData);
-    _targetStack.add(targetElement);
   }
 
-  KernelToLocalsMap get localsMap => _localsMap;
+  KernelToLocalsMap get localsMap => _currentFrame.localsMap;
 
   CommonElements get _commonElements => _elementMap.commonElements;
+
+  KernelToTypeInferenceMap get _typeInferenceMap =>
+      _currentFrame.typeInferenceMap;
+
+  SourceInformationBuilder get _sourceInformationBuilder =>
+      _currentFrame.sourceInformationBuilder;
+
+  void _enterFrame(MemberEntity member) {
+    AsyncMarker asyncMarker = AsyncMarker.SYNC;
+    ir.FunctionNode function = getFunctionNode(_elementMap, member);
+    if (function != null) {
+      asyncMarker = getAsyncMarker(function);
+    }
+    _currentFrame = new StackFrame(
+        _currentFrame,
+        member,
+        asyncMarker,
+        _globalLocalsMap.getLocalsMap(member),
+        new KernelToTypeInferenceMapImpl(member, _globalInferenceResults),
+        _currentFrame != null
+            ? _currentFrame.sourceInformationBuilder.forContext(member)
+            : _sourceInformationStrategy.createBuilderForContext(member));
+  }
+
+  void _leaveFrame() {
+    _currentFrame = _currentFrame.parent;
+  }
 
   HGraph build() {
     return reporter.withCurrentElement(localsMap.currentMember, () {
@@ -167,11 +188,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
         case MemberKind.closureCall:
           ir.Node target = definition.node;
           if (target is ir.Procedure) {
-            _targetFunction = target.function;
             if (target.isExternal) {
-              buildExternalFunctionNode(_targetFunction);
+              buildExternalFunctionNode(
+                  _ensureDefaultArgumentValues(target.function));
             } else {
-              buildFunctionNode(_targetFunction);
+              buildFunctionNode(_ensureDefaultArgumentValues(target.function));
             }
           } else if (target is ir.Field) {
             if (handleConstantField(targetElement, registry, closedWorld)) {
@@ -183,11 +204,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
             }
             buildField(target);
           } else if (target is ir.FunctionExpression) {
-            _targetFunction = target.function;
-            buildFunctionNode(_targetFunction);
+            buildFunctionNode(_ensureDefaultArgumentValues(target.function));
           } else if (target is ir.FunctionDeclaration) {
-            _targetFunction = target.function;
-            buildFunctionNode(_targetFunction);
+            buildFunctionNode(_ensureDefaultArgumentValues(target.function));
           } else {
             throw 'No case implemented to handle target: '
                 '$target for $targetElement';
@@ -195,12 +214,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
           break;
         case MemberKind.constructor:
           ir.Constructor constructor = definition.node;
-          _targetFunction = constructor.function;
+          _ensureDefaultArgumentValues(constructor.function);
           buildConstructor(constructor);
           break;
         case MemberKind.constructorBody:
           ir.Constructor constructor = definition.node;
-          _targetFunction = constructor.function;
+          _ensureDefaultArgumentValues(constructor.function);
           buildConstructorBody(constructor);
           break;
         case MemberKind.closureField:
@@ -208,9 +227,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
           break;
       }
       assert(graph.isValid());
-      if (_targetFunction != null) {
-        _ensureDefaultArgumentValues(_targetFunction);
-      }
 
       if (backend.tracer.isEnabled) {
         MemberEntity member = definition.member;
@@ -231,7 +247,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     });
   }
 
-  void _ensureDefaultArgumentValues(ir.FunctionNode function) {
+  ir.FunctionNode _ensureDefaultArgumentValues(ir.FunctionNode function) {
     // Register all [function]'s default argument values.
     //
     // Default values might be (or contain) functions that are not referenced
@@ -259,6 +275,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         .skip(function.requiredParameterCount)
         .forEach(registerDefaultValue);
     function.namedParameters.forEach(registerDefaultValue);
+    return function;
   }
 
   @override
@@ -452,10 +469,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
 
       newObject = new HCreate(cls, constructorArguments,
-          new TypeMask.nonNullExact(cls, closedWorld),
+          new TypeMask.nonNullExact(cls, closedWorld), sourceInformation,
           instantiatedTypes: <InterfaceType>[thisType],
-          hasRtiInput: hasRtiInput)
-        ..sourceInformation = sourceInformation;
+          hasRtiInput: hasRtiInput);
 
       add(newObject);
     }
@@ -480,46 +496,46 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       ConstructorEntity constructorElement = _elementMap.getConstructor(body);
 
-      KernelToLocalsMap oldLocalsMap = _localsMap;
-      _localsMap = _globalLocalsMap.getLocalsMap(constructorElement);
-
-      void handleParameter(ir.VariableDeclaration node) {
-        Local parameter = localsMap.getLocalVariable(node);
-        // If [parameter] is boxed, it will be a field in the box passed as the
-        // last parameter. So no need to directly pass it.
-        if (!localsHandler.isBoxed(parameter)) {
-          bodyCallInputs.add(localsHandler.readLocal(parameter));
+      inlinedFrom(constructorElement, () {
+        void handleParameter(ir.VariableDeclaration node) {
+          Local parameter = localsMap.getLocalVariable(node);
+          // If [parameter] is boxed, it will be a field in the box passed as
+          // the last parameter. So no need to directly pass it.
+          if (!localsHandler.isBoxed(parameter)) {
+            bodyCallInputs.add(localsHandler.readLocal(parameter));
+          }
         }
-      }
 
-      // Provide the parameters to the generative constructor body.
-      body.function.positionalParameters.forEach(handleParameter);
-      body.function.namedParameters.toList()
-        ..sort(namedOrdering)
-        ..forEach(handleParameter);
+        // Provide the parameters to the generative constructor body.
+        body.function.positionalParameters.forEach(handleParameter);
+        body.function.namedParameters.toList()
+          ..sort(namedOrdering)
+          ..forEach(handleParameter);
 
-      // If there are locals that escape (i.e. mutated in closures), we pass the
-      // box to the constructor.
-      CapturedScope scopeData =
-          closureDataLookup.getCapturedScope(constructorElement);
-      if (scopeData.requiresContextBox) {
-        bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
-      }
-
-      // Pass type arguments.
-      ir.Class currentClass = body.enclosingClass;
-      if (closedWorld.rtiNeed
-          .classNeedsRti(_elementMap.getClass(currentClass))) {
-        for (ir.DartType typeParameter in currentClass.thisType.typeArguments) {
-          HInstruction argument = localsHandler.readLocal(localsHandler
-              .getTypeVariableAsLocal(_elementMap.getDartType(typeParameter)));
-          bodyCallInputs.add(argument);
+        // If there are locals that escape (i.e. mutated in closures), we pass the
+        // box to the constructor.
+        CapturedScope scopeData =
+            closureDataLookup.getCapturedScope(constructorElement);
+        if (scopeData.requiresContextBox) {
+          bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
         }
-      }
 
-      // TODO(redemption): Try to inline [body].
-      _invokeConstructorBody(body, bodyCallInputs);
-      _localsMap = oldLocalsMap;
+        // Pass type arguments.
+        ir.Class currentClass = body.enclosingClass;
+        if (closedWorld.rtiNeed
+            .classNeedsRti(_elementMap.getClass(currentClass))) {
+          for (ir.DartType typeParameter
+              in currentClass.thisType.typeArguments) {
+            HInstruction argument = localsHandler.readLocal(
+                localsHandler.getTypeVariableAsLocal(
+                    _elementMap.getDartType(typeParameter)));
+            bodyCallInputs.add(argument);
+          }
+        }
+
+        // TODO(redemption): Try to inline [body].
+        _invokeConstructorBody(body, bodyCallInputs);
+      });
     }
 
     if (_inliningStack.isEmpty) {
@@ -550,18 +566,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
   /// [inlinedTarget].
   inlinedFrom(MemberEntity inlinedTarget, f()) {
     reporter.withCurrentElement(inlinedTarget, () {
-      SourceInformationBuilder oldSourceInformationBuilder =
-          _sourceInformationBuilder;
-      // TODO(sra): Update sourceInformationBuilder to Kernel.
-      // _sourceInformationBuilder =
-      //   _sourceInformationBuilder.forContext(resolvedAst);
-
-      localsMap.enterInlinedMember(inlinedTarget);
-      _targetStack.add(inlinedTarget);
+      _enterFrame(inlinedTarget);
       var result = f();
-      _sourceInformationBuilder = oldSourceInformationBuilder;
-      _targetStack.removeLast();
-      localsMap.leaveInlinedMember(inlinedTarget);
+      _leaveFrame();
       return result;
     });
   }
@@ -647,6 +654,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
         HInstruction value = pop();
         // TODO(sra): Apply inferred type information.
         letBindings[variable] = value;
+      } else if (initializer is ir.AssertInitializer) {
+        // Assert in initializer is currently not supported in dart2js.
+        // TODO(johnniwinther): Support assert in initializer.
       } else if (initializer is ir.InvalidInitializer) {
         assert(false, 'ir.InvalidInitializer not handled');
       } else {
@@ -799,35 +809,32 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.Constructor caller) {
     var index = 0;
 
-    KernelToLocalsMap oldLocalsMap = _localsMap;
     ConstructorEntity element = _elementMap.getConstructor(constructor);
-    _localsMap = _globalLocalsMap.getLocalsMap(element);
-    void handleParameter(ir.VariableDeclaration node) {
-      Local parameter = localsMap.getLocalVariable(node);
-      HInstruction argument = arguments[index++];
-      // Because we are inlining the initializer, we must update
-      // what was given as parameter. This will be used in case
-      // there is a parameter check expression in the initializer.
-      parameters[parameter] = argument;
-      localsHandler.updateLocal(parameter, argument);
-    }
-
-    constructor.function.positionalParameters.forEach(handleParameter);
-    constructor.function.namedParameters.toList()
-      ..sort(namedOrdering)
-      ..forEach(handleParameter);
-
-    // Set the locals handler state as if we were inlining the constructor.
     ScopeInfo oldScopeInfo = localsHandler.scopeInfo;
-    ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
-    localsHandler.scopeInfo = newScopeInfo;
-    localsHandler.enterScope(closureDataLookup.getCapturedScope(element),
-        _sourceInformationBuilder.buildDeclaration(element));
     inlinedFrom(element, () {
+      void handleParameter(ir.VariableDeclaration node) {
+        Local parameter = localsMap.getLocalVariable(node);
+        HInstruction argument = arguments[index++];
+        // Because we are inlining the initializer, we must update
+        // what was given as parameter. This will be used in case
+        // there is a parameter check expression in the initializer.
+        parameters[parameter] = argument;
+        localsHandler.updateLocal(parameter, argument);
+      }
+
+      constructor.function.positionalParameters.forEach(handleParameter);
+      constructor.function.namedParameters.toList()
+        ..sort(namedOrdering)
+        ..forEach(handleParameter);
+
+      // Set the locals handler state as if we were inlining the constructor.
+      ScopeInfo newScopeInfo = closureDataLookup.getScopeInfo(element);
+      localsHandler.scopeInfo = newScopeInfo;
+      localsHandler.enterScope(closureDataLookup.getCapturedScope(element),
+          _sourceInformationBuilder.buildDeclaration(element));
       _buildInitializers(constructor, constructorChain, fieldValues);
     });
     localsHandler.scopeInfo = oldScopeInfo;
-    _localsMap = oldLocalsMap;
   }
 
   /// Builds generative constructor body.
@@ -1058,9 +1065,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   // TODO(sra): Re-implement type builder using Kernel types and the
   // `target` for context.
   @override
-  MemberEntity get sourceElement => _targetStack.last;
-
-  List<MemberEntity> _targetStack = <MemberEntity>[];
+  MemberEntity get sourceElement => _currentFrame.member;
 
   @override
   void visitCheckLibraryIsLoaded(ir.CheckLibraryIsLoaded checkLoad) {
@@ -1155,10 +1160,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (node.expression == null) {
       value = graph.addConstantNull(closedWorld);
     } else {
-      assert(_targetFunction != null && _targetFunction is ir.FunctionNode);
       node.expression.accept(this);
       value = pop();
-      if (_targetFunction.asyncMarker == ir.AsyncMarker.Async) {
+      if (_currentFrame.asyncMarker == AsyncMarker.ASYNC) {
         if (options.enableTypeAssertions &&
             !isValidAsyncReturnType(_returnType)) {
           generateTypeError(
@@ -2258,8 +2262,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // ir.LogicalExpression claims to allow '??' as an operator but currently
     // that is expanded into a let-tree.
     assert(operator == '&&' || operator == '||');
-    _handleLogicalExpression(
-        node.left, () => node.right.accept(this), brancher, operator);
+    _handleLogicalExpression(node.left, () => node.right.accept(this), brancher,
+        operator, _sourceInformationBuilder.buildBinary(node));
   }
 
   /// Optimizes logical binary expression where the left has the same logical
@@ -2271,19 +2275,25 @@ class KernelSsaGraphBuilder extends ir.Visitor
   ///
   /// For example, `(x && y) && z` is transformed into `x && (y && z)`:
   ///
-  void _handleLogicalExpression(ir.Expression left, void visitRight(),
-      SsaBranchBuilder brancher, String operator) {
+  void _handleLogicalExpression(
+      ir.Expression left,
+      void visitRight(),
+      SsaBranchBuilder brancher,
+      String operator,
+      SourceInformation sourceInformation) {
     if (left is ir.LogicalExpression && left.operator == operator) {
       ir.Expression innerLeft = left.left;
       ir.Expression middle = left.right;
       _handleLogicalExpression(
           innerLeft,
-          () =>
-              _handleLogicalExpression(middle, visitRight, brancher, operator),
+          () => _handleLogicalExpression(middle, visitRight, brancher, operator,
+              _sourceInformationBuilder.buildBinary(middle)),
           brancher,
-          operator);
+          operator,
+          sourceInformation);
     } else {
-      brancher.handleLogicalBinary(() => left.accept(this), visitRight,
+      brancher.handleLogicalBinary(
+          () => left.accept(this), visitRight, sourceInformation,
           isAnd: operator == '&&');
     }
   }
@@ -3654,9 +3664,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     // TODO(efortuna): Add source information here.
-    push(new HCreate(closureClassEntity, capturedVariables, type,
-        callMethod: closureInfo.callMethod)
-      ..sourceInformation = sourceInformation);
+    push(new HCreate(
+        closureClassEntity, capturedVariables, type, sourceInformation,
+        callMethod: closureInfo.callMethod));
   }
 
   @override
@@ -4024,9 +4034,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
   }
 
   @override
-  void visitNot(ir.Not not) {
-    not.operand.accept(this);
-    push(new HNot(popBoolified(), commonMasks.boolType));
+  void visitNot(ir.Not node) {
+    node.operand.accept(this);
+    push(new HNot(popBoolified(), commonMasks.boolType)
+      ..sourceInformation = _sourceInformationBuilder.buildUnary(node));
   }
 
   @override
@@ -4093,6 +4104,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.Node currentNode,
       SourceInformation sourceInformation,
       {InterfaceType instanceType}) {
+    // TODO(johnniwinther,sra): Remove this when inlining is more mature.
+    if (function.library.canonicalUri.scheme == 'dart') {
+      // Temporarily disable inlining of platform libraries.
+      return false;
+    }
+
     if (nativeData.isJsInteropMember(function) &&
         !(function is ConstructorEntity && function.isFactoryConstructor)) {
       // We only inline factory JavaScript interop constructors.
@@ -4116,6 +4133,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
           selector != null ||
               function.isStatic ||
               function.isTopLevel ||
+              function.isConstructor ||
               function is ConstructorBodyEntity,
           failedAt(function, "Missing selector for inlining of $function."));
       if (selector != null) {
@@ -4157,7 +4175,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1,
+      return InlineWeeder.canBeInlined(_elementMap, function, 1,
           enableUserAssertions: options.enableUserAssertions);
     }
 
@@ -4165,7 +4183,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (_isCalledOnce(function)) {
-        return InlineWeeder.canBeInlined(function, null,
+        return InlineWeeder.canBeInlined(_elementMap, function, null,
             enableUserAssertions: options.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
@@ -4184,6 +4202,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         return false;
       }
 
+      // TODO(redemption): Do we still need this?
       //if (function.isSynthesized) return true;
 
       // Don't inline across deferred import to prevent leaking code. The only
@@ -4203,9 +4222,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (cachedCanBeInlined == true) {
         // We may have forced the inlining of some methods. Therefore check
         // if we can inline this method regardless of size.
-        assert(InlineWeeder.canBeInlined(function, null,
-            allowLoops: true,
-            enableUserAssertions: options.enableUserAssertions));
+        String reason;
+        assert(
+            (reason = InlineWeeder.cannotBeInlinedReason(
+                    _elementMap, function, null,
+                    allowLoops: true,
+                    enableUserAssertions: options.enableUserAssertions)) ==
+                null,
+            failedAt(function, "Cannot inline $function: $reason"));
         return true;
       }
 
@@ -4225,7 +4249,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (_isCalledOnce(function)) {
         maxInliningNodes = null;
       }
-      bool canInline = InlineWeeder.canBeInlined(function, maxInliningNodes,
+      bool canInline = InlineWeeder.canBeInlined(
+          _elementMap, function, maxInliningNodes,
           enableUserAssertions: options.enableUserAssertions);
       if (canInline) {
         inlineCache.markAsInlinable(function, insideLoop: insideLoop);
@@ -4375,10 +4400,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         stack,
         localsHandler,
         inTryStatement,
-        _isCalledOnce(function),
-        _typeInferenceMap);
-    _typeInferenceMap =
-        new KernelToTypeInferenceMapImpl(function, _globalInferenceResults);
+        _isCalledOnce(function));
     _inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -4455,7 +4477,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     localsHandler = state.oldLocalsHandler;
     _returnLocal = state.oldReturnLocal;
     inTryStatement = state.inTryStatement;
-    _typeInferenceMap = state.oldTypeInferenceMap;
     _returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
@@ -4490,8 +4511,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     MemberDefinition definition = _elementMap.getMemberDefinition(function);
     switch (definition.kind) {
-      case MemberKind.constructorBody:
-        buildConstructorBody(definition.node);
+      case MemberKind.constructor:
+        buildConstructor(definition.node);
         return;
       case MemberKind.regular:
         ir.Node node = definition.node;
@@ -4567,7 +4588,6 @@ class KernelInliningState {
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
   final bool allFunctionsCalledOnce;
-  final KernelToTypeInferenceMap oldTypeInferenceMap;
 
   KernelInliningState(
       this.function,
@@ -4576,21 +4596,73 @@ class KernelInliningState {
       this.oldStack,
       this.oldLocalsHandler,
       this.inTryStatement,
-      this.allFunctionsCalledOnce,
-      this.oldTypeInferenceMap);
+      this.allFunctionsCalledOnce);
 }
 
-class InlineWeeder {
+class InlineWeeder extends ir.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 18;
   static const INLINING_NODES_OUTSIDE_LOOP_ARG_FACTOR = 3;
   static const INLINING_NODES_INSIDE_LOOP = 42;
   static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
 
-  static bool canBeInlined(FunctionEntity function, int maxInliningNodes,
+  static bool canBeInlined(KernelToElementMapForBuilding elementMap,
+      FunctionEntity function, int maxInliningNodes,
+      {bool allowLoops: false, bool enableUserAssertions: null}) {
+    return cannotBeInlinedReason(elementMap, function, maxInliningNodes,
+            allowLoops: allowLoops,
+            enableUserAssertions: enableUserAssertions) ==
+        null;
+  }
+
+  static String cannotBeInlinedReason(KernelToElementMapForBuilding elementMap,
+      FunctionEntity function, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
     // TODO(redemption): Implement inlining heuristic.
-    return true;
+    MemberDefinition memberDefinition =
+        elementMap.getMemberDefinition(function);
+    InlineWeeder visitor = new InlineWeeder();
+    memberDefinition.node.accept(visitor);
+    return visitor.tooDifficultReason;
+  }
+
+  bool seenReturn = false;
+  String tooDifficultReason;
+  bool get tooDifficult => tooDifficultReason != null;
+
+  defaultNode(ir.Node node) {
+    if (tooDifficult) return;
+    if (seenReturn) {
+      tooDifficultReason = 'code after return';
+      return;
+    }
+    node.visitChildren(this);
+  }
+
+  visitReturnStatement(ir.ReturnStatement node) {
+    if (seenReturn) {
+      tooDifficultReason = 'multiple returns';
+    } else {
+      seenReturn = true;
+    }
+  }
+
+  visitThrow(ir.Throw node) {
+    if (seenReturn) {
+      tooDifficultReason = 'multiple returns';
+    } else {
+      seenReturn = true;
+    }
+  }
+
+  visitTryCatch(ir.TryCatch node) {
+    if (tooDifficult) return;
+    tooDifficultReason = 'try/catch';
+  }
+
+  visitTryFinally(ir.TryFinally node) {
+    if (tooDifficult) return;
+    tooDifficultReason = 'try/finally';
   }
 }
 

@@ -114,7 +114,7 @@ class _BodySkippingParser extends Parser {
       Token token, bool ofFunctionExpression, bool allowAbstract) {
     Token next = token.next;
     if (identical('{', next.lexeme)) {
-      Token close = skipBlock(next);
+      Token close = skipBlock(token);
       bodyRanges.add(new _BodyRange(next.charOffset, close.charOffset));
       return close;
     }

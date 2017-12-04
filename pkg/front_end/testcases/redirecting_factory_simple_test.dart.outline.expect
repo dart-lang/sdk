@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   constructor •() → void
     ;
-  factory redir() = self::A::•;
+  redirecting_factory redir() = self::A::•;
 }
 static method main() → dynamic
   ;

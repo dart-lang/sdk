@@ -20,9 +20,10 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/incremental_class_hierarchy.dart'
     show IncrementalClassHierarchy;
 
-import '../../../file_system.dart';
+import '../../api_prototype/file_system.dart';
 
-import '../../base/instrumentation.dart' show Instrumentation;
+import '../../base/instrumentation.dart'
+    show Instrumentation, InstrumentationValueLiteral;
 
 import '../builder/builder.dart'
     show
@@ -43,6 +44,7 @@ import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
     show
+        LocatedMessage,
         Message,
         templateCyclicClassHierarchy,
         templateExtendingEnum,
@@ -51,6 +53,8 @@ import '../fasta_codes.dart'
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
         templateInternalProblemUriMissingScheme;
+
+import '../fasta_codes.dart' as fasta_codes;
 
 import '../kernel/kernel_shadow_ast.dart'
     show ShadowClass, ShadowTypeInferenceEngine;
@@ -622,5 +626,55 @@ class SourceLoader<L> extends Loader<L> {
     String text = target.context
         .format(message.withLocation(uri, offset), Severity.error);
     return target.backendTarget.buildCompileTimeError(coreTypes, text, offset);
+  }
+
+  void recordMessage(
+      Severity severity, Message message, int charOffset, Uri fileUri,
+      {LocatedMessage context}) {
+    if (instrumentation == null) return;
+
+    if (charOffset == -1 &&
+        (severity == Severity.nit ||
+            message.code == fasta_codes.codeConstConstructorWithBody ||
+            message.code == fasta_codes.codeConstructorNotFound ||
+            message.code == fasta_codes.codeSuperclassHasNoDefaultConstructor ||
+            message.code == fasta_codes.codeSupertypeIsIllegal ||
+            message.code == fasta_codes.codeSupertypeIsTypeVariable ||
+            message.code == fasta_codes.codeTypeArgumentsOnTypeVariable ||
+            message.code == fasta_codes.codeTypeNotFound ||
+            message.code == fasta_codes.codeUnspecified)) {
+      // TODO(ahe): All warnings should have a charOffset, but currently, some
+      // warnings lack them.
+      return;
+    }
+
+    String severityString;
+    switch (severity) {
+      case Severity.error:
+        severityString = "error";
+        break;
+
+      case Severity.internalProblem:
+        severityString = "internal problem";
+        break;
+
+      case Severity.nit:
+        severityString = "nit";
+        break;
+
+      case Severity.warning:
+        severityString = "warning";
+        break;
+    }
+    instrumentation.record(
+        fileUri,
+        charOffset,
+        severityString,
+        // TODO(ahe): Should I add an InstrumentationValue for Message?
+        new InstrumentationValueLiteral(message.code.name));
+    if (context != null) {
+      instrumentation.record(context.uri, context.charOffset, "context",
+          new InstrumentationValueLiteral(context.code.name));
+    }
   }
 }

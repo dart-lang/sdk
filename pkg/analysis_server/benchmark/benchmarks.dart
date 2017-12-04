@@ -73,6 +73,9 @@ class RunCommand extends Command {
         help: 'Benchmark against the Dart 2.0 front end implementation.');
     argParser.addOption('repeat',
         defaultsTo: '10', help: 'The number of times to repeat the benchmark.');
+    argParser.addFlag('verbose',
+        negatable: false,
+        help: 'Print all communication to and from the analysis server.');
   }
 
   @override
@@ -94,6 +97,7 @@ class RunCommand extends Command {
     final int repeatCount = int.parse(argResults['repeat']);
     final bool quick = argResults['quick'];
     final bool previewDart2 = argResults['preview-dart-2'];
+    final bool verbose = argResults['verbose'];
 
     final Benchmark benchmark =
         benchmarks.firstWhere((b) => b.id == benchmarkId, orElse: () {
@@ -115,6 +119,7 @@ class RunCommand extends Command {
         BenchMarkResult newResult = await benchmark.run(
           quick: quick,
           previewDart2: previewDart2,
+          verbose: verbose,
         );
         print('  $newResult');
         result = result == null ? newResult : result.combine(newResult);
@@ -142,7 +147,11 @@ abstract class Benchmark {
 
   Benchmark(this.id, this.description, {this.enabled: true, this.kind: 'cpu'});
 
-  Future<BenchMarkResult> run({bool quick: false, bool previewDart2: false});
+  Future<BenchMarkResult> run({
+    bool quick: false,
+    bool previewDart2: false,
+    bool verbose: false,
+  });
 
   int get maxIterations => 0;
 

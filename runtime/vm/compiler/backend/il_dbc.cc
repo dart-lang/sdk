@@ -183,6 +183,11 @@ DEFINE_MAKE_LOCATION_SUMMARY(AssertAssignable,
                              Location::SameAsFirstInput(),
                              LocationSummary::kCall);
 
+DEFINE_MAKE_LOCATION_SUMMARY(AssertSubtype,
+                             2,
+                             Location::NoLocation(),
+                             LocationSummary::kCall);
+
 EMIT_NATIVE_CODE(AssertBoolean,
                  1,
                  Location::SameAsFirstInput(),

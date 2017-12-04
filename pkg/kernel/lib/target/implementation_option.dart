@@ -5,6 +5,8 @@
 library kernel.target.implementation_options;
 
 class VmOptions {
+  // TODO(alexmarkov): Cleanup this option.
+  // Consider cleaning up implementation_options.
   static final ImplementationOption strongAOT = new ImplementationOption._(
       "strong-aot", Platform.vm, new DateTime.utc(2018, 1), """
 Enables strong-mode whole-program optimizations for AOT (precompiler) mode of

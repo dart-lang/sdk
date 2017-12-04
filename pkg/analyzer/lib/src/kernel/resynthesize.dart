@@ -201,7 +201,7 @@ class KernelResynthesizer implements ElementResynthesizer {
       var parts = new List<CompilationUnitElementImpl>(kernel.parts.length);
       for (int i = 0; i < kernel.parts.length; i++) {
         var fileUri = kernel.parts[i].fileUri;
-        var unitContext = libraryContext._buildUnit(fileUri);
+        var unitContext = libraryContext._buildUnit("$fileUri");
         parts[i] = unitContext.unit;
       }
       libraryElement.parts = parts;
@@ -354,21 +354,11 @@ class _ExprBuilder {
       return initializer;
     }
 
-    if (k is kernel.LocalInitializer) {
-      var invocation = k.variable.initializer;
-      if (invocation is kernel.MethodInvocation) {
-        var receiver = invocation.receiver;
-        if (receiver is kernel.FunctionExpression &&
-            invocation.name.name == 'call') {
-          var body = receiver.function.body;
-          if (body is kernel.AssertStatement) {
-            var condition = build(body.condition);
-            var message = body.message != null ? build(body.message) : null;
-            return AstTestFactory.assertInitializer(condition, message);
-          }
-        }
-      }
-      throw new StateError('Expected assert initializer $k');
+    if (k is kernel.AssertInitializer) {
+      var body = k.statement;
+      var condition = build(body.condition);
+      var message = body.message != null ? build(body.message) : null;
+      return AstTestFactory.assertInitializer(condition, message);
     }
 
     if (k is kernel.RedirectingInitializer) {
@@ -773,7 +763,7 @@ class _KernelLibraryResynthesizerContextImpl
   LibraryElementImpl libraryElement;
 
   _KernelLibraryResynthesizerContextImpl(this.resynthesizer, this.library) {
-    libraryDirectoryUri = pathos.url.dirname(library.fileUri);
+    libraryDirectoryUri = pathos.url.dirname("${library.fileUri}");
   }
 
   @override
@@ -829,7 +819,7 @@ class _KernelLibraryResynthesizerContextImpl
 
   _KernelUnitResynthesizerContextImpl _buildUnit(String fileUri) {
     var unitContext = new _KernelUnitResynthesizerContextImpl(
-        this, fileUri ?? library.fileUri);
+        this, fileUri ?? "${library.fileUri}");
     var unitElement = new CompilationUnitElementImpl.forKernel(
         libraryElement, unitContext, '<no name>');
     unitContext.unit = unitElement;
@@ -874,7 +864,7 @@ class _KernelUnitImpl implements KernelUnit {
   List<kernel.Expression> get annotations {
     if (_annotations == null) {
       for (var part in context.libraryContext.library.parts) {
-        if (part.fileUri == context.fileUri) {
+        if ("${part.fileUri}" == context.fileUri) {
           return _annotations = part.annotations;
         }
       }
@@ -885,25 +875,25 @@ class _KernelUnitImpl implements KernelUnit {
   @override
   List<kernel.Class> get classes =>
       _classes ??= context.libraryContext.library.classes
-          .where((n) => n.fileUri == context.fileUri)
+          .where((n) => "${n.fileUri}" == context.fileUri)
           .toList(growable: false);
 
   @override
   List<kernel.Field> get fields =>
       _fields ??= context.libraryContext.library.fields
-          .where((n) => n.fileUri == context.fileUri)
+          .where((n) => "${n.fileUri}" == context.fileUri)
           .toList(growable: false);
 
   @override
   List<kernel.Procedure> get procedures =>
       _procedures ??= context.libraryContext.library.procedures
-          .where((n) => n.fileUri == context.fileUri)
+          .where((n) => "${n.fileUri}" == context.fileUri)
           .toList(growable: false);
 
   @override
   List<kernel.Typedef> get typedefs =>
       _typedefs ??= context.libraryContext.library.typedefs
-          .where((n) => n.fileUri == context.fileUri)
+          .where((n) => "${n.fileUri}" == context.fileUri)
           .toList(growable: false);
 }
 

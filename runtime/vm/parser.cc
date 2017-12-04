@@ -141,12 +141,12 @@ class RecursionChecker : public ValueObject {
  public:
   explicit RecursionChecker(Parser* p) : parser_(p) {
     parser_->recursion_counter_++;
-    // No need to check the stack unless the parser is in an unusually deep
-    // recurive state. Thus, we omit the more expensive stack checks in
-    // the common case.
-    const int kMaxUncheckedDepth = 100;  // Somewhat arbitrary.
-    if (parser_->recursion_counter_ > kMaxUncheckedDepth) {
-      parser_->CheckStack();
+    // This limit also protects against stack overflow in the flow graph builder
+    // and some optimization passes, which may use more stack than the parser
+    // for the same function.
+    // The limit is somewhat arbitrary.
+    if (parser_->recursion_counter_ > 256) {
+      parser_->ReportError("stack overflow while parsing");
     }
   }
   ~RecursionChecker() { parser_->recursion_counter_--; }
@@ -1971,6 +1971,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
 
   if (CurrentToken() == Token::kCOVARIANT &&
       (LookaheadToken(1) == Token::kFINAL || LookaheadToken(1) == Token::kVAR ||
+       LookaheadToken(1) == Token::kVOID ||
        Token::IsIdentifier(LookaheadToken(1)))) {
     parameter.is_covariant = true;
     ConsumeToken();
@@ -6546,14 +6547,6 @@ void Parser::ParseTopLevel() {
   pending_classes.Add(toplevel_class, Heap::kOld);
 }
 
-void Parser::CheckStack() {
-  uword c_stack_pos = Thread::GetCurrentStackPointer();
-  uword c_stack_limit = OSThread::Current()->stack_limit_with_headroom();
-  if (c_stack_pos < c_stack_limit) {
-    ReportError("stack overflow while parsing");
-  }
-}
-
 void Parser::ChainNewBlock(LocalScope* outer_scope) {
   Block* block = new (Z) Block(current_block_, outer_scope,
                                new (Z) SequenceNode(TokenPos(), outer_scope));
@@ -8231,6 +8224,12 @@ bool Parser::TryParseTypeArguments() {
       nesting_level--;
     } else if (ct == Token::kSHR) {
       nesting_level -= 2;
+    } else if (ct == Token::kVOID) {
+      ConsumeToken();
+      if (!IsFunctionTypeSymbol()) {
+        return false;
+      }
+      continue;
     } else if (ct == Token::kIDENT) {
       if (IsFunctionTypeSymbol()) {
         if (!TryParseType(false)) {

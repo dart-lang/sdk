@@ -15,7 +15,7 @@ import '../elements/elements.dart'
     show MemberElement, ResolvedAst, ResolvedAstKind;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
-import '../tree/tree.dart' show Node;
+import '../tree/tree.dart' show Node, Send;
 import 'source_file.dart';
 import 'source_information.dart';
 
@@ -249,6 +249,13 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder<Node> {
   @override
   SourceInformation buildCall(Node receiver, Node call) {
     return buildGeneric(receiver);
+  }
+
+  @override
+  SourceInformation buildAs(Node node) {
+    // 'as' is a Send with Operator 'as' for the selector.
+    if (node is Send) return buildGeneric(node.selector ?? node);
+    return buildGeneric(node);
   }
 
   @override

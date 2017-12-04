@@ -2848,7 +2848,7 @@ class _Uri implements Uri {
   // be escaped or not.
 
   // The unreserved characters of RFC 3986.
-  static const _unreservedTable = const [
+  static const _unreservedTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2868,7 +2868,7 @@ class _Uri implements Uri {
   ];
 
   // The unreserved characters of RFC 2396.
-  static const _unreserved2396Table = const [
+  static const _unreserved2396Table = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2888,7 +2888,7 @@ class _Uri implements Uri {
   ];
 
   // Table of reserved characters specified by ECMAScript 5.
-  static const _encodeFullTable = const [
+  static const _encodeFullTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2908,7 +2908,7 @@ class _Uri implements Uri {
   ];
 
   // Characters allowed in the scheme.
-  static const _schemeTable = const [
+  static const _schemeTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2928,7 +2928,7 @@ class _Uri implements Uri {
   ];
 
   // Characters allowed in scheme except for upper case letters.
-  static const _schemeLowerTable = const [
+  static const _schemeLowerTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2952,7 +2952,7 @@ class _Uri implements Uri {
   //         / "*" / "+" / "," / ";" / "="
   // RFC 3986 section 2.3.
   // unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
-  static const _subDelimitersTable = const [
+  static const _subDelimitersTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2974,7 +2974,7 @@ class _Uri implements Uri {
   // General delimiter characters, RFC 3986 section 2.2.
   // gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
   //
-  static const _genDelimitersTable = const [
+  static const _genDelimitersTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -2996,7 +2996,7 @@ class _Uri implements Uri {
   // Characters allowed in the userinfo as of RFC 3986.
   // RFC 3986 Appendix A
   // userinfo = *( unreserved / pct-encoded / sub-delims / ':')
-  static const _userinfoTable = const [
+  static const _userinfoTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -3018,7 +3018,7 @@ class _Uri implements Uri {
   // Characters allowed in the reg-name as of RFC 3986.
   // RFC 3986 Appendix A
   // reg-name = *( unreserved / pct-encoded / sub-delims )
-  static const _regNameTable = const [
+  static const _regNameTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000
@@ -3040,7 +3040,7 @@ class _Uri implements Uri {
   // Characters allowed in the path as of RFC 3986.
   // RFC 3986 section 3.3.
   // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
-  static const _pathCharTable = const [
+  static const _pathCharTable = const <int>[
     //                     LSB            MSB
     //                      |              |
     0x0000, // 0x00 - 0x0f  0000000000000000

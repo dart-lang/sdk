@@ -16,7 +16,7 @@ class A extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  factory redir() = self::B::•<self::Y>;
+  redirecting_factory redir() = self::B::•<self::Y>;
 }
 class B<T extends self::X> extends self::A {
   constructor •() → void

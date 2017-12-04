@@ -8,7 +8,7 @@ library compiler.kernel.front_end_adapter;
 
 import 'dart:async';
 
-import 'package:front_end/front_end.dart' as fe;
+import 'package:front_end/src/api_prototype/front_end.dart' as fe;
 
 import '../../compiler_new.dart' as api;
 

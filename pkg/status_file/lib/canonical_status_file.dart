@@ -72,6 +72,10 @@ class StatusFile {
 
   int _lineCount = 0;
 
+  /// Constructor for creating a new [StatusFile]. Will not create the default
+  /// section that status files have.
+  StatusFile(this.path);
+
   /// Reads and parses the status file at [path].
   ///
   /// Throws a [SyntaxError] if the file could not be parsed.

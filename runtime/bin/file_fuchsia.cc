@@ -201,7 +201,7 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
     flags = flags | O_TRUNC;
   }
   flags |= O_CLOEXEC;
-  int fd = NO_RETRY_EXPECTED(openat64(ns.fd(), name, flags, 0666));
+  int fd = NO_RETRY_EXPECTED(openat64(ns.fd(), ns.path(), flags, 0666));
   if (fd < 0) {
     return NULL;
   }

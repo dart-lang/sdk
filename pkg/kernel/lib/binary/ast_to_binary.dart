@@ -21,7 +21,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
   final StringIndexer stringIndexer;
   ConstantIndexer _constantIndexer;
   final StringIndexer _sourceUriIndexer = new StringIndexer();
-  final Set<String> _knownSourceUri = new Set<String>();
+  final Set<Uri> _knownSourceUri = new Set<Uri>();
   Map<LibraryDependency, int> _libraryDependencyIndex =
       <LibraryDependency, int>{};
 
@@ -188,10 +188,10 @@ class BinaryPrinter extends Visitor implements BinarySink {
     type.accept(this);
   }
 
-  void writeUriReference(String string) {
+  void writeUriReference(Uri uri) {
     int index = 0; // equivalent to index = _sourceUriIndexer[""];
-    if (_knownSourceUri.contains(string)) {
-      index = _sourceUriIndexer.put(string);
+    if (_knownSourceUri.contains(uri)) {
+      index = _sourceUriIndexer.put(uri == null ? "" : "$uri");
     }
     writeUInt30(index);
   }
@@ -439,7 +439,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     _knownSourceUri.addAll(program.uriToSource.keys);
   }
 
-  void writeUriToSource(Map<String, Source> uriToSource) {
+  void writeUriToSource(Map<Uri, Source> uriToSource) {
     _binaryOffsetForSourceTable = getBufferOffset();
 
     int length = _sourceUriIndexer.numberOfStrings;
@@ -451,8 +451,8 @@ class BinaryPrinter extends Visitor implements BinarySink {
       index[i] = getBufferOffset();
 
       StringTableEntry uri = _sourceUriIndexer.entries[i];
-      Source source =
-          uriToSource[uri.value] ?? new Source(<int>[], const <int>[]);
+      Source source = uriToSource[Uri.parse(uri.value)] ??
+          new Source(<int>[], const <int>[]);
 
       writeByteList(uri.utf8Bytes);
       writeByteList(source.source);
@@ -558,7 +558,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeCanonicalNameReference(getCanonicalNameOfLibrary(node));
     writeStringReference(node.name ?? '');
     // TODO(jensj): We save (almost) the same URI twice.
-    writeUriReference(node.fileUri ?? '');
+    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeLibraryDependencies(node);
     writeAdditionalExports(node.additionalExports);
@@ -635,14 +635,14 @@ class BinaryPrinter extends Visitor implements BinarySink {
       _recordNodeOffsetForMetadataMapping(node);
     }
     writeNodeList(node.annotations);
-    writeStringReference(node.fileUri ?? '');
+    writeUriReference(node.fileUri);
   }
 
   void visitTypedef(Typedef node) {
     writeCanonicalNameReference(getCanonicalNameOfTypedef(node));
     writeOffset(node.fileOffset);
     writeStringReference(node.name);
-    writeUriReference(node.fileUri ?? '');
+    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
@@ -691,7 +691,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeOffset(node.fileEndOffset);
     writeByte(flags);
     writeStringReference(node.name ?? '');
-    writeUriReference(node.fileUri ?? '');
+    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     _typeParameterIndexer.enter(node.typeParameters);
     writeNodeList(node.typeParameters);
@@ -750,7 +750,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeByte(node.kind.index);
     writeByte(node.flags);
     writeName(node.name ?? '');
-    writeUriReference(node.fileUri ?? '');
+    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeOptionalNode(node.function);
     _variableIndexer = null;
@@ -768,7 +768,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeByte(node.flags);
     writeByte(node.flags2);
     writeName(node.name);
-    writeUriReference(node.fileUri ?? '');
+    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeNode(node.type);
     writeOptionalNode(node.initializer);
@@ -831,6 +831,12 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeByte(Tag.LocalInitializer);
     writeByte(node.isSynthetic ? 1 : 0);
     writeVariableDeclaration(node.variable);
+  }
+
+  visitAssertInitializer(AssertInitializer node) {
+    writeByte(Tag.AssertInitializer);
+    writeByte(node.isSynthetic ? 1 : 0);
+    writeNode(node.statement);
   }
 
   visitFunctionNode(FunctionNode node) {
@@ -1374,6 +1380,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
   visitCatch(Catch node) {
     // Note: there is no tag on Catch.
     _variableIndexer.pushScope();
+    writeOffset(node.fileOffset);
     writeNode(node.guard);
     writeOptionalVariableDeclaration(node.exception);
     writeOptionalVariableDeclaration(node.stackTrace);

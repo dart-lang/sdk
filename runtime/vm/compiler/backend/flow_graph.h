@@ -73,12 +73,32 @@ struct ConstantPoolTrait {
   }
 };
 
+struct PrologueInfo {
+  // The first blockid used for prologue building.  This information can be used
+  // by the inliner for budget calculations: The prologue code falls away when
+  // inlining, so we should not include it in the budget.
+  const intptr_t min_block_id;
+
+  // The last blockid used for prologue building.  This information can be used
+  // by the inliner for budget calculations: The prologue code falls away when
+  // inlining, so we should not include it in the budget.
+  const intptr_t max_block_id;
+
+  PrologueInfo(intptr_t min, intptr_t max)
+      : min_block_id(min), max_block_id(max) {}
+
+  bool Contains(intptr_t block_id) const {
+    return min_block_id <= block_id && block_id <= max_block_id;
+  }
+};
+
 // Class to encapsulate the construction and manipulation of the flow graph.
 class FlowGraph : public ZoneAllocated {
  public:
   FlowGraph(const ParsedFunction& parsed_function,
             GraphEntryInstr* graph_entry,
-            intptr_t max_block_id);
+            intptr_t max_block_id,
+            PrologueInfo prologue_info);
 
   // Function properties.
   const ParsedFunction& parsed_function() const { return parsed_function_; }
@@ -234,6 +254,8 @@ class FlowGraph : public ZoneAllocated {
   // Stop preserving environments on Goto instructions. LICM is not allowed
   // after this point.
   void disallow_licm() { licm_allowed_ = false; }
+
+  PrologueInfo prologue_info() const { return prologue_info_; }
 
   const ZoneGrowableArray<BlockEntryInstr*>& LoopHeaders() {
     if (loop_headers_ == NULL) {
@@ -400,6 +422,8 @@ class FlowGraph : public ZoneAllocated {
   ConstantInstr* constant_empty_context_;
 
   bool licm_allowed_;
+
+  const PrologueInfo prologue_info_;
 
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;

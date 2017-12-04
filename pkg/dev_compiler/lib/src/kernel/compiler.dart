@@ -1460,6 +1460,8 @@ class ProgramCompiler
           emitFieldInit(init.field, init.value, init);
         } else if (init is LocalInitializer) {
           body.add(visitVariableDeclaration(init.variable));
+        } else if (init is AssertInitializer) {
+          body.add(visitAssertStatement(init.statement));
         }
       }
     }
@@ -1480,7 +1482,7 @@ class ProgramCompiler
 
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
-    var jsExpr = _visitExpression(expr);
+    var jsExpr = _visitAndMarkExpression(expr);
     if (!isNullable(expr)) return jsExpr;
     return _callHelper('notNull(#)', jsExpr);
   }
@@ -1562,8 +1564,9 @@ class ProgramCompiler
       }
     }
 
-    jsMethods.addAll(_classProperties.mockMembers.values
-        .map((e) => _implementMockMember(e, c)));
+    for (Member m in _classProperties.mockMembers.values) {
+      _addMockMembers(m, c, jsMethods);
+    }
 
     // If the type doesn't have an `iterator`, but claims to implement Iterable,
     // we inject the adaptor method here, as it's less code size to put the
@@ -1719,69 +1722,108 @@ class ProgramCompiler
   ///       return core.bool.as(this.noSuchMethod(
   ///           new dart.InvocationImpl.new('eatFood', args)));
   ///     }
-  JS.Method _implementMockMember(Procedure method, Class c) {
-    var invocationProps = <JS.Property>[];
-    addProperty(String name, JS.Expression value) {
-      invocationProps.add(new JS.Property(js.string(name), value));
-    }
+  ///
+  /// Same technique is applied if interface I has fields, and C doesn't declare
+  /// neither the fields nor the corresponding getters and setters.
+  Iterable<JS.Method> _addMockMembers(
+      Member member, Class c, List<JS.Method> jsMethods) {
+    JS.Method implementMockMember(
+        List<TypeParameter> typeParameters,
+        List<VariableDeclaration> namedParameters,
+        ProcedureKind mockMemberKind,
+        DartType returnType) {
+      assert(mockMemberKind != ProcedureKind.Factory);
 
-    var args = new JS.TemporaryId('args');
-    var function = method.function;
-    var typeParams = _emitTypeFormals(function.typeParameters);
-    var fnArgs = new List<JS.Parameter>.from(typeParams);
-    JS.Expression positionalArgs;
-
-    if (function.namedParameters.isNotEmpty) {
-      addProperty('namedArguments', _callHelper('extractNamedArgs(#)', [args]));
-    }
-
-    if (!method.isAccessor) {
-      addProperty('isMethod', js.boolean(true));
-
-      fnArgs.add(new JS.RestParameter(args));
-      positionalArgs = args;
-    } else {
-      if (method.isGetter) {
-        addProperty('isGetter', js.boolean(true));
-
-        positionalArgs = new JS.ArrayInitializer([]);
-      } else if (method.isSetter) {
-        addProperty('isSetter', js.boolean(true));
-
-        fnArgs.add(args);
-        positionalArgs = new JS.ArrayInitializer([args]);
+      var invocationProps = <JS.Property>[];
+      addProperty(String name, JS.Expression value) {
+        invocationProps.add(new JS.Property(js.string(name), value));
       }
+
+      var args = new JS.TemporaryId('args');
+      var typeParams = _emitTypeFormals(typeParameters);
+      var fnArgs = new List<JS.Parameter>.from(typeParams);
+      JS.Expression positionalArgs;
+
+      if (namedParameters.isNotEmpty) {
+        addProperty(
+            'namedArguments', _callHelper('extractNamedArgs(#)', [args]));
+      }
+
+      if (mockMemberKind != ProcedureKind.Getter &&
+          mockMemberKind != ProcedureKind.Setter) {
+        addProperty('isMethod', js.boolean(true));
+
+        fnArgs.add(new JS.RestParameter(args));
+        positionalArgs = args;
+      } else {
+        if (mockMemberKind == ProcedureKind.Getter) {
+          addProperty('isGetter', js.boolean(true));
+
+          positionalArgs = new JS.ArrayInitializer([]);
+        } else if (mockMemberKind == ProcedureKind.Setter) {
+          addProperty('isSetter', js.boolean(true));
+
+          fnArgs.add(args);
+          positionalArgs = new JS.ArrayInitializer([args]);
+        }
+      }
+
+      if (typeParams.isNotEmpty) {
+        addProperty('typeArguments', new JS.ArrayInitializer(typeParams));
+      }
+
+      var fnBody =
+          js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
+        _runtimeModule,
+        _declareMemberName(member),
+        positionalArgs,
+        new JS.ObjectInitializer(invocationProps)
+      ]);
+
+      if (!types.isTop(returnType)) {
+        fnBody = js.call('#._check(#)', [_emitType(returnType), fnBody]);
+      }
+
+      var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
+          typeParams: typeParams);
+
+      return new JS.Method(
+          _declareMemberName(member,
+              useExtension: _extensionTypes.isNativeClass(c)),
+          fn,
+          isGetter: mockMemberKind == ProcedureKind.Getter,
+          isSetter: mockMemberKind == ProcedureKind.Setter,
+          isStatic: false);
     }
 
-    if (typeParams.isNotEmpty) {
-      addProperty('typeArguments', new JS.ArrayInitializer(typeParams));
+    if (member is Field) {
+      jsMethods.add(implementMockMember(
+          const <TypeParameter>[],
+          const <VariableDeclaration>[],
+          ProcedureKind.Getter,
+          Substitution
+              .fromSupertype(
+                  hierarchy.getClassAsInstanceOf(c, member.enclosingClass))
+              .substituteType(member.type)));
+      if (!member.isFinal) {
+        jsMethods.add(implementMockMember(
+            const <TypeParameter>[],
+            const <VariableDeclaration>[],
+            ProcedureKind.Setter,
+            new DynamicType()));
+      }
+    } else {
+      Procedure procedure = member as Procedure;
+      FunctionNode function = procedure.function;
+      jsMethods.add(implementMockMember(
+          function.typeParameters,
+          function.namedParameters,
+          procedure.kind,
+          Substitution
+              .fromSupertype(
+                  hierarchy.getClassAsInstanceOf(c, member.enclosingClass))
+              .substituteType(function.returnType)));
     }
-
-    var fnBody =
-        js.call('this.noSuchMethod(new #.InvocationImpl.new(#, #, #))', [
-      _runtimeModule,
-      _declareMemberName(method),
-      positionalArgs,
-      new JS.ObjectInitializer(invocationProps)
-    ]);
-
-    var returnType = Substitution
-        .fromSupertype(hierarchy.getClassAsInstanceOf(c, method.enclosingClass))
-        .substituteType(method.function.functionType);
-    if (!types.isTop(returnType)) {
-      fnBody = js.call('#._check(#)', [_emitType(returnType), fnBody]);
-    }
-
-    var fn = new JS.Fun(fnArgs, js.statement('{ return #; }', [fnBody]),
-        typeParams: typeParams);
-
-    return new JS.Method(
-        _declareMemberName(method,
-            useExtension: _extensionTypes.isNativeClass(c)),
-        fn,
-        isGetter: method.isGetter,
-        isSetter: method.isSetter,
-        isStatic: false);
   }
 
   /// This is called whenever a derived class needs to introduce a new field,
@@ -2570,7 +2612,9 @@ class ProgramCompiler
 
     JS.Block code = isSync
         ? _emitFunctionBody(f)
-        : new JS.Block([_emitGeneratorFunction(f, name).toReturn()]);
+        : new JS.Block([
+            _emitGeneratorFunction(f, name).toReturn()..sourceInformation = f
+          ]);
 
     if (name != null && formals.isNotEmpty) {
       if (name == '[]=') {
@@ -2637,7 +2681,7 @@ class ProgramCompiler
       //
       // TODO(jmesserly): this will emit argument initializers (for default
       // values) inside the generator function body. Is that the best place?
-      var jsBody = _emitFunctionBody(function);
+      var jsBody = _emitFunctionBody(function)..sourceInformation = function;
       JS.Expression gen =
           new JS.Fun(getParameters(jsBody), jsBody, isGenerator: true);
 
@@ -2696,7 +2740,8 @@ class ProgramCompiler
       var gen = emitGeneratorFn((_) => [_asyncStarController]);
 
       var returnType = _getExpectedReturnType(function, coreTypes.streamClass);
-      return _callHelper('asyncStar(#, #)', [_emitType(returnType), gen]);
+      return _callHelper('asyncStar(#, #)', [_emitType(returnType), gen])
+        ..sourceInformation = function;
     }
 
     assert(function.asyncMarker == AsyncMarker.Async);
@@ -2930,7 +2975,7 @@ class ProgramCompiler
       if (op == '||') return shortCircuit('# || #');
     }
 
-    var result = _visitExpression(node);
+    var result = _visitAndMarkExpression(node);
     if (node.getStaticType(types) != coreTypes.boolClass.rawType) {
       return finish(_callHelper('dtest(#)', result));
     }
@@ -3157,7 +3202,7 @@ class ProgramCompiler
       var body = _visitScope(effectiveBodyOf(node, node.body));
 
       var v = _emitVariableRef(node.variable);
-      var init = js.call('let #', v);
+      var init = js.call('let #', v)..sourceInformation = node.variable;
       if (_annotatedNullCheck(node.variable.annotations)) {
         body = new JS.Block([_nullParameterCheck(v), body]);
       }
@@ -3190,7 +3235,8 @@ class ProgramCompiler
             streamIterator,
             _asyncStreamIteratorClass.procedures
                 .firstWhere((p) => p.isFactory && p.name.name == '')),
-        [_visitExpression(node.iterable)]);
+        [_visitExpression(node.iterable)])
+      ..sourceInformation = node.iterable;
 
     var iter = new JS.TemporaryId('iter');
     var init =
@@ -3205,10 +3251,12 @@ class ProgramCompiler
         [
           iter,
           createStreamIter,
-          new JS.Yield(js.call('#.moveNext()', iter)),
+          new JS.Yield(js.call('#.moveNext()', iter))
+            ..sourceInformation = node.variable,
           init,
           _visitStatement(node.body),
           new JS.Yield(js.call('#.cancel()', iter))
+            ..sourceInformation = node.variable
         ]);
   }
 
@@ -3322,13 +3370,15 @@ class ProgramCompiler
       var name = node.exception;
       if (name != null && name != _catchParameter) {
         body.add(js.statement('let # = #;',
-            [_emitVariableRef(name), _emitVariableRef(_catchParameter)]));
+            [_emitVariableRef(name), _emitVariableRef(_catchParameter)])
+          ..sourceInformation = name);
         _catchParameter = name;
       }
       if (node.stackTrace != null) {
         var stackVar = _emitVariableRef(node.stackTrace);
         body.add(js.statement('let # = #.stackTrace(#);',
-            [stackVar, _runtimeModule, _emitVariableRef(name)]));
+            [stackVar, _runtimeModule, _emitVariableRef(name)])
+          ..sourceInformation = node.stackTrace);
       }
     }
 
@@ -3344,7 +3394,8 @@ class ProgramCompiler
         js.call('#.is(#)',
             [_emitType(node.guard), _emitVariableRef(_catchParameter)]),
         then,
-        otherwise);
+        otherwise)
+      ..sourceInformation = node;
   }
 
   @override
@@ -3366,7 +3417,7 @@ class ProgramCompiler
 
   @override
   visitYieldStatement(YieldStatement node) {
-    var jsExpr = _visitExpression(node.expression);
+    var jsExpr = _visitAndMarkExpression(node.expression);
     var star = node.isYieldStar;
     if (_asyncStarController != null) {
       // async* yields are generated differently from sync* yields. `yield e`
@@ -3380,8 +3431,12 @@ class ProgramCompiler
       //     if (stream.addStream(e)) return;
       //     yield;
       var helperName = star ? 'addStream' : 'add';
-      return js.statement('{ if(#.#(#)) return; #; }',
-          [_asyncStarController, helperName, jsExpr, new JS.Yield(null)]);
+      return js.statement('{ if(#.#(#)) return; #; }', [
+        _asyncStarController,
+        helperName,
+        jsExpr,
+        new JS.Yield(null)..sourceInformation = node
+      ]);
     }
     // A normal yield in a sync*
     return jsExpr.toYieldStatement(star: star);
@@ -3459,7 +3514,7 @@ class ProgramCompiler
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
   @override
-  visitVariableSet(VariableSet node) => _visitExpression(node.value)
+  visitVariableSet(VariableSet node) => _visitAndMarkExpression(node.value)
       .toAssignExpression(_emitVariableRef(node.variable));
 
   @override
@@ -3554,7 +3609,7 @@ class ProgramCompiler
 
   @override
   visitStaticSet(StaticSet node) {
-    return _visitExpression(node.value)
+    return _visitAndMarkExpression(node.value)
         .toAssignExpression(_emitStaticTarget(node.target));
   }
 
@@ -3914,8 +3969,8 @@ class ProgramCompiler
     // a measurable performance effect (possibly the helper is simple enough to
     // be inlined).
     if (isNullable(left)) {
-      return _callHelper(
-          'equals(#, #)', [_visitExpression(left), _visitExpression(right)]);
+      return _callHelper('equals(#, #)',
+          [_visitAndMarkExpression(left), _visitAndMarkExpression(right)]);
     }
 
     // Otherwise we emit a call to the == method.
@@ -4246,7 +4301,10 @@ class ProgramCompiler
     }
     var left = args[0];
     var right = args[1];
-    var jsArgs = [_visitExpression(left), _visitExpression(right)];
+    var jsArgs = [
+      _visitAndMarkExpression(left),
+      _visitAndMarkExpression(right)
+    ];
     if (_tripleEqIsIdentity(left, right)) {
       return _emitJSTripleEq(jsArgs, negated: negated);
     }
@@ -4404,8 +4462,8 @@ class ProgramCompiler
   visitConditionalExpression(ConditionalExpression node) {
     return js.call('# ? # : #', [
       _visitTest(node.condition),
-      _visitExpression(node.then),
-      _visitExpression(node.otherwise)
+      _visitAndMarkExpression(node.then),
+      _visitAndMarkExpression(node.otherwise)
     ]);
   }
 
@@ -4435,7 +4493,7 @@ class ProgramCompiler
         expectString = false;
       } else {
         if (expectString) strings.add('');
-        interpolations.add(_visitExpression(e));
+        interpolations.add(_visitAndMarkExpression(e));
         expectString = true;
       }
     }
@@ -4449,7 +4507,7 @@ class ProgramCompiler
     // Generate `is` as `dart.is` or `typeof` depending on the RHS type.
     JS.Expression result;
     var type = node.type;
-    var lhs = _visitExpression(node.operand);
+    var lhs = _visitAndMarkExpression(node.operand);
     var typeofName = _jsTypeofName(type);
     // Inline primitives other than int (which requires a Math.floor check).
     if (typeofName != null && type != coreTypes.intClass.rawType) {
@@ -4584,7 +4642,7 @@ class ProgramCompiler
 
   @override
   visitThrow(Throw node) =>
-      _callHelper('throw(#)', _visitExpression(node.expression));
+      _callHelper('throw(#)', _visitAndMarkExpression(node.expression));
 
   @override
   visitListLiteral(ListLiteral node) {
@@ -4622,8 +4680,8 @@ class ProgramCompiler
     emitEntries() {
       var entries = <JS.Expression>[];
       for (var e in node.entries) {
-        entries.add(_visitExpression(e.key));
-        entries.add(_visitExpression(e.value));
+        entries.add(_visitAndMarkExpression(e.key));
+        entries.add(_visitAndMarkExpression(e.value));
       }
       return new JS.ArrayInitializer(entries);
     }

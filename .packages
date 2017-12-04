@@ -101,6 +101,7 @@ typed_mock:pkg/typed_mock/lib
 unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 utf:third_party/pkg/utf/lib
+vm:pkg/vm/lib
 watcher:third_party/pkg/watcher/lib
 # Note: this is pointing to the observatory_pub_packages version of pkg/observe
 web_components:third_party/observatory_pub_packages/packages/web_components/lib

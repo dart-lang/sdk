@@ -3320,7 +3320,18 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
     }
   }
   InlineBailout("EffectGraphVisitor::VisitNativeBodyNode");
-  NativeCallInstr* native_call = new (Z) NativeCallInstr(node);
+
+  const ParsedFunction& pf = owner_->parsed_function();
+  const String& name = String::ZoneHandle(Z, function.native_name());
+  ZoneGrowableArray<PushArgumentInstr*>& args =
+      *new (Z) ZoneGrowableArray<PushArgumentInstr*>(function.NumParameters());
+  for (intptr_t i = 0; i < function.NumParameters(); ++i) {
+    LocalVariable* parameter = pf.node_sequence()->scope()->VariableAt(i);
+    Value* value = Bind(new (Z) LoadLocalInstr(*parameter, node->token_pos()));
+    args.Add(PushArgument(value));
+  }
+  NativeCallInstr* native_call = new (Z) NativeCallInstr(
+      &name, &function, FLAG_link_natives_lazily, node->token_pos(), &args);
   ReturnDefinition(native_call);
 }
 
@@ -4417,9 +4428,11 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
     graph_entry_->RelinkToOsrEntry(Z, last_used_block_id_);
   }
 
-  FlowGraph* graph =
-      new (Z) FlowGraph(parsed_function(), graph_entry_, last_used_block_id_);
+  PrologueInfo prologue_info(-1, -1);
+  FlowGraph* graph = new (Z) FlowGraph(parsed_function(), graph_entry_,
+                                       last_used_block_id_, prologue_info);
   graph->set_await_token_positions(await_token_positions_);
+
   return graph;
 }
 

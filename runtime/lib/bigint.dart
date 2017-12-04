@@ -1843,7 +1843,7 @@ class _Bigint extends _IntegerImplementation {
     if (m == 1) return 0;
     final mAsBigint = m._toBigint();
     int t = this;
-    if (t._neg || (t._absCompare(mAsBigint) >= 0)) {
+    if (this._neg || (this._absCompare(mAsBigint) >= 0)) {
       t %= mAsBigint;
       t = t._toBigint();
     }

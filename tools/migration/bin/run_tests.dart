@@ -16,6 +16,7 @@ import 'package:migration/src/log.dart';
 const appJit = "--compiler=app_jit";
 const dart2js = "--compiler=dart2js";
 const dartdevc = "--compiler=dartdevc";
+const dartdevk = "--compiler=dartdevk";
 const noCompiler = "--compiler=none";
 const precompiler = "--compiler=precompiler";
 const analyzer = "--compiler=dart2analyzer";
@@ -90,6 +91,8 @@ final allConfigs = {
   "dart2js-jsshell": [dart2js, jsshell, fastStartup, useSdk, dart2jsBatch],
   // TODO(rnystrom): Is it worth running dart2js on Firefox too?
   "dartdevc": [dartdevc, chrome, useSdk, strong],
+  "dartdevc-kernel": [dartdevk, chrome, checked, useSdk, strong],
+  "dartdevc-kernel-noruntime": [dartdevk, noRuntime, checked, useSdk, strong],
 };
 
 /// A subset of the configurations that run quickly and give a decent amount of

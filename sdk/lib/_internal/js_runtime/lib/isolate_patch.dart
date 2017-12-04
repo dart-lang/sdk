@@ -8,7 +8,7 @@ import 'dart:_js_helper' show patch;
 import 'dart:_isolate_helper'
     show CapabilityImpl, IsolateNatives, ReceivePortImpl, RawReceivePortImpl;
 
-typedef _UnaryFunction(arg);
+typedef _UnaryFunction(Null arg);
 
 @patch
 class Isolate {
@@ -41,7 +41,7 @@ class Isolate {
   }
 
   @patch
-  static Future<Isolate> spawn(void entryPoint(message), var message,
+  static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,

@@ -234,7 +234,7 @@ void Isolate::ValidateConstants() {
   }
   // Verify that all canonical instances are correctly setup in the
   // corresponding canonical tables.
-  StopBackgroundCompiler();
+  BackgroundCompiler::Stop(this);
   heap()->CollectAllGarbage();
   Thread* thread = Thread::Current();
   HeapIterationScope iteration(thread);
@@ -503,8 +503,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
 #ifndef PRODUCT
-  TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
-                            "HandleMessage");
+  TimelineDurationScope tds(
+      thread, Timeline::GetIsolateStream(),
+      message->IsOOB() ? "HandleOOBMessage" : "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 #endif
@@ -880,7 +881,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       class_table_(),
       single_step_(false),
       isolate_flags_(0),
-      background_compiler_disabled_depth_(0),
       background_compiler_(NULL),
 #if !defined(PRODUCT)
       debugger_(NULL),
@@ -928,7 +928,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       message_handler_(NULL),
       spawn_state_(NULL),
       defer_finalization_count_(0),
-      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>),
+      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>()),
       deopt_context_(NULL),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
@@ -959,14 +959,20 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
         "which violates the Dart standard.\n"
         "         See dartbug.com/30524 for more information.\n");
   }
+
+  NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
 
 Isolate::~Isolate() {
+  delete background_compiler_;
+  background_compiler_ = NULL;
+
 #if !defined(PRODUCT)
   delete debugger_;
+  debugger_ = NULL;
   if (FLAG_support_service) {
     delete object_id_ring_;
   }
@@ -1766,13 +1772,6 @@ void Isolate::LowLevelShutdown() {
 #endif  // !defined(PRODUCT)
 }
 
-void Isolate::StopBackgroundCompiler() {
-  // Wait until all background compilation has finished.
-  if (background_compiler_ != NULL) {
-    BackgroundCompiler::Stop(this);
-  }
-}
-
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
   if (FLAG_reload_every_back_off) {
@@ -1791,7 +1790,9 @@ void Isolate::MaybeIncreaseReloadEveryNStackOverflowChecks() {
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
-  StopBackgroundCompiler();
+  BackgroundCompiler::Stop(this);
+  delete background_compiler_;
+  background_compiler_ = NULL;
 
 #if defined(DEBUG)
   if (heap_ != NULL && FLAG_verify_on_transition) {

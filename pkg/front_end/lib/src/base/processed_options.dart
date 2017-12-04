@@ -4,10 +4,10 @@
 
 import 'dart:async';
 
-import 'package:front_end/compilation_message.dart';
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/compilation_message.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/problems.dart' show unimplemented;

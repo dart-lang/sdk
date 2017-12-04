@@ -101,6 +101,7 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
   void _mark(int offset, bool adjustColumn) {
     int adjustedColumn = _column - (adjustColumn ? 1 : 0);
+    if (adjustedColumn < 0) return;
     if ((_previousColumn == _column || _previousColumn == adjustedColumn) &&
         _previousLine == _line) return;
 

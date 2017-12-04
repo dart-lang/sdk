@@ -228,7 +228,8 @@ class Isolate {
    * Returns a future which will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
-  external static Future<Isolate> spawn(void entryPoint(message), var message,
+  external static Future<Isolate> spawn<T>(
+      void entryPoint(T message), T message,
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,

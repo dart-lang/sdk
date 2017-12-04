@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/deprecated_problems.dart'
@@ -87,7 +87,8 @@ main() {
       // least one. Having more means that source-info is added.
       expect(program.uriToSource.keys.length, greaterThan(1));
       expect(
-          program.uriToSource['org-dartlang-test:///a/b/c/a.dart'], isNotNull);
+          program.uriToSource[Uri.parse('org-dartlang-test:///a/b/c/a.dart')],
+          isNotNull);
     });
 
     test('code from summary dependencies are marked external', () async {

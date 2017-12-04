@@ -282,25 +282,12 @@ class ClassPropertyModel {
 
       for (var m in c.members) {
         if (m is Constructor) continue;
+        if (m is Procedure && m.isStatic) continue;
 
-        var isAbstract = classIsAbstract || m.isAbstract;
-        addMember(bool setter) {
-          var name = m.name.name;
-          if (setter) name += '=';
-          if (isAbstract) {
-            mockMembers[name] = m;
-          } else {
-            concreteMembers.add(name);
-          }
-        }
-
-        var name = m.name.name;
-        if (m is Field) {
-          addMember(false);
-          if (!m.isFinal) addMember(true);
+        if (classIsAbstract || m.isAbstract) {
+          mockMembers[m.name.name] = m;
         } else {
-          var p = m as Procedure;
-          if (!p.isStatic) addMember(p.isSetter);
+          concreteMembers.add(m.name.name);
         }
       }
     }

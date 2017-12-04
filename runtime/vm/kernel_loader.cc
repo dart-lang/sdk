@@ -347,7 +347,7 @@ KernelLoader::KernelLoader(const Script& script,
       kernel_program_info_(
           KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
       translation_helper_(this, thread_),
-      builder_(&translation_helper_, script.raw(), zone_, kernel_data, 0),
+      builder_(&translation_helper_, script, zone_, kernel_data, 0),
       external_name_class_(Class::Handle(Z)),
       external_name_field_(Field::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)) {

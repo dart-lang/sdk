@@ -88,6 +88,9 @@
 * `dart:isolate`
   * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
     `beforeNextEvent`.
+  * Make `Isolate.spawn` take a type parameter representing the argument type
+    of the provided function. This allows functions with arguments types other
+    than `Object` in strong mode.
 
 * `dart.math`
   * Renamed `E`, `LN10`, `LN`, `LOG2E`, `LOG10E`, `PI`, `SQRT1_2` and `SQRT2`

@@ -408,6 +408,13 @@ bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
   return dst_type().raw() == other_assert->dst_type().raw();
 }
 
+bool AssertSubtypeInstr::AttributesEqual(Instruction* other) const {
+  AssertSubtypeInstr* other_assert = other->AsAssertSubtype();
+  ASSERT(other_assert != NULL);
+  return super_type().raw() == other_assert->super_type().raw() &&
+         sub_type().raw() == other_assert->sub_type().raw();
+}
+
 bool StrictCompareInstr::AttributesEqual(Instruction* other) const {
   StrictCompareInstr* other_op = other->AsStrictCompare();
   ASSERT(other_op != NULL);
@@ -2911,6 +2918,9 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
+    if (Assembler::EmittingComments()) {
+      compiler->EmitComment(parallel_move());
+    }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }
@@ -3509,6 +3519,27 @@ void AssertAssignableInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(locs()->in(0).reg() == locs()->out(0).reg());
 #endif  // !defined(TARGET_ARCH_DBC)
+}
+
+void AssertSubtypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if !defined(TARGET_ARCH_DBC)
+  ASSERT(sub_type().IsFinalized());
+  ASSERT(super_type().IsFinalized());
+
+  __ PushObject(sub_type());
+  __ PushObject(super_type());
+  __ PushRegister(locs()->in(0).reg());
+  __ PushRegister(locs()->in(1).reg());
+  __ PushObject(dst_name());
+
+  compiler->GenerateRuntimeCall(token_pos(), deopt_id(),
+                                kSubtypeCheckRuntimeEntry, 5, locs());
+
+  __ Drop(5);
+#else
+  // TODO(sjindel): Support strong mode in DBC
+  UNREACHABLE();
+#endif
 }
 
 LocationSummary* DeoptimizeInstr::MakeLocationSummary(Zone* zone,

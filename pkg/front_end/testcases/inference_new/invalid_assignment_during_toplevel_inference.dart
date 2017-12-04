@@ -6,6 +6,6 @@
 
 int i;
 String s;
-var /*@topType=String*/ x = /*@error=InvalidAssignment*/ i = s;
+var /*@topType=String*/ x = i = /*@error=InvalidAssignment*/ s;
 
 main() {}

@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/base/api_signature.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -431,8 +431,8 @@ class KernelDriver {
       {
         var urisToRemoveSources = <String>[];
         for (var uri in program.uriToSource.keys) {
-          if (!cycleFileUris.contains(uri)) {
-            urisToRemoveSources.add(uri);
+          if (!cycleFileUris.contains("$uri")) {
+            urisToRemoveSources.add("$uri");
           }
         }
         urisToRemoveSources.forEach(program.uriToSource.remove);
@@ -593,7 +593,7 @@ class LibraryCycleResult {
   final String signature;
 
   /// Map from the [cycle] file URIs to their [Source]s.
-  final Map<String, Source> uriToSource;
+  final Map<Uri, Source> uriToSource;
 
   /// Kernel libraries for libraries in the [cycle].  Bodies of dependencies
   /// are not included, but but references to those dependencies are included.

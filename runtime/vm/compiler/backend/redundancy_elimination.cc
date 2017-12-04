@@ -3300,6 +3300,38 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
   }
 }
 
+void CheckStackOverflowElimination::EliminateStackOverflow(FlowGraph* graph) {
+  CheckStackOverflowInstr* first_stack_overflow_instr = NULL;
+  for (BlockIterator block_it = graph->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    BlockEntryInstr* entry = block_it.Current();
+
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+
+      if (CheckStackOverflowInstr* instr = current->AsCheckStackOverflow()) {
+        if (first_stack_overflow_instr == NULL) {
+          first_stack_overflow_instr = instr;
+          ASSERT(!first_stack_overflow_instr->in_loop());
+        }
+        continue;
+      }
+
+      if (current->IsBranch()) {
+        current = current->AsBranch()->comparison();
+      }
+
+      if (current->HasUnknownSideEffects()) {
+        return;
+      }
+    }
+  }
+
+  if (first_stack_overflow_instr != NULL) {
+    first_stack_overflow_instr->RemoveFromGraph();
+  }
+}
+
 }  // namespace dart
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

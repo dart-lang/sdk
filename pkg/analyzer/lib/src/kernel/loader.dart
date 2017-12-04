@@ -144,7 +144,7 @@ class DartLoader implements ReferenceLevelLoader {
       library = new ast.Library(uri)
         ..isExternal = true
         ..name = getLibraryName(element)
-        ..fileUri = '${element.source.uri}';
+        ..fileUri = element.source.uri;
       program.libraries.add(library..parent = program);
       _libraries[element] = library;
     }
@@ -304,7 +304,7 @@ class DartLoader implements ReferenceLevelLoader {
     _classes[element] = classNode = new ast.Class(
         name: element.name,
         isAbstract: element.isAbstract,
-        fileUri: '${element.source.uri}')
+        fileUri: element.source.uri)
       ..fileOffset = element.nameOffset;
     classNode.level = ast.ClassLevel.Temporary;
     var library = getLibraryReference(element.library);
@@ -520,7 +520,7 @@ class DartLoader implements ReferenceLevelLoader {
               isStatic: true,
               isExternal: constructor.isExternal,
               isConst: constructor.isConst,
-              fileUri: '${element.source.uri}')
+              fileUri: element.source.uri)
             ..fileOffset = element.nameOffset;
         }
         return new ast.Constructor(scope.buildFunctionInterface(constructor),
@@ -538,7 +538,7 @@ class DartLoader implements ReferenceLevelLoader {
             isFinal: variable.isFinal,
             isConst: variable.isConst,
             type: scope.buildType(variable.type),
-            fileUri: '${element.source.uri}')
+            fileUri: element.source.uri)
           ..fileOffset = element.nameOffset;
 
       case ElementKind.METHOD:
@@ -558,7 +558,7 @@ class DartLoader implements ReferenceLevelLoader {
             isAbstract: executable.isAbstract,
             isStatic: executable.isStatic,
             isExternal: executable.isExternal,
-            fileUri: '${element.source.uri}')
+            fileUri: element.source.uri)
           ..fileOffset = element.nameOffset;
 
       default:
@@ -858,7 +858,7 @@ class DartLoader implements ReferenceLevelLoader {
           // The source's contents could not be accessed.
           sourceCode = const <int>[];
         }
-        program.uriToSource['${source.uri}'] =
+        program.uriToSource[source.uri] =
             new ast.Source(lineInfo.lineStarts, sourceCode);
       }
     }

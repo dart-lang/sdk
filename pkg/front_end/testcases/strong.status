@@ -11,7 +11,6 @@ accessors: Fail
 argument_mismatch: TypeCheckError
 async_function: Fail
 await: Fail
-bad_setter_abstract: TypeCheckError
 bug30695: TypeCheckError
 bug31124: RuntimeError # Test has an intentional error
 call: Fail
@@ -22,7 +21,6 @@ closure: Fail
 covariant_generic: Fail
 cycles: Fail
 default_values: Fail
-duplicated_named_args_3: TypeCheckError
 escape: Fail
 expressions: Fail
 external: Fail
@@ -64,7 +62,6 @@ void_methods: Fail
 warn_unresolved_sends: TypeCheckError
 
 inference/abstract_class_instantiation: Fail # Issue #30040
-inference/block_bodied_lambdas_downwards_incompatible_with_upwards_inference: TypeCheckError
 inference/block_bodied_lambdas_infer_bottom_async_star: RuntimeError
 inference/conflicts_can_happen: TypeCheckError
 inference/conflicts_can_happen2: TypeCheckError
@@ -82,6 +79,7 @@ inference/downwards_inference_on_function_expressions: TypeCheckError
 inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
 inference/downwards_inference_on_generic_function_expressions: TypeCheckError
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
+inference/downwards_inference_yield_yield_star: TypeCheckError
 inference/future_then_2: TypeCheckError
 inference/future_then_4: TypeCheckError
 inference/future_then_5: TypeCheckError
@@ -89,6 +87,8 @@ inference/future_then_conditional_2: TypeCheckError
 inference/future_then_conditional_4: TypeCheckError
 inference/future_then_conditional_5: TypeCheckError
 inference/future_then_explicit_future: Fail # Issue #30040
+inference/future_then_upwards: RuntimeError
+inference/future_then_upwards_2: RuntimeError
 inference/future_union_downwards_2: TypeCheckError
 inference/future_union_downwards_4: TypeCheckError
 inference/generic_functions_return_typedef: Fail # Issue #29798
@@ -101,24 +101,21 @@ inference/generic_methods_nested_generic_instantiation: RuntimeError # Issue #31
 inference/generic_methods_uses_greatest_lower_bound: RuntimeError
 inference/infer_field_override_multiple: TypeCheckError
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TypeCheckError
-inference/infer_local_function_referenced_before_declaration: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError
+inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
+inference/infer_types_on_generic_instantiations_4: RuntimeError
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
-inference/infer_types_on_loop_indices_for_each_loop: TypeCheckError
 inference/instantiate_to_bounds_generic_has_bound_defined_after transform: RuntimeError
-inference/property_set_bad_setter: TypeCheckError
 inference/unresolved_super: TypeCheckError
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr1: Fail # Issue #25824
 inference/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Fail # Issue #25824
-inference_new/infer_assign_to_index_super_upwards: TypeCheckError # Issue #31417
-inference_new/infer_assign_to_index_this_upwards: TypeCheckError # Issue #31417
-inference_new/infer_assign_to_index_upwards: TypeCheckError # Issue #31417
-inference_new/infer_assign_to_property_custom: TypeCheckError # Issue #31417
+inference_new/infer_assign_to_index_super_upwards: TypeCheckError
+inference_new/infer_assign_to_index_this_upwards: TypeCheckError
+inference_new/infer_assign_to_index_upwards: TypeCheckError
 inference_new/infer_field_getter_setter_mismatch: TypeCheckError
 inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
-inference_new/invalid_assignment_during_toplevel_inference: TypeCheckError # Issue #31417
 
 rasta/abstract_constructor: Fail
 rasta/bad_constructor_redirection: Fail
@@ -201,24 +198,15 @@ rasta/unresolved_for_in: Fail
 rasta/unresolved_recovery: Fail
 rasta/unsupported_platform_library: Fail
 
-regress/issue_29941: TypeCheckError
-regress/issue_29943: TypeCheckError
 regress/issue_29975: Fail # Issue 29975.
 regress/issue_29976: RuntimeError # Issue 29976.
 regress/issue_29982: Fail # Issue 29982.
-regress/issue_29983: TypeCheckError
-regress/issue_29984: TypeCheckError
 regress/issue_30836: RuntimeError # Issue 30836.
 regress/issue_31155: Crash # Issue 31155.
-regress/issue_31157: TypeCheckError
-regress/issue_31180: TypeCheckError
 regress/issue_31184: TypeCheckError
-regress/issue_31186: TypeCheckError
-regress/issue_31187: TypeCheckError
-regress/issue_31192: TypeCheckError
-regress/issue_31198: TypeCheckError
 
 runtime_checks/forwarding_stub_with_default_values: RuntimeError # Bug 31027
+runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError

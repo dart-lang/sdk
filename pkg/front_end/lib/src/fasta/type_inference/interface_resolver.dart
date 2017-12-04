@@ -336,7 +336,7 @@ class ForwardingNode extends Procedure {
     procedure.isAbstract = false;
     if (!procedure.isForwardingStub) {
       _interfaceResolver._instrumentation?.record(
-          Uri.parse(procedure.fileUri),
+          procedure.fileUri,
           procedure.fileOffset,
           'forwardingStub',
           new InstrumentationValueLiteral('implementation'));
@@ -742,7 +742,7 @@ class InterfaceResolver {
           identical(resolution.enclosingClass, class_)) {
         if (strongMode) class_.addMember(resolution);
         _instrumentation?.record(
-            Uri.parse(class_.location.file),
+            class_.location.file,
             class_.fileOffset,
             'forwardingStub',
             new InstrumentationValueForForwardingStub(resolution));
@@ -884,7 +884,7 @@ class InterfaceResolver {
   ///
   /// Caller is responsible for checking whether [_instrumentation] is `null`.
   void _recordInstrumentation(Class class_) {
-    var uri = Uri.parse(class_.fileUri);
+    var uri = class_.fileUri;
     void recordCovariance(int fileOffset, bool isExplicitlyCovariant,
         bool isGenericCovariantInterface, bool isGenericCovariantImpl) {
       var covariance = <String>[];

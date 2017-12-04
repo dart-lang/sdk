@@ -26,7 +26,8 @@ DECLARE_FLAG(bool, verify_compiler);
 
 FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
                      GraphEntryInstr* graph_entry,
-                     intptr_t max_block_id)
+                     intptr_t max_block_id,
+                     PrologueInfo prologue_info)
     : thread_(Thread::Current()),
       parent_(),
       current_ssa_temp_index_(0),
@@ -43,6 +44,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       constant_dead_(NULL),
       constant_empty_context_(NULL),
       licm_allowed_(true),
+      prologue_info_(prologue_info),
       loop_headers_(NULL),
       loop_invariant_loads_(NULL),
       deferred_prefixes_(parsed_function.deferred_prefixes()),
@@ -1410,8 +1412,16 @@ intptr_t FlowGraph::InstructionCount() const {
   intptr_t size = 0;
   // Iterate each block, skipping the graph entry.
   for (intptr_t i = 1; i < preorder_.length(); ++i) {
-    for (ForwardInstructionIterator it(preorder_[i]); !it.Done();
-         it.Advance()) {
+    BlockEntryInstr* block = preorder_[i];
+
+    // Skip any blocks from the prologue to make them not count towards the
+    // inlining instruction budget.
+    const intptr_t block_id = block->block_id();
+    if (prologue_info_.Contains(block_id)) {
+      continue;
+    }
+
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       ++size;
     }
   }

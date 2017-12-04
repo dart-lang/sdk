@@ -4,6 +4,6 @@ import "dart:core" as core;
 
 static method f() → void {
   core::List<core::String> y;
-  core::Iterable<core::String> x = y.{core::Iterable::map}<core::String>(((core::String z) → core::double => 1.0) as{TypeError} (core::String) → core::String);
+  core::Iterable<core::String> x = y.{core::Iterable::map}<core::String>(let final dynamic #t1 = (core::String z) → core::double => 1.0 in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/generic_methods_inference_error.dart:11:69: Error: A value of type '(dart.core::String) \u8594 dart.core::double' can't be assigned to a variable of type '(dart.core::String) \u8594 dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to '(dart.core::String) \u8594 dart.core::String'.\n      /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=double*/ (String\n                                                                    ^")));
 }
 static method main() → dynamic {}

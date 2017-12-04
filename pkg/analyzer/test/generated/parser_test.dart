@@ -2375,10 +2375,12 @@ abstract class ErrorParserTestMixin implements AbstractParserTestCase {
     createParser('class A = abstract B with C;');
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expectNotNullIfNoErrors(member);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0),
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 10, 8)]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 0)
+          ]);
   }
 
   void test_colonInPlaceOfIn() {

@@ -517,7 +517,112 @@ struct YieldContinuation {
       : entry(NULL), try_index(CatchClauseNode::kInvalidTryIndex) {}
 };
 
-class FlowGraphBuilder {
+class BaseFlowGraphBuilder {
+ public:
+  BaseFlowGraphBuilder(const ParsedFunction* parsed_function,
+                       intptr_t last_used_block_id,
+                       ZoneGrowableArray<intptr_t>* context_level_array = NULL)
+      : parsed_function_(parsed_function),
+        function_(parsed_function_->function()),
+        thread_(Thread::Current()),
+        zone_(thread_->zone()),
+        context_level_array_(context_level_array),
+        context_depth_(0),
+        last_used_block_id_(last_used_block_id),
+        try_catch_block_(NULL),
+        next_used_try_index_(0),
+        stack_(NULL),
+        pending_argument_count_(0) {}
+
+  Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
+  Fragment LoadIndexed(intptr_t index_scale);
+
+  void SetTempIndex(Definition* definition);
+
+  Fragment LoadLocal(LocalVariable* variable);
+  Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
+  Fragment StoreLocalRaw(TokenPosition position, LocalVariable* variable);
+  Fragment LoadContextAt(int depth);
+  Fragment StoreInstanceField(
+      TokenPosition position,
+      intptr_t offset,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+
+  void Push(Definition* definition);
+  Value* Pop();
+  Fragment Drop();
+  // Drop given number of temps from the stack but preserve top of the stack.
+  Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
+
+  LocalVariable* MakeTemporary();
+
+  Fragment PushArgument();
+  ArgumentArray GetArguments(int count);
+
+  TargetEntryInstr* BuildTargetEntry();
+  JoinEntryInstr* BuildJoinEntry();
+  JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
+
+  Fragment StrictCompare(Token::Kind kind, bool number_check = false);
+  Fragment Goto(JoinEntryInstr* destination);
+  Fragment IntConstant(int64_t value);
+  Fragment Constant(const Object& value);
+  Fragment NullConstant();
+  Fragment LoadFpRelativeSlot(intptr_t offset);
+  Fragment BranchIfTrue(TargetEntryInstr** then_entry,
+                        TargetEntryInstr** otherwise_entry,
+                        bool negate = false);
+  Fragment BranchIfNull(TargetEntryInstr** then_entry,
+                        TargetEntryInstr** otherwise_entry,
+                        bool negate = false);
+  Fragment BranchIfEqual(TargetEntryInstr** then_entry,
+                         TargetEntryInstr** otherwise_entry,
+                         bool negate = false);
+  Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
+                               TargetEntryInstr** otherwise_entry);
+  Fragment ThrowException(TokenPosition position);
+  Fragment TailCall(const Code& code);
+
+  intptr_t GetNextDeoptId() {
+    intptr_t deopt_id = thread_->GetNextDeoptId();
+    if (context_level_array_ != NULL) {
+      intptr_t level = context_depth_;
+      context_level_array_->Add(deopt_id);
+      context_level_array_->Add(level);
+    }
+    return deopt_id;
+  }
+
+  intptr_t AllocateTryIndex() { return next_used_try_index_++; }
+
+ protected:
+  intptr_t AllocateBlockId() { return ++last_used_block_id_; }
+  intptr_t CurrentTryIndex();
+
+  const ParsedFunction* parsed_function_;
+  const Function& function_;
+  Thread* thread_;
+  Zone* zone_;
+  // Contains (deopt_id, context_level) pairs.
+  ZoneGrowableArray<intptr_t>* context_level_array_;
+  intptr_t context_depth_;
+  intptr_t last_used_block_id_;
+
+  // A chained list of try-catch blocks. Chaining and lookup is done by the
+  // [TryCatchBlock] class.
+  TryCatchBlock* try_catch_block_;
+  intptr_t next_used_try_index_;
+
+ private:
+  Value* stack_;
+  intptr_t pending_argument_count_;
+
+  friend class TryCatchBlock;
+  friend class StreamingFlowGraphBuilder;
+  friend class FlowGraphBuilder;
+};
+
+class FlowGraphBuilder : public BaseFlowGraphBuilder {
  public:
   FlowGraphBuilder(intptr_t kernel_offset,
                    ParsedFunction* parsed_function,
@@ -532,18 +637,16 @@ class FlowGraphBuilder {
   FlowGraph* BuildGraph();
 
  private:
+  BlockEntryInstr* BuildPrologue(TargetEntryInstr* normal_entry,
+                                 intptr_t* min_prologue_block_id,
+                                 intptr_t* max_prologue_block_id);
+
   FlowGraph* BuildGraphOfMethodExtractor(const Function& method);
   FlowGraph* BuildGraphOfNoSuchMethodDispatcher(const Function& function);
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
 
   Fragment NativeFunctionBody(intptr_t first_positional_offset,
                               const Function& function);
-
-  TargetEntryInstr* BuildTargetEntry();
-  JoinEntryInstr* BuildJoinEntry();
-  JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
-
-  ArgumentArray GetArguments(int count);
 
   Fragment TranslateFinallyFinalizers(TryFinallyBlock* outer_finally,
                                       intptr_t target_context_depth);
@@ -552,7 +655,6 @@ class FlowGraphBuilder {
                       intptr_t* num_context_variables = NULL);
   Fragment ExitScope(intptr_t kernel_offset);
 
-  Fragment LoadContextAt(int depth);
   Fragment AdjustContextTo(int depth);
 
   Fragment PushContext(int size);
@@ -571,18 +673,6 @@ class FlowGraphBuilder {
                           intptr_t argument_count);
   Fragment AllocateObject(const Class& klass, const Function& closure_function);
   Fragment BooleanNegate();
-  Fragment StrictCompare(Token::Kind kind, bool number_check = false);
-  Fragment BranchIfTrue(TargetEntryInstr** then_entry,
-                        TargetEntryInstr** otherwise_entry,
-                        bool negate = false);
-  Fragment BranchIfNull(TargetEntryInstr** then_entry,
-                        TargetEntryInstr** otherwise_entry,
-                        bool negate = false);
-  Fragment BranchIfEqual(TargetEntryInstr** then_entry,
-                         TargetEntryInstr** otherwise_entry,
-                         bool negate = false);
-  Fragment BranchIfStrictEqual(TargetEntryInstr** then_entry,
-                               TargetEntryInstr** otherwise_entry);
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
                            bool needs_stacktrace);
@@ -590,10 +680,7 @@ class FlowGraphBuilder {
   Fragment CheckStackOverflowInPrologue();
   Fragment CheckStackOverflow();
   Fragment CloneContext(intptr_t num_context_variables);
-  Fragment Constant(const Object& value);
   Fragment CreateArray();
-  Fragment Goto(JoinEntryInstr* destination);
-  Fragment IntConstant(int64_t value);
   Fragment InstanceCall(TokenPosition position,
                         const String& name,
                         Token::Kind kind,
@@ -607,11 +694,10 @@ class FlowGraphBuilder {
   Fragment ClosureCall(intptr_t type_args_len,
                        intptr_t argument_count,
                        const Array& argument_names);
-  Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
   Fragment LoadClassId();
-  Fragment LoadField(const Field& field);
   Fragment LoadField(intptr_t offset, intptr_t class_id = kDynamicCid);
+  Fragment LoadField(const Field& field);
   Fragment LoadNativeField(MethodRecognizer::Kind kind,
                            intptr_t offset,
                            const Type& type,
@@ -620,9 +706,7 @@ class FlowGraphBuilder {
   Fragment LoadLocal(LocalVariable* variable);
   Fragment InitStaticField(const Field& field);
   Fragment LoadStaticField();
-  Fragment NullConstant();
   Fragment NativeCall(const String* name, const Function* function);
-  Fragment PushArgument();
   Fragment Return(TokenPosition position);
   Fragment CheckNull(TokenPosition position, LocalVariable* receiver);
   Fragment StaticCall(TokenPosition position,
@@ -641,14 +725,13 @@ class FlowGraphBuilder {
   Fragment StoreInstanceFieldGuarded(const Field& field,
                                      bool is_initialization_store);
   Fragment StoreInstanceField(
-      const Field& field,
-      bool is_initialization_store,
-      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
-  Fragment StoreInstanceField(
       TokenPosition position,
       intptr_t offset,
       StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
-  Fragment StoreLocal(TokenPosition position, LocalVariable* variable);
+  Fragment StoreInstanceField(
+      const Field& field,
+      bool is_initialization_store,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreStaticField(TokenPosition position, const Field& field);
   Fragment StringInterpolate(TokenPosition position);
   Fragment StringInterpolateSingle(TokenPosition position);
@@ -670,6 +753,10 @@ class FlowGraphBuilder {
   Fragment AssertAssignable(TokenPosition position,
                             const AbstractType& dst_type,
                             const String& dst_name);
+  Fragment AssertSubtype(TokenPosition position,
+                         const AbstractType& sub_type,
+                         const AbstractType& super_type,
+                         const String& dst_name);
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
@@ -678,24 +765,11 @@ class FlowGraphBuilder {
   RawFunction* LookupMethodByMember(NameIndex target,
                                     const String& method_name);
 
-  LocalVariable* MakeTemporary();
-  LocalVariable* MakeNonTemporary(const String& symbol);
-
-  intptr_t CurrentTryIndex();
-  intptr_t AllocateTryIndex() { return next_used_try_index_++; }
-
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
-  void SetTempIndex(Definition* definition);
-
-  void Push(Definition* definition);
-  Value* Pop();
-  Fragment Drop();
-
-  // Drop given number of temps from the stack but preserve top of the stack.
-  Fragment DropTempsPreserveTop(intptr_t num_temps_to_drop);
-
   bool IsInlining() { return exit_collector_ != NULL; }
+
+  bool IsCompiledForOsr() { return osr_id_ != Thread::kNoDeoptId; }
 
   void InlineBailout(const char* reason);
 
@@ -709,33 +783,15 @@ class FlowGraphBuilder {
   const bool optimizing_;
   intptr_t osr_id_;
   const ZoneGrowableArray<const ICData*>& ic_data_array_;
-  // Contains (deopt_id, context_level) pairs.
-  ZoneGrowableArray<intptr_t>* context_level_array_;
   InlineExitCollector* exit_collector_;
-
-  intptr_t next_block_id_;
-  intptr_t AllocateBlockId() { return next_block_id_++; }
-
-  intptr_t GetNextDeoptId() {
-    intptr_t deopt_id = thread_->GetNextDeoptId();
-    if (context_level_array_ != NULL) {
-      intptr_t level = context_depth_;
-      context_level_array_->Add(deopt_id);
-      context_level_array_->Add(level);
-    }
-    return deopt_id;
-  }
 
   intptr_t next_function_id_;
   intptr_t AllocateFunctionId() { return next_function_id_++; }
 
-  intptr_t context_depth_;
   intptr_t loop_depth_;
   intptr_t try_depth_;
   intptr_t catch_depth_;
   intptr_t for_in_depth_;
-  Value* stack_;
-  intptr_t pending_argument_count_;
 
   GraphEntryInstr* graph_entry_;
 
@@ -764,11 +820,6 @@ class FlowGraphBuilder {
   // A chained list of try-finally blocks. Chaining and lookup is done by the
   // [TryFinallyBlock] class.
   TryFinallyBlock* try_finally_block_;
-
-  // A chained list of try-catch blocks. Chaining and lookup is done by the
-  // [TryCatchBlock] class.
-  TryCatchBlock* try_catch_block_;
-  intptr_t next_used_try_index_;
 
   // A chained list of catch blocks. Chaining and lookup is done by the
   // [CatchBlock] class.
@@ -871,7 +922,7 @@ class SwitchBlock {
 
 class TryCatchBlock {
  public:
-  explicit TryCatchBlock(FlowGraphBuilder* builder,
+  explicit TryCatchBlock(BaseFlowGraphBuilder* builder,
                          intptr_t try_handler_index = -1)
       : builder_(builder),
         outer_(builder->try_catch_block_),
@@ -885,7 +936,7 @@ class TryCatchBlock {
   TryCatchBlock* outer() const { return outer_; }
 
  private:
-  FlowGraphBuilder* builder_;
+  BaseFlowGraphBuilder* builder_;
   TryCatchBlock* outer_;
   intptr_t try_index_;
 };

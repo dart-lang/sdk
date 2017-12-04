@@ -9,7 +9,8 @@ import 'perf.dart' as m;
 
 main() async {
   var benchIds = ['scan', 'parse', 'linked_summarize'];
-  var inputFile = Platform.script.resolve('../lib/file_system.dart').path;
+  var inputFile =
+      Platform.script.resolve('../lib/src/api_prototype/file_system.dart').path;
   for (var id in benchIds) {
     await m.main([id, inputFile]);
   }

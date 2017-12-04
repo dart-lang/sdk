@@ -6,8 +6,8 @@ class A extends core::Object {
   constructor •() → void
     : super core::Object::•()
     ;
-  factory first() = self::A::•;
-  factory second() = self::A::first;
+  redirecting_factory first() = self::A::•;
+  redirecting_factory second() = self::A::first;
 }
 static method main() → dynamic {
   new self::A::•();

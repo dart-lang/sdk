@@ -382,6 +382,7 @@ class EmbeddedArray<T, 0> {
   M(IndirectGoto)                                                              \
   M(Branch)                                                                    \
   M(AssertAssignable)                                                          \
+  M(AssertSubtype)                                                             \
   M(AssertBoolean)                                                             \
   M(SpecialParameter)                                                          \
   M(ClosureCall)                                                               \
@@ -2591,6 +2592,62 @@ class UnboxedConstantInstr : public ConstantInstr {
   DISALLOW_COPY_AND_ASSIGN(UnboxedConstantInstr);
 };
 
+// Checks that one type is a subtype of another (e.g. for type parameter bounds
+// checking). Throws a TypeError otherwise. Both types are instantiated at
+// runtime as necessary.
+class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
+ public:
+  AssertSubtypeInstr(TokenPosition token_pos,
+                     Value* instantiator_type_arguments,
+                     Value* function_type_arguments,
+                     const AbstractType& sub_type,
+                     const AbstractType& super_type,
+                     const String& dst_name,
+                     intptr_t deopt_id)
+      : TemplateInstruction(deopt_id),
+        token_pos_(token_pos),
+        sub_type_(AbstractType::ZoneHandle(sub_type.raw())),
+        super_type_(AbstractType::ZoneHandle(super_type.raw())),
+        dst_name_(String::ZoneHandle(dst_name.raw())) {
+    ASSERT(!super_type.IsNull());
+    ASSERT(!super_type.IsTypeRef());
+    ASSERT(!sub_type.IsNull());
+    ASSERT(!sub_type.IsTypeRef());
+    ASSERT(!dst_name.IsNull());
+    SetInputAt(0, instantiator_type_arguments);
+    SetInputAt(1, function_type_arguments);
+  }
+
+  DECLARE_INSTRUCTION(AssertSubtype);
+
+  Value* instantiator_type_arguments() const { return inputs_[1]; }
+  Value* function_type_arguments() const { return inputs_[2]; }
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+  const AbstractType& super_type() const { return super_type_; }
+  const AbstractType& sub_type() const { return sub_type_; }
+
+  const String& dst_name() const { return dst_name_; }
+
+  virtual bool ComputeCanDeoptimize() const { return true; }
+
+  virtual bool CanBecomeDeoptimizationTarget() const { return true; }
+
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+  // TODO(sjindel): Implement Canonicalize to finalize dst_type when the
+  // instantiator and function type args are constant.
+ private:
+  const TokenPosition token_pos_;
+  const AbstractType& sub_type_;
+  const AbstractType& super_type_;
+  const String& dst_name_;
+
+  DISALLOW_COPY_AND_ASSIGN(AssertSubtypeInstr);
+};
+
 class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
  public:
   AssertAssignableInstr(TokenPosition token_pos,
@@ -3516,27 +3573,28 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
 
-class NativeCallInstr : public TemplateDefinition<0, Throws> {
+class NativeCallInstr : public TemplateDartCall<0> {
  public:
-  explicit NativeCallInstr(NativeBodyNode* node)
-      : native_name_(&node->native_c_function_name()),
-        function_(&node->function()),
-        native_c_function_(NULL),
-        is_bootstrap_native_(false),
-        link_lazily_(node->link_lazily()),
-        token_pos_(node->token_pos()) {}
-
   NativeCallInstr(const String* name,
                   const Function* function,
                   bool link_lazily,
-                  TokenPosition position)
-      : native_name_(name),
+                  TokenPosition position,
+                  ZoneGrowableArray<PushArgumentInstr*>* args)
+      : TemplateDartCall(Thread::kNoDeoptId,
+                         0,
+                         Array::null_array(),
+                         args,
+                         position),
+        native_name_(name),
         function_(function),
         native_c_function_(NULL),
         is_bootstrap_native_(false),
         is_auto_scope_(true),
         link_lazily_(link_lazily),
-        token_pos_(position) {}
+        token_pos_(position) {
+    ASSERT(name->IsZoneHandle());
+    ASSERT(function->IsZoneHandle());
+  }
 
   DECLARE_INSTRUCTION(NativeCall)
 

@@ -45,6 +45,7 @@ class Heap {
     kNewSpace,
     kPromotion,
     kOldSpace,
+    kCompaction,
     kFull,
     kIdle,
     kGCAtAlloc,
@@ -321,7 +322,7 @@ class Heap {
   void RecordAfterGC(Space space);
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
-  void PrintStatsToTimeline(TimelineEventScope* event);
+  void PrintStatsToTimeline(TimelineEventScope* event, GCReason reason);
 
   // Updates gc in progress flags.
   bool BeginNewSpaceGC(Thread* thread);

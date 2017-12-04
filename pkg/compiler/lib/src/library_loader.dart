@@ -6,7 +6,7 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
-import 'package:front_end/front_end.dart' as fe;
+import 'package:front_end/src/api_prototype/front_end.dart' as fe;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;

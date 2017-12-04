@@ -343,6 +343,8 @@ void FlowGraphTypePropagator::VisitAssertAssignable(
             new CompileType(instr->ComputeType()));
 }
 
+void FlowGraphTypePropagator::VisitAssertSubtype(AssertSubtypeInstr* instr) {}
+
 void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
   StrictCompareInstr* comparison = instr->comparison()->AsStrictCompare();
   if (comparison == NULL) return;

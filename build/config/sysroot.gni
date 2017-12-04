@@ -19,6 +19,10 @@ if (is_linux && dart_use_wheezy_sysroot) {
     target_sysroot = rebase_path("//build/linux/debian_wheezy_i386-sysroot")
   } else if (current_cpu == "x64") {
     target_sysroot = rebase_path("//build/linux/debian_wheezy_amd64-sysroot")
+  } else if (current_cpu == "arm") {
+    target_sysroot = rebase_path("//build/linux/debian_wheezy_arm-sysroot")
+  } else if (current_cpu == "arm64") {
+    target_sysroot = rebase_path("//build/linux/debian_jessie_arm64-sysroot")
   } else {
     print("There is no Debian wheezy sysroot present for $current_cpu")
     assert(false)

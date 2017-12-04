@@ -73,7 +73,8 @@ class CloneVisitor extends TreeVisitor {
 
   visitPropertyGet(PropertyGet node) {
     return new PropertyGet.byReference(
-        clone(node.receiver), node.name, node.interfaceTargetReference);
+        clone(node.receiver), node.name, node.interfaceTargetReference)
+      ..flags = node.flags;
   }
 
   visitPropertySet(PropertySet node) {
@@ -84,7 +85,8 @@ class CloneVisitor extends TreeVisitor {
 
   visitDirectPropertyGet(DirectPropertyGet node) {
     return new DirectPropertyGet.byReference(
-        clone(node.receiver), node.targetReference);
+        clone(node.receiver), node.targetReference)
+      ..flags = node.flags;
   }
 
   visitDirectPropertySet(DirectPropertySet node) {
@@ -113,12 +115,14 @@ class CloneVisitor extends TreeVisitor {
 
   visitMethodInvocation(MethodInvocation node) {
     return new MethodInvocation.byReference(clone(node.receiver), node.name,
-        clone(node.arguments), node.interfaceTargetReference);
+        clone(node.arguments), node.interfaceTargetReference)
+      ..flags = node.flags;
   }
 
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     return new DirectMethodInvocation.byReference(
-        clone(node.receiver), node.targetReference, clone(node.arguments));
+        clone(node.receiver), node.targetReference, clone(node.arguments))
+      ..flags = node.flags;
   }
 
   visitSuperMethodInvocation(SuperMethodInvocation node) {
@@ -161,7 +165,8 @@ class CloneVisitor extends TreeVisitor {
   }
 
   visitAsExpression(AsExpression node) {
-    return new AsExpression(clone(node.operand), visitType(node.type));
+    return new AsExpression(clone(node.operand), visitType(node.type))
+      ..flags = node.flags;
   }
 
   visitSymbolLiteral(SymbolLiteral node) {
@@ -369,11 +374,8 @@ class CloneVisitor extends TreeVisitor {
   visitVariableDeclaration(VariableDeclaration node) {
     return variables[node] = new VariableDeclaration(node.name,
         initializer: cloneOptional(node.initializer),
-        type: visitType(node.type),
-        isCovariant: node.isCovariant,
-        isFinal: node.isFinal,
-        isConst: node.isConst,
-        isFieldFormal: node.isFieldFormal);
+        type: visitType(node.type))
+      ..flags = node.flags;
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
@@ -416,7 +418,9 @@ class CloneVisitor extends TreeVisitor {
         hasImplicitSetter: node.hasImplicitSetter,
         transformerFlags: node.transformerFlags,
         fileUri: node.fileUri)
-      ..fileEndOffset = node.fileEndOffset;
+      ..fileEndOffset = node.fileEndOffset
+      ..flags = node.flags
+      ..flags2 = node.flags2;
   }
 
   visitRedirectingFactoryConstructor(RedirectingFactoryConstructor node) {
@@ -424,7 +428,6 @@ class CloneVisitor extends TreeVisitor {
         name: node.name,
         isConst: node.isConst,
         isExternal: node.isExternal,
-        isSyntheticDefault: node.isSyntheticDefault,
         transformerFlags: node.transformerFlags,
         typeArguments: node.typeArguments.map(visitType).toList(),
         typeParameters: node.typeParameters.map(clone).toList(),
@@ -437,7 +440,7 @@ class CloneVisitor extends TreeVisitor {
     var newNode = new TypeParameter(node.name);
     typeSubstitution[node] = new TypeParameterType(newNode);
     newNode.bound = visitType(node.bound);
-    return newNode;
+    return newNode..flags = node.flags;
   }
 
   TreeNode cloneFunctionNodeBody(FunctionNode node) => cloneOptional(node.body);

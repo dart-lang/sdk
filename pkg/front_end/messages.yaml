@@ -140,7 +140,6 @@ ExpectedButGot:
   # Consider the second example below: the parser expects a ')' before 'y', but
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
-  tip: DONT_KNOW_HOW_TO_FIX,
   analyzerCode: UNEXPECTED_TOKEN
   dart2jsCode: MISSING_TOKEN_BEFORE_THIS
   script:
@@ -212,6 +211,11 @@ ExpectedClassBodyToSkip: ExpectedClassBody
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."
   analyzerCode: EXPECTED_EXECUTABLE
+  dart2jsCode: "*fatal*"
+
+ExpectedClassMember:
+  template: "Expected a class member, but got '#lexeme'."
+  analyzerCode: EXPECTED_CLASS_MEMBER
   dart2jsCode: "*fatal*"
 
 ExpectedFunctionBody:

@@ -865,7 +865,7 @@ bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
   return estimated_mark_completion <= deadline;
 }
 
-void PageSpace::MarkSweep() {
+void PageSpace::CollectGarbage(bool compact) {
   Thread* thread = Thread::Current();
   Isolate* isolate = heap_->isolate();
   ASSERT(isolate == Isolate::Current());
@@ -984,7 +984,7 @@ void PageSpace::MarkSweep() {
 
       mid3 = OS::GetCurrentMonotonicMicros();
 
-      if (FLAG_use_compactor) {
+      if (compact) {
         Compact(thread);
       } else if (FLAG_concurrent_sweep) {
         ConcurrentSweep(isolate);
@@ -1039,7 +1039,7 @@ void PageSpace::MarkSweep() {
     ml.NotifyAll();
   }
 
-  if (FLAG_use_compactor) {
+  if (compact) {
     // Const object tables are hashed by address: rehash.
     SafepointOperationScope safepoint(thread);
     thread->isolate()->RehashConstants();

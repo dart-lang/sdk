@@ -309,6 +309,17 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
+LocationSummary* AssertSubtypeInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(RDX));  // Instant. type args
+  summary->set_in(1, Location::RegisterLocation(RCX));  // Function type args
+  return summary;
+}
+
 LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -708,16 +719,15 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
 
+  // All arguments are already @RSP due to preceding PushArgument()s.
+  ASSERT(ArgumentCount() == function().NumParameters());
+
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
+
   // Pass a pointer to the first argument in RAX.
-  if (!function().HasOptionalParameters()) {
-    __ leaq(RAX,
-            Address(RBP, (kParamEndSlotFromFp + function().NumParameters()) *
-                             kWordSize));
-  } else {
-    __ leaq(RAX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
-  }
+  __ leaq(RAX, Address(RSP, ArgumentCount() * kWordSize));
+
   __ LoadImmediate(R10, Immediate(argc_tag));
   const StubEntry* stub_entry;
   if (link_lazily()) {
@@ -740,6 +750,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                            locs());
   }
   __ popq(result);
+
+  __ Drop(ArgumentCount());  // Drop the arguments.
 }
 
 static bool CanBeImmediateIndex(Value* index, intptr_t cid) {

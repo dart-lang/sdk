@@ -5,6 +5,7 @@
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 /// TODO(scheglov) document
 class FunctionReferenceDartType implements DartType {
@@ -141,18 +142,18 @@ class MemberGetterNode implements TreeNode {
   }
 }
 
-/// TODO(scheglov) document
-class MemberReferenceDartType implements DartType {
+/// Information about invocation of the [member] and its instantiated [type].
+class MemberInvocationDartType implements DartType {
   final Member member;
-  final List<DartType> typeArguments;
+  final FunctionType type;
 
-  MemberReferenceDartType(this.member, this.typeArguments);
+  MemberInvocationDartType(this.member, this.type);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   String toString() {
-    return '<${typeArguments.join(', ')}>$member';
+    return '($member, $type)';
   }
 }
 
@@ -171,16 +172,17 @@ class MemberSetterNode implements TreeNode {
   }
 }
 
-/// The type of [TreeNode] node that is used as a marker for using `null`
-/// combiner for not compound assignments.
-class NullAssignmentCombinerNode implements TreeNode {
-  const NullAssignmentCombinerNode();
+/// The type of [TreeNode] node that is used as a marker for `null`.
+class NullNode implements TreeNode {
+  final String kind;
+
+  const NullNode(this.kind);
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   String toString() {
-    return '(null-assignment-combiner)';
+    return '(null-$kind)';
   }
 }
 
@@ -198,6 +200,12 @@ class ResolutionStorer extends TypeInferenceListener {
   final _deferredTypeSlots = <int>[];
 
   ResolutionStorer(this._declarations, this._references, this._types);
+
+  @override
+  void asExpressionExit(AsExpression expression, DartType inferredType) {
+    _recordType(expression.type, expression.fileOffset);
+    _recordType(inferredType, expression.fileOffset);
+  }
 
   @override
   bool constructorInvocationEnter(
@@ -223,11 +231,9 @@ class ResolutionStorer extends TypeInferenceListener {
     assert(_deferredTypeSlots.isEmpty);
   }
 
-  @override
-  void functionDeclarationExit(FunctionDeclaration statement) {
+  void functionDeclarationEnter(FunctionDeclaration statement) {
     _recordDeclaration(statement.variable, statement.fileOffset);
-    _recordType(statement.function.returnType, statement.fileOffset);
-    super.functionDeclarationExit(statement);
+    super.functionDeclarationEnter(statement);
   }
 
   @override
@@ -257,8 +263,14 @@ class ResolutionStorer extends TypeInferenceListener {
     _replaceReference(writeMember);
     _replaceType(inferredType);
     _recordReference(
-        combiner ?? const NullAssignmentCombinerNode(), write.fileOffset);
+        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
     _recordType(inferredType, write.fileOffset);
+  }
+
+  @override
+  void isExpressionExit(IsExpression expression, DartType inferredType) {
+    _recordType(expression.type, expression.fileOffset);
+    _recordType(inferredType, expression.fileOffset);
   }
 
   @override
@@ -286,8 +298,14 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  void methodInvocationExit(Expression expression, Arguments arguments,
-      bool isImplicitCall, Object interfaceMember, DartType inferredType) {
+  void methodInvocationExit(
+      Expression expression,
+      Arguments arguments,
+      bool isImplicitCall,
+      Member interfaceMember,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {
     _replaceType(
         inferredType,
         arguments.fileOffset != -1
@@ -295,8 +313,24 @@ class ResolutionStorer extends TypeInferenceListener {
             : expression.fileOffset);
     if (!isImplicitCall) {
       _replaceReference(interfaceMember);
-      _replaceType(new MemberReferenceDartType(
-          interfaceMember as Member, arguments.types));
+      FunctionType invokeType = substitution == null
+          ? calleeType
+          : substitution.substituteType(calleeType.withoutTypeParameters);
+      _replaceType(new MemberInvocationDartType(interfaceMember, invokeType));
+    }
+    super.genericExpressionExit("methodInvocation", expression, inferredType);
+  }
+
+  @override
+  void methodInvocationExitCall(Expression expression, Arguments arguments,
+      bool isImplicitCall, DartType inferredType) {
+    _replaceType(
+        inferredType,
+        arguments.fileOffset != -1
+            ? arguments.fileOffset
+            : expression.fileOffset);
+    if (!isImplicitCall) {
+      throw new UnimplementedError(); // TODO(scheglov): handle this case
     }
     super.genericExpressionExit("methodInvocation", expression, inferredType);
   }
@@ -320,15 +354,21 @@ class ResolutionStorer extends TypeInferenceListener {
     _replaceReference(new MemberSetterNode(writeMember));
     _replaceType(writeContext);
     _recordReference(
-        combiner ?? const NullAssignmentCombinerNode(), write.fileOffset);
+        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
     _recordType(inferredType, write.fileOffset);
   }
 
   @override
   void propertyGetExit(
-      Expression expression, Object member, DartType inferredType) {
+      Expression expression, Member member, DartType inferredType) {
     _recordReference(new MemberGetterNode(member), expression.fileOffset);
     super.propertyGetExit(expression, member, inferredType);
+  }
+
+  @override
+  void propertyGetExitCall(Expression expression, DartType inferredType) {
+    throw new UnimplementedError(); // TODO(scheglov): handle this case
+    // super.propertyGetExitCall(expression, inferredType);
   }
 
   @override
@@ -362,15 +402,21 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void staticInvocationExit(
-      StaticInvocation expression, DartType inferredType) {
+      StaticInvocation expression,
+      FunctionType calleeType,
+      Substitution substitution,
+      DartType inferredType) {
     _replaceType(inferredType);
     _replaceReference(expression.target);
-    // TODO(paulberry): get the actual callee function type from the inference
-    // engine
-    var calleeType = const DynamicType();
-    _replaceType(calleeType);
+    FunctionType invokeType = substitution == null
+        ? calleeType
+        : substitution.substituteType(calleeType.withoutTypeParameters);
+    _replaceType(new MemberInvocationDartType(expression.target, invokeType));
     super.genericExpressionExit("staticInvocation", expression, inferredType);
   }
+
+  @override
+  void thisExpressionExit(ThisExpression expression, DartType inferredType) {}
 
   void typeLiteralExit(TypeLiteral expression, DartType inferredType) {
     _recordReference(expression.type, expression.fileOffset);
@@ -378,21 +424,23 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool variableAssignEnter(Expression expression, DartType typeContext) {
-    _deferReference(expression.fileOffset);
-    _deferType(expression.fileOffset);
-    return super.variableAssignEnter(expression, typeContext);
+  bool variableAssignEnter(
+      Expression expression, DartType typeContext, Expression write) {
+    _deferReference(write.fileOffset);
+    _deferType(write.fileOffset);
+    return super.variableAssignEnter(expression, typeContext, write);
   }
 
   @override
   void variableAssignExit(Expression expression, DartType writeContext,
-      Procedure combiner, DartType inferredType) {
-    VariableSet variableSet = expression;
-    _replaceReference(variableSet.variable);
+      Expression write, Procedure combiner, DartType inferredType) {
+    _replaceReference(write is VariableSet
+        ? write.variable
+        : const NullNode('writable-variable'));
     _replaceType(writeContext);
     _recordReference(
-        combiner ?? const NullAssignmentCombinerNode(), variableSet.fileOffset);
-    super.variableAssignExit(expression, writeContext, combiner, inferredType);
+        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
+    _recordType(inferredType, write.fileOffset);
   }
 
   @override

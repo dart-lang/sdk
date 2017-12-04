@@ -1630,8 +1630,11 @@ class HCreate extends HInstruction {
   FunctionEntity callMethod;
 
   HCreate(this.element, List<HInstruction> inputs, TypeMask type,
+      SourceInformation sourceInformation,
       {this.instantiatedTypes, this.hasRtiInput: false, this.callMethod})
-      : super(inputs, type);
+      : super(inputs, type) {
+    this.sourceInformation = sourceInformation;
+  }
 
   bool get isAllocation => true;
 

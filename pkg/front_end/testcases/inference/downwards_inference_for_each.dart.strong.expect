@@ -12,28 +12,28 @@ static method F<T extends core::Object>() → self::F::T
 static method f() → asy::Future<dynamic> async {
   dynamic d;
   core::Object o;
-  for (dynamic x in self::F<dynamic>()) {
+  for (dynamic x in self::F<core::Iterable<dynamic>>()) {
   }
   for (dynamic x in self::F<core::Iterable<dynamic>>()) {
   }
   for (core::Object x in self::F<core::Iterable<core::Object>>()) {
   }
-  for (final dynamic #t1 in self::F<dynamic>()) {
+  for (final dynamic #t1 in self::F<core::Iterable<dynamic>>()) {
     d = #t1;
   }
-  for (final dynamic #t2 in self::F<dynamic>()) {
+  for (final core::Object #t2 in self::F<core::Iterable<core::Object>>()) {
     o = #t2;
   }
-  await for (dynamic x in self::F<dynamic>()) {
+  await for (dynamic x in self::F<asy::Stream<dynamic>>()) {
   }
   await for (dynamic x in self::F<asy::Stream<dynamic>>()) {
   }
   await for (core::Object x in self::F<asy::Stream<core::Object>>()) {
   }
-  await for (final dynamic #t3 in self::F<dynamic>()) {
+  await for (final dynamic #t3 in self::F<asy::Stream<dynamic>>()) {
     d = #t3;
   }
-  await for (final dynamic #t4 in self::F<dynamic>()) {
+  await for (final core::Object #t4 in self::F<asy::Stream<core::Object>>()) {
     o = #t4;
   }
 }

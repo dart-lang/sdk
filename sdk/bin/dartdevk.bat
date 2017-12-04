@@ -1,5 +1,5 @@
 @echo off
-REM Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+REM Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 REM for details. All rights reserved. Use of this source code is governed by a
 REM BSD-style license that can be found in the LICENSE file.
 
@@ -34,7 +34,7 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set DEV_COMPILER=%DART_ROOT%\third_party\pkg\dev_compiler\bin\dartdevk.dart
 
-"%DART%" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%DEV_COMPILER%" %*
+"%DART%" "--packages=%SDK_DIR%\.packages" %EXTRA_VM_OPTIONS% "%DEV_COMPILER%" %*
 
 endlocal
 

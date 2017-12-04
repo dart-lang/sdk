@@ -1335,15 +1335,15 @@ class SsaAstGraphBuilder extends ast.Visitor
         constructorArguments.add(typeInfo);
       }
 
-      newObject = new HCreate(classElement, constructorArguments, ssaType,
-          instantiatedTypes: instantiatedTypes, hasRtiInput: hasRtiInput);
-      if (function != null) {
-        newObject.sourceInformation =
-            sourceInformationBuilder.buildCreate(function);
-      } else {
-        newObject.sourceInformation =
-            sourceInformationBuilder.buildDeclaration(functionElement);
-      }
+      newObject = new HCreate(
+          classElement,
+          constructorArguments,
+          ssaType,
+          function != null
+              ? sourceInformationBuilder.buildCreate(function)
+              : sourceInformationBuilder.buildDeclaration(functionElement),
+          instantiatedTypes: instantiatedTypes,
+          hasRtiInput: hasRtiInput);
       add(newObject);
     } else {
       // Bulk assign to the initialized fields.
@@ -1594,7 +1594,8 @@ class SsaAstGraphBuilder extends ast.Visitor
       return typeBuilder.potentiallyCheckOrTrustType(value, boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
-    HInstruction result = new HBoolify(value, commonMasks.boolType);
+    HInstruction result = new HBoolify(value, commonMasks.boolType)
+      ..sourceInformation = value.sourceInformation;
     add(result);
     return result;
   }
@@ -1910,8 +1911,8 @@ class SsaAstGraphBuilder extends ast.Visitor
 
     TypeMask type = new TypeMask.nonNullExact(closureClassEntity, closedWorld);
     push(new HCreate(closureClassEntity, capturedVariables, type,
-        callMethod: closureInfo.callMethod)
-      ..sourceInformation = sourceInformationBuilder.buildCreate(node));
+        sourceInformationBuilder.buildCreate(node),
+        callMethod: closureInfo.callMethod));
   }
 
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
@@ -1981,8 +1982,8 @@ class SsaAstGraphBuilder extends ast.Visitor
   ///       t3 = phi(t2, false);
   ///     }
   ///     result = phi(t3, false);
-  void handleLogicalBinaryWithLeftNode(
-      ast.Node left, void visitRight(), SsaBranchBuilder branchBuilder,
+  void handleLogicalBinaryWithLeftNode(ast.Node left, void visitRight(),
+      SsaBranchBuilder branchBuilder, SourceInformation sourceInformation,
       {bool isAnd}) {
     ast.Send send = left.asSend();
     if (send != null && (isAnd ? send.isLogicalAnd : send.isLogicalOr)) {
@@ -1992,13 +1993,15 @@ class SsaAstGraphBuilder extends ast.Visitor
       ast.Node middle = link.head;
       handleLogicalBinaryWithLeftNode(
           newLeft,
-          () => handleLogicalBinaryWithLeftNode(
-              middle, visitRight, branchBuilder,
+          () => handleLogicalBinaryWithLeftNode(middle, visitRight,
+              branchBuilder, sourceInformationBuilder.buildBinary(middle),
               isAnd: isAnd),
           branchBuilder,
+          sourceInformation,
           isAnd: isAnd);
     } else {
-      branchBuilder.handleLogicalBinary(() => visit(left), visitRight,
+      branchBuilder.handleLogicalBinary(
+          () => visit(left), visitRight, sourceInformation,
           isAnd: isAnd);
     }
   }
@@ -2007,6 +2010,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void visitLogicalAnd(ast.Send node, ast.Node left, ast.Node right, _) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     handleLogicalBinaryWithLeftNode(left, () => visit(right), branchBuilder,
+        sourceInformationBuilder.buildBinary(node),
         isAnd: true);
   }
 
@@ -2014,6 +2018,7 @@ class SsaAstGraphBuilder extends ast.Visitor
   void visitLogicalOr(ast.Send node, ast.Node left, ast.Node right, _) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     handleLogicalBinaryWithLeftNode(left, () => visit(right), branchBuilder,
+        sourceInformationBuilder.buildBinary(node),
         isAnd: false);
   }
 
@@ -3178,7 +3183,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         typeMask: commonMasks.dynamicType);
 
     var inputs = <HInstruction>[pop()];
-    push(buildInvokeSuper(Selectors.noSuchMethod_, element, inputs));
+    push(buildInvokeSuper(Selectors.noSuchMethod_, element, inputs,
+        sourceInformationBuilder.buildGeneric(node)));
   }
 
   /// Generate a call to a super method or constructor.
@@ -4286,9 +4292,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
   }
 
-  HInstruction buildInvokeSuper(
-      Selector selector, MemberElement element, List<HInstruction> arguments,
-      [SourceInformation sourceInformation]) {
+  HInstruction buildInvokeSuper(Selector selector, MemberElement element,
+      List<HInstruction> arguments, SourceInformation sourceInformation) {
     HInstruction receiver =
         localsHandler.readThis(sourceInformation: sourceInformation);
     // TODO(5346): Try to avoid the need for calling [declaration] before
@@ -4350,7 +4355,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         generateSuperNoSuchMethodSend(node, setterSelector, setterInputs);
         pop();
       } else {
-        add(buildInvokeSuper(setterSelector, element, setterInputs));
+        add(buildInvokeSuper(setterSelector, element, setterInputs,
+            sourceInformationBuilder.buildAssignment(node)));
       }
     }
 
@@ -4380,8 +4386,8 @@ class SsaAstGraphBuilder extends ast.Visitor
         generateSuperNoSuchMethodSend(node, getterSelector, getterInputs);
         getterInstruction = pop();
       } else {
-        getterInstruction =
-            buildInvokeSuper(getterSelector, getter, getterInputs);
+        getterInstruction = buildInvokeSuper(getterSelector, getter,
+            getterInputs, sourceInformationBuilder.buildGet(node));
         add(getterInstruction);
       }
 

@@ -56,7 +56,6 @@ async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/zone_run_unary_test: RuntimeError # Issue 31402 (Variable declaration)
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
-convert/streamed_conversion_utf8_encode_test: RuntimeError # Issue 31402 (Invocation arguments)
 html/*: DartkCompileTimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: MissingCompileTimeError
@@ -272,41 +271,17 @@ typed_data/int32x4_static_test/01: Pass # Issue 31402 (Invocation arguments)
 typed_data/int32x4_static_test/02: Pass # Issue 31402 (Invocation arguments)
 
 [ $compiler == dartk && $strong ]
-async/async_await_zones_test: RuntimeError
-async/catch_errors12_test: Timeout
-async/catch_errors13_test: Timeout
-async/catch_errors14_test: Timeout
-async/catch_errors15_test: Timeout
-async/catch_errors17_test: Timeout
-async/catch_errors18_test: Timeout
-async/catch_errors19_test: Timeout
-async/catch_errors20_test: Timeout
-async/catch_errors21_test: Timeout
-async/catch_errors22_test: RuntimeError
-async/catch_errors23_test: Timeout
-async/catch_errors24_test: Timeout
-async/catch_errors25_test: Timeout
-async/catch_errors26_test: Timeout
-async/catch_errors27_test: Timeout
-async/catch_errors28_test: Timeout
-async/catch_errors3_test: RuntimeError
-async/catch_errors7_test: Timeout
-async/catch_errors8_test: Timeout
 async/future_test/01: RuntimeError
 async/future_test/none: RuntimeError
-async/run_zoned7_test: RuntimeError
-async/run_zoned8_test: Timeout
 async/slow_consumer2_test: RuntimeError
 async/slow_consumer_test: RuntimeError
 async/stream_controller_async_test: RuntimeError
 async/stream_distinct_test: RuntimeError
-async/stream_event_transformed_test: RuntimeError
 async/stream_first_where_test: RuntimeError
 async/stream_from_iterable_test: RuntimeError
 async/stream_iterator_test: RuntimeError
 async/stream_join_test: RuntimeError
 async/stream_last_where_test: RuntimeError
-async/stream_listen_zone_test: RuntimeError
 async/stream_periodic2_test: RuntimeError
 async/stream_periodic3_test: RuntimeError
 async/stream_periodic4_test: RuntimeError
@@ -321,15 +296,10 @@ async/stream_subscription_cancel_test: RuntimeError
 async/stream_timeout_test: RuntimeError
 async/stream_transform_test: RuntimeError
 async/stream_transformation_broadcast_test: RuntimeError
-async/stream_zones_test: Timeout
 async/timer_cancel2_test: RuntimeError
 async/timer_cancel_test: RuntimeError
 async/timer_isActive_test: RuntimeError
 async/timer_repeat_test: RuntimeError
-async/zone_create_periodic_timer_test: RuntimeError
-async/zone_debug_test: RuntimeError
-async/zone_empty_description2_test: RuntimeError
-async/zone_error_callback_test: RuntimeError
 async/zone_run_unary_test: RuntimeError
 convert/chunked_conversion_json_decode1_test: RuntimeError
 convert/json_chunk_test: RuntimeError
@@ -338,7 +308,6 @@ convert/json_toEncodable_reviver_test: CompileTimeError
 convert/json_utf8_chunk_test: RuntimeError
 convert/streamed_conversion_json_encode1_test: RuntimeError
 convert/streamed_conversion_json_utf8_encode_test: RuntimeError
-isolate/compile_time_error_test/none: RuntimeError
 isolate/count_test: Timeout
 isolate/cross_isolate_message_test: RuntimeError
 isolate/illegal_msg_function_test: RuntimeError
@@ -363,19 +332,15 @@ isolate/message_test: RuntimeError
 isolate/mint_maker_test: RuntimeError
 isolate/nested_spawn2_test: RuntimeError
 isolate/nested_spawn_test: Timeout
-isolate/ondone_test: RuntimeError
 isolate/ping_pause_test: RuntimeError
 isolate/raw_port_test: RuntimeError
 isolate/request_reply_test: Timeout
-isolate/simple_message_test/none: RuntimeError
 isolate/spawn_function_test: Timeout
-isolate/spawn_uri_missing_from_isolate_test: RuntimeError
 isolate/spawn_uri_multi_test/none: RuntimeError
 isolate/spawn_uri_nested_vm_test: RuntimeError
 isolate/spawn_uri_test: RuntimeError
 isolate/spawn_uri_vm_test: RuntimeError
 isolate/stacktrace_message_test: RuntimeError
-isolate/start_paused_test: RuntimeError
 isolate/static_function_test: Timeout
 isolate/timer_isolate_test: RuntimeError
 isolate/typed_message_test: RuntimeError
@@ -427,7 +392,6 @@ mirrors/reflected_type_test/03: MissingCompileTimeError
 mirrors/regress_16321_test/none: Crash
 mirrors/regress_19731_test: RuntimeError
 mirrors/return_type_test: RuntimeError
-mirrors/spawn_function_root_library_test: RuntimeError
 mirrors/top_level_accessors_test/01: MissingCompileTimeError
 mirrors/type_argument_is_type_variable_test: RuntimeError
 mirrors/typearguments_mirror_test: RuntimeError

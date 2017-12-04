@@ -241,9 +241,9 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
   if (osr_id != Compiler::kNoOSRDeoptId) {
     result.graph_entry->RelinkToOsrEntry(zone, result.num_blocks);
   }
-
-  return new (zone)
-      FlowGraph(*parsed_function, result.graph_entry, result.num_blocks);
+  PrologueInfo prologue_info(-1, -1);
+  return new (zone) FlowGraph(*parsed_function, result.graph_entry,
+                              result.num_blocks, prologue_info);
 }
 
 void IrregexpCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {
@@ -1148,6 +1148,20 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+        if (!flow_graph->IsCompiledForOsr()) {
+          CheckStackOverflowElimination::EliminateStackOverflow(flow_graph);
+
+          if (flow_graph->Canonicalize()) {
+            // To fully remove redundant boxing (e.g. BoxDouble used only in
+            // environments and UnboxDouble instructions) instruction we
+            // first need to replace all their uses and then fold them away.
+            // For now we just repeat Canonicalize twice to do that.
+            // TODO(vegorov): implement a separate representation folding pass.
+            flow_graph->Canonicalize();
+          }
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
+
         if (sinking != NULL) {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(
               thread(), compiler_timeline,
@@ -1590,7 +1604,8 @@ RawObject* Compiler::CompileOptimizedFunction(Thread* thread,
   // this is either an OSR compilation or background compilation is
   // not currently allowed.
   ASSERT(!thread->IsMutatorThread() || (osr_id != kNoOSRDeoptId) ||
-         !FLAG_background_compilation || BackgroundCompiler::IsDisabled());
+         !FLAG_background_compilation ||
+         BackgroundCompiler::IsDisabled(Isolate::Current()));
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, true, /* optimized */
@@ -2002,22 +2017,18 @@ class BackgroundCompilationQueue {
 
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate),
-      running_(true),
-      done_(new bool()),
       queue_monitor_(new Monitor()),
+      function_queue_(new BackgroundCompilationQueue()),
       done_monitor_(new Monitor()),
-      function_queue_(new BackgroundCompilationQueue()) {
-  *done_ = false;
-}
+      running_(false),
+      done_(true),
+      disabled_depth_(0) {}
 
 // Fields all deleted in ::Stop; here clear them.
 BackgroundCompiler::~BackgroundCompiler() {
-  isolate_ = NULL;
-  running_ = false;
-  done_ = NULL;
-  queue_monitor_ = NULL;
-  done_monitor_ = NULL;
-  function_queue_ = NULL;
+  delete queue_monitor_;
+  delete function_queue_;
+  delete done_monitor_;
 }
 
 void BackgroundCompiler::Run() {
@@ -2085,7 +2096,7 @@ void BackgroundCompiler::Run() {
   {
     // Notify that the thread is done.
     MonitorLocker ml_done(done_monitor_);
-    *done_ = true;
+    done_ = true;
     ml_done.Notify();
   }
 }
@@ -2113,74 +2124,25 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
   function_queue_->VisitObjectPointers(visitor);
 }
 
-void BackgroundCompiler::Stop(Isolate* isolate) {
-  BackgroundCompiler* task = isolate->background_compiler();
-  if (task == NULL) {
-    // Nothing to stop.
-    return;
-  }
-  BackgroundCompilationQueue* function_queue = task->function_queue();
+class BackgroundCompilerTask : public ThreadPool::Task {
+ public:
+  explicit BackgroundCompilerTask(BackgroundCompiler* background_compiler)
+      : background_compiler_(background_compiler) {}
+  virtual ~BackgroundCompilerTask() {}
 
-  Monitor* queue_monitor = task->queue_monitor_;
-  Monitor* done_monitor = task->done_monitor_;
-  bool* task_done = task->done_;
-  // Wake up compiler task and stop it.
-  {
-    MonitorLocker ml(queue_monitor);
-    task->running_ = false;
-    function_queue->Clear();
-    // 'task' will be deleted by thread pool.
-    task = NULL;
-    ml.Notify();  // Stop waiting for the queue.
-  }
+ private:
+  virtual void Run() { background_compiler_->Run(); }
 
-  {
-    MonitorLocker ml_done(done_monitor);
-    while (!(*task_done)) {
-      ml_done.WaitWithSafepointCheck(Thread::Current());
-    }
-  }
-  delete task_done;
-  delete done_monitor;
-  delete queue_monitor;
-  delete function_queue;
-  isolate->set_background_compiler(NULL);
-}
+  BackgroundCompiler* background_compiler_;
 
-void BackgroundCompiler::Disable() {
+  DISALLOW_COPY_AND_ASSIGN(BackgroundCompilerTask);
+};
+
+void BackgroundCompiler::Start() {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  Isolate* isolate = thread->isolate();
-  MutexLocker ml(isolate->mutex());
-  BackgroundCompiler* task = isolate->background_compiler();
-  if (task != NULL) {
-    // We should only ever have to stop the task if this is the first call to
-    // Disable.
-    ASSERT(!isolate->is_background_compiler_disabled());
-    BackgroundCompiler::Stop(isolate);
-  }
-  ASSERT(isolate->background_compiler() == NULL);
-  isolate->disable_background_compiler();
-}
-
-bool BackgroundCompiler::IsDisabled() {
-  Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  Isolate* isolate = thread->isolate();
-  MutexLocker ml(isolate->mutex());
-  return isolate->is_background_compiler_disabled();
-}
-
-void BackgroundCompiler::Enable() {
-  Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  Isolate* isolate = thread->isolate();
-  MutexLocker ml(isolate->mutex());
-  isolate->enable_background_compiler();
-}
-
-void BackgroundCompiler::EnsureInit(Thread* thread) {
   ASSERT(thread->IsMutatorThread());
+  ASSERT(!thread->IsAtSafepoint());
+
   // Finalize NoSuchMethodError, _Mint; occasionally needed in optimized
   // compilation.
   Class& cls = Class::Handle(
@@ -2193,19 +2155,52 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
 
-  bool start_task = false;
-  Isolate* isolate = thread->isolate();
+  MonitorLocker ml(done_monitor_);
+  if (running_ || !done_) return;
+  running_ = true;
+  done_ = false;
+  bool task_started =
+      Dart::thread_pool()->Run(new BackgroundCompilerTask(this));
+  if (!task_started) {
+    running_ = false;
+    done_ = true;
+  }
+}
+
+void BackgroundCompiler::Stop() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(!thread->IsAtSafepoint());
+
   {
-    MutexLocker ml(isolate->mutex());
-    if (isolate->background_compiler() == NULL) {
-      BackgroundCompiler* task = new BackgroundCompiler(isolate);
-      isolate->set_background_compiler(task);
-      start_task = true;
+    MonitorLocker ml(queue_monitor_);
+    running_ = false;
+    function_queue_->Clear();
+    ml.Notify();  // Stop waiting for the queue.
+  }
+
+  {
+    MonitorLocker ml_done(done_monitor_);
+    while (!done_) {
+      ml_done.WaitWithSafepointCheck(thread);
     }
   }
-  if (start_task) {
-    Dart::thread_pool()->Run(isolate->background_compiler());
+}
+
+void BackgroundCompiler::Enable() {
+  disabled_depth_--;
+  if (disabled_depth_ < 0) {
+    FATAL("Mismatched number of calls to BackgroundCompiler::Enable/Disable.");
   }
+}
+
+void BackgroundCompiler::Disable() {
+  Stop();
+  disabled_depth_++;
+}
+
+bool BackgroundCompiler::IsDisabled() {
+  return disabled_depth_ > 0;
 }
 
 #else  // DART_PRECOMPILED_RUNTIME
@@ -2315,19 +2310,19 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
   UNREACHABLE();
 }
 
-void BackgroundCompiler::Stop(Isolate* isolate) {
+void BackgroundCompiler::Start() {
   UNREACHABLE();
 }
 
-void BackgroundCompiler::EnsureInit(Thread* thread) {
-  UNREACHABLE();
-}
-
-void BackgroundCompiler::Disable() {
+void BackgroundCompiler::Stop() {
   UNREACHABLE();
 }
 
 void BackgroundCompiler::Enable() {
+  UNREACHABLE();
+}
+
+void BackgroundCompiler::Disable() {
   UNREACHABLE();
 }
 

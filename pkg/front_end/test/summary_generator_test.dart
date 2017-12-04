@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/front_end.dart';
+import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
@@ -16,7 +16,7 @@ main() {
 
     // Note: the kernel representation always has an empty '' key in the map,
     // but otherwise no other data is included here.
-    expect(program.uriToSource.keys.single, '');
+    expect(program.uriToSource.keys.single, Uri.parse(""));
   });
 
   test('summary includes declarations, but no method bodies', () async {

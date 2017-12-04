@@ -6015,6 +6015,15 @@ class AbstractType : public Instance {
                     space);
   }
 
+  // Returns true iff subtype is a subtype of supertype, false otherwise or if
+  // an error occurred.
+  static bool InstantiateAndTestSubtype(
+      AbstractType* subtype,
+      AbstractType* supertype,
+      Error* bound_error,
+      const TypeArguments& instantiator_type_args,
+      const TypeArguments& function_type_args);
+
  private:
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,

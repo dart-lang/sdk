@@ -151,6 +151,10 @@ class FastaErrorReporter {
             offset,
             length);
         return;
+      case "EXPECTED_CLASS_MEMBER":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.EXPECTED_CLASS_MEMBER, offset, length);
+        return;
       case "EXPECTED_EXECUTABLE":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.EXPECTED_EXECUTABLE, offset, length);

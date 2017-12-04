@@ -51,8 +51,8 @@ class C extends self::B {
     self::use(super.{self::A::~}());
     super.{self::A::unary-}();
     self::use(super.{self::A::unary-}());
-    const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use `super` as an expression.\n    +super;\n     ^"));
-    self::use(const core::_ConstantExpressionError::•()._throw(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use `super` as an expression.\n    use(+super);\n         ^")));
+    const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/super.dart:43:6: Error: Can't use `super` as an expression.\n    +super;\n     ^"));
+    self::use(const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/rasta/super.dart:44:10: Error: Can't use `super` as an expression.\n    use(+super);\n         ^")));
     super.{self::A::==}(87);
     self::use(super.{self::A::==}(87));
     !super.{self::A::==}(87);
@@ -253,7 +253,7 @@ class C extends self::B {
     self::use(super.{self::A::n} = super.{self::A::n}.-(42));
   }
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.\n    +super;\n    ^", "pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator.\n    use(+super);\n        ^"]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/rasta/super.dart:43:5: Error: '+' is not a prefix operator.\nTry removing '+'.\n    +super;\n    ^", "pkg/front_end/testcases/rasta/super.dart:44:9: Error: '+' is not a prefix operator.\nTry removing '+'.\n    use(+super);\n        ^"]/* from null */;
 static method use(dynamic x) → dynamic {
   if(x.{core::Object::==}(new core::DateTime::now().{core::DateTime::millisecondsSinceEpoch}))
     throw "Shouldn't happen";

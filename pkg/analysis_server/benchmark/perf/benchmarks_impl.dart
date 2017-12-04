@@ -26,8 +26,11 @@ class ColdAnalysisBenchmark extends Benchmark {
   int get maxIterations => 3;
 
   @override
-  Future<BenchMarkResult> run(
-      {bool quick: false, bool previewDart2: false}) async {
+  Future<BenchMarkResult> run({
+    bool quick: false,
+    bool previewDart2: false,
+    bool verbose: false,
+  }) async {
     if (!quick) {
       deleteServerCache();
     }
@@ -68,11 +71,17 @@ class AnalysisBenchmark extends Benchmark {
             kind: 'group');
 
   @override
-  Future<BenchMarkResult> run(
-      {bool quick: false, bool previewDart2: false}) async {
+  Future<BenchMarkResult> run({
+    bool quick: false,
+    bool previewDart2: false,
+    bool verbose: false,
+  }) async {
     Stopwatch stopwatch = new Stopwatch()..start();
 
     AnalysisServerMemoryUsageTest test = new AnalysisServerMemoryUsageTest();
+    if (verbose) {
+      test.debugStdio();
+    }
     await test.setUp(previewDart2: previewDart2);
     await test.subscribeToStatusNotifications();
     await test.sendAnalysisSetAnalysisRoots(getProjectRoots(quick: quick), []);

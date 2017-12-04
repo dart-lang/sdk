@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/util/bytes_sink.dart' show BytesSink;

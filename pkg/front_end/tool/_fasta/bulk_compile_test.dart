@@ -4,7 +4,8 @@
 
 import 'dart:isolate' show ReceivePort;
 
-import 'package:front_end/compiler_options.dart' show CompilerOptions;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show CompilerOptions;
 
 import 'bulk_compile.dart' show BulkCompiler;
 

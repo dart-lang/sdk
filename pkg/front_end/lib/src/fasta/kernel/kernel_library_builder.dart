@@ -44,8 +44,6 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_library_builder.dart'
     show DeclarationBuilder, SourceLibraryBuilder;
 
-import '../util/relativize.dart' show relativizeUri;
-
 import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
@@ -79,6 +77,7 @@ import 'kernel_builder.dart'
         Scope,
         TypeBuilder,
         TypeVariableBuilder,
+        VoidTypeBuilder,
         compareProcedures,
         toKernelCombinators;
 
@@ -112,8 +111,7 @@ class KernelLibraryBuilder
   Map<String, String> unserializableExports;
 
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin)
-      : library = actualOrigin?.library ??
-            new Library(uri, fileUri: relativizeUri(fileUri)),
+      : library = actualOrigin?.library ?? new Library(uri, fileUri: fileUri),
         super(loader, fileUri);
 
   @override
@@ -136,7 +134,8 @@ class KernelLibraryBuilder
   }
 
   KernelTypeBuilder addVoidType(int charOffset) {
-    return addNamedType("void", null, charOffset);
+    return addNamedType("void", null, charOffset)
+      ..bind(new VoidTypeBuilder(const VoidType(), this, charOffset));
   }
 
   void addClass(
@@ -846,7 +845,7 @@ class KernelLibraryBuilder
     }
 
     for (KernelLibraryBuilder part in parts) {
-      library.addPart(new LibraryPart(<Expression>[], part.relativeFileUri));
+      library.addPart(new LibraryPart(<Expression>[], part.fileUri));
       part.addDependencies(library, seen);
     }
   }

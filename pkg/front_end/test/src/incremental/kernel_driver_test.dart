@@ -4,15 +4,15 @@
 
 import 'dart:async';
 
-import 'package:front_end/byte_store.dart';
-import 'package:front_end/compiler_options.dart';
-import 'package:front_end/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/byte_store.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
-import 'package:front_end/summary_generator.dart';
+import 'package:front_end/src/api_prototype/summary_generator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/target/targets.dart';
@@ -946,7 +946,7 @@ import 'b.dart';
 
   void _assertLibraryUris(KernelSequenceResult result,
       {List<Uri> includes: const [], List<Uri> excludes: const []}) {
-    Map<String, Source> uriToSource = {};
+    Map<Uri, Source> uriToSource = {};
     List<Uri> libraryUris = [];
     for (LibraryCycleResult cycleResult in result.results) {
       uriToSource.addAll(cycleResult.uriToSource);
@@ -1022,10 +1022,10 @@ import 'b.dart';
 
   /// Resolve the given `dart` or `package` [inputUri] into the corresponding
   /// file URI, or return the same URI if it is already a file URI.
-  String _resolveUriToFileUri(Uri inputUri) {
+  Uri _resolveUriToFileUri(Uri inputUri) {
     var translator = driver.uriTranslator;
     var outputUri = translator.translate(inputUri) ?? inputUri;
-    return outputUri.toString();
+    return outputUri;
   }
 
   /// Return the [Uri] for the given Posix [path].
