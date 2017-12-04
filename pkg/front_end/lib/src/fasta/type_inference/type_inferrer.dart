@@ -4,6 +4,7 @@
 
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
+import 'package:front_end/src/fasta/kernel/fasta_accessors.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/names.dart' show callName;
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
@@ -270,21 +271,23 @@ abstract class TypeInferrer {
   Uri get uri;
 
   /// Performs full type inference on the given field initializer.
-  void inferFieldInitializer(DartType declaredType, Expression initializer);
+  void inferFieldInitializer(
+      BuilderHelper helper, DartType declaredType, Expression initializer);
 
   /// Performs type inference on the given function body.
-  void inferFunctionBody(
-      DartType returnType, AsyncMarker asyncMarker, Statement body);
+  void inferFunctionBody(BuilderHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body);
 
   /// Performs type inference on the given constructor initializer.
-  void inferInitializer(Initializer initializer);
+  void inferInitializer(BuilderHelper helper, Initializer initializer);
 
   /// Performs type inference on the given metadata annotations.
-  void inferMetadata(List<Expression> annotations);
+  void inferMetadata(BuilderHelper helper, List<Expression> annotations);
 
   /// Performs type inference on the given function parameter initializer
   /// expression.
-  void inferParameterInitializer(Expression initializer, DartType declaredType);
+  void inferParameterInitializer(
+      BuilderHelper helper, Expression initializer, DartType declaredType);
 }
 
 /// Implementation of [TypeInferrer] which doesn't do any type inference.
@@ -304,21 +307,22 @@ class TypeInferrerDisabled extends TypeInferrer {
   Uri get uri => null;
 
   @override
-  void inferFieldInitializer(DartType declaredType, Expression initializer) {}
+  void inferFieldInitializer(
+      BuilderHelper helper, DartType declaredType, Expression initializer) {}
 
   @override
-  void inferFunctionBody(
-      DartType returnType, AsyncMarker asyncMarker, Statement body) {}
+  void inferFunctionBody(BuilderHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body) {}
 
   @override
-  void inferInitializer(Initializer initializer) {}
+  void inferInitializer(BuilderHelper helper, Initializer initializer) {}
 
   @override
-  void inferMetadata(List<Expression> annotations) {}
+  void inferMetadata(BuilderHelper helper, List<Expression> annotations) {}
 
   @override
   void inferParameterInitializer(
-      Expression initializer, DartType declaredType) {}
+      BuilderHelper helper, Expression initializer, DartType declaredType) {}
 }
 
 /// Derived class containing generic implementations of [TypeInferrer].
@@ -356,6 +360,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   final SourceLibraryBuilder library;
 
+  BuilderHelper helper;
+
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
   ClosureContext closureContext;
@@ -391,22 +397,26 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       // Types are compatible.
       return null;
     } else {
-      // Insert an implicit downcast.
       if (strongMode) {
         if (!isTopLevel &&
             !typeSchemaEnvironment.isSubtypeOf(expectedType, actualType)) {
-          // Error: not assignable.
-          library.addCompileTimeError(
-              templateInvalidAssignment.withArguments(actualType, expectedType),
-              fileOffset,
-              uri);
+          // Error: not assignable.  Perform error recovery.
+          var parent = expression.parent;
+          var errorNode = helper.wrapInCompileTimeError(
+              expression,
+              templateInvalidAssignment.withArguments(
+                  actualType, expectedType));
+          parent?.replaceChild(expression, errorNode);
+          return errorNode;
+        } else {
+          // Insert an implicit downcast.
+          var parent = expression.parent;
+          var typeCheck = new AsExpression(expression, expectedType)
+            ..isTypeError = true
+            ..fileOffset = fileOffset;
+          parent?.replaceChild(expression, typeCheck);
+          return typeCheck;
         }
-        var parent = expression.parent;
-        var typeCheck = new AsExpression(expression, expectedType)
-          ..isTypeError = true
-          ..fileOffset = fileOffset;
-        parent?.replaceChild(expression, typeCheck);
-        return typeCheck;
       } else {
         return null;
       }
@@ -770,14 +780,17 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       Expression expression, DartType typeContext, bool typeNeeded);
 
   @override
-  void inferFieldInitializer(DartType declaredType, Expression initializer) {
+  void inferFieldInitializer(
+      BuilderHelper helper, DartType declaredType, Expression initializer) {
     assert(closureContext == null);
+    this.helper = helper;
     var actualType =
         inferExpression(initializer, declaredType, declaredType != null);
     if (declaredType != null) {
       checkAssignability(
           declaredType, actualType, initializer, initializer.fileOffset);
     }
+    this.helper = null;
   }
 
   /// Performs type inference on the given [field]'s initializer expression.
@@ -788,13 +801,15 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       ShadowField field, DartType type, bool typeNeeded);
 
   @override
-  void inferFunctionBody(
-      DartType returnType, AsyncMarker asyncMarker, Statement body) {
+  void inferFunctionBody(BuilderHelper helper, DartType returnType,
+      AsyncMarker asyncMarker, Statement body) {
     assert(closureContext == null);
+    this.helper = helper;
     closureContext =
         new ClosureContext(this, asyncMarker, returnType, false, true);
     inferStatement(body);
     closureContext = null;
+    this.helper = null;
   }
 
   /// Performs the type inference steps that are shared by all kinds of
@@ -1052,8 +1067,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   @override
-  void inferMetadata(List<Expression> annotations) {
+  void inferMetadata(BuilderHelper helper, List<Expression> annotations) {
     if (annotations != null) {
+      this.helper = helper;
       // Place annotations in a temporary list literal so that they will have a
       // parent.  This is necessary in case any of the annotations need to get
       // replaced during type inference.
@@ -1061,6 +1077,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       for (var annotation in annotations) {
         inferExpression(annotation, null, false);
       }
+      this.helper = null;
     }
   }
 
@@ -1125,12 +1142,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   @override
   void inferParameterInitializer(
-      Expression initializer, DartType declaredType) {
+      BuilderHelper helper, Expression initializer, DartType declaredType) {
     assert(closureContext == null);
+    this.helper = helper;
     assert(declaredType != null);
     var actualType = inferExpression(initializer, declaredType, true);
     checkAssignability(
         declaredType, actualType, initializer, initializer.fileOffset);
+    this.helper = null;
   }
 
   /// Performs the core type inference algorithm for property gets (this handles

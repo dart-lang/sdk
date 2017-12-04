@@ -19,6 +19,7 @@
 /// with the same kind of root node.
 import 'package:front_end/src/base/instrumentation.dart';
 import 'package:front_end/src/fasta/kernel/body_builder.dart';
+import 'package:front_end/src/fasta/kernel/fasta_accessors.dart';
 import 'package:front_end/src/fasta/source/source_class_builder.dart';
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
 import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
@@ -801,7 +802,8 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     if (_declaresVariable) {
       var tempVar =
           new VariableDeclaration(null, type: inferredType, isFinal: true);
-      var variableGet = new VariableGet(tempVar);
+      var variableGet = new VariableGet(tempVar)
+        ..fileOffset = this.variable.fileOffset;
       var implicitDowncast = inferrer.checkAssignability(
           variable.type, inferredType, variableGet, fileOffset);
       if (implicitDowncast != null) {
@@ -2140,6 +2142,10 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
     // with another, and we can only replace a node if it has a parent pointer.
     assert(expression.parent != null);
 
+    // For full (non-top level) inference, we need access to the BuilderHelper
+    // so that we can perform error recovery.
+    assert(isTopLevel || helper != null);
+
     // When doing top level inference, we skip subexpressions whose type isn't
     // needed so that we don't induce bogus dependencies on fields mentioned in
     // those subexpressions.
@@ -2169,19 +2175,25 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   }
 
   @override
-  void inferInitializer(Initializer initializer) {
+  void inferInitializer(BuilderHelper helper, Initializer initializer) {
     assert(initializer is ShadowInitializer);
+    this.helper = helper;
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
     ShadowInitializer kernelInitializer = initializer;
-    return kernelInitializer._inferInitializer(this);
+    kernelInitializer._inferInitializer(this);
+    this.helper = null;
   }
 
   @override
   void inferStatement(Statement statement) {
+    // For full (non-top level) inference, we need access to the BuilderHelper
+    // so that we can perform error recovery.
+    if (!isTopLevel) assert(helper != null);
+
     if (statement is ShadowStatement) {
       // Use polymorphic dispatch on [KernelStatement] to perform whatever kind
       // of type inference is correct for this kind of statement.

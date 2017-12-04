@@ -259,6 +259,7 @@ class _CompileTimeError {
 
 class _ConstantExpressionError {
   const _ConstantExpressionError();
+  external _throw(error);
 }
 
 class _DuplicatedFieldInitializerError {

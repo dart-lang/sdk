@@ -15,9 +15,8 @@ class B extends core::Object implements self::A {
   get x() → core::int
     return 3;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:10: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;\n         ^"]/* from null */;
 static method foo() → dynamic {
-  core::String y = new self::B::•().{self::B::x} as{TypeError} core::String;
+  core::String y = let final dynamic #t1 = new self::B::•().{self::B::x} in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_type_on_overridden_fields4.dart:17:69: Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::String'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::String'.\n  String y = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::x*/ x;\n                                                                    ^"));
   core::int z = new self::B::•().{self::B::x};
 }
 static method main() → dynamic {}

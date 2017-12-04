@@ -5,16 +5,15 @@ import "dart:core" as core;
 static field core::int x = 0;
 static field core::int y = 0;
 static final field core::int z = 42;
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:3: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  a = /*error:INVALID_ASSIGNMENT*/ \"hi\";\n  ^", "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:3: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  b = /*error:INVALID_ASSIGNMENT*/ \"hi\";\n  ^", "pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:3: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  c = /*error:INVALID_ASSIGNMENT*/ \"hi\";\n  ^"]/* from null */;
 static method test1() → dynamic {
   core::int a = self::x;
-  a = "hi" as{TypeError} core::int;
+  a = let final dynamic #t1 = "hi" in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:12:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  a = /*error:INVALID_ASSIGNMENT*/ \"hi\";\n                                   ^"));
   a = 3;
   core::int b = self::y;
-  b = "hi" as{TypeError} core::int;
+  b = let final dynamic #t2 = "hi" in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:15:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  b = /*error:INVALID_ASSIGNMENT*/ \"hi\";\n                                   ^"));
   b = 4;
   core::int c = self::z;
-  c = "hi" as{TypeError} core::int;
+  c = let final dynamic #t3 = "hi" in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/infer_type_on_var_from_top_level.dart:18:36: Error: A value of type 'dart.core::String' can't be assigned to a variable of type 'dart.core::int'.\nTry changing the type of the left hand side, or casting the right hand side to 'dart.core::int'.\n  c = /*error:INVALID_ASSIGNMENT*/ \"hi\";\n                                   ^"));
   c = 4;
 }
 static method main() → dynamic {}

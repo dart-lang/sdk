@@ -89,6 +89,8 @@ abstract class BuilderHelper {
 
   Expression buildCompileTimeError(Message message, int charOffset);
 
+  Expression wrapInCompileTimeError(Expression expression, Message message);
+
   Expression deprecated_buildCompileTimeError(String error, [int offset]);
 
   Initializer buildInvalidInitializer(Expression expression, [int offset]);

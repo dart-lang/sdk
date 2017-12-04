@@ -454,14 +454,14 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         }
         field.initializer = initializer;
         _typeInferrer.inferFieldInitializer(
-            field.hasImplicitType ? null : field.builtType, initializer);
+            this, field.hasImplicitType ? null : field.builtType, initializer);
       }
     }
     pop(); // Type.
     pop(); // Modifiers.
     List annotations = pop();
     if (annotations != null) {
-      _typeInferrer.inferMetadata(annotations);
+      _typeInferrer.inferMetadata(this, annotations);
       Field field = fields.first.target;
       // The first (and often only field) will not get a clone.
       annotations.forEach((annotation) => field.addAnnotation(annotation));
@@ -577,7 +577,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
-    _typeInferrer.inferInitializer(initializer);
+    _typeInferrer.inferInitializer(this, initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, _typeInferrer);
     } else {
@@ -613,12 +613,12 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             parameter.initializer ?? new ShadowNullLiteral();
         realParameter.initializer = initializer..parent = realParameter;
         _typeInferrer.inferParameterInitializer(
-            initializer, realParameter.type);
+            this, initializer, realParameter.type);
       }
     }
 
     _typeInferrer.inferFunctionBody(
-        _computeReturnTypeContext(member), asyncModifier, body);
+        this, _computeReturnTypeContext(member), asyncModifier, body);
     if (builder.kind == ProcedureKind.Setter) {
       bool oneParameter = formals != null &&
           formals.required.length == 1 &&
@@ -653,7 +653,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     Member target = builder.target;
-    _typeInferrer.inferMetadata(annotations);
+    _typeInferrer.inferMetadata(this, annotations);
     for (Expression annotation in annotations ?? const []) {
       target.addAnnotation(annotation);
     }
@@ -670,7 +670,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   @override
   List<Expression> finishMetadata() {
     List<Expression> expressions = pop();
-    _typeInferrer.inferMetadata(expressions);
+    _typeInferrer.inferMetadata(this, expressions);
     return expressions;
   }
 
@@ -2803,7 +2803,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       var fact = typePromoter.getFactForAccess(variable, functionNestingLevel);
       var scope = typePromoter.currentScope;
       syntheticAssignment = lvalue.buildAssignment(
-          new ShadowVariableGet(variable, fact, scope),
+          new ShadowVariableGet(variable, fact, scope)
+            ..fileOffset = inKeyword.offset,
           voidContext: true);
       body = combineStatements(
           new ShadowLoopAssignmentStatement(syntheticAssignment), body);

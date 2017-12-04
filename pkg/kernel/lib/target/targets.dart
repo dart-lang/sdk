@@ -181,11 +181,15 @@ abstract class Target {
         new Arguments.empty()..fileOffset = offset,
         isConst: true)
       ..fileOffset = offset;
-    return new MethodInvocation(
+    var methodInvocation = new MethodInvocation(
         receiver,
         new Name("_throw", coreTypes.coreLibrary),
         new Arguments(<Expression>[error])..fileOffset = error.fileOffset)
       ..fileOffset = offset;
+    if (strongMode) {
+      methodInvocation.interfaceTarget = coreTypes.constantExpressionErrorThrow;
+    }
+    return methodInvocation;
   }
 
   /// Builds an expression that represents a compile-time error which is
