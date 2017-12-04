@@ -38,6 +38,7 @@ enum Tag {
   kSuperInitializer = 9,
   kRedirectingInitializer = 10,
   kLocalInitializer = 11,
+  kAssertInitializer = 12,
 
   kDirectPropertyGet = 15,
   kDirectPropertySet = 16,

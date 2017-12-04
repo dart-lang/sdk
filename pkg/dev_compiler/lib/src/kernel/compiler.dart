@@ -1460,6 +1460,8 @@ class ProgramCompiler
           emitFieldInit(init.field, init.value, init);
         } else if (init is LocalInitializer) {
           body.add(visitVariableDeclaration(init.variable));
+        } else if (init is AssertInitializer) {
+          body.add(visitAssertStatement(init.statement));
         }
       }
     }

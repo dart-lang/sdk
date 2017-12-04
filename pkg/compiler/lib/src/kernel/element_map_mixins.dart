@@ -884,6 +884,15 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       } else if (initializer is ir.RedirectingInitializer) {
         superConstructorInvocation = _computeConstructorInvocation(
             initializer.target, initializer.arguments);
+      } else if (initializer is ir.AssertInitializer) {
+        // Assert in initializer is currently not supported in dart2js.
+        // TODO(johnniwinther): Support assert in initializer.
+        String constructorName = '${cls.name}.${node.name}';
+        elementMap.reporter.reportErrorMessage(
+            computeSourceSpanFromTreeNode(initializer),
+            MessageKind.INVALID_CONSTANT_CONSTRUCTOR,
+            {'constructorName': constructorName});
+        return new ErroneousConstantConstructor();
       } else if (initializer is ir.InvalidInitializer) {
         String constructorName = '${cls.name}.${node.name}';
         elementMap.reporter.reportErrorMessage(
@@ -894,9 +903,7 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
       } else if (initializer is ir.LocalInitializer) {
         // TODO(johnniwinther): Support this where it makes sense. Currently
         // invalid initializers are currently encoded as local initializers with
-        // a throwing initializer. Also, assert in initializer is encoded as a
-        // local initializer with a called closure containing the assertion.
-        // Assert in initializer is currently not supported in dart2js.
+        // a throwing initializer.
         // TODO(johnniwinther): Use [_ErroneousInitializerVisitor] in
         // `ssa/builder_kernel.dart` to identify erroneous initializer.
         // TODO(johnniwinther) Handle local initializers that are valid as

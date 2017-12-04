@@ -1125,6 +1125,9 @@ void StreamingScopeBuilder::VisitInitializer() {
     case kLocalInitializer:
       VisitVariableDeclaration();  // read variable.
       return;
+    case kAssertInitializer:
+      VisitStatement();
+      return;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);
       UNREACHABLE();
@@ -3722,6 +3725,10 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           instructions += BuildFieldInitializer(canonical_name);  // read value.
           break;
         }
+        case kAssertInitializer: {
+          instructions += BuildStatement();
+          break;
+        }
         case kSuperInitializer: {
           NameIndex canonical_target =
               ReadCanonicalNameReference();  // read target_reference.
@@ -4774,6 +4781,9 @@ void StreamingFlowGraphBuilder::SkipInitializer() {
       return;
     case kLocalInitializer:
       SkipVariableDeclaration();  // read variable.
+      return;
+    case kAssertInitializer:
+      SkipStatement();
       return;
     default:
       H.ReportError("Unsupported tag at this point: %d.", tag);

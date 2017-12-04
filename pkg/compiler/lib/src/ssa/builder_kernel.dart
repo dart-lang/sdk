@@ -654,6 +654,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
         HInstruction value = pop();
         // TODO(sra): Apply inferred type information.
         letBindings[variable] = value;
+      } else if (initializer is ir.AssertInitializer) {
+        // Assert in initializer is currently not supported in dart2js.
+        // TODO(johnniwinther): Support assert in initializer.
       } else if (initializer is ir.InvalidInitializer) {
         assert(false, 'ir.InvalidInitializer not handled');
       } else {

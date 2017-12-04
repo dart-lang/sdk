@@ -354,21 +354,11 @@ class _ExprBuilder {
       return initializer;
     }
 
-    if (k is kernel.LocalInitializer) {
-      var invocation = k.variable.initializer;
-      if (invocation is kernel.MethodInvocation) {
-        var receiver = invocation.receiver;
-        if (receiver is kernel.FunctionExpression &&
-            invocation.name.name == 'call') {
-          var body = receiver.function.body;
-          if (body is kernel.AssertStatement) {
-            var condition = build(body.condition);
-            var message = body.message != null ? build(body.message) : null;
-            return AstTestFactory.assertInitializer(condition, message);
-          }
-        }
-      }
-      throw new StateError('Expected assert initializer $k');
+    if (k is kernel.AssertInitializer) {
+      var body = k.statement;
+      var condition = build(body.condition);
+      var message = body.message != null ? build(body.message) : null;
+      return AstTestFactory.assertInitializer(condition, message);
     }
 
     if (k is kernel.RedirectingInitializer) {
