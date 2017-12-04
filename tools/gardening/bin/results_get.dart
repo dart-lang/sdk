@@ -14,8 +14,6 @@ import 'package:gardening/src/util.dart';
 import 'package:gardening/src/console_table.dart';
 import 'package:gardening/src/results/result_models.dart' as models;
 import 'package:gardening/src/results/util.dart';
-import 'package:gardening/src/logdog.dart';
-import 'package:gardening/src/logdog_rpc.dart';
 import 'package:gardening/src/buildbucket.dart';
 import 'package:gardening/src/extended_printer.dart';
 
@@ -157,7 +155,6 @@ class GetCommand extends Command {
     addSubcommand(new GetTestsWithResultCommand());
     addSubcommand(new GetTestsWithResultAndExpectationCommand());
     addSubcommand(new GetTestFailuresCommand());
-    addSubcommand(new GetTestMatrix());
   }
 }
 
@@ -298,78 +295,6 @@ class GetTestFailuresCommand extends Command {
         await getTestResultsWithExpectation(testResult);
     printFailingTestExpectationResults(withExpectations);
     print("");
-  }
-}
-
-/// [GetTestMatrix] responds to 'test-matrix' and returns all configurations for
-/// a client.
-class GetTestMatrix extends Command {
-  @override
-  String get description => "Gets all invokations of test.py for each builder "
-      "and output the result in csv form.";
-
-  @override
-  String get name => "test-matrix";
-
-  GetTestMatrix() {
-    argParser.addFlag('scripting',
-        defaultsTo: false, abbr: 's', negatable: false);
-  }
-
-  Future run() async {
-    // We first get all the last builds for all the bots. That will give us the
-    // name as well.
-    var logger = createLogger();
-    var createCache = createCacheFunction(logger);
-    var cache = createCache(duration: new Duration(days: 1));
-    var shardRegExp = new RegExp(r"(.*)-(\d)-(\d)-");
-    var stepRegExp =
-        new RegExp(r"read_results_of_(.*)\/0\/logs\/result\.log\/0");
-
-    print("builder;step;mode;arch;compiler;runtime;checked;strong;hostChecked;"
-        "minified;csp;system;vmOptions;useSdk;builderTag;fastStartup;"
-        "dart2JsWithKernel;enableAsserts;hotReload;"
-        "hotReloadRollback;previewDart2;selectors");
-
-    var logdog = new LogdogRpc();
-    var testResultService = new TestResultService(logger, createCache);
-
-    return latestBuildNumbers(cache).then((buildNumbers) {
-      // Get steps for this builder and build number.
-      // Shards run in the same configuration.
-      return buildNumbers.keys.where((builder) {
-        var shardMatch = shardRegExp.firstMatch(builder);
-        return shardMatch == null || shardMatch.group(2) == 1;
-      }).map((builder) {
-        int buildNumber = buildNumbers[builder];
-        return logdog
-            .query(
-                BUILDER_PROJECT,
-                "bb/client.dart/$builder/${buildNumber}/+"
-                "/recipes/steps/**/result.log/0",
-                cache)
-            .then((builderStreams) {
-          return Future.wait(builderStreams.map((stream) {
-            return testResultService.fromLogdog(stream.path).then((testResult) {
-              var configuration = testResult.configurations["conf1"];
-              var shardMatch = shardRegExp.firstMatch(builder);
-              String builderName =
-                  shardMatch != null ? shardMatch.group(1) : builder;
-              String step = stepRegExp
-                  .firstMatch(stream.path)
-                  .group(1)
-                  .replaceAll("_", " ");
-              print("$builderName;$step;${configuration.toCsvString()}");
-            }).catchError(
-                errorLogger(logger, "Could not get log from $stream", null));
-          }));
-        }).catchError(errorLogger(
-                logger,
-                "Could not download steps for $builder with "
-                "build number $buildNumber",
-                new List<LogdogStream>()));
-      });
-    }).then(Future.wait);
   }
 }
 
