@@ -325,7 +325,7 @@ class Isolate {
       (VMLibraryHooks.resolvePackageUriFuture != null);
 
   @patch
-  static Future<Isolate> spawn(void entryPoint(message), var message,
+  static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
       {bool paused: false,
       bool errorsAreFatal,
       SendPort onExit,

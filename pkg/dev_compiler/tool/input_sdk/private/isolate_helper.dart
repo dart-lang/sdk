@@ -936,7 +936,7 @@ class IsolateNatives {
   }
 
   static Future<List> spawnFunction(
-      void topLevelFunction(message), var message, bool startPaused) {
+      void topLevelFunction(Null message), var message, bool startPaused) {
     IsolateNatives.enableSpawnWorker = true;
     final name = _getJSFunctionName(topLevelFunction);
     if (name == null) {
