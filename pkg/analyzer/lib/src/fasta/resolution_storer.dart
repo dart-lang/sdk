@@ -231,6 +231,18 @@ class ResolutionStorer extends TypeInferenceListener {
     assert(_deferredTypeSlots.isEmpty);
   }
 
+  @override
+  void forInStatementEnter(ForInStatement statement) {
+    VariableDeclaration variable = statement.variable;
+    _deferType(variable.fileOffset);
+    _recordDeclaration(variable, variable.fileOffset);
+  }
+
+  @override
+  void forInStatementExit(ForInStatement statement) {
+    _replaceType(statement.variable.type);
+  }
+
   void functionDeclarationEnter(FunctionDeclaration statement) {
     _recordDeclaration(statement.variable, statement.fileOffset);
     super.functionDeclarationEnter(statement);

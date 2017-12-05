@@ -17,7 +17,6 @@ duplicated_named_args_3: Crash
 escape: Crash
 expressions: Crash
 fallthrough: Crash
-for_in_scope: Crash
 function_type_is_check: Crash
 function_type_recovery: Crash
 functions: Crash
@@ -67,7 +66,6 @@ inference/field_initializer_context_implicit: Crash
 inference/field_initializer_context_this: Crash
 inference/field_initializer_parameter: Crash
 inference/for_each_downcast_iterable: Crash
-inference/for_in_loop_promotion: Crash
 inference/for_loop_initializer_expression: Crash
 inference/future_then: Crash
 inference/future_then_2: Crash

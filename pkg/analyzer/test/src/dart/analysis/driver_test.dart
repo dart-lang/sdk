@@ -1704,6 +1704,73 @@ void main() {
     }
   }
 
+  test_local_variable_forIn_loopVariable() async {
+    addTestFile(r'''
+void main() {
+  for (var v in <int>[]) {
+    v;
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ForEachStatement forEachStatement = statements[0];
+    Block forBlock = forEachStatement.body;
+
+    DeclaredIdentifier vNode = forEachStatement.loopVariable;
+    LocalVariableElement vElement = vNode.element;
+    expect(vElement.type, typeProvider.intType);
+
+    expect(vNode.identifier.staticElement, vElement);
+    expect(vNode.identifier.staticType, typeProvider.intType);
+
+    ExpressionStatement statement = forBlock.statements[0];
+    SimpleIdentifier identifier = statement.expression;
+    expect(identifier.staticElement, vElement);
+    expect(identifier.staticType, typeProvider.intType);
+  }
+
+  test_local_variable_forIn_loopVariable_explicitType() async {
+    addTestFile(r'''
+void main() {
+  for (num v in <int>[]) {
+    v;
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ForEachStatement forEachStatement = statements[0];
+    Block forBlock = forEachStatement.body;
+
+    DeclaredIdentifier vNode = forEachStatement.loopVariable;
+    LocalVariableElement vElement = vNode.element;
+    expect(vElement.type, typeProvider.numType);
+
+    TypeName vTypeName = vNode.type;
+    expect(vTypeName.type, typeProvider.numType);
+
+    SimpleIdentifier vTypeIdentifier = vTypeName.name;
+    expect(vTypeIdentifier.staticElement, typeProvider.numType.element);
+    expect(vTypeIdentifier.staticType, typeProvider.numType);
+
+    expect(vNode.identifier.staticElement, vElement);
+    expect(vNode.identifier.staticType, typeProvider.numType);
+
+    ExpressionStatement statement = forBlock.statements[0];
+    SimpleIdentifier identifier = statement.expression;
+    expect(identifier.staticElement, vElement);
+    expect(identifier.staticType, typeProvider.numType);
+  }
+
   test_local_variable_ofLocalFunction() async {
     addTestFile(r'''
 void main() {

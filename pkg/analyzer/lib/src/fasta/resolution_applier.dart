@@ -126,6 +126,33 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    if (loopVariable != null) {
+      SimpleIdentifier identifier = loopVariable.identifier;
+
+      DartType type = _getTypeFor(identifier);
+      identifier.staticType = type;
+
+      if (loopVariable.type != null) {
+        applyToTypeAnnotation(type, loopVariable.type);
+      }
+
+      VariableElementImpl element = _getDeclarationFor(identifier);
+      if (element != null) {
+        _typeContext.encloseVariable(element);
+        identifier.staticElement = element;
+        element.type = type;
+      }
+    } else {
+      // TODO(scheglov) Implement "T variable; for (variable in []) {}"
+      throw new UnimplementedError('$node');
+    }
+    node.iterable.accept(this);
+    node.body.accept(this);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var parameter in parameterList.parameters) {
       if (parameter is DefaultFormalParameter) {
