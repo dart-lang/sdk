@@ -1024,6 +1024,7 @@ class AstBuilder extends ScopeListener {
         node = ast.functionTypedFormalParameter2(
             identifier: name,
             comment: comment,
+            metadata: metadata,
             covariantKeyword: covariantKeyword,
             returnType: typeOrFunctionTypedParameter.returnType,
             typeParameters: typeOrFunctionTypedParameter.typeParameters,
@@ -1032,6 +1033,7 @@ class AstBuilder extends ScopeListener {
         node = ast.fieldFormalParameter2(
             identifier: name,
             comment: comment,
+            metadata: metadata,
             covariantKeyword: covariantKeyword,
             type: typeOrFunctionTypedParameter.returnType,
             thisKeyword: thisKeyword,
@@ -1044,6 +1046,7 @@ class AstBuilder extends ScopeListener {
       if (thisKeyword == null) {
         node = ast.simpleFormalParameter2(
             comment: comment,
+            metadata: metadata,
             covariantKeyword: covariantKeyword,
             keyword: keyword,
             type: type,
@@ -1051,6 +1054,7 @@ class AstBuilder extends ScopeListener {
       } else {
         node = ast.fieldFormalParameter2(
             comment: comment,
+            metadata: metadata,
             covariantKeyword: covariantKeyword,
             keyword: keyword,
             type: type,

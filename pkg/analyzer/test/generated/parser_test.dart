@@ -15826,6 +15826,68 @@ enum E {
     expect(functionExpression.body, isNotNull);
   }
 
+  void test_parseFunctionDeclaration_metadata() {
+    createParser(
+        'T f(@A a, @B(2) Foo b, {@C.foo(3) c : 0, @d.E.bar(4, 5) x:0}) {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.documentationComment, isNull);
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    NodeList<FormalParameter> parameters = expression.parameters.parameters;
+    expect(parameters, hasLength(4));
+    expect(declaration.propertyKeyword, isNull);
+
+    {
+      var annotation = parameters[0].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<SimpleIdentifier>());
+      expect(annotation.name.name, 'A');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNull);
+    }
+
+    {
+      var annotation = parameters[1].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<SimpleIdentifier>());
+      expect(annotation.name.name, 'B');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(1));
+    }
+
+    {
+      var annotation = parameters[2].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<PrefixedIdentifier>());
+      expect(annotation.name.name, 'C.foo');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(1));
+    }
+
+    {
+      var annotation = parameters[3].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<PrefixedIdentifier>());
+      expect(annotation.name.name, 'd.E');
+      expect(annotation.period, isNotNull);
+      expect(annotation.constructorName, isNotNull);
+      expect(annotation.constructorName.name, 'bar');
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(2));
+    }
+  }
+
   void test_parseFunctionDeclaration_setter() {
     createParser('/// Doc\nT set p(v) {}');
     FunctionDeclaration declaration = parseFullCompilationUnitMember();
