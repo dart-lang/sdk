@@ -296,6 +296,17 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  void logicalExpressionBeforeRhs(LogicalExpression expression) {
+    _deferType(expression.fileOffset);
+  }
+
+  @override
+  void logicalExpressionExit(
+      LogicalExpression expression, DartType inferredType) {
+    _replaceType(inferredType);
+  }
+
+  @override
   void methodInvocationBeforeArgs(Expression expression, bool isImplicitCall) {
     if (!isImplicitCall) {
       // When the invocation target is `VariableGet`, we record the target

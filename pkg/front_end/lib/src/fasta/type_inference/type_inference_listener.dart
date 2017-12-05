@@ -285,6 +285,8 @@ class TypeInferenceListener
   void listLiteralExit(ListLiteral expression, DartType inferredType) =>
       genericExpressionExit("listLiteral", expression, inferredType);
 
+  void logicalExpressionBeforeRhs(LogicalExpression expression) {}
+
   bool logicalExpressionEnter(
           LogicalExpression expression, DartType typeContext) =>
       genericExpressionEnter("logicalExpression", expression, typeContext);

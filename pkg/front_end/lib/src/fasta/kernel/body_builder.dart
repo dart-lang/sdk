@@ -932,7 +932,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     Expression argument = popForValue();
     Expression receiver = pop();
     var logicalExpression =
-        new ShadowLogicalExpression(receiver, token.stringValue, argument);
+        new ShadowLogicalExpression(receiver, token.stringValue, argument)
+          ..fileOffset = offsetForToken(token);
     typePromoter.exitLogicalExpression(argument, logicalExpression);
     push(logicalExpression);
   }

@@ -101,7 +101,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitBinaryExpression(BinaryExpression node) {
     node.leftOperand.accept(this);
 
-    if (node.operator.type != TokenType.QUESTION_QUESTION) {
+    TokenType operatorType = node.operator.type;
+    if (operatorType != TokenType.QUESTION_QUESTION &&
+        operatorType != TokenType.AMPERSAND_AMPERSAND &&
+        operatorType != TokenType.BAR_BAR) {
       node.staticElement = _getReferenceFor(node.operator);
       _getTypeFor(node.operator); // function type of the operator
     }
@@ -112,7 +115,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.rightOperand.accept(this);
 
     // Skip the synthetic Not for `!=`.
-    if (node.operator.type == TokenType.BANG_EQ) {
+    if (operatorType == TokenType.BANG_EQ) {
       _getTypeFor(null, synthetic: true);
     }
   }

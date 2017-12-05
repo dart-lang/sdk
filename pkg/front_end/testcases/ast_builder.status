@@ -27,9 +27,6 @@ inference/abstract_class_instantiation: Crash
 inference/assert_initializer: Crash
 inference/block_bodied_lambdas_async_star: Crash
 inference/bug30251: Crash
-inference/bug30620: Crash
-inference/bug30620_b: Crash
-inference/bug30620_c: Crash
 inference/bug30624: Crash
 inference/bug31133: Crash
 inference/call_corner_cases: Crash
@@ -142,7 +139,6 @@ inference/map_literals_top_level: Crash
 inference/method_call_with_type_arguments_static_method: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
-inference/promote_from_logical_rhs: Crash
 inference/static_method_tear_off: Crash
 inference/super_initializer: Crash
 inference/super_initializer_substitution: Crash
@@ -169,7 +165,6 @@ inference_new/infer_assign_to_index_full: Crash
 inference_new/infer_assign_to_index_set_vs_get: Crash
 inference_new/infer_assign_to_index_upwards: Crash
 inference_new/infer_assign_to_static: Crash
-inference_new/infer_logical: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
 invocations: Crash

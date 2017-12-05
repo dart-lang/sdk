@@ -1115,6 +1115,33 @@ main() {
     expect(binary.rightOperand.staticType, typeProvider.intType);
   }
 
+  test_binaryExpression_logical() async {
+    addTestFile(r'''
+main() {
+  true && true;
+  true || true;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = statements[0];
+      BinaryExpression binaryExpression = statement.expression;
+      expect(binaryExpression.staticElement, isNull);
+      expect(binaryExpression.staticType, typeProvider.boolType);
+    }
+
+    {
+      ExpressionStatement statement = statements[1];
+      BinaryExpression binaryExpression = statement.expression;
+      expect(binaryExpression.staticElement, isNull);
+      expect(binaryExpression.staticType, typeProvider.boolType);
+    }
+  }
+
   test_binaryExpression_notEqual() async {
     // TODO(scheglov) Add similar test for `v is! T`.
     String content = r'''
