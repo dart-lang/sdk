@@ -23,8 +23,9 @@ no_assert_test: Fail, OK # This is testing a vm flag.
 script_snapshot_not_executed_test: SkipByDesign # Only makes sense running from source.
 script_snapshot_depfile_test: SkipByDesign # Only makes sense running from source.
 
-[ (($hot_reload) || ($hot_reload_rollback)) ]
-script_snapshot_not_executed_test: RuntimeError
+[ $hot_reload || $hot_reload_rollback ]
+script_snapshot_not_executed_test: RuntimeError, OK # Child VM doesn't execute Dart.
+script_snapshot_depfile_test: RuntimeError, OK # Child VM doesn't execute Dart.
 
 [ $system == macos && $builder_tag == swarming ]
 io/*: Skip # Issue 30618
