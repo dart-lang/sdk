@@ -33,6 +33,7 @@ import 'package:kernel/ast.dart'
         Initializer,
         InterfaceType,
         InvocationExpression,
+        Let,
         ListLiteral,
         Member,
         MethodInvocation,
@@ -429,7 +430,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// For the special case where [receiverType] is a [FunctionType], and the
   /// method name is `call`, the string `call` is returned as a sentinel object.
   Object findInterfaceMember(DartType receiverType, Name name, int fileOffset,
-      {bool setter: false, bool silent: false}) {
+      {Template<Message Function(String, DartType)> errorTemplate,
+      Expression expression,
+      Expression receiver,
+      bool setter: false,
+      bool silent: false}) {
     // Our non-strong golden files currently don't include interface
     // targets, so we can't store the interface target without causing tests
     // to fail.  TODO(paulberry): fix this.
@@ -450,6 +455,22 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       instrumentation?.record(uri, fileOffset, 'target',
           new InstrumentationValueForMember(interfaceMember));
     }
+    if (!isTopLevel &&
+        interfaceMember == null &&
+        receiverType is! DynamicType &&
+        !(receiverType == coreTypes.functionClass.rawType &&
+            name.name == 'call') &&
+        errorTemplate != null) {
+      expression.parent.replaceChild(
+          expression,
+          new Let(
+              new VariableDeclaration.forValue(receiver)
+                ..fileOffset = receiver.fileOffset,
+              helper.buildCompileTimeError(
+                  errorTemplate.withArguments(name.name, receiverType),
+                  fileOffset))
+            ..fileOffset = fileOffset);
+    }
     return interfaceMember;
   }
 
@@ -463,6 +484,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (methodInvocation is MethodInvocation) {
       var interfaceMember = findInterfaceMember(
           receiverType, methodInvocation.name, methodInvocation.fileOffset,
+          errorTemplate: templateUndefinedMethod,
+          expression: methodInvocation,
+          receiver: methodInvocation.receiver,
           silent: silent);
       if (strongMode && interfaceMember is Member) {
         methodInvocation.interfaceTarget = interfaceMember;
@@ -491,6 +515,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (propertyGet is PropertyGet) {
       var interfaceMember = findInterfaceMember(
           receiverType, propertyGet.name, propertyGet.fileOffset,
+          errorTemplate: templateUndefinedGetter,
+          expression: propertyGet,
+          receiver: propertyGet.receiver,
           silent: silent);
       if (strongMode && interfaceMember is Member) {
         propertyGet.interfaceTarget = interfaceMember;
@@ -517,7 +544,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (propertySet is PropertySet) {
       var interfaceMember = findInterfaceMember(
           receiverType, propertySet.name, propertySet.fileOffset,
-          setter: true, silent: silent);
+          errorTemplate: templateUndefinedSetter,
+          expression: propertySet,
+          receiver: propertySet.receiver,
+          setter: true,
+          silent: silent);
       if (strongMode && interfaceMember is Member) {
         propertySet.interfaceTarget = interfaceMember;
       }
@@ -1170,8 +1201,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
     propertyName ??= desugaredGet.name;
     if (desugaredGet != null) {
-      interfaceMember =
-          findInterfaceMember(receiverType, propertyName, fileOffset);
+      interfaceMember = findInterfaceMember(
+          receiverType, propertyName, fileOffset,
+          errorTemplate: templateUndefinedGetter,
+          expression: expression,
+          receiver: desugaredGet.receiver);
       if (interfaceMember is Member) {
         desugaredGet.interfaceTarget = interfaceMember;
       }

@@ -4065,6 +4065,105 @@ const MessageCode messageTypedefNotFunction = const MessageCode(
     message: r"""Can't create typedef from non-function type.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType
+            _type)> templateUndefinedGetter = const Template<
+        Message Function(String name, DartType _type)>(
+    messageTemplate:
+        r"""The getter '#name' isn't defined for the class '#type'.""",
+    tipTemplate:
+        r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
+    withArguments: _withArgumentsUndefinedGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type)> codeUndefinedGetter =
+    const Code<Message Function(String name, DartType _type)>(
+        "UndefinedGetter", templateUndefinedGetter,
+        analyzerCode: "UNDEFINED_GETTER", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedGetter(String name, DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeUndefinedGetter,
+      message: """The getter '$name' isn't defined for the class '$type'.""",
+      tip:
+          """Try correcting the name to the name of an existing getter, or defining a getter or field named '$name'.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType
+            _type)> templateUndefinedMethod = const Template<
+        Message Function(String name, DartType _type)>(
+    messageTemplate:
+        r"""The method '#name' isn't defined for the class '#type'.""",
+    tipTemplate:
+        r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
+    withArguments: _withArgumentsUndefinedMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type)> codeUndefinedMethod =
+    const Code<Message Function(String name, DartType _type)>(
+        "UndefinedMethod", templateUndefinedMethod,
+        analyzerCode: "UNDEFINED_METHOD", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedMethod(String name, DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeUndefinedMethod,
+      message: """The method '$name' isn't defined for the class '$type'.""",
+      tip:
+          """Try correcting the name to the name of an existing method, or defining a method named '$name'.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        DartType
+            _type)> templateUndefinedSetter = const Template<
+        Message Function(String name, DartType _type)>(
+    messageTemplate:
+        r"""The setter '#name' isn't defined for the class '#type'.""",
+    tipTemplate:
+        r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
+    withArguments: _withArgumentsUndefinedSetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, DartType _type)> codeUndefinedSetter =
+    const Code<Message Function(String name, DartType _type)>(
+        "UndefinedSetter", templateUndefinedSetter,
+        analyzerCode: "UNDEFINED_SETTER", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUndefinedSetter(String name, DartType _type) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  return new Message(codeUndefinedSetter,
+      message: """The setter '$name' isn't defined for the class '$type'.""",
+      tip:
+          """Try correcting the name to the name of an existing setter, or defining a setter or field named '$name'.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnexpectedDollarInString = messageUnexpectedDollarInString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

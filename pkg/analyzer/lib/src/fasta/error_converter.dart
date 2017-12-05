@@ -408,6 +408,18 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
         return;
+      case "UNDEFINED_GETTER":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_GETTER, offset, length);
+        return;
+      case "UNDEFINED_METHOD":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_METHOD, offset, length);
+        return;
+      case "UNDEFINED_SETTER":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_SETTER, offset, length);
+        return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();
         if (text == ';') {

@@ -975,6 +975,9 @@ numbers_test: RuntimeError, OK # Issue 1533
 full_stacktrace1_test: Pass, RuntimeError # Issue 12698
 full_stacktrace2_test: Pass, RuntimeError # Issue 12698
 nan_identical_test: Fail # Issue 11551
+object_has_no_call_method_test/02: MissingCompileTimeError
+object_has_no_call_method_test/05: MissingCompileTimeError
+object_has_no_call_method_test/08: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
 stacktrace_test: Pass, RuntimeError # # Issue 12698
@@ -2914,6 +2917,9 @@ implicit_downcast_during_return_async_test: RuntimeError
 implicit_downcast_during_super_initializer_test: RuntimeError
 implicit_downcast_during_yield_star_test: RuntimeError
 implicit_downcast_during_yield_test: RuntimeError
+object_has_no_call_method_test/02: MissingCompileTimeError
+object_has_no_call_method_test/05: MissingCompileTimeError
+object_has_no_call_method_test/08: MissingCompileTimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
 assertion_initializer_const_error2_test/none: Pass

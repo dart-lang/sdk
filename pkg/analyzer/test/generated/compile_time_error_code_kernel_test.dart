@@ -228,6 +228,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
+  test_nonConstValueInInitializer_instanceCreation_inDifferentFile() {
+    return super
+        .test_nonConstValueInInitializer_instanceCreation_inDifferentFile();
+  }
+
+  @override
+  @failingTest
   @potentialAnalyzerProblem
   test_prefix_conditionalPropertyAccess_get_loadLibrary() async {
     return super.test_prefix_conditionalPropertyAccess_get_loadLibrary();

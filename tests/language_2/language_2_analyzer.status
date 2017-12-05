@@ -477,6 +477,9 @@ constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
 int64_literal_test/03: MissingCompileTimeError
 int64_literal_test/30: MissingCompileTimeError
+object_has_no_call_method_test/02: MissingCompileTimeError
+object_has_no_call_method_test/05: MissingCompileTimeError
+object_has_no_call_method_test/08: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $checked ]
 assertion_initializer_const_error2_test/none: Pass
@@ -1071,6 +1074,7 @@ multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
+object_has_no_call_method_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/04: MissingCompileTimeError

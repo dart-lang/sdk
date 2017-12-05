@@ -11,6 +11,7 @@ accessors: Fail
 argument_mismatch: TypeCheckError
 async_function: Fail
 await: Fail
+bug21938: TypeCheckError
 bug30695: TypeCheckError
 bug31124: RuntimeError # Test has an intentional error
 call: Fail
@@ -59,7 +60,7 @@ typedef: Fail
 uninitialized_fields: Fail
 unused_methods: Fail
 void_methods: Fail
-warn_unresolved_sends: TypeCheckError
+warn_unresolved_sends: RuntimeError # Test assumes Dart 1.0 semantics
 
 inference/abstract_class_instantiation: Fail # Issue #30040
 inference/block_bodied_lambdas_infer_bottom_async_star: RuntimeError
@@ -75,9 +76,7 @@ inference/downwards_inference_annotations_parameter: Fail # Issue #28434
 inference/downwards_inference_annotations_parameter_local: Fail # Issue #28434
 inference/downwards_inference_annotations_type_variable: Fail # Issue #28434
 inference/downwards_inference_annotations_type_variable_local: Fail # Issue #28434
-inference/downwards_inference_on_function_expressions: TypeCheckError
 inference/downwards_inference_on_function_of_t_using_the_t: Fail # Issue #29798
-inference/downwards_inference_on_generic_function_expressions: TypeCheckError
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
 inference/downwards_inference_yield_yield_star: TypeCheckError
 inference/future_then_2: TypeCheckError
@@ -96,11 +95,9 @@ inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckErro
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/generic_methods_infer_js_builtin: Fail # Issue #30029
-inference/generic_methods_iterable_and_future: TypeCheckError
 inference/generic_methods_nested_generic_instantiation: RuntimeError # Issue #31304
 inference/generic_methods_uses_greatest_lower_bound: RuntimeError
 inference/infer_field_override_multiple: TypeCheckError
-inference/infer_from_complex_expressions_if_outer_most_value_is_precise: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_regardless_of_declaration_order_or_cycles: RuntimeError
 inference/infer_types_on_generic_instantiations_4: RuntimeError
