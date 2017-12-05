@@ -2070,7 +2070,7 @@ syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
-type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
+type_literal_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]
@@ -2493,7 +2493,7 @@ syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
-type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
+type_literal_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
@@ -2878,7 +2878,7 @@ tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter 
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
 type_check_const_function_typedef2_test: MissingCompileTimeError
-type_literal_test: Crash # NoSuchMethodError: The getter 'enclosingLibrary' was called on null.
+type_literal_test: RuntimeError
 type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
 type_parameter_test/09: Crash # Internal Error: Unexpected type variable in static context.
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
