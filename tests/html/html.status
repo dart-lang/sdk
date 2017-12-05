@@ -390,8 +390,8 @@ xhr_cross_origin_test/functional: Timeout
 xhr_test/headers: RuntimeError
 xhr_test/json: Timeout
 xhr_test/xhr: Timeout
-xhr_test/xhr_requestBlob: RuntimeError
 xhr_test/xhr_requestBlob/xhr_requestBlob: Pass
+xhr_test/xhr_requestBlob: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]
 custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported

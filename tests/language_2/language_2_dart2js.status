@@ -2496,6 +2496,7 @@ typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
 arithmetic_canonicalization_test: RuntimeError
+assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
 async_star_cancel_while_paused_test: RuntimeError
@@ -2507,7 +2508,6 @@ bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
 branch_canonicalization_test: RuntimeError
-branches_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 437 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 call_function_apply_test: RuntimeError
 canonical_const2_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
@@ -2682,7 +2682,7 @@ getter_override_test/00: MissingCompileTimeError
 getter_override_test/01: MissingCompileTimeError
 getter_override_test/02: MissingCompileTimeError
 identical_closure2_test: RuntimeError
-implicit_downcast_during_assert_initializer_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 660 pos 16: 'false': Unhandled initializer ir.ShadowAssertInitializer
+implicit_downcast_during_assert_initializer_test: RuntimeError
 infinite_switch_label_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
 infinity_test: RuntimeError
 instance_creation_in_function_annotation_test: RuntimeError
@@ -2821,7 +2821,6 @@ null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
-operator_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 437 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -2836,7 +2835,6 @@ override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
-prefix5_negative_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 437 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 private_super_constructor_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
@@ -2868,8 +2866,6 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
-sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
-sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError

@@ -841,6 +841,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void buildConstructorBody(ir.Constructor constructor) {
     openFunction(constructor.function);
     _addClassTypeVariablesIfNeeded(constructor);
+    _potentiallyAddFunctionParameterTypeChecks(constructor.function);
     constructor.function.body.accept(this);
     closeFunction();
   }
