@@ -11,6 +11,7 @@
 #include "bin/loader.h"
 #include "bin/platform.h"
 #include "bin/snapshot_utils.h"
+#include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/assert.h"
 #include "vm/benchmark_test.h"
@@ -240,6 +241,7 @@ static int Main(int argc, const char** argv) {
     dart_argv = &argv[1];
   }
 
+  bin::Thread::InitOnce();
   bin::TimerUtils::InitOnce();
   bin::EventHandler::Start();
 
