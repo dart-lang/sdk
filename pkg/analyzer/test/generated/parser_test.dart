@@ -10720,6 +10720,23 @@ class C {
         BinaryExpression, expression.leftOperand);
   }
 
+  void test_namedParameterOutsideGroup() {
+    CompilationUnit unit =
+        parseCompilationUnit('class A { b(c: 0, Foo d: 0, e){} }', errors: [
+      expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 13, 1),
+      expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 23, 1)
+    ]);
+    expect(unit.declarations, hasLength(1));
+    ClassDeclaration classA = unit.declarations[0];
+    expect(classA.members, hasLength(1));
+    MethodDeclaration method = classA.members[0];
+    NodeList<FormalParameter> parameters = method.parameters.parameters;
+    expect(parameters, hasLength(3));
+    expect(parameters[0].kind, ParameterKind.NAMED);
+    expect(parameters[1].kind, ParameterKind.NAMED);
+    expect(parameters[2].kind, ParameterKind.REQUIRED);
+  }
+
   void test_nonStringLiteralUri_import() {
     parseCompilationUnit("import dart:io; class C {}",
         codes: [ParserErrorCode.NON_STRING_LITERAL_AS_URI]);

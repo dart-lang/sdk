@@ -603,6 +603,7 @@ PositionalParameterWithEquals:
 RequiredParameterWithDefault:
   template: "Non-optional parameters can't have a default value."
   tip: "Try removing the default value or making the parameter optional."
+  analyzerCode: NAMED_PARAMETER_OUTSIDE_GROUP
   dart2jsCode: REQUIRED_PARAMETER_WITH_DEFAULT
   script:
     - >

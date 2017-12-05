@@ -364,6 +364,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NAMED_FUNCTION_EXPRESSION, offset, length);
         return;
+      case "NAMED_PARAMETER_OUTSIDE_GROUP":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, offset, length);
+        return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, offset, length);

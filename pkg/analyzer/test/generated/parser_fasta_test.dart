@@ -1354,14 +1354,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_namedParameterOutsideGroup() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, found 0
-    super.test_namedParameterOutsideGroup();
-  }
-
-  @override
-  @failingTest
   void test_nonConstructorFactory_field() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.

@@ -1064,6 +1064,11 @@ class AstBuilder extends ScopeListener {
     if (analyzerKind != ParameterKind.REQUIRED) {
       node = ast.defaultFormalParameter(
           node, analyzerKind, defaultValue?.separator, defaultValue?.value);
+    } else if (defaultValue != null) {
+      // An error is reported if a required parameter has a default value.
+      // Record it as named parameter for recovery.
+      node = ast.defaultFormalParameter(node, ParameterKind.NAMED,
+          defaultValue.separator, defaultValue.value);
     }
     push(node);
   }

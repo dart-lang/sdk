@@ -3511,6 +3511,7 @@ const Code<Null> codeRequiredParameterWithDefault =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRequiredParameterWithDefault = const MessageCode(
     "RequiredParameterWithDefault",
+    analyzerCode: "NAMED_PARAMETER_OUTSIDE_GROUP",
     dart2jsCode: "REQUIRED_PARAMETER_WITH_DEFAULT",
     message: r"""Non-optional parameters can't have a default value.""",
     tip:
