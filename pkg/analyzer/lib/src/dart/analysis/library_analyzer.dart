@@ -1073,13 +1073,13 @@ class _ResolutionApplierContext implements TypeContext {
       referencedElements.add(element);
     }
 
-    applier = new ValidatingResolutionApplier(
+    applier = new ResolutionApplier(
         this,
         declaredElements,
-        referencedElements,
-        resolution.kernelTypes,
         resolution.declarationOffsets,
+        referencedElements,
         resolution.referenceOffsets,
+        resolution.kernelTypes,
         resolution.typeOffsets);
   }
 

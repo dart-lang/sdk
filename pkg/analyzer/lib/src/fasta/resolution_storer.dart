@@ -382,8 +382,32 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  bool staticAssignEnter(
+      Expression expression, Expression write, DartType typeContext) {
+    _deferReference(write.fileOffset);
+    _deferType(write.fileOffset);
+    return super.staticAssignEnter(expression, write, typeContext);
+  }
+
+  @override
+  void staticAssignExit(
+      Expression expression,
+      Expression write,
+      Member writeMember,
+      DartType writeContext,
+      Procedure combiner,
+      DartType inferredType) {
+    _replaceReference(new MemberSetterNode(writeMember));
+    _replaceType(writeContext);
+    _recordReference(
+        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
+    _recordType(inferredType, write.fileOffset);
+  }
+
+  @override
   void staticGetExit(StaticGet expression, DartType inferredType) {
-    _recordReference(expression.target, expression.fileOffset);
+    _recordReference(
+        new MemberGetterNode(expression.target), expression.fileOffset);
     super.staticGetExit(expression, inferredType);
   }
 

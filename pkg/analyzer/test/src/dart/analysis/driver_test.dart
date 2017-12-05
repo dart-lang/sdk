@@ -649,6 +649,44 @@ main() {
     }
   }
 
+  test_assignmentExpression_simple_instanceField_unqualified() async {
+    String content = r'''
+class C {
+  num f = 0;
+  foo() {
+    f = 2;
+  }
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cDeclaration = unit.declarations[0];
+    FieldElement fElement = cDeclaration.element.fields[0];
+
+    MethodDeclaration fooDeclaration = cDeclaration.members[1];
+    BlockFunctionBody fooBody = fooDeclaration.body;
+
+    {
+      ExpressionStatement statement = fooBody.block.statements[0];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.EQ);
+      expect(assignment.staticElement, isNull);
+      expect(assignment.staticType, typeProvider.intType);
+
+      SimpleIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(fElement.setter));
+      expect(left.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
   test_assignmentExpression_simple_local() async {
     String content = r'''
 main() {
@@ -728,6 +766,48 @@ class C {
       expect(left.staticType, typeProvider.numType);
 
       expect(left.prefix.staticElement, c);
+      expect(left.prefix.staticType, cClassElement.type);
+
+      expect(left.identifier.staticElement, same(fElement.setter));
+      expect(left.identifier.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_simple_prefixedIdentifier_staticField() async {
+    String content = r'''
+main() {
+  C.f = 2;
+}
+class C {
+  static num f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cClassDeclaration = unit.declarations[1];
+    ClassElement cClassElement = cClassDeclaration.element;
+    FieldElement fElement = cClassElement.getField('f');
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.staticType, typeProvider.intType);
+
+      PrefixedIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(fElement.setter));
+      expect(left.staticType, typeProvider.numType);
+
+      expect(left.prefix.staticElement, cClassElement);
       expect(left.prefix.staticType, cClassElement.type);
 
       expect(left.identifier.staticElement, same(fElement.setter));
@@ -876,6 +956,82 @@ class C {
 
       expect(left.propertyName.staticElement, same(fElement.setter));
       expect(left.propertyName.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_simple_staticField_unqualified() async {
+    String content = r'''
+class C {
+  static num f = 0;
+  foo() {
+    f = 2;
+  }
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cDeclaration = unit.declarations[0];
+    FieldElement fElement = cDeclaration.element.fields[0];
+
+    MethodDeclaration fooDeclaration = cDeclaration.members[1];
+    BlockFunctionBody fooBody = fooDeclaration.body;
+
+    {
+      ExpressionStatement statement = fooBody.block.statements[0];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.EQ);
+      expect(assignment.staticElement, isNull);
+      expect(assignment.staticType, typeProvider.intType);
+
+      SimpleIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(fElement.setter));
+      expect(left.staticType, typeProvider.numType);
+
+      Expression right = assignment.rightHandSide;
+      expect(right.staticType, typeProvider.intType);
+    }
+  }
+
+  test_assignmentExpression_simple_topLevelVariable() async {
+    String content = r'''
+main() {
+  v = 2;
+}
+num v = 0;
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    TopLevelVariableElement v;
+    {
+      TopLevelVariableDeclaration declaration = unit.declarations[1];
+      v = declaration.variables.variables[0].element;
+      expect(v.type, typeProvider.numType);
+    }
+
+    List<Statement> mainStatements = _getMainStatements(result);
+    {
+      ExpressionStatement statement = mainStatements[0];
+
+      AssignmentExpression assignment = statement.expression;
+      expect(assignment.operator.type, TokenType.EQ);
+      expect(assignment.staticElement, isNull);
+      expect(assignment.staticType, typeProvider.intType);
+
+      SimpleIdentifier left = assignment.leftHandSide;
+      expect(left.staticElement, same(v.setter));
+      expect(left.staticType, typeProvider.numType);
 
       Expression right = assignment.rightHandSide;
       expect(right.staticType, typeProvider.intType);
@@ -1931,6 +2087,74 @@ class C {
       expect(propertyName.staticElement, same(fElement.setter));
       expect(propertyName.staticType, typeProvider.intType);
     }
+  }
+
+  test_prefixedIdentifier_classInstance_instanceField() async {
+    String content = r'''
+main() {
+  var c = new C();
+  c.f;
+}
+class C {
+  int f;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ClassDeclaration cDeclaration = result.unit.declarations[1];
+    ClassElement cElement = cDeclaration.element;
+    FieldElement fElement = cElement.fields[0];
+
+    VariableDeclarationStatement cStatement = statements[0];
+    VariableElement vElement = cStatement.variables.variables[0].element;
+
+    ExpressionStatement statement = statements[1];
+    PrefixedIdentifier prefixed = statement.expression;
+
+    SimpleIdentifier prefix = prefixed.prefix;
+    expect(prefix.staticElement, same(vElement));
+    expect(prefix.staticType, cElement.type);
+
+    SimpleIdentifier identifier = prefixed.identifier;
+    expect(identifier.staticElement, same(fElement.getter));
+    expect(identifier.staticType, typeProvider.intType);
+  }
+
+  test_prefixedIdentifier_className_staticField() async {
+    String content = r'''
+main() {
+  C.f;
+}
+class C {
+  static f = 0;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ClassDeclaration cDeclaration = result.unit.declarations[1];
+    ClassElement cElement = cDeclaration.element;
+    FieldElement fElement = cElement.fields[0];
+
+    ExpressionStatement statement = statements[0];
+    PrefixedIdentifier prefixed = statement.expression;
+
+    SimpleIdentifier prefix = prefixed.prefix;
+    expect(prefix.staticElement, same(cElement));
+    expect(prefix.staticType, cElement.type);
+
+    SimpleIdentifier identifier = prefixed.identifier;
+    expect(identifier.staticElement, same(fElement.getter));
+    expect(identifier.staticType, typeProvider.intType);
   }
 
   test_prefixExpression_local() async {

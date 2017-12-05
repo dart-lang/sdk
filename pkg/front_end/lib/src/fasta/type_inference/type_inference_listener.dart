@@ -391,10 +391,17 @@ class TypeInferenceListener
   void returnStatementExit(ReturnStatement statement) =>
       genericStatementExit('returnStatement', statement);
 
-  bool staticAssignEnter(Expression expression, DartType typeContext) =>
+  bool staticAssignEnter(
+          Expression expression, Expression write, DartType typeContext) =>
       genericExpressionEnter("staticAssign", expression, typeContext);
 
-  void staticAssignExit(Expression expression, DartType inferredType) =>
+  void staticAssignExit(
+          Expression expression,
+          Expression write,
+          Member writeMember,
+          DartType writeContext,
+          Procedure combiner,
+          DartType inferredType) =>
       genericExpressionExit("staticAssign", expression, inferredType);
 
   bool staticGetEnter(StaticGet expression, DartType typeContext) =>

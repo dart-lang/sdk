@@ -1713,7 +1713,8 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener.staticAssignEnter(desugared, typeContext) ||
+    typeNeeded = inferrer.listener
+            .staticAssignEnter(desugared, this.write, typeContext) ||
         typeNeeded;
     DartType readType;
     var read = this.read;
@@ -1721,18 +1722,20 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       readType = read.target.getterType;
       _storeLetType(inferrer, read, readType);
     }
+    Member writeMember;
     DartType writeContext;
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
-      var target = write.target;
-      if (target is ShadowField && target._inferenceNode != null) {
-        target._inferenceNode.resolve();
-        target._inferenceNode = null;
+      writeMember = write.target;
+      if (writeMember is ShadowField && writeMember._inferenceNode != null) {
+        writeMember._inferenceNode.resolve();
+        writeMember._inferenceNode = null;
       }
     }
     var inferredResult = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.staticAssignExit(desugared, inferredResult.type);
+    inferrer.listener.staticAssignExit(desugared, write, writeMember,
+        writeContext, inferredResult.combiner, inferredResult.type);
     _replaceWithDesugared();
     return inferredResult.type;
   }
