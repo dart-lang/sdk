@@ -917,6 +917,7 @@ class ShadowIfNullExpression extends Let implements ShadowExpression {
     if (inferrer.strongMode) {
       variable.type = lhsType;
     }
+    inferrer.listener.ifNullBeforeRhs(this);
     // - Let J = T0 if K is `_` else K.
     var rhsContext = typeContext ?? lhsType;
     // - Infer e1 in context J to get T1

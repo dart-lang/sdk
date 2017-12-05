@@ -226,6 +226,8 @@ class TypeInferenceListener
           FunctionExpression expression, DartType inferredType) =>
       genericExpressionExit("functionExpression", expression, inferredType);
 
+  void ifNullBeforeRhs(Expression expression) {}
+
   bool ifNullEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter('ifNull', expression, typeContext);
 

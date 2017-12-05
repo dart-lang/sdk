@@ -251,6 +251,16 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  void ifNullBeforeRhs(Expression expression) {
+    _deferType(expression.fileOffset);
+  }
+
+  @override
+  void ifNullExit(Expression expression, DartType inferredType) {
+    _replaceType(inferredType);
+  }
+
+  @override
   void indexAssignAfterReceiver(Expression write, DartType typeContext) {
     _deferReference(write.fileOffset);
     _recordType(const IndexAssignNullFunctionType(), write.fileOffset);

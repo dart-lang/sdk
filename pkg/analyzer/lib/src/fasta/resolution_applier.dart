@@ -83,10 +83,10 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitBinaryExpression(BinaryExpression node) {
     node.leftOperand.accept(this);
 
-    node.staticElement = _getReferenceFor(node.operator);
-
-    // Skip the function type of the operator.
-    _getTypeFor(node.operator);
+    if (node.operator.type != TokenType.QUESTION_QUESTION) {
+      node.staticElement = _getReferenceFor(node.operator);
+      _getTypeFor(node.operator); // function type of the operator
+    }
 
     // Record the return type of the expression.
     node.staticType = _getTypeFor(node.operator);

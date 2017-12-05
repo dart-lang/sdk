@@ -948,7 +948,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             buildIsNull(new VariableGet(variable), offsetForToken(token)),
             b,
             new VariableGet(variable),
-            null)));
+            null))
+      ..fileOffset = offsetForToken(token));
   }
 
   /// Handle `a?.b(...)`.

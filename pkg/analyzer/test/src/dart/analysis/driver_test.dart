@@ -908,6 +908,30 @@ main() {
     expect(value.staticType, typeProvider.intType);
   }
 
+  test_binaryExpression_ifNull() async {
+    String content = r'''
+main() {
+  1.2 ?? 3;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    ExpressionStatement statement = mainStatements[0];
+    BinaryExpression binary = statement.expression;
+    expect(binary.operator.type, TokenType.QUESTION_QUESTION);
+    expect(binary.staticElement, isNull);
+    expect(binary.staticType, typeProvider.numType);
+
+    expect(binary.leftOperand.staticType, typeProvider.doubleType);
+    expect(binary.rightOperand.staticType, typeProvider.intType);
+  }
+
   test_binaryExpression_notEqual() async {
     // TODO(scheglov) Add similar test for `v is! T`.
     String content = r'''

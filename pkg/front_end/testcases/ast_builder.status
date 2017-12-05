@@ -145,8 +145,6 @@ inference/map_literals: Crash
 inference/map_literals_can_infer_null: Crash
 inference/map_literals_top_level: Crash
 inference/method_call_with_type_arguments_static_method: Crash
-inference/null_coalescing_operator: Crash
-inference/null_coalescing_operator_2: Crash
 inference/null_literal_should_not_infer_as_bottom: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
