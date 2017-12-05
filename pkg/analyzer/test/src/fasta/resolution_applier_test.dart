@@ -421,6 +421,9 @@ class _TestTypeContext implements TypeContext {
   ClassElement get enclosingClassElement => null;
 
   @override
+  DartType get stringType => null;
+
+  @override
   DartType get typeType => null;
 
   @override

@@ -462,6 +462,13 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  void stringConcatenationExit(
+      StringConcatenation expression, DartType inferredType) {
+    // We don't need the type - we already know that it is String.
+    // Moreover, the file offset for StringConcatenation is `-1`.
+  }
+
+  @override
   void thisExpressionExit(ThisExpression expression, DartType inferredType) {}
 
   void typeLiteralExit(TypeLiteral expression, DartType inferredType) {

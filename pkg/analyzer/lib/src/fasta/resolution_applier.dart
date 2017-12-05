@@ -75,6 +75,12 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitAdjacentStrings(AdjacentStrings node) {
+    node.strings.accept(this);
+    node.staticType = _typeContext.stringType;
+  }
+
+  @override
   void visitAsExpression(AsExpression node) {
     node.expression.accept(this);
     applyToTypeAnnotation(_getTypeFor(node.asOperator), node.type);
@@ -429,7 +435,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         element.expression.accept(this);
       }
     }
-    node.staticType = _getTypeFor(node.endToken.next);
+    node.staticType = _typeContext.stringType;
   }
 
   @override
@@ -716,6 +722,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 abstract class TypeContext {
   /// The enclosing [ClassElement], or `null` if not in a class.
   ClassElement get enclosingClassElement;
+
+  DartType get stringType;
 
   DartType get typeType;
 

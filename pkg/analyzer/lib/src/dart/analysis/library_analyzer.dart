@@ -1084,6 +1084,9 @@ class _ResolutionApplierContext implements TypeContext {
   }
 
   @override
+  DartType get stringType => typeProvider.stringType;
+
+  @override
   DartType get typeType => typeProvider.typeType;
 
   @override

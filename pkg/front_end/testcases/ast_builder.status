@@ -144,7 +144,6 @@ inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
 inference/promote_from_logical_rhs: Crash
 inference/static_method_tear_off: Crash
-inference/string_literal: Crash
 inference/super_initializer: Crash
 inference/super_initializer_substitution: Crash
 inference/switch_continue: Crash
