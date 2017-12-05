@@ -749,7 +749,6 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
-    inferrer.listener.forInStatementEnter(this);
     var iterableClass = isAsync
         ? inferrer.coreTypes.streamClass
         : inferrer.coreTypes.iterableClass;
@@ -758,6 +757,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     bool typeChecksNeeded = !inferrer.isTopLevel;
     ShadowVariableDeclaration variable;
     var syntheticAssignment = _syntheticAssignment;
+    Expression syntheticWrite;
     if (_declaresVariable) {
       variable = this.variable;
       if (inferrer.strongMode && variable._implicitlyTyped) {
@@ -767,11 +767,13 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
         context = variable.type;
       }
     } else if (syntheticAssignment is ShadowComplexAssignment) {
+      syntheticWrite = syntheticAssignment.write;
       context = syntheticAssignment._getWriteType(inferrer);
     } else {
       context = const UnknownType();
     }
     context = inferrer.wrapType(context, iterableClass);
+    inferrer.listener.forInStatementEnter(this, variable, syntheticWrite);
     var inferredExpressionType = inferrer.resolveTypeParameter(inferrer
         .inferExpression(iterable, context, typeNeeded || typeChecksNeeded));
     inferrer.checkAssignability(
@@ -812,7 +814,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
         body = combineStatements(variable, body)..parent = this;
       }
     }
-    inferrer.listener.forInStatementExit(this);
+    inferrer.listener.forInStatementExit(this, variable);
   }
 }
 

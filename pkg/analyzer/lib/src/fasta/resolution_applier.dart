@@ -154,8 +154,8 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         element.type = type;
       }
     } else {
-      // TODO(scheglov) Implement "T variable; for (variable in []) {}"
-      throw new UnimplementedError('$node');
+      node.identifier.staticElement = _getReferenceFor(node.identifier);
+      node.identifier.staticType = _getTypeFor(node.identifier);
     }
     node.iterable.accept(this);
     node.body.accept(this);

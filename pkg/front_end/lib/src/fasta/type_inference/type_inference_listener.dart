@@ -200,10 +200,12 @@ class TypeInferenceListener
   void fieldInitializerExit(FieldInitializer initializer) =>
       genericInitializerExit("fieldInitializer", initializer);
 
-  void forInStatementEnter(ForInStatement statement) =>
+  void forInStatementEnter(ForInStatement statement,
+          VariableDeclaration variable, Expression write) =>
       genericStatementEnter('forInStatement', statement);
 
-  void forInStatementExit(ForInStatement statement) =>
+  void forInStatementExit(
+          ForInStatement statement, VariableDeclaration variable) =>
       genericStatementExit('forInStatement', statement);
 
   void forStatementEnter(ForStatement statement) =>

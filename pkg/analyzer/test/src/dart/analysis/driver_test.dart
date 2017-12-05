@@ -1753,9 +1753,120 @@ void main() {
     {
       ExpressionStatement statement = statements[1];
       SimpleIdentifier identifier = statement.expression;
-      expect(identifier.staticElement, vElement);
+      expect(identifier.staticElement, same(vElement));
       expect(identifier.staticType, intType);
     }
+  }
+
+  test_local_variable_forIn_identifier_field() async {
+    addTestFile(r'''
+class C {
+  num v;
+  void foo() {
+    for (v in <int>[]) {
+      v;
+    }
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cDeclaration = unit.declarations[0];
+
+    FieldDeclaration vDeclaration = cDeclaration.members[0];
+    VariableDeclaration vNode = vDeclaration.fields.variables[0];
+    FieldElement vElement = vNode.element;
+    expect(vElement.type, typeProvider.numType);
+
+    MethodDeclaration fooDeclaration = cDeclaration.members[1];
+    BlockFunctionBody fooBody = fooDeclaration.body;
+    List<Statement> statements = fooBody.block.statements;
+
+    ForEachStatement forEachStatement = statements[0];
+    Block forBlock = forEachStatement.body;
+
+    expect(forEachStatement.loopVariable, isNull);
+
+    SimpleIdentifier vInFor = forEachStatement.identifier;
+    expect(vInFor.staticElement, same(vElement.setter));
+    expect(vInFor.staticType, typeProvider.numType);
+
+    ExpressionStatement statement = forBlock.statements[0];
+    SimpleIdentifier identifier = statement.expression;
+    expect(identifier.staticElement, same(vElement.getter));
+    expect(identifier.staticType, typeProvider.numType);
+  }
+
+  test_local_variable_forIn_identifier_localVariable() async {
+    addTestFile(r'''
+void main() {
+  num v;
+  for (v in <int>[]) {
+    v;
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    VariableDeclarationStatement vStatement = statements[0];
+    VariableDeclaration vNode = vStatement.variables.variables[0];
+    LocalVariableElement vElement = vNode.element;
+    expect(vElement.type, typeProvider.numType);
+
+    ForEachStatement forEachStatement = statements[1];
+    Block forBlock = forEachStatement.body;
+
+    expect(forEachStatement.loopVariable, isNull);
+
+    SimpleIdentifier vInFor = forEachStatement.identifier;
+    expect(vInFor.staticElement, vElement);
+    expect(vInFor.staticType, typeProvider.numType);
+
+    ExpressionStatement statement = forBlock.statements[0];
+    SimpleIdentifier identifier = statement.expression;
+    expect(identifier.staticElement, same(vElement));
+    expect(identifier.staticType, typeProvider.numType);
+  }
+
+  test_local_variable_forIn_identifier_topLevelVariable() async {
+    addTestFile(r'''
+void main() {
+  for (v in <int>[]) {
+    v;
+  }
+}
+num v;
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    TopLevelVariableDeclaration vDeclaration = unit.declarations[1];
+    VariableDeclaration vNode = vDeclaration.variables.variables[0];
+    TopLevelVariableElement vElement = vNode.element;
+    expect(vElement.type, typeProvider.numType);
+
+    ForEachStatement forEachStatement = statements[0];
+    Block forBlock = forEachStatement.body;
+
+    expect(forEachStatement.loopVariable, isNull);
+
+    SimpleIdentifier vInFor = forEachStatement.identifier;
+    expect(vInFor.staticElement, same(vElement.setter));
+    expect(vInFor.staticType, typeProvider.numType);
+
+    ExpressionStatement statement = forBlock.statements[0];
+    SimpleIdentifier identifier = statement.expression;
+    expect(identifier.staticElement, same(vElement.getter));
+    expect(identifier.staticType, typeProvider.numType);
   }
 
   test_local_variable_forIn_loopVariable() async {
