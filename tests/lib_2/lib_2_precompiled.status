@@ -38,6 +38,7 @@ isolate/static_function_test: SkipByDesign
 isolate/unresolved_ports_test: SkipByDesign
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
+js/prototype_access_test: CompileTimeError
 
 [ ($compiler == none || $compiler == precompiler || $compiler == app_jit) ]
 async/timer_regress22626_test: Pass, RuntimeError # Issue 28254

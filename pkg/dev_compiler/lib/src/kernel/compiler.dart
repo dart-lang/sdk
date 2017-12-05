@@ -2158,6 +2158,8 @@ class ProgramCompiler
     }
 
     useExtension ??= _isSymbolizedMember(type, name);
+    // TODO(vsm): Do not rename members that conflict with standard JS members
+    // if we are actually try to access those JS members via interop.
     name = JS.memberNameForDartMember(name);
     if (useExtension) {
       return _getExtensionSymbolInternal(name);

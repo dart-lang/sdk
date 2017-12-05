@@ -105,6 +105,7 @@ isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments
 isolate/unresolved_ports_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
+js/prototype_access_test: CompileTimeError
 mirrors/abstract_class_test: RuntimeError
 mirrors/abstract_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/class_declarations_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -479,6 +480,7 @@ isolate/timer_isolate_test: CompileTimeError # Issue 31402 (Invocation arguments
 isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
+js/prototype_access_test: CompileTimeError
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug]
