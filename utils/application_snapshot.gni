@@ -39,25 +39,26 @@ template("application_snapshot") {
   }
   compiled_action(target_name) {
     tool = "$_dart_root/runtime/bin:dart"
-    deps = extra_deps + [ "$_dart_root/pkg:pkg_files_stamp" ]
+    deps = extra_deps
+    depfile = "$root_gen_dir/$name.dart.snapshot.d"
 
-    inputs = extra_inputs + [
-               "$_dart_root/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
-               "$root_gen_dir/pkg_files.stamp",
-             ]
+    main_file = rebase_path(main_dart)
+
+    inputs = extra_inputs + [ main_file ]
 
     output = "$root_gen_dir/$name.dart.snapshot"
     outputs = [
       output,
     ]
 
+    abs_depfile = rebase_path(depfile)
     abs_output = rebase_path(output)
-    main_file = rebase_path(main_dart)
 
     args = [
       "--deterministic",
       "--packages=$dot_packages",
       "--snapshot=$abs_output",
+      "--snapshot-depfile=$abs_depfile",
     ]
 
     if (dart_snapshot_kind == "script") {

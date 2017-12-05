@@ -301,20 +301,21 @@ void Loader::ResolveDependenciesAsFilePaths() {
   for (intptr_t i = 0; i < dependencies->length(); i++) {
     char* resolved_uri = (*dependencies)[i];
 
-    uint8_t* scoped_file_path = NULL;
-    intptr_t scoped_file_path_length = -1;
+    uint8_t* file_path = NULL;
+    intptr_t file_path_length = -1;
     Dart_Handle uri = Dart_NewStringFromCString(resolved_uri);
     ASSERT(!Dart_IsError(uri));
-    Dart_Handle result = Loader::ResolveAsFilePath(uri, &scoped_file_path,
-                                                   &scoped_file_path_length);
+    Dart_Handle result =
+        Loader::ResolveAsFilePath(uri, &file_path, &file_path_length);
     if (Dart_IsError(result)) {
       Log::Print("Error resolving dependency: %s\n", Dart_GetError(result));
       return;
     }
 
-    (*dependencies)[i] =
-        StringUtils::StrNDup(reinterpret_cast<const char*>(scoped_file_path),
-                             scoped_file_path_length);
+    // Convert buffer buffer to NUL-terminated string.
+    (*dependencies)[i] = StringUtils::StrNDup(
+        reinterpret_cast<const char*>(file_path), file_path_length);
+    free(file_path);
     free(resolved_uri);
   }
 }
