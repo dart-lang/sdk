@@ -935,6 +935,8 @@ recursive_mixin_test: Crash
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 callable_test/none: RuntimeError
+cascaded_forwarding_stubs_generic_test: RuntimeError
+cascaded_forwarding_stubs_test: RuntimeError
 checked_setter2_test: RuntimeError
 checked_setter3_test: RuntimeError
 checked_setter_test: RuntimeError

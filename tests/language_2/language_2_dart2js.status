@@ -1014,6 +1014,8 @@ full_stacktrace3_test: Pass, RuntimeError # Issue 12698
 
 [ $compiler == dart2js && $runtime != none && !$checked && !$dart2js_with_kernel ]
 callable_test/none: RuntimeError
+cascaded_forwarding_stubs_generic_test: RuntimeError
+cascaded_forwarding_stubs_test: RuntimeError
 checked_setter_test: RuntimeError
 checked_setter2_test: RuntimeError
 checked_setter3_test: RuntimeError
@@ -2920,6 +2922,8 @@ object_has_no_call_method_test/08: MissingCompileTimeError
 [ $compiler == dart2js && $dart2js_with_kernel && !$checked ]
 assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_error2_test/*: CompileTimeError # Issue #31321
+cascaded_forwarding_stubs_generic_test: RuntimeError
+cascaded_forwarding_stubs_test: RuntimeError
 checked_setter3_test: RuntimeError # Issue 31128
 implicit_downcast_during_assignment_test: RuntimeError
 implicit_downcast_during_combiner_test: RuntimeError
