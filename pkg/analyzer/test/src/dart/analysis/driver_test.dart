@@ -3264,7 +3264,7 @@ var a = 1;
 
   test_top_function_namedParameters() async {
     addTestFile(r'''
-double f(int a, {String b, bool c: false}) {}
+double f(int a, {String b, bool c: 1 == 2}) {}
 void main() {
   f(1, b: '2', c: true);
 }
@@ -3303,17 +3303,26 @@ void main() {
         kind: ParameterKind.REQUIRED,
         type: typeProvider.intType);
 
-    _assertDefaultParameter(nodes[1], elements[1],
+    DefaultFormalParameter bNode = nodes[1];
+    _assertDefaultParameter(bNode, elements[1],
         name: 'b',
         offset: 24,
         kind: ParameterKind.NAMED,
         type: typeProvider.stringType);
+    expect(bNode.defaultValue, isNull);
 
-    _assertDefaultParameter(nodes[2], elements[2],
+    DefaultFormalParameter cNode = nodes[2];
+    _assertDefaultParameter(cNode, elements[2],
         name: 'c',
         offset: 32,
         kind: ParameterKind.NAMED,
         type: typeProvider.boolType);
+    {
+      BinaryExpression defaultValue = cNode.defaultValue;
+      expect(defaultValue.staticElement, isNotNull);
+      expect(defaultValue.staticType, typeProvider.boolType);
+    }
+
     //
     // Validate the arguments at the call site.
     //

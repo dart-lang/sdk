@@ -19,7 +19,6 @@ expressions: Crash
 fallthrough: Crash
 function_type_is_check: Crash
 function_type_recovery: Crash
-functions: Crash
 illegal_named_function_expression: Crash
 illegal_named_function_expression_scope: Crash
 implicit_scope_test: Crash

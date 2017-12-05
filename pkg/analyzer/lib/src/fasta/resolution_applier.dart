@@ -169,7 +169,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
           // Consume the Null type, for the implicit default value.
           _getTypeFor(null, synthetic: true);
         } else {
-          throw new UnimplementedError();
+          parameter.defaultValue.accept(this);
         }
       }
     }
