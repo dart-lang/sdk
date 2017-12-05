@@ -1489,7 +1489,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      signature.forEachParameter((_parameterElement) {
+      signature.orderedForEachParameter((_parameterElement) {
         ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
           if (closureDataLookup
