@@ -6,10 +6,12 @@
 
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
+#include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/loader.h"
 #include "bin/platform.h"
 #include "bin/snapshot_utils.h"
+#include "bin/utils.h"
 #include "platform/assert.h"
 #include "vm/benchmark_test.h"
 #include "vm/dart.h"
@@ -238,6 +240,9 @@ static int Main(int argc, const char** argv) {
     dart_argv = &argv[1];
   }
 
+  bin::TimerUtils::InitOnce();
+  bin::EventHandler::Start();
+
   bool set_vm_flags_success =
       Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
   ASSERT(set_vm_flags_success);
@@ -258,6 +263,8 @@ static int Main(int argc, const char** argv) {
 
   err_msg = Dart::Cleanup();
   ASSERT(err_msg == NULL);
+
+  bin::EventHandler::Stop();
 
   TestCaseBase::RunAllRaw();
   // Print a warning message if no tests or benchmarks were matched.
