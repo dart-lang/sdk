@@ -60,7 +60,7 @@ abstract class TokenStreamRewriterTest {
     expect(b.next, same(c));
   }
 
-  void test_replaceToken_multiple() {
+  void test_replaceTokenFollowing_multiple() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
@@ -70,21 +70,21 @@ abstract class TokenStreamRewriterTest {
     _link([a, b, e, f]);
     _link([c, d]);
     var rewriter = new TokenStreamRewriter();
-    rewriter.replaceToken(b.next, c);
+    rewriter.replaceTokenFollowing(b, c);
     expect(a.next, same(b));
     expect(b.next, same(c));
     expect(c.next, same(d));
     expect(d.next, same(f));
   }
 
-  void test_replaceToken_single() {
+  void test_replaceTokenFollowing_single() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
     var d = _makeToken(3, 'd');
     _link([a, b, d]);
     var rewriter = new TokenStreamRewriter();
-    rewriter.replaceToken(a.next, c);
+    rewriter.replaceTokenFollowing(a, c);
     expect(a.next, same(c));
     expect(c.next, same(d));
   }
@@ -183,18 +183,6 @@ class TokenStreamRewriterTest_NoPrevious extends TokenStreamRewriterTest {
   @failingTest
   void test_insertToken_middle_single() {
     super.test_insertToken_middle_single();
-  }
-
-  @override
-  @failingTest
-  void test_replaceToken_multiple() {
-    super.test_replaceToken_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_replaceToken_single() {
-    super.test_replaceToken_single();
   }
 
   @override

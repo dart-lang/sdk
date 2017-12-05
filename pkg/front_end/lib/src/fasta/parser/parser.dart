@@ -2588,14 +2588,14 @@ class Parser {
         Token replacement = new Token(TokenType.GT, next.charOffset);
         if (identical(value, '>>')) {
           replacement.next = new Token(TokenType.GT, next.charOffset + 1);
-          token = rewriter.replaceToken(token.next, replacement);
+          token = rewriter.replaceTokenFollowing(token, replacement);
         } else if (identical(value, '>=')) {
           replacement.next = new Token(TokenType.EQ, next.charOffset + 1);
-          token = rewriter.replaceToken(token.next, replacement);
+          token = rewriter.replaceTokenFollowing(token, replacement);
         } else if (identical(value, '>>=')) {
           replacement.next = new Token(TokenType.GT, next.charOffset + 1);
           replacement.next.next = new Token(TokenType.EQ, next.charOffset + 2);
-          token = rewriter.replaceToken(token.next, replacement);
+          token = rewriter.replaceTokenFollowing(token, replacement);
         } else {
           token = next;
         }
@@ -4329,9 +4329,7 @@ class Parser {
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
                     next.precedingComments),
                 new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
-            // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // `replaceToken` returns the last consumed token.
-            token = rewriter.replaceToken(token.next, replacement).previous;
+            rewriter.replaceTokenFollowing(token, replacement);
             token = parseArgumentOrIndexStar(token, null);
           } else {
             token = reportUnexpectedToken(token.next);
@@ -4688,7 +4686,7 @@ class Parser {
     BeginToken replacement = link(
         new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.offset),
         new Token(TokenType.CLOSE_SQUARE_BRACKET, token.offset + 1));
-    rewriter.replaceToken(beforeToken.next, replacement);
+    rewriter.replaceTokenFollowing(beforeToken, replacement);
     token = replacement.next;
     listener.handleLiteralList(0, replacement, constKeyword, token);
     return token;

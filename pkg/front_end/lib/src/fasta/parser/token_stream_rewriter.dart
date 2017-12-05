@@ -45,13 +45,13 @@ class TokenStreamRewriter {
     return insertedToken;
   }
 
-  /// Replace the single [replacedToken] with the chain of tokens starting at
-  /// the [replacementToken]. The [replacedToken] is assumed to be reachable
-  /// from, but not the same as, the [previousToken].
-  Token replaceToken(Token replacedToken, Token replacementToken) {
-    Token previous = replacedToken.previous;
-    previous.next = replacementToken;
-    replacementToken.previous = previous;
+  /// Replace the single token immediately following the [previousToken] with
+  /// the chain of tokens starting at the [replacementToken]. Return the
+  /// [replacementToken].
+  Token replaceTokenFollowing(Token previousToken, Token replacementToken) {
+    Token replacedToken = previousToken.next;
+    previousToken.next = replacementToken;
+    replacementToken.previous = previousToken;
 
     (replacementToken as SimpleToken).precedingComments =
         replacedToken.precedingComments;
