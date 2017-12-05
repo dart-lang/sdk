@@ -18,8 +18,8 @@ namespace dart {
 namespace bin {
 
 bool Stdin::ReadByte(int* byte) {
-  int c = NO_RETRY_EXPECTED(getchar());
-  if ((c == EOF) && (errno != 0)) {
+  const int c = NO_RETRY_EXPECTED(fgetc(stdin));
+  if ((c == EOF) && (ferror(stdin) != 0)) {
     return false;
   }
   *byte = (c == EOF) ? -1 : c;
