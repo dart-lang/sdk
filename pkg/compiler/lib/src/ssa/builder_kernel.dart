@@ -534,7 +534,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
         }
 
         // TODO(redemption): Try to inline [body].
-        _invokeConstructorBody(body, bodyCallInputs);
+        _invokeConstructorBody(
+            body,
+            bodyCallInputs,
+            _sourceInformationBuilder
+                .buildDeclaration(_elementMap.getMember(constructor)));
       });
     }
 
@@ -553,12 +557,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return false;
   }
 
-  void _invokeConstructorBody(
-      ir.Constructor constructor, List<HInstruction> inputs) {
+  void _invokeConstructorBody(ir.Constructor constructor,
+      List<HInstruction> inputs, SourceInformation sourceInformation) {
     // TODO(sra): Inline the constructor body.
     MemberEntity constructorBody = _elementMap.getConstructorBody(constructor);
     HInvokeConstructorBody invoke = new HInvokeConstructorBody(
-        constructorBody, inputs, commonMasks.nonNullType);
+        constructorBody, inputs, commonMasks.nonNullType, sourceInformation);
     add(invoke);
   }
 
@@ -865,20 +869,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
       FunctionEntity method = _elementMap.getMethod(parent);
       if (!_commonElements.operatorEqHandlesNullArgument(method)) {
         handleIf(
-          visitCondition: () {
-            HParameterValue parameter = parameters.values.first;
-            push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                null, commonMasks.boolType));
-          },
-          visitThen: () {
-            closeAndGotoExit(new HReturn(
-                graph.addConstantBool(false, closedWorld),
-                _sourceInformationBuilder.buildReturn(functionNode)));
-          },
-          visitElse: null,
-          // TODO(27394): Add sourceInformation via
-          // `_sourceInformationBuilder.buildIf(?)`.
-        );
+            visitCondition: () {
+              HParameterValue parameter = parameters.values.first;
+              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
+                  null, commonMasks.boolType));
+            },
+            visitThen: () {
+              closeAndGotoExit(new HReturn(
+                  graph.addConstantBool(false, closedWorld),
+                  _sourceInformationBuilder.buildReturn(functionNode)));
+            },
+            visitElse: null,
+            sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
       }
     }
     functionNode.body.accept(this);
@@ -1675,7 +1677,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label));
+          block.addAtExit(new HBreak.toLabel(label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -1820,17 +1822,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildGoto(node);
     if (localsMap.generateContinueForBreak(node)) {
       if (handler.labels.isNotEmpty) {
-        handler.generateContinue(handler.labels.first);
+        handler.generateContinue(sourceInformation, handler.labels.first);
       } else {
-        handler.generateContinue();
+        handler.generateContinue(sourceInformation);
       }
     } else {
       if (handler.labels.isNotEmpty) {
-        handler.generateBreak(handler.labels.first);
+        handler.generateBreak(sourceInformation, handler.labels.first);
       } else {
-        handler.generateBreak();
+        handler.generateBreak(sourceInformation);
       }
     }
   }
@@ -1904,7 +1908,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
     assert(target.labels.isNotEmpty);
-    handler.generateContinue(target.labels.first);
+    handler.generateContinue(
+        _sourceInformationBuilder.buildGoto(node), target.labels.first);
   }
 
   @override
@@ -2037,17 +2042,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     void buildSwitchCase(ir.SwitchCase switchCase) {
+      SourceInformation caseSourceInformation = sourceInformation;
       if (switchCase != null) {
+        caseSourceInformation = _sourceInformationBuilder.buildGoto(switchCase);
         // Generate 'target = i; break;' for switch case i.
         int index = caseIndex[switchCase];
         HInstruction value = graph.addConstantInt(index, closedWorld);
-        localsHandler.updateLocal(switchTarget, value);
+        localsHandler.updateLocal(switchTarget, value,
+            sourceInformation: caseSourceInformation);
       } else {
         // Generate synthetic default case 'target = null; break;'.
         HInstruction nullValue = graph.addConstantNull(closedWorld);
-        localsHandler.updateLocal(switchTarget, nullValue);
+        localsHandler.updateLocal(switchTarget, nullValue,
+            sourceInformation: caseSourceInformation);
       }
-      jumpTargets[switchTarget].generateBreak();
+      jumpTargets[switchTarget].generateBreak(caseSourceInformation);
     }
 
     _handleSwitch(
@@ -2078,7 +2087,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         if (!isAborted()) {
           // Ensure that we break the loop if the case falls through. (This
           // is only possible for the last case.)
-          jumpTargets[switchTarget].generateBreak();
+          jumpTargets[switchTarget].generateBreak(sourceInformation);
         }
       }
 
@@ -2126,7 +2135,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           node: switchStatement,
           visitCondition: buildCondition,
           visitThen: buildLoop,
-          visitElse: () => {});
+          visitElse: () => {},
+          sourceInformation: sourceInformation);
     }
   }
 
@@ -2182,7 +2192,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // If there is no default, we will add one later to avoid
         // the critical edge. So we generate a break statement to make
         // sure the last case does not fall through to the default case.
-        jumpHandler.generateBreak();
+        jumpHandler.generateBreak(sourceInformation);
       }
       statements.add(
           new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));

@@ -210,7 +210,7 @@ abstract class LoopHandler<T> {
 
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label));
+          block.addAtExit(new HBreak.toLabel(label, sourceInformation));
           block.remove(breakInstruction);
         });
       }

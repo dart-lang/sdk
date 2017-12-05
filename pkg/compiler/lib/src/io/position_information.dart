@@ -350,6 +350,9 @@ class PositionSourceInformationBuilder
 
   @override
   SourceInformation buildSwitchCase(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildGoto(Node node) => buildBegin(node);
 }
 
 /// The start, end and closing offsets for a [js.Node].

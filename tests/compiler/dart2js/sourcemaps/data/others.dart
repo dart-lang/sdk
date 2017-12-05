@@ -10,6 +10,10 @@ main() {
   forLoop(false);
   forInLoop([1]);
   forInLoop([1, 2]);
+  forInLoopBreak([1]);
+  forInLoopBreak([1, 2]);
+  forInLoopContinue([1]);
+  forInLoopContinue([1, 2]);
   forInLoopEmpty([]);
   forInLoopNull(null);
   doLoop(true);
@@ -25,10 +29,19 @@ main() {
   c.captureTwice();
   equals2(c, null);
   equals2(c, c);
+  var c2 = new Class2();
+  c2.field1 = new Class2();
+  c2.field2 = new Class2();
+  c2 == c2.field1;
+  new Class3(87);
   switchStatement(1);
   switchStatement(0);
   switchStatementConst(const Const(0));
   switchStatementConst(const Const(1));
+  switchStatementBreak(0);
+  switchStatementBreak(1);
+  switchStatementBreakContinue(0);
+  switchStatementBreakContinue(1);
   isInt(null);
   isInt(0);
   isDouble(null);
@@ -65,6 +78,24 @@ forLoop(local) {
 
 forInLoop(local) {
   for (var e in local) {
+    print(e);
+  }
+}
+
+forInLoopBreak(local) {
+  for (var e in local) {
+    if (e == 1) {
+      break;
+    }
+    print(e);
+  }
+}
+
+forInLoopContinue(local) {
+  for (var e in local) {
+    if (e == 1) {
+      continue;
+    }
     print(e);
   }
 }
@@ -127,6 +158,24 @@ equals2(a, b) {
   return b != null && a.property1 == b.property1 && a.property2 == b.property2;
 }
 
+class Class2 {
+  var field1;
+  var field2;
+
+  operator ==(other) {
+    return other != null && field1 == other.field1 && field2 == other.field2;
+  }
+}
+
+class Class3 {
+  var field1;
+  var field2;
+
+  Class3(this.field1) {
+    this.field2 = 42;
+  }
+}
+
 switchStatement(a) {
   switch (a) {
     case 0:
@@ -152,6 +201,29 @@ switchStatementConst(a) {
       return 2;
     case const Const(2):
       return 3;
+  }
+}
+
+switchStatementBreak(a) {
+  switch (a) {
+    case 0:
+      break;
+    case 1:
+      return 2;
+    case 2:
+      break;
+  }
+}
+
+switchStatementBreakContinue(a) {
+  switch (a) {
+    case 0:
+      break;
+    label:
+    case 1:
+      return 2;
+    case 2:
+      continue label;
   }
 }
 
