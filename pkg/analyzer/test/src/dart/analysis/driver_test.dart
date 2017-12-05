@@ -1409,7 +1409,7 @@ void main() {
   test_local_function_namedParameters() async {
     addTestFile(r'''
 void main() {
-  double f(int a, {String b, bool c}) {}
+  double f(int a, {String b, bool c: false}) {}
   f(1, b: '2', c: true);
 }
 ''');
@@ -1861,6 +1861,84 @@ void main() {
       expect(bNode.staticElement, same(bElement));
       expect(bNode.staticType, typeProvider.doubleType);
     }
+  }
+
+  test_method_namedParameters() async {
+    addTestFile(r'''
+class C {
+  double f(int a, {String b, bool c: false}) {}
+}
+void g(C c) {
+  c.f(1, b: '2', c: true);
+}
+''');
+    String fTypeString = '(int, {b: String, c: bool}) → double';
+
+    AnalysisResult result = await driver.getResult(testFile);
+    ClassDeclaration classDeclaration = result.unit.declarations[0];
+    MethodDeclaration methodDeclaration = classDeclaration.members[0];
+    MethodElement methodElement = methodDeclaration.element;
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType doubleType = typeProvider.doubleType;
+
+    expect(methodElement, isNotNull);
+    expect(methodElement.type.toString(), fTypeString);
+
+    expect(methodDeclaration.name.staticElement, same(methodElement));
+    expect(methodDeclaration.name.staticType, methodElement.type);
+
+    TypeName fReturnTypeNode = methodDeclaration.returnType;
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.type, doubleType);
+    //
+    // Validate the parameters at the declaration site.
+    //
+    List<ParameterElement> elements = methodElement.parameters;
+    expect(elements, hasLength(3));
+
+    List<FormalParameter> nodes = methodDeclaration.parameters.parameters;
+    expect(nodes, hasLength(3));
+
+    _assertSimpleParameter(nodes[0], elements[0],
+        name: 'a',
+        offset: 25,
+        kind: ParameterKind.REQUIRED,
+        type: typeProvider.intType);
+
+    _assertDefaultParameter(nodes[1], elements[1],
+        name: 'b',
+        offset: 36,
+        kind: ParameterKind.NAMED,
+        type: typeProvider.stringType);
+
+    _assertDefaultParameter(nodes[2], elements[2],
+        name: 'c',
+        offset: 44,
+        kind: ParameterKind.NAMED,
+        type: typeProvider.boolType);
+    //
+    // Validate the arguments at the call site.
+    //
+    FunctionDeclaration functionDeclaration = result.unit.declarations[1];
+    BlockFunctionBody body = functionDeclaration.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression aArgument = arguments[0];
+    ParameterElement aElement = methodElement.parameters[0];
+    expect(aArgument.staticParameterElement, same(aElement));
+
+    NamedExpression bArgument = arguments[1];
+    ParameterElement bElement = methodElement.parameters[1];
+    expect(bArgument.name.label.staticElement, same(bElement));
+    expect(bArgument.staticParameterElement, same(bElement));
+
+    NamedExpression cArgument = arguments[2];
+    ParameterElement cElement = methodElement.parameters[2];
+    expect(cArgument.name.label.staticElement, same(cElement));
+    expect(cArgument.staticParameterElement, same(cElement));
   }
 
   test_methodInvocation_instanceMethod_genericClass() async {
@@ -3044,6 +3122,82 @@ var a = 1;
 
     Expression aValue = aNode.initializer;
     expect(aValue.staticType, typeProvider.intType);
+  }
+
+  test_top_function_namedParameters() async {
+    addTestFile(r'''
+double f(int a, {String b, bool c: false}) {}
+void main() {
+  f(1, b: '2', c: true);
+}
+''');
+    String fTypeString = '(int, {b: String, c: bool}) → double';
+
+    AnalysisResult result = await driver.getResult(testFile);
+    FunctionDeclaration fDeclaration = result.unit.declarations[0];
+    FunctionElement fElement = fDeclaration.element;
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    InterfaceType doubleType = typeProvider.doubleType;
+
+    expect(fElement, isNotNull);
+    expect(fElement.type.toString(), fTypeString);
+
+    expect(fDeclaration.name.staticElement, same(fElement));
+    expect(fDeclaration.name.staticType, fElement.type);
+
+    TypeName fReturnTypeNode = fDeclaration.returnType;
+    expect(fReturnTypeNode.name.staticElement, same(doubleType.element));
+    expect(fReturnTypeNode.type, doubleType);
+    //
+    // Validate the parameters at the declaration site.
+    //
+    List<ParameterElement> elements = fElement.parameters;
+    expect(elements, hasLength(3));
+
+    List<FormalParameter> nodes =
+        fDeclaration.functionExpression.parameters.parameters;
+    expect(nodes, hasLength(3));
+
+    _assertSimpleParameter(nodes[0], elements[0],
+        name: 'a',
+        offset: 13,
+        kind: ParameterKind.REQUIRED,
+        type: typeProvider.intType);
+
+    _assertDefaultParameter(nodes[1], elements[1],
+        name: 'b',
+        offset: 24,
+        kind: ParameterKind.NAMED,
+        type: typeProvider.stringType);
+
+    _assertDefaultParameter(nodes[2], elements[2],
+        name: 'c',
+        offset: 32,
+        kind: ParameterKind.NAMED,
+        type: typeProvider.boolType);
+    //
+    // Validate the arguments at the call site.
+    //
+    FunctionDeclaration mainDeclaration = result.unit.declarations[1];
+    BlockFunctionBody body = mainDeclaration.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    MethodInvocation invocation = statement.expression;
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression aArgument = arguments[0];
+    ParameterElement aElement = fElement.parameters[0];
+    expect(aArgument.staticParameterElement, same(aElement));
+
+    NamedExpression bArgument = arguments[1];
+    ParameterElement bElement = fElement.parameters[1];
+    expect(bArgument.name.label.staticElement, same(bElement));
+    expect(bArgument.staticParameterElement, same(bElement));
+
+    NamedExpression cArgument = arguments[2];
+    ParameterElement cElement = fElement.parameters[2];
+    expect(cArgument.name.label.staticElement, same(cElement));
+    expect(cArgument.staticParameterElement, same(cElement));
   }
 
   void _assertDefaultParameter(

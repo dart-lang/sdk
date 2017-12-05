@@ -747,6 +747,7 @@ class LibraryAnalyzer {
             ExecutableElementImpl context = member.element;
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(context, resolution);
+            member.parameters?.accept(applier);
             member.body.accept(applier);
             applier.applyToAnnotations(member);
             applier.checkDone();

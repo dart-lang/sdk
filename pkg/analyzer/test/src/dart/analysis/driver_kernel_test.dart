@@ -22,6 +22,33 @@ const potentialAnalyzerProblem = const Object();
 class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   bool get previewDart2 => true;
+
+  @failingTest
+  @potentialAnalyzerProblem
+  @override
+  test_local_function_namedParameters() async {
+    // This test is failing because `ResolutionApplier.visitFormalParameterList`
+    // does not yet handle parameters with default values.
+    await super.test_local_function_namedParameters();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  @override
+  test_method_namedParameters() async {
+    // This test is failing because `ResolutionApplier.visitFormalParameterList`
+    // does not yet handle parameters with default values.
+    await super.test_method_namedParameters();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  @override
+  test_top_function_namedParameters() async {
+    // This test is failing because `ResolutionApplier.visitFormalParameterList`
+    // does not yet handle parameters with default values.
+    await super.test_top_function_namedParameters();
+  }
 }
 
 @reflectiveTest
@@ -153,13 +180,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_getResult_errors() async {
     await super.test_getResult_errors();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_getResult_genericFunctionType_parameter_named() async {
-    await super.test_getResult_genericFunctionType_parameter_named();
   }
 
   @failingTest
