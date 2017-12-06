@@ -677,10 +677,10 @@ abstract class Compiler {
   }
 
   /// Compute the [WorldImpact] for accessing all elements in [library].
-  WorldImpact computeImpactForLibrary(LibraryElement library) {
+  WorldImpact computeImpactForLibrary(LibraryEntity library) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
 
-    void registerStaticUse(Element element) {
+    void registerStaticUse(Entity element) {
       impactBuilder.registerStaticUse(new StaticUse.directUse(element));
     }
 
@@ -698,33 +698,45 @@ abstract class Compiler {
       }
     }
 
-    library.implementation.forEachLocalMember(registerElement);
+    if (library is LibraryElement) {
+      library.implementation.forEachLocalMember(registerElement);
 
-    library.imports.forEach((ImportElement import) {
-      if (import.isDeferred) {
-        // `import.prefix` and `loadLibrary` may be `null` when the deferred
-        // import has compile-time errors.
-        GetterElement loadLibrary = import.prefix?.loadLibrary;
-        if (loadLibrary != null) {
-          registerStaticUse(loadLibrary);
+      library.imports.forEach((ImportElement import) {
+        if (import.isDeferred) {
+          // `import.prefix` and `loadLibrary` may be `null` when the deferred
+          // import has compile-time errors.
+          GetterElement loadLibrary = import.prefix?.loadLibrary;
+          if (loadLibrary != null) {
+            registerStaticUse(loadLibrary);
+          }
         }
-      }
-      if (serialization.supportSerialization) {
-        for (MetadataAnnotation metadata in import.metadata) {
-          metadata.ensureResolved(resolution);
-        }
-      }
-    });
-    if (serialization.supportSerialization) {
-      library.exports.forEach((ExportElement export) {
-        for (MetadataAnnotation metadata in export.metadata) {
-          metadata.ensureResolved(resolution);
+        if (serialization.supportSerialization) {
+          for (MetadataAnnotation metadata in import.metadata) {
+            metadata.ensureResolved(resolution);
+          }
         }
       });
-      library.compilationUnits.forEach((CompilationUnitElement unit) {
-        for (MetadataAnnotation metadata in unit.metadata) {
-          metadata.ensureResolved(resolution);
-        }
+      if (serialization.supportSerialization) {
+        library.exports.forEach((ExportElement export) {
+          for (MetadataAnnotation metadata in export.metadata) {
+            metadata.ensureResolved(resolution);
+          }
+        });
+        library.compilationUnits.forEach((CompilationUnitElement unit) {
+          for (MetadataAnnotation metadata in unit.metadata) {
+            metadata.ensureResolved(resolution);
+          }
+        });
+      }
+    } else {
+      ElementEnvironment elementEnvironment =
+          frontendStrategy.elementEnvironment;
+
+      elementEnvironment.forEachLibraryMember(library, registerStaticUse);
+      elementEnvironment.forEachClass(library, (ClassEntity cls) {
+        impactBuilder.registerTypeUse(
+            new TypeUse.instantiation(elementEnvironment.getRawType(cls)));
+        elementEnvironment.forEachLocalClassMember(cls, registerStaticUse);
       });
     }
     return impactBuilder;

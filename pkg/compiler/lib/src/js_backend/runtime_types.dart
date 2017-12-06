@@ -1014,6 +1014,13 @@ class TypeRepresentationGenerator
     return onVariable(type);
   }
 
+  jsAst.Expression visitFunctionTypeVariable(
+      FunctionTypeVariable type, Emitter emitter) {
+    // TODO(johnniwinther): Create a runtime representation for existential
+    // types.
+    return getDynamicValue();
+  }
+
   jsAst.Expression visitDynamicType(DynamicType type, Emitter emitter) {
     return getDynamicValue();
   }

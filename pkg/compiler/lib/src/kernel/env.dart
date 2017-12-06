@@ -751,3 +751,18 @@ class TypedefData {
 
   TypedefData(this.node, this.element, this.rawType);
 }
+
+class TypeVariableData {
+  final ir.TypeParameter node;
+  DartType _bound;
+
+  TypeVariableData(this.node);
+
+  DartType getBound(KernelToElementMap elementMap) {
+    return _bound ??= elementMap.getDartType(node.bound);
+  }
+
+  TypeVariableData copy() {
+    return new TypeVariableData(node);
+  }
+}

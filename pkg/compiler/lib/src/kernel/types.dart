@@ -112,13 +112,11 @@ abstract class _AbstractTypeRelationMixin
 
   @override
   DartType getTypeVariableBound(TypeVariableEntity element) {
-    // TODO(redemption): Compute the bound.
-    return commonElements.objectType;
+    return elementMap.elementEnvironment.getTypeVariableBound(element);
   }
 
   @override
   FunctionType getCallType(InterfaceType type) {
-    // TODO(redemption): Compute the call type.
     return elementMap._getCallType(type);
   }
 
