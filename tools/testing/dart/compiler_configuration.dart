@@ -795,7 +795,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
     }
-
+    if (_isStrong) {
+      args.add('--strong');
+    }
     var dir = artifact.filename;
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
       // On android the precompiled snapshot will be pushed to a different
