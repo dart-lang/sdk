@@ -420,10 +420,13 @@ mirrors/reflected_type_generics_test/02: Pass
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
+async/future_test/01: RuntimeError
+async/future_test/none: RuntimeError
 async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/slow_consumer3_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/slow_consumer_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_controller_async_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/stream_distinct_test: RuntimeError
 async/stream_first_where_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_from_iterable_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/stream_iterator_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -451,7 +454,14 @@ async/timer_isActive_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_not_available_test: RuntimeError
 async/timer_repeat_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
+async/zone_run_unary_test: RuntimeError
+convert/chunked_conversion_json_decode1_test: RuntimeError
+convert/json_chunk_test: RuntimeError
+convert/json_test: RuntimeError
 convert/json_toEncodable_reviver_test: CompileTimeError
+convert/json_utf8_chunk_test: RuntimeError
+convert/streamed_conversion_json_encode1_test: RuntimeError
+convert/streamed_conversion_json_utf8_encode_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
 isolate/compile_time_error_test/01: Crash
 isolate/compile_time_error_test/01: MissingCompileTimeError
@@ -463,6 +473,7 @@ isolate/isolate_current_test: CompileTimeError # Issue 31402 (Invocation argumen
 isolate/isolate_import_test/01: MissingCompileTimeError
 isolate/issue_21398_parent_isolate2_test/01: Skip # Times out. Deferred loading kernel issue 28335.
 isolate/issue_22778_test: Crash
+isolate/kill_self_synchronously_test: RuntimeError
 isolate/kill_test: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/message3_test/byteBuffer: CompileTimeError # Issue 31402 (Invocation arguments)
 isolate/message3_test/constInstance: CompileTimeError # Issue 31402 (Invocation arguments)
