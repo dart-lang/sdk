@@ -227,11 +227,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   void visitIndexExpression(IndexExpression node) {
     node.target.accept(this);
 
-    // Convert the raw element into a member.
-    InterfaceType targetType = node.target.staticType;
+    DartType targetType = node.target.staticType;
     MethodElement element = _getReferenceFor(node.leftBracket);
-    MethodElement member = MethodMember.from(element, targetType);
-    node.staticElement = member;
+
+    // Convert the raw element into a member.
+    if (targetType is InterfaceType) {
+      MethodElement member = MethodMember.from(element, targetType);
+      node.staticElement = member;
+    }
 
     // We cannot use the detached FunctionType of `[]` or `[]=`.
     _getTypeFor(node.leftBracket);

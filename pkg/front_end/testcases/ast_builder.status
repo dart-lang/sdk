@@ -16,7 +16,6 @@ default_values: Crash
 duplicated_named_args_3: Crash
 escape: Crash
 expressions: Crash
-fallthrough: Crash
 function_type_is_check: Crash
 function_type_recovery: Crash
 illegal_named_function_expression: Crash
@@ -29,7 +28,6 @@ inference/bug30251: Crash
 inference/bug30624: Crash
 inference/bug31133: Crash
 inference/call_corner_cases: Crash
-inference/complex_predecrement: Crash
 inference/constructors_infer_from_arguments: Crash
 inference/constructors_infer_from_arguments_redirecting: Crash
 inference/constructors_too_many_positional_arguments: Crash
@@ -96,7 +94,6 @@ inference/generic_methods_infer_js_builtin: Fail
 inference/generic_methods_iterable_and_future: Crash
 inference/generic_methods_nested_generic_instantiation: Crash
 inference/greatest_closure_multiple_params: Crash
-inference/infer_assign_to_index_full: Crash
 inference/infer_assign_to_static: Crash
 inference/infer_correctly_on_multiple_variables_declared_together: Crash
 inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
@@ -123,8 +120,6 @@ inference/infer_types_on_loop_indices_for_each_loop: Crash
 inference/infer_types_on_loop_indices_for_each_loop_async: Crash
 inference/inferred_initializing_formal_checks_default_value: Crash
 inference/inferred_type_cascade: Crash
-inference/inferred_type_custom_index_op: Crash
-inference/inferred_type_custom_index_op_via_interface: Crash
 inference/inferred_type_is_enum: Crash
 inference/inferred_type_is_enum_values: Crash
 inference/inferred_type_is_typedef: Crash
@@ -132,9 +127,6 @@ inference/inferred_type_is_typedef_parameterized: Crash
 inference/inferred_type_uses_synthetic_function_type_named_param: Crash
 inference/inferred_type_uses_synthetic_function_type_positional_param: Crash
 inference/lambda_does_not_have_propagated_type_hint: Crash
-inference/map_literals: Crash
-inference/map_literals_can_infer_null: Crash
-inference/map_literals_top_level: Crash
 inference/method_call_with_type_arguments_static_method: Crash
 inference/parameter_defaults_downwards: Crash
 inference/parameter_defaults_upwards: Crash
@@ -158,22 +150,15 @@ inference/unsafe_block_closure_inference_in_map_dynamic: Crash
 inference/unsafe_block_closure_inference_in_map_typed: Crash
 inference_new/for_each_invalid_iterable: Crash
 inference_new/for_each_outer_var_type: Crash
-inference_new/indexed_assign_combiner: Crash
-inference_new/infer_assign_to_index: Crash
-inference_new/infer_assign_to_index_full: Crash
-inference_new/infer_assign_to_index_set_vs_get: Crash
-inference_new/infer_assign_to_index_upwards: Crash
 inference_new/infer_assign_to_static: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
 invocations: Crash
-local_generic_function: Crash
 metadata_enum: Crash
 metadata_named_mixin_application: Crash
 micro: Crash
 named_parameters: Crash
 null_aware: Crash
-operators: Crash
 optional: Crash
 qualified: Crash
 rasta/abstract_constructor: Crash
@@ -199,7 +184,6 @@ rasta/issue_000067: Crash
 rasta/issue_000068: Crash
 rasta/issue_000069: Crash
 rasta/issue_000070: Crash
-rasta/issue_000081: Crash
 rasta/malformed_function: Crash
 rasta/mandatory_parameter_initializer: VerificationError
 rasta/mixin_library: Crash
@@ -248,8 +232,6 @@ runtime_checks/implicit_downcast_not: Crash
 runtime_checks/implicit_downcast_while: Crash
 runtime_checks_new/contravariant_combiner: Crash
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: Crash
-runtime_checks_new/contravariant_index_assign: Crash
-runtime_checks_new/contravariant_index_get: Crash
 runtime_checks_new/derived_class_typed: Crash
 runtime_checks_new/implicit_downcast_field: Crash
 runtime_checks_new/mixin_forwarding_stub_field: Crash
@@ -261,4 +243,3 @@ super_rasta_copy: Crash
 type_variable_as_super: Crash
 type_variable_prefix: Crash
 uninitialized_fields: Crash
-void_methods: Crash
