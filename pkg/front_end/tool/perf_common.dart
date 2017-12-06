@@ -22,7 +22,15 @@ import 'package:front_end/src/fasta/fasta_codes.dart';
 /// from this set.
 final whitelistMessageCode = new Set<String>.from(<String>[
   // Code names in this list should match the key used in messages.yaml
-  codeInvalidAssignment.name
+  codeInvalidAssignment.name,
+
+  // The following errors are not covered by unit tests in the SDK repo because
+  // they are only seen today in the flutter-gallery benchmark (external to
+  // this repo).
+  codeInvalidCastFunctionExpr.name,
+  codeInvalidCastTopLevelFunction.name,
+  codeUndefinedGetter.name,
+  codeUndefinedMethod.name,
 ]);
 
 onErrorHandler(bool isStrong) => (CompilationMessage m) {
