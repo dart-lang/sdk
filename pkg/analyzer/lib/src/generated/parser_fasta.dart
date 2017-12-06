@@ -162,6 +162,18 @@ abstract class ParserAdapter implements Parser {
   Expression parseConstExpression() => parseExpression2();
 
   @override
+  CompilationUnit parseDirectives(Token token) {
+    currentToken = token;
+    return parseDirectives2();
+  }
+
+  @override
+  CompilationUnit parseDirectives2() {
+    currentToken = fastaParser.parseDirectives(currentToken);
+    return astBuilder.pop();
+  }
+
+  @override
   DottedName parseDottedName() {
     currentToken = fastaParser
         .parseDottedName(fastaParser.syntheticPreviousToken(currentToken))

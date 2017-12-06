@@ -2027,12 +2027,13 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    // TODO(paulberry,ahe,danrubel): analyzer parser has the ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    throw 'fasta parser does not have a method that just parses directives'
-        ' and stops when it finds the first declaration or EOF.';
+    createParser(source);
+    CompilationUnit unit =
+        _parserProxy.parseDirectives(_parserProxy.currentToken);
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(0));
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
   }
 
   @override

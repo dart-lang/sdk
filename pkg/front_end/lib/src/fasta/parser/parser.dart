@@ -304,7 +304,7 @@ class Parser {
     DirectiveContext directiveState = new DirectiveContext();
     token = syntheticPreviousToken(token);
     while (!token.next.isEof) {
-      Token start = token.next;
+      final Token start = token.next;
       token = parseTopLevelDeclarationImpl(token, directiveState);
       listener.endTopLevelDeclaration(token.next);
       count++;
@@ -318,6 +318,65 @@ class Parser {
         listener.endTopLevelDeclaration(token.next);
         count++;
       }
+    }
+    token = token.next;
+    listener.endCompilationUnit(count, token);
+    // Clear fields that could lead to memory leak.
+    cachedRewriter = null;
+    return token;
+  }
+
+  /// This method exists for analyzer compatibility only
+  /// and will be removed once analyzer/fasta integration is complete.
+  ///
+  /// Similar to [parseUnit], this method parses a compilation unit,
+  /// but stops when it reaches the first declaration or EOF.
+  ///
+  /// This method is only invoked from outside the parser. As a result, this
+  /// method takes the next token to be consumed rather than the last consumed
+  /// token and returns the token after the last consumed token rather than the
+  /// last consumed token.
+  Token parseDirectives(Token token) {
+    listener.beginCompilationUnit(token);
+    int count = 0;
+    DirectiveContext directiveState = new DirectiveContext();
+    token = syntheticPreviousToken(token);
+    while (!token.next.isEof) {
+      final Token start = token.next;
+      final String value = start.stringValue;
+      final String nextValue = start.next.stringValue;
+
+      // If a built-in keyword is being used as function name, then stop.
+      if (identical(nextValue, '.') ||
+          identical(nextValue, '<') ||
+          identical(nextValue, '(')) {
+        break;
+      }
+
+      if (identical(token.next.type, TokenType.SCRIPT_TAG)) {
+        directiveState?.checkScriptTag(this, token.next);
+        token = parseScript(token);
+      } else {
+        token = parseMetadataStar(token);
+        if (identical(value, 'import')) {
+          directiveState?.checkImport(this, token);
+          token = parseImport(token);
+        } else if (identical(value, 'export')) {
+          directiveState?.checkExport(this, token);
+          token = parseExport(token);
+        } else if (identical(value, 'library')) {
+          directiveState?.checkLibrary(this, token);
+          token = parseLibraryName(token);
+        } else if (identical(value, 'part')) {
+          token = parsePartOrPartOf(token, directiveState);
+        } else if (identical(value, ';')) {
+          token = start;
+        } else {
+          listener.handleDirectivesOnly();
+          break;
+        }
+      }
+      listener.endTopLevelDeclaration(token.next);
     }
     token = token.next;
     listener.endCompilationUnit(count, token);
