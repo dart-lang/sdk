@@ -43,10 +43,30 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   }
 
   @override
+  void collectConstantsFromMetadata(
+      Entity element, Set<ConstantValue> constants) {
+    // Nothing to do. Kernel-pipeline doesn't support mirrors, so we don't need
+    // to track any constants from meta-data.
+  }
+
+  @override
   void collectConstantsInBody(
       covariant MemberEntity element, Set<ConstantValue> constants) {
     ir.Member node = _elementMap.getMemberDefinition(element).node;
-    node.accept(new ConstantCollector(_elementMap, constants));
+
+    // Fetch the internal node in order to skip annotations on the member.
+    // TODO(sigmund): replace this pattern when the kernel-ast provides a better
+    // way to skip annotations (issue 31565).
+    var visitor = new ConstantCollector(_elementMap, constants);
+    if (node is ir.Field) {
+      node.initializer?.accept(visitor);
+      return;
+    }
+
+    if (node is ir.Constructor) {
+      node.initializers.forEach((i) => i.accept(visitor));
+    }
+    node.function?.accept(visitor);
   }
 
   /// Adds extra dependencies coming from mirror usage.
