@@ -15,6 +15,8 @@ import 'element_map.dart';
 
 class KernelDeferredLoadTask extends DeferredLoadTask {
   KernelToElementMapForImpact _elementMap;
+  Map<ir.Library, Set<ir.Member>> _additionalExportsSets =
+      <ir.Library, Set<ir.Member>>{};
 
   KernelDeferredLoadTask(Compiler compiler, this._elementMap) : super(compiler);
 
@@ -28,8 +30,7 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
       if (dependency.isExport) continue;
       if (!_isVisible(dependency.combinators, member.name.name)) continue;
       if (member.enclosingLibrary == dependency.targetLibrary ||
-          dependency.targetLibrary.additionalExports
-              .any((ir.Reference ref) => ref.node == member)) {
+          additionalExports(dependency.targetLibrary).contains(member)) {
         imports.add(_elementMap.getImport(dependency));
       }
     }
@@ -62,6 +63,16 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
       WorkQueue queue, LibraryEntity root, ImportSet newSet) {
     throw new UnsupportedError(
         "KernelDeferredLoadTask.addMirrorElementsForLibrary");
+  }
+
+  Set<ir.Member> additionalExports(ir.Library library) {
+    return _additionalExportsSets[library] ??= new Set<ir.Member>.from(
+        library.additionalExports.map((ir.Reference ref) => ref.node));
+  }
+
+  @override
+  void cleanup() {
+    _additionalExportsSets = null;
   }
 }
 

@@ -688,9 +688,13 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     _elementToSet = null;
     _constantToSet = null;
+    cleanup();
     return new OutputUnitData(this.isProgramSplit, this.mainOutputUnit,
         entityMap, constantMap, importSets);
   }
+
+  /// Frees up strategy-specific temporary data.
+  void cleanup() {}
 
   void beforeResolution(LibraryEntity mainLibrary) {
     if (mainLibrary == null) return;
