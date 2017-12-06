@@ -148,6 +148,7 @@ inference_new/for_each_outer_var_type: Crash
 inference_new/infer_assign_to_static: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash
 inference_new/unsafe_block_closure_inference_function_call_explicit_type_param_via_expr2: Crash
+invalid_cast: Crash
 invocations: Crash
 metadata_enum: Crash
 metadata_named_mixin_application: Crash

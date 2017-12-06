@@ -159,6 +159,9 @@ compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_o_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
+compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31402 (Field declaration)
 conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_string_test: DartkCompileTimeError
@@ -352,7 +355,6 @@ field_method4_test: MissingCompileTimeError
 field_override2_test: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-field_override_test/none: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
 final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
 final_for_in_variable_test: MissingCompileTimeError
@@ -545,7 +547,7 @@ if_null_assignment_behavior_test/13: MissingCompileTimeError
 if_null_assignment_behavior_test/15: MissingCompileTimeError
 if_null_evaluation_order_test: Pass
 if_null_precedence_test/none: RuntimeError
-implicit_downcast_during_function_literal_arrow_test: RuntimeError # Issue #31436
+implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue 31537
 implicit_downcast_during_return_async_test: RuntimeError
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/02: MissingCompileTimeError
@@ -764,7 +766,6 @@ named_parameters_test/07: MissingCompileTimeError
 named_parameters_test/08: MissingCompileTimeError
 named_parameters_test/09: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
-named_parameters_type_test/01: MissingCompileTimeError
 nested_generic_closure_test: RuntimeError
 new_expression_type_args_test/00: MissingCompileTimeError
 new_expression_type_args_test/01: MissingCompileTimeError
@@ -865,8 +866,6 @@ override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
 part2_test/01: MissingCompileTimeError
-positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: MissingCompileTimeError
 prefix16_test/00: MissingCompileTimeError
 prefix16_test/01: MissingCompileTimeError
 prefix22_test/00: MissingCompileTimeError
@@ -971,15 +970,15 @@ type_parameter_test/06: MissingCompileTimeError
 type_parameter_test/07: MissingCompileTimeError
 type_parameter_test/08: MissingCompileTimeError
 type_parameter_test/09: MissingCompileTimeError
-type_promotion_functions_test/02: RuntimeError # Issue 31402 (Variable declaration)
-type_promotion_functions_test/03: RuntimeError # Issue 31402 (Variable declaration)
-type_promotion_functions_test/04: RuntimeError # Issue 31402 (Variable declaration)
-type_promotion_functions_test/09: RuntimeError # Issue 31402 (Variable declaration)
-type_promotion_functions_test/11: RuntimeError # Issue 31402 (Variable declaration)
-type_promotion_functions_test/12: RuntimeError # Issue 31402 (Variable declaration)
-type_promotion_functions_test/13: RuntimeError # Issue 31402 (Variable declaration)
-type_promotion_functions_test/14: RuntimeError # Issue 31402 (Variable declaration)
-type_promotion_functions_test/none: RuntimeError # Issue 31402 (Variable declaration)
+type_promotion_functions_test/02: CompileTimeError # Issue 31537
+type_promotion_functions_test/03: CompileTimeError # Issue 31537
+type_promotion_functions_test/04: CompileTimeError # Issue 31537
+type_promotion_functions_test/09: CompileTimeError # Issue 31537
+type_promotion_functions_test/11: CompileTimeError # Issue 31537
+type_promotion_functions_test/12: CompileTimeError # Issue 31537
+type_promotion_functions_test/13: CompileTimeError # Issue 31537
+type_promotion_functions_test/14: CompileTimeError # Issue 31537
+type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 type_variable_bounds2_test: MissingCompileTimeError
@@ -1019,7 +1018,6 @@ vm/optimized_guarded_field_isolates_test: RuntimeError # Issue 31402 (Variable d
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
-vm/type_vm_test/27: MissingCompileTimeError
 vm/type_vm_test/none: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
@@ -1346,6 +1344,9 @@ compile_time_constant_o_test/02: MissingCompileTimeError
 compile_time_constant_o_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
+compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31402 (Field declaration)
 conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -1537,7 +1538,6 @@ field_override2_test: MissingCompileTimeError
 field_override_optimization_test: RuntimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-field_override_test/none: MissingCompileTimeError
 field_type_check2_test/01: MissingRuntimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError # Issue 29900
 final_attempt_reinitialization_test/02: MissingCompileTimeError # Issue 29900
@@ -1766,7 +1766,7 @@ implicit_downcast_during_do_test: Pass # Correctly passes.
 implicit_downcast_during_for_condition_test: Pass # Correctly passes.
 implicit_downcast_during_for_initializer_expression_test: Pass # Correctly passes.
 implicit_downcast_during_for_initializer_var_test: Pass # Correctly passes.
-implicit_downcast_during_function_literal_arrow_test: RuntimeError # Issue #31436
+implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue 31537
 implicit_downcast_during_if_null_assignment_test: Pass # Correctly passes.
 implicit_downcast_during_if_statement_test: Pass # Correctly passes.
 implicit_downcast_during_list_literal_test: Pass # Correctly passes.
@@ -2023,7 +2023,6 @@ named_parameters_test/07: MissingCompileTimeError
 named_parameters_test/08: MissingCompileTimeError
 named_parameters_test/09: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
-named_parameters_type_test/01: Crash
 named_parameters_type_test/01: MissingCompileTimeError
 nested_generic_closure_test: Crash
 nested_generic_closure_test: RuntimeError
@@ -2137,9 +2136,7 @@ override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
 part2_test/01: MissingCompileTimeError
-positional_parameters_type_test/01: Crash
 positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: Crash
 positional_parameters_type_test/02: MissingCompileTimeError
 positional_parameters_type_test/none: Crash
 positional_parameters_type_test/none: Pass
@@ -2244,15 +2241,15 @@ type_parameter_test/06: MissingCompileTimeError
 type_parameter_test/07: MissingCompileTimeError
 type_parameter_test/08: MissingCompileTimeError
 type_parameter_test/09: MissingCompileTimeError
-type_promotion_functions_test/02: RuntimeError
-type_promotion_functions_test/03: RuntimeError
-type_promotion_functions_test/04: RuntimeError
-type_promotion_functions_test/09: RuntimeError
-type_promotion_functions_test/11: RuntimeError
-type_promotion_functions_test/12: RuntimeError
-type_promotion_functions_test/13: RuntimeError
-type_promotion_functions_test/14: RuntimeError
-type_promotion_functions_test/none: RuntimeError
+type_promotion_functions_test/02: CompileTimeError # Issue 31537
+type_promotion_functions_test/03: CompileTimeError # Issue 31537
+type_promotion_functions_test/04: CompileTimeError # Issue 31537
+type_promotion_functions_test/09: CompileTimeError # Issue 31537
+type_promotion_functions_test/11: CompileTimeError # Issue 31537
+type_promotion_functions_test/12: CompileTimeError # Issue 31537
+type_promotion_functions_test/13: CompileTimeError # Issue 31537
+type_promotion_functions_test/14: CompileTimeError # Issue 31537
+type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 type_variable_bounds2_test: MissingCompileTimeError

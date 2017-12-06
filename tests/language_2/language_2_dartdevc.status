@@ -310,9 +310,10 @@ compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
 compile_time_constant_static4_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/13: MissingCompileTimeError
-compile_time_constant_static5_test/18: MissingCompileTimeError
+compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/23: CompileTimeError # Issue 31537
 config_import_test: CompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
@@ -405,7 +406,6 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-field_override_test/none: MissingCompileTimeError
 final_attempt_reinitialization_test/01: Crash
 final_attempt_reinitialization_test/02: Crash
 final_syntax_test/09: Crash
@@ -498,12 +498,14 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
+implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue 31537
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
+issue13179_test: CompileTimeError # Issue 31537
 issue18628_2_test/01: MissingCompileTimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
@@ -655,7 +657,6 @@ named_parameters_test/04: MissingCompileTimeError
 named_parameters_test/06: MissingCompileTimeError
 named_parameters_test/08: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
-named_parameters_type_test/01: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
@@ -716,8 +717,6 @@ override_inheritance_no_such_method_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/10: MissingCompileTimeError
 override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
-positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
@@ -768,6 +767,15 @@ syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 try_catch_test/01: MissingCompileTimeError
+type_promotion_functions_test/02: CompileTimeError # Issue 31537
+type_promotion_functions_test/03: CompileTimeError # Issue 31537
+type_promotion_functions_test/04: CompileTimeError # Issue 31537
+type_promotion_functions_test/09: CompileTimeError # Issue 31537
+type_promotion_functions_test/11: CompileTimeError # Issue 31537
+type_promotion_functions_test/12: CompileTimeError # Issue 31537
+type_promotion_functions_test/13: CompileTimeError # Issue 31537
+type_promotion_functions_test/14: CompileTimeError # Issue 31537
+type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 type_variable_bounds2_test: MissingCompileTimeError
@@ -943,7 +951,6 @@ yieldstar_pause_test: Skip # Times out
 
 [ $compiler == dartdevk && $runtime != none ]
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-compile_time_constant_static5_test/23: RuntimeError # Type 'A' is not a subtype of type 'B', issue 30546
 conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
 conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 constant_string_interpolation2_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
@@ -991,8 +998,6 @@ generic_method_types_test/02: RuntimeError
 generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
 generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
-implicit_downcast_during_function_literal_arrow_test: RuntimeError
-issue13179_test: RuntimeError
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
 library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
@@ -1022,13 +1027,4 @@ regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
-type_promotion_functions_test/02: RuntimeError
-type_promotion_functions_test/03: RuntimeError
-type_promotion_functions_test/04: RuntimeError
-type_promotion_functions_test/09: RuntimeError
-type_promotion_functions_test/11: RuntimeError
-type_promotion_functions_test/12: RuntimeError
-type_promotion_functions_test/13: RuntimeError
-type_promotion_functions_test/14: RuntimeError
-type_promotion_functions_test/none: RuntimeError
 yieldstar_pause_test: Timeout

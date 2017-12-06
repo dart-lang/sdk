@@ -2367,6 +2367,276 @@ const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
     tip: r"""Try removing the keyword, or use a for-each statement.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateInvalidCastFunctionExpr = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The function expression type '#type' isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the function expression or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastFunctionExpr);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastFunctionExpr =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastFunctionExpr", templateInvalidCastFunctionExpr,
+        analyzerCode: "INVALID_CAST_FUNCTION_EXPR", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastFunctionExpr(DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeInvalidCastFunctionExpr,
+      message:
+          """The function expression type '$type' isn't of expected type '$type2'.""",
+      tip: """Change the type of the function expression or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateInvalidCastLiteralList = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The list literal type '#type' isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the list literal or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastLiteralList);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastLiteralList =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastLiteralList", templateInvalidCastLiteralList,
+        analyzerCode: "INVALID_CAST_LITERAL_LIST", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastLiteralList(DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeInvalidCastLiteralList,
+      message:
+          """The list literal type '$type' isn't of expected type '$type2'.""",
+      tip:
+          """Change the type of the list literal or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateInvalidCastLiteralMap = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The map literal type '#type' isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the map literal or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastLiteralMap);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastLiteralMap =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastLiteralMap", templateInvalidCastLiteralMap,
+        analyzerCode: "INVALID_CAST_LITERAL_MAP", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastLiteralMap(DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeInvalidCastLiteralMap,
+      message:
+          """The map literal type '$type' isn't of expected type '$type2'.""",
+      tip:
+          """Change the type of the map literal or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateInvalidCastLocalFunction = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The local function has type '#type' that isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the function or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastLocalFunction);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastLocalFunction =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastLocalFunction", templateInvalidCastLocalFunction,
+        analyzerCode: "INVALID_CAST_FUNCTION", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastLocalFunction(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeInvalidCastLocalFunction,
+      message:
+          """The local function has type '$type' that isn't of expected type '$type2'.""",
+      tip: """Change the type of the function or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateInvalidCastNewExpr = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The constructor returns type '#type' that isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the object being constructed or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastNewExpr);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastNewExpr =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastNewExpr", templateInvalidCastNewExpr,
+        analyzerCode: "INVALID_CAST_NEW_EXPR", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastNewExpr(DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeInvalidCastNewExpr,
+      message:
+          """The constructor returns type '$type' that isn't of expected type '$type2'.""",
+      tip: """Change the type of the object being constructed or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateInvalidCastStaticMethod = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The static method has type '#type' that isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the method or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastStaticMethod);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastStaticMethod =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastStaticMethod", templateInvalidCastStaticMethod,
+        analyzerCode: "INVALID_CAST_METHOD", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastStaticMethod(DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeInvalidCastStaticMethod,
+      message:
+          """The static method has type '$type' that isn't of expected type '$type2'.""",
+      tip: """Change the type of the method or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        DartType _type,
+        DartType
+            _type2)> templateInvalidCastTopLevelFunction = const Template<
+        Message Function(DartType _type, DartType _type2)>(
+    messageTemplate:
+        r"""The top level function has type '#type' that isn't of expected type '#type2'.""",
+    tipTemplate:
+        r"""Change the type of the function or the context in which it is used.""",
+    withArguments: _withArgumentsInvalidCastTopLevelFunction);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeInvalidCastTopLevelFunction =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+        "InvalidCastTopLevelFunction", templateInvalidCastTopLevelFunction,
+        analyzerCode: "INVALID_CAST_FUNCTION", dart2jsCode: "*ignored*");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInvalidCastTopLevelFunction(
+    DartType _type, DartType _type2) {
+  NameSystem nameSystem = new NameSystem();
+  StringBuffer buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type);
+  String type = '$buffer';
+
+  buffer = new StringBuffer();
+  new Printer(buffer, syntheticNames: nameSystem).writeNode(_type2);
+  String type2 = '$buffer';
+
+  return new Message(codeInvalidCastTopLevelFunction,
+      message:
+          """The top level function has type '$type' that isn't of expected type '$type2'.""",
+      tip: """Change the type of the function or the context in which it is used.""",
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeInvalidInitializer = messageInvalidInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -53,7 +53,7 @@ async/timer_isActive_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_not_available_test: RuntimeError
 async/timer_repeat_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/zone_run_unary_test: RuntimeError # Issue 31402 (Variable declaration)
+async/zone_run_unary_test: CompileTimeError # Issue 31537
 convert/streamed_conversion_json_utf8_decode_test: DartkCompileTimeError
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow # Infrequent timeouts.
 html/*: DartkCompileTimeError
@@ -118,7 +118,7 @@ mirrors/constructor_optional_args_test: CompileTimeError
 mirrors/constructor_optional_args_test: Crash # Issue 29201
 mirrors/constructor_private_name_test: RuntimeError
 mirrors/constructors_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/dart2js_mirrors_test: Crash
+mirrors/dart2js_mirrors_test: CompileTimeError # Issue 31537
 mirrors/deferred_mirrors_metadata_test: CompileTimeError # Deferred loading kernel issue 28335.
 mirrors/deferred_mirrors_metadata_test: RuntimeError
 mirrors/deferred_mirrors_metatarget_test: CompileTimeError # Deferred loading kernel issue 28335.
@@ -204,7 +204,7 @@ mirrors/mirrors_nsm_mismatch_test: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/none: CompileTimeError # Issue 31533
 mirrors/mirrors_reader_test: Crash
-mirrors/mirrors_test: Crash
+mirrors/mirrors_test: CompileTimeError # Issue 31537
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/mirrors_used_inheritance_test: RuntimeError
 mirrors/mirrors_used_typedef_declaration_test/01: RuntimeError
@@ -252,8 +252,8 @@ mirrors/return_type_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/static_members_easier_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/static_members_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/static_test: CompileTimeError # Issue 31402 (Invocation arguments)
-mirrors/symbol_validation_test/01: RuntimeError
-mirrors/symbol_validation_test/none: RuntimeError
+mirrors/symbol_validation_test/01: CompileTimeError # Issue 31537
+mirrors/symbol_validation_test/none: CompileTimeError # Issue 31537
 mirrors/synthetic_accessor_properties_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/type_variable_is_static_test: RuntimeError
 mirrors/type_variable_owner_test/01: RuntimeError
@@ -454,7 +454,7 @@ async/timer_isActive_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_not_available_test: RuntimeError
 async/timer_repeat_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_test: CompileTimeError # Issue 31402 (Invocation arguments)
-async/zone_run_unary_test: RuntimeError
+async/zone_run_unary_test: CompileTimeError # Issue 31537
 convert/chunked_conversion_json_decode1_test: RuntimeError
 convert/json_chunk_test: RuntimeError
 convert/json_test: RuntimeError

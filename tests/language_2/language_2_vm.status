@@ -349,6 +349,15 @@ initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 instanceof2_test: RuntimeError
 interface_test/00: MissingCompileTimeError
+invalid_cast_test/01: MissingCompileTimeError
+invalid_cast_test/02: MissingCompileTimeError
+invalid_cast_test/03: MissingCompileTimeError
+invalid_cast_test/04: MissingCompileTimeError
+invalid_cast_test/07: MissingCompileTimeError
+invalid_cast_test/08: MissingCompileTimeError
+invalid_cast_test/09: MissingCompileTimeError
+invalid_cast_test/10: MissingCompileTimeError
+invalid_cast_test/11: MissingCompileTimeError
 least_upper_bound_expansive_test/none: CompileTimeError
 least_upper_bound_test/03: MissingCompileTimeError
 least_upper_bound_test/04: MissingCompileTimeError

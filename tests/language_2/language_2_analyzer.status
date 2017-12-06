@@ -478,6 +478,15 @@ constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
 int64_literal_test/03: MissingCompileTimeError
 int64_literal_test/30: MissingCompileTimeError
+invalid_cast_test/01: MissingCompileTimeError
+invalid_cast_test/02: MissingCompileTimeError
+invalid_cast_test/03: MissingCompileTimeError
+invalid_cast_test/04: MissingCompileTimeError
+invalid_cast_test/07: MissingCompileTimeError
+invalid_cast_test/08: MissingCompileTimeError
+invalid_cast_test/09: MissingCompileTimeError
+invalid_cast_test/10: MissingCompileTimeError
+invalid_cast_test/11: MissingCompileTimeError
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError

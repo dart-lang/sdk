@@ -791,6 +791,15 @@ implicit_downcast_during_yield_test: RuntimeError
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+invalid_cast_test/01: MissingCompileTimeError
+invalid_cast_test/02: MissingCompileTimeError
+invalid_cast_test/03: MissingCompileTimeError
+invalid_cast_test/04: MissingCompileTimeError
+invalid_cast_test/07: MissingCompileTimeError
+invalid_cast_test/08: MissingCompileTimeError
+invalid_cast_test/09: MissingCompileTimeError
+invalid_cast_test/10: MissingCompileTimeError
+invalid_cast_test/11: MissingCompileTimeError
 many_generic_instanceof_test: RuntimeError
 map_literal8_test: RuntimeError
 mixin_forwarding_constructor4_test/01: MissingCompileTimeError # Issue 15101
@@ -2927,6 +2936,15 @@ implicit_downcast_during_return_async_test: RuntimeError
 implicit_downcast_during_super_initializer_test: RuntimeError
 implicit_downcast_during_yield_star_test: RuntimeError
 implicit_downcast_during_yield_test: RuntimeError
+invalid_cast_test/01: MissingCompileTimeError
+invalid_cast_test/02: MissingCompileTimeError
+invalid_cast_test/03: MissingCompileTimeError
+invalid_cast_test/04: MissingCompileTimeError
+invalid_cast_test/07: MissingCompileTimeError
+invalid_cast_test/08: MissingCompileTimeError
+invalid_cast_test/09: MissingCompileTimeError
+invalid_cast_test/10: MissingCompileTimeError
+invalid_cast_test/11: MissingCompileTimeError
 object_has_no_call_method_test/02: MissingCompileTimeError
 object_has_no_call_method_test/05: MissingCompileTimeError
 object_has_no_call_method_test/08: MissingCompileTimeError

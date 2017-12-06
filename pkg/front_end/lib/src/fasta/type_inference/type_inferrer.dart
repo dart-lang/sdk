@@ -23,11 +23,13 @@ import 'package:kernel/ast.dart'
         AsyncMarker,
         BottomType,
         Class,
+        ConstructorInvocation,
         DartType,
         DispatchCategory,
         DynamicType,
         Expression,
         Field,
+        FunctionExpression,
         FunctionNode,
         FunctionType,
         Initializer,
@@ -35,6 +37,7 @@ import 'package:kernel/ast.dart'
         InvocationExpression,
         Let,
         ListLiteral,
+        MapLiteral,
         Member,
         MethodInvocation,
         Name,
@@ -44,6 +47,7 @@ import 'package:kernel/ast.dart'
         PropertySet,
         ReturnStatement,
         Statement,
+        StaticGet,
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
@@ -51,6 +55,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
+        VariableGet,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -410,13 +415,24 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           parent?.replaceChild(expression, errorNode);
           return errorNode;
         } else {
-          // Insert an implicit downcast.
-          var parent = expression.parent;
-          var typeCheck = new AsExpression(expression, expectedType)
-            ..isTypeError = true
-            ..fileOffset = fileOffset;
-          parent?.replaceChild(expression, typeCheck);
-          return typeCheck;
+          var template = _getPreciseTypeErrorTemplate(expression);
+          if (template != null) {
+            // The type of the expression is known precisely, so an implicit
+            // downcast is guaranteed to fail.  Insert a compile-time error.
+            var parent = expression.parent;
+            var errorNode = helper.wrapInCompileTimeError(
+                expression, template.withArguments(actualType, expectedType));
+            parent?.replaceChild(expression, errorNode);
+            return errorNode;
+          } else {
+            // Insert an implicit downcast.
+            var parent = expression.parent;
+            var typeCheck = new AsExpression(expression, expectedType)
+              ..isTypeError = true
+              ..fileOffset = fileOffset;
+            parent?.replaceChild(expression, typeCheck);
+            return typeCheck;
+          }
         }
       } else {
         return null;
@@ -1402,5 +1418,49 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     return classHierarchy.getInterfaceMember(class_, name, setter: setter);
+  }
+
+  /// Determines if the given [expression]'s type is precisely known at compile
+  /// time.
+  ///
+  /// If it is, an error message template is returned, which can be used by the
+  /// caller to report an invalid cast.  Otherwise, `null` is returned.
+  Template<Message Function(DartType, DartType)> _getPreciseTypeErrorTemplate(
+      Expression expression) {
+    if (expression is ListLiteral) {
+      return templateInvalidCastLiteralList;
+    }
+    if (expression is MapLiteral) {
+      return templateInvalidCastLiteralMap;
+    }
+    if (expression is FunctionExpression) {
+      return templateInvalidCastFunctionExpr;
+    }
+    if (expression is ConstructorInvocation) {
+      if (ShadowConstructorInvocation.isRedirected(expression)) {
+        return null;
+      } else {
+        return templateInvalidCastNewExpr;
+      }
+    }
+    if (expression is StaticGet) {
+      var target = expression.target;
+      if (target is Procedure && target.kind == ProcedureKind.Method) {
+        if (target.enclosingClass != null) {
+          return templateInvalidCastStaticMethod;
+        } else {
+          return templateInvalidCastTopLevelFunction;
+        }
+      }
+      return null;
+    }
+    if (expression is VariableGet) {
+      var variable = expression.variable;
+      if (variable is ShadowVariableDeclaration &&
+          ShadowVariableDeclaration.isLocalFunction(variable)) {
+        return templateInvalidCastLocalFunction;
+      }
+    }
+    return null;
   }
 }

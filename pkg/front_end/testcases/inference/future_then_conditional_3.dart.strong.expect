@@ -18,7 +18,7 @@ static method test() → void {
   self::MyFuture<core::int> t2 = f.{self::MyFuture::then}<core::int>((core::bool x) → asy::Future<core::int> async {
     return (await x ?{core::Object} 2 : asy::Future::value<core::int>(3)) as{TypeError} asy::FutureOr<core::int>;
   });
-  self::MyFuture<core::int> t5 = f.{self::MyFuture::then}<core::int>(((core::bool x) → core::Object => x ?{core::Object} 2 : asy::Future::value<core::int>(3)) as{TypeError} (core::bool) → asy::FutureOr<core::int>);
+  self::MyFuture<core::int> t5 = f.{self::MyFuture::then}<core::int>(let final dynamic #t1 = (core::bool x) → core::Object => x ?{core::Object} 2 : asy::Future::value<core::int>(3) in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/future_then_conditional_3.dart:28:30: Error: The function expression type '(dart.core::bool) \u8594 dart.core::Object' isn't of expected type '(dart.core::bool) \u8594 dart.async::FutureOr<dart.core::int>'.\nChange the type of the function expression or the context in which it is used.\n      /*@returnType=Object*/ (/*@type=bool*/ x) =>\n                             ^")));
   self::MyFuture<core::int> t6 = f.{self::MyFuture::then}<core::int>((core::bool x) → asy::FutureOr<core::int> {
     return (x ?{core::Object} 2 : asy::Future::value<core::int>(3)) as{TypeError} asy::FutureOr<core::int>;
   });

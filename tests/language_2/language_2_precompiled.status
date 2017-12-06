@@ -431,6 +431,15 @@ instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
 interface_test/00: MissingCompileTimeError
+invalid_cast_test/01: MissingCompileTimeError
+invalid_cast_test/02: MissingCompileTimeError
+invalid_cast_test/03: MissingCompileTimeError
+invalid_cast_test/04: MissingCompileTimeError
+invalid_cast_test/07: MissingCompileTimeError
+invalid_cast_test/08: MissingCompileTimeError
+invalid_cast_test/09: MissingCompileTimeError
+invalid_cast_test/10: MissingCompileTimeError
+invalid_cast_test/11: MissingCompileTimeError
 invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign
 invocation_mirror_invoke_on_test: SkipByDesign

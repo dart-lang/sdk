@@ -277,6 +277,9 @@ html/js_dart_to_string_test: SkipByDesign
 html/js_interop_1_test: SkipByDesign
 html/js_function_getter_trust_types_test: SkipByDesign
 
+[ $compiler == dart2js && $dart2js_with_kernel ]
+async/zone_run_unary_test: Crash
+
 [ $compiler == dart2js && $dart2js_with_kernel && $host_checked ]
 html/async_spawnuri_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
 html/async_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.

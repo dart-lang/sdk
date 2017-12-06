@@ -124,3 +124,6 @@ html/css_test: Pass, RuntimeError # Issue 31019
 
 [ $compiler == dartdevc && $system == windows ]
 html/xhr_test/xhr: Skip # Times out. Issue 21527
+
+[ $compiler == dartdevk ]
+async/zone_run_unary_test: CompileTimeError # Issue 31537

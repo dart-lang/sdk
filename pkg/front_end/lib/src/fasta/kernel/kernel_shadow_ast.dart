@@ -595,6 +595,15 @@ class ShadowConstructorInvocation extends ConstructorInvocation
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
   }
+
+  /// Determines whether the given [ShadowConstructorInvocation] represents an
+  /// invocation of a redirected factory constructor.
+  ///
+  /// This is static to avoid introducing a method that would be visible to the
+  /// kernel.
+  static bool isRedirected(ShadowConstructorInvocation expression) {
+    return !identical(expression._initialTarget, expression.target);
+  }
 }
 
 /// Concrete shadow object representing a continue statement from a switch
@@ -2417,6 +2426,14 @@ class ShadowVariableDeclaration extends VariableDeclaration
   /// the kernel.
   static bool isImplicitlyTyped(ShadowVariableDeclaration variable) =>
       variable._implicitlyTyped;
+
+  /// Determines whether the given [ShadowVariableDeclaration] represents a
+  /// local function.
+  ///
+  /// This is static to avoid introducing a method that would be visible to the
+  /// kernel.
+  static bool isLocalFunction(ShadowVariableDeclaration variable) =>
+      variable._isLocalFunction;
 }
 
 /// Concrete shadow object representing a read from a variable in kernel form.
