@@ -88,7 +88,7 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31555')
   @override
   test_const_implicitSuperConstructorInvocation() async {
     await super.test_const_implicitSuperConstructorInvocation();
