@@ -1011,7 +1011,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     Token covariantKeyword = modifiers?.covariantKeyword;
-    List<Annotation> metadata = pop(); // TODO(paulberry): Metadata.
+    List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
 

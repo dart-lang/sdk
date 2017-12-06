@@ -5101,8 +5101,43 @@ class Parser {
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
       if (!optional(',', next)) {
-        token = ensureCloseParen(token, begin);
-        break;
+        if (optional(')', next)) {
+          token = next;
+          break;
+        }
+        // Recovery
+        // TODO(danrubel): Consider using isPostIdentifierForRecovery
+        // and isStartOfNextSibling.
+        if (next.isKeywordOrIdentifier ||
+            next.type == TokenType.DOUBLE ||
+            next.type == TokenType.HASH ||
+            next.type == TokenType.HEXADECIMAL ||
+            next.type == TokenType.IDENTIFIER ||
+            next.type == TokenType.INT ||
+            next.type == TokenType.STRING ||
+            optional('{', next) ||
+            optional('(', next) ||
+            optional('[', next) ||
+            optional('[]', next) ||
+            optional('<', next) ||
+            optional('!', next) ||
+            optional('-', next) ||
+            optional('~', next) ||
+            optional('++', next) ||
+            optional('--', next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          next = rewriteAndRecover(
+              token,
+              fasta.templateExpectedButGot.withArguments(','),
+              new SyntheticToken(TokenType.COMMA, next.offset));
+        } else {
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments(')'));
+          // Scanner guarantees a closing parenthesis
+          token = begin.endGroup;
+          break;
+        }
       }
       token = next;
     }

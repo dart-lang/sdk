@@ -2783,13 +2783,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_missingComma_beforeNamedArgument() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_missingComma_beforeNamedArgument();
-  }
-
-  @override
-  @failingTest
   void test_missingGet() {
     // TODO(brianwilkerson) exception:
     //   NoSuchMethodError: Class '_KernelLibraryBuilder' has no instance method 'addCompileTimeError'.

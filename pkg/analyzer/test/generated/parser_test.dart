@@ -10573,18 +10573,26 @@ class C<K {
   }
 
   void test_missing_commaInArgumentList() {
-    parseExpression("f(x: 1 y: 2)",
+    MethodInvocation expression = parseExpression("f(x: 1 y: 2)",
         codes: usingFastaParser
             ? [ParserErrorCode.UNEXPECTED_TOKEN]
             : [ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<Expression> arguments = expression.argumentList.arguments;
+    expect(arguments, hasLength(2));
   }
 
   void test_missingComma_beforeNamedArgument() {
     createParser('(a b: c)');
     ArgumentList argumentList = parser.parseArgumentList();
     expectNotNullIfNoErrors(argumentList);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 3, 1)]);
+    listener.assertErrors([
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.UNEXPECTED_TOKEN
+              : ParserErrorCode.EXPECTED_TOKEN,
+          3,
+          1)
+    ]);
     expect(argumentList.arguments, hasLength(2));
   }
 
