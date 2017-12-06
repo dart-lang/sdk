@@ -237,6 +237,10 @@ class ProcessedOptions {
   /// files.
   FileSystem get fileSystem => _fileSystem ??= _createFileSystem();
 
+  /// Clear the file system so any CompilerOptions fileSystem change will have
+  /// effect.
+  void clearFileSystemCache() => _fileSystem = null;
+
   /// Whether to interpret Dart sources in strong-mode.
   bool get strongMode => _raw.strongMode;
 

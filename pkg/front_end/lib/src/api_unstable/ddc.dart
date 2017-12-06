@@ -13,6 +13,9 @@ import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/compiler_options.dart';
+import 'compiler_state.dart';
+
+export 'compiler_state.dart';
 
 export '../api_prototype/compilation_message.dart';
 
@@ -21,13 +24,6 @@ class DdcResult {
   final List<Program> inputSummaries;
 
   DdcResult(this.program, this.inputSummaries);
-}
-
-class InitializedCompilerState {
-  final CompilerOptions options;
-  final ProcessedOptions processedOpts;
-
-  InitializedCompilerState(this.options, this.processedOpts);
 }
 
 Future<InitializedCompilerState> initializeCompiler(

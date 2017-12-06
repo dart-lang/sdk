@@ -191,7 +191,8 @@ abstract class Compiler {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
     frontendStrategy = options.useKernel
-        ? new KernelFrontEndStrategy(options, reporter, environment)
+        ? new KernelFrontEndStrategy(options, reporter, environment,
+            options.kernelInitializedCompilerState)
         : new ResolutionFrontEndStrategy(this);
     backendStrategy = options.useKernel
         ? new KernelBackendStrategy(this)
