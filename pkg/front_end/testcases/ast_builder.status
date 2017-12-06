@@ -14,7 +14,6 @@ cascade: Crash
 classes: Crash
 default_values: Crash
 duplicated_named_args_3: Crash
-escape: Crash
 expressions: Crash
 function_type_is_check: Crash
 function_type_recovery: Crash
@@ -138,7 +137,6 @@ inference/top_level_return_and_yield: Fail
 inference/try_catch: Crash
 inference/try_catch_finally: Crash
 inference/try_catch_promotion: Crash
-inference/type_promotion_not_and_not: Crash
 inference/unsafe_block_closure_inference_closure_call: Crash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr1: Crash
 inference/unsafe_block_closure_inference_function_call_explicit_dynamic_param_via_expr2: Crash

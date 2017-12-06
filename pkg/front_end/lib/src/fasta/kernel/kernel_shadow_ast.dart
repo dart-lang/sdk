@@ -1140,7 +1140,8 @@ class ShadowIsNotExpression extends Not implements ShadowExpression {
         inferrer.listener.isNotExpressionEnter(this, typeContext) || typeNeeded;
     inferrer.inferExpression(isExpression.operand, null, false);
     var inferredType = typeNeeded ? inferrer.coreTypes.boolClass.rawType : null;
-    inferrer.listener.isNotExpressionExit(this, inferredType);
+    inferrer.listener
+        .isNotExpressionExit(this, isExpression.type, inferredType);
     return inferredType;
   }
 }

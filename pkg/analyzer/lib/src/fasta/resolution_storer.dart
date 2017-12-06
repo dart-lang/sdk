@@ -325,6 +325,12 @@ class ResolutionStorer extends TypeInferenceListener {
     _recordType(inferredType, expression.fileOffset);
   }
 
+  void isNotExpressionExit(
+      Not expression, DartType type, DartType inferredType) {
+    _recordType(type, expression.fileOffset);
+    _recordType(inferredType, expression.fileOffset);
+  }
+
   @override
   void logicalExpressionBeforeRhs(LogicalExpression expression) {
     _deferType(expression.fileOffset);

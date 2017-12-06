@@ -1143,7 +1143,6 @@ main() {
   }
 
   test_binaryExpression_notEqual() async {
-    // TODO(scheglov) Add similar test for `v is! T`.
     String content = r'''
 main() {
   1 != 2;
@@ -1274,10 +1273,51 @@ void main() {
       vElement = statement.variables.variables[0].name.staticElement;
     }
 
-    // v;
+    // v is num;
     {
       ExpressionStatement statement = statements[1];
       IsExpression isExpression = statement.expression;
+      expect(isExpression.notOperator, isNull);
+      expect(isExpression.staticType, typeProvider.boolType);
+
+      SimpleIdentifier target = isExpression.expression;
+      expect(target.staticElement, vElement);
+      expect(target.staticType, typeProvider.intType);
+
+      TypeName numName = isExpression.type;
+      expect(numName.name.staticElement, typeProvider.numType.element);
+      expect(numName.name.staticType, typeProvider.numType);
+    }
+  }
+
+  test_isExpression_not() async {
+    String content = r'''
+void main() {
+  var v = 42;
+  v is! num;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    expect(result.errors, isEmpty);
+
+    var typeProvider = result.unit.element.context.typeProvider;
+    NodeList<Statement> statements = _getMainStatements(result);
+
+    // var v = 42;
+    VariableElement vElement;
+    {
+      VariableDeclarationStatement statement = statements[0];
+      vElement = statement.variables.variables[0].name.staticElement;
+    }
+
+    // v is! num;
+    {
+      ExpressionStatement statement = statements[1];
+      IsExpression isExpression = statement.expression;
+      expect(isExpression.notOperator, isNotNull);
       expect(isExpression.staticType, typeProvider.boolType);
 
       SimpleIdentifier target = isExpression.expression;

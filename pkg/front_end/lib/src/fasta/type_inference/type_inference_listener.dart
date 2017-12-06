@@ -272,7 +272,8 @@ class TypeInferenceListener
   bool isNotExpressionEnter(Not expression, DartType typeContext) =>
       genericExpressionEnter("isNotExpression", expression, typeContext);
 
-  void isNotExpressionExit(Not expression, DartType inferredType) =>
+  void isNotExpressionExit(
+          Not expression, DartType type, DartType inferredType) =>
       genericExpressionExit("isNotExpression", expression, inferredType);
 
   void labeledStatementEnter(LabeledStatement statement) =>
