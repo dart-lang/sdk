@@ -1245,6 +1245,7 @@ bit_operations_test: RuntimeError
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 branch_canonicalization_test: RuntimeError
+branches_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 call_function_apply_test: RuntimeError
 callable_test/none: RuntimeError
 canonical_const2_test: RuntimeError
@@ -1350,7 +1351,7 @@ covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_tearoff1_test: RuntimeError
 covariant_subtyping_tearoff2_test: RuntimeError
 covariant_subtyping_tearoff3_test: RuntimeError
-covariant_subtyping_test: CompileTimeError
+covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
@@ -1388,6 +1389,7 @@ duplicate_implements_test/03: MissingCompileTimeError
 duplicate_implements_test/04: MissingCompileTimeError
 dynamic_prefix_core_test/none: RuntimeError
 enum_mirror_test: RuntimeError
+enum_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
@@ -1443,7 +1445,11 @@ generic_instanceof_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_local_functions_test: Crash # Unsupported operation: Unsupported type parameter type node Y.
 generic_methods_closure_test: Crash # Unsupported operation: Unsupported type parameter type node S.
+generic_methods_generic_function_parameter_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_methods_shadowing_test: Crash # Unsupported operation: Unsupported type parameter type node T.
+generic_methods_simple_as_expression_test/01: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
+generic_methods_simple_as_expression_test/02: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
+generic_methods_type_expression_test: Crash # 'file:*/pkg/compiler/lib/src/ssa/builder_kernel.dart': Failed assertion: line 1728 pos 16: 'type is MethodTypeVariableType': is not true.
 generic_tearoff_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 generic_test: RuntimeError
 generic_typedef_test: Crash # Unsupported operation: Unsupported type parameter type node S.
@@ -1469,6 +1475,7 @@ invocation_mirror2_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 left_shift_test: RuntimeError
+library_env_test/has_mirror_support: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError
@@ -1594,6 +1601,7 @@ null_test/mirrors: RuntimeError
 null_test/none: RuntimeError
 number_identity2_test: RuntimeError
 numbers_test: RuntimeError
+operator_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 override_field_method1_negative_test: Fail
 override_field_method2_negative_test: Fail
 override_field_method4_negative_test: Fail
@@ -1608,6 +1616,7 @@ override_inheritance_mixed_test/09: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
 positional_parameters_type_test/01: MissingCompileTimeError
 positional_parameters_type_test/02: MissingCompileTimeError
+prefix5_negative_test: Crash # 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart': Failed assertion: line 441 pos 16: 'identical(combiner.arguments.positional[0], rhs)': is not true.
 private_super_constructor_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
@@ -1638,6 +1647,8 @@ switch_case_test/00: MissingCompileTimeError
 switch_case_test/01: MissingCompileTimeError
 switch_case_test/02: MissingCompileTimeError
 symbol_literal_test/01: MissingCompileTimeError
+sync_generator2_test/41: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
+sync_generator2_test/52: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_impl.dart': Failed assertion: line 939 pos 18: 'asyncMarker == AsyncMarker.SYNC': is not true.
 syntax_test/28: MissingCompileTimeError
 syntax_test/29: MissingCompileTimeError
 syntax_test/30: MissingCompileTimeError
@@ -1647,7 +1658,7 @@ syntax_test/33: MissingCompileTimeError
 tearoff_dynamic_test: Crash # Unsupported operation: Unsupported type parameter type node T.
 truncdiv_test: RuntimeError
 try_catch_test/01: MissingCompileTimeError
-type_literal_test: Crash # 'file:*/pkg/compiler/lib/src/kernel/element_map_mixins.dart': Failed assertion: line 673 pos 14: 'functionType.typedef != null': is not true.
+type_literal_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
@@ -1889,6 +1900,7 @@ invocation_mirror_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
 left_shift_test: RuntimeError
+library_env_test/has_mirror_support: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test/00: MissingCompileTimeError
 list_literal4_test/01: MissingCompileTimeError

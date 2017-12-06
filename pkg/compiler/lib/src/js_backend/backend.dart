@@ -324,8 +324,9 @@ class JavaScriptBackend {
 
   FrontendStrategy get frontendStrategy => compiler.frontendStrategy;
 
-  /// Returns true if the backend supports reflection.
-  bool get supportsReflection => emitter.supportsReflection;
+  /// Returns true if the backend supports reflection and this isn't Dart 2.
+  bool get supportsReflection =>
+      emitter.supportsReflection && !compiler.options.useKernel;
 
   FunctionCompiler functionCompiler;
 
