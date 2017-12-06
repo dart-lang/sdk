@@ -1114,6 +1114,30 @@ void main() {
     expect(expression.elseExpression.staticType, typeProvider.doubleType);
   }
 
+  test_constructor_context() async {
+    addTestFile(r'''
+class C {
+  C(int p) {
+    p;
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+
+    ConstructorDeclaration constructorNode = cNode.members[0];
+    ParameterElement pElement = constructorNode.element.parameters[0];
+
+    BlockFunctionBody constructorBody = constructorNode.body;
+    ExpressionStatement pStatement = constructorBody.block.statements[0];
+
+    SimpleIdentifier pIdentifier = pStatement.expression;
+    expect(pIdentifier.staticElement, same(pElement));
+    expect(pIdentifier.staticType, typeProvider.intType);
+  }
+
   test_error_unresolvedTypeAnnotation() async {
     String content = r'''
 main() {
@@ -1139,6 +1163,24 @@ main() {
     VariableDeclaration vNode = statement.variables.variables[0];
     expect(vNode.name.staticType, isUndefinedType);
     expect(vNode.element.type, isUndefinedType);
+  }
+
+  test_field_context() async {
+    addTestFile(r'''
+class C<T> {
+  var f = <T>[];
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+    var tElement = cNode.element.typeParameters[0];
+
+    FieldDeclaration fDeclaration = cNode.members[0];
+    VariableDeclaration fNode = fDeclaration.fields.variables[0];
+    FieldElement fElement = fNode.element;
+    expect(fElement.type, typeProvider.listType.instantiate([tElement.type]));
   }
 
   test_indexExpression() async {
@@ -2336,6 +2378,29 @@ class C<T> {
         expect(bArgumentParameter.baseElement, same(bElement));
       }
     }
+  }
+
+  test_methodInvocation_staticMethod_contextTypeParameter() async {
+    addTestFile(r'''
+class C<T> {
+  static E foo<E>(C<E> c) => null;
+  void bar() {
+    foo(this);
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+    TypeParameterElement tElement = cNode.element.typeParameters[0];
+
+    MethodDeclaration barNode = cNode.members[1];
+    BlockFunctionBody barBody = barNode.body;
+    ExpressionStatement fooStatement = barBody.block.statements[0];
+    MethodInvocation fooInvocation = fooStatement.expression;
+    expect(fooInvocation.staticInvokeType.toString(), '(C<T>) → T');
+    expect(fooInvocation.staticType.toString(), 'T');
+    expect(fooInvocation.staticType.element, same(tElement));
   }
 
   test_methodInvocation_topLevelFunction() async {

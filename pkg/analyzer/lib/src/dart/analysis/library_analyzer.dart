@@ -724,21 +724,22 @@ class LibraryAnalyzer {
         }
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
-            // TODO(scheglov) Pass in the actual context element.
+            var context = member.element as ElementImpl;
             var resolution = resolutions.next();
-            var applier = _createResolutionApplier(null, resolution);
+            var applier = _createResolutionApplier(context, resolution);
             member.body.accept(applier);
             applier.applyToAnnotations(member);
             applier.checkDone();
           } else if (member is FieldDeclaration) {
-            if (member.fields.variables.length != 1) {
+            List<VariableDeclaration> fields = member.fields.variables;
+            if (fields.length != 1) {
               // TODO(scheglov) Handle this case.
               throw new UnimplementedError('Multiple field');
             }
-            // TODO(scheglov) Pass in the actual context element.
+            var context = fields[0].element as ElementImpl;
             var resolution = resolutions.next();
-            var applier = _createResolutionApplier(null, resolution);
-            member.fields.variables[0].initializer?.accept(applier);
+            var applier = _createResolutionApplier(context, resolution);
+            fields[0].initializer?.accept(applier);
             applier.applyToAnnotations(member);
             applier.checkDone();
           } else if (member is MethodDeclaration) {
@@ -750,8 +751,7 @@ class LibraryAnalyzer {
             applier.applyToAnnotations(member);
             applier.checkDone();
           } else {
-            // TODO(scheglov) Handle more cases.
-            throw new UnimplementedError('${member.runtimeType}');
+            throw new StateError('(${declaration.runtimeType}) $declaration');
           }
         }
       } else if (declaration is FunctionDeclaration) {
@@ -763,19 +763,19 @@ class LibraryAnalyzer {
         applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else if (declaration is TopLevelVariableDeclaration) {
-        if (declaration.variables.variables.length != 1) {
+        List<VariableDeclaration> variables = declaration.variables.variables;
+        if (variables.length != 1) {
           // TODO(scheglov) Handle this case.
           throw new UnimplementedError('Multiple variables');
         }
-        // TODO(scheglov) Pass in the actual context element.
+        var context = variables[0].element as ElementImpl;
         var resolution = resolutions.next();
-        var applier = _createResolutionApplier(null, resolution);
-        declaration.variables.variables[0].initializer?.accept(applier);
+        var applier = _createResolutionApplier(context, resolution);
+        variables[0].initializer?.accept(applier);
         applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else {
-        // TODO(scheglov) Handle more cases.
-        throw new UnimplementedError('${declaration.runtimeType}');
+        throw new StateError('(${declaration.runtimeType}) $declaration');
       }
     }
 
@@ -1174,7 +1174,7 @@ class _ResolutionApplierContext implements TypeContext {
       var kernelParameter = kernelTypeParameters[i];
       var kernelArgument = kernelMap[kernelParameter];
       if (kernelArgument != null) {
-        DartType astArgument = resynthesizer.getType(null, kernelArgument);
+        DartType astArgument = resynthesizer.getType(context, kernelArgument);
         usedTypeParameters.add(astTypeParameters[i]);
         usedTypeArguments.add(astArgument);
       }
