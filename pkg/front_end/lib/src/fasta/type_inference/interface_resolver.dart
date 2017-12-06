@@ -1004,7 +1004,10 @@ class InterfaceResolver {
     if (procedure is SyntheticAccessor) {
       return ShadowField.isImplicitlyTyped(procedure._field);
     }
-    if (ShadowProcedure.hasImplicitReturnType(procedure)) return true;
+    if (procedure.kind != ProcedureKind.Setter &&
+        ShadowProcedure.hasImplicitReturnType(procedure)) {
+      return true;
+    }
     var function = procedure.function;
     for (var parameter in function.positionalParameters) {
       if (ShadowVariableDeclaration.isImplicitlyTyped(parameter)) return true;
