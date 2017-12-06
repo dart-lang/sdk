@@ -2,52 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library kernel.transformations.precompiler;
+library vm.transformations.cha_devirtualization;
 
-import '../ast.dart';
+import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
 
-import '../core_types.dart' show CoreTypes;
+import '../metadata/direct_call.dart';
 
-import '../class_hierarchy.dart' show ClosedWorldClassHierarchy;
-
-/// Performs whole-program optimizations for Dart VM precompiler.
-/// Assumes strong mode and closed world.
+/// Devirtualization of method invocations based on the class hierarchy
+/// analysis. Assumes strong mode and closed world.
 Program transformProgram(CoreTypes coreTypes, Program program) {
   new _Devirtualization(coreTypes, program).visitProgram(program);
   return program;
-}
-
-class DirectCallMetadata {
-  final Member target;
-  final bool checkReceiverForNull;
-
-  DirectCallMetadata(this.target, this.checkReceiverForNull);
-}
-
-class DirectCallMetadataRepository
-    extends MetadataRepository<DirectCallMetadata> {
-  @override
-  final String tag = 'vm.direct-call.metadata';
-
-  @override
-  final Map<TreeNode, DirectCallMetadata> mapping =
-      <TreeNode, DirectCallMetadata>{};
-
-  @override
-  void writeToBinary(DirectCallMetadata metadata, BinarySink sink) {
-    sink.writeCanonicalNameReference(getCanonicalNameOfMember(metadata.target));
-    sink.writeByte(metadata.checkReceiverForNull ? 1 : 0);
-  }
-
-  @override
-  DirectCallMetadata readFromBinary(BinarySource source) {
-    var target = source.readCanonicalNameReference()?.getReference()?.asMember;
-    if (target == null) {
-      throw 'DirectCallMetadata should have a non-null target';
-    }
-    var checkReceiverForNull = (source.readByte() != 0);
-    return new DirectCallMetadata(target, checkReceiverForNull);
-  }
 }
 
 /// Resolves targets of instance method invocations, property getter
