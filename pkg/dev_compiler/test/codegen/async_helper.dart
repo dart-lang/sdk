@@ -35,7 +35,7 @@ Exception _buildException(String msg) {
 }
 
 /// Implementation method called from language_tests.js.
-/// Registers the callback that will be used complete the test.
+/// Registers the callback that will be used to complete the test.
 void asyncTestInitialize(_Action0 callback) {
   _asyncLevel = 0;
   _initialized = false;
@@ -47,7 +47,10 @@ void asyncTestInitialize(_Action0 callback) {
 bool get asyncTestStarted => _initialized;
 
 /// Call this method before an asynchronous test is created.
-void asyncStart() {
+///
+/// If [count] is provided, expect [count] [asyncEnd] calls instead of just one.
+void asyncStart([int count = 1]) {
+  if (count <= 0) return;
   if (_initialized && _asyncLevel == 0) {
     throw _buildException('asyncStart() was called even though we are done '
         'with testing.');
@@ -61,7 +64,7 @@ void asyncStart() {
     print('unittest-suite-wait-for-done');
     _initialized = true;
   }
-  _asyncLevel++;
+  _asyncLevel += count;
 }
 
 /// Call this after an asynchronous test has ended successfully.

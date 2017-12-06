@@ -467,6 +467,7 @@ generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kern
 fuzzy_arrows_test/01: MissingCompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28813
 built_in_identifier_type_annotation_test/85: Crash # Issue 28813
+await_test: Crash # Issue 31540
 
 [ $compiler == dart2analyzer && !$strong ]
 combiner_type_lookup_indexed_test: StaticWarning # Issue #31484

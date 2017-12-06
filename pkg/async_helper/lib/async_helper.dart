@@ -38,7 +38,10 @@ Exception _buildException(String msg) {
 }
 
 /// Call this method before an asynchronous test is created.
-void asyncStart() {
+///
+/// If [count] is provided, expect [count] [asyncEnd] calls instead of just one.
+void asyncStart([int count = 1]) {
+  if (count <= 0) return;
   if (_initialized && _asyncLevel == 0) {
     throw _buildException('asyncStart() was called even though we are done '
         'with testing.');
@@ -48,7 +51,7 @@ void asyncStart() {
     _initialized = true;
     _port = new ReceivePort();
   }
-  _asyncLevel++;
+  _asyncLevel += count;
 }
 
 /// Call this after an asynchronous test has ended successfully.
