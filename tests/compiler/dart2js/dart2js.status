@@ -13,7 +13,11 @@ compile_with_empty_libraries_test: Fail # Issue 24223
 inference/inference_test: Slow, Pass
 inference/swarm_test: Slow, Pass
 
+inlining/inlining_test: Slow, Pass
+
 kernel/*: Slow, Pass
+
+subtype_test: Slow, Pass
 
 boolified_operator_test: Fail # Issue 8001
 
