@@ -213,7 +213,13 @@ class ClosureContext {
       var expectedType = isYieldStar
           ? _wrapAsyncOrGenerator(inferrer, returnContext)
           : returnContext;
-      inferrer.checkAssignability(expectedType, type, expression, fileOffset);
+      if (expectedType != null) {
+        inferrer.checkAssignability(
+            greatestClosure(inferrer.coreTypes, expectedType),
+            type,
+            expression,
+            fileOffset);
+      }
     }
   }
 
@@ -393,6 +399,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// an implicit downcast if appropriate.
   Expression checkAssignability(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset) {
+    assert(expectedType == null || isKnown(expectedType));
     // We don't need to insert assignability checks when doing top level type
     // inference since top level type inference only cares about the type that
     // is inferred (the kernel code is discarded).

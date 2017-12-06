@@ -1244,6 +1244,7 @@ async_star_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/04: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/05: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
+await_test: CompileTimeError # Issue 31541
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
