@@ -173,7 +173,6 @@ LayoutTests/fast/dom/shadow/shadow-root-js-api_t01: StaticWarning # Please triag
 LayoutTests/fast/dom/text-api-arguments_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/events/event-creation_t01: Skip # Roll 45 OverflowEvent removed
 LayoutTests/fast/events/initkeyboardevent-crash_t01: StaticWarning # Please triage this failure.
-LayoutTests/fast/forms/checkValidity-001_t01: fail
 LayoutTests/fast/html/article-element_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/html/aside-element_t01: StaticWarning # Please triage this failure.
 LayoutTests/fast/html/imports/import-element-removed-flag_t01: StaticWarning # Please triage this failure.
@@ -324,7 +323,6 @@ WebPlatformTest/html/semantics/forms/the-datalist-element/datalistelement_t01: S
 WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-fieldset-element/disabled_t01: StaticWarning # Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/email_t02: StaticWarning # co19 issue 701
-WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: fail
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t01: StaticWarning # Please triage this failure.
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t02: StaticWarning # Please triage this failure.
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t03: StaticWarning # Please triage this failure.
