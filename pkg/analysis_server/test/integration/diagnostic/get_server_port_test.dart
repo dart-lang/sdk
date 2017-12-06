@@ -14,6 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetServerPortTest);
+    defineReflectiveTests(GetServerPortTest_PreviewDart2);
   });
 }
 
@@ -34,4 +35,10 @@ class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
     String responseBody = await UTF8.decodeStream(response);
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
+}
+
+@reflectiveTest
+class GetServerPortTest_PreviewDart2 extends GetServerPortTest {
+  @override
+  bool get usePreviewDart2 => true;
 }
