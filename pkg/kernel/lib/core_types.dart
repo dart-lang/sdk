@@ -312,6 +312,10 @@ class CoreTypes {
     return _streamClass ??= _index.getClass('dart:async', 'Stream');
   }
 
+  Member get streamIteratorSubscription {
+    return _index.getMember('dart:async', '_StreamIterator', '_subscription');
+  }
+
   Member get streamIteratorCancel {
     return _index.getMember('dart:async', '_StreamIterator', 'cancel');
   }
