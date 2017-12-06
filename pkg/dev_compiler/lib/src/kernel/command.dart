@@ -95,7 +95,10 @@ Future<CompilerResult> _compile(List<String> args,
   var packageFile =
       argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
 
-  var inputs = argResults.rest.map(Uri.base.resolve).toList();
+  var inputs = argResults.rest
+      .map((o) =>
+          Uri.base.resolveUri(new Uri.file(o, windows: Platform.isWindows)))
+      .toList();
 
   var succeeded = true;
   void errorHandler(fe.CompilationMessage error) {
