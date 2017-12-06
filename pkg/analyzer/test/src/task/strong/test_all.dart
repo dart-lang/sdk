@@ -5,14 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'checker_test.dart' as checker_test;
-import 'front_end_runtime_check_test.dart' as front_end_runtime_check_test;
 import 'inferred_type_test.dart' as inferred_type_test;
 import 'non_null_checker_test.dart' as non_null_checker_test;
 
 main() {
   defineReflectiveSuite(() {
     checker_test.main();
-    front_end_runtime_check_test.main();
     inferred_type_test.main();
     non_null_checker_test.main();
   }, name: 'strong');
