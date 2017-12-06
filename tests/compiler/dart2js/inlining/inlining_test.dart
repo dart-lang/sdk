@@ -26,13 +26,7 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeMemberAstInlinings, computeMemberIrInlinings,
-        args: args,
-        skipForKernel: [
-          // TODO(sra,johnniwinther): Handle this for kernel.
-          'constructor.dart',
-          'dynamic.dart',
-          'force_inline_loops.dart',
-        ]);
+        args: args);
   });
 }
 

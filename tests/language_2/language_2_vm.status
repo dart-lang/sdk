@@ -539,6 +539,9 @@ not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/03: MissingCompileTimeError
 not_enough_positional_arguments_test/06: MissingCompileTimeError
 not_enough_positional_arguments_test/07: MissingCompileTimeError
+object_has_no_call_method_test/02: MissingCompileTimeError
+object_has_no_call_method_test/05: MissingCompileTimeError
+object_has_no_call_method_test/08: MissingCompileTimeError
 optional_named_parameters_test/01: MissingCompileTimeError
 optional_named_parameters_test/02: MissingCompileTimeError
 optional_named_parameters_test/03: MissingCompileTimeError
@@ -932,6 +935,8 @@ recursive_mixin_test: Crash
 bool_check_test: RuntimeError
 bool_condition_check_test: RuntimeError
 callable_test/none: RuntimeError
+cascaded_forwarding_stubs_generic_test: RuntimeError
+cascaded_forwarding_stubs_test: RuntimeError
 checked_setter2_test: RuntimeError
 checked_setter3_test: RuntimeError
 checked_setter_test: RuntimeError

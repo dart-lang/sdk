@@ -332,12 +332,9 @@ js_typed_interop_test/static_method_tearoff_1: RuntimeError
 js_util_test/hasProperty: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
-async_spawnuri_test: RuntimeError
-async_test: RuntimeError
 canvasrenderingcontext2d_test/drawImage_image_element: Timeout
 canvasrenderingcontext2d_test/drawImage_video_element: Timeout
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Timeout
-cross_domain_iframe_test: RuntimeError
 custom/attribute_changed_callback_test/fully_supported: RuntimeError
 custom/attribute_changed_callback_test/unsupported_on_polyfill: RuntimeError
 custom/document_register_type_extensions_test/construction: RuntimeError
@@ -366,7 +363,6 @@ deferred_multi_app_htmltest: CompileTimeError
 element_animate_test/omit_timing: Timeout
 element_test/click: RuntimeError
 element_test/eventDelegation: RuntimeError
-event_customevent_test: RuntimeError
 fileapi_test/directoryReader: RuntimeError
 fileapi_test/fileEntry: RuntimeError
 form_data_test/functional: Timeout
@@ -376,30 +372,25 @@ indexeddb_2_test: RuntimeError
 indexeddb_3_test: RuntimeError
 indexeddb_4_test: RuntimeError
 indexeddb_5_test: RuntimeError
-isolates_test: RuntimeError
 js_test/JsObject.fromBrowserObject(): RuntimeError
 js_test/JsObject.jsify(): RuntimeError
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError
 js_typed_interop_test/static_method_tearoff_1: RuntimeError
 js_util_test/js_util.jsify(): RuntimeError
-keyboard_event_test: RuntimeError
 mirrors_js_typed_interop_test: RuntimeError
 mutationobserver_test/childList: Timeout
 postmessage_structured_test/iframe: RuntimeError
 postmessage_structured_test/primitives: Timeout
 postmessage_structured_test/typed_arrays: Timeout
-streams_test: RuntimeError
-transferables_test: RuntimeError
 transition_event_test/functional: Timeout
 websocket_test/websocket: RuntimeError
 websql_test/functional: RuntimeError
-worker_api_test: RuntimeError
 worker_test/functional: Timeout
 xhr_cross_origin_test/functional: Timeout
-xhr_cross_origin_test/functional/functional: RuntimeError
 xhr_test/headers: RuntimeError
 xhr_test/json: Timeout
 xhr_test/xhr: Timeout
+xhr_test/xhr_requestBlob/xhr_requestBlob: Pass
 xhr_test/xhr_requestBlob: RuntimeError
 
 [ $compiler == dart2js && $fast_startup ]

@@ -4945,8 +4945,16 @@ void main() {
     expectNotNullIfNoErrors(expression);
     listener.assertErrors(
         [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 0, 1)]);
-    var identifier = expression as SimpleIdentifier;
-    expect(identifier.isSynthetic, isTrue);
+    if (usingFastaParser) {
+      BinaryExpression binaryExpression = expression;
+      expect(binaryExpression.leftOperand.isSynthetic, isTrue);
+      expect(binaryExpression.rightOperand.isSynthetic, isFalse);
+      SimpleIdentifier identifier = binaryExpression.rightOperand;
+      expect(identifier.name, 'x');
+    } else {
+      var identifier = expression as SimpleIdentifier;
+      expect(identifier.isSynthetic, isTrue);
+    }
   }
 
   void test_varAndType_field() {
@@ -9901,6 +9909,13 @@ class A {}
 class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
+  void test_combinator_missingIdentifier() {
+    createParser('import "/testB.dart" show ;');
+    parser.parseCompilationUnit2();
+    listener.assertErrors(
+        [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 26, 1)]);
+  }
+
   void test_conditionalExpression_missingElse() {
     Expression expression =
         parseExpression('x ? y :', codes: [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -9972,13 +9987,24 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_equalityExpression_precedence_relational_left() {
-    BinaryExpression expression = parseExpression("is ==", codes: [
-      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ]);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is IsExpression, IsExpression, expression.leftOperand);
+    // Fasta recovers differently. It takes the `is` to be an identifier and
+    // assumes that the right operand of `==` is the only missing identifier.
+    BinaryExpression expression = parseExpression("is ==",
+        codes: usingFastaParser
+            ? [
+                //ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER
+              ]
+            : [
+                ParserErrorCode.EXPECTED_TYPE_NAME,
+                ParserErrorCode.MISSING_IDENTIFIER,
+                ParserErrorCode.MISSING_IDENTIFIER
+              ]);
+    if (!usingFastaParser) {
+      EngineTestCase.assertInstanceOf(
+          (obj) => obj is IsExpression, IsExpression, expression.leftOperand);
+    }
   }
 
   void test_equalityExpression_precedence_relational_right() {
@@ -10061,6 +10087,16 @@ class B = Object with A {}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
 
   void test_functionExpression_named() {
     parseExpression("m(f() => 0);", codes: [ParserErrorCode.EXPECTED_TOKEN]);
+  }
+
+  void test_ifStatement_noElse_statement() {
+    parseStatement('if (x v) f(x);');
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 6, 1)]
+        : [
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1),
+            expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
+          ]);
   }
 
   void test_importDirectivePartial_as() {
@@ -10531,6 +10567,11 @@ class C<K {
         BinaryExpression, expression.rightOperand);
   }
 
+  void test_method_missingBody() {
+    parseCompilationUnit("class C { b() }",
+        errors: [expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 14, 1)]);
+  }
+
   void test_missing_commaInArgumentList() {
     parseExpression("f(x: 1 y: 2)",
         codes: usingFastaParser
@@ -10677,6 +10718,23 @@ class C {
     ]);
     EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression,
         BinaryExpression, expression.leftOperand);
+  }
+
+  void test_namedParameterOutsideGroup() {
+    CompilationUnit unit =
+        parseCompilationUnit('class A { b(c: 0, Foo d: 0, e){} }', errors: [
+      expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 13, 1),
+      expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 23, 1)
+    ]);
+    expect(unit.declarations, hasLength(1));
+    ClassDeclaration classA = unit.declarations[0];
+    expect(classA.members, hasLength(1));
+    MethodDeclaration method = classA.members[0];
+    NodeList<FormalParameter> parameters = method.parameters.parameters;
+    expect(parameters, hasLength(3));
+    expect(parameters[0].kind, ParameterKind.NAMED);
+    expect(parameters[1].kind, ParameterKind.NAMED);
+    expect(parameters[2].kind, ParameterKind.REQUIRED);
   }
 
   void test_nonStringLiteralUri_import() {
@@ -15766,6 +15824,68 @@ enum E {
     expect(functionExpression.typeParameters, isNotNull);
     expect(functionExpression.parameters, isNotNull);
     expect(functionExpression.body, isNotNull);
+  }
+
+  void test_parseFunctionDeclaration_metadata() {
+    createParser(
+        'T f(@A a, @B(2) Foo b, {@C.foo(3) c : 0, @d.E.bar(4, 5) x:0}) {}');
+    FunctionDeclaration declaration = parseFullCompilationUnitMember();
+    expect(declaration, isNotNull);
+    assertNoErrors();
+    expect(declaration.documentationComment, isNull);
+    expect((declaration.returnType as TypeName).name.name, 'T');
+    expect(declaration.name, isNotNull);
+    FunctionExpression expression = declaration.functionExpression;
+    expect(expression, isNotNull);
+    expect(expression.body, isNotNull);
+    expect(expression.typeParameters, isNull);
+    NodeList<FormalParameter> parameters = expression.parameters.parameters;
+    expect(parameters, hasLength(4));
+    expect(declaration.propertyKeyword, isNull);
+
+    {
+      var annotation = parameters[0].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<SimpleIdentifier>());
+      expect(annotation.name.name, 'A');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNull);
+    }
+
+    {
+      var annotation = parameters[1].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<SimpleIdentifier>());
+      expect(annotation.name.name, 'B');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(1));
+    }
+
+    {
+      var annotation = parameters[2].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<PrefixedIdentifier>());
+      expect(annotation.name.name, 'C.foo');
+      expect(annotation.period, isNull);
+      expect(annotation.constructorName, isNull);
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(1));
+    }
+
+    {
+      var annotation = parameters[3].metadata[0];
+      expect(annotation.atSign, isNotNull);
+      expect(annotation.name, new isInstanceOf<PrefixedIdentifier>());
+      expect(annotation.name.name, 'd.E');
+      expect(annotation.period, isNotNull);
+      expect(annotation.constructorName, isNotNull);
+      expect(annotation.constructorName.name, 'bar');
+      expect(annotation.arguments, isNotNull);
+      expect(annotation.arguments.arguments, hasLength(2));
+    }
   }
 
   void test_parseFunctionDeclaration_setter() {

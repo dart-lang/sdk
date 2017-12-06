@@ -756,6 +756,12 @@ bool RunMainIsolate(const char* script_name, CommandLineOptions* dart_options) {
   Dart_EnterScope();
 
   if (Options::gen_snapshot_kind() == kScript) {
+    if (vm_run_app_snapshot) {
+      Log::PrintErr("Cannot create a script snapshot from an app snapshot.\n");
+      // The snapshot would contain references to the app snapshot instead of
+      // the core snapshot.
+      Platform::Exit(kErrorExitCode);
+    }
     Snapshot::GenerateScript(Options::snapshot_filename());
   } else {
     // Lookup the library of the root script.

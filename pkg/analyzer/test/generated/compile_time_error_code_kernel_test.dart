@@ -23,7 +23,10 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/30985')
+  // This test fails because the kernel driver element model produces a
+  // different element model result than the regular parser produces. Once these
+  // tests enable the faster parser (and not just the kernel driver), this
+  // should be looked at again.
   test_bug_23176() async {
     return super.test_bug_23176();
   }
@@ -224,6 +227,13 @@ class CompileTimeErrorCodeTest_Kernel extends CompileTimeErrorCodeTest_Driver {
   @failingTest
   test_noAnnotationConstructorArguments() {
     return super.test_noAnnotationConstructorArguments();
+  }
+
+  @override
+  @failingTest
+  test_nonConstValueInInitializer_instanceCreation_inDifferentFile() {
+    return super
+        .test_nonConstValueInInitializer_instanceCreation_inDifferentFile();
   }
 
   @override

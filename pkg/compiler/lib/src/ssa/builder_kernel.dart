@@ -534,7 +534,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
         }
 
         // TODO(redemption): Try to inline [body].
-        _invokeConstructorBody(body, bodyCallInputs);
+        _invokeConstructorBody(
+            body,
+            bodyCallInputs,
+            _sourceInformationBuilder
+                .buildDeclaration(_elementMap.getMember(constructor)));
       });
     }
 
@@ -553,12 +557,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return false;
   }
 
-  void _invokeConstructorBody(
-      ir.Constructor constructor, List<HInstruction> inputs) {
+  void _invokeConstructorBody(ir.Constructor constructor,
+      List<HInstruction> inputs, SourceInformation sourceInformation) {
     // TODO(sra): Inline the constructor body.
     MemberEntity constructorBody = _elementMap.getConstructorBody(constructor);
     HInvokeConstructorBody invoke = new HInvokeConstructorBody(
-        constructorBody, inputs, commonMasks.nonNullType);
+        constructorBody, inputs, commonMasks.nonNullType, sourceInformation);
     add(invoke);
   }
 
@@ -841,6 +845,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   void buildConstructorBody(ir.Constructor constructor) {
     openFunction(constructor.function);
     _addClassTypeVariablesIfNeeded(constructor);
+    _potentiallyAddFunctionParameterTypeChecks(constructor.function);
     constructor.function.body.accept(this);
     closeFunction();
   }
@@ -864,20 +869,18 @@ class KernelSsaGraphBuilder extends ir.Visitor
       FunctionEntity method = _elementMap.getMethod(parent);
       if (!_commonElements.operatorEqHandlesNullArgument(method)) {
         handleIf(
-          visitCondition: () {
-            HParameterValue parameter = parameters.values.first;
-            push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
-                null, commonMasks.boolType));
-          },
-          visitThen: () {
-            closeAndGotoExit(new HReturn(
-                graph.addConstantBool(false, closedWorld),
-                _sourceInformationBuilder.buildReturn(functionNode)));
-          },
-          visitElse: null,
-          // TODO(27394): Add sourceInformation via
-          // `_sourceInformationBuilder.buildIf(?)`.
-        );
+            visitCondition: () {
+              HParameterValue parameter = parameters.values.first;
+              push(new HIdentity(parameter, graph.addConstantNull(closedWorld),
+                  null, commonMasks.boolType));
+            },
+            visitThen: () {
+              closeAndGotoExit(new HReturn(
+                  graph.addConstantBool(false, closedWorld),
+                  _sourceInformationBuilder.buildReturn(functionNode)));
+            },
+            visitElse: null,
+            sourceInformation: _sourceInformationBuilder.buildIf(functionNode));
       }
     }
     functionNode.body.accept(this);
@@ -1391,17 +1394,23 @@ class KernelSsaGraphBuilder extends ir.Visitor
       TypeMask mask = _typeInferenceMap.typeOfIterator(node);
       node.iterable.accept(this);
       HInstruction receiver = pop();
-      _pushDynamicInvocation(node, mask, <HInstruction>[receiver],
-          _sourceInformationBuilder.buildForInIterator(node),
-          selector: Selectors.iterator);
+      _pushDynamicInvocation(
+          node,
+          mask,
+          Selectors.iterator,
+          <HInstruction>[receiver],
+          _sourceInformationBuilder.buildForInIterator(node));
       iterator = pop();
     }
 
     HInstruction buildCondition() {
       TypeMask mask = _typeInferenceMap.typeOfIteratorMoveNext(node);
-      _pushDynamicInvocation(node, mask, <HInstruction>[iterator],
-          _sourceInformationBuilder.buildForInMoveNext(node),
-          selector: Selectors.moveNext);
+      _pushDynamicInvocation(
+          node,
+          mask,
+          Selectors.moveNext,
+          <HInstruction>[iterator],
+          _sourceInformationBuilder.buildForInMoveNext(node));
       return popBoolified();
     }
 
@@ -1409,8 +1418,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
       SourceInformation sourceInformation =
           _sourceInformationBuilder.buildForInCurrent(node);
       TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(node);
-      _pushDynamicInvocation(node, mask, [iterator], sourceInformation,
-          selector: Selectors.current);
+      _pushDynamicInvocation(
+          node, mask, Selectors.current, [iterator], sourceInformation);
 
       Local loopVariableLocal = localsMap.getLocalVariable(node.variable);
       HInstruction value = typeBuilder.potentiallyCheckOrTrustType(
@@ -1451,9 +1460,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     HInstruction buildCondition() {
       TypeMask mask = _typeInferenceMap.typeOfIteratorMoveNext(node);
-      _pushDynamicInvocation(node, mask, [streamIterator],
-          _sourceInformationBuilder.buildForInMoveNext(node),
-          selector: Selectors.moveNext);
+      _pushDynamicInvocation(node, mask, Selectors.moveNext, [streamIterator],
+          _sourceInformationBuilder.buildForInMoveNext(node));
       HInstruction future = pop();
       push(new HAwait(future, closedWorld.commonMasks.dynamicType));
       return popBoolified();
@@ -1461,9 +1469,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     void buildBody() {
       TypeMask mask = _typeInferenceMap.typeOfIteratorCurrent(node);
-      _pushDynamicInvocation(node, mask, [streamIterator],
-          _sourceInformationBuilder.buildForInIterator(node),
-          selector: Selectors.current);
+      _pushDynamicInvocation(node, mask, Selectors.current, [streamIterator],
+          _sourceInformationBuilder.buildForInIterator(node));
       localsHandler.updateLocal(
           localsMap.getLocalVariable(node.variable), pop());
       node.body.accept(this);
@@ -1486,9 +1493,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         _sourceInformationBuilder.buildLoop(node));
 
     void finalizerFunction() {
-      _pushDynamicInvocation(node, null, [streamIterator],
-          _sourceInformationBuilder.buildGeneric(node),
-          selector: Selectors.cancel);
+      _pushDynamicInvocation(node, null, Selectors.cancel, [streamIterator],
+          _sourceInformationBuilder.buildGeneric(node));
       add(new HAwait(pop(), closedWorld.commonMasks.dynamicType));
     }
 
@@ -1674,7 +1680,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label));
+          block.addAtExit(new HBreak.toLabel(label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -1819,17 +1825,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildGoto(node);
     if (localsMap.generateContinueForBreak(node)) {
       if (handler.labels.isNotEmpty) {
-        handler.generateContinue(handler.labels.first);
+        handler.generateContinue(sourceInformation, handler.labels.first);
       } else {
-        handler.generateContinue();
+        handler.generateContinue(sourceInformation);
       }
     } else {
       if (handler.labels.isNotEmpty) {
-        handler.generateBreak(handler.labels.first);
+        handler.generateBreak(sourceInformation, handler.labels.first);
       } else {
-        handler.generateBreak();
+        handler.generateBreak(sourceInformation);
       }
     }
   }
@@ -1903,7 +1911,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
     assert(target.labels.isNotEmpty);
-    handler.generateContinue(target.labels.first);
+    handler.generateContinue(
+        _sourceInformationBuilder.buildGoto(node), target.labels.first);
   }
 
   @override
@@ -2036,17 +2045,21 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     void buildSwitchCase(ir.SwitchCase switchCase) {
+      SourceInformation caseSourceInformation = sourceInformation;
       if (switchCase != null) {
+        caseSourceInformation = _sourceInformationBuilder.buildGoto(switchCase);
         // Generate 'target = i; break;' for switch case i.
         int index = caseIndex[switchCase];
         HInstruction value = graph.addConstantInt(index, closedWorld);
-        localsHandler.updateLocal(switchTarget, value);
+        localsHandler.updateLocal(switchTarget, value,
+            sourceInformation: caseSourceInformation);
       } else {
         // Generate synthetic default case 'target = null; break;'.
         HInstruction nullValue = graph.addConstantNull(closedWorld);
-        localsHandler.updateLocal(switchTarget, nullValue);
+        localsHandler.updateLocal(switchTarget, nullValue,
+            sourceInformation: caseSourceInformation);
       }
-      jumpTargets[switchTarget].generateBreak();
+      jumpTargets[switchTarget].generateBreak(caseSourceInformation);
     }
 
     _handleSwitch(
@@ -2077,7 +2090,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         if (!isAborted()) {
           // Ensure that we break the loop if the case falls through. (This
           // is only possible for the last case.)
-          jumpTargets[switchTarget].generateBreak();
+          jumpTargets[switchTarget].generateBreak(sourceInformation);
         }
       }
 
@@ -2125,7 +2138,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
           node: switchStatement,
           visitCondition: buildCondition,
           visitThen: buildLoop,
-          visitElse: () => {});
+          visitElse: () => {},
+          sourceInformation: sourceInformation);
     }
   }
 
@@ -2181,7 +2195,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // If there is no default, we will add one later to avoid
         // the critical edge. So we generate a break statement to make
         // sure the last case does not fall through to the default case.
-        jumpHandler.generateBreak();
+        jumpHandler.generateBreak(sourceInformation);
       }
       statements.add(
           new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
@@ -2558,8 +2572,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
     node.receiver.accept(this);
     HInstruction receiver = pop();
 
-    _pushDynamicInvocation(node, _typeInferenceMap.typeOfGet(node),
-        <HInstruction>[receiver], _sourceInformationBuilder.buildGet(node));
+    _pushDynamicInvocation(
+        node,
+        _typeInferenceMap.typeOfGet(node),
+        new Selector.getter(_elementMap.getName(node.name)),
+        <HInstruction>[receiver],
+        _sourceInformationBuilder.buildGet(node));
   }
 
   @override
@@ -2586,6 +2604,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _pushDynamicInvocation(
         node,
         _typeInferenceMap.typeOfSet(node, closedWorld),
+        new Selector.setter(_elementMap.getName(node.name)),
         <HInstruction>[receiver, value],
         _sourceInformationBuilder.buildAssignment(node));
 
@@ -2600,10 +2619,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     // Fake direct call with a dynamic call.
     // TODO(sra): Implement direct invocations properly.
-    _pushDynamicInvocation(node, _typeInferenceMap.typeOfDirectGet(node),
-        <HInstruction>[receiver], _sourceInformationBuilder.buildGet(node),
-        selector:
-            new Selector.getter(_elementMap.getMember(node.target).memberName));
+    _pushDynamicInvocation(
+        node,
+        _typeInferenceMap.typeOfDirectGet(node),
+        new Selector.getter(_elementMap.getMember(node.target).memberName),
+        <HInstruction>[receiver],
+        _sourceInformationBuilder.buildGet(node));
   }
 
   @override
@@ -3515,10 +3536,53 @@ class KernelSsaGraphBuilder extends ir.Visitor
     push(instruction);
   }
 
-  void _pushDynamicInvocation(ir.Node node, TypeMask mask,
-      List<HInstruction> arguments, SourceInformation sourceInformation,
-      {Selector selector}) {
-    // TODO(redemption): Try to inline single targets.
+  void _pushDynamicInvocation(ir.Node node, TypeMask mask, Selector selector,
+      List<HInstruction> arguments, SourceInformation sourceInformation) {
+    // We prefer to not inline certain operations on indexables,
+    // because the constant folder will handle them better and turn
+    // them into simpler instructions that allow further
+    // optimizations.
+    bool isOptimizableOperationOnIndexable(
+        Selector selector, MemberEntity element) {
+      bool isLength = selector.isGetter && selector.name == "length";
+      if (isLength || selector.isIndex) {
+        return closedWorld.isSubtypeOf(
+            element.enclosingClass, commonElements.jsIndexableClass);
+      } else if (selector.isIndexSet) {
+        return closedWorld.isSubtypeOf(
+            element.enclosingClass, commonElements.jsMutableIndexableClass);
+      } else {
+        return false;
+      }
+    }
+
+    bool isOptimizableOperation(Selector selector, MemberEntity element) {
+      ClassEntity cls = element.enclosingClass;
+      if (isOptimizableOperationOnIndexable(selector, element)) return true;
+      if (!interceptorData.interceptedClasses.contains(cls)) return false;
+      if (selector.isOperator) return true;
+      if (selector.isSetter) return true;
+      if (selector.isIndex) return true;
+      if (selector.isIndexSet) return true;
+      if (element == commonElements.jsArrayAdd ||
+          element == commonElements.jsArrayRemoveLast ||
+          element == commonElements.jsStringSplit) {
+        return true;
+      }
+      return false;
+    }
+
+    MemberEntity element = closedWorld.locateSingleElement(selector, mask);
+    if (element != null &&
+        !element.isField &&
+        !(element.isGetter && selector.isCall) &&
+        !(element.isFunction && selector.isGetter) &&
+        !isOptimizableOperation(selector, element)) {
+      if (_tryInlineMethod(
+          element, selector, mask, arguments, node, sourceInformation)) {
+        return;
+      }
+    }
 
     HInstruction receiver = arguments.first;
     List<HInstruction> inputs = <HInstruction>[];
@@ -3682,7 +3746,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     funcExpression.function.accept(this);
   }
 
-  // TODO(het): Decide when to inline
   @override
   void visitMethodInvocation(ir.MethodInvocation invocation) {
     invocation.receiver.accept(this);
@@ -3691,6 +3754,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _pushDynamicInvocation(
         invocation,
         _typeInferenceMap.typeOfInvocation(invocation, closedWorld),
+        selector,
         <HInstruction>[receiver]..addAll(
             _visitArgumentsForDynamicTarget(selector, invocation.arguments)),
         _sourceInformationBuilder.buildCall(invocation.receiver, invocation));

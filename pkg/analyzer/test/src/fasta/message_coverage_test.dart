@@ -180,8 +180,8 @@ class AbstractRecoveryTest extends FastaParserTestCase {
         buffer.write('  ');
         buffer.writeln(code);
       }
-      buffer.write(
-          'Remove the cases for these codes from FastaErrorReporter.reportError.');
+      buffer.write('Remove the cases for these codes from '
+          'FastaErrorReporter.reportMessage.');
     }
     if (buffer.isNotEmpty) {
       fail(buffer.toString());

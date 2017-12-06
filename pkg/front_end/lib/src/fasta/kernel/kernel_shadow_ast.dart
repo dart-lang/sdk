@@ -749,7 +749,6 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
 
   @override
   void _inferStatement(ShadowTypeInferrer inferrer) {
-    inferrer.listener.forInStatementEnter(this);
     var iterableClass = isAsync
         ? inferrer.coreTypes.streamClass
         : inferrer.coreTypes.iterableClass;
@@ -758,6 +757,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     bool typeChecksNeeded = !inferrer.isTopLevel;
     ShadowVariableDeclaration variable;
     var syntheticAssignment = _syntheticAssignment;
+    Expression syntheticWrite;
     if (_declaresVariable) {
       variable = this.variable;
       if (inferrer.strongMode && variable._implicitlyTyped) {
@@ -767,11 +767,13 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
         context = variable.type;
       }
     } else if (syntheticAssignment is ShadowComplexAssignment) {
+      syntheticWrite = syntheticAssignment.write;
       context = syntheticAssignment._getWriteType(inferrer);
     } else {
       context = const UnknownType();
     }
     context = inferrer.wrapType(context, iterableClass);
+    inferrer.listener.forInStatementEnter(this, variable, syntheticWrite);
     var inferredExpressionType = inferrer.resolveTypeParameter(inferrer
         .inferExpression(iterable, context, typeNeeded || typeChecksNeeded));
     inferrer.checkAssignability(
@@ -812,7 +814,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
         body = combineStatements(variable, body)..parent = this;
       }
     }
-    inferrer.listener.forInStatementExit(this);
+    inferrer.listener.forInStatementExit(this, variable);
   }
 }
 
@@ -917,6 +919,7 @@ class ShadowIfNullExpression extends Let implements ShadowExpression {
     if (inferrer.strongMode) {
       variable.type = lhsType;
     }
+    inferrer.listener.ifNullBeforeRhs(this);
     // - Let J = T0 if K is `_` else K.
     var rhsContext = typeContext ?? lhsType;
     // - Infer e1 in context J to get T1
@@ -1137,7 +1140,8 @@ class ShadowIsNotExpression extends Not implements ShadowExpression {
         inferrer.listener.isNotExpressionEnter(this, typeContext) || typeNeeded;
     inferrer.inferExpression(isExpression.operand, null, false);
     var inferredType = typeNeeded ? inferrer.coreTypes.boolClass.rawType : null;
-    inferrer.listener.isNotExpressionExit(this, inferredType);
+    inferrer.listener
+        .isNotExpressionExit(this, isExpression.type, inferredType);
     return inferredType;
   }
 }
@@ -1243,6 +1247,7 @@ class ShadowLogicalExpression extends LogicalExpression
     var boolType = inferrer.coreTypes.boolClass.rawType;
     var leftType =
         inferrer.inferExpression(left, boolType, !inferrer.isTopLevel);
+    inferrer.listener.logicalExpressionBeforeRhs(this);
     var rightType =
         inferrer.inferExpression(right, boolType, !inferrer.isTopLevel);
     inferrer.checkAssignability(boolType, leftType, left, left.fileOffset);
@@ -1712,7 +1717,8 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener.staticAssignEnter(desugared, typeContext) ||
+    typeNeeded = inferrer.listener
+            .staticAssignEnter(desugared, this.write, typeContext) ||
         typeNeeded;
     DartType readType;
     var read = this.read;
@@ -1720,18 +1726,20 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
       readType = read.target.getterType;
       _storeLetType(inferrer, read, readType);
     }
+    Member writeMember;
     DartType writeContext;
     var write = this.write;
     if (write is StaticSet) {
       writeContext = write.target.setterType;
-      var target = write.target;
-      if (target is ShadowField && target._inferenceNode != null) {
-        target._inferenceNode.resolve();
-        target._inferenceNode = null;
+      writeMember = write.target;
+      if (writeMember is ShadowField && writeMember._inferenceNode != null) {
+        writeMember._inferenceNode.resolve();
+        writeMember._inferenceNode = null;
       }
     }
     var inferredResult = _inferRhs(inferrer, readType, writeContext);
-    inferrer.listener.staticAssignExit(desugared, inferredResult.type);
+    inferrer.listener.staticAssignExit(desugared, write, writeMember,
+        writeContext, inferredResult.combiner, inferredResult.type);
     _replaceWithDesugared();
     return inferredResult.type;
   }

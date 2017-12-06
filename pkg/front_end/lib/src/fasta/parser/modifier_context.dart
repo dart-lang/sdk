@@ -739,14 +739,14 @@ class FactoryModifierContext {
 
 class TopLevelMethodModifierContext {
   final Parser parser;
-  Token name;
+  Token beforeName;
   Token externalToken;
 
   /// If recovery finds the beginning of a new declaration,
   /// then this is set to the last token in the prior declaration.
   Token endInvalidTopLevelDeclarationToken;
 
-  TopLevelMethodModifierContext(this.parser, this.name);
+  TopLevelMethodModifierContext(this.parser, this.beforeName);
 
   /// Parse modifiers from the token following [token] up to but not including
   /// [afterModifiers]. If a new declaration start is found in the sequence of
@@ -756,7 +756,9 @@ class TopLevelMethodModifierContext {
   Token parseRecovery(Token token, Token afterModifiers) {
     assert(token != afterModifiers && token.next != afterModifiers);
 
+    Token beforeToken = token;
     while (token.next != afterModifiers) {
+      beforeToken = token;
       token = token.next;
       if (optional('external', token)) {
         if (externalToken == null) {
@@ -773,25 +775,27 @@ class TopLevelMethodModifierContext {
         Token next = token.next;
         if (next.isTopLevelKeyword) {
           endInvalidTopLevelDeclarationToken = token;
-          return token;
+          return beforeToken;
         }
         if (next.isOperator) {
           // If the operator is not one of the modifiers, then skip it,
           // and insert a synthetic modifier
           // to be interpreted as the top level function's identifier.
           if (identical(next, afterModifiers)) {
-            name = parser.rewriter.insertToken(
+            beforeName = next;
+            parser.rewriter.insertToken(
                 new SyntheticStringToken(
                     TokenType.IDENTIFIER,
                     '#synthetic_function_${next.charOffset}',
                     token.charOffset,
                     0),
                 next.next);
-            return name;
+            return next;
           }
           // If the next token is an operator, then skip it
           // because the error message above says it all.
-          token = token.next;
+          beforeToken = token;
+          token = token;
         }
       } else if (optional('factory', token)) {
         parser.reportRecoverableError(
@@ -799,13 +803,13 @@ class TopLevelMethodModifierContext {
         // Indicate to the caller that the next token should be
         // parsed as a new top level declaration.
         endInvalidTopLevelDeclarationToken = token;
-        return token;
+        return beforeToken;
       } else {
         // TODO(danrubel): report more specific analyzer error codes
         parser.reportRecoverableErrorWithToken(
             token, fasta.templateExtraneousModifier);
       }
     }
-    return token;
+    return beforeToken;
   }
 }

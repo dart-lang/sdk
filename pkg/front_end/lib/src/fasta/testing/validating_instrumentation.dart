@@ -48,6 +48,9 @@ class ValidatingInstrumentation implements Instrumentation {
   /// file offset.
   final _testedFeaturesState = <Uri, Map<int, Set<String>>>{};
 
+  /// Map from file URI to a sorted list of token offsets for that file.
+  final _tokenOffsets = <Uri, List<int>>{};
+
   /// String descriptions of the expectation mismatches found so far.
   final _problems = <String>[];
 
@@ -119,8 +122,10 @@ class ValidatingInstrumentation implements Instrumentation {
     var bytes = await readBytesFromFile(uri);
     var expectations = _unsatisfiedExpectations.putIfAbsent(uri, () => {});
     var testedFeaturesState = _testedFeaturesState.putIfAbsent(uri, () => {});
+    var tokenOffsets = _tokenOffsets.putIfAbsent(uri, () => []);
     ScannerResult result = scan(bytes, includeComments: true);
     for (Token token = result.tokens; !token.isEof; token = token.next) {
+      tokenOffsets.add(token.offset);
       for (analyzer.Token commentToken = token.precedingComments;
           commentToken != null;
           commentToken = commentToken.next) {
@@ -171,6 +176,7 @@ class ValidatingInstrumentation implements Instrumentation {
     }
     var expectationsForUri = _unsatisfiedExpectations[uri];
     if (expectationsForUri == null) return;
+    offset = _normalizeOffset(offset, _tokenOffsets[uri]);
     var expectationsAtOffset = expectationsForUri[offset];
     if (expectationsAtOffset != null) {
       for (int i = 0; i < expectationsAtOffset.length; i++) {
@@ -219,6 +225,36 @@ class ValidatingInstrumentation implements Instrumentation {
 
   String _makeExpectationComment(String property, InstrumentationValue value) {
     return '/*@$property=${_escape(value.toString())}*/';
+  }
+
+  /// If [offset] is not one of the token offsets in [tokenOffsets], increase it
+  /// until it is.
+  ///
+  /// Exception: if [offset] is past the last token offset in [tokenOffsets],
+  /// leave it alone.
+  int _normalizeOffset(int offset, List<int> tokenOffsets) {
+    int i = -1;
+    int j = tokenOffsets.length;
+    // Invariant: (i == -1 || tokenOffsets[i] < offset) &&
+    //     (j == tokenOffsets.length || offset <= tokenOffsets[j])
+    while (j - i > 1) {
+      int k = (i + j) ~/ 2;
+      if (tokenOffsets[k] < offset) {
+        i = k;
+      } else {
+        j = k;
+      }
+    }
+    // Now i == j - 1
+    if (j < tokenOffsets.length) {
+      // tokenOffsets[j-1] < offset <= tokenOffsets[j]
+      // Therefore the comment belongs with token j.
+      return tokenOffsets[j];
+    } else {
+      // j-1 is the last token, and tokenOffsets[j-1] < offset.  Since there's
+      // no later token, we can't normalize the offset.
+      return offset;
+    }
   }
 
   void _problem(Uri uri, int offset, String desc, _Fix fix) {

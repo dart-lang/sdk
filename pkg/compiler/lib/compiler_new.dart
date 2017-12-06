@@ -9,8 +9,11 @@ library compiler_new;
 
 import 'dart:async';
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+
 import 'compiler.dart' show Diagnostic;
 import 'src/apiimpl.dart';
+import 'src/library_loader.dart';
 import 'src/options.dart' show CompilerOptions;
 
 export 'compiler.dart' show Diagnostic, PackagesDiscoveryProvider;
@@ -134,7 +137,10 @@ class CompilationResult {
   /// Use only for debugging and testing.
   final compiler;
 
-  CompilationResult(this.compiler, {this.isSuccess: true});
+  final fe.InitializedCompilerState kernelInitializedCompilerState;
+
+  CompilationResult(this.compiler,
+      {this.isSuccess: true, this.kernelInitializedCompilerState: null});
 }
 
 /// Returns a future that completes to a [CompilationResult] when the Dart
@@ -167,6 +173,12 @@ Future<CompilationResult> compile(
   CompilerImpl compiler = new CompilerImpl(
       compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
   return compiler.run(compilerOptions.entryPoint).then((bool success) {
+    if (compiler.libraryLoader is KernelLibraryLoaderTask) {
+      KernelLibraryLoaderTask loader = compiler.libraryLoader;
+      return new CompilationResult(compiler,
+          isSuccess: success,
+          kernelInitializedCompilerState: loader.initializedCompilerState);
+    }
     return new CompilationResult(compiler, isSuccess: success);
   });
 }

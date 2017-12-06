@@ -1850,7 +1850,14 @@ class HInvokeConstructorBody extends HInvokeStatic {
   // The 'inputs' are
   //     [receiver, arg1, ..., argN] or
   //     [interceptor, receiver, arg1, ... argN].
-  HInvokeConstructorBody(element, inputs, type) : super(element, inputs, type);
+  HInvokeConstructorBody(
+      ConstructorBodyEntity element,
+      List<HInstruction> inputs,
+      TypeMask type,
+      SourceInformation sourceInformation)
+      : super(element, inputs, type) {
+    this.sourceInformation = sourceInformation;
+  }
 
   String toString() => 'invoke constructor body: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeConstructorBody(this);
@@ -2368,13 +2375,17 @@ class HGoto extends HControlFlow {
 abstract class HJump extends HControlFlow {
   final JumpTarget target;
   final LabelDefinition label;
-  HJump(this.target)
+  HJump(this.target, SourceInformation sourceInformation)
       : label = null,
-        super(const <HInstruction>[]);
-  HJump.toLabel(LabelDefinition label)
+        super(const <HInstruction>[]) {
+    this.sourceInformation = sourceInformation;
+  }
+  HJump.toLabel(LabelDefinition label, SourceInformation sourceInformation)
       : label = label,
         target = label.target,
-        super(const <HInstruction>[]);
+        super(const <HInstruction>[]) {
+    this.sourceInformation = sourceInformation;
+  }
 }
 
 class HBreak extends HJump {
@@ -2382,19 +2393,30 @@ class HBreak extends HJump {
   /// generated for a switch statement with continue statements. See
   /// [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
   final bool breakSwitchContinueLoop;
-  HBreak(JumpTarget target, {bool this.breakSwitchContinueLoop: false})
-      : super(target);
-  HBreak.toLabel(LabelDefinition label)
+
+  HBreak(JumpTarget target, SourceInformation sourceInformation,
+      {bool this.breakSwitchContinueLoop: false})
+      : super(target, sourceInformation);
+
+  HBreak.toLabel(LabelDefinition label, SourceInformation sourceInformation)
       : breakSwitchContinueLoop = false,
-        super.toLabel(label);
-  toString() => (label != null) ? 'break ${label.labelName}' : 'break';
+        super.toLabel(label, sourceInformation);
+
+  String toString() => (label != null) ? 'break ${label.labelName}' : 'break';
+
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
 class HContinue extends HJump {
-  HContinue(JumpTarget target) : super(target);
-  HContinue.toLabel(LabelDefinition label) : super.toLabel(label);
-  toString() => (label != null) ? 'continue ${label.labelName}' : 'continue';
+  HContinue(JumpTarget target, SourceInformation sourceInformation)
+      : super(target, sourceInformation);
+
+  HContinue.toLabel(LabelDefinition label, SourceInformation sourceInformation)
+      : super.toLabel(label, sourceInformation);
+
+  String toString() =>
+      (label != null) ? 'continue ${label.labelName}' : 'continue';
+
   accept(HVisitor visitor) => visitor.visitContinue(this);
 }
 

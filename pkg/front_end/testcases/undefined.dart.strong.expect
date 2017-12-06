@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field dynamic x = null;
+  default constructor •() → void
+    : super core::Object::•()
+    ;
+  method f() → void {}
+}
+static method test(self::C c) → void {
+  c.{self::C::x};
+  let final dynamic #t1 = c in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/undefined.dart:14:33: Error: The getter 'y' isn't defined for the class '#lib1::C'.\nTry correcting the name to the name of an existing getter, or defining a getter or field named 'y'.\n  c. /*@error=UndefinedGetter*/ y;\n                                ^"));
+  c.{self::C::f}();
+  let final dynamic #t2 = c in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/undefined.dart:16:33: Error: The method 'g' isn't defined for the class '#lib1::C'.\nTry correcting the name to the name of an existing method, or defining a method named 'g'.\n  c. /*@error=UndefinedMethod*/ g();\n                                ^"));
+  c.{self::C::x} = null;
+  let final dynamic #t3 = c in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/undefined.dart:18:33: Error: The setter 'y' isn't defined for the class '#lib1::C'.\nTry correcting the name to the name of an existing setter, or defining a setter or field named 'y'.\n  c. /*@error=UndefinedSetter*/ y = null;\n                                ^"));
+}
+static method main() → dynamic {}

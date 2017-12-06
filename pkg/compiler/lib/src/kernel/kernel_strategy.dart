@@ -4,6 +4,8 @@
 
 library dart2js.kernel.frontend_strategy;
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+
 import '../../compiler_new.dart' as api;
 import '../common.dart';
 import '../common/backend_api.dart';
@@ -54,8 +56,10 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
   final Map<MemberEntity, ScopeModel> closureModels =
       <MemberEntity, ScopeModel>{};
 
-  KernelFrontEndStrategy(
-      this._options, DiagnosticReporter reporter, env.Environment environment) {
+  fe.InitializedCompilerState initializedCompilerState;
+
+  KernelFrontEndStrategy(this._options, DiagnosticReporter reporter,
+      env.Environment environment, this.initializedCompilerState) {
     _elementMap = new KernelToElementMapForImpactImpl(
         reporter, environment, this, _options);
   }
@@ -74,7 +78,8 @@ class KernelFrontEndStrategy extends FrontendStrategyBase {
       Measurer measurer) {
     return new KernelLibraryLoaderTask(_options.platformBinaries,
         _options.packageConfig, _elementMap, compilerInput, reporter, measurer,
-        verbose: _options.verbose);
+        verbose: _options.verbose,
+        initializedCompilerState: initializedCompilerState);
   }
 
   @override

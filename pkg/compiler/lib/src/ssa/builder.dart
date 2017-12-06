@@ -1416,8 +1416,12 @@ class SsaAstGraphBuilder extends ast.Visitor
           tryInlineMethod(body, null, null, bodyCallInputs, function)) {
         pop();
       } else {
+        ConstructorBodyElement declaration = body.declaration;
         HInvokeConstructorBody invoke = new HInvokeConstructorBody(
-            body.declaration, bodyCallInputs, commonMasks.nonNullType);
+            declaration,
+            bodyCallInputs,
+            commonMasks.nonNullType,
+            sourceInformationBuilder.buildDeclaration(constructor));
         invoke.sideEffects = closedWorld.getSideEffectsOfElement(constructor);
         add(invoke);
       }
@@ -1485,7 +1489,7 @@ class SsaAstGraphBuilder extends ast.Visitor
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
-      signature.orderedForEachParameter((_parameterElement) {
+      signature.forEachParameter((_parameterElement) {
         ParameterElement parameterElement = _parameterElement;
         if (element.isGenerativeConstructorBody) {
           if (closureDataLookup
@@ -1888,7 +1892,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
-          block.addAtExit(new HBreak.toLabel(label));
+          block.addAtExit(new HBreak.toLabel(label, sourceInformation));
           block.remove(breakInstruction);
         });
       }
@@ -5440,10 +5444,10 @@ class SsaAstGraphBuilder extends ast.Visitor
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
     if (node.target == null) {
-      handler.generateBreak();
+      handler.generateBreak(sourceInformationBuilder.buildGoto(node));
     } else {
       LabelDefinition label = elements.getTargetLabel(node);
-      handler.generateBreak(label);
+      handler.generateBreak(sourceInformationBuilder.buildGoto(node), label);
     }
   }
 
@@ -5454,11 +5458,11 @@ class SsaAstGraphBuilder extends ast.Visitor
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
     if (node.target == null) {
-      handler.generateContinue();
+      handler.generateContinue(sourceInformationBuilder.buildGoto(node));
     } else {
       LabelDefinition label = elements.getTargetLabel(node);
       assert(label != null);
-      handler.generateContinue(label);
+      handler.generateContinue(sourceInformationBuilder.buildGoto(node), label);
     }
   }
 
@@ -6050,17 +6054,21 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void buildSwitchCase(ast.SwitchCase switchCase) {
+      SourceInformation caseSourceInformation = sourceInformation;
       if (switchCase != null) {
+        caseSourceInformation = sourceInformationBuilder.buildGoto(switchCase);
         // Generate 'target = i; break;' for switch case i.
         int index = caseIndex[switchCase];
         HInstruction value = graph.addConstantInt(index, closedWorld);
-        localsHandler.updateLocal(switchTarget, value);
+        localsHandler.updateLocal(switchTarget, value,
+            sourceInformation: caseSourceInformation);
       } else {
         // Generate synthetic default case 'target = null; break;'.
         HInstruction value = graph.addConstantNull(closedWorld);
-        localsHandler.updateLocal(switchTarget, value);
+        localsHandler.updateLocal(switchTarget, value,
+            sourceInformation: caseSourceInformation);
       }
-      jumpTargets[switchTarget].generateBreak();
+      jumpTargets[switchTarget].generateBreak(caseSourceInformation);
     }
 
     handleSwitch(node, jumpHandler, buildExpression, switchCases, getConstants,
@@ -6083,7 +6091,7 @@ class SsaAstGraphBuilder extends ast.Visitor
         if (!isAborted()) {
           // Ensure that we break the loop if the case falls through. (This
           // is only possible for the last case.)
-          jumpTargets[switchTarget].generateBreak();
+          jumpTargets[switchTarget].generateBreak(sourceInformation);
         }
       }
 
@@ -6129,7 +6137,8 @@ class SsaAstGraphBuilder extends ast.Visitor
           node: node,
           visitCondition: buildCondition,
           visitThen: buildLoop,
-          visitElse: () => {});
+          visitElse: () => {},
+          sourceInformation: sourceInformation);
     }
   }
 
@@ -6196,7 +6205,7 @@ class SsaAstGraphBuilder extends ast.Visitor
           // If there is no default, we will add one later to avoid
           // the critical edge. So we generate a break statement to make
           // sure the last case does not fall through to the default case.
-          jumpHandler.generateBreak();
+          jumpHandler.generateBreak(sourceInformation);
         }
       }
       statements.add(
@@ -7038,7 +7047,7 @@ class AstTypeBuilder extends TypeBuilder {
     if (!checkOrTrustTypes) return;
 
     FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((_parameter) {
+    signature.forEachParameter((_parameter) {
       ParameterElement parameter = _parameter;
       HInstruction argument = builder.localsHandler.readLocal(parameter);
       potentiallyCheckOrTrustType(argument, parameter.type);

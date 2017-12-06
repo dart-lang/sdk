@@ -457,7 +457,6 @@ iterable_to_list_test/01: RuntimeError
 map_test: Crash # tests/corelib/map_test.dart:866:7: Internal problem: Unhandled Null in installDefaultConstructor.
 nan_infinity_test/01: RuntimeError
 regress_r21715_test: RuntimeError
-stacktrace_fromstring_test: RuntimeError
 string_base_vm_test: RuntimeError
 symbol_reserved_word_test/03: RuntimeError
 symbol_reserved_word_test/04: MissingCompileTimeError

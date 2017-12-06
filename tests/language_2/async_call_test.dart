@@ -4,6 +4,7 @@
 
 import "dart:async";
 import "package:expect/expect.dart";
+import "package:async_helper/async_helper.dart";
 
 var result = "";
 
@@ -15,14 +16,18 @@ bar() async {
   result += "bar";
 }
 
-main() async {
-  var f = new Future(foo);
-  var b = bar();
-  Expect.equals("", result);
-  scheduleMicrotask(() => result += "micro");
-  await b;
-  await f;
+main() {
+  asyncStart();
+  () async {
+    var f = new Future(foo);
+    var b = bar();
+    Expect.equals("", result);
+    scheduleMicrotask(() => result += "micro");
+    await b;
+    await f;
 
-  // Validates that bar is scheduled as a microtask, before foo.
-  Expect.equals("barmicrofoo", result);
+    // Validates that bar is scheduled as a microtask, before foo.
+    Expect.equals("barmicrofoo", result);
+    asyncEnd();
+  }();
 }

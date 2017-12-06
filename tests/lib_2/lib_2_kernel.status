@@ -105,6 +105,7 @@ isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments
 isolate/unresolved_ports_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
+js/prototype_access_test: CompileTimeError
 mirrors/abstract_class_test: RuntimeError
 mirrors/abstract_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/class_declarations_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -199,8 +200,9 @@ mirrors/method_mirror_location_test: RuntimeError
 mirrors/method_mirror_name_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/method_mirror_source_line_ending_test: Crash
 mirrors/method_mirror_source_test: Crash
-mirrors/mirrors_nsm_mismatch_test: RuntimeError
-mirrors/mirrors_nsm_test/dart2js: RuntimeError
+mirrors/mirrors_nsm_mismatch_test: CompileTimeError # Issue 31533
+mirrors/mirrors_nsm_test/dart2js: CompileTimeError # Issue 31533
+mirrors/mirrors_nsm_test/none: CompileTimeError # Issue 31533
 mirrors/mirrors_reader_test: Crash
 mirrors/mirrors_test: Crash
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
@@ -243,7 +245,7 @@ mirrors/reflected_type_typedefs_test: RuntimeError
 mirrors/reflected_type_typevars_test: RuntimeError
 mirrors/regress_26187_test: RuntimeError
 mirrors/relation_assignable_test: RuntimeError
-mirrors/relation_subclass_test: RuntimeError
+mirrors/relation_subclass_test: CompileTimeError # Issue 31533
 mirrors/relation_subtype_test: RuntimeError
 mirrors/repeated_private_anon_mixin_app_test: RuntimeError
 mirrors/return_type_test: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -478,6 +480,7 @@ isolate/timer_isolate_test: CompileTimeError # Issue 31402 (Invocation arguments
 isolate/typed_message_test: CompileTimeError # Issue 31402 (Invocation arguments)
 js/datetime_roundtrip_test: CompileTimeError
 js/null_test: CompileTimeError
+js/prototype_access_test: CompileTimeError
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug]

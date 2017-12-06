@@ -45,12 +45,12 @@ class D extends self::C {
     this.{self::D::setterOnly} = 0;
     this.{self::D::getterOnly};
     this.{self::C::getterOnly} = 0;
-    this.missingField;
-    this.missingField = 0;
-    this.missingMethod();
-    this.missingField;
-    this.missingField = 0;
-    this.missingMethod();
+    let final dynamic #t1 = this in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/warn_unresolved_sends.dart:49:39: Error: The getter 'missingField' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.\n    this. /*@warning=GetterNotFound*/ missingField;\n                                      ^"));
+    let final dynamic #t2 = this in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/warn_unresolved_sends.dart:50:39: Error: The setter 'missingField' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.\n    this. /*@warning=SetterNotFound*/ missingField = 0;\n                                      ^"));
+    let final dynamic #t3 = this in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/warn_unresolved_sends.dart:51:39: Error: The method 'missingMethod' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing method, or defining a method named 'missingMethod'.\n    this. /*@warning=MethodNotFound*/ missingMethod();\n                                      ^"));
+    let final dynamic #t4 = this in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/warn_unresolved_sends.dart:53:33: Error: The getter 'missingField' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing getter, or defining a getter or field named 'missingField'.\n    /*@warning=GetterNotFound*/ missingField;\n                                ^"));
+    let final dynamic #t5 = this in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/warn_unresolved_sends.dart:54:33: Error: The setter 'missingField' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing setter, or defining a setter or field named 'missingField'.\n    /*@warning=SetterNotFound*/ missingField = 0;\n                                ^"));
+    let final dynamic #t6 = this in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/warn_unresolved_sends.dart:55:33: Error: The method 'missingMethod' isn't defined for the class '#lib1::D'.\nTry correcting the name to the name of an existing method, or defining a method named 'missingMethod'.\n    /*@warning=MethodNotFound*/ missingMethod();\n                                ^"));
   }
 }
 class E extends self::D {

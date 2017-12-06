@@ -75,6 +75,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 
   @override
   void _recordDeclaration(Statement declaration, int offset) {
+    if (_inSynthetic) return;
     if (_debug) {
       print('Recording declaration of $declaration for offset $offset');
     }
@@ -84,6 +85,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 
   @override
   int _recordReference(Node target, int offset) {
+    if (_inSynthetic) return -1;
     if (_debug) {
       print('Recording reference to $target for offset $offset');
     }
@@ -93,6 +95,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 
   @override
   int _recordType(DartType type, int offset) {
+    if (_inSynthetic) return -1;
     if (_debug) {
       print('Recording type $type for offset $offset');
     }
@@ -103,6 +106,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 
   @override
   void _replaceReference(Node reference) {
+    if (_inSynthetic) return;
     if (_debug) {
       int offset = _deferredReferenceOffsets.removeLast();
       print('Replacing reference $reference for offset $offset');
@@ -112,6 +116,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 
   @override
   void _replaceType(DartType type, [int newOffset = -1]) {
+    if (_inSynthetic) return;
     if (newOffset != -1) {
       _typeOffsets[_deferredTypeSlots.last] = newOffset;
     }
@@ -199,6 +204,11 @@ class ResolutionStorer extends TypeInferenceListener {
   /// Indices into [_types] which need to be filled in later.
   final _deferredTypeSlots = <int>[];
 
+  /// When `true`, we are visiting a synthetic structure, which is not
+  /// present in AST, and not visible to Analyzer, so we should not record
+  /// any resolution information for it.
+  bool _inSynthetic = false;
+
   ResolutionStorer(this._declarations, this._references, this._types);
 
   @override
@@ -231,6 +241,38 @@ class ResolutionStorer extends TypeInferenceListener {
     assert(_deferredTypeSlots.isEmpty);
   }
 
+  @override
+  void forInStatementEnter(ForInStatement statement,
+      VariableDeclaration variable, Expression write) {
+    if (variable != null) {
+      _deferType(variable.fileOffset);
+      _recordDeclaration(variable, variable.fileOffset);
+    } else {
+      if (write is VariableSet) {
+        _recordReference(write.variable, write.fileOffset);
+        _recordType(write.variable.type, write.fileOffset);
+      } else if (write is PropertySet) {
+        Field field = write.interfaceTarget;
+        _recordReference(new MemberSetterNode(field), write.fileOffset);
+        _recordType(field.type, write.fileOffset);
+      } else if (write is StaticSet) {
+        Field field = write.target;
+        _recordReference(new MemberSetterNode(field), write.fileOffset);
+        _recordType(field.type, write.fileOffset);
+      } else {
+        throw new UnimplementedError('(${write.runtimeType}) $write');
+      }
+    }
+  }
+
+  @override
+  void forInStatementExit(
+      ForInStatement statement, VariableDeclaration variable) {
+    if (variable != null) {
+      _replaceType(variable.type);
+    }
+  }
+
   void functionDeclarationEnter(FunctionDeclaration statement) {
     _recordDeclaration(statement.variable, statement.fileOffset);
     super.functionDeclarationEnter(statement);
@@ -248,6 +290,16 @@ class ResolutionStorer extends TypeInferenceListener {
       String expressionType, Expression expression, DartType inferredType) {
     _recordType(inferredType, expression.fileOffset);
     super.genericExpressionExit(expressionType, expression, inferredType);
+  }
+
+  @override
+  void ifNullBeforeRhs(Expression expression) {
+    _deferType(expression.fileOffset);
+  }
+
+  @override
+  void ifNullExit(Expression expression, DartType inferredType) {
+    _replaceType(inferredType);
   }
 
   @override
@@ -271,6 +323,32 @@ class ResolutionStorer extends TypeInferenceListener {
   void isExpressionExit(IsExpression expression, DartType inferredType) {
     _recordType(expression.type, expression.fileOffset);
     _recordType(inferredType, expression.fileOffset);
+  }
+
+  void isNotExpressionExit(
+      Not expression, DartType type, DartType inferredType) {
+    _recordType(type, expression.fileOffset);
+    _recordType(inferredType, expression.fileOffset);
+  }
+
+  @override
+  void logicalExpressionBeforeRhs(LogicalExpression expression) {
+    _deferType(expression.fileOffset);
+  }
+
+  @override
+  void logicalExpressionExit(
+      LogicalExpression expression, DartType inferredType) {
+    _replaceType(inferredType);
+  }
+
+  void loopAssignmentStatementEnter(ExpressionStatement statement) {
+    _inSynthetic = true;
+  }
+
+  @override
+  void loopAssignmentStatementExit(ExpressionStatement statement) {
+    _inSynthetic = false;
   }
 
   @override
@@ -372,8 +450,32 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  bool staticAssignEnter(
+      Expression expression, Expression write, DartType typeContext) {
+    _deferReference(write.fileOffset);
+    _deferType(write.fileOffset);
+    return super.staticAssignEnter(expression, write, typeContext);
+  }
+
+  @override
+  void staticAssignExit(
+      Expression expression,
+      Expression write,
+      Member writeMember,
+      DartType writeContext,
+      Procedure combiner,
+      DartType inferredType) {
+    _replaceReference(new MemberSetterNode(writeMember));
+    _replaceType(writeContext);
+    _recordReference(
+        combiner ?? const NullNode('assign-combiner'), write.fileOffset);
+    _recordType(inferredType, write.fileOffset);
+  }
+
+  @override
   void staticGetExit(StaticGet expression, DartType inferredType) {
-    _recordReference(expression.target, expression.fileOffset);
+    _recordReference(
+        new MemberGetterNode(expression.target), expression.fileOffset);
     super.staticGetExit(expression, inferredType);
   }
 
@@ -413,6 +515,13 @@ class ResolutionStorer extends TypeInferenceListener {
         : substitution.substituteType(calleeType.withoutTypeParameters);
     _replaceType(new MemberInvocationDartType(expression.target, invokeType));
     super.genericExpressionExit("staticInvocation", expression, inferredType);
+  }
+
+  @override
+  void stringConcatenationExit(
+      StringConcatenation expression, DartType inferredType) {
+    // We don't need the type - we already know that it is String.
+    // Moreover, the file offset for StringConcatenation is `-1`.
   }
 
   @override
@@ -486,27 +595,32 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   void _recordDeclaration(Statement declaration, int offset) {
+    if (_inSynthetic) return;
     _declarations.add(declaration);
   }
 
   int _recordReference(Node target, int offset) {
+    if (_inSynthetic) return -1;
     int slot = _references.length;
     _references.add(target);
     return slot;
   }
 
   int _recordType(DartType type, int offset) {
+    if (_inSynthetic) return -1;
     int slot = _types.length;
     _types.add(type);
     return slot;
   }
 
   void _replaceReference(Node reference) {
+    if (_inSynthetic) return;
     int slot = _deferredReferenceSlots.removeLast();
     _references[slot] = reference;
   }
 
   void _replaceType(DartType type, [int newOffset = -1]) {
+    if (_inSynthetic) return;
     int slot = _deferredTypeSlots.removeLast();
     _types[slot] = type;
   }

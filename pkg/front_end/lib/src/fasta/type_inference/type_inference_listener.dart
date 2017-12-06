@@ -200,10 +200,12 @@ class TypeInferenceListener
   void fieldInitializerExit(FieldInitializer initializer) =>
       genericInitializerExit("fieldInitializer", initializer);
 
-  void forInStatementEnter(ForInStatement statement) =>
+  void forInStatementEnter(ForInStatement statement,
+          VariableDeclaration variable, Expression write) =>
       genericStatementEnter('forInStatement', statement);
 
-  void forInStatementExit(ForInStatement statement) =>
+  void forInStatementExit(
+          ForInStatement statement, VariableDeclaration variable) =>
       genericStatementExit('forInStatement', statement);
 
   void forStatementEnter(ForStatement statement) =>
@@ -225,6 +227,8 @@ class TypeInferenceListener
   void functionExpressionExit(
           FunctionExpression expression, DartType inferredType) =>
       genericExpressionExit("functionExpression", expression, inferredType);
+
+  void ifNullBeforeRhs(Expression expression) {}
 
   bool ifNullEnter(Expression expression, DartType typeContext) =>
       genericExpressionEnter('ifNull', expression, typeContext);
@@ -268,7 +272,8 @@ class TypeInferenceListener
   bool isNotExpressionEnter(Not expression, DartType typeContext) =>
       genericExpressionEnter("isNotExpression", expression, typeContext);
 
-  void isNotExpressionExit(Not expression, DartType inferredType) =>
+  void isNotExpressionExit(
+          Not expression, DartType type, DartType inferredType) =>
       genericExpressionExit("isNotExpression", expression, inferredType);
 
   void labeledStatementEnter(LabeledStatement statement) =>
@@ -282,6 +287,8 @@ class TypeInferenceListener
 
   void listLiteralExit(ListLiteral expression, DartType inferredType) =>
       genericExpressionExit("listLiteral", expression, inferredType);
+
+  void logicalExpressionBeforeRhs(LogicalExpression expression) {}
 
   bool logicalExpressionEnter(
           LogicalExpression expression, DartType typeContext) =>
@@ -389,10 +396,17 @@ class TypeInferenceListener
   void returnStatementExit(ReturnStatement statement) =>
       genericStatementExit('returnStatement', statement);
 
-  bool staticAssignEnter(Expression expression, DartType typeContext) =>
+  bool staticAssignEnter(
+          Expression expression, Expression write, DartType typeContext) =>
       genericExpressionEnter("staticAssign", expression, typeContext);
 
-  void staticAssignExit(Expression expression, DartType inferredType) =>
+  void staticAssignExit(
+          Expression expression,
+          Expression write,
+          Member writeMember,
+          DartType writeContext,
+          Procedure combiner,
+          DartType inferredType) =>
       genericExpressionExit("staticAssign", expression, inferredType);
 
   bool staticGetEnter(StaticGet expression, DartType typeContext) =>

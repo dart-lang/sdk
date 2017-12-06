@@ -193,6 +193,7 @@ import "dart:collection" as col;
 import "dart:_internal" as _in;
 import "dart:math" as math;
 
+typedef _SyncGeneratorCallback<T extends self::Object> = (self::_SyncIterator<T>) → self::bool;
 class _SyncIterable<T extends self::Object> extends col::IterableBase<self::_SyncIterable::T> {
   const constructor •((self::_SyncIterator<self::_SyncIterable::T>) → self::bool _moveNextFn) → void;
   get iterator() → self::Iterator<self::_SyncIterable::T>;

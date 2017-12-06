@@ -21,18 +21,27 @@ void main(List<String> args) {
 
   String buildArgs = null;
   if (buildType == BuildType.compile) {
-    buildArgs = getStepInput("Give the arguments to build.py, seperate by "
+    buildArgs = getStepInput("Give the arguments to build.py, separate by "
         "' '");
   } else if (buildType == BuildType.existing) {
     buildArgs = getStepInput("Input the fileset hash");
   }
 
   var testCommands = <TestCommand>[];
-  var testCommandString = getStepInput("Write a command to execute. Use ' ' to "
-      "separate arguments. If you only wish to build, just press <Enter>");
+  var testCommandString = getStepInput("Write a command to execute after the "
+      "build-step. Use ' ' to separate arguments. If you only wish to build, "
+      "just press <Enter>");
   while (testCommandString.isNotEmpty) {
+    if (builderPlatform == Platform.linux) {
+      var useXvfb = getIntegerStepInput(
+          "Should the command be wrapped by xvfb (i.e. is the runtime 'drt', "
+          "'chrome' or 'ff')?: (0) No, (1) Yes");
+      if (useXvfb == 1) {
+        testCommandString = "xvfb $testCommandString";
+      }
+    }
     var testCommandRepeat = getIntegerStepInput("How many times would you like "
-        "the command '${testCommandString} to be invoked?");
+        "the command '${testCommandString}' to be invoked?");
     testCommands.add(new TestCommand(testCommandString, testCommandRepeat));
     testCommandString = getStepInput("Write an additional command to execute. "
         "Use ' ' to separate arguments. If no additional commands should be run"
@@ -44,7 +53,7 @@ void main(List<String> args) {
   int commandIndex = 1;
   var allTestCommands = testCommands
       .expand((testCommand) => testCommand.toTryCommand(commandIndex++));
-  print("git try cl -b ${getBuilderName(builderPlatform)} "
+  print("git cl try -B luci.dart.try -b ${getBuilderName(builderPlatform)} "
       "${getBuildProperties(buildType, buildArgs)}"
       "${allTestCommands.join(' ')}");
 }
@@ -52,13 +61,13 @@ void main(List<String> args) {
 String getBuilderName(Platform builderPlatform) {
   switch (builderPlatform) {
     case Platform.linux:
-      return "dart-linux-test-try";
+      return "cl-linux-try";
     case Platform.win:
-      return "dart-win-test-try";
+      return "cl-win-try";
     case Platform.mac:
-      return "dart-mac-test-try";
+      return "cl-mac-try";
   }
-  return "dart-linux-test-try";
+  return "cl-linux-try";
 }
 
 String getBuildProperties(BuildType buildType, String buildArgs) {

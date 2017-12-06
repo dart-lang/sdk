@@ -241,6 +241,20 @@ class TypedefType extends DartType {
   }
 }
 
+/// Provides a thin model of method type variables for compabitility with the
+/// old compiler behavior in Dart 1: They are treated as if their value were
+/// `dynamic` when used in a type annotation, and as a malformed type when
+/// used in an `as` or `is` expression.
+class Dart1MethodTypeVariableType extends TypeVariableType {
+  Dart1MethodTypeVariableType(TypeVariableEntity element) : super(element);
+
+  @override
+  bool get treatAsDynamic => true;
+
+  @override
+  bool get isMalformed => true;
+}
+
 class TypeVariableType extends DartType {
   final TypeVariableEntity element;
 

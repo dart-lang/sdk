@@ -2480,10 +2480,7 @@ main() => A.A = 1;
 
       MessageKind.UNSUPPORTED_PREFIX_PLUS: const MessageTemplate(
           MessageKind.UNSUPPORTED_PREFIX_PLUS, "'+' is not a prefix operator. ",
-          howToFix: "Try removing '+'.",
-          examples: const [
-            "main() => +2;  // No longer a valid way to write '2'"
-          ]),
+          howToFix: "Try removing '+'."),
 
       MessageKind.MIRRORS_EXPECTED_STRING: const MessageTemplate(
           MessageKind.MIRRORS_EXPECTED_STRING,

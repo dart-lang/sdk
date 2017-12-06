@@ -246,7 +246,7 @@ FileSystem _buildFileSystem(List namedSources) {
   return new HybridFileSystem(fileSystem);
 }
 
-train(String scriptUri) {
+train(String scriptUri, String platformKernel) {
   // TODO(28532): Enable on Windows.
   if (Platform.isWindows) return;
 
@@ -267,7 +267,7 @@ train(String scriptUri) {
     tag,
     responsePort.sendPort,
     scriptUri,
-    null /* platformKernel */,
+    platformKernel,
     false /* incremental */,
     false /* strong */,
     1 /* isolateId chosen randomly */,
@@ -277,10 +277,10 @@ train(String scriptUri) {
 }
 
 main([args]) {
-  if (args?.length == 2 && args[0] == '--train') {
+  if ((args?.length ?? 0) > 1 && args[0] == '--train') {
     // This entry point is used when creating an app snapshot. The argument
     // provides a script to compile to warm-up generated code.
-    train(args[1]);
+    train(args[1], args.length > 2 ? args[2] : null);
   } else {
     // Entry point for the Kernel isolate.
     return new RawReceivePort()..handler = _processLoadRequest;

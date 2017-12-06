@@ -477,6 +477,9 @@ constructor13_test/01: MissingCompileTimeError
 constructor13_test/02: MissingCompileTimeError
 int64_literal_test/03: MissingCompileTimeError
 int64_literal_test/30: MissingCompileTimeError
+object_has_no_call_method_test/02: MissingCompileTimeError
+object_has_no_call_method_test/05: MissingCompileTimeError
+object_has_no_call_method_test/08: MissingCompileTimeError
 
 [ $compiler == dart2analyzer && $checked ]
 assertion_initializer_const_error2_test/none: Pass
@@ -1036,6 +1039,7 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 async_return_types_test/nestedFuture: MissingCompileTimeError
+cascaded_forwarding_stubs_test: CompileTimeError
 combiner_type_lookup_indexed_test: CompileTimeError # Issue #31484
 combiner_type_lookup_instance_test: CompileTimeError # Issue #31484
 combiner_type_lookup_static_test: CompileTimeError # Issue #31484
@@ -1071,6 +1075,7 @@ multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
 multiline_newline_test/05r: MissingCompileTimeError
 multiple_interface_inheritance_test: CompileTimeError # Issue 30552
+object_has_no_call_method_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/02: MissingCompileTimeError
 override_inheritance_abstract_test/03: MissingCompileTimeError
 override_inheritance_abstract_test/04: MissingCompileTimeError

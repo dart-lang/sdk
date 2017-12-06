@@ -125,10 +125,6 @@ class StubCode : public AllStatic {
   // only once and the stub code resides in the vm_isolate heap.
   static void InitOnce();
 
-  // Generate all stubs which are generated on a per isolate basis as they
-  // have embedded objects which are isolate specific.
-  static void Init(Isolate* isolate);
-
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Returns true if stub code has been initialized.

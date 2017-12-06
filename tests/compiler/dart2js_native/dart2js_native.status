@@ -72,7 +72,6 @@ subclassing_super_field_2_test: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
 bound_closure_super_test: RuntimeError
-event_loop_test: RuntimeError
 fake_thing_test: RuntimeError
 mirror_intercepted_field_test: RuntimeError
 native_library_same_name_used_frog_test: CompileTimeError

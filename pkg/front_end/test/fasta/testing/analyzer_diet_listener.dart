@@ -19,7 +19,7 @@ import 'package:analyzer/src/dart/element/type.dart' as ast;
 import 'package:analyzer/src/fasta/ast_builder.dart' show AstBuilder;
 
 import 'package:analyzer/src/fasta/resolution_applier.dart'
-    show TypeContext, ValidatingResolutionApplier;
+    show ResolutionApplier, TypeContext;
 
 import 'package:analyzer/src/fasta/resolution_storer.dart'
     show InstrumentedResolutionStorer;
@@ -184,13 +184,13 @@ class AnalyzerDietListener extends DietListener {
     // Now apply the resolution data and inferred types to the analyzer AST.
     var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
     var translatedReferences = _translateReferences(_kernelReferences);
-    var resolutionApplier = new ValidatingResolutionApplier(
+    var resolutionApplier = new ResolutionApplier(
         new _TestTypeContext(),
         translatedDeclarations,
-        translatedReferences,
-        _kernelTypes,
         _declarationOffsets,
+        translatedReferences,
         _referenceOffsets,
+        _kernelTypes,
         _typeOffsets);
     ast.AstNode fields = listener.finishFields();
     fields.accept(resolutionApplier);
@@ -242,13 +242,13 @@ class AnalyzerDietListener extends DietListener {
     // Now apply the resolution data and inferred types to the analyzer AST.
     var translatedDeclarations = _translateDeclarations(_kernelDeclarations);
     var translatedReferences = _translateReferences(_kernelReferences);
-    var resolutionApplier = new ValidatingResolutionApplier(
+    var resolutionApplier = new ResolutionApplier(
         new _TestTypeContext(),
         translatedDeclarations,
-        translatedReferences,
-        _kernelTypes,
         _declarationOffsets,
+        translatedReferences,
         _referenceOffsets,
+        _kernelTypes,
         _typeOffsets);
     ast.AstNode bodyAsAstNode = body;
     bodyAsAstNode.accept(resolutionApplier);
@@ -315,6 +315,9 @@ class AnalyzerDietListener extends DietListener {
 class _TestTypeContext implements TypeContext {
   @override
   ast.ClassElement get enclosingClassElement => null;
+
+  @override
+  ast.DartType get stringType => null;
 
   @override
   ast.DartType get typeType => null;

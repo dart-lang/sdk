@@ -154,6 +154,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         _match(normalParameter.identifier, _walker.getParameter());
     if (normalParameter is SimpleFormalParameterImpl) {
       normalParameter.element = element;
+      if (_applyKernelTypes) {
+        if (normalParameter.type != null) {
+          ResolutionApplier.applyToTypeAnnotation(
+              element.type, normalParameter.type);
+        }
+        node.identifier?.staticType = element.type;
+      }
       _setGenericFunctionType(normalParameter.type, element.type);
     }
     if (normalParameter is FieldFormalParameterImpl) {

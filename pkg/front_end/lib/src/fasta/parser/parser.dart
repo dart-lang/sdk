@@ -34,8 +34,8 @@ import '../scanner/token_constants.dart'
         EOF_TOKEN,
         EQ_TOKEN,
         FUNCTION_TOKEN,
-        GT_TOKEN,
         GT_GT_TOKEN,
+        GT_TOKEN,
         HASH_TOKEN,
         HEXADECIMAL_TOKEN,
         IDENTIFIER_TOKEN,
@@ -1681,6 +1681,8 @@ class Parser {
     List<String> followingValues;
     if (context == IdentifierContext.classOrNamedMixinDeclaration) {
       followingValues = ['<', 'extends', 'with', 'implements', '{'];
+    } else if (context == IdentifierContext.combinator) {
+      followingValues = [';'];
     } else if (context == IdentifierContext.fieldDeclaration) {
       followingValues = [';', '=', ','];
     } else if (context == IdentifierContext.enumDeclaration) {
@@ -2548,7 +2550,7 @@ class Parser {
     return parseStuff(
         token,
         (t) => listener.beginTypeArguments(t),
-        (t) => parseType(t).next,
+        (t) => parseType(t),
         (c, bt, et) => listener.endTypeArguments(c, bt, et),
         (t) => listener.handleNoTypeArguments(t));
   }
@@ -2557,7 +2559,7 @@ class Parser {
     return parseStuff(
         token,
         (t) => listener.beginTypeVariables(t),
-        (t) => parseTypeVariable(t).next,
+        (t) => parseTypeVariable(t),
         (c, bt, et) => listener.endTypeVariables(c, bt, et),
         (t) => listener.handleNoTypeVariables(t));
   }
@@ -2571,30 +2573,34 @@ class Parser {
     token = listener.injectGenericCommentTypeList(token.next).previous;
     Token next = token.next;
     if (optional('<', next)) {
-      token = next;
-      Token begin = token;
+      Token begin = next;
       beginStuff(begin);
       int count = 0;
       do {
-        token = stuffParser(token);
+        token = stuffParser(token.next);
         ++count;
-      } while (optional(',', token));
+      } while (optional(',', token.next));
 
       // Rewrite `>>`, `>=`, and `>>=` tokens
-      String value = token.stringValue;
+      next = token.next;
+      String value = next.stringValue;
       if (value != null && value.length > 1) {
-        Token replacement = new Token(TokenType.GT, token.charOffset);
+        Token replacement = new Token(TokenType.GT, next.charOffset);
         if (identical(value, '>>')) {
-          replacement.next = new Token(TokenType.GT, token.charOffset + 1);
-          token = rewriter.replaceToken(token, replacement);
+          replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+          token = rewriter.replaceTokenFollowing(token, replacement);
         } else if (identical(value, '>=')) {
-          replacement.next = new Token(TokenType.EQ, token.charOffset + 1);
-          token = rewriter.replaceToken(token, replacement);
+          replacement.next = new Token(TokenType.EQ, next.charOffset + 1);
+          token = rewriter.replaceTokenFollowing(token, replacement);
         } else if (identical(value, '>>=')) {
-          replacement.next = new Token(TokenType.GT, token.charOffset + 1);
-          replacement.next.next = new Token(TokenType.EQ, token.charOffset + 2);
-          token = rewriter.replaceToken(token, replacement);
+          replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+          replacement.next.next = new Token(TokenType.EQ, next.charOffset + 2);
+          token = rewriter.replaceTokenFollowing(token, replacement);
+        } else {
+          token = next;
         }
+      } else {
+        token = next;
       }
 
       endStuff(count, begin, token);
@@ -2745,17 +2751,14 @@ class Parser {
     } else {
       // If there are modifiers other than or in addition to `external`
       // then we need to recover.
-      final context = new TopLevelMethodModifierContext(this, name);
+      final context = new TopLevelMethodModifierContext(this, beforeName);
       token = context.parseRecovery(beforeToken, afterModifiers);
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `parseRecovery` returns the last consumed token.
-      beforeToken = token.previous;
+      beforeToken = token;
+      token = token.next;
       beforeExternalToken = beforeToken;
       externalToken = context.externalToken;
-      name = context.name;
-      // TODO(brianwilkerson): Remove the invocation of `previous` when
-      // `context.name` returns the token before the name.
-      beforeName = name.previous;
+      beforeName = context.beforeName;
+      name = beforeName.next;
 
       // If the modifiers form a partial top level directive or declaration
       // and we have found the start of a new top level declaration
@@ -3893,8 +3896,8 @@ class Parser {
     int statementCount = 0;
     if (!optional('{', next)) {
       token = recoverFromMissingFunctionBody(next);
-      listener.handleInvalidFunctionBody(token.next);
-      return token;
+      listener.handleInvalidFunctionBody(token);
+      return token.endGroup;
     }
 
     listener.beginBlockFunctionBody(begin);
@@ -4326,9 +4329,7 @@ class Parser {
                 new BeginToken(TokenType.OPEN_SQUARE_BRACKET, next.charOffset,
                     next.precedingComments),
                 new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
-            // TODO(brianwilkerson): Remove the invocation of `previous` when
-            // `replaceToken` returns the last consumed token.
-            token = rewriter.replaceToken(next, replacement).previous;
+            rewriter.replaceTokenFollowing(token, replacement);
             token = parseArgumentOrIndexStar(token, null);
           } else {
             token = reportUnexpectedToken(token.next);
@@ -4420,8 +4421,13 @@ class Parser {
       }
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
-      reportRecoverableError(token.next, fasta.messageUnsupportedPrefixPlus);
-      return parseUnaryExpression(token.next, allowCascades);
+      rewriteAndRecover(
+          token,
+          // TODO(danrubel): Consider reporting "missing identifier" instead.
+          fasta.messageUnsupportedPrefixPlus,
+          new SyntheticStringToken(
+              TokenType.IDENTIFIER, '', token.next.offset));
+      return parsePrimary(token, IdentifierContext.expression);
     } else if ((identical(value, '!')) ||
         (identical(value, '-')) ||
         (identical(value, '~'))) {
@@ -4605,7 +4611,8 @@ class Parser {
     BeginToken begin = token;
     token = parseExpression(token).next;
     if (!identical(begin.endGroup, token)) {
-      reportUnexpectedToken(token).next;
+      reportRecoverableError(
+          token, fasta.templateExpectedButGot.withArguments(')'));
       token = begin.endGroup;
     }
     listener.handleParenthesizedExpression(begin);
@@ -4656,6 +4663,7 @@ class Parser {
   /// if not. This is a suffix parser because it is assumed that type arguments
   /// have been parsed, or `listener.handleNoTypeArguments` has been executed.
   Token parseLiteralListSuffix(Token token, Token constKeyword) {
+    Token beforeToken = token;
     Token beginToken = token = token.next;
     assert(optional('[', token) || optional('[]', token));
     int count = 0;
@@ -4678,7 +4686,7 @@ class Parser {
     BeginToken replacement = link(
         new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.offset),
         new Token(TokenType.CLOSE_SQUARE_BRACKET, token.offset + 1));
-    rewriter.replaceToken(token, replacement);
+    rewriter.replaceTokenFollowing(beforeToken, replacement);
     token = replacement.next;
     listener.handleLiteralList(0, replacement, constKeyword, token);
     return token;

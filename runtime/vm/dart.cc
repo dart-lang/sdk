@@ -569,12 +569,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   Object::VerifyBuiltinVtables();
   DEBUG_ONLY(I->heap()->Verify(kForbidMarked));
 
-  {
-    NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
-                                             "StubCode::Init"));
-    StubCode::Init(I);
-  }
-
 #if defined(DART_PRECOMPILED_RUNTIME)
   // AOT: The megamorphic miss function and code come from the snapshot.
   ASSERT(I->object_store()->megamorphic_miss_code() != Code::null());

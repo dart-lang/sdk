@@ -718,12 +718,19 @@ class LibraryAnalyzer {
 
     for (var declaration in unit.declarations) {
       if (declaration is ClassDeclaration) {
+        if (declaration.metadata.isNotEmpty) {
+          var resolution = resolutions.next();
+          var applier = _createResolutionApplier(null, resolution);
+          applier.applyToAnnotations(declaration);
+          applier.checkDone();
+        }
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
             // TODO(scheglov) Pass in the actual context element.
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(null, resolution);
             member.body.accept(applier);
+            applier.applyToAnnotations(member);
             applier.checkDone();
           } else if (member is FieldDeclaration) {
             if (member.fields.variables.length != 1) {
@@ -734,12 +741,15 @@ class LibraryAnalyzer {
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(null, resolution);
             member.fields.variables[0].initializer?.accept(applier);
+            applier.applyToAnnotations(member);
             applier.checkDone();
           } else if (member is MethodDeclaration) {
             ExecutableElementImpl context = member.element;
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(context, resolution);
+            member.parameters?.accept(applier);
             member.body.accept(applier);
+            applier.applyToAnnotations(member);
             applier.checkDone();
           } else {
             // TODO(scheglov) Handle more cases.
@@ -752,6 +762,7 @@ class LibraryAnalyzer {
         var applier = _createResolutionApplier(context, resolution);
         declaration.functionExpression.parameters?.accept(applier);
         declaration.functionExpression.body.accept(applier);
+        applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else if (declaration is TopLevelVariableDeclaration) {
         if (declaration.variables.variables.length != 1) {
@@ -762,6 +773,7 @@ class LibraryAnalyzer {
         var resolution = resolutions.next();
         var applier = _createResolutionApplier(null, resolution);
         declaration.variables.variables[0].initializer?.accept(applier);
+        applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else {
         // TODO(scheglov) Handle more cases.
@@ -1062,15 +1074,18 @@ class _ResolutionApplierContext implements TypeContext {
       referencedElements.add(element);
     }
 
-    applier = new ValidatingResolutionApplier(
+    applier = new ResolutionApplier(
         this,
         declaredElements,
-        referencedElements,
-        resolution.kernelTypes,
         resolution.declarationOffsets,
+        referencedElements,
         resolution.referenceOffsets,
+        resolution.kernelTypes,
         resolution.typeOffsets);
   }
+
+  @override
+  DartType get stringType => typeProvider.stringType;
 
   @override
   DartType get typeType => typeProvider.typeType;
@@ -1146,15 +1161,25 @@ class _ResolutionApplierContext implements TypeContext {
     }
 
     // Convert kernel type arguments into Analyzer types.
-    var astTypeArguments = new List<DartType>(astTypeParameters.length);
-    for (var i = 0; i < astTypeParameters.length; i++) {
+    int length = astTypeParameters.length;
+    var usedTypeParameters = <TypeParameterElement>[];
+    var usedTypeArguments = <DartType>[];
+    for (var i = 0; i < length; i++) {
       var kernelParameter = kernelTypeParameters[i];
       var kernelArgument = kernelMap[kernelParameter];
-      astTypeArguments[i] = resynthesizer.getType(null, kernelArgument);
+      if (kernelArgument != null) {
+        DartType astArgument = resynthesizer.getType(null, kernelArgument);
+        usedTypeParameters.add(astTypeParameters[i]);
+        usedTypeArguments.add(astArgument);
+      }
+    }
+
+    if (usedTypeParameters.isEmpty) {
+      return rawType;
     }
 
     // Replace Analyzer type parameters with type arguments.
-    return rawType.substitute4(astTypeParameters, astTypeArguments);
+    return rawType.substitute4(usedTypeParameters, usedTypeArguments);
   }
 
   /// Translate the given [declaration].

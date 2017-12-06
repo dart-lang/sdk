@@ -603,6 +603,7 @@ PositionalParameterWithEquals:
 RequiredParameterWithDefault:
   template: "Non-optional parameters can't have a default value."
   tip: "Try removing the default value or making the parameter optional."
+  analyzerCode: NAMED_PARAMETER_OUTSIDE_GROUP
   dart2jsCode: REQUIRED_PARAMETER_WITH_DEFAULT
   script:
     - >
@@ -660,6 +661,7 @@ UnmatchedToken:
 UnsupportedPrefixPlus:
   template: "'+' is not a prefix operator."
   tip: "Try removing '+'."
+  analyzerCode: MISSING_IDENTIFIER
   dart2jsCode: UNSUPPORTED_PREFIX_PLUS
   script: "main() => +2;  // No longer a valid way to write '2'"
 
@@ -1566,3 +1568,38 @@ PatchNonExternal:
   template: "Can't apply this patch as its origin declaration isn't external."
   tip: "Try adding 'external' to the origin declaration."
 
+UndefinedGetter:
+  template: "The getter '#name' isn't defined for the class '#type'."
+  tip: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
+  analyzerCode: UNDEFINED_GETTER
+  dart2jsCode: "*ignored*"
+  script: >
+    class C {}
+    main() {
+      C c;
+      print(c.foo);
+    }
+
+UndefinedSetter:
+  template: "The setter '#name' isn't defined for the class '#type'."
+  tip: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
+  analyzerCode: UNDEFINED_SETTER
+  dart2jsCode: "*ignored*"
+  script: >
+    class C {}
+    main() {
+      C c;
+      c.foo = 0;
+    }
+
+UndefinedMethod:
+  template: "The method '#name' isn't defined for the class '#type'."
+  tip: "Try correcting the name to the name of an existing method, or defining a method named '#name'."
+  analyzerCode: UNDEFINED_METHOD
+  dart2jsCode: "*ignored*"
+  script: >
+    class C {}
+    main() {
+      C c;
+      c.foo();
+    }

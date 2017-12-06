@@ -287,6 +287,12 @@ class MultiSourceInformationBuilder<T> implements SourceInformationBuilder<T> {
     return new MultiSourceInformation(
         builders.map((b) => b.buildDeclaration(member)).toList());
   }
+
+  @override
+  SourceInformation buildGoto(T node) {
+    return new MultiSourceInformation(
+        builders.map((b) => b.buildGoto(node)).toList());
+  }
 }
 
 class MultiSourceInformation implements SourceInformation {

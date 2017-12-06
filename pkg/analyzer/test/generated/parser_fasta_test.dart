@@ -1354,14 +1354,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_namedParameterOutsideGroup() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, found 0
-    super.test_namedParameterOutsideGroup();
-  }
-
-  @override
-  @failingTest
   void test_nonConstructorFactory_field() {
     // TODO(brianwilkerson) Does not recover.
     //   Internal problem: Compiler cannot run without a compiler context.
@@ -1707,14 +1699,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     //   package:analyzer/src/generated/parser_fasta.dart 72:12             _Parser2.parseCompilationUnit
     //   test/generated/parser_fasta_test.dart 3371:35                      FastaParserTestCase.parseCompilationUnit
     super.test_unexpectedToken_semicolonBetweenCompilationUnitMembers();
-  }
-
-  @override
-  @failingTest
-  void test_useOfUnaryPlusOperator() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.MISSING_IDENTIFIER, found 0
-    super.test_useOfUnaryPlusOperator();
   }
 
   @override
@@ -2587,59 +2571,9 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
     with RecoveryParserTestMixin {
   @override
   @failingTest
-  void test_additiveExpression_missing_LHS() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_additiveExpression_missing_LHS();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_missing_LHS_RHS() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_additiveExpression_missing_LHS_RHS();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_precedence_multiplicative_left() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_additiveExpression_precedence_multiplicative_left();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_precedence_multiplicative_right() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_additiveExpression_precedence_multiplicative_right();
-  }
-
-  @override
-  @failingTest
-  void test_additiveExpression_super() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_additiveExpression_super();
-  }
-
-  @override
-  @failingTest
   void test_classTypeAlias_withBody() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_classTypeAlias_withBody();
-  }
-
-  @override
-  void test_equalityExpression_precedence_relational_left() {
-    // Fasta recovers differently. It takes the `is` to be an identifier and
-    // assumes that the right operand of the `==` is the only missing identifier.
-    parseExpression("is ==", codes: [
-//      ParserErrorCode.EXPECTED_TYPE_NAME,
-      ParserErrorCode.MISSING_IDENTIFIER,
-      ParserErrorCode.MISSING_IDENTIFIER
-    ]);
   }
 
   @override
@@ -2910,29 +2844,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
       ParserErrorCode.MISSING_IDENTIFIER,
       ParserErrorCode.MISSING_IDENTIFIER
     ]);
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_precedence_unary_left() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_shiftExpression_precedence_unary_left();
-  }
-
-  @override
-  @failingTest
-  void test_shiftExpression_precedence_unary_right() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_shiftExpression_precedence_unary_right();
-  }
-
-  @override
-  @failingTest
-  void test_unaryPlus() {
-    // TODO(brianwilkerson) Unhandled compile-time error:
-    // '+' is not a prefix operator.
-    super.test_unaryPlus();
   }
 }
 

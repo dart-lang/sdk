@@ -172,6 +172,9 @@ class SourceInformationBuilder<T> {
 
   /// Generate [SourceInformation] for the list literal in [node].
   SourceInformation buildListLiteral(T node) => null;
+
+  /// Generate [SourceInformation] for the break/continue in [node].
+  SourceInformation buildGoto(T node) => null;
 }
 
 /// A location in a source file.

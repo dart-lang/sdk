@@ -187,7 +187,7 @@ Future<Uri> webServerControlCallback(bool enable) async {
   }
 }
 
-_clearFuture(_) {
+Null _clearFuture(_) {
   serverFuture = null;
 }
 

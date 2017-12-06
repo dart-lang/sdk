@@ -346,17 +346,6 @@
             "--use-sdk",
             "language_2"
           ]
-        },
-        {
-          "name": "ddc kernel -rnone tests",
-          "arguments": [
-            "-cdartdevk",
-            "-rnone",
-            "--checked",
-            "--strong",
-            "--use-sdk",
-            "language_2"
-          ]
         }
       ]
     },

@@ -253,6 +253,12 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
+   * Whether to run integration tests with the --preview-dart-2 flag.
+   */
+  // TODO(devoncarew): Remove this when --preview-dart-2 goes away.
+  bool get usePreviewDart2 => false;
+
+  /**
    * Start [server].
    */
   Future startServer({
@@ -265,7 +271,7 @@ abstract class AbstractAnalysisServerIntegrationTest
         checked: checked,
         diagnosticPort: diagnosticPort,
         servicesPort: servicesPort,
-        previewDart2: previewDart2);
+        previewDart2: previewDart2 || usePreviewDart2);
   }
 
   /**

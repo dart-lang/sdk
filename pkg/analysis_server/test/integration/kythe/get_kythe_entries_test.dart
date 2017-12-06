@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetKytheEntriesTest);
+    defineReflectiveTests(GetKytheEntriesTest_PreviewDart2);
   });
 }
 
@@ -36,4 +37,10 @@ class Bar {
     expect(result.entries, isNotEmpty);
     expect(result.files, isEmpty);
   }
+}
+
+@reflectiveTest
+class GetKytheEntriesTest_PreviewDart2 extends GetKytheEntriesTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

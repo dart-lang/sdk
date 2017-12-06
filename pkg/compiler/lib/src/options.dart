@@ -4,6 +4,8 @@
 
 library dart2js.src.options;
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+
 import '../compiler.dart' show PackagesDiscoveryProvider;
 import 'commandline_options.dart' show Flags;
 
@@ -60,6 +62,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Resolved constant "environment" values passed to the compiler via the `-D`
   /// flags.
   final Map<String, dynamic> environment;
+
+  /// A possibly null state object for kernel compilation.
+  fe.InitializedCompilerState kernelInitializedCompilerState;
 
   /// Whether we allow mocking compilation of libraries such as dart:io and
   /// dart:html for unit testing purposes.

@@ -399,6 +399,11 @@ class KernelSourceInformationBuilder
     }
     return _buildTreeNode(definition.node);
   }
+
+  @override
+  SourceInformation buildGoto(ir.Node node) {
+    return _buildTreeNode(node);
+  }
 }
 
 class KernelSourceLocation extends AbstractSourceLocation {

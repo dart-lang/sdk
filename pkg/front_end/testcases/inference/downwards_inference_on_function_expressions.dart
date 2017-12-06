@@ -7,7 +7,7 @@ library test;
 
 typedef T Function2<S, T>(S x);
 
-void main() {
+void test() {
   {
     Function2<int, String> l0 = /*@returnType=String*/ (int x) => null;
     Function2<int, String> l1 = /*@returnType=String*/ (int x) => "hello";
@@ -68,3 +68,5 @@ void main() {
             x. /*@target=String::substring*/ substring(3);
   }
 }
+
+main() {}

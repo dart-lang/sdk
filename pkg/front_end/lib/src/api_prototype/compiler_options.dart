@@ -97,18 +97,6 @@ class CompilerOptions {
   /// at a default location within [sdkRoot].
   Uri sdkSummary;
 
-  /// Multi-roots.
-  ///
-  /// Any Uri that resolves to "multi-root:///$absolute_path" will be searched
-  /// for at "$root/$absolute_path", where "$root" is drawn from this list.
-  ///
-  /// Intended use: if the user has a Bazel workspace located at path
-  /// "$workspace", this could be set to the file URIs corresponding to the
-  /// paths for "$workspace", "$workspace/bazel-bin",
-  /// and "$workspace/bazel-genfiles", effectively overlaying source and
-  /// generated files.
-  List<Uri> multiRoots = [];
-
   /// The declared variables for use by configurable imports and constant
   /// evaluation.
   Map<String, String> declaredVariables;

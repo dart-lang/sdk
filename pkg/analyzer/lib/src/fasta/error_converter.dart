@@ -364,6 +364,10 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NAMED_FUNCTION_EXPRESSION, offset, length);
         return;
+      case "NAMED_PARAMETER_OUTSIDE_GROUP":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, offset, length);
+        return;
       case "NATIVE_CLAUSE_SHOULD_BE_ANNOTATION":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION, offset, length);
@@ -407,6 +411,18 @@ class FastaErrorReporter {
       case "TYPEDEF_IN_CLASS":
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.TYPEDEF_IN_CLASS, offset, length);
+        return;
+      case "UNDEFINED_GETTER":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_GETTER, offset, length);
+        return;
+      case "UNDEFINED_METHOD":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_METHOD, offset, length);
+        return;
+      case "UNDEFINED_SETTER":
+        errorReporter?.reportErrorForOffset(
+            StaticTypeWarningCode.UNDEFINED_SETTER, offset, length);
         return;
       case "UNEXPECTED_TOKEN":
         String text = stringOrTokenLexeme();

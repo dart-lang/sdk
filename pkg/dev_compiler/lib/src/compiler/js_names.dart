@@ -322,7 +322,7 @@ final objectProperties = <String>[
 /// Returns the JS member name for a public Dart instance member, before it
 /// is symbolized; generally you should use [_emitMemberName] or
 /// [_declareMemberName] instead of this.
-String memberNameForDartMember(String name) {
+String memberNameForDartMember(String name, [bool isExternal = false]) {
   // When generating synthetic names, we use _ as the prefix, since Dart names
   // won't have this, nor will static names reach here.
   switch (name) {
@@ -336,7 +336,8 @@ String memberNameForDartMember(String name) {
       return '_equals';
     case 'constructor':
     case 'prototype':
-      return '_$name';
+      // If [isExternal], assume the JS member is intended.
+      return isExternal ? name : '_$name';
   }
   return name;
 }

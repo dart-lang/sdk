@@ -5091,7 +5091,8 @@ class CodeGenerator extends Object
       _emitNormalFormalParameter(node);
 
   @override
-  JS.This visitThisExpression(ThisExpression node) => new JS.This();
+  JS.This visitThisExpression(ThisExpression node) =>
+      new JS.This()..sourceInformation = node;
 
   @override
   JS.Expression visitSuperExpression(SuperExpression node) => new JS.Super();
@@ -5849,7 +5850,11 @@ class CodeGenerator extends Object
     }
 
     useExtension ??= _isSymbolizedMember(type, name);
-    name = JS.memberNameForDartMember(name);
+    // Rename members that conflict with standard JS members unless we are
+    // actually try to access those JS members via interop.
+    var isExternal = element != null &&
+        !(element is ExecutableElement && !element.isExternal);
+    name = JS.memberNameForDartMember(name, isExternal);
     if (useExtension) {
       return _getExtensionSymbolInternal(name);
     }

@@ -62,6 +62,13 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
+  test_const_annotation_notConstConstructor() async {
+    await super.test_const_annotation_notConstConstructor();
+  }
+
+  @failingTest
+  @potentialAnalyzerProblem
+  @override
   test_const_annotation_withArgs() async {
     await super.test_const_annotation_withArgs();
   }
@@ -81,7 +88,7 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   }
 
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31555')
   @override
   test_const_implicitSuperConstructorInvocation() async {
     await super.test_const_implicitSuperConstructorInvocation();
@@ -137,22 +144,8 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_getResult_constants_defaultParameterValue_localFunction() async {
-    await super.test_getResult_constants_defaultParameterValue_localFunction();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_getResult_errors() async {
     await super.test_getResult_errors();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_getResult_genericFunctionType_parameter_named() async {
-    await super.test_getResult_genericFunctionType_parameter_named();
   }
 
   @failingTest

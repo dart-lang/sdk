@@ -4842,7 +4842,8 @@ class FunctionType extends DartType {
     if (typeParameters.isEmpty) return this;
     return new FunctionType(positionalParameters, returnType,
         requiredParameterCount: requiredParameterCount,
-        namedParameters: namedParameters);
+        namedParameters: namedParameters,
+        typedefReference: typedefReference);
   }
 
   /// Looks up the type of the named parameter with the given name.

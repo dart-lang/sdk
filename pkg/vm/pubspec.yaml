@@ -8,3 +8,5 @@ environment:
 dependencies:
   front_end: 0.1.0-alpha.6
   kernel: 0.3.0-alpha.3
+dev_dependencies:
+  args: ^0.13.0
