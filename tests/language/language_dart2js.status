@@ -1315,8 +1315,8 @@ assertion_initializer_test: CompileTimeError
 assign_static_type_test/01: Fail
 assign_static_type_test/02: MissingCompileTimeError
 async_await_test: Crash # NoSuchMethodError: The method 'generateBreak' was called on null.
-async_return_types_test/nestedFuture: Fail
-async_return_types_test/wrongTypeParameter: Fail
+async_return_types_test/nestedFuture: Fail # Issue 26429
+async_return_types_test/wrongTypeParameter: Fail # Issue 26429
 async_star_cancel_while_paused_test: RuntimeError
 bad_constructor_test/06: Crash # NoSuchMethodError: The getter 'iterator' was called on null.
 bad_override_test/03: MissingCompileTimeError
@@ -1337,8 +1337,8 @@ class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
 closure_in_field_test/01: RuntimeError
 closure_in_field_test/02: RuntimeError
-closure_type_test/01: RuntimeError
-closure_type_test/none: RuntimeError
+closure_type_test/01: RuntimeError # Issue 12745
+closure_type_test/none: RuntimeError # Issue 12745
 compile_time_constant_checked2_test/01: MissingCompileTimeError
 compile_time_constant_checked2_test/02: MissingCompileTimeError
 compile_time_constant_checked2_test/03: MissingCompileTimeError
@@ -1480,11 +1480,11 @@ list_literal1_test/01: MissingCompileTimeError
 list_literal4_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
 malbounded_instantiation_test/01: RuntimeError # Issue 12702
-malbounded_type_cast2_test: RuntimeError
-malbounded_type_cast_test: RuntimeError
-malbounded_type_test2_test: RuntimeError
-malbounded_type_test_test/03: Fail
-malbounded_type_test_test/04: Fail
+malbounded_type_cast2_test: RuntimeError # Issue 14121
+malbounded_type_cast_test: RuntimeError # Issue 14121
+malbounded_type_test2_test: RuntimeError # Issue 14121
+malbounded_type_test_test/03: Fail # Issue 14121
+malbounded_type_test_test/04: Fail # Issue 14121
 malformed2_test/00: RuntimeError
 malformed2_test/01: MissingCompileTimeError
 map_literal1_test/01: MissingCompileTimeError
@@ -1655,7 +1655,7 @@ regress_27617_test/1: Crash # Assertion failure: Unexpected constructor j:constr
 regress_28217_test/01: MissingCompileTimeError
 regress_28217_test/none: MissingCompileTimeError
 regress_28255_test: RuntimeError
-regress_29405_test: RuntimeError
+regress_29405_test: RuntimeError # Issue 29422
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stacktrace_demangle_ctors_test: RuntimeError
@@ -1685,7 +1685,7 @@ type_parameter_test/06: Crash # Internal Error: Unexpected type variable in stat
 type_parameter_test/none: Crash # Internal Error: Unexpected type variable in static context.
 type_variable_bounds2_test/01: RuntimeError # Issue 12702
 type_variable_bounds2_test/04: RuntimeError # Issue 12702
-type_variable_bounds3_test/00: Fail
-type_variable_bounds_test/02: Fail
+type_variable_bounds3_test/00: Fail # Issue 12702
+type_variable_bounds_test/02: Fail # Issue 12702
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
 
