@@ -206,157 +206,6 @@ void main() {
     expect(identifier_2.staticType, typeProvider.intType);
   }
 
-  test_apply_instanceCreation_noTypeArguments() async {
-    String content = r'''
-class C {
-  C(int p);
-  C.named(int p);
-}
-var a = new C(1);
-var b = new C.named(2);
-''';
-    addTestFile(content);
-
-    AnalysisResult result = await driver.getResult(testFile);
-    CompilationUnit unit = result.unit;
-
-    ClassDeclaration cNode = unit.declarations[0];
-    ClassElement cElement = cNode.element;
-    ConstructorElement defaultConstructor = cElement.constructors[0];
-    ConstructorElement namedConstructor = cElement.constructors[1];
-
-    {
-      TopLevelVariableDeclaration aDeclaration = unit.declarations[1];
-      VariableDeclaration aNode = aDeclaration.variables.variables[0];
-      InstanceCreationExpression value = aNode.initializer;
-      expect(value.staticElement, defaultConstructor);
-      expect(value.staticType, cElement.type);
-
-      TypeName typeName = value.constructorName.type;
-      expect(typeName.typeArguments, isNull);
-
-      Identifier typeIdentifier = typeName.name;
-      expect(typeIdentifier.staticElement, cElement);
-      expect(typeIdentifier.staticType, cElement.type);
-
-      expect(value.constructorName.name, isNull);
-
-      Expression argument = value.argumentList.arguments[0];
-      expect(argument.staticParameterElement, defaultConstructor.parameters[0]);
-    }
-
-    {
-      TopLevelVariableDeclaration bDeclaration = unit.declarations[2];
-      VariableDeclaration bNode = bDeclaration.variables.variables[0];
-      InstanceCreationExpression value = bNode.initializer;
-      expect(value.staticElement, namedConstructor);
-      expect(value.staticType, cElement.type);
-
-      TypeName typeName = value.constructorName.type;
-      expect(typeName.typeArguments, isNull);
-
-      SimpleIdentifier typeIdentifier = typeName.name;
-      expect(typeIdentifier.staticElement, cElement);
-      expect(typeIdentifier.staticType, cElement.type);
-
-      SimpleIdentifier constructorName = value.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
-
-      Expression argument = value.argumentList.arguments[0];
-      expect(argument.staticParameterElement, namedConstructor.parameters[0]);
-    }
-  }
-
-  test_apply_instanceCreation_withTypeArguments() async {
-    String content = r'''
-class C<K, V> {
-  C(K k, V v);
-  C.named(K k, V v);
-}
-var a = new C<int, double>(1, 2.3);
-var b = new C<num, String>.named(4, 'five');
-''';
-    addTestFile(content);
-
-    AnalysisResult result = await driver.getResult(testFile);
-    CompilationUnit unit = result.unit;
-    var typeProvider = unit.element.context.typeProvider;
-
-    ClassDeclaration cNode = unit.declarations[0];
-    ClassElement cElement = cNode.element;
-    ConstructorElement defaultConstructor = cElement.constructors[0];
-    ConstructorElement namedConstructor = cElement.constructors[1];
-
-    {
-      TopLevelVariableDeclaration aDeclaration = unit.declarations[1];
-      VariableDeclaration aNode = aDeclaration.variables.variables[0];
-
-      InstanceCreationExpression value = aNode.initializer;
-      InterfaceType instantiatedType = cElement.type
-          .instantiate([typeProvider.intType, typeProvider.doubleType]);
-
-      expect(value.staticElement, defaultConstructor);
-      expect(value.staticType, instantiatedType);
-
-      TypeName typeName = value.constructorName.type;
-
-      Identifier typeIdentifier = typeName.name;
-      expect(typeIdentifier.staticElement, cElement);
-      expect(typeIdentifier.staticType, instantiatedType);
-
-      TypeName typeArgument1 = typeName.typeArguments.arguments[0];
-      expect(typeArgument1.type, typeProvider.intType);
-      expect(typeArgument1.name.staticType, typeProvider.intType);
-      expect(typeArgument1.name.staticElement, typeProvider.intType.element);
-
-      TypeName typeArgument2 = typeName.typeArguments.arguments[1];
-      expect(typeArgument2.type, typeProvider.doubleType);
-      expect(typeArgument2.name.staticType, typeProvider.doubleType);
-      expect(typeArgument2.name.staticElement, typeProvider.doubleType.element);
-
-      expect(value.constructorName.name, isNull);
-
-      Expression argument = value.argumentList.arguments[0];
-      expect(argument.staticParameterElement, defaultConstructor.parameters[0]);
-    }
-
-    {
-      TopLevelVariableDeclaration bDeclaration = unit.declarations[2];
-      VariableDeclaration bNode = bDeclaration.variables.variables[0];
-
-      InstanceCreationExpression value = bNode.initializer;
-      InterfaceType instantiatedType = cElement.type
-          .instantiate([typeProvider.numType, typeProvider.stringType]);
-
-      expect(value.staticElement, namedConstructor);
-      expect(value.staticType, instantiatedType);
-
-      TypeName typeName = value.constructorName.type;
-
-      SimpleIdentifier typeIdentifier = typeName.name;
-      expect(typeIdentifier.staticElement, cElement);
-      expect(typeIdentifier.staticType, instantiatedType);
-
-      TypeName typeArgument1 = typeName.typeArguments.arguments[0];
-      expect(typeArgument1.type, typeProvider.numType);
-      expect(typeArgument1.name.staticType, typeProvider.numType);
-      expect(typeArgument1.name.staticElement, typeProvider.numType.element);
-
-      TypeName typeArgument2 = typeName.typeArguments.arguments[1];
-      expect(typeArgument2.type, typeProvider.stringType);
-      expect(typeArgument2.name.staticType, typeProvider.stringType);
-      expect(typeArgument2.name.staticElement, typeProvider.stringType.element);
-
-      SimpleIdentifier constructorName = value.constructorName.name;
-      expect(constructorName.staticElement, namedConstructor);
-      expect(constructorName.staticType, isNull);
-
-      Expression argument = value.argumentList.arguments[0];
-      expect(argument.staticParameterElement, namedConstructor.parameters[0]);
-    }
-  }
-
   test_asExpression() async {
     String content = r'''
 void main() {
@@ -1248,6 +1097,213 @@ main() {
     expect(actualElement.baseElement, same(expectedElement.baseElement));
     expect(actualElement.returnType, intType);
     expect(actualElement.parameters[0].type, intType);
+  }
+
+  test_instanceCreation_factory() async {
+    String content = r'''
+class C {
+  factory C() => null;
+  factory C.named() => null;
+}
+var a = new C();
+var b = new C.named();
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ClassDeclaration cNode = unit.declarations[0];
+    ClassElement cElement = cNode.element;
+    ConstructorElement defaultConstructor = cElement.constructors[0];
+    ConstructorElement namedConstructor = cElement.constructors[1];
+
+    {
+      TopLevelVariableDeclaration aDeclaration = unit.declarations[1];
+      VariableDeclaration aNode = aDeclaration.variables.variables[0];
+      InstanceCreationExpression value = aNode.initializer;
+      expect(value.staticElement, defaultConstructor);
+      expect(value.staticType, cElement.type);
+
+      TypeName typeName = value.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      Identifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, cElement.type);
+
+      expect(value.constructorName.name, isNull);
+    }
+
+    {
+      TopLevelVariableDeclaration bDeclaration = unit.declarations[2];
+      VariableDeclaration bNode = bDeclaration.variables.variables[0];
+      InstanceCreationExpression value = bNode.initializer;
+      expect(value.staticElement, namedConstructor);
+      expect(value.staticType, cElement.type);
+
+      TypeName typeName = value.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      SimpleIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, cElement.type);
+
+      SimpleIdentifier constructorName = value.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
+    }
+  }
+
+  test_instanceCreation_noTypeArguments() async {
+    String content = r'''
+class C {
+  C(int p);
+  C.named(int p);
+}
+var a = new C(1);
+var b = new C.named(2);
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ClassDeclaration cNode = unit.declarations[0];
+    ClassElement cElement = cNode.element;
+    ConstructorElement defaultConstructor = cElement.constructors[0];
+    ConstructorElement namedConstructor = cElement.constructors[1];
+
+    {
+      TopLevelVariableDeclaration aDeclaration = unit.declarations[1];
+      VariableDeclaration aNode = aDeclaration.variables.variables[0];
+      InstanceCreationExpression value = aNode.initializer;
+      expect(value.staticElement, defaultConstructor);
+      expect(value.staticType, cElement.type);
+
+      TypeName typeName = value.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      Identifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, cElement.type);
+
+      expect(value.constructorName.name, isNull);
+
+      Expression argument = value.argumentList.arguments[0];
+      expect(argument.staticParameterElement, defaultConstructor.parameters[0]);
+    }
+
+    {
+      TopLevelVariableDeclaration bDeclaration = unit.declarations[2];
+      VariableDeclaration bNode = bDeclaration.variables.variables[0];
+      InstanceCreationExpression value = bNode.initializer;
+      expect(value.staticElement, namedConstructor);
+      expect(value.staticType, cElement.type);
+
+      TypeName typeName = value.constructorName.type;
+      expect(typeName.typeArguments, isNull);
+
+      SimpleIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, cElement.type);
+
+      SimpleIdentifier constructorName = value.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
+
+      Expression argument = value.argumentList.arguments[0];
+      expect(argument.staticParameterElement, namedConstructor.parameters[0]);
+    }
+  }
+
+  test_instanceCreation_withTypeArguments() async {
+    String content = r'''
+class C<K, V> {
+  C(K k, V v);
+  C.named(K k, V v);
+}
+var a = new C<int, double>(1, 2.3);
+var b = new C<num, String>.named(4, 'five');
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    ClassDeclaration cNode = unit.declarations[0];
+    ClassElement cElement = cNode.element;
+    ConstructorElement defaultConstructor = cElement.constructors[0];
+    ConstructorElement namedConstructor = cElement.constructors[1];
+
+    {
+      TopLevelVariableDeclaration aDeclaration = unit.declarations[1];
+      VariableDeclaration aNode = aDeclaration.variables.variables[0];
+
+      InstanceCreationExpression value = aNode.initializer;
+      InterfaceType instantiatedType = cElement.type
+          .instantiate([typeProvider.intType, typeProvider.doubleType]);
+
+      expect(value.staticElement, defaultConstructor);
+      expect(value.staticType, instantiatedType);
+
+      TypeName typeName = value.constructorName.type;
+
+      Identifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, instantiatedType);
+
+      TypeName typeArgument1 = typeName.typeArguments.arguments[0];
+      expect(typeArgument1.type, typeProvider.intType);
+      expect(typeArgument1.name.staticType, typeProvider.intType);
+      expect(typeArgument1.name.staticElement, typeProvider.intType.element);
+
+      TypeName typeArgument2 = typeName.typeArguments.arguments[1];
+      expect(typeArgument2.type, typeProvider.doubleType);
+      expect(typeArgument2.name.staticType, typeProvider.doubleType);
+      expect(typeArgument2.name.staticElement, typeProvider.doubleType.element);
+
+      expect(value.constructorName.name, isNull);
+
+      Expression argument = value.argumentList.arguments[0];
+      expect(argument.staticParameterElement, defaultConstructor.parameters[0]);
+    }
+
+    {
+      TopLevelVariableDeclaration bDeclaration = unit.declarations[2];
+      VariableDeclaration bNode = bDeclaration.variables.variables[0];
+
+      InstanceCreationExpression value = bNode.initializer;
+      InterfaceType instantiatedType = cElement.type
+          .instantiate([typeProvider.numType, typeProvider.stringType]);
+
+      expect(value.staticElement, namedConstructor);
+      expect(value.staticType, instantiatedType);
+
+      TypeName typeName = value.constructorName.type;
+
+      SimpleIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, cElement);
+      expect(typeIdentifier.staticType, instantiatedType);
+
+      TypeName typeArgument1 = typeName.typeArguments.arguments[0];
+      expect(typeArgument1.type, typeProvider.numType);
+      expect(typeArgument1.name.staticType, typeProvider.numType);
+      expect(typeArgument1.name.staticElement, typeProvider.numType.element);
+
+      TypeName typeArgument2 = typeName.typeArguments.arguments[1];
+      expect(typeArgument2.type, typeProvider.stringType);
+      expect(typeArgument2.name.staticType, typeProvider.stringType);
+      expect(typeArgument2.name.staticElement, typeProvider.stringType.element);
+
+      SimpleIdentifier constructorName = value.constructorName.name;
+      expect(constructorName.staticElement, namedConstructor);
+      expect(constructorName.staticType, isNull);
+
+      Expression argument = value.argumentList.arguments[0];
+      expect(argument.staticParameterElement, namedConstructor.parameters[0]);
+    }
   }
 
   test_isExpression() async {

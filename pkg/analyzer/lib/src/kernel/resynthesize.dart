@@ -163,7 +163,7 @@ class KernelResynthesizer implements ElementResynthesizer {
       return classElement.getSetter(elementName) as ElementImpl;
     } else if (kind == '@fields') {
       return classElement.getField(elementName) as ElementImpl;
-    } else if (kind == '@constructors') {
+    } else if (kind == '@constructors' || kind == '@factories') {
       if (elementName.isEmpty) {
         return classElement.unnamedConstructor as ElementImpl;
       }
