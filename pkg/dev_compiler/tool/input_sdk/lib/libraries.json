@@ -36,7 +36,7 @@
         "uri": "../private/js_primitives.dart"
       },
       "_metadata": {
-        "uri": "html/html_common/metadata.dart"
+        "uri": "../../../../../sdk/lib/html/html_common/metadata.dart"
       },
       "_native_typed_data": {
         "uri": "../private/native_typed_data.dart"
@@ -82,13 +82,13 @@
         "patch": "../patch/typed_data_patch.dart"
       },
       "html": {
-        "uri": "html/dart2js/html_dart2js.dart"
+        "uri": "../../../../../sdk/lib/html/dart2js/html_dart2js.dart"
       },
       "html_common": {
-        "uri": "html/html_common/html_common_dart2js.dart"
+        "uri": "../../../../../sdk/lib/html/html_common/html_common_dart2js.dart"
       },
       "indexed_db": {
-        "uri": "indexed_db/dart2js/indexed_db_dart2js.dart"
+        "uri": "../../../../../sdk/lib/indexed_db/dart2js/indexed_db_dart2js.dart"
       },
       "js": {
         "uri": "js/dart2js/js_dart2js.dart"
@@ -97,16 +97,16 @@
         "uri": "js_util/dart2js/js_util_dart2js.dart"
       },
       "svg": {
-        "uri": "svg/dart2js/svg_dart2js.dart"
+        "uri": "../../../../../sdk/lib/svg/dart2js/svg_dart2js.dart"
       },
       "web_audio": {
-        "uri": "web_audio/dart2js/web_audio_dart2js.dart"
+        "uri": "../../../../../sdk/lib/web_audio/dart2js/web_audio_dart2js.dart"
       },
       "web_gl": {
-        "uri": "web_gl/dart2js/web_gl_dart2js.dart"
+        "uri": "../../../../../sdk/lib/web_gl/dart2js/web_gl_dart2js.dart"
       },
       "web_sql": {
-        "uri": "web_sql/dart2js/web_sql_dart2js.dart"
+        "uri": "../../../../../sdk/lib/web_sql/dart2js/web_sql_dart2js.dart"
       }
     }
   }
