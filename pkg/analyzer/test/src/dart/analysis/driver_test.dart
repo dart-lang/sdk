@@ -1042,6 +1042,58 @@ class A {
     expect(b.staticType, isNotNull);
   }
 
+  test_closure() async {
+    addTestFile(r'''
+main() {
+  var items = <int>[1, 2, 3];
+  items.forEach((item) {
+    item;
+  });
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    VariableDeclarationStatement itemsStatement = mainStatements[0];
+    var itemsElement = itemsStatement.variables.variables[0].element;
+
+    ExpressionStatement forStatement = mainStatements[1];
+    MethodInvocation forInvocation = forStatement.expression;
+
+    SimpleIdentifier forTarget = forInvocation.target;
+    expect(forTarget.staticElement, itemsElement);
+
+    var closureTypeStr = '(int) → Null';
+    FunctionExpression closure = forInvocation.argumentList.arguments[0];
+    FunctionElement closureElement = closure.element;
+    ParameterElement itemElement = closureElement.parameters[0];
+
+    expect(closureElement.returnType, typeProvider.nullType);
+    expect(closureElement.type.element, same(closureElement));
+    expect(closureElement.type.toString(), closureTypeStr);
+    expect(closure.staticType, same(closureElement.type));
+
+    List<FormalParameter> closureParameters = closure.parameters.parameters;
+    expect(closureParameters, hasLength(1));
+
+    SimpleFormalParameter itemNode = closureParameters[0];
+    _assertSimpleParameter(itemNode, itemElement,
+        name: 'item',
+        offset: 56,
+        kind: ParameterKind.REQUIRED,
+        type: typeProvider.intType);
+
+    BlockFunctionBody closureBody = closure.body;
+    List<Statement> closureStatements = closureBody.block.statements;
+
+    ExpressionStatement itemStatement = closureStatements[0];
+    SimpleIdentifier itemIdentifier = itemStatement.expression;
+    expect(itemIdentifier.staticElement, itemElement);
+    expect(itemIdentifier.staticType, typeProvider.intType);
+  }
+
   test_conditionalExpression() async {
     String content = r'''
 void main() {
@@ -3491,7 +3543,7 @@ void main() {
     expect(element.name, name);
     expect(element.nameOffset, offset);
     expect(element.parameterKind, kind);
-    expect(element.type, same(type));
+    expect(element.type, type);
   }
 
   void _assertSimpleParameter(
@@ -3505,8 +3557,10 @@ void main() {
     expect(node.identifier.staticElement, same(element));
 
     TypeName typeName = node.type;
-    expect(typeName.type, same(type));
-    expect(typeName.name.staticElement, same(type.element));
+    if (typeName != null) {
+      expect(typeName.type, same(type));
+      expect(typeName.name.staticElement, same(type.element));
+    }
   }
 
   List<Statement> _getMainStatements(AnalysisResult result) {

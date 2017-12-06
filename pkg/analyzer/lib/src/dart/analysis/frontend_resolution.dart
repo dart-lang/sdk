@@ -92,7 +92,7 @@ class AnalyzerTarget extends KernelTarget {
 class CollectedResolution {
   /// The list of local declarations stored by body builders while
   /// compiling the library.
-  final List<kernel.Statement> kernelDeclarations = [];
+  final List<kernel.TreeNode> kernelDeclarations = [];
 
   /// The list of references to local or external stored by body builders
   /// while compiling the library.

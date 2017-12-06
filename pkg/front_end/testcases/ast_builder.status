@@ -22,7 +22,6 @@ illegal_named_function_expression_scope: Crash
 implicit_scope_test: Crash
 inference/abstract_class_instantiation: Crash
 inference/assert_initializer: Crash
-inference/block_bodied_lambdas_async_star: Crash
 inference/bug30251: Crash
 inference/bug30624: Crash
 inference/bug31133: Crash

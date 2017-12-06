@@ -993,9 +993,8 @@ class _ResolutionApplierContext implements TypeContext {
   ElementImpl context;
 
   List<Element> declaredElements = [];
-  Map<kernel.Statement, Element> declarationToElement = {};
-  Map<FunctionElementImpl, kernel.VariableDeclaration>
-      functionElementToDeclaration = {};
+  Map<kernel.TreeNode, Element> declarationToElement = {};
+  Map<FunctionElementImpl, kernel.TreeNode> functionElementToDeclaration = {};
   Map<ParameterElementImpl, kernel.VariableDeclaration>
       parameterElementToDeclaration = {};
 
@@ -1104,7 +1103,16 @@ class _ResolutionApplierContext implements TypeContext {
     context = element;
 
     var declaration = functionElementToDeclaration[element];
-    kernel.FunctionType kernelType = declaration.type;
+
+    // Get the declaration kernel type.
+    kernel.FunctionType kernelType;
+    if (declaration is kernel.VariableDeclaration) {
+      kernelType = declaration.type;
+    } else if (declaration is kernel.FunctionExpression) {
+      kernelType = declaration.function.functionType;
+    } else {
+      throw new StateError('(${declaration.runtimeType}) $declaration');
+    }
 
     element.returnType = resynthesizer.getType(context, kernelType.returnType);
 
@@ -1183,63 +1191,16 @@ class _ResolutionApplierContext implements TypeContext {
   }
 
   /// Translate the given [declaration].
-  void translateKernelDeclaration(kernel.Statement declaration) {
+  void translateKernelDeclaration(kernel.TreeNode declaration) {
     if (declaration is kernel.VariableDeclaration) {
       kernel.TreeNode functionDeclaration = declaration.parent;
       if (functionDeclaration is kernel.FunctionDeclaration) {
-        var kernelFunction = functionDeclaration.function;
-
         var element =
             new FunctionElementImpl(declaration.name, declaration.fileOffset);
         functionElementToDeclaration[element] = declaration;
-
-        // Set type parameters.
-        {
-          var astParameters = <TypeParameterElement>[];
-          for (var kernelParameter in kernelFunction.typeParameters) {
-            var astParameter = new TypeParameterElementImpl(
-                kernelParameter.name, kernelParameter.fileOffset);
-            astParameter.type = new TypeParameterTypeImpl(astParameter);
-            // TODO(scheglov) remember mapping to set bounds later
-            astParameters.add(astParameter);
-          }
-          element.typeParameters = astParameters;
-        }
-
-        // Set formal parameters.
-        {
-          var astParameters = <ParameterElement>[];
-
-          // Add positional parameters
-          var kernelPositionalParameters = kernelFunction.positionalParameters;
-          for (var i = 0; i < kernelPositionalParameters.length; i++) {
-            var kernelParameter = kernelPositionalParameters[i];
-            var astParameter = new ParameterElementImpl(
-                kernelParameter.name, kernelParameter.fileOffset);
-            astParameter.parameterKind =
-                i < kernelFunction.requiredParameterCount
-                    ? ParameterKind.REQUIRED
-                    : ParameterKind.POSITIONAL;
-            astParameters.add(astParameter);
-            declarationToElement[kernelParameter] = astParameter;
-            parameterElementToDeclaration[astParameter] = kernelParameter;
-          }
-
-          // Add named parameters.
-          for (var kernelParameter in kernelFunction.namedParameters) {
-            var astParameter = new ParameterElementImpl(
-                kernelParameter.name, kernelParameter.fileOffset);
-            astParameter.parameterKind = ParameterKind.NAMED;
-            astParameters.add(astParameter);
-            declarationToElement[kernelParameter] = astParameter;
-            parameterElementToDeclaration[astParameter] = kernelParameter;
-          }
-
-          element.parameters = astParameters;
-
-          declaredElements.add(element);
-          declarationToElement[declaration] = element;
-        }
+        _addFormalParameters(element, functionDeclaration.function);
+        declaredElements.add(element);
+        declarationToElement[declaration] = element;
       } else {
         // TODO(scheglov) Do we need ConstLocalVariableElementImpl?
         var element = new LocalVariableElementImpl(
@@ -1247,6 +1208,12 @@ class _ResolutionApplierContext implements TypeContext {
         declaredElements.add(element);
         declarationToElement[declaration] = element;
       }
+    } else if (declaration is kernel.FunctionExpression) {
+      var element = new FunctionElementImpl('', declaration.fileOffset);
+      functionElementToDeclaration[element] = declaration;
+      _addFormalParameters(element, declaration.function);
+      declaredElements.add(element);
+      declarationToElement[declaration] = element;
     } else {
       throw new UnimplementedError(
           'Declaration: (${declaration.runtimeType}) $declaration');
@@ -1268,6 +1235,54 @@ class _ResolutionApplierContext implements TypeContext {
       return null;
     } else {
       return resynthesizer.getType(context, kernelType);
+    }
+  }
+
+  /// Add formal parameters defined in the [kernelFunction] to the [element].
+  void _addFormalParameters(
+      FunctionElementImpl element, kernel.FunctionNode kernelFunction) {
+    // Set type parameters.
+    {
+      var astParameters = <TypeParameterElement>[];
+      for (var kernelParameter in kernelFunction.typeParameters) {
+        var astParameter = new TypeParameterElementImpl(
+            kernelParameter.name, kernelParameter.fileOffset);
+        astParameter.type = new TypeParameterTypeImpl(astParameter);
+        // TODO(scheglov) remember mapping to set bounds later
+        astParameters.add(astParameter);
+      }
+      element.typeParameters = astParameters;
+    }
+
+    // Set formal parameters.
+    {
+      var astParameters = <ParameterElement>[];
+
+      // Add positional parameters
+      var kernelPositionalParameters = kernelFunction.positionalParameters;
+      for (var i = 0; i < kernelPositionalParameters.length; i++) {
+        var kernelParameter = kernelPositionalParameters[i];
+        var astParameter = new ParameterElementImpl(
+            kernelParameter.name, kernelParameter.fileOffset);
+        astParameter.parameterKind = i < kernelFunction.requiredParameterCount
+            ? ParameterKind.REQUIRED
+            : ParameterKind.POSITIONAL;
+        astParameters.add(astParameter);
+        declarationToElement[kernelParameter] = astParameter;
+        parameterElementToDeclaration[astParameter] = kernelParameter;
+      }
+
+      // Add named parameters.
+      for (var kernelParameter in kernelFunction.namedParameters) {
+        var astParameter = new ParameterElementImpl(
+            kernelParameter.name, kernelParameter.fileOffset);
+        astParameter.parameterKind = ParameterKind.NAMED;
+        astParameters.add(astParameter);
+        declarationToElement[kernelParameter] = astParameter;
+        parameterElementToDeclaration[astParameter] = kernelParameter;
+      }
+
+      element.parameters = astParameters;
     }
   }
 }

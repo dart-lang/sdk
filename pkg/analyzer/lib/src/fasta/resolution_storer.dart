@@ -50,7 +50,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   final List<int> _deferredTypeOffsets = [];
 
   InstrumentedResolutionStorer(
-      List<Statement> declarations,
+      List<TreeNode> declarations,
       List<Node> references,
       List<DartType> types,
       this._declarationOffsets,
@@ -75,7 +75,7 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
   }
 
   @override
-  void _recordDeclaration(Statement declaration, int offset) {
+  void _recordDeclaration(TreeNode declaration, int offset) {
     if (_inSynthetic) return;
     if (_debug) {
       print('Recording declaration of $declaration for offset $offset');
@@ -195,7 +195,7 @@ class NullNode implements TreeNode {
 /// Type inference listener that records inferred types for later use by
 /// [ResolutionApplier].
 class ResolutionStorer extends TypeInferenceListener {
-  final List<Statement> _declarations;
+  final List<TreeNode> _declarations;
   final List<Node> _references;
   final List<DartType> _types;
 
@@ -285,6 +285,20 @@ class ResolutionStorer extends TypeInferenceListener {
   void functionDeclarationEnter(FunctionDeclaration statement) {
     _recordDeclaration(statement.variable, statement.fileOffset);
     super.functionDeclarationEnter(statement);
+  }
+
+  @override
+  bool functionExpressionEnter(
+      FunctionExpression expression, DartType typeContext) {
+    _recordDeclaration(expression, expression.fileOffset);
+    return super.functionExpressionEnter(expression, typeContext);
+  }
+
+  @override
+  void functionExpressionExit(
+      FunctionExpression expression, DartType inferredType) {
+    // We don't need to record the inferred type.
+    // It is already set in the function declaration.
   }
 
   @override
@@ -563,6 +577,7 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void variableDeclarationEnter(VariableDeclaration statement) {
+    _recordDeclaration(statement, statement.fileOffset);
     _deferType(statement.fileOffset);
     super.variableDeclarationEnter(statement);
   }
@@ -570,7 +585,6 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   void variableDeclarationExit(
       VariableDeclaration statement, DartType inferredType) {
-    _recordDeclaration(statement, statement.fileOffset);
     _replaceType(statement.type);
     super.variableDeclarationExit(statement, inferredType);
   }
@@ -619,7 +633,7 @@ class ResolutionStorer extends TypeInferenceListener {
     _deferredTypeSlots.add(slot);
   }
 
-  void _recordDeclaration(Statement declaration, int offset) {
+  void _recordDeclaration(TreeNode declaration, int offset) {
     if (_inSynthetic) return;
     _declarations.add(declaration);
   }

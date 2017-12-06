@@ -222,6 +222,27 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFunctionExpression(FunctionExpression node) {
+    FormalParameterList parameterList = node.parameters;
+
+    FunctionElementImpl element = _getDeclarationFor(node);
+    _typeContext.enterLocalFunction(element);
+
+    // Associate the elements with the nodes.
+    if (element != null) {
+      node.element = element;
+      node.staticType = element.type;
+      _applyParameters(element.parameters, parameterList.parameters);
+    }
+
+    // Apply resolution to default values.
+    parameterList.accept(this);
+
+    node.body.accept(this);
+    _typeContext.exitLocalFunction(element);
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function.accept(this);
     // TODO(brianwilkerson) Visit node.typeArguments.
