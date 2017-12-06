@@ -12,6 +12,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/program_visitor.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/timeline.h"
@@ -4797,8 +4798,8 @@ void Serializer::Push(RawObject* object) {
     num_written_objects_++;
 
 #if defined(SNAPSHOT_BACKTRACE)
-    parent_pairs_.Add(&Object::Handle(object));
-    parent_pairs_.Add(&Object::Handle(current_parent_));
+    parent_pairs_.Add(&Object::Handle(zone_, object));
+    parent_pairs_.Add(&Object::Handle(zone_, current_parent_));
 #endif
   }
 }
@@ -5553,37 +5554,73 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
   Bootstrap::SetupNativeResolver();
 }
 
-// An object visitor which iterates the heap looking for objects to write into
+// Iterates the program structure looking for objects to write into
 // the VM isolate's snapshot, causing them to be shared across isolates.
-class SeedVMIsolateVisitor : public ObjectVisitor {
+// Duplicates will be removed by Serializer::Push.
+class SeedVMIsolateVisitor : public ClassVisitor, public FunctionVisitor {
  public:
   SeedVMIsolateVisitor(Zone* zone, bool include_code)
       : zone_(zone),
         include_code_(include_code),
         objects_(new (zone) ZoneGrowableArray<Object*>(4 * KB)),
-        code_(new (zone) ZoneGrowableArray<Code*>(4 * KB)) {}
+        codes_(new (zone) ZoneGrowableArray<Code*>(4 * KB)),
+        script_(Script::Handle(zone)),
+        code_(Code::Handle(zone)),
+        stack_maps_(Array::Handle(zone)) {}
 
-  void VisitObject(RawObject* obj) {
-    if (obj->IsTokenStream()) {
-      objects_->Add(&Object::Handle(zone_, obj));
-    } else if (include_code_) {
-      if (obj->IsStackMap() || obj->IsPcDescriptors() ||
-          obj->IsCodeSourceMap()) {
-        objects_->Add(&Object::Handle(zone_, obj));
-      } else if (obj->IsCode()) {
-        code_->Add(&Code::Handle(zone_, Code::RawCast(obj)));
+  void Visit(const Class& cls) {
+    script_ = cls.script();
+    if (!script_.IsNull()) {
+      objects_->Add(&Object::Handle(zone_, script_.tokens()));
+    }
+
+    if (!include_code_) return;
+
+    code_ = cls.allocation_stub();
+    Visit(code_);
+  }
+
+  void Visit(const Function& function) {
+    script_ = function.script();
+    if (!script_.IsNull()) {
+      objects_->Add(&Object::Handle(zone_, script_.tokens()));
+    }
+
+    if (!include_code_) return;
+
+    code_ = function.CurrentCode();
+    Visit(code_);
+    code_ = function.unoptimized_code();
+    Visit(code_);
+  }
+
+  ZoneGrowableArray<Object*>* objects() { return objects_; }
+  ZoneGrowableArray<Code*>* codes() { return codes_; }
+
+ private:
+  void Visit(const Code& code) {
+    ASSERT(include_code_);
+    if (code.IsNull()) return;
+
+    codes_->Add(&Code::Handle(zone_, code.raw()));
+    objects_->Add(&Object::Handle(zone_, code.pc_descriptors()));
+    objects_->Add(&Object::Handle(zone_, code.code_source_map()));
+
+    stack_maps_ = code_.stackmaps();
+    if (!stack_maps_.IsNull()) {
+      for (intptr_t i = 0; i < stack_maps_.Length(); i++) {
+        objects_->Add(&Object::Handle(zone_, stack_maps_.At(i)));
       }
     }
   }
 
-  ZoneGrowableArray<Object*>* objects() { return objects_; }
-  ZoneGrowableArray<Code*>* code() { return code_; }
-
- private:
   Zone* zone_;
   bool include_code_;
   ZoneGrowableArray<Object*>* objects_;
-  ZoneGrowableArray<Code*>* code_;
+  ZoneGrowableArray<Code*>* codes_;
+  Script& script_;
+  Code& code_;
+  Array& stack_maps_;
 };
 
 FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
@@ -5629,13 +5666,12 @@ FullSnapshotWriter::FullSnapshotWriter(Snapshot::Kind kind,
     NOT_IN_PRODUCT(TimelineDurationScope tds(
         thread(), Timeline::GetIsolateStream(), "PrepareNewVMIsolate"));
 
-    HeapIterationScope iteration(thread());
     SeedVMIsolateVisitor visitor(thread()->zone(),
                                  Snapshot::IncludesCode(kind));
-    iteration.IterateObjects(&visitor);
-    iteration.IterateVMIsolateObjects(&visitor);
+    ProgramVisitor::VisitClasses(&visitor);
+    ProgramVisitor::VisitFunctions(&visitor);
     seed_objects_ = visitor.objects();
-    seed_code_ = visitor.code();
+    seed_code_ = visitor.codes();
 
     // Tuck away the current symbol table.
     saved_symbol_table_ = object_store->symbol_table();

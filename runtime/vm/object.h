@@ -1555,7 +1555,7 @@ class Class : public Object {
   friend class Object;
   friend class Type;
   friend class Intrinsifier;
-  friend class ProgramVisitor;
+  friend class ClassFunctionVisitor;
 };
 
 // Unresolved class is used for storing unresolved names which will be resolved

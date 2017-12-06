@@ -84,9 +84,6 @@ static void DeterministicModeHandler(bool value) {
   if (value) {
     FLAG_background_compilation = false;
     FLAG_collect_code = false;
-    // Parallel marking doesn't introduce non-determinism in the object
-    // iteration order.
-    FLAG_concurrent_sweep = false;
     FLAG_random_seed = 0x44617274;  // "Dart"
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     FLAG_load_deferred_eagerly = true;
