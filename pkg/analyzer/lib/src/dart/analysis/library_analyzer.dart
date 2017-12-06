@@ -206,8 +206,7 @@ class LibraryAnalyzer {
       var resolutions = new _ResolutionProvider(analyzerTarget.resolutions);
       units.forEach((file, unit) {
         _resolveFile2(file, unit, resolutions);
-        // TODO(scheglov) Restore.
-//        _computePendingMissingRequiredParameters(file, unit);
+        _computePendingMissingRequiredParameters(file, unit);
       });
 
       _computeConstants();
@@ -219,27 +218,26 @@ class LibraryAnalyzer {
 //        });
 //      });
 
-      // TODO(scheglov) Restore.
-//      if (_analysisOptions.hint) {
-//        PerformanceStatistics.hints.makeCurrentWhile(() {
-//          units.forEach((file, unit) {
-//            {
-//              var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
-//              unit.accept(visitor);
-//              _usedLocalElementsList.add(visitor.usedElements);
-//            }
-//            {
-//              var visitor =
-//              new GatherUsedImportedElementsVisitor(_libraryElement);
-//              unit.accept(visitor);
-//              _usedImportedElementsList.add(visitor.usedElements);
-//            }
-//          });
-//          units.forEach((file, unit) {
-//            _computeHints(file, unit);
-//          });
-//        });
-//      }
+      if (_analysisOptions.hint) {
+        PerformanceStatistics.hints.makeCurrentWhile(() {
+          units.forEach((file, unit) {
+            {
+              var visitor = new GatherUsedLocalElementsVisitor(_libraryElement);
+              unit.accept(visitor);
+              _usedLocalElementsList.add(visitor.usedElements);
+            }
+            {
+              var visitor =
+                  new GatherUsedImportedElementsVisitor(_libraryElement);
+              unit.accept(visitor);
+              _usedImportedElementsList.add(visitor.usedElements);
+            }
+          });
+          units.forEach((file, unit) {
+            _computeHints(file, unit);
+          });
+        });
+      }
 
       if (_analysisOptions.lint) {
         PerformanceStatistics.lints.makeCurrentWhile(() {

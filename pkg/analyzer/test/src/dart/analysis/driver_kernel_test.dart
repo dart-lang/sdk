@@ -137,13 +137,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_getResult_errors() async {
-    await super.test_getResult_errors();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_getResult_importLibrary_thenRemoveIt() async {
     await super.test_getResult_importLibrary_thenRemoveIt();
   }
