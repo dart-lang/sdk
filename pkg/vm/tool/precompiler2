@@ -7,7 +7,7 @@
 # strong mode enabled, AOT specific Kernel-to-Kernel transformations and
 # Dart VM precompiler with strong mode semantics and reified generics.
 
-# Parse incomming arguments and extract the value of --packages option if any
+# Parse incoming arguments and extract the value of --packages option if any
 # was passed. Split options (--xyz) and non-options into two separate arrays.
 # All options will be passed to dart_bootstrap, while --packages will be
 # passed to Fasta.
@@ -67,8 +67,9 @@ export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 # Step 1: Generate Kernel binary from the input Dart source.
-"$BIN_DIR"/dart "${SDK_DIR}/pkg/vm/bin/precompiler_kernel_front_end.dart"      \
+"$BIN_DIR"/dart "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart"                        \
      --platform "${BIN_DIR}/vm_platform_strong.dill"                           \
+     --aot                                                                     \
      $PACKAGES                                                                 \
      -o "$SNAPSHOT_FILE.dill"                                                  \
      "$SOURCE_FILE"

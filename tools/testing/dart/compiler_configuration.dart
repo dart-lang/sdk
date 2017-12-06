@@ -597,8 +597,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     String exec = Platform.executable;
     var args = [
       '--packages=.packages',
-      'pkg/vm/bin/precompiler_kernel_front_end.dart',
+      'pkg/vm/bin/gen_kernel.dart',
       '--platform=${buildDir}/vm_platform_strong.dill',
+      '--aot',
       '-o',
       tempKernelFile(tempDir),
     ];

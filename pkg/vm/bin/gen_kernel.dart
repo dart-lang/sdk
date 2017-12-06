@@ -18,11 +18,15 @@ final ArgParser _argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('packages', help: 'Path to .packages file', defaultsTo: null)
   ..addOption('output',
       abbr: 'o', help: 'Path to resulting dill file', defaultsTo: null)
+  ..addFlag('aot',
+      help:
+          'Produce kernel file for AOT compilation (enables global transformations).',
+      defaultsTo: false)
   ..addFlag('strong-mode', help: 'Enable strong mode', defaultsTo: true);
 
 final String _usage = '''
-Usage: dart pkg/vm/bin/precompiler_kernel_front_end.dart --platform vm_platform_strong.dill [options] input.dart
-Compiles Dart sources to a kernel binary file for the Dart 2.0 AOT compiler.
+Usage: dart pkg/vm/bin/gen_kernel.dart --platform vm_platform_strong.dill [options] input.dart
+Compiles Dart sources to a kernel binary file for Dart VM.
 
 Options:
 ${_argParser.usage}
@@ -51,6 +55,7 @@ main(List<String> arguments) async {
   final String kernelBinaryFilename = options['output'] ?? "$filename.dill";
   final String packages = options['packages'];
   final bool strongMode = options['strong-mode'];
+  final bool aot = options['aot'];
 
   int errors = 0;
 
@@ -74,7 +79,7 @@ main(List<String> arguments) async {
 
   Program program = await compileToKernel(
       Uri.base.resolve(filename), compilerOptions,
-      aot: true);
+      aot: aot);
 
   if ((errors > 0) || (program == null)) {
     exit(_compileTimeErrorExitCode);
