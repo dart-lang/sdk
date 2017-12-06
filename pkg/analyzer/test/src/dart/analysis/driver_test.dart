@@ -1013,6 +1013,35 @@ main() {
     expect(expression.staticType, typeProvider.boolType);
   }
 
+  test_cascadeExpression() async {
+    String content = r'''
+void main() {
+  new A()..a()..b();
+}
+class A {
+  void a() {}
+  void b() {}
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+
+    List<Statement> statements = _getMainStatements(result);
+
+    ExpressionStatement statement = statements[0];
+    CascadeExpression expression = statement.expression;
+    expect(expression.target.staticType, isNotNull);
+    NodeList<Expression> sections = expression.cascadeSections;
+
+    MethodInvocation a = sections[0];
+    expect(a.methodName.staticElement, isNotNull);
+    expect(a.staticType, isNotNull);
+
+    MethodInvocation b = sections[1];
+    expect(b.methodName.staticElement, isNotNull);
+    expect(b.staticType, isNotNull);
+  }
+
   test_conditionalExpression() async {
     String content = r'''
 void main() {

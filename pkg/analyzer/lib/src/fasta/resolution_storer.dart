@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/fasta/resolution_applier.dart';
+import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
@@ -215,6 +216,14 @@ class ResolutionStorer extends TypeInferenceListener {
   void asExpressionExit(AsExpression expression, DartType inferredType) {
     _recordType(expression.type, expression.fileOffset);
     _recordType(inferredType, expression.fileOffset);
+  }
+
+  @override
+  void cascadeExpressionExit(Let expression, DartType inferredType) {
+    // Overridden so that the type of the expression will not be recorded. We
+    // don't need to record the type because the type is always the same as the
+    // type of the target, and we don't have the appropriate offset so we can't
+    // correctly apply the type even if we recorded it.
   }
 
   @override
@@ -568,7 +577,23 @@ class ResolutionStorer extends TypeInferenceListener {
 
   @override
   void variableGetExit(VariableGet expression, DartType inferredType) {
+    /// Return `true` if the given [variable] declaration occurs in a let
+    /// expression that is, or is part of, a cascade expression.
+    bool isInCascade(VariableDeclaration variable) {
+      TreeNode ancestor = variable.parent;
+      while (ancestor is Let) {
+        if (ancestor is ShadowCascadeExpression) {
+          return true;
+        }
+        ancestor = ancestor.parent;
+      }
+      return false;
+    }
+
     VariableDeclaration variable = expression.variable;
+    if (isInCascade(variable)) {
+      return;
+    }
     _recordReference(variable, expression.fileOffset);
 
     TreeNode function = variable.parent;
