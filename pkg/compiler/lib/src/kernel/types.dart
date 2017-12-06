@@ -68,10 +68,23 @@ class _KernelDartTypes extends DartTypes {
 
   @override
   void checkTypeVariableBounds(
-      InterfaceType type,
+      InterfaceType instantiatedType,
       void checkTypeVariableBound(InterfaceType type, DartType typeArgument,
           TypeVariableType typeVariable, DartType bound)) {
-    throw new UnimplementedError('_KernelDartTypes.checkTypeVariableBounds');
+    InterfaceType declaredType = getThisType(instantiatedType.element);
+    List<DartType> typeArguments = instantiatedType.typeArguments;
+    List<DartType> typeVariables = declaredType.typeArguments;
+    assert(typeVariables.length == typeArguments.length);
+    for (int index = 0; index < typeArguments.length; index++) {
+      DartType typeArgument = typeArguments[index];
+      TypeVariableType typeVariable = typeVariables[index];
+      DartType bound = substByContext(
+          elementMap.elementEnvironment
+              .getTypeVariableBound(typeVariable.element),
+          instantiatedType);
+      checkTypeVariableBound(
+          instantiatedType, typeArgument, typeVariable, bound);
+    }
   }
 
   @override

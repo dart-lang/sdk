@@ -402,8 +402,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
     _addClassTypeVariablesIfNeeded(constructor);
     _potentiallyAddFunctionParameterTypeChecks(constructor.function);
 
-    // TODO(sra): Type parameter constraint checks.
-
     // [fieldValues] accumulates the field initializer values, which may be
     // overwritten by initializer-list initializers.
     Map<FieldEntity, HInstruction> fieldValues = <FieldEntity, HInstruction>{};
@@ -2925,6 +2923,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       isFixedList = isFixedListConstructorCall;
     }
 
+    InterfaceType type = _elementMap.createInterfaceType(
+        invocation.target.enclosingClass, invocation.arguments.types);
+    if (_checkAllTypeVariableBounds(function, type, sourceInformation)) return;
+
     TypeMask resultType = typeMask;
 
     bool isJSArrayTypedConstructor =
@@ -3001,8 +3003,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments, sourceInformation);
       }
-      InterfaceType type = _elementMap.createInterfaceType(
-          invocation.target.enclosingClass, invocation.arguments.types);
       addImplicitInstantiation(type);
       _pushStaticInvocation(function, arguments, typeMask,
           sourceInformation: sourceInformation);
@@ -3898,6 +3898,89 @@ class KernelSsaGraphBuilder extends ir.Visitor
         sourceInformation);
   }
 
+  /// In checked mode checks the [type] of [node] to be well-bounded.
+  /// Returns `true` if an error can be statically determined.
+  ///
+  /// We do this at the call site rather that in the constructor body so that we
+  /// can perform *static* analysis errors/warnings rather than only dynamic
+  /// ones from the type pararameters passed in to the constructors. This also
+  /// performs all checks for the instantiated class and all of its supertypes
+  /// (extended and inherited) at this single call site because interface type
+  /// variable constraints (when applicable) need to be checked but will not
+  /// have a constructor body that gets inlined to execute.
+  bool _checkAllTypeVariableBounds(ConstructorEntity constructor,
+      InterfaceType type, SourceInformation sourceInformation) {
+    if (!options.enableTypeAssertions) return false;
+
+    // This map keeps track of what checks we perform as we walk up the
+    // inheritance chain so that we don't check the same thing more than once.
+    Map<DartType, Set<DartType>> seenChecksMap =
+        new Map<DartType, Set<DartType>>();
+    bool knownInvalidBounds = false;
+
+    void _addTypeVariableBoundCheck(InterfaceType instance,
+        DartType typeArgument, TypeVariableType typeVariable, DartType bound) {
+      if (knownInvalidBounds) return;
+
+      int subtypeRelation = types.computeSubtypeRelation(typeArgument, bound);
+      if (subtypeRelation == DartTypes.IS_SUBTYPE) return;
+
+      String message = "Can't create an instance of malbounded type '$type': "
+          "'${typeArgument}' is not a subtype of bound '${bound}' for "
+          "type variable '${typeVariable}' of type "
+          "${type == instance
+              ? "'${types.getThisType(type.element)}'"
+              : "'${types.getThisType(instance.element)}' on the supertype "
+                "'${instance}' of '${type}'"
+            }.";
+      if (subtypeRelation == DartTypes.NOT_SUBTYPE) {
+        generateTypeError(message, sourceInformation);
+        knownInvalidBounds = true;
+        return;
+      } else if (subtypeRelation == DartTypes.MAYBE_SUBTYPE) {
+        Set<DartType> seenChecks =
+            seenChecksMap.putIfAbsent(typeArgument, () => new Set<DartType>());
+        if (!seenChecks.contains(bound)) {
+          seenChecks.add(bound);
+          _assertIsSubtype(typeArgument, bound, message);
+        }
+      }
+    }
+
+    types.checkTypeVariableBounds(type, _addTypeVariableBoundCheck);
+    if (knownInvalidBounds) {
+      return true;
+    }
+    for (InterfaceType supertype
+        in types.getSupertypes(constructor.enclosingClass)) {
+      InterfaceType instance = types.asInstanceOf(type, supertype.element);
+      types.checkTypeVariableBounds(instance, _addTypeVariableBoundCheck);
+      if (knownInvalidBounds) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _assertIsSubtype(DartType subtype, DartType supertype, String message) {
+    HInstruction subtypeInstruction = typeBuilder.analyzeTypeArgument(
+        localsHandler.substInContext(subtype), sourceElement);
+    HInstruction supertypeInstruction = typeBuilder.analyzeTypeArgument(
+        localsHandler.substInContext(supertype), sourceElement);
+    HInstruction messageInstruction =
+        graph.addConstantString(message, closedWorld);
+    FunctionEntity element = commonElements.assertIsSubtype;
+    var inputs = <HInstruction>[
+      subtypeInstruction,
+      supertypeInstruction,
+      messageInstruction
+    ];
+    HInstruction assertIsSubtype =
+        new HInvokeStatic(element, inputs, subtypeInstruction.instructionType);
+    registry?.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
+    add(assertIsSubtype);
+  }
+
   @override
   void visitConstructorInvocation(ir.ConstructorInvocation node) {
     SourceInformation sourceInformation =
@@ -3911,6 +3994,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     ConstructorEntity constructor = _elementMap.getConstructor(target);
+    ClassEntity cls = constructor.enclosingClass;
+    TypeMask typeMask = new TypeMask.nonNullExact(cls, closedWorld);
+    InterfaceType type = _elementMap.createInterfaceType(
+        target.enclosingClass, node.arguments.types);
+
+    if (_checkAllTypeVariableBounds(constructor, type, sourceInformation))
+      return;
 
     // TODO(sra): For JS-interop targets, process arguments differently.
     List<HInstruction> arguments = <HInstruction>[];
@@ -3925,13 +4015,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (commonElements.isSymbolConstructor(constructor)) {
       constructor = commonElements.symbolValidatedConstructor;
     }
-    ClassEntity cls = constructor.enclosingClass;
     if (closedWorld.rtiNeed.classNeedsRti(cls)) {
       _addTypeArguments(arguments, node.arguments, sourceInformation);
     }
-    TypeMask typeMask = new TypeMask.nonNullExact(cls, closedWorld);
-    InterfaceType type = _elementMap.createInterfaceType(
-        target.enclosingClass, node.arguments.types);
     addImplicitInstantiation(type);
     _pushStaticInvocation(constructor, arguments, typeMask,
         sourceInformation: sourceInformation);

@@ -1401,7 +1401,6 @@ constructor_redirect2_negative_test: Crash # Issue 30856
 constructor_redirect2_test/01: MissingCompileTimeError
 constructor_redirect_test/01: Crash # Assertion failure: Cannot find value Instance of 'ThisLocal' in (local(A.named2#x), local(A.named2#y), local(A.named2#z)) for j:constructor(A.named2).
 cyclic_constructor_test/01: Crash # Issue 30856
-default_factory2_test/01: Fail
 deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -1433,9 +1432,6 @@ expect_test: RuntimeError
 external_test/10: MissingRuntimeError
 external_test/13: MissingRuntimeError
 external_test/20: MissingRuntimeError
-f_bounded_quantification5_test: RuntimeError
-f_bounded_quantification_test/01: RuntimeError
-f_bounded_quantification_test/02: RuntimeError
 factory_redirection_test/07: MissingCompileTimeError
 factory_redirection_test/08: Fail
 factory_redirection_test/09: Fail
@@ -1483,18 +1479,10 @@ library_env_test/has_no_mirror_support: RuntimeError
 list_literal1_test/01: MissingCompileTimeError
 list_literal4_test: RuntimeError
 main_not_a_function_test/01: CompileTimeError
-malbounded_instantiation_test/02: Fail
-malbounded_instantiation_test/03: Fail
-malbounded_redirecting_factory2_test/02: Fail
-malbounded_redirecting_factory2_test/03: Fail
-malbounded_redirecting_factory2_test/04: Fail
-malbounded_redirecting_factory_test/02: Fail
-malbounded_redirecting_factory_test/03: Fail
-malbounded_redirecting_factory_test/04: Fail
+malbounded_instantiation_test/01: RuntimeError # Issue 12702
 malbounded_type_cast2_test: RuntimeError
 malbounded_type_cast_test: RuntimeError
 malbounded_type_test2_test: RuntimeError
-malbounded_type_test_test/01: Fail
 malbounded_type_test_test/03: Fail
 malbounded_type_test_test/04: Fail
 malformed2_test/00: RuntimeError
@@ -1553,24 +1541,6 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mixin_invalid_bound2_test/02: Fail
-mixin_invalid_bound2_test/03: Fail
-mixin_invalid_bound2_test/05: Fail
-mixin_invalid_bound2_test/06: Fail
-mixin_invalid_bound2_test/08: Fail
-mixin_invalid_bound2_test/09: Fail
-mixin_invalid_bound2_test/10: Fail
-mixin_invalid_bound2_test/11: Fail
-mixin_invalid_bound2_test/12: Fail
-mixin_invalid_bound2_test/13: Fail
-mixin_invalid_bound2_test/14: Fail
-mixin_invalid_bound_test/02: Fail
-mixin_invalid_bound_test/04: Fail
-mixin_invalid_bound_test/06: Fail
-mixin_invalid_bound_test/07: Fail
-mixin_invalid_bound_test/08: Fail
-mixin_invalid_bound_test/09: Fail
-mixin_invalid_bound_test/10: Fail
 mixin_issue10216_2_test: RuntimeError
 mixin_mixin2_test: RuntimeError
 mixin_mixin3_test: RuntimeError
@@ -1608,7 +1578,6 @@ mixin_of_mixin_test/none: CompileTimeError
 mixin_super_2_test: CompileTimeError
 mixin_super_bound2_test/01: CompileTimeError
 mixin_super_bound2_test/none: CompileTimeError
-mixin_super_bound_test: RuntimeError
 mixin_super_constructor_named_test/01: MissingCompileTimeError
 mixin_super_constructor_positionals_test/01: MissingCompileTimeError
 mixin_super_test: CompileTimeError
@@ -1671,7 +1640,6 @@ redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: Fail
 redirecting_factory_long_test: RuntimeError
-redirecting_factory_malbounded_test/01: Fail
 redirecting_factory_reflection_test: RuntimeError
 regress_13494_test: RuntimeError
 regress_17382_test: RuntimeError
@@ -1715,14 +1683,9 @@ type_parameter_test/04: Crash # Internal Error: Unexpected type variable in stat
 type_parameter_test/05: Crash # Internal Error: Unexpected type variable in static context.
 type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
 type_parameter_test/none: Crash # Internal Error: Unexpected type variable in static context.
-type_variable_bounds2_test/00: Fail
-type_variable_bounds2_test/03: Fail
-type_variable_bounds2_test/05: Fail
+type_variable_bounds2_test/01: RuntimeError # Issue 12702
+type_variable_bounds2_test/04: RuntimeError # Issue 12702
 type_variable_bounds3_test/00: Fail
-type_variable_bounds4_test/01: RuntimeError
-type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
-type_variable_bounds_test/04: Fail
-type_variable_bounds_test/05: Fail
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
 

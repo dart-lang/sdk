@@ -1093,7 +1093,7 @@ abstract class DartTypes {
   /// Returns [type] as an instance of [cls] or `null` if [type] is not a
   /// subtype of [cls].
   ///
-  /// For instance `asInstanceOf(List<String>, Iterable) = Iterable<String>`.
+  /// For example: `asInstanceOf(List<String>, Iterable) = Iterable<String>`.
   InterfaceType asInstanceOf(InterfaceType type, ClassEntity cls);
 
   /// Return [base] where the type variable of `context.element` are replaced
