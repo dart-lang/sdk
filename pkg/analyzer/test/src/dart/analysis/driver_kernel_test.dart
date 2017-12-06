@@ -134,13 +134,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
     await super.test_getErrors();
   }
 
-  @potentialAnalyzerProblem
-  @override
-  test_getIndex() async {
-    // TODO(scheglov) This test fails even with @failingTest
-//    await super.test_getIndex();
-  }
-
   @failingTest
   @potentialAnalyzerProblem
   @override
