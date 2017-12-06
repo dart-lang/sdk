@@ -1651,6 +1651,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(implicitDynamic);
       buffer.addBool(strongMode);
       buffer.addBool(strongModeHints);
+      buffer.addBool(useFastaParser);
 
       // Append error processors.
       buffer.addInt(errorProcessors.length);
