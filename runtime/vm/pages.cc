@@ -182,7 +182,8 @@ PageSpace::PageSpace(Heap* heap,
       max_capacity_in_words_(max_capacity_in_words),
       max_external_in_words_(max_external_in_words),
       tasks_lock_(new Monitor()),
-      tasks_(0),
+      sweeper_tasks_(0),
+      low_memory_tasks_(0),
 #if defined(DEBUG)
       iterating_thread_(NULL),
 #endif
@@ -201,7 +202,7 @@ PageSpace::PageSpace(Heap* heap,
 PageSpace::~PageSpace() {
   {
     MonitorLocker ml(tasks_lock());
-    while (tasks() > 0) {
+    while (sweeper_tasks() > 0) {
       ml.Wait();
     }
   }
@@ -851,7 +852,7 @@ bool PageSpace::ShouldPerformIdleMarkSweep(int64_t deadline) {
 
   {
     MonitorLocker locker(tasks_lock());
-    if (tasks() > 0) {
+    if (sweeper_tasks() > 0) {
       // A concurrent sweeper is running. If we start a mark sweep now
       // we'll have to wait for it, and this wait time is not included in
       // mark_sweep_words_per_micro_.
@@ -875,10 +876,10 @@ void PageSpace::CollectGarbage(bool compact) {
   // Wait for pending tasks to complete and then account for the driver task.
   {
     MonitorLocker locker(tasks_lock());
-    while (tasks() > 0) {
+    while (sweeper_tasks() > 0) {
       locker.WaitWithSafepointCheck(thread);
     }
-    set_tasks(1);
+    set_sweeper_tasks(1);
   }
 
   const int64_t pre_safe_point = OS::GetCurrentMonotonicMicros();
@@ -892,6 +893,7 @@ void PageSpace::CollectGarbage(bool compact) {
 
     const int64_t start = OS::GetCurrentMonotonicMicros();
 
+    NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
     // Perform various cleanup that relies on no tasks interfering.
     isolate->class_table()->FreeOldTables();
 
@@ -1035,13 +1037,15 @@ void PageSpace::CollectGarbage(bool compact) {
   // Done, reset the task count.
   {
     MonitorLocker ml(tasks_lock());
-    set_tasks(tasks() - 1);
+    set_sweeper_tasks(sweeper_tasks() - 1);
     ml.NotifyAll();
   }
 
   if (compact) {
     // Const object tables are hashed by address: rehash.
     SafepointOperationScope safepoint(thread);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     thread->isolate()->RehashConstants();
   }
 }

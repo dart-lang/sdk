@@ -21,6 +21,7 @@
 #include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/tags.h"
+#include "vm/thread_pool.h"
 #include "vm/timeline.h"
 #include "vm/verifier.h"
 #include "vm/virtual_memory.h"
@@ -204,14 +205,14 @@ HeapIterationScope::HeapIterationScope(Thread* thread, bool writable)
     // We currently don't support nesting of HeapIterationScopes.
     ASSERT(old_space_->iterating_thread_ != thread);
 #endif
-    while (old_space_->tasks() > 0) {
+    while (old_space_->sweeper_tasks() > 0) {
       ml.WaitWithSafepointCheck(thread);
     }
 #if defined(DEBUG)
     ASSERT(old_space_->iterating_thread_ == NULL);
     old_space_->iterating_thread_ = thread;
 #endif
-    old_space_->set_tasks(1);
+    old_space_->set_sweeper_tasks(1);
   }
 
   isolate()->safepoint_handler()->SafepointThreads(thread);
@@ -233,8 +234,8 @@ HeapIterationScope::~HeapIterationScope() {
   ASSERT(old_space_->iterating_thread_ == thread());
   old_space_->iterating_thread_ = NULL;
 #endif
-  ASSERT(old_space_->tasks() == 1);
-  old_space_->set_tasks(0);
+  ASSERT(old_space_->sweeper_tasks() == 1);
+  old_space_->set_sweeper_tasks(0);
   ml.NotifyAll();
 }
 
@@ -349,17 +350,6 @@ void Heap::EndOldSpaceGC() {
   ml.NotifyAll();
 }
 
-#ifndef PRODUCT
-void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
-  ClassTable* class_table = isolate()->class_table();
-  if (space == kNew) {
-    class_table->ResetCountersNew();
-  } else {
-    class_table->ResetCountersOld();
-  }
-}
-#endif
-
 void Heap::NotifyIdle(int64_t deadline) {
   Thread* thread = Thread::Current();
   if (new_space_.ShouldPerformIdleScavenge(deadline)) {
@@ -375,15 +365,58 @@ void Heap::NotifyIdle(int64_t deadline) {
   }
 }
 
+class LowMemoryTask : public ThreadPool::Task {
+ public:
+  explicit LowMemoryTask(Isolate* isolate) : task_isolate_(isolate) {}
+
+  virtual void Run() {
+    bool result =
+        Thread::EnterIsolateAsHelper(task_isolate_, Thread::kLowMemoryTask);
+    ASSERT(result);
+    Heap* heap = task_isolate_->heap();
+    {
+      TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "LowMemoryTask");
+      heap->CollectAllGarbage(Heap::kLowMemory);
+    }
+    // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
+    Thread::ExitIsolateAsHelper();
+    // This compactor task is done. Notify the original isolate.
+    {
+      MonitorLocker ml(heap->old_space()->tasks_lock());
+      heap->old_space()->set_low_memory_tasks(
+          heap->old_space()->low_memory_tasks() - 1);
+      ml.NotifyAll();
+    }
+  }
+
+ private:
+  Isolate* task_isolate_;
+};
+
+void Heap::NotifyLowMemory() {
+  {
+    MonitorLocker ml(old_space_.tasks_lock());
+    if (old_space_.low_memory_tasks() > 0) {
+      return;
+    }
+    old_space_.set_low_memory_tasks(old_space_.low_memory_tasks() + 1);
+  }
+
+  bool success = Dart::thread_pool()->Run(new LowMemoryTask(isolate()));
+  if (!success) {
+    MonitorLocker ml(old_space_.tasks_lock());
+    old_space_.set_low_memory_tasks(old_space_.low_memory_tasks() - 1);
+    ml.NotifyAll();
+  }
+}
+
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
-  ASSERT(reason == kFull);
+  ASSERT((reason == kFull) || (reason == kLowMemory));
   if (BeginNewSpaceGC(thread)) {
-    RecordBeforeGC(kNew, kFull);
+    RecordBeforeGC(kNew, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION(thread, "EvacuateNewGeneration");
-    NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
     new_space_.Evacuate();
-    NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
     RecordAfterGC(kNew);
     PrintStats();
     NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
@@ -393,15 +426,13 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   GCReason reason) {
-  ASSERT((reason == kNewSpace) || (reason == kFull) || (reason == kIdle));
+  ASSERT((reason != kOldSpace) && (reason != kPromotion));
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kNew, reason);
     {
       VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
       TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectNewGeneration");
-      NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kNew));
       new_space_.Scavenge();
-      NOT_IN_PRODUCT(isolate()->class_table()->UpdatePromoted());
       RecordAfterGC(kNew);
       PrintStats();
       NOT_IN_PRODUCT(PrintStatsToTimeline(&tds, reason));
@@ -420,8 +451,8 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
     TIMELINE_FUNCTION_GC_DURATION_BASIC(thread, "CollectOldGeneration");
-    NOT_IN_PRODUCT(UpdateClassHeapStatsBeforeGC(kOld));
-    bool compact = (reason == kCompaction) || FLAG_use_compactor;
+    bool compact =
+        (reason == kCompaction) || (reason == kLowMemory) || FLAG_use_compactor;
     old_space_.CollectGarbage(compact);
     RecordAfterGC(kOld);
     PrintStats();
@@ -461,18 +492,18 @@ void Heap::CollectGarbage(Space space) {
   }
 }
 
-void Heap::CollectAllGarbage() {
+void Heap::CollectAllGarbage(GCReason reason) {
   Thread* thread = Thread::Current();
 
   // New space is evacuated so this GC will collect all dead objects
   // kept alive by a cross-generational pointer.
-  EvacuateNewSpace(thread, kFull);
-  CollectOldSpaceGarbage(thread, kFull);
+  EvacuateNewSpace(thread, reason);
+  CollectOldSpaceGarbage(thread, reason);
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
   MonitorLocker ml(old_space_.tasks_lock());
-  while (old_space_.tasks() > 0) {
+  while (old_space_.sweeper_tasks() > 0) {
     ml.WaitWithSafepointCheck(thread);
   }
 }
@@ -643,6 +674,8 @@ const char* Heap::GCReasonToString(GCReason gc_reason) {
       return "full";
     case kIdle:
       return "idle";
+    case kLowMemory:
+      return "low memory";
     case kGCAtAlloc:
       return "debugging";
     case kGCTestCase:

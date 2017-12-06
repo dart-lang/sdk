@@ -1447,6 +1447,11 @@ DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
   T->isolate()->heap()->NotifyIdle(deadline);
 }
 
+DART_EXPORT void Dart_NotifyLowMemory() {
+  API_TIMELINE_BEGIN_END;
+  Isolate::NotifyLowMemory();
+}
+
 DART_EXPORT void Dart_ExitIsolate() {
   Thread* T = Thread::Current();
   CHECK_ISOLATE(T->isolate());
