@@ -55,8 +55,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
-    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+    new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
 
   String get innerHtml {
@@ -114,7 +114,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   @deprecated
   @Experimental()
   @DomName('DocumentFragment.querySelectorAll')
-  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
+  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
     querySelectorAll(relativeSelectors);
 $!MEMBERS
 }

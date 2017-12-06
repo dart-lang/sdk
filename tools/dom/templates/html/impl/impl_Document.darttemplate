@@ -25,8 +25,8 @@ $!MEMBERS
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element /*=T*/> querySelectorAll/*<T extends Element>*/(String selectors) =>
-    new _FrozenElementList/*<T>*/._wrap(_querySelectorAll(selectors));
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+    new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -44,7 +44,7 @@ $!MEMBERS
   @deprecated
   @Experimental()
   @DomName('Document.querySelectorAll')
-  ElementList<Element /*=T*/> queryAll/*<T extends Element>*/(String relativeSelectors) =>
+  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /// Checks if [registerElement] is supported on the current platform.
