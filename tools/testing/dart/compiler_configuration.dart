@@ -451,7 +451,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
     var sharedOptions = arguments.sublist(0, arguments.length - 1);
     var inputFile = arguments.last;
-    var outputFile = "$tempDir/${inputFile.replaceAll('.dart', '.js')}";
+    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
+    var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
 
     return new CommandArtifact(
         [createCommand(inputFile, outputFile, sharedOptions, environment)],
