@@ -419,6 +419,7 @@ mirrors/reflected_type_generics_test/02: Pass
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+async/async_await_sync_completer_test: RuntimeError
 async/future_or_only_in_async_test/00: MissingCompileTimeError
 async/future_or_strong_test: RuntimeError
 async/future_test/01: RuntimeError
