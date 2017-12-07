@@ -3409,6 +3409,42 @@ class D = A<bool> with B<int> implements C<double>;
     }
   }
 
+  test_top_enum() async {
+    String content = r'''
+enum MyEnum {
+  A, B
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    EnumDeclaration enumNode = result.unit.declarations[0];
+    ClassElement enumElement = enumNode.element;
+
+    SimpleIdentifier dName = enumNode.name;
+    expect(dName.staticElement, same(enumElement));
+    if (previewDart2) {
+      expect(dName.staticType, typeProvider.typeType);
+    }
+
+    {
+      var aElement = enumElement.getField('A');
+      var aNode = enumNode.constants[0];
+      expect(aNode.element, same(aElement));
+      expect(aNode.name.staticElement, same(aElement));
+      expect(aNode.name.staticType, same(enumElement.type));
+    }
+
+    {
+      var bElement = enumElement.getField('B');
+      var bNode = enumNode.constants[1];
+      expect(bNode.element, same(bElement));
+      expect(bNode.name.staticElement, same(bElement));
+      expect(bNode.name.staticType, same(enumElement.type));
+    }
+  }
+
   test_top_executables_class() async {
     String content = r'''
 class C {

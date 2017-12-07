@@ -757,6 +757,8 @@ class LibraryAnalyzer {
         }
       } else if (declaration is ClassTypeAlias) {
         // No bodies to resolve.
+      } else if (declaration is EnumDeclaration) {
+        // No bodies to resolve.
       } else if (declaration is FunctionDeclaration) {
         var context = declaration.element as ExecutableElementImpl;
         var resolution = resolutions.next();

@@ -746,20 +746,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_missingEnumConstantInSwitch_all() async {
-    return super.test_missingEnumConstantInSwitch_all();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_missingEnumConstantInSwitch_default() async {
-    return super.test_missingEnumConstantInSwitch_default();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_nonConstantDefaultValue_inConstructor_named() async {
     return super.test_nonConstantDefaultValue_inConstructor_named();
   }
