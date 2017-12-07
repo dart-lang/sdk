@@ -31,6 +31,7 @@ InitializedCompilerState initializeCompiler(InitializedCompilerState oldState,
 
   CompilerOptions options = new CompilerOptions()
     ..target = target
+    ..strongMode = false
     ..linkedDependencies = [sdkUri]
     ..packagesFileUri = packagesFileUri;
 
