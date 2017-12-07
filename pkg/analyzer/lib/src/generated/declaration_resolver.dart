@@ -262,7 +262,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
     super.visitFieldDeclaration(node);
-    _resolveMetadata(node, node.metadata, node.fields.variables[0].element);
+    FieldElement firstFieldElement = node.fields.variables[0].element;
+    if (_applyKernelTypes) {
+      if (node.fields.type != null) {
+        ResolutionApplier.applyToTypeAnnotation(
+            firstFieldElement.type, node.fields.type);
+      }
+    }
+    _resolveMetadata(node, node.metadata, firstFieldElement);
     return null;
   }
 

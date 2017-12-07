@@ -47,14 +47,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_fieldFormalParameterElement_member() async {
-    return super
-        .test_argumentTypeNotAssignable_fieldFormalParameterElement_member();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_argumentTypeNotAssignable_invocation_typedef_generic() async {
     return super.test_argumentTypeNotAssignable_invocation_typedef_generic();
   }
@@ -86,13 +78,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_assignability_function_expr_rettype_from_typedef_typedef() async {
     return super
         .test_assignability_function_expr_rettype_from_typedef_typedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_assignmentToFinalNoSetter_propertyAccess() async {
-    return super.test_assignmentToFinalNoSetter_propertyAccess();
   }
 
   @override
@@ -142,13 +127,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_bug_24539_setter() async {
     return super.test_bug_24539_setter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_caseExpressionTypeImplementsEquals_Object() async {
-    return super.test_caseExpressionTypeImplementsEquals_Object();
   }
 
   @override
@@ -252,22 +230,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_constConstructorWithNonFinalField_finalInstanceVar() async {
-    return super.test_constConstructorWithNonFinalField_finalInstanceVar();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_constConstructorWithNonFinalField_mixin() async {
     return super.test_constConstructorWithNonFinalField_mixin();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constConstructorWithNonFinalField_static() async {
-    return super.test_constConstructorWithNonFinalField_static();
   }
 
   @override
@@ -303,13 +267,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_constEvelTypeNum_String() async {
     return super.test_constEvelTypeNum_String();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constNotInitialized_field() async {
-    return super.test_constNotInitialized_field();
   }
 
   @override
@@ -406,59 +363,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_fieldInitializedByMultipleInitializers() async {
-    return super.test_fieldInitializedByMultipleInitializers();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() async {
-    return super
-        .test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldInitializedInInitializerAndDeclaration_finalFieldNotSet() async {
-    return super
-        .test_fieldInitializedInInitializerAndDeclaration_finalFieldNotSet();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldInitializerOutsideConstructor() async {
-    return super.test_fieldInitializerOutsideConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_fieldInitializerOutsideConstructor_defaultParameters() async {
     return super.test_fieldInitializerOutsideConstructor_defaultParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldInitializerRedirectingConstructor_super() async {
-    return super.test_fieldInitializerRedirectingConstructor_super();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_finalNotInitialized_atDeclaration() async {
-    return super.test_finalNotInitialized_atDeclaration();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_finalNotInitialized_fieldFormal() async {
-    return super.test_finalNotInitialized_fieldFormal();
   }
 
   @override
@@ -480,20 +386,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_finalNotInitialized_hasNativeClause_noConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_noConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_finalNotInitialized_initializer() async {
-    return super.test_finalNotInitialized_initializer();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_finalNotInitialized_redirectingConstructor() async {
-    return super.test_finalNotInitialized_redirectingConstructor();
   }
 
   @override
@@ -599,13 +491,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_initializingFormalForNonExistentField() async {
-    return super.test_initializingFormalForNonExistentField();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_instance_creation_inside_annotation() async {
     return super.test_instance_creation_inside_annotation();
   }
@@ -646,13 +531,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_invalidAnnotation_constConstructor_named_importWithPrefix() async {
     return super
         .test_invalidAnnotation_constConstructor_named_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAssignment_compoundAssignment() async {
-    return super.test_invalidAssignment_compoundAssignment();
   }
 
   @override
@@ -797,13 +675,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_nonConstValueInInitializer_binary_dynamic() async {
     return super.test_nonConstValueInInitializer_binary_dynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstValueInInitializer_field() async {
-    return super.test_nonConstValueInInitializer_field();
   }
 
   @override
@@ -1061,13 +932,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedGetter_static_conditionalAccess() async {
     return super.test_undefinedGetter_static_conditionalAccess();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedGetter_typeSubstitution() async {
-    return super.test_undefinedGetter_typeSubstitution();
   }
 
   @override

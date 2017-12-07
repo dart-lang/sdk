@@ -3683,8 +3683,9 @@ void set topSetter(double p) {}
 
   test_top_field_class() async {
     String content = r'''
-class C {
+class C<T> {
   var a = 1;
+  T b;
 }
 ''';
     addTestFile(content);
@@ -3696,18 +3697,37 @@ class C {
 
     ClassDeclaration cNode = unit.declarations[0];
     ClassElement cElement = cNode.element;
+    TypeParameterElement tElement = cElement.typeParameters[0];
     expect(cElement, same(unitElement.types[0]));
 
-    FieldDeclaration aDeclaration = cNode.members[0];
-    VariableDeclaration aNode = aDeclaration.fields.variables[0];
-    FieldElement aElement = aNode.element;
-    expect(aElement, cElement.fields[0]);
-    expect(aElement.type, typeProvider.intType);
-    expect(aNode.name.staticElement, same(aElement));
-    expect(aNode.name.staticType, same(aElement.type));
+    {
+      FieldElement aElement = cElement.getField('a');
+      FieldDeclaration aDeclaration = cNode.members[0];
+      VariableDeclaration aNode = aDeclaration.fields.variables[0];
+      expect(aNode.element, same(aElement));
+      expect(aElement.type, typeProvider.intType);
+      expect(aNode.name.staticElement, same(aElement));
+      expect(aNode.name.staticType, same(aElement.type));
 
-    Expression aValue = aNode.initializer;
-    expect(aValue.staticType, typeProvider.intType);
+      Expression aValue = aNode.initializer;
+      expect(aValue.staticType, typeProvider.intType);
+    }
+
+    {
+      FieldElement bElement = cElement.getField('b');
+      FieldDeclaration bDeclaration = cNode.members[1];
+
+      TypeName typeName = bDeclaration.fields.type;
+      SimpleIdentifier typeIdentifier = typeName.name;
+      expect(typeIdentifier.staticElement, same(tElement));
+      expect(typeIdentifier.staticType, same(tElement.type));
+
+      VariableDeclaration bNode = bDeclaration.fields.variables[0];
+      expect(bNode.element, same(bElement));
+      expect(bElement.type, tElement.type);
+      expect(bNode.name.staticElement, same(bElement));
+      expect(bNode.name.staticType, same(bElement.type));
+    }
   }
 
   test_top_field_top() async {
