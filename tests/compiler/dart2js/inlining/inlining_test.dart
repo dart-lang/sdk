@@ -48,17 +48,29 @@ void computeMemberAstInlinings(
 abstract class ComputeValueMixin<T> {
   JavaScriptBackend get backend;
 
+  ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor);
+
   String getMemberValue(MemberEntity member) {
-    StaticUse use = new StaticUse.inlining(member);
-    List<String> inlinedIn = <String>[];
-    backend.codegenImpactsForTesting
-        .forEach((MemberEntity member, WorldImpact impact) {
-      if (impact.staticUses.contains(use)) {
-        inlinedIn.add(member.name);
+    if (member is FunctionEntity) {
+      StaticUse use = new StaticUse.inlining(member);
+      StaticUse useBody;
+      if (member is ConstructorEntity && member.isGenerativeConstructor) {
+        useBody = new StaticUse.inlining(getConstructorBody(member));
       }
-    });
-    inlinedIn.sort();
-    return '[${inlinedIn.join(',')}]';
+      List<String> inlinedIn = <String>[];
+      backend.codegenImpactsForTesting
+          .forEach((MemberEntity member, WorldImpact impact) {
+        if (impact.staticUses.contains(use)) {
+          inlinedIn.add(member.name);
+        }
+        if (useBody != null && impact.staticUses.contains(useBody)) {
+          inlinedIn.add('${member.name}+');
+        }
+      });
+      inlinedIn.sort();
+      return '[${inlinedIn.join(',')}]';
+    }
+    return null;
   }
 }
 
@@ -70,6 +82,12 @@ class InliningAstComputer extends AstDataExtractor
   InliningAstComputer(DiagnosticReporter reporter,
       Map<Id, ActualData> actualMap, ResolvedAst resolvedAst, this.backend)
       : super(reporter, actualMap, resolvedAst);
+
+  @override
+  ConstructorBodyEntity getConstructorBody(
+      covariant ConstructorElement constructor) {
+    return constructor.enclosingClass.lookupConstructorBody(constructor.name);
+  }
 
   @override
   String computeElementValue(Id id, AstElement element) {
@@ -127,6 +145,11 @@ class InliningIrComputer extends IrDataExtractor
       this.backend,
       this._closureDataLookup)
       : super(reporter, actualMap);
+
+  ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor) {
+    return _elementMap
+        .getConstructorBody(_elementMap.getMemberDefinition(constructor).node);
+  }
 
   @override
   String computeMemberValue(Id id, ir.Member node) {

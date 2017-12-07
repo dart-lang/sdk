@@ -8,6 +8,7 @@ import 'dart:_js_helper';
 /*element: main:[]*/
 main() {
   forceInlineConstructor();
+  forceInlineConstructorBody();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -24,4 +25,22 @@ class Class1 {
 @NoInline()
 forceInlineConstructor() {
   new Class1();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Force inline a constructor call with non-empty constructor body.
+////////////////////////////////////////////////////////////////////////////////
+
+class Class2 {
+  /*element: Class2.:[forceInlineConstructorBody,forceInlineConstructorBody+]*/
+  @ForceInline()
+  Class2() {
+    print('foo');
+  }
+}
+
+/*element: forceInlineConstructorBody:[]*/
+@NoInline()
+forceInlineConstructorBody() {
+  new Class2();
 }

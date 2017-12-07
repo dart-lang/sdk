@@ -531,12 +531,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
           }
         }
 
-        // TODO(redemption): Try to inline [body].
-        _invokeConstructorBody(
-            body,
-            bodyCallInputs,
-            _sourceInformationBuilder
-                .buildDeclaration(_elementMap.getMember(constructor)));
+        ConstructorBodyEntity constructorBody =
+            _elementMap.getConstructorBody(body);
+        if (!isCustomElement && // TODO(13836): Fix inlining.
+            _tryInlineMethod(constructorBody, null, null, bodyCallInputs,
+                constructor, sourceInformation)) {
+          pop();
+        } else {
+          _invokeConstructorBody(
+              body,
+              bodyCallInputs,
+              _sourceInformationBuilder
+                  .buildDeclaration(_elementMap.getMember(constructor)));
+        }
       });
     }
 
@@ -4663,6 +4670,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     switch (definition.kind) {
       case MemberKind.constructor:
         buildConstructor(definition.node);
+        return;
+      case MemberKind.constructorBody:
+        ir.Constructor constructor = definition.node;
+        constructor.function.body.accept(this);
         return;
       case MemberKind.regular:
         ir.Node node = definition.node;
