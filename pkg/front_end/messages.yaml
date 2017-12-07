@@ -1645,3 +1645,20 @@ UndefinedMethod:
       C c;
       c.foo();
     }
+SourceOutlineSummary:
+  template: |
+    Built outlines for #count compilation units (#count2 bytes) in #string, that is,
+    #string2 bytes/ms, and
+    #string3 ms/compilation unit.
+
+SourceBodySummary:
+  template: |
+    Built bodies for #count compilation units (#count2 bytes) in #string, that is,
+    #string2 bytes/ms, and
+    #string3 ms/compilation unit.
+
+DillOutlineSummary:
+  template: |
+    Indexed #count libraries (#count2 bytes) in #string, that is,
+    #string2 bytes/ms, and
+    #string3 ms/libraries.

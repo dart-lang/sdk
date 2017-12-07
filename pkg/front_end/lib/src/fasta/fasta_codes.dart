@@ -99,3 +99,6 @@ String relativizeUri(Uri uri) {
   // 2. We can change `base` argument here if needed.
   return util.relativizeUri(uri, base: Uri.base);
 }
+
+typedef Message SummaryTemplate(
+    int count, int count2, String string, String string2, String string3);

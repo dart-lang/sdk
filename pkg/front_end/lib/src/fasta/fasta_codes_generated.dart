@@ -782,6 +782,45 @@ Message _withArgumentsDeferredPrefixDuplicatedCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(int count, int count2, String string, String string2,
+            String string3)> templateDillOutlineSummary =
+    const Template<
+            Message Function(int count, int count2, String string,
+                String string2, String string3)>(
+        messageTemplate:
+            r"""Indexed #count libraries (#count2 bytes) in #string, that is,
+#string2 bytes/ms, and
+#string3 ms/libraries.""",
+        withArguments: _withArgumentsDillOutlineSummary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(int count, int count2, String string, String string2,
+        String string3)> codeDillOutlineSummary = const Code<
+    Message Function(
+        int count, int count2, String string, String string2, String string3)>(
+  "DillOutlineSummary",
+  templateDillOutlineSummary,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDillOutlineSummary(
+    int count, int count2, String string, String string2, String string3) {
+  return new Message(codeDillOutlineSummary,
+      message: """Indexed $count libraries ($count2 bytes) in $string, that is,
+$string2 bytes/ms, and
+$string3 ms/libraries.""",
+      arguments: {
+        'count': count,
+        'count2': count2,
+        'string': string,
+        'string2': string2,
+        'string3': string3
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeDirectiveAfterDeclaration =
     messageDirectiveAfterDeclaration;
 
@@ -3904,6 +3943,94 @@ const MessageCode messageSetterWithWrongNumberOfFormals = const MessageCode(
     analyzerCode: "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER",
     dart2jsCode: "*ignored*",
     message: r"""A setter should have exactly one formal parameter.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int count2,
+        String string,
+        String string2,
+        String
+            string3)> templateSourceBodySummary = const Template<
+        Message Function(int count, int count2, String string, String string2,
+            String string3)>(
+    messageTemplate:
+        r"""Built bodies for #count compilation units (#count2 bytes) in #string, that is,
+#string2 bytes/ms, and
+#string3 ms/compilation unit.""",
+    withArguments: _withArgumentsSourceBodySummary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(int count, int count2, String string, String string2,
+        String string3)> codeSourceBodySummary = const Code<
+    Message Function(
+        int count, int count2, String string, String string2, String string3)>(
+  "SourceBodySummary",
+  templateSourceBodySummary,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSourceBodySummary(
+    int count, int count2, String string, String string2, String string3) {
+  return new Message(codeSourceBodySummary,
+      message:
+          """Built bodies for $count compilation units ($count2 bytes) in $string, that is,
+$string2 bytes/ms, and
+$string3 ms/compilation unit.""",
+      arguments: {
+        'count': count,
+        'count2': count2,
+        'string': string,
+        'string2': string2,
+        'string3': string3
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        int count,
+        int count2,
+        String string,
+        String string2,
+        String
+            string3)> templateSourceOutlineSummary = const Template<
+        Message Function(int count, int count2, String string, String string2,
+            String string3)>(
+    messageTemplate:
+        r"""Built outlines for #count compilation units (#count2 bytes) in #string, that is,
+#string2 bytes/ms, and
+#string3 ms/compilation unit.""",
+    withArguments: _withArgumentsSourceOutlineSummary);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+    Message Function(int count, int count2, String string, String string2,
+        String string3)> codeSourceOutlineSummary = const Code<
+    Message Function(
+        int count, int count2, String string, String string2, String string3)>(
+  "SourceOutlineSummary",
+  templateSourceOutlineSummary,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSourceOutlineSummary(
+    int count, int count2, String string, String string2, String string3) {
+  return new Message(codeSourceOutlineSummary,
+      message:
+          """Built outlines for $count compilation units ($count2 bytes) in $string, that is,
+$string2 bytes/ms, and
+$string3 ms/compilation unit.""",
+      arguments: {
+        'count': count,
+        'count2': count2,
+        'string': string,
+        'string2': string2,
+        'string3': string3
+      });
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStackOverflow = messageStackOverflow;

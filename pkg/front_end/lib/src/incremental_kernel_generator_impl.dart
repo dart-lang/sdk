@@ -227,8 +227,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
           int newDillCount = _program.libraries.length - validDillCount;
           await _logger.runAsync('Append $newDillCount dill libraries',
               () async {
-            _dillTarget.loader.appendLibraries(
-                _program, (uri) => !validLibraries.contains(uri));
+            _dillTarget.loader.appendLibraries(_program,
+                filter: (uri) => !validLibraries.contains(uri));
             await _dillTarget.buildOutlines();
           });
         }
@@ -369,8 +369,8 @@ class IncrementalKernelGeneratorImpl implements IncrementalKernelGenerator {
 
           // Schedule the new outline for loading.
           // TODO(scheglov): Add a more efficient API to add one library.
-          _dillTarget.loader
-              .appendLibraries(_program, (uri) => uri == newLibrary.importUri);
+          _dillTarget.loader.appendLibraries(_program,
+              filter: (uri) => uri == newLibrary.importUri);
 
           // If main() was defined in the recompiled library, replace it.
           if (mainReference?.asProcedure?.enclosingLibrary == oldLibrary) {

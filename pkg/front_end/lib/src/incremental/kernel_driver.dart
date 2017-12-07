@@ -384,7 +384,8 @@ class KernelDriver {
       }
 
       Future<Null> appendNewDillLibraries(Program program) async {
-        dillTarget.loader.appendLibraries(program, libraryUris.contains);
+        dillTarget.loader
+            .appendLibraries(program, filter: libraryUris.contains);
         await dillTarget.buildOutlines();
       }
 

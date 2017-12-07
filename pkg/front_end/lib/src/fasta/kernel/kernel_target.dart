@@ -261,6 +261,7 @@ class KernelTarget extends TargetImplementation {
         loader.performTopLevelInference(sourceClasses);
       }
     } on deprecated_InputError catch (e) {
+      ticker.logMs("Got deprecated_InputError");
       handleInputError(e, isFullProgram: false);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
@@ -284,6 +285,7 @@ class KernelTarget extends TargetImplementation {
     }
 
     try {
+      ticker.logMs("Building program");
       await loader.buildBodies();
       loader.finishStaticInvocations();
       loader.finishDeferredLoadTearoffs();
@@ -298,6 +300,7 @@ class KernelTarget extends TargetImplementation {
       }
       handleRecoverableErrors(loader.unhandledErrors);
     } on deprecated_InputError catch (e) {
+      ticker.logMs("Got deprecated_InputError");
       handleInputError(e, isFullProgram: true);
     } catch (e, s) {
       return reportCrash(e, s, loader?.currentUriForCrashReporting);
