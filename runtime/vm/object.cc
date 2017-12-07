@@ -15881,6 +15881,18 @@ bool Instance::IsFutureOrInstanceOf(Zone* zone,
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =
         AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    if (Class::Handle(zone, clazz()).IsFutureClass()) {
+      const TypeArguments& type_arguments =
+          TypeArguments::Handle(zone, GetTypeArguments());
+      if (!type_arguments.IsNull()) {
+        const AbstractType& type_arg =
+            AbstractType::Handle(zone, type_arguments.TypeAt(0));
+        if (type_arg.IsSubtypeOf(other_type_arg, bound_error, NULL,
+                                 Heap::kOld)) {
+          return true;
+        }
+      }
+    }
     // Retry the IsInstanceOf function after unwrapping type arg of FutureOr.
     if (IsInstanceOf(other_type_arg, Object::null_type_arguments(),
                      Object::null_type_arguments(), bound_error)) {
@@ -16704,6 +16716,10 @@ bool AbstractType::FutureOrTypeTest(Zone* zone,
     if (other.arguments() == TypeArguments::null()) {
       return true;
     }
+    // This function is only called with a receiver that is void type, a
+    // function type, or an uninstantiated type parameter, therefore, it cannot
+    // be of class Future and we can spare the check.
+    ASSERT(IsVoidType() || IsFunctionType() || IsTypeParameter());
     const TypeArguments& other_type_arguments =
         TypeArguments::Handle(zone, other.arguments());
     const AbstractType& other_type_arg =

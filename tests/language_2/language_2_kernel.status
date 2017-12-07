@@ -2023,7 +2023,6 @@ named_parameters_test/07: MissingCompileTimeError
 named_parameters_test/08: MissingCompileTimeError
 named_parameters_test/09: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
-named_parameters_type_test/01: MissingCompileTimeError
 nested_generic_closure_test: Crash
 nested_generic_closure_test: RuntimeError
 new_expression_type_args_test/00: MissingCompileTimeError
@@ -2136,8 +2135,6 @@ override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_inheritance_no_such_method_test/13: MissingCompileTimeError
 parser_quirks_test: CompileTimeError # Issue 31533
 part2_test/01: MissingCompileTimeError
-positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: MissingCompileTimeError
 positional_parameters_type_test/none: Crash
 positional_parameters_type_test/none: Pass
 prefix16_test/00: MissingCompileTimeError
