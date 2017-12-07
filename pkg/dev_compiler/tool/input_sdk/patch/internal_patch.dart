@@ -6,6 +6,7 @@ import 'dart:_js_primitives' show printString;
 import 'dart:_js_helper' show patch;
 import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper' show JS;
+import 'dart:_runtime' as dart;
 
 @patch
 class Symbol implements core.Symbol {
@@ -45,3 +46,7 @@ List/*<E>*/ makeFixedListUnmodifiable/*<E>*/(List/*<E>*/ fixedLengthList) {
   JSArray.markUnmodifiableList(fixedLengthList);
   return fixedLengthList;
 }
+
+// TODO(vsm): Make this an @patch.
+Object extractTypeArguments<T>(T instance, Function f) =>
+    dart.extractTypeArguments<T>(instance, f);
