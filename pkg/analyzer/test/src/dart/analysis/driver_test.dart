@@ -1138,6 +1138,33 @@ class C {
     expect(pIdentifier.staticType, typeProvider.intType);
   }
 
+  test_constructor_initializer_field() async {
+    addTestFile(r'''
+class C {
+  int f;
+  C(int p) : f = p {
+    f;
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+    ClassElement cElement = cNode.element;
+    FieldElement fElement = cElement.getField('f');
+
+    ConstructorDeclaration constructorNode = cNode.members[1];
+    ParameterElement pParameterElement = constructorNode.element.parameters[0];
+
+    {
+      ConstructorFieldInitializer initializer = constructorNode.initializers[0];
+      expect(initializer.fieldName.staticElement, same(fElement));
+
+      SimpleIdentifier expression = initializer.expression;
+      expect(expression.staticElement, same(pParameterElement));
+    }
+  }
+
   test_error_unresolvedTypeAnnotation() async {
     String content = r'''
 main() {

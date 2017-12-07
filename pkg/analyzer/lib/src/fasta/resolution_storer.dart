@@ -245,6 +245,11 @@ class ResolutionStorer extends TypeInferenceListener {
     super.constructorInvocationExit(expression, inferredType);
   }
 
+  @override
+  void fieldInitializerEnter(FieldInitializer initializer) {
+    _recordReference(initializer.field, initializer.fileOffset);
+  }
+
   /// Verifies that all deferred work has been completed.
   void finished() {
     assert(_deferredTypeSlots.isEmpty);

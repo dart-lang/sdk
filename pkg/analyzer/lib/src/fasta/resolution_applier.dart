@@ -135,6 +135,15 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    FieldElement fieldElement = _getReferenceFor(node.equals);
+    node.fieldName.staticElement = fieldElement;
+    node.fieldName.staticType = fieldElement.type;
+
+    node.expression.accept(this);
+  }
+
+  @override
   void visitExpression(Expression node) {
     visitNode(node);
     node.staticType = _getTypeFor(node);
