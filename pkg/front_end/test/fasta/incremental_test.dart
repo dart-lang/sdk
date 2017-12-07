@@ -42,6 +42,9 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 
+import 'package:front_end/src/fasta/incremental_compiler.dart'
+    show IncrementalCompiler;
+
 import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;
 
@@ -57,6 +60,7 @@ class Context extends ChainContext {
   final CompilerContext compilerContext;
   final ExternalStateSnapshot snapshot;
   final List<CompilationMessage> errors;
+  final bool useIKG;
 
   final List<Step> steps = const <Step>[
     const ReadTest(),
@@ -66,7 +70,8 @@ class Context extends ChainContext {
 
   IncrementalKernelGenerator compiler;
 
-  Context(this.compilerContext, this.snapshot, this.errors);
+  Context(this.compilerContext, this.snapshot, this.errors, this.useIKG)
+      : compiler = new IncrementalCompiler(compilerContext);
 
   ProcessedOptions get options => compilerContext.options;
 
@@ -128,6 +133,7 @@ class PrepareIncrementalKernelGenerator
   const PrepareIncrementalKernelGenerator();
 
   Future<Result<TestCase>> run(TestCase test, Context context) async {
+    if (!context.useIKG) return pass(test);
     context.compiler = await context
         .runInContext<Future<IncrementalKernelGenerator>>(
             (CompilerContext c) async {
@@ -167,7 +173,9 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
         return edits == 0 ? fail(test, "No sources found") : pass(test);
       }
       var compiler = context.compiler;
-      var delta = await compiler.computeDelta();
+      var delta = compiler is IncrementalCompiler
+          ? (await compiler.computeDelta(entryPoint: entryPoint))
+          : (await compiler.computeDelta());
       // ignore: UNUSED_LOCAL_VARIABLE
       Program program = delta.newProgram;
       List<CompilationMessage> errors = context.takeErrors();
@@ -249,7 +257,9 @@ Future<Context> createContext(
   final ExternalStateSnapshot snapshot =
       new ExternalStateSnapshot(await options.loadSdkSummary(null));
 
-  return new Context(new CompilerContext(options), snapshot, errors);
+  final bool useIKG = environment["useIKG"] == "true";
+
+  return new Context(new CompilerContext(options), snapshot, errors, useIKG);
 }
 
 main([List<String> arguments = const []]) =>
