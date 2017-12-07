@@ -229,6 +229,7 @@ runtime_checks/implicit_downcast_while: Crash
 runtime_checks_new/contravariant_combiner: Crash
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: Crash
 runtime_checks_new/derived_class_typed: Crash
+runtime_checks_new/for_in_call_kinds: Crash
 runtime_checks_new/implicit_downcast_field: Crash
 runtime_checks_new/mixin_forwarding_stub_field: Crash
 runtime_checks_new/mixin_forwarding_stub_getter: Crash

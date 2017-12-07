@@ -792,6 +792,35 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
+  /// Determines the dispatch category of a [PropertySet].
+  void handlePropertySetContravariance(Expression receiver,
+      Object interfaceMember, PropertySet desugaredSet, Expression expression) {
+    DispatchCategory callKind;
+    if (receiver is ThisExpression || receiver == null) {
+      callKind = DispatchCategory.viaThis;
+    } else if (interfaceMember == null) {
+      callKind = DispatchCategory.dynamicDispatch;
+    } else {
+      callKind = DispatchCategory.interface;
+    }
+    desugaredSet?.dispatchCategory = callKind;
+    if (instrumentation != null) {
+      int offset = expression.fileOffset;
+      switch (callKind) {
+        case DispatchCategory.dynamicDispatch:
+          instrumentation.record(uri, offset, 'callKind',
+              new InstrumentationValueLiteral('dynamic'));
+          break;
+        case DispatchCategory.viaThis:
+          instrumentation.record(
+              uri, offset, 'callKind', new InstrumentationValueLiteral('this'));
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   /// Modifies a type as appropriate when inferring a declared variable's type.
   DartType inferDeclarationType(DartType initializerType) {
     if (initializerType is BottomType ||

@@ -1619,6 +1619,8 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     Member writeMember;
     if (write != null) {
       writeMember = inferrer.findPropertySetMember(receiverType, write);
+      inferrer.handlePropertySetContravariance(
+          receiver, writeMember, write is PropertySet ? write : null, write);
     }
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member when
