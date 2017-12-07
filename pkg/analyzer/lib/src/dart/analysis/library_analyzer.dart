@@ -1071,6 +1071,10 @@ class _ResolutionApplierContext implements TypeContext {
         }
       } else if (referencedNode is kernel.NullNode) {
         element = null;
+      } else if (referencedNode == null) {
+        // This will occur if an identifier could not be resolved, such as a
+        // reference to a member when the target has type `dynamic`.
+        element = null;
       } else {
         throw new UnimplementedError(
             'Declaration: (${referencedNode.runtimeType}) $referencedNode');
@@ -1232,10 +1236,14 @@ class _ResolutionApplierContext implements TypeContext {
       FunctionElement element = declarationToElement[variable];
       return element.type;
     } else if (kernelType is kernel.MemberInvocationDartType) {
-      ExecutableElementImpl element = resynthesizer
-          .getElementFromCanonicalName(kernelType.member.canonicalName);
-      return instantiateFunctionType(
-          element, kernelType.member.function, kernelType.type);
+      kernel.Member member = kernelType.member;
+      if (member != null) {
+        ExecutableElementImpl element =
+            resynthesizer.getElementFromCanonicalName(member.canonicalName);
+        return instantiateFunctionType(
+            element, member.function, kernelType.type);
+      }
+      return null;
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {
       return null;
     } else {

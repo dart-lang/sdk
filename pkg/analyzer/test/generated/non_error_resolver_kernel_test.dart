@@ -83,20 +83,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_awaitInWrongContext_async() async {
-    return super.test_awaitInWrongContext_async();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_awaitInWrongContext_asyncStar() async {
-    return super.test_awaitInWrongContext_asyncStar();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
   }
@@ -647,13 +633,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_null_callMethod() async {
     return super.test_null_callMethod();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_null_callOperator() async {
-    return super.test_null_callOperator();
   }
 
   @override
