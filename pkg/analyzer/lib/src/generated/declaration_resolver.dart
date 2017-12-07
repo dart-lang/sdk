@@ -106,6 +106,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     ClassElement element = _match(node.name, _walker.getClass());
     if (_applyKernelTypes) {
       node.name.staticType = _typeProvider.typeType;
+      if (node.extendsClause != null) {
+        ResolutionApplier.applyToTypeAnnotation(
+            element.supertype, node.extendsClause.superclass);
+      }
+      if (node.withClause != null) {
+        _applyTypeList(node.withClause.mixinTypes, element.mixins);
+      }
+      if (node.implementsClause != null) {
+        _applyTypeList(node.implementsClause.interfaces, element.interfaces);
+      }
     }
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassDeclaration(node);
@@ -674,6 +684,19 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     callback();
     walker.validate();
     _walker = outerWalker;
+  }
+
+  /**
+   * Apply [types] to [nodes].
+   * Both lists must have the same length.
+   */
+  static void _applyTypeList(List<TypeName> nodes, List<InterfaceType> types) {
+    if (nodes.length != types.length) {
+      throw new StateError('$nodes != $types');
+    }
+    for (int i = 0; i < nodes.length; i++) {
+      ResolutionApplier.applyToTypeAnnotation(types[i], nodes[i]);
+    }
   }
 
   static bool _isBodyToCreateElementsFor(FunctionBody node) {

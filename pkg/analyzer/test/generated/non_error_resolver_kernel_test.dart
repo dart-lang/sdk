@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'non_error_resolver_driver_test.dart';
@@ -32,40 +33,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_abstractSuperMemberReference_superHasConcrete_mixinHasAbstract_method() async {
-    return super
-        .test_abstractSuperMemberReference_superHasConcrete_mixinHasAbstract_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_abstractSuperMemberReference_superHasNoSuchMethod() async {
     return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_abstractSuperMemberReference_superSuperHasConcrete_getter() async {
-    return super
-        .test_abstractSuperMemberReference_superSuperHasConcrete_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_abstractSuperMemberReference_superSuperHasConcrete_method() async {
-    return super
-        .test_abstractSuperMemberReference_superSuperHasConcrete_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_abstractSuperMemberReference_superSuperHasConcrete_setter() async {
-    return super
-        .test_abstractSuperMemberReference_superSuperHasConcrete_setter();
   }
 
   @override
@@ -178,13 +147,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_caseExpressionTypeImplementsEquals() async {
-    return super.test_caseExpressionTypeImplementsEquals();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_caseExpressionTypeImplementsEquals_Object() async {
     return super.test_caseExpressionTypeImplementsEquals_Object();
   }
@@ -269,20 +231,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_concreteClassWithAbstractMember_inherited() async {
-    return super.test_concreteClassWithAbstractMember_inherited();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_conflictingInstanceGetterAndSuperclassMember_instance() async {
-    return super.test_conflictingInstanceGetterAndSuperclassMember_instance();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_const_constructor_with_named_generic_parameter() async {
     return super.test_const_constructor_with_named_generic_parameter();
   }
@@ -292,13 +240,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_const_dynamic() async {
     return super.test_const_dynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constConstructorWithNonConstSuper_explicit() async {
-    return super.test_constConstructorWithNonConstSuper_explicit();
   }
 
   @override
@@ -369,13 +310,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_constEvelTypeNum_String() async {
     return super.test_constEvelTypeNum_String();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constMapKeyExpressionTypeImplementsEquals_abstract() async {
-    return super.test_constMapKeyExpressionTypeImplementsEquals_abstract();
   }
 
   @override
@@ -593,41 +527,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_functionWithoutCall() async {
-    return super.test_functionWithoutCall();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_staticCallMethod() async {
-    return super.test_functionWithoutCall_staticCallMethod();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_withNoSuchMethod() async {
-    return super.test_functionWithoutCall_withNoSuchMethod();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_withNoSuchMethod_mixin() async {
-    return super.test_functionWithoutCall_withNoSuchMethod_mixin();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_functionWithoutCall_withNoSuchMethod_superclass() async {
-    return super.test_functionWithoutCall_withNoSuchMethod_superclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
     return super.test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters();
   }
@@ -714,49 +613,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_inconsistentMethodInheritance_accessors_typeParameter2() async {
-    return super.test_inconsistentMethodInheritance_accessors_typeParameter2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_inconsistentMethodInheritance_accessors_typeParameters1() async {
-    return super.test_inconsistentMethodInheritance_accessors_typeParameters1();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_inconsistentMethodInheritance_accessors_typeParameters_diamond() async {
-    return super
-        .test_inconsistentMethodInheritance_accessors_typeParameters_diamond();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_inconsistentMethodInheritance_methods_typeParameter2() async {
-    return super.test_inconsistentMethodInheritance_methods_typeParameter2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_inconsistentMethodInheritance_methods_typeParameters1() async {
-    return super.test_inconsistentMethodInheritance_methods_typeParameters1();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_inconsistentMethodInheritance_simple() async {
-    return super.test_inconsistentMethodInheritance_simple();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_initializingFormalForNonExistentField() async {
     return super.test_initializingFormalForNonExistentField();
   }
@@ -766,20 +622,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_instance_creation_inside_annotation() async {
     return super.test_instance_creation_inside_annotation();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_field() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_field();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_instanceMethodNameCollidesWithSuperclassStatic_method() async {
-    return super.test_instanceMethodNameCollidesWithSuperclassStatic_method();
   }
 
   @override
@@ -858,127 +700,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidMethodOverrideNamedParamType() async {
-    return super.test_invalidMethodOverrideNamedParamType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideDifferentDefaultValues_named() async {
-    return super.test_invalidOverrideDifferentDefaultValues_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideDifferentDefaultValues_named_function() async {
-    return super.test_invalidOverrideDifferentDefaultValues_named_function();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideDifferentDefaultValues_positional() async {
-    return super.test_invalidOverrideDifferentDefaultValues_positional();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideDifferentDefaultValues_positional_changedOrder() async {
-    return super
-        .test_invalidOverrideDifferentDefaultValues_positional_changedOrder();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideDifferentDefaultValues_positional_function() async {
-    return super
-        .test_invalidOverrideDifferentDefaultValues_positional_function();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideNamed_unorderedNamedParameter() async {
-    return super.test_invalidOverrideNamed_unorderedNamedParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideRequired_less() async {
-    return super.test_invalidOverrideRequired_less();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideRequired_same() async {
-    return super.test_invalidOverrideRequired_same();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideReturnType_returnType_interface() async {
-    return super.test_invalidOverrideReturnType_returnType_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideReturnType_returnType_interface2() async {
-    return super.test_invalidOverrideReturnType_returnType_interface2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideReturnType_returnType_mixin() async {
-    return super.test_invalidOverrideReturnType_returnType_mixin();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideReturnType_returnType_parameterizedTypes() async {
-    return super.test_invalidOverrideReturnType_returnType_parameterizedTypes();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideReturnType_returnType_sameType() async {
-    return super.test_invalidOverrideReturnType_returnType_sameType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideReturnType_returnType_superclass() async {
-    return super.test_invalidOverrideReturnType_returnType_superclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideReturnType_returnType_superclass2() async {
-    return super.test_invalidOverrideReturnType_returnType_superclass2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidOverrideReturnType_returnType_void() async {
-    return super.test_invalidOverrideReturnType_returnType_void();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidTypeArgumentInConstMap() async {
     return super.test_invalidTypeArgumentInConstMap();
   }
@@ -987,6 +708,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @failingTest
   @potentialAnalyzerProblem
   test_invocationOfNonFunction_dynamic() async {
+    // TODO(scheglov) This test fails only in checked mode.
+    fail('This test fails only in checked mode');
     return super.test_invocationOfNonFunction_dynamic();
   }
 
@@ -1000,8 +723,10 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_issue_24191() async {
-    return super.test_issue_24191();
+  test_invocationOfNonFunction_getter() async {
+    // TODO(scheglov) This test fails only in checked mode.
+    fail('This test fails only in checked mode');
+    return super.test_invocationOfNonFunction_getter();
   }
 
   @override
@@ -1049,37 +774,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_mixinDeclaresConstructor() async {
-    return super.test_mixinDeclaresConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_mixinDeclaresConstructor_factory() async {
-    return super.test_mixinDeclaresConstructor_factory();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_mixinInheritsFromNotObject_classDeclaration_extends() async {
-    return super.test_mixinInheritsFromNotObject_classDeclaration_extends();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_mixinInheritsFromNotObject_classDeclaration_mixTypeAlias() async {
     return super
         .test_mixinInheritsFromNotObject_classDeclaration_mixTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_mixinInheritsFromNotObject_classDeclaration_with() async {
-    return super.test_mixinInheritsFromNotObject_classDeclaration_with();
   }
 
   @override
@@ -1101,58 +798,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_mixinInheritsFromNotObject_typedef_mixTypeAlias() async {
     return super.test_mixinInheritsFromNotObject_typedef_mixTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_mixinReferencesSuper() async {
-    return super.test_mixinReferencesSuper();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_multipleSuperInitializers_no() async {
-    return super.test_multipleSuperInitializers_no();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_multipleSuperInitializers_single() async {
-    return super.test_multipleSuperInitializers_single();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_newWithAbstractClass_factory() async {
-    return super.test_newWithAbstractClass_factory();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter();
   }
 
   @override
@@ -1182,67 +827,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter() async {
-    return super.test_nonAbstractClassInheritsAbstractMemberOne_mixin_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_mixin_method() async {
-    return super.test_nonAbstractClassInheritsAbstractMemberOne_mixin_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_mixin_setter() async {
-    return super.test_nonAbstractClassInheritsAbstractMemberOne_mixin_setter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_accessor() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_accessor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_method() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_mixin() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_mixin();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_superclass() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_superclass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_nonConstantDefaultValue_inConstructor_named() async {
     return super.test_nonConstantDefaultValue_inConstructor_named();
   }
@@ -1252,13 +836,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_nonConstantDefaultValue_inConstructor_positional() async {
     return super.test_nonConstantDefaultValue_inConstructor_positional();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstantDefaultValue_typedConstList() async {
-    return super.test_nonConstantDefaultValue_typedConstList();
   }
 
   @override
@@ -1320,20 +897,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstValueInInitializer_super() async {
-    return super.test_nonConstValueInInitializer_super();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonGenerativeConstructor() async {
-    return super.test_nonGenerativeConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_nonTypeInCatchClause_isClass() async {
     return super.test_nonTypeInCatchClause_isClass();
   }
@@ -1390,13 +953,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_propagateTypeArgs_intoSupertype() async {
-    return super.test_propagateTypeArgs_intoSupertype();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_recursiveConstructorRedirect() async {
     return super.test_recursiveConstructorRedirect();
   }
@@ -1446,29 +1002,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_returnOfInvalidType_subtype() async {
-    return super.test_returnOfInvalidType_subtype();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_returnOfInvalidType_supertype() async {
-    return super.test_returnOfInvalidType_supertype();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_returnOfInvalidType_typeParameter_18468() async {
     return super.test_returnOfInvalidType_typeParameter_18468();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_reversedTypeArguments() async {
-    return super.test_reversedTypeArguments();
   }
 
   @override
@@ -1490,13 +1025,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_staticAccessToInstanceMember_method() async {
     return super.test_staticAccessToInstanceMember_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_superInInvalidContext() async {
-    return super.test_superInInvalidContext();
   }
 
   @override
@@ -1548,13 +1076,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typePromotion_conditional_issue14655() async {
-    return super.test_typePromotion_conditional_issue14655();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typePromotion_functionType_arg_ignoreIfNotMoreSpecific() async {
     return super.test_typePromotion_functionType_arg_ignoreIfNotMoreSpecific();
   }
@@ -1572,27 +1093,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_typePromotion_functionType_return_voidToDynamic() async {
     return super.test_typePromotion_functionType_return_voidToDynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typePromotion_if_extends_moreSpecific() async {
-    return super.test_typePromotion_if_extends_moreSpecific();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typePromotion_if_implements_moreSpecific() async {
-    return super.test_typePromotion_if_implements_moreSpecific();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typePromotion_if_is_and_subThenSuper() async {
-    return super.test_typePromotion_if_is_and_subThenSuper();
   }
 
   @override
@@ -1626,29 +1126,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_undefinedConstructorInInitializer_explicit_named() async {
-    return super.test_undefinedConstructorInInitializer_explicit_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedConstructorInInitializer_explicit_unnamed() async {
-    return super.test_undefinedConstructorInInitializer_explicit_unnamed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_undefinedConstructorInInitializer_hasOptionalParameters() async {
     return super.test_undefinedConstructorInInitializer_hasOptionalParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedConstructorInInitializer_implicit() async {
-    return super.test_undefinedConstructorInInitializer_implicit();
   }
 
   @override
@@ -1726,19 +1205,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedSetter_static_conditionalAccess() async {
     return super.test_undefinedSetter_static_conditionalAccess();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedSuperMethod_field() async {
-    return super.test_undefinedSuperMethod_field();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedSuperMethod_method() async {
-    return super.test_undefinedSuperMethod_method();
   }
 }

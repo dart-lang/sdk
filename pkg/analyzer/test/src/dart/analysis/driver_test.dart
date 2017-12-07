@@ -3281,6 +3281,65 @@ class A {
     }
   }
 
+  test_top_class() async {
+    String content = r'''
+class A<T> {}
+class B<T> {}
+class C<T> {}
+class D extends A<bool> with B<int> implements C<double> {}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration aNode = result.unit.declarations[0];
+    ClassElement aElement = aNode.element;
+
+    ClassDeclaration bNode = result.unit.declarations[1];
+    ClassElement bElement = bNode.element;
+
+    ClassDeclaration cNode = result.unit.declarations[2];
+    ClassElement cElement = cNode.element;
+
+    ClassDeclaration dNode = result.unit.declarations[3];
+
+    {
+      var aRawType = aElement.type;
+      var expectedType = aRawType.instantiate([typeProvider.boolType]);
+
+      TypeName superClass = dNode.extendsClause.superclass;
+      expect(superClass.type, expectedType);
+
+      SimpleIdentifier identifier = superClass.name;
+      expect(identifier.staticElement, aElement);
+      expect(identifier.staticType, expectedType);
+    }
+
+    {
+      var bRawType = bElement.type;
+      var expectedType = bRawType.instantiate([typeProvider.intType]);
+
+      TypeName mixinType = dNode.withClause.mixinTypes[0];
+      expect(mixinType.type, expectedType);
+
+      SimpleIdentifier identifier = mixinType.name;
+      expect(identifier.staticElement, bElement);
+      expect(identifier.staticType, expectedType);
+    }
+
+    {
+      var cRawType = cElement.type;
+      var expectedType = cRawType.instantiate([typeProvider.doubleType]);
+
+      TypeName implementedType = dNode.implementsClause.interfaces[0];
+      expect(implementedType.type, expectedType);
+
+      SimpleIdentifier identifier = implementedType.name;
+      expect(identifier.staticElement, cElement);
+      expect(identifier.staticType, expectedType);
+    }
+  }
+
   test_top_executables_class() async {
     String content = r'''
 class C {
