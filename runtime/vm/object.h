@@ -1111,6 +1111,12 @@ class Class : public Object {
   // Check if this class represents the 'Function' class.
   bool IsDartFunctionClass() const;
 
+  // Check if this class represents the 'Future' class.
+  bool IsFutureClass() const;
+
+  // Check if this class represents the 'FutureOr' class.
+  bool IsFutureOrClass() const;
+
   // Check if this class represents the 'Closure' class.
   bool IsClosureClass() const { return id() == kClosureCid; }
   static bool IsClosureClass(RawClass* cls) {
@@ -1539,6 +1545,17 @@ class Class : public Object {
                 Error* bound_error,
                 TrailPtr bound_trail,
                 Heap::Space space) const;
+
+  // Returns true if the type specified by this class and type_arguments is a
+  // subtype of FutureOr<T> specified by other class and other_type_arguments.
+  // Returns false if other class is not a FutureOr.
+  bool FutureOrTypeTest(Zone* zone,
+                        const TypeArguments& type_arguments,
+                        const Class& other,
+                        const TypeArguments& other_type_arguments,
+                        Error* bound_error,
+                        TrailPtr bound_trail,
+                        Heap::Space space) const;
 
   static bool TypeTestNonRecursive(const Class& cls,
                                    TypeTestKind test_kind,
@@ -5441,6 +5458,13 @@ class Instance : public Object {
                     const TypeArguments& other_function_type_arguments,
                     Error* bound_error) const;
 
+  // Returns true if the type of this instance is a subtype of FutureOr<T>
+  // specified by instantiated type 'other'.
+  // Returns false if other type is not a FutureOr.
+  bool IsFutureOrInstanceOf(Zone* zone,
+                            const AbstractType& other,
+                            Error* bound_error) const;
+
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
@@ -6025,12 +6049,20 @@ class AbstractType : public Instance {
       const TypeArguments& function_type_args);
 
  private:
-  // Check the subtype or 'more specific' relationship.
+  // Check the 'is subtype of' or 'is more specific than' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractType& other,
                 Error* bound_error,
                 TrailPtr bound_trail,
                 Heap::Space space) const;
+
+  // Returns true if this type is a subtype of FutureOr<T> specified by 'other'.
+  // Returns false if other type is not a FutureOr.
+  bool FutureOrTypeTest(Zone* zone,
+                        const AbstractType& other,
+                        Error* bound_error,
+                        TrailPtr bound_trail,
+                        Heap::Space space) const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
