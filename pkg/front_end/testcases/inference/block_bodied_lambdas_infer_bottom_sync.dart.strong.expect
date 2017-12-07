@@ -9,7 +9,7 @@ static method test() → dynamic {
     return null;
   };
   core::String y = f.call(42);
-  f = let final dynamic #t1 = (core::Object x) → core::String => "hello" in let dynamic _ = null in const core::_ConstantExpressionError::•().{core::_ConstantExpressionError::_throw}(new core::_CompileTimeError::•("pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:17:67: Error: The function expression type '(dart.core::Object) \u8594 dart.core::String' isn't of expected type '(dart.core::Object) \u8594 dart.core::Null'.\nChange the type of the function expression or the context in which it is used.\n  f = /*error:INVALID_CAST_FUNCTION_EXPR*/ /*@returnType=String*/ (/*@type=Object*/ x) =>\n                                                                  ^"));
+  f = (core::Object x) → core::Null => "hello" as{TypeError} core::Null;
   self::foo((core::Object x) → core::Null {
     return null;
   });

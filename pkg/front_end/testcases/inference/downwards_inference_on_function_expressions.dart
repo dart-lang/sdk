@@ -9,24 +9,23 @@ typedef T Function2<S, T>(S x);
 
 void test() {
   {
-    Function2<int, String> l0 = /*@returnType=String*/ (int x) => null;
+    Function2<int, String> l0 = /*@returnType=Null*/ (int x) => null;
     Function2<int, String> l1 = /*@returnType=String*/ (int x) => "hello";
     Function2<int, String>
         l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ (String x) =>
             "hello";
     Function2<int, String>
-        l3 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ (int x) => 3;
+        l3 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ (int x) => 3;
     Function2<int, String> l4 = /*@returnType=String*/ (int x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
     };
   }
   {
-    Function2<int, String> l0 = /*@returnType=String*/ (/*@type=int*/ x) =>
-        null;
+    Function2<int, String> l0 = /*@returnType=Null*/ (/*@type=int*/ x) => null;
     Function2<int, String> l1 = /*@returnType=String*/ (/*@type=int*/ x) =>
         "hello";
     Function2<int, String>
-        l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ (/*@type=int*/ x) =>
+        l2 = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ (/*@type=int*/ x) =>
             3;
     Function2<int, String> l3 = /*@returnType=String*/ (/*@type=int*/ x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
@@ -36,8 +35,7 @@ void test() {
     };
   }
   {
-    Function2<int, List<String>> l0 = /*@returnType=List<String>*/ (int x) =>
-        null;
+    Function2<int, List<String>> l0 = /*@returnType=Null*/ (int x) => null;
     Function2<int, List<String>> l1 = /*@returnType=List<String>*/ (int
         x) => /*@typeArgs=String*/ ["hello"];
     Function2<int, List<String>>
@@ -58,7 +56,7 @@ void test() {
     Function2<int, int> l1 = /*@returnType=int*/ (/*@type=int*/ x) =>
         x /*@target=num::+*/ + 1;
     Function2<int, String>
-        l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=int*/ (/*@type=int*/ x) =>
+        l2 = /*error:INVALID_ASSIGNMENT*/ /*@returnType=String*/ (/*@type=int*/ x) =>
             x;
     Function2<int, String>
         l3 = /*@returnType=String*/ (/*@type=int*/ x) => /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/ x

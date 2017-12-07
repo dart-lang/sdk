@@ -123,6 +123,7 @@ assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
 await_test: Crash # Issue 31540
 black_listed_test/none: fail # Issue 14228
+bug31436_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
@@ -269,6 +270,7 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bug31436_test: RuntimeError
 built_in_identifier_type_annotation_test/22: Crash # Crashes in Fasta, issue 31416
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError
@@ -498,7 +500,6 @@ identical_const_test/01: MissingCompileTimeError
 identical_const_test/02: MissingCompileTimeError
 identical_const_test/03: MissingCompileTimeError
 identical_const_test/04: MissingCompileTimeError
-implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue 31537
 implicit_this_test/01: MissingCompileTimeError
 implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError

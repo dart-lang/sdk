@@ -1,0 +1,9 @@
+library test;
+import self as self;
+
+static method block_test() → void
+  ;
+static method arrow_test() → void
+  ;
+static method main() → dynamic
+  ;

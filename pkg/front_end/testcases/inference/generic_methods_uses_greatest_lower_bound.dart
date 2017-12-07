@@ -12,6 +12,6 @@ T generic<T>(a(T _), b(T _)) => null;
 
 main() {
   var /*@type=(num) -> List<int>*/ v = /*@typeArgs=(num) -> List<int>*/ generic(
-      /*@returnType=dynamic*/ (F f) => null,
-      /*@returnType=dynamic*/ (G g) => null);
+      /*@returnType=Null*/ (F f) => null,
+      /*@returnType=Null*/ (G g) => null);
 }

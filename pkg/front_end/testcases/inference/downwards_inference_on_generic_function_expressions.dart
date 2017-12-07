@@ -9,11 +9,11 @@ void test() {
   {
     String f<S>(int x) => null;
     var /*@type=<S extends Object>(int) -> String*/ v = f;
-    v = <T> /*@returnType=String*/ (int x) => null;
+    v = <T> /*@returnType=Null*/ (int x) => null;
     v = <T> /*@returnType=String*/ (int x) => "hello";
     v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=String*/ (String x) =>
         "hello";
-    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=int*/ (int x) => 3;
+    v = /*error:INVALID_ASSIGNMENT*/ <T> /*@returnType=String*/ (int x) => 3;
     v = <T> /*@returnType=String*/ (int x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
     };
@@ -21,10 +21,10 @@ void test() {
   {
     String f<S>(int x) => null;
     var /*@type=<S extends Object>(int) -> String*/ v = f;
-    v = <T> /*@returnType=String*/ (/*@type=int*/ x) => null;
+    v = <T> /*@returnType=Null*/ (/*@type=int*/ x) => null;
     v = <T> /*@returnType=String*/ (/*@type=int*/ x) => "hello";
     v = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
-            T> /*@returnType=int*/ (/*@type=int*/ x) =>
+            T> /*@returnType=String*/ (/*@type=int*/ x) =>
         3;
     v = <T> /*@returnType=String*/ (/*@type=int*/ x) {
       return /*error:RETURN_OF_INVALID_TYPE*/ 3;
@@ -36,7 +36,7 @@ void test() {
   {
     List<String> f<S>(int x) => null;
     var /*@type=<S extends Object>(int) -> List<String>*/ v = f;
-    v = <T> /*@returnType=List<String>*/ (int x) => null;
+    v = <T> /*@returnType=Null*/ (int x) => null;
     v = <T> /*@returnType=List<String>*/ (int x) => /*@typeArgs=String*/ [
           "hello"
         ];
@@ -60,7 +60,7 @@ void test() {
     x = <T> /*@returnType=int*/ (/*@type=int*/ x) => x /*@target=num::+*/ + 1;
     var /*@type=<T extends Object>(int) -> String*/ y = int2String;
     y = /*info:INFERRED_TYPE_CLOSURE, error:INVALID_ASSIGNMENT*/ <
-            T> /*@returnType=int*/ (/*@type=int*/ x) =>
+            T> /*@returnType=String*/ (/*@type=int*/ x) =>
         x;
     y = <T> /*@returnType=String*/ (/*@type=int*/ x) => /*info:DYNAMIC_INVOKE, info:DYNAMIC_CAST*/ x
         .substring(3);

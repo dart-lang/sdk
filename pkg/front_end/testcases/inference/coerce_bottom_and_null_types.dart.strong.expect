@@ -7,7 +7,7 @@ static method f() → dynamic {
   dynamic b = null;
   dynamic c = throw "foo";
   () → core::int d = () → core::int => 0;
-  () → dynamic e = () → dynamic => null;
+  () → core::Null e = () → core::Null => null;
   () → <BottomType>f = () → <BottomType>=> throw "foo";
   () → core::int g = () → core::int {
     return 0;

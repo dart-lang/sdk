@@ -1049,6 +1049,7 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 async_return_types_test/nestedFuture: MissingCompileTimeError
+bug31436_test: CompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
 combiner_type_lookup_indexed_test: CompileTimeError # Issue #31484
 combiner_type_lookup_instance_test: CompileTimeError # Issue #31484

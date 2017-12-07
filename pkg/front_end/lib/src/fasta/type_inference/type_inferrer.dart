@@ -45,7 +45,6 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         PropertyGet,
         PropertySet,
-        ReturnStatement,
         Statement,
         StaticGet,
         SuperMethodInvocation,
@@ -167,27 +166,13 @@ class ClosureContext {
         inferrer, type, unwrappedType, expression, fileOffset, isYieldStar);
   }
 
-  DartType inferReturnType(
-      TypeInferrerImpl inferrer, bool isExpressionFunction) {
+  DartType inferReturnType(TypeInferrerImpl inferrer) {
     assert(_needToInferReturnType);
-    DartType inferredReturnType =
-        inferrer.inferReturnType(_inferredReturnType, isExpressionFunction);
-    if (!isExpressionFunction &&
-        returnContext != null &&
+    DartType inferredReturnType = inferrer.inferReturnType(_inferredReturnType);
+    if (returnContext != null &&
         !_analyzerSubtypeOf(inferrer, inferredReturnType, returnContext)) {
-      // For block-bodied functions, if the inferred return type isn't a
-      // subtype of the context, we use the context.  We use analyzer subtyping
-      // rules here.
-      // TODO(paulberry): this is inherited from analyzer; it's not part of
-      // the spec.  See also dartbug.com/29606.
-      inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
-    } else if (isExpressionFunction &&
-        returnContext != null &&
-        inferredReturnType is DynamicType) {
-      // For expression-bodied functions, if the inferred return type is
-      // `dynamic`, we use the context.
-      // TODO(paulberry): this is inherited from analyzer; it's not part of the
-      // spec.
+      // If the inferred return type isn't a subtype of the context, we use the
+      // context.
       inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
     }
 
@@ -1081,10 +1066,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
-    bool isExpressionFunction = function.body is ReturnStatement;
     bool needToSetReturnType = hasImplicitReturnType && strongMode;
     ClosureContext oldClosureContext = this.closureContext;
-    bool needImplicitDowncasts = returnContext != null && !isExpressionFunction;
+    bool needImplicitDowncasts = returnContext != null;
     ClosureContext closureContext = new ClosureContext(
         this,
         function.asyncMarker,
@@ -1101,8 +1085,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // or `void` if `B’` contains no `return` expressions.
     DartType inferredReturnType;
     if (needToSetReturnType) {
-      inferredReturnType =
-          closureContext.inferReturnType(this, isExpressionFunction);
+      inferredReturnType = closureContext.inferReturnType(this);
     }
 
     // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B` with
@@ -1246,18 +1229,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.
-  DartType inferReturnType(DartType returnType, bool isExpressionFunction) {
+  DartType inferReturnType(DartType returnType) {
     if (returnType == null) {
       // Analyzer infers `Null` if there is no `return` expression; the spec
       // says to return `void`.  TODO(paulberry): resolve this difference.
       return coreTypes.nullClass.rawType;
-    }
-    if (isExpressionFunction &&
-        returnType is InterfaceType &&
-        identical(returnType.classNode, coreTypes.nullClass)) {
-      // Analyzer coerces `Null` to `dynamic` in expression functions; the spec
-      // doesn't say to do this.  TODO(paulberry): resolve this difference.
-      return const DynamicType();
     }
     return returnType;
   }
