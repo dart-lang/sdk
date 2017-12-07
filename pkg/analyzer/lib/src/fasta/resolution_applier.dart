@@ -481,6 +481,22 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    SimpleIdentifier constructorName = node.constructorName;
+    var superElement = _typeContext.enclosingClassElement.supertype.element;
+    if (constructorName == null) {
+      node.staticElement = superElement.unnamedConstructor;
+    } else {
+      String name = constructorName.name;
+      var superConstructor = superElement.getNamedConstructor(name);
+      node.staticElement = superConstructor;
+      constructorName.staticElement = superConstructor;
+    }
+
+    node.argumentList.accept(this);
+  }
+
+  @override
   void visitSuperExpression(SuperExpression node) {
     node.staticType = _typeContext.enclosingClassElement?.type;
   }

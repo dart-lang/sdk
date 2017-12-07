@@ -1165,6 +1165,44 @@ class C {
     }
   }
 
+  test_constructor_initializer_super() async {
+    addTestFile(r'''
+class A {
+  A(int a);
+  A.named(int a);
+}
+class B extends A {
+  B.one(int b) : super(b + 1);
+  B.two(int b) : super.named(b + 1);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    ClassDeclaration aNode = result.unit.declarations[0];
+    ClassElement aElement = aNode.element;
+
+    ClassDeclaration bNode = result.unit.declarations[1];
+
+    {
+      ConstructorDeclaration constructor = bNode.members[0];
+      SuperConstructorInvocation initializer = constructor.initializers[0];
+      expect(initializer.staticElement, same(aElement.unnamedConstructor));
+      expect(initializer.constructorName, isNull);
+    }
+
+    {
+      var namedConstructor = aElement.getNamedConstructor('named');
+
+      ConstructorDeclaration constructor = bNode.members[1];
+      SuperConstructorInvocation initializer = constructor.initializers[0];
+      expect(initializer.staticElement, same(namedConstructor));
+
+      var constructorName = initializer.constructorName;
+      expect(constructorName.staticElement, same(namedConstructor));
+      expect(constructorName.staticType, isNull);
+    }
+  }
+
   test_error_unresolvedTypeAnnotation() async {
     String content = r'''
 main() {
