@@ -350,6 +350,8 @@ class ResolverTestCase extends EngineTestCase {
 
   bool get enableNewAnalysisDriver => false;
 
+  bool get previewDart2 => false;
+
   /**
    * Return a type provider that can be used to test the results of resolution.
    *
@@ -664,6 +666,9 @@ class ResolverTestCase extends EngineTestCase {
     }
     options ??= defaultAnalysisOptions;
     if (enableNewAnalysisDriver) {
+      if (previewDart2) {
+        (options as AnalysisOptionsImpl).useFastaParser = true;
+      }
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
 
