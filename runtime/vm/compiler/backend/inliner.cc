@@ -2346,7 +2346,9 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                        call->GetBlock()->try_index(), Thread::kNoDeoptId);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->argument_type_checks()) {
+  if (flow_graph->isolate()->argument_type_checks() &&
+      (kind != MethodRecognizer::kObjectArraySetIndexedUnchecked &&
+       kind != MethodRecognizer::kGrowableArraySetIndexedUnchecked)) {
     // Only type check for the value. A type check for the index is not
     // needed here because we insert a deoptimizing smi-check for the case
     // the index is not a smi.
@@ -3180,6 +3182,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
     case MethodRecognizer::kGrowableArraySetIndexed:
+    case MethodRecognizer::kObjectArraySetIndexedUnchecked:
+    case MethodRecognizer::kGrowableArraySetIndexedUnchecked:
       return InlineSetIndexed(flow_graph, kind, target, call, receiver,
                               token_pos, /* value_check = */ NULL, entry, last);
     case MethodRecognizer::kInt8ArraySetIndexed:

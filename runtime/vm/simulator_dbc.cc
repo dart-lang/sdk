@@ -195,10 +195,13 @@ class SimulatorHelpers {
   static bool ObjectArraySetIndexed(Thread* thread,
                                     RawObject** FP,
                                     RawObject** result) {
-    if (thread->isolate()->type_checks()) {
-      return false;
-    }
+    return !thread->isolate()->type_checks() &&
+           ObjectArraySetIndexedUnchecked(thread, FP, result);
+  }
 
+  static bool ObjectArraySetIndexedUnchecked(Thread* thread,
+                                             RawObject** FP,
+                                             RawObject** result) {
     RawObject** args = FrameArguments(FP, 3);
     RawSmi* index = static_cast<RawSmi*>(args[1]);
     RawArray* array = static_cast<RawArray*>(args[0]);
@@ -225,10 +228,13 @@ class SimulatorHelpers {
   static bool GrowableArraySetIndexed(Thread* thread,
                                       RawObject** FP,
                                       RawObject** result) {
-    if (thread->isolate()->type_checks()) {
-      return false;
-    }
+    return !thread->isolate()->type_checks() &&
+           GrowableArraySetIndexedUnchecked(thread, FP, result);
+  }
 
+  static bool GrowableArraySetIndexedUnchecked(Thread* thread,
+                                               RawObject** FP,
+                                               RawObject** result) {
     RawObject** args = FrameArguments(FP, 3);
     RawSmi* index = static_cast<RawSmi*>(args[1]);
     RawGrowableObjectArray* array =
@@ -508,10 +514,14 @@ void Simulator::InitOnce() {
 
   intrinsics_[kObjectArraySetIndexedIntrinsic] =
       SimulatorHelpers::ObjectArraySetIndexed;
+  intrinsics_[kObjectArraySetIndexedUncheckedIntrinsic] =
+      SimulatorHelpers::ObjectArraySetIndexedUnchecked;
   intrinsics_[kObjectArrayGetIndexedIntrinsic] =
       SimulatorHelpers::ObjectArrayGetIndexed;
   intrinsics_[kGrowableArraySetIndexedIntrinsic] =
       SimulatorHelpers::GrowableArraySetIndexed;
+  intrinsics_[kGrowableArraySetIndexedUncheckedIntrinsic] =
+      SimulatorHelpers::GrowableArraySetIndexedUnchecked;
   intrinsics_[kGrowableArrayGetIndexedIntrinsic] =
       SimulatorHelpers::GrowableArrayGetIndexed;
   intrinsics_[kObjectEqualsIntrinsic] = SimulatorHelpers::ObjectEquals;

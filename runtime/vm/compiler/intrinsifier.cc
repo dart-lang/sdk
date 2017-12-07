@@ -901,11 +901,24 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
   return true;
 }
 
+void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
+  if (Isolate::Current()->argument_type_checks()) {
+    return;
+  }
+
+  ObjectArraySetIndexedUnchecked(assembler);
+}
+
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
   if (Isolate::Current()->argument_type_checks()) {
     return false;
   }
 
+  return Build_GrowableArraySetIndexedUnchecked(flow_graph);
+}
+
+bool Intrinsifier::Build_GrowableArraySetIndexedUnchecked(
+    FlowGraph* flow_graph) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
   BlockBuilder builder(flow_graph, normal_entry);

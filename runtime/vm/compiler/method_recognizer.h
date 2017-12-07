@@ -170,7 +170,8 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, Bool, 0x3a59e7f4)           \
   V(_Double, _mulFromInteger, Double_mulFromInteger, Double, 0x2017fcf6)       \
   V(_Double, .fromInteger, DoubleFromInteger, Double, 0x6d234f4b)              \
-  V(_List, []=, ObjectArraySetIndexed, Dynamic, 0x6dff776c)                    \
+  V(_List, _setIndexed, ObjectArraySetIndexedUnchecked, Dynamic, 0x50d64c75)   \
+  V(_List, []=, ObjectArraySetIndexed, Dynamic, 0x16b3d2b0)                    \
   V(_GrowableList, .withData, GrowableArray_Allocate, GrowableObjectArray,     \
     0x28b2138e)                                                                \
   V(_GrowableList, add, GrowableArray_add, Dynamic, 0x40b490b8)                \
@@ -327,7 +328,9 @@ namespace dart {
   V(_GrowableList, _setData, GrowableArraySetData, Dynamic, 0x3dbea348)        \
   V(_GrowableList, _setLength, GrowableArraySetLength, Dynamic, 0x753e55da)    \
   V(_GrowableList, [], GrowableArrayGetIndexed, Dynamic, 0x446fe1f0)           \
-  V(_GrowableList, []=, GrowableArraySetIndexed, Dynamic, 0x4699aed6)          \
+  V(_GrowableList, []=, GrowableArraySetIndexed, Dynamic, 0x40a462ec)          \
+  V(_GrowableList, _setIndexed, GrowableArraySetIndexedUnchecked, Dynamic,     \
+    0x297083df)                                                                \
   V(_StringBase, get:length, StringBaseLength, Smi, 0x2a2d03d1)                \
   V(_OneByteString, codeUnitAt, OneByteStringCodeUnitAt, Smi, 0x55a0a1f3)      \
   V(_TwoByteString, codeUnitAt, TwoByteStringCodeUnitAt, Smi, 0x55a0a1f3)      \
