@@ -1,7 +1,6 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 #
@@ -11,12 +10,23 @@
 # missing a section you need, please reach out to sigmund@ to see the best way
 # to add them.
 
-# ===== Skip dartk and darkp in !$strong mode ====
-[ $compiler == dartk && !$strong ]
-*: SkipByDesign
+[ $compiler == dartkp ]
+typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Issue 31339
 
-[ $compiler == dartkp && !$strong ]
-*: SkipByDesign
+[ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
+mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
+mirrors/variable_is_const_test/01: Crash
+
+[ $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
+isolate/isolate_complex_messages_test: Crash
+isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
+mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
+
+[ $compiler == dartk && $runtime == vm && $checked && $strong ]
+mirrors/invocation_fuzz_test/smi: Crash
+mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
+mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
+mirrors/reflected_type_generics_test/02: Pass
 
 # ===== dartk + vm status lines =====
 [ $compiler == dartk && $runtime == vm && $strong ]
@@ -402,20 +412,13 @@ typed_data/float32x4_static_test: MissingCompileTimeError
 typed_data/int32x4_static_test/01: MissingCompileTimeError
 typed_data/int32x4_static_test/02: MissingCompileTimeError
 
-[ $compiler == dartk && $runtime == vm && $strong && $mode == debug]
-isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
-mirrors/other_declarations_location_test: Crash # assertion error, TypeParameter not having position.
+# ===== Skip dartk and darkp in !$strong mode ====
+[ $compiler == dartk && !$strong ]
+*: SkipByDesign
+
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 isolate/isolate_complex_messages_test: Crash
-
-[ $compiler == dartk && $runtime == vm && $strong && $mode == debug && $arch == x64 ]
-mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
-mirrors/variable_is_const_test/01: Crash
-
-[ $compiler == dartk && $runtime == vm && $strong && $checked ]
-mirrors/invocation_fuzz_test/smi: Crash
-mirrors/redirecting_factory_different_type_test/01: Crash # Issue 28424
-mirrors/redirecting_factory_different_type_test/none: Crash # Issue 28424
-mirrors/reflected_type_generics_test/02: Pass
+isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 
 # ===== dartkp + dart_precompiled status lines =====
 [ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
@@ -496,9 +499,6 @@ js/null_test: CompileTimeError
 js/prototype_access_test: CompileTimeError
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
-[ $compiler == dartkp && $runtime == dart_precompiled && $strong && $mode == debug]
-isolate/isolate_complex_messages_test: Crash
-isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
+[ $compiler == dartkp && !$strong ]
+*: SkipByDesign
 
-[ $compiler == dartkp ]
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Issue 31339

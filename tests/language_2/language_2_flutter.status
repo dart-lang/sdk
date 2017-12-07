@@ -1,12 +1,9 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 # Sections in this file should contain "$runtime == flutter".
-
 # What tests does this comment apply to?  Please add it to each test's line
 # or file an issue an put it there, and add the issue to the relevant tests:
-
 # flutter uses --error_on_bad_type, --error_on_bad_override
 # and --await_is_keyword so the following tests fail with a Compilation Error
 
@@ -15,6 +12,7 @@ async_await_syntax_test/a05c: CompileTimeError
 async_await_syntax_test/a05e: CompileTimeError
 async_await_syntax_test/d08c: CompileTimeError
 async_await_test: CompileTimeError
+asyncstar_yield_test: Skip # Flutter Issue 9110
 await_backwards_compatibility_test/none: CompileTimeError
 await_for_cancel_test: Skip # Flutter Issue 9110
 await_for_test: Skip # Flutter Issue 9110
@@ -24,6 +22,8 @@ call_constructor_on_unresolvable_class_test/01: CompileTimeError
 call_constructor_on_unresolvable_class_test/02: CompileTimeError
 call_constructor_on_unresolvable_class_test/03: CompileTimeError
 call_constructor_on_unresolvable_class_test/07: CompileTimeError
+check_method_override_test/01: CompileTimeError
+check_method_override_test/02: CompileTimeError
 class_keyword_test/02: CompileTimeError, MissingCompileTimeError # Issue 13627
 class_override_test/00: CompileTimeError
 conditional_import_string_test: CompileTimeError
@@ -83,13 +83,14 @@ factory4_test: CompileTimeError
 factory6_test/00: CompileTimeError
 field_increment_bailout_test: CompileTimeError
 field_override_test/01: CompileTimeError
+function_malformed_result_type_test: CompileTimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_function_typedef2_test/04: CompileTimeError
 instance_creation_in_function_annotation_test: CompileTimeError
 internal_library_test/01: CompileTimeError
 internal_library_test/01: MissingCompileTimeError
-internal_library_test/02: CompileTimeError
 internal_library_test/02: MissingCompileTimeError
+internal_library_test/02: CompileTimeError
 invocation_mirror2_test: CompileTimeError
 invocation_mirror_invoke_on2_test: CompileTimeError
 invocation_mirror_invoke_on_test: CompileTimeError
@@ -102,7 +103,7 @@ is_malformed_type_test/99: CompileTimeError
 is_not_class2_test: RuntimeError
 issue21079_test: CompileTimeError
 issue_25671b_test/01: CompileTimeError
-library_env_test/has_mirror_support: RuntimeError, Ok
+library_env_test/has_mirror_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: Pass
 list_literal_syntax_test/01: CompileTimeError
 list_literal_syntax_test/02: CompileTimeError
@@ -227,13 +228,10 @@ vm/regress_27201_test: Fail # Flutter Issue 9110
 wrong_number_type_arguments_test/00: CompileTimeError
 wrong_number_type_arguments_test/01: CompileTimeError
 wrong_number_type_arguments_test/02: CompileTimeError
-check_method_override_test/01: CompileTimeError
-check_method_override_test/02: CompileTimeError
-function_malformed_result_type_test: CompileTimeError
-asyncstar_yield_test: Skip # Flutter Issue 9110
 
-[ $runtime == flutter && $compiler == none && $checked ]
+[ $arch == arm64 && $runtime == flutter ]
+large_class_declaration_test: SkipSlow # Uses too much memory.
+
+[ $compiler == none && $runtime == flutter && $checked ]
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392. The VM doesn't enforce that potentially const expressions are actually const expressions when the constructor is called with `const`.
 
-[ $runtime == flutter && $arch == arm64 ]
-large_class_declaration_test: SkipSlow # Uses too much memory.

@@ -2,7 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ ! $browser || $runtime == drt || $fast_startup]
+[ $runtime == chrome || $runtime == ff || $runtime == safari ]
+heap_snapshot/element_test: RuntimeError # Issue 27925
+
+[ $runtime == drt || !$browser || $fast_startup ]
 *: SkipByDesign
 
 [ $runtime == ff || $runtime == safari ]
@@ -10,5 +13,3 @@ allocation_profile: Skip
 cpu_profile_table: Skip
 persistent_handles_page: Skip
 
-[ $runtime == ff || $runtime == chrome || $runtime == safari ]
-heap_snapshot/element_test: RuntimeError # Issue 27925

@@ -29,7 +29,7 @@ html/serialized_script_value_test: Skip # Issue 31144
 html/transferables_test: CompileTimeError # Issue 30975
 html/two_scripts_htmltest: Skip # Issue 29919
 html/websql_test: Pass, RuntimeError # Issue 31036
-isolate/*: SkipByDesign  # No support for dart:isolate in dart4web (http://dartbug.com/30538)
+isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 js/null_test: RuntimeError # Issue 30652
 math/double_pow_test: RuntimeError # Issue 29922
 math/low_test: RuntimeError # Issue 29922
@@ -37,9 +37,19 @@ math/random_big_test: RuntimeError # Issue 29922
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.
 
-[ $compiler == dartdevc && $system == linux ]
-html/interactive_media_test: RuntimeError
-html/interactive_geolocation_test: Skip # Requires allowing geo location.
+[ $compiler == dartdevk ]
+async/zone_run_unary_test: CompileTimeError # Issue 31537
+
+[ $compiler == dartdevc && $runtime == chrome ]
+html/element_animate_test/timing_dict: RuntimeError # Issue 29922
+html/element_types_keygen_test: RuntimeError # Issue 29055
+html/js_dispatch_property_test: Skip # Timeout Issue 31030
+html/touchevent_test: RuntimeError # Issue 29922
+
+[ $compiler == dartdevc && $runtime == drt ]
+html/svg_test: RuntimeError # Issue 29922
+math/math2_test: RuntimeError # Issue 29922
+math/math_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime != none ]
 async/async_await_sync_completer_test: RuntimeError # Issue 29922
@@ -63,6 +73,7 @@ convert/streamed_conversion_utf8_encode_test: Pass, Timeout # Issue 29922
 convert/utf85_test: Slow, Pass
 html/async_spawnuri_test: RuntimeError # Issue 29922
 html/async_test: RuntimeError # Issue 29922
+html/client_rect_test: RuntimeError # Issue 29922, seems to be a reified type problem with DOMClientRect
 html/custom/created_callback_test: RuntimeError
 html/custom_element_method_clash_test: Skip # Issue 29922
 html/custom_element_name_clash_test: Skip # Issue 29922
@@ -100,30 +111,18 @@ typed_data/int32x4_arithmetic_test/int64: RuntimeError # Issue 29922
 typed_data/int64_list_load_store_test: RuntimeError # Issue 29922
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 29922
 
-[ $strong && $compiler == dartdevc ]
-html/custom/document_register_template_test: Crash # Compiler crash issue ????
-html/custom/mirrors_2_test: Crash # Compiler crash issue ????
-
-[ $compiler == dartdevc && $runtime == drt ]
-html/svg_test: RuntimeError # Issue 29922
-math/math_test: RuntimeError # Issue 29922
-math/math2_test: RuntimeError # Issue 29922
-
-[ $compiler == dartdevc && $runtime == chrome ]
-html/element_animate_test/timing_dict: RuntimeError # Issue 29922
-html/element_types_keygen_test: RuntimeError # Issue 29055
-html/js_dispatch_property_test: Skip # Timeout Issue 31030
-html/touchevent_test: RuntimeError # Issue 29922
-
-[ $compiler == dartdevc && $runtime != none ]
-html/client_rect_test: RuntimeError # Issue 29922, seems to be a reified type problem with DOMClientRect
-
 [ $compiler == dartdevc && $runtime != none && $system == macos ]
 html/client_rect_test: Pass, RuntimeError # Issue 31019
 html/css_test: Pass, RuntimeError # Issue 31019
 
+[ $compiler == dartdevc && $system == linux ]
+html/interactive_geolocation_test: Skip # Requires allowing geo location.
+html/interactive_media_test: RuntimeError
+
 [ $compiler == dartdevc && $system == windows ]
 html/xhr_test/xhr: Skip # Times out. Issue 21527
 
-[ $compiler == dartdevk ]
-async/zone_run_unary_test: CompileTimeError # Issue 31537
+[ $compiler == dartdevc && $strong ]
+html/custom/document_register_template_test: Crash # Compiler crash issue ????
+html/custom/mirrors_2_test: Crash # Compiler crash issue ????
+
