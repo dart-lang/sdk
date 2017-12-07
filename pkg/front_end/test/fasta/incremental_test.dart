@@ -35,6 +35,13 @@ import 'package:front_end/src/external_state_snapshot.dart'
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
+import 'package:front_end/src/minimal_incremental_kernel_generator.dart'
+    show MinimalIncrementalKernelGenerator;
+
+import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
+
+import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
+
 import "incremental_expectations.dart"
     show IncrementalExpectation, extractJsonExpectations;
 
@@ -45,7 +52,7 @@ const JsonEncoder json = const JsonEncoder.withIndent("  ");
 final Uri base = Uri.parse('org-dartlang-test:///');
 
 class Context extends ChainContext {
-  final ProcessedOptions options;
+  final CompilerContext compilerContext;
   final ExternalStateSnapshot snapshot;
   final List<CompilationMessage> errors;
 
@@ -55,11 +62,23 @@ class Context extends ChainContext {
     const IncrementalUpdates(),
   ];
 
-  const Context(this.options, this.snapshot, this.errors);
+  const Context(this.compilerContext, this.snapshot, this.errors);
+
+  ProcessedOptions get options => compilerContext.options;
+
+  T runInContext<T>(T action(CompilerContext c)) {
+    return compilerContext.runInContext<T>(action);
+  }
 
   void reset() {
     errors.clear();
     snapshot.restore();
+  }
+
+  List<CompilationMessage> takeErrors() {
+    List<CompilationMessage> result = new List<CompilationMessage>.from(errors);
+    errors.clear();
+    return result;
   }
 }
 
@@ -91,12 +110,16 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
         sources[fileName] = <String>[contents];
       }
     });
-    final IncrementalKernelGenerator generator =
-        await IncrementalKernelGenerator.newInstance(
-            null, context.options.inputs.first,
-            processedOptions: context.options, useMinimalGenerator: true);
+    final IncrementalKernelGenerator generator = await context
+        .runInContext<Future<IncrementalKernelGenerator>>(
+            (CompilerContext c) async {
+      UriTranslator uriTranslator = await c.options.getUriTranslator();
+      List<int> sdkOutlineBytes = await c.options.loadSdkSummaryBytes();
+      return new MinimalIncrementalKernelGenerator(c.options, uriTranslator,
+          sdkOutlineBytes, context.options.inputs.first);
+    });
     final TestCase test = new TestCase(description, sources, expectations,
-        context.options.fileSystem, generator, context.errors);
+        context.options.fileSystem, generator);
     return test.validate(this);
   }
 }
@@ -112,7 +135,7 @@ class FullCompile extends Step<TestCase, TestCase, Context> {
       test.fs.entityForUri(uri).writeAsStringSync(sources.first);
     });
     test.program = (await test.generator.computeDelta()).newProgram;
-    List<CompilationMessage> errors = test.takeErrors();
+    List<CompilationMessage> errors = context.takeErrors();
     if (errors.isNotEmpty && !test.expectations.first.hasCompileTimeError) {
       return fail(test, errors.join("\n"));
     } else {
@@ -142,12 +165,10 @@ class TestCase {
 
   final IncrementalKernelGenerator generator;
 
-  final List<CompilationMessage> errors;
-
   Program program;
 
   TestCase(this.description, this.sources, this.expectations, this.fs,
-      this.generator, this.errors);
+      this.generator);
 
   String toString() {
     return "TestCase(${json.convert(sources)}, ${json.convert(expectations)})";
@@ -171,12 +192,6 @@ class TestCase {
       }
     }
     return step.pass(this);
-  }
-
-  List<CompilationMessage> takeErrors() {
-    List<CompilationMessage> result = new List<CompilationMessage>.from(errors);
-    errors.clear();
-    return result;
   }
 }
 
@@ -216,7 +231,7 @@ Future<Context> createContext(
   final ExternalStateSnapshot snapshot =
       new ExternalStateSnapshot(await options.loadSdkSummary(null));
 
-  return new Context(options, snapshot, errors);
+  return new Context(new CompilerContext(options), snapshot, errors);
 }
 
 main([List<String> arguments = const []]) =>
