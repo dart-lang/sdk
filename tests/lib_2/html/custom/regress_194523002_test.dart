@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Regression test for CL 194523002.
-
-library js_custom_test;
+import 'dart:html';
 
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
-import 'dart:html';
-import '../utils.dart';
+
+import 'utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';

@@ -9,7 +9,7 @@ import 'dart:js' as js;
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 class FooElement extends HtmlElement {
   static final tag = 'x-foo';

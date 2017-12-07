@@ -7,7 +7,7 @@ import 'dart:html';
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 class Foo extends HtmlElement {
   static const tag = 'x-foo';

@@ -3,20 +3,22 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
-html/custom/attribute_changed_callback_test: Crash # Issue 29922
-html/custom/constructor_calls_created_synchronously_test: Crash # Issue 29922
+html/custom/attribute_changed_callback_test: RuntimeError # Issue 31577
+html/custom/constructor_calls_created_synchronously_test: RuntimeError # Issue 31577
 html/custom/document_register_basic_test: RuntimeError # Issue 29922
-html/custom/document_register_type_extensions_test/construction: Crash # dartdevc compiler crash Issue 30885
-html/custom/document_register_type_extensions_test/constructors: Crash # dartdevc compiler crash Issue 30885
-html/custom/document_register_type_extensions_test/createElement with type extension: Crash # dartdevc compiler crash Issue 30885
-html/custom/document_register_type_extensions_test/functional: Crash # dartdevc compiler crash Issue 30885
-html/custom/document_register_type_extensions_test/namespaces: Crash # dartdevc compiler crash Issue 30885
-html/custom/document_register_type_extensions_test/parsing: Crash # dartdevc compiler crash Issue 30885
-html/custom/document_register_type_extensions_test/registration: Crash # dartdevc compiler crash Issue 30885
-html/custom/document_register_type_extensions_test/single-parameter createElement: Crash # dartdevc compiler crash Issue 30885
-html/custom/element_upgrade_test: Crash # Crashes compiler Issue ?????
-html/custom/entered_left_view_test: Crash # Issue 29922
+html/custom/document_register_template_test: Skip # Issue 31577
+html/custom/document_register_type_extensions_test/construction: Skip # Issue 31577
+html/custom/document_register_type_extensions_test/constructors: Skip # Issue 31577
+html/custom/document_register_type_extensions_test/createElement with type extension: Skip # Issue 31577
+html/custom/document_register_type_extensions_test/functional: Skip # Issue 31577
+html/custom/document_register_type_extensions_test/namespaces: Skip # Issue 31577
+html/custom/document_register_type_extensions_test/parsing: Skip # Issue 31577
+html/custom/document_register_type_extensions_test/registration: Skip # Issue 31577
+html/custom/document_register_type_extensions_test/single-parameter createElement: Skip # Issue 31577
+html/custom/element_upgrade_test: Skip # Issue 31577
+html/custom/entered_left_view_test: Skip # Issue 31577
 html/custom/js_custom_test: Crash # Issue 29922
+html/custom/mirrors_2_test: Skip # Issue 31577
 html/custom/mirrors_test: Crash # Issue 29922
 html/custom/regress_194523002_test: Crash # Issue 29922
 html/deferred_multi_app_htmltest: Skip # Issue 29919
@@ -121,8 +123,3 @@ html/interactive_media_test: RuntimeError
 
 [ $compiler == dartdevc && $system == windows ]
 html/xhr_test/xhr: Skip # Times out. Issue 21527
-
-[ $compiler == dartdevc && $strong ]
-html/custom/document_register_template_test: Crash # Compiler crash issue ????
-html/custom/mirrors_2_test: Crash # Compiler crash issue ????
-
