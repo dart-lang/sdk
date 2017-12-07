@@ -20,6 +20,24 @@ main() {
 
 @reflectiveTest
 class NonHintCodeTest extends ResolverTestCase {
+  @override
+  void reset() {
+    super.resetWith(packages: [
+      [
+        'meta',
+        r'''
+library meta;
+
+const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
+
+class _AlwaysThrows {
+  const _AlwaysThrows();
+}
+'''
+      ]
+    ]);
+  }
+
   test_async_future_object_without_return() async {
     Source source = addSource('''
 import 'dart:async';
@@ -469,6 +487,23 @@ abstract class A {
 
   test_missingReturn_voidReturnType() async {
     Source source = addSource("void f() {}");
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  test_missingReturn_alwaysThrows() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+@alwaysThrows
+void a() {
+  throw 'msg';
+}
+
+int f() {
+  a();
+}''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);

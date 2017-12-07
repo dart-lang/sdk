@@ -31,6 +31,7 @@ class HintCodeTest extends ResolverTestCase {
         r'''
 library meta;
 
+const _AlwaysThrows alwaysThrows = const _AlwaysThrows();
 const _Factory factory = const _Factory();
 const Immutable immutable = const Immutable();
 const _Literal literal = const _Literal();
@@ -45,6 +46,9 @@ class Required {
 class Immutable {
   final String reason;
   const Immutable([this.reason]);
+}
+class _AlwaysThrows {
+  const _AlwaysThrows();
 }
 class _Factory {
   const _Factory();
@@ -712,6 +716,68 @@ f() {
 f() {
   var one = 1;
   throw 'Stop here';
+  var two = 2;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  test_deadCode_statementAfterAlwaysThrowsFunction() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+@alwaysThrows
+void a() {
+  throw 'msg';
+}
+
+f() {
+  var one = 1;
+  a();
+  var two = 2;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  test_deadCode_statementAfterAlwaysThrowsMethod() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @alwaysThrows
+  void a() {
+    throw 'msg';
+  }
+}
+
+f() {
+  var one = 1;
+  new C().a();
+  var two = 2;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [HintCode.DEAD_CODE]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_deadCode_statementAfterAlwaysThrowsGetter() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @alwaysThrows
+  int get a {
+    throw 'msg';
+  }
+}
+
+f() {
+  var one = 1;
+  new C().a;
   var two = 2;
 }''');
     await computeAnalysisResult(source);

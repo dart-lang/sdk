@@ -2790,6 +2790,12 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
  */
 class ElementAnnotationImpl implements ElementAnnotation {
   /**
+   * The name of the top-level variable used to mark that a function always
+   * throws, for dead code purposes.
+   */
+  static String _ALWAYS_THROWS_VARIABLE_NAME = "alwaysThrows";
+
+  /**
    * The name of the top-level variable used to mark a method parameter as
    * covariant.
    */
@@ -2903,6 +2909,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   AnalysisContext get context => compilationUnit.library.context;
+
+  @override
+  bool get isAlwaysThrows =>
+      element is PropertyAccessorElement &&
+      element.name == _ALWAYS_THROWS_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   /**
    * Return `true` if this annotation marks the associated parameter as being
@@ -3155,6 +3167,10 @@ abstract class ElementImpl implements Element {
    * children of this element's parent.
    */
   String get identifier => name;
+
+  @override
+  bool get isAlwaysThrows =>
+      metadata.any((ElementAnnotation annotation) => annotation.isAlwaysThrows);
 
   @override
   bool get isDeprecated {
@@ -7414,6 +7430,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   Element get enclosingElement => null;
+
+  @override
+  bool get isAlwaysThrows => false;
 
   @override
   bool get isDeprecated => false;

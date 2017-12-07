@@ -609,6 +609,12 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
   int get id;
 
   /**
+   * Return `true` if this element has an annotation of the form
+   * '@alwaysThrows'.
+   */
+  bool get isAlwaysThrows;
+
+  /**
    * Return `true` if this element has an annotation of the form '@deprecated'
    * or '@Deprecated('..')'.
    */
@@ -807,6 +813,12 @@ abstract class ElementAnnotation
    * being used as an annotation.
    */
   Element get element;
+
+  /**
+   * Return `true` if this annotation marks the associated function as always
+   * throwing.
+   */
+  bool get isAlwaysThrows;
 
   /**
    * Return `true` if this annotation marks the associated element as being

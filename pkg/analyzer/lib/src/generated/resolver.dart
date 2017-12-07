@@ -633,7 +633,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    *
    * @param element some element to check for deprecated use of
    * @param node the node use for the location of the error
-   * @return `true` if and only if a hint code is generated on the passed node
    * See [HintCode.DEPRECATED_MEMBER_USE].
    */
   void _checkForDeprecatedMemberUse(Element element, AstNode node) {
@@ -3268,6 +3267,10 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (node.operator.type == TokenType.QUESTION_PERIOD) {
         return false;
       }
+    }
+    Element element = node.methodName.staticElement;
+    if (element != null && element.isAlwaysThrows) {
+      return true;
     }
     return _nodeExits(node.argumentList);
   }
