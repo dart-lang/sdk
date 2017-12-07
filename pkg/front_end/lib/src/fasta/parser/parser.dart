@@ -29,6 +29,7 @@ import '../../scanner/token.dart'
 
 import '../scanner/token_constants.dart'
     show
+        CLOSE_CURLY_BRACKET_TOKEN,
         COMMA_TOKEN,
         DOUBLE_TOKEN,
         EOF_TOKEN,
@@ -2162,10 +2163,15 @@ class Parser {
       return token.previous;
     }
 
-    /// Returns true if [kind] is '=', ';', or ',', that is, if [kind] could be
-    /// the end of a variable declaration.
+    /// Returns true if [kind] could be the end of a variable declaration.
     bool looksLikeVariableDeclarationEnd(int kind) {
-      return EQ_TOKEN == kind || SEMICOLON_TOKEN == kind || COMMA_TOKEN == kind;
+      return EQ_TOKEN == kind ||
+          SEMICOLON_TOKEN == kind ||
+          COMMA_TOKEN == kind ||
+          // Recovery: Return true for these additional invalid situations
+          // in which we assume a missing semicolon.
+          OPEN_CURLY_BRACKET_TOKEN == kind ||
+          CLOSE_CURLY_BRACKET_TOKEN == kind;
     }
 
     /// Returns true if [token] could be the start of a function body.

@@ -10350,7 +10350,7 @@ class C {
   }
 
   void test_incompleteLocalVariable_atTheEndOfBlock() {
-    Statement statement = parseStatement('String v }');
+    Statement statement = parseStatement('String v }', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10368,7 +10368,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeIdentifier() {
-    Statement statement = parseStatement('String v String v2;');
+    Statement statement =
+        parseStatement('String v String v2;', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10376,7 +10377,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeKeyword() {
-    Statement statement = parseStatement('String v if (true) {}');
+    Statement statement =
+        parseStatement('String v if (true) {}', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 2)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10384,7 +10386,7 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeNextBlock() {
-    Statement statement = parseStatement('String v {}');
+    Statement statement = parseStatement('String v {}', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10392,7 +10394,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_parameterizedType() {
-    Statement statement = parseStatement('List<String> v {}');
+    Statement statement =
+        parseStatement('List<String> v {}', expectedEndOffset: 15);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());

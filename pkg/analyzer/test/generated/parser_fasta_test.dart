@@ -2721,13 +2721,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incompleteLocalVariable_atTheEndOfBlock() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_atTheEndOfBlock();
-  }
-
-  @override
-  @failingTest
   void test_incompleteLocalVariable_beforeIdentifier() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_beforeIdentifier();
@@ -2738,20 +2731,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_incompleteLocalVariable_beforeKeyword() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_beforeKeyword();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_beforeNextBlock() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_beforeNextBlock();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_parameterizedType() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_parameterizedType();
   }
 
   @override
