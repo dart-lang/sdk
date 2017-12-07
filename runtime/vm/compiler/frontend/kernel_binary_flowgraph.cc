@@ -5934,7 +5934,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
+  if (I->strong() && !H.IsRoot(itarget_name) &&
       (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
     interface_target = &Function::ZoneHandle(
         Z, LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
@@ -5998,7 +5998,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
+  if (I->strong() && !H.IsRoot(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z, LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
     ASSERT(setter_name.raw() == interface_target->name());
@@ -6007,7 +6007,9 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   intptr_t argument_check_bits = 0;
   if (I->strong()) {
     argument_check_bits = ArgumentCheckBitsForSetter(
-        *interface_target, static_cast<DispatchCategory>(flags & 3));
+        // TODO(sjindel): Change 'Function::null_function()' to
+        // '*interface_target' and fix breakages.
+        Function::null_function(), static_cast<DispatchCategory>(flags & 3));
   }
 
   if (direct_call.check_receiver_for_null_) {
@@ -6502,7 +6504,9 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
           Utils::SignedNBitMask(strong_checked_type_arguments);
       break;
     case Interface: {
-      ASSERT(!interface_target.IsNull() || !FLAG_experimental_strong_mode);
+      // TODO(sjindel): Restore this assertion once '*interface_target'
+      // is passed to this function instead of 'Function::null_function()'.
+      // ASSERT(!interface_target.IsNull() || !I->strong());
       if (interface_target.IsNull()) {
         argument_check_bits =
             Utils::SignedNBitMask(strong_checked_arguments + 1);
@@ -6717,8 +6721,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
-      !H.IsField(itarget_name)) {
+  if (I->strong() && !H.IsRoot(itarget_name) && !H.IsField(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z,
         LookupMethodByMember(itarget_name, H.DartProcedureName(itarget_name)));
@@ -6736,9 +6739,11 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   if (I->strong()) {
     ArgumentCheckBitsForInvocation(
         argument_count - 1, type_args_len, positional_argument_count,
-        argument_names, *interface_target,
-        static_cast<DispatchCategory>(flags & 3), &argument_check_bits,
-        &type_argument_check_bits);
+        argument_names,
+        // TODO(sjindel): Change 'Function::null_function()' to
+        // '*interface_target' and fix breakages.
+        Function::null_function(), static_cast<DispatchCategory>(flags & 3),
+        &argument_check_bits, &type_argument_check_bits);
   }
 
   if (!direct_call.target_.IsNull()) {
