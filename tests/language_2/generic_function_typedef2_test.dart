@@ -19,16 +19,16 @@ typedef K = Function(
         ));
 typedef L = Function(
     {
-  /* //  //# 05: compile-time error
+  /* //  //# 05: syntax error
     bool
-  */ //  //# 05: compile-time error
+  */ //  //# 05: continued
         x});
 
 typedef M = Function(
     {
-  /* //  //# 06: compile-time error
+  /* //  //# 06: syntax error
     bool
-  */ //  //# 06: compile-time error
+  */ //  //# 06: continued
         int});
 
 foo({bool int}) {}
