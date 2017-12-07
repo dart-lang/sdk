@@ -344,6 +344,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAliasElement element = _match(node.name, _walker.getTypedef());
+    if (_applyKernelTypes) {
+      if (node.returnType != null) {
+        ResolutionApplier.applyToTypeAnnotation(
+            element.returnType, node.returnType);
+      }
+    }
     _walk(new ElementWalker.forTypedef(element), () {
       super.visitFunctionTypeAlias(node);
     });

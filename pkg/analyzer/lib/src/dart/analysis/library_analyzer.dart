@@ -767,6 +767,8 @@ class LibraryAnalyzer {
         declaration.functionExpression.body.accept(applier);
         applier.applyToAnnotations(declaration);
         applier.checkDone();
+      } else if (declaration is FunctionTypeAlias) {
+        // No bodies to resolve.
       } else if (declaration is TopLevelVariableDeclaration) {
         List<VariableDeclaration> variables = declaration.variables.variables;
         if (variables.length != 1) {

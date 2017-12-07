@@ -54,20 +54,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_typedef_local() async {
-    return super.test_argumentTypeNotAssignable_typedef_local();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_typedef_parameter() async {
-    return super.test_argumentTypeNotAssignable_typedef_parameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_assignability_function_expr_rettype_from_typedef_cls() async {
     return super.test_assignability_function_expr_rettype_from_typedef_cls();
   }
@@ -90,13 +76,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_async_expression_function_type() async {
-    return super.test_async_expression_function_type();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_async_flattened() async {
     return super.test_async_flattened();
   }
@@ -113,20 +92,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_awaitInWrongContext_asyncStar() async {
     return super.test_awaitInWrongContext_asyncStar();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_bug_24539_getter() async {
-    return super.test_bug_24539_getter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_bug_24539_setter() async {
-    return super.test_bug_24539_setter();
   }
 
   @override
@@ -286,13 +251,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_defaultValueInFunctionTypeAlias() async {
-    return super.test_defaultValueInFunctionTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_deprecatedMemberUse_hide() async {
     return super.test_deprecatedMemberUse_hide();
   }
@@ -316,20 +274,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_expectedTwoMapTypeArguments() async {
     return super.test_expectedTwoMapTypeArguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_extraPositionalArguments_typedef_local() async {
-    return super.test_extraPositionalArguments_typedef_local();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_extraPositionalArguments_typedef_parameter() async {
-    return super.test_extraPositionalArguments_typedef_parameter();
   }
 
   @override
@@ -386,13 +330,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_functionDeclaration_scope_signature() async {
     return super.test_functionDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_functionTypeAlias_scope_returnType() async {
-    return super.test_functionTypeAlias_scope_returnType();
   }
 
   @override
@@ -806,14 +743,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeAliasCannotReferenceItself_returnClass_withTypeAlias() async {
-    return super
-        .test_typeAliasCannotReferenceItself_returnClass_withTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound() async {
     return super
         .test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound();
@@ -822,39 +751,9 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound2() async {
-    return super
-        .test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_noBound() async {
     return super
         .test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_noBound();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typePromotion_functionType_arg_ignoreIfNotMoreSpecific() async {
-    return super.test_typePromotion_functionType_arg_ignoreIfNotMoreSpecific();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typePromotion_functionType_return_ignoreIfNotMoreSpecific() async {
-    return super
-        .test_typePromotion_functionType_return_ignoreIfNotMoreSpecific();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typePromotion_functionType_return_voidToDynamic() async {
-    return super.test_typePromotion_functionType_return_voidToDynamic();
   }
 
   @override

@@ -3838,6 +3838,39 @@ void main() {
     expect(cArgument.staticParameterElement, same(cElement));
   }
 
+  test_top_functionTypeAlias() async {
+    String content = r'''
+typedef int F<T>(bool a, T b);
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    FunctionTypeAlias alias = unit.declarations[0];
+    FunctionTypeAliasElement aliasElement = alias.element;
+    expect(aliasElement, same(unitElement.functionTypeAliases[0]));
+    expect(aliasElement.returnType, typeProvider.intType);
+
+    _assertTypeNameSimple(alias.returnType, typeProvider.intType);
+
+    _assertSimpleParameter(
+        alias.parameters.parameters[0], aliasElement.parameters[0],
+        name: 'a',
+        offset: 22,
+        kind: ParameterKind.REQUIRED,
+        type: typeProvider.boolType);
+
+    _assertSimpleParameter(
+        alias.parameters.parameters[1], aliasElement.parameters[1],
+        name: 'b',
+        offset: 27,
+        kind: ParameterKind.REQUIRED,
+        type: aliasElement.typeParameters[0].type);
+  }
+
   test_top_typeParameter() async {
     String content = r'''
 class A {}
@@ -3935,6 +3968,14 @@ class C<T extends A, U extends List<A>, V> {}
       expect(typeName.type, same(type));
       expect(typeName.name.staticElement, same(type.element));
     }
+  }
+
+  void _assertTypeNameSimple(TypeName typeName, DartType type) {
+    expect(typeName.type, type);
+
+    SimpleIdentifier identifier = typeName.name;
+    expect(identifier.staticElement, same(type.element));
+    expect(identifier.staticType, type);
   }
 
   List<Statement> _getMainStatements(AnalysisResult result) {
