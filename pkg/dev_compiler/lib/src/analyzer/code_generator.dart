@@ -423,7 +423,8 @@ class CodeGenerator extends Object
       // TODO(jacobr): we could specify a short library name instead of the
       // full library uri if we wanted to save space.
       properties.add(new JS.Property(
-          js.string(jsLibraryDebuggerName(_libraryRoot, library)), value));
+          js.escapedString(jsLibraryDebuggerName(_libraryRoot, library)),
+          value));
     });
 
     // Track the module name for each library in the module.
