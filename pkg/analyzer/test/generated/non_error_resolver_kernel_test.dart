@@ -321,13 +321,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_extraPositionalArguments_implicitConstructor() async {
-    return super.test_extraPositionalArguments_implicitConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_extraPositionalArguments_typedef_local() async {
     return super.test_extraPositionalArguments_typedef_local();
   }
@@ -736,13 +729,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_propagateTypeArgs_intoBounds() async {
-    return super.test_propagateTypeArgs_intoBounds();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_recursiveConstructorRedirect() async {
     return super.test_recursiveConstructorRedirect();
   }
@@ -823,20 +809,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_typeAliasCannotReferenceItself_returnClass_withTypeAlias() async {
     return super
         .test_typeAliasCannotReferenceItself_returnClass_withTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeArgumentNotMatchingBounds_const() async {
-    return super.test_typeArgumentNotMatchingBounds_const();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeArgumentNotMatchingBounds_new() async {
-    return super.test_typeArgumentNotMatchingBounds_new();
   }
 
   @override

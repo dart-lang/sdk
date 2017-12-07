@@ -554,7 +554,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       node.name?.staticElement = element;
       return null;
     }
-    Element element = _match(node.name, _walker.getTypeParameter());
+    TypeParameterElement element =
+        _match(node.name, _walker.getTypeParameter());
+    if (_applyKernelTypes) {
+      if (node.bound != null) {
+        ResolutionApplier.applyToTypeAnnotation(element.bound, node.bound);
+      }
+    }
     super.visitTypeParameter(node);
     _resolveMetadata(node, node.metadata, element);
     return null;

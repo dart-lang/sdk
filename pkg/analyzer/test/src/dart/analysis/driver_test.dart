@@ -3838,6 +3838,66 @@ void main() {
     expect(cArgument.staticParameterElement, same(cElement));
   }
 
+  test_top_typeParameter() async {
+    String content = r'''
+class A {}
+class C<T extends A, U extends List<A>, V> {}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    ClassDeclaration aNode = unit.declarations[0];
+    ClassElement aElement = aNode.element;
+    expect(aElement, same(unitElement.types[0]));
+
+    ClassDeclaration cNode = unit.declarations[1];
+    ClassElement cElement = cNode.element;
+    expect(cElement, same(unitElement.types[1]));
+
+    {
+      TypeParameter tNode = cNode.typeParameters.typeParameters[0];
+      expect(tNode.element, same(cElement.typeParameters[0]));
+
+      TypeName bound = tNode.bound;
+      expect(bound.type, aElement.type);
+
+      SimpleIdentifier boundIdentifier = bound.name;
+      expect(boundIdentifier.staticElement, same(aElement));
+      expect(boundIdentifier.staticType, aElement.type);
+    }
+
+    {
+      var listElement = typeProvider.listType.element;
+      var listOfA = typeProvider.listType.instantiate([aElement.type]);
+
+      TypeParameter uNode = cNode.typeParameters.typeParameters[1];
+      expect(uNode.element, same(cElement.typeParameters[1]));
+
+      TypeName bound = uNode.bound;
+      expect(bound.type, listOfA);
+
+      SimpleIdentifier listIdentifier = bound.name;
+      expect(listIdentifier.staticElement, same(listElement));
+      expect(listIdentifier.staticType, listOfA);
+
+      TypeName aTypeName = bound.typeArguments.arguments[0];
+      expect(aTypeName.type, aElement.type);
+
+      SimpleIdentifier aIdentifier = aTypeName.name;
+      expect(aIdentifier.staticElement, same(aElement));
+      expect(aIdentifier.staticType, aElement.type);
+    }
+
+    {
+      TypeParameter vNode = cNode.typeParameters.typeParameters[2];
+      expect(vNode.element, same(cElement.typeParameters[2]));
+      expect(vNode.bound, isNull);
+    }
+  }
+
   void _assertDefaultParameter(
       DefaultFormalParameter node, ParameterElement element,
       {String name, int offset, ParameterKind kind, DartType type}) {
