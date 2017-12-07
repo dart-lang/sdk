@@ -278,6 +278,8 @@ class FunctionTypeData {
   final String parameters;
 
   const FunctionTypeData(this.returnType, this.name, this.parameters);
+
+  String toString() => '$returnType $name$parameters';
 }
 
 /// Return source code that declares the function types in [dataList] as
@@ -285,10 +287,11 @@ class FunctionTypeData {
 ///
 ///     $returnType $name$parameters => null;
 String createMethods(List<FunctionTypeData> dataList,
-    [String additionalData = '']) {
+    {String additionalData: '', String prefix: ''}) {
   StringBuffer sb = new StringBuffer();
   for (FunctionTypeData data in dataList) {
-    sb.writeln('${data.returnType} ${data.name}${data.parameters} => null;');
+    sb.writeln(
+        '${data.returnType} $prefix${data.name}${data.parameters} => null;');
   }
   sb.write(additionalData);
   return sb.toString();
@@ -302,7 +305,7 @@ String createMethods(List<FunctionTypeData> dataList,
 ///
 /// where a field using the typedef is add to make the type accessible by name.
 String createTypedefs(List<FunctionTypeData> dataList,
-    [String additionalData = '']) {
+    {String additionalData: '', String prefix: ''}) {
   StringBuffer sb = new StringBuffer();
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
@@ -311,7 +314,7 @@ String createTypedefs(List<FunctionTypeData> dataList,
   }
   for (int index = 0; index < dataList.length; index++) {
     FunctionTypeData data = dataList[index];
-    sb.writeln('f$index ${data.name};');
+    sb.writeln('f$index $prefix${data.name};');
   }
   sb.write(additionalData);
   return sb.toString();

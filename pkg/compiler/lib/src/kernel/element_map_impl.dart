@@ -437,7 +437,30 @@ abstract class KernelToElementMapBase extends KernelToElementMapBaseMixin {
       namedParameters.add(variable.name);
       namedParameterTypes.add(getDartType(variable.type));
     }
-    List<FunctionTypeVariable> typeVariables = const <FunctionTypeVariable>[];
+    List<FunctionTypeVariable> typeVariables;
+    if (node.typeParameters.isNotEmpty &&
+        DartTypeConverter.enableFunctionTypeVariables) {
+      List<DartType> typeParameters = <DartType>[];
+      for (ir.TypeParameter typeParameter in node.typeParameters) {
+        typeParameters
+            .add(getDartType(new ir.TypeParameterType(typeParameter)));
+      }
+      // TODO(johnniwinther): Support bounds.
+      typeVariables = new List<FunctionTypeVariable>.generate(
+          node.typeParameters.length,
+          (int index) => new FunctionTypeVariable(index, const DynamicType()));
+
+      DartType subst(DartType type) {
+        return type.subst(typeVariables, typeParameters);
+      }
+
+      parameterTypes = parameterTypes.map(subst).toList();
+      optionalParameterTypes = optionalParameterTypes.map(subst).toList();
+      namedParameterTypes = namedParameterTypes.map(subst).toList();
+    } else {
+      typeVariables = const <FunctionTypeVariable>[];
+    }
+
     return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
         namedParameters, namedParameterTypes, typeVariables);
   }
@@ -986,10 +1009,14 @@ abstract class ElementCreatorMixin {
     // TODO(johnniwinther): Cache the computed function type.
     int requiredParameters = node.requiredParameterCount;
     int positionalParameters = node.positionalParameters.length;
+    int typeParameters = node.typeParameters.length;
     List<String> namedParameters =
         node.namedParameters.map((p) => p.name).toList()..sort();
     return new ParameterStructure(
-        requiredParameters, positionalParameters, namedParameters);
+        requiredParameters,
+        positionalParameters,
+        namedParameters,
+        DartTypeConverter.enableFunctionTypeVariables ? typeParameters : 0);
   }
 
   IndexedLibrary createLibrary(String name, Uri canonicalUri);

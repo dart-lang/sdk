@@ -19,8 +19,8 @@ const List<FunctionTypeData> existentialTypeData = const <FunctionTypeData>[
 main() {
   DartTypeConverter.enableFunctionTypeVariables = true;
   asyncTest(() async {
-    var env =
-        await TypeEnvironment.create(createTypedefs(existentialTypeData, """
+    var env = await TypeEnvironment
+        .create(createTypedefs(existentialTypeData, additionalData: """
     class C1 {}
     class C2 {}
   """), compileMode: CompileMode.dill);

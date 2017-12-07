@@ -572,7 +572,7 @@ abstract class FunctionSignatureCommon implements FunctionSignature {
         positionalParameters = requiredParameters + optionalParameterCount;
       }
       _parameterStructure = new ParameterStructure(
-          requiredParameters, positionalParameters, namedParameters);
+          requiredParameters, positionalParameters, namedParameters, 0);
     }
     return _parameterStructure;
   }
