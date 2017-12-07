@@ -3302,6 +3302,11 @@ class D extends A<bool> with B<int> implements C<double> {}
     ClassElement cElement = cNode.element;
 
     ClassDeclaration dNode = result.unit.declarations[3];
+    Element dElement = dNode.element;
+
+    SimpleIdentifier dName = dNode.name;
+    expect(dName.staticElement, same(dElement));
+    expect(dName.staticType, typeProvider.typeType);
 
     {
       var aRawType = aElement.type;
@@ -3336,6 +3341,70 @@ class D extends A<bool> with B<int> implements C<double> {}
 
       SimpleIdentifier identifier = implementedType.name;
       expect(identifier.staticElement, cElement);
+      expect(identifier.staticType, expectedType);
+    }
+  }
+
+  test_top_classTypeAlias() async {
+    String content = r'''
+class A<T> {}
+class B<T> {}
+class C<T> {}
+class D = A<bool> with B<int> implements C<double>;
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration aNode = result.unit.declarations[0];
+    ClassElement aElement = aNode.element;
+
+    ClassDeclaration bNode = result.unit.declarations[1];
+    ClassElement bElement = bNode.element;
+
+    ClassDeclaration cNode = result.unit.declarations[2];
+    ClassElement cElement = cNode.element;
+
+    ClassTypeAlias dNode = result.unit.declarations[3];
+    Element dElement = dNode.element;
+
+    SimpleIdentifier dName = dNode.name;
+    expect(dName.staticElement, same(dElement));
+    expect(dName.staticType, typeProvider.typeType);
+
+    {
+      var aRawType = aElement.type;
+      var expectedType = aRawType.instantiate([typeProvider.boolType]);
+
+      TypeName superClass = dNode.superclass;
+      expect(superClass.type, expectedType);
+
+      SimpleIdentifier identifier = superClass.name;
+      expect(identifier.staticElement, same(aElement));
+      expect(identifier.staticType, expectedType);
+    }
+
+    {
+      var bRawType = bElement.type;
+      var expectedType = bRawType.instantiate([typeProvider.intType]);
+
+      TypeName mixinType = dNode.withClause.mixinTypes[0];
+      expect(mixinType.type, expectedType);
+
+      SimpleIdentifier identifier = mixinType.name;
+      expect(identifier.staticElement, same(bElement));
+      expect(identifier.staticType, expectedType);
+    }
+
+    {
+      var cRawType = cElement.type;
+      var expectedType = cRawType.instantiate([typeProvider.doubleType]);
+
+      TypeName interfaceType = dNode.implementsClause.interfaces[0];
+      expect(interfaceType.type, expectedType);
+
+      SimpleIdentifier identifier = interfaceType.name;
+      expect(identifier.staticElement, same(cElement));
       expect(identifier.staticType, expectedType);
     }
   }

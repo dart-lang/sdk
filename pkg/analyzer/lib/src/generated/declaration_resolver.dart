@@ -127,6 +127,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = _match(node.name, _walker.getClass());
+    if (_applyKernelTypes) {
+      node.name.staticType = _typeProvider.typeType;
+      ResolutionApplier.applyToTypeAnnotation(
+          element.supertype, node.superclass);
+      if (node.withClause != null) {
+        _applyTypeList(node.withClause.mixinTypes, element.mixins);
+      }
+      if (node.implementsClause != null) {
+        _applyTypeList(node.implementsClause.interfaces, element.interfaces);
+      }
+    }
     _walk(new ElementWalker.forClass(element), () {
       super.visitClassTypeAlias(node);
     });

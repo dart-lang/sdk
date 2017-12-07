@@ -154,13 +154,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_class_type_alias_documentationComment() async {
-    return super.test_class_type_alias_documentationComment();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
   }
@@ -585,13 +578,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_implicitConstructorDependencies() async {
-    return super.test_implicitConstructorDependencies();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_importOfNonLibrary_libraryDeclared() async {
     return super.test_importOfNonLibrary_libraryDeclared();
   }
@@ -769,59 +755,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_missingEnumConstantInSwitch_default() async {
     return super.test_missingEnumConstantInSwitch_default();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_mixinInheritsFromNotObject_classDeclaration_mixTypeAlias() async {
-    return super
-        .test_mixinInheritsFromNotObject_classDeclaration_mixTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_mixinInheritsFromNotObject_typeAlias_extends() async {
-    return super.test_mixinInheritsFromNotObject_typeAlias_extends();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_mixinInheritsFromNotObject_typeAlias_with() async {
-    return super.test_mixinInheritsFromNotObject_typeAlias_with();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_mixinInheritsFromNotObject_typedef_mixTypeAlias() async {
-    return super.test_mixinInheritsFromNotObject_typedef_mixTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_mixin();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() async {
-    return super
-        .test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass();
   }
 
   @override
@@ -1128,13 +1061,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedConstructorInInitializer_hasOptionalParameters() async {
     return super.test_undefinedConstructorInInitializer_hasOptionalParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedConstructorInInitializer_implicit_typeAlias() async {
-    return super.test_undefinedConstructorInInitializer_implicit_typeAlias();
   }
 
   @override

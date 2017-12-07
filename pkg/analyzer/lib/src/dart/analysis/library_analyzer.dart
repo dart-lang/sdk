@@ -755,6 +755,8 @@ class LibraryAnalyzer {
             throw new StateError('(${declaration.runtimeType}) $declaration');
           }
         }
+      } else if (declaration is ClassTypeAlias) {
+        // No bodies to resolve.
       } else if (declaration is FunctionDeclaration) {
         var context = declaration.element as ExecutableElementImpl;
         var resolution = resolutions.next();
