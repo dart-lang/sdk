@@ -689,9 +689,9 @@ void FlowGraphCompiler::CheckTypeArgsLen(bool expect_type_args,
   // If expect_type_args, a non-zero length must match the declaration length.
   __ LoadFieldFromOffset(R8, R4, ArgumentsDescriptor::type_args_len_offset());
   if (isolate()->strong()) {
-    __ and_(R8, R8,
-            Operand(Smi::RawValue(
-                ArgumentsDescriptor::TypeArgsLenField::mask_in_place())));
+    __ AndImmediate(
+        R8, R8,
+        Smi::RawValue(ArgumentsDescriptor::TypeArgsLenField::mask_in_place()));
   }
   __ CompareImmediate(R8, Smi::RawValue(0));
   if (expect_type_args) {
@@ -730,9 +730,10 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
                          ArgumentsDescriptor::positional_count_offset());
 
   if (isolate()->strong()) {
-    __ and_(R8, R8,
-            Operand(Smi::RawValue(
-                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+    __ AndImmediate(
+        R8, R8,
+        Smi::RawValue(
+            ArgumentsDescriptor::PositionalCountField::mask_in_place()));
   }
 
   // Check that min_num_pos_args <= num_pos_args.
@@ -822,10 +823,10 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ LoadFromOffset(R5, R6, ArgumentsDescriptor::position_offset());
       if (isolate()->strong()) {
-        __ and_(
+        __ AndImmediate(
             R5, R5,
-            Operand(Smi::RawValue(
-                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+            Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place()));
       }
       // R5 is arg_pos as Smi.
       // Point to next named entry.
@@ -863,9 +864,8 @@ void FlowGraphCompiler::CopyParameters(bool expect_type_args,
                            ArgumentsDescriptor::positional_count_offset());
     __ SmiUntag(R8);
     if (isolate()->strong()) {
-      __ and_(
-          R8, R8,
-          Operand(ArgumentsDescriptor::PositionalCountField::mask_in_place()));
+      __ AndImmediate(
+          R8, R8, ArgumentsDescriptor::PositionalCountField::mask_in_place());
     }
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
@@ -1046,10 +1046,10 @@ void FlowGraphCompiler::CompileGraph() {
       __ LoadFieldFromOffset(R1, R4,
                              ArgumentsDescriptor::positional_count_offset());
       if (isolate()->strong()) {
-        __ and_(
+        __ AndImmediate(
             R1, R1,
-            Operand(Smi::RawValue(
-                ArgumentsDescriptor::PositionalCountField::mask_in_place())));
+            Smi::RawValue(
+                ArgumentsDescriptor::PositionalCountField::mask_in_place()));
       }
       __ CompareRegisters(R0, R1);
       __ b(&correct_num_arguments, EQ);
