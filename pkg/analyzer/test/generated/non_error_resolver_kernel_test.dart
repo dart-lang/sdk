@@ -286,13 +286,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_fieldInitializerOutsideConstructor_defaultParameters() async {
-    return super.test_fieldInitializerOutsideConstructor_defaultParameters();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_finalNotInitialized_functionTypedFieldFormal() async {
     return super.test_finalNotInitialized_functionTypedFieldFormal();
   }
@@ -540,20 +533,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstantDefaultValue_inConstructor_named() async {
-    return super.test_nonConstantDefaultValue_inConstructor_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstantDefaultValue_inConstructor_positional() async {
-    return super.test_nonConstantDefaultValue_inConstructor_positional();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_nonConstantValueInInitializer_namedArgument() async {
     return super.test_nonConstantValueInInitializer_namedArgument();
   }
@@ -761,13 +740,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_typeType_functionTypeAlias_prefixed() async {
     return super.test_typeType_functionTypeAlias_prefixed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedConstructorInInitializer_hasOptionalParameters() async {
-    return super.test_undefinedConstructorInInitializer_hasOptionalParameters();
   }
 
   @override

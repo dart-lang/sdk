@@ -728,6 +728,7 @@ class LibraryAnalyzer {
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(context, resolution);
             member.initializers.accept(applier);
+            member.parameters.accept(applier);
             member.body.accept(applier);
             applier.applyToAnnotations(member);
             applier.checkDone();

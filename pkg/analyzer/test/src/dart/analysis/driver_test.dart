@@ -3345,6 +3345,36 @@ class D extends A<bool> with B<int> implements C<double> {}
     }
   }
 
+  test_top_class_constructor_parameter_defaultValue() async {
+    String content = r'''
+class C {
+  double f;
+  C([int a: 1 + 2]) : f = 3.4;
+}
+''';
+    addTestFile(content);
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+    ClassElement cElement = cNode.element;
+
+    ConstructorDeclaration constructorNode = cNode.members[1];
+
+    DefaultFormalParameter aNode = constructorNode.parameters.parameters[0];
+    _assertDefaultParameter(aNode, cElement.unnamedConstructor.parameters[0],
+        name: 'a',
+        offset: 31,
+        kind: ParameterKind.POSITIONAL,
+        type: typeProvider.intType);
+
+    BinaryExpression binary = aNode.defaultValue;
+    expect(binary.staticElement, isNotNull);
+    expect(binary.staticType, typeProvider.intType);
+    expect(binary.leftOperand.staticType, typeProvider.intType);
+    expect(binary.rightOperand.staticType, typeProvider.intType);
+  }
+
   test_top_classTypeAlias() async {
     String content = r'''
 class A<T> {}
