@@ -126,7 +126,7 @@ vars = {
   "string_scanner_tag": "@1.0.2",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
   "term_glyph_tag": "@1.0.0",
-  "test_reflective_loader_tag": "@0.1.0",
+  "test_reflective_loader_tag": "@0.1.1",
   "test_tag": "@0.12.24+6",
   "tuple_tag": "@v1.0.1",
   "typed_data_tag": "@1.1.3",
