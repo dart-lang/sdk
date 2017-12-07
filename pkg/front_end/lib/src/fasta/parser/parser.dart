@@ -1784,7 +1784,7 @@ class Parser {
         context == IdentifierContext.localFunctionDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];
     } else if (context == IdentifierContext.localVariableDeclaration) {
-      followingValues = [';', '=', ','];
+      followingValues = [';', '=', ',', '}'];
     } else if (context == IdentifierContext.methodDeclaration ||
         context == IdentifierContext.methodDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];

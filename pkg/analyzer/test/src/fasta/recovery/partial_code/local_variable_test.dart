@@ -56,7 +56,6 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "const a, _s_;",
               failing: <String>[
-                'eof',
                 'assert',
                 'block',
                 'break',
@@ -76,7 +75,6 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "const int a, _s_;",
               failing: [
-                'eof',
                 'assert',
                 'block',
                 'break',
@@ -100,7 +98,6 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "final _s_;",
               failing: [
-                'eof',
                 'assert',
                 'block',
                 'break',
@@ -141,7 +138,6 @@ class LocalVariableTest extends PartialCodeTest {
               ],
               "var _s_;",
               failing: [
-                'eof',
                 'assert',
                 'block',
                 'break',

@@ -220,7 +220,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   SimpleIdentifier parseSimpleIdentifier(String code);
 
-  Statement parseStatement(String source, [bool enableLazyAssignmentOperators]);
+  Statement parseStatement(String source,
+      {bool enableLazyAssignmentOperators, int expectedEndOffset});
 
   Expression parseStringLiteral(String code);
 
@@ -9455,7 +9456,7 @@ class ParserTestCase extends EngineTestCase
    * is `true`, then lazy assignment operators should be enabled.
    */
   Statement parseStatement(String source,
-      [bool enableLazyAssignmentOperators]) {
+      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
     listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
@@ -10354,6 +10355,16 @@ class C {
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
+  }
+
+  void test_incompleteLocalVariable_atTheEndOfBlock_modifierOnly() {
+    Statement statement = parseStatement('final }', expectedEndOffset: 6);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
+    ]);
+    expect(statement, new isInstanceOf<VariableDeclarationStatement>());
+    expect(statement.toSource(), 'final ;');
   }
 
   void test_incompleteLocalVariable_beforeIdentifier() {

@@ -2220,8 +2220,8 @@ class FastaParserTestCase extends Object
 
   @override
   Statement parseStatement(String source,
-      [bool enableLazyAssignmentOperators]) {
-    createParser(source);
+      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+    createParser(source, expectedEndOffset: expectedEndOffset);
     Statement statement = _parserProxy.parseStatement2();
     assertErrors(codes: NO_ERROR_COMPARISON);
     return statement;
