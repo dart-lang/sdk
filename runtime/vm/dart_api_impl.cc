@@ -4492,6 +4492,9 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
 DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
                                                       Dart_Handle name,
                                                       int field_count) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   DARTSCOPE(Thread::Current());
   const String& cls_name = Api::UnwrapStringHandle(Z, name);
   if (cls_name.IsNull()) {
@@ -4515,6 +4518,7 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
         "Unable to create native wrapper class : already exists");
   }
   return Api::NewHandle(T, cls.RareType());
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
@@ -4998,6 +5002,7 @@ DART_EXPORT Dart_Handle Dart_DefaultCanonicalizeUrl(Dart_Handle base_url,
   return Api::NewHandle(T, String::New(resolved_uri));
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 // NOTE: Need to pass 'result' as a parameter here in order to avoid
 // warning: variable 'result' might be clobbered by 'longjmp' or 'vfork'
 // which shows up because of the use of setjmp.
@@ -5023,7 +5028,6 @@ static void CompileSource(Thread* thread,
   }
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 static Dart_Handle LoadKernelProgram(Thread* T,
                                      const String& url,
                                      void* kernel) {
@@ -5034,13 +5038,16 @@ static Dart_Handle LoadKernelProgram(Thread* T,
   delete program;
   return Api::NewHandle(T, tmp.raw());
 }
-#endif
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle resolved_url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t column_offset) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -5073,7 +5080,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   CHECK_COMPILATION_ALLOWED(I);
 
   Dart_Handle result;
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (I->use_dart_frontend()) {
     if ((source == Api::Null()) || (source == NULL)) {
       RETURN_NULL_ERROR(source);
@@ -5096,7 +5102,6 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
     I->object_store()->set_root_library(library);
     return Api::NewHandle(T, library.raw());
   }
-#endif
 
   const String& source_str = Api::UnwrapStringHandle(Z, source);
   if (source_str.IsNull()) {
@@ -5116,10 +5121,14 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   script.SetLocationOffset(line_offset, column_offset);
   CompileSource(T, library, script, &result);
   return result;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                                                     intptr_t buffer_len) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -5177,6 +5186,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
   library.set_debuggable(true);
   I->object_store()->set_root_library(library);
   return Api::NewHandle(T, library.raw());
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
@@ -5194,14 +5204,12 @@ DART_EXPORT void* Dart_ReadKernelBinary(const uint8_t* buffer,
 }
 
 DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   StackZone zone(T);
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return Api::NewError("%s: Can't load Kernel files from precompiled runtime.",
-                       CURRENT_FUNC);
-#else
   Isolate* I = T->isolate();
 
   Library& library = Library::Handle(Z, I->object_store()->root_library());
@@ -5232,7 +5240,7 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(void* kernel_program) {
   library ^= tmp.raw();
   I->object_store()->set_root_library(library);
   return Api::NewHandle(T, library.raw());
-#endif
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_RootLibrary() {
@@ -5425,6 +5433,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source,
                                          intptr_t line_offset,
                                          intptr_t column_offset) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -5434,7 +5445,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     RETURN_TYPE_ERROR(Z, url, String);
   }
   Dart_Handle result;
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (I->use_dart_frontend()) {
     void* kernel_pgm = reinterpret_cast<void*>(source);
     result = LoadKernelProgram(T, url_str, kernel_pgm);
@@ -5443,7 +5453,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     }
     return Api::NewHandle(T, Library::LookupLibrary(T, url_str));
   }
-#endif
   if (::Dart_IsNull(resolved_url)) {
     resolved_url = url;
   }
@@ -5498,11 +5507,15 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     }
   }
   return result;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
                                                   Dart_Handle import,
                                                   Dart_Handle prefix) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
   const Library& library_vm = Api::UnwrapLibraryHandle(Z, library);
@@ -5539,6 +5552,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
     }
   }
   return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme) {
@@ -5582,6 +5596,9 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle source,
                                         intptr_t line_offset,
                                         intptr_t column_offset) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -5624,11 +5641,15 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
   Dart_Handle result;
   CompileSource(T, lib, script, &result);
   return result;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
                                               Dart_Handle url,
                                               Dart_Handle patch_source) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   Isolate* I = T->isolate();
@@ -5654,6 +5675,7 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
   Dart_Handle result;
   CompileSource(T, lib, script, &result);
   return result;
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 // Finalizes classes and invokes Dart core library function that completes
@@ -6283,6 +6305,9 @@ DART_EXPORT void Dart_SetThreadName(const char* name) {
 DART_EXPORT
 Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
                                       intptr_t* buffer_length) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   API_TIMELINE_DURATION;
   Thread* thread = Thread::Current();
   DARTSCOPE(thread);
@@ -6292,10 +6317,14 @@ Dart_Handle Dart_SaveCompilationTrace(uint8_t** buffer,
   ProgramVisitor::VisitFunctions(&saver);
   saver.StealBuffer(buffer, buffer_length);
   return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT
 Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   Thread* thread = Thread::Current();
   API_TIMELINE_DURATION;
   DARTSCOPE(thread);
@@ -6307,6 +6336,7 @@ Dart_Handle Dart_LoadCompilationTrace(uint8_t* buffer, intptr_t buffer_length) {
     return Api::NewHandle(T, Error::Cast(error).raw());
   }
   return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT
@@ -6466,6 +6496,9 @@ Dart_Handle Dart_SaveJITFeedback(uint8_t** buffer, intptr_t* buffer_length) {
 }
 
 DART_EXPORT Dart_Handle Dart_SortClasses() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   DARTSCOPE(Thread::Current());
   // We don't have mechanisms to change class-ids that are embedded in code and
   // ICData.
@@ -6475,6 +6508,7 @@ DART_EXPORT Dart_Handle Dart_SortClasses() {
   Isolate::Current()->heap()->CollectAllGarbage();
   ClassFinalizer::SortClasses();
   return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle
