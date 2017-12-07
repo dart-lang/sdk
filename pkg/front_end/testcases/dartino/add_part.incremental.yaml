@@ -16,4 +16,4 @@ main.dart.patch: |
   }
 
 part.dart: |
-  part of test.main
+  part of test.main;

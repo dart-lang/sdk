@@ -49,7 +49,9 @@ import "incremental_source_files.dart" show expandDiff, expandUpdates;
 
 const JsonEncoder json = const JsonEncoder.withIndent("  ");
 
-final Uri base = Uri.parse('org-dartlang-test:///');
+final Uri base = Uri.parse("org-dartlang-test:///");
+
+final Uri entryPoint = base.resolve("main.dart");
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
@@ -58,13 +60,17 @@ class Context extends ChainContext {
 
   final List<Step> steps = const <Step>[
     const ReadTest(),
-    const FullCompile(),
-    const IncrementalUpdates(),
+    const PrepareIncrementalKernelGenerator(),
+    const RunCompilations(),
   ];
 
-  const Context(this.compilerContext, this.snapshot, this.errors);
+  IncrementalKernelGenerator compiler;
+
+  Context(this.compilerContext, this.snapshot, this.errors);
 
   ProcessedOptions get options => compilerContext.options;
+
+  MemoryFileSystem get fileSystem => options.fileSystem;
 
   T runInContext<T>(T action(CompilerContext c)) {
     return compilerContext.runInContext<T>(action);
@@ -110,7 +116,19 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
         sources[fileName] = <String>[contents];
       }
     });
-    final IncrementalKernelGenerator generator = await context
+    final TestCase test = new TestCase(description, sources, expectations);
+    return test.validate(this);
+  }
+}
+
+class PrepareIncrementalKernelGenerator
+    extends Step<TestCase, TestCase, Context> {
+  String get name => "prepare IKG";
+
+  const PrepareIncrementalKernelGenerator();
+
+  Future<Result<TestCase>> run(TestCase test, Context context) async {
+    context.compiler = await context
         .runInContext<Future<IncrementalKernelGenerator>>(
             (CompilerContext c) async {
       UriTranslator uriTranslator = await c.options.getUriTranslator();
@@ -118,39 +136,46 @@ class ReadTest extends Step<TestDescription, TestCase, Context> {
       return new MinimalIncrementalKernelGenerator(c.options, uriTranslator,
           sdkOutlineBytes, context.options.inputs.first);
     });
-    final TestCase test = new TestCase(description, sources, expectations,
-        context.options.fileSystem, generator);
-    return test.validate(this);
-  }
-}
-
-class FullCompile extends Step<TestCase, TestCase, Context> {
-  String get name => "full compile";
-
-  const FullCompile();
-
-  Future<Result<TestCase>> run(TestCase test, Context context) async {
-    test.sources.forEach((String name, List<String> sources) {
-      Uri uri = base.resolve(name);
-      test.fs.entityForUri(uri).writeAsStringSync(sources.first);
-    });
-    test.program = (await test.generator.computeDelta()).newProgram;
-    List<CompilationMessage> errors = context.takeErrors();
-    if (errors.isNotEmpty && !test.expectations.first.hasCompileTimeError) {
-      return fail(test, errors.join("\n"));
-    } else {
-      return pass(test);
-    }
-  }
-}
-
-class IncrementalUpdates extends Step<TestCase, TestCase, Context> {
-  const IncrementalUpdates();
-
-  String get name => "incremental updates";
-
-  Future<Result<TestCase>> run(TestCase test, Context context) async {
     return pass(test);
+  }
+}
+
+class RunCompilations extends Step<TestCase, TestCase, Context> {
+  const RunCompilations();
+
+  String get name => "run compilations";
+
+  Future<Result<TestCase>> run(TestCase test, Context context) async {
+    for (int edits = 0;; edits++) {
+      bool foundSources = false;
+      test.sources.forEach((String name, List<String> sources) {
+        if (edits < sources.length) {
+          String source = sources[edits];
+          Uri uri = base.resolve(name);
+          context.fileSystem.entityForUri(uri).writeAsStringSync(source);
+          foundSources = true;
+          context.compiler.invalidate(uri);
+          if (edits == 0) {
+            print("==> t.dart <==");
+          } else {
+            print("==> t.dart (edit #$edits) <==");
+          }
+          print(source.trimRight());
+        }
+      });
+      if (!foundSources) {
+        return edits == 0 ? fail(test, "No sources found") : pass(test);
+      }
+      var compiler = context.compiler;
+      var delta = await compiler.computeDelta();
+      // ignore: UNUSED_LOCAL_VARIABLE
+      Program program = delta.newProgram;
+      List<CompilationMessage> errors = context.takeErrors();
+      if (errors.isNotEmpty && !test.expectations[edits].hasCompileTimeError) {
+        return fail(test, errors.join("\n"));
+      }
+      context.compiler.acceptLastDelta();
+    }
   }
 }
 
@@ -161,14 +186,7 @@ class TestCase {
 
   final List<IncrementalExpectation> expectations;
 
-  final MemoryFileSystem fs;
-
-  final IncrementalKernelGenerator generator;
-
-  Program program;
-
-  TestCase(this.description, this.sources, this.expectations, this.fs,
-      this.generator);
+  TestCase(this.description, this.sources, this.expectations);
 
   String toString() {
     return "TestCase(${json.convert(sources)}, ${json.convert(expectations)})";
@@ -226,7 +244,7 @@ Future<Context> createContext(
     };
 
   final ProcessedOptions options =
-      new ProcessedOptions(optionBuilder, false, [base.resolve("main.dart")]);
+      new ProcessedOptions(optionBuilder, false, [entryPoint]);
 
   final ExternalStateSnapshot snapshot =
       new ExternalStateSnapshot(await options.loadSdkSummary(null));
