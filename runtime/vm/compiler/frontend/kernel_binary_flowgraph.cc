@@ -6437,7 +6437,9 @@ intptr_t StreamingFlowGraphBuilder::ArgumentCheckBitsForSetter(
       // All bits are 0.
       break;
     case Interface: {
-      if (!interface_target.IsImplicitGetterOrSetter()) {
+      // TODO(sjindel): Revise checking interface target for null.
+      if (interface_target.IsNull() ||
+          !interface_target.IsImplicitGetterOrSetter()) {
         intptr_t type_argument_check_bits_unused;
         ArgumentCheckBitsForInvocation(
             1, 0, 1, Array::null_array(), interface_target, category,
