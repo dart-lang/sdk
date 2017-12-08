@@ -91,7 +91,7 @@ import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 import 'type_continuation.dart'
     show TypeContinuation, typeContiunationFromFormalParameterKind;
 
-import 'util.dart' show closeBraceTokenFor, optional;
+import 'util.dart' show beforeCloseBraceTokenFor, closeBraceTokenFor, optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -2633,43 +2633,60 @@ class Parser {
   Token parseStuff(Token token, Function beginStuff, Function stuffParser,
       Function endStuff, Function handleNoStuff) {
     // TODO(brianwilkerson): Rename to `parseStuffOpt`?
+
+    bool rewriteEndToken(Token beforeEnd) {
+      Token end = beforeEnd.next;
+      String value = end?.stringValue;
+      if (value != null && value.length > 1) {
+        if (identical(value, '>>')) {
+          Token replacement = new Token(TokenType.GT, end.charOffset);
+          replacement.next = new Token(TokenType.GT, end.charOffset + 1);
+          rewriter.replaceTokenFollowing(beforeEnd, replacement);
+          return true;
+        } else if (identical(value, '>=')) {
+          Token replacement = new Token(TokenType.GT, end.charOffset);
+          replacement.next = new Token(TokenType.EQ, end.charOffset + 1);
+          rewriter.replaceTokenFollowing(beforeEnd, replacement);
+          return true;
+        } else if (identical(value, '>>=')) {
+          Token replacement = new Token(TokenType.GT, end.charOffset);
+          replacement.next = new Token(TokenType.GT, end.charOffset + 1);
+          replacement.next.next = new Token(TokenType.EQ, end.charOffset + 2);
+          rewriter.replaceTokenFollowing(beforeEnd, replacement);
+          return true;
+        }
+      }
+      return false;
+    }
+
     // TODO(brianwilkerson): Remove the invocation of `previous` when
     // `injectGenericCommentTypeList` returns the last consumed token.
     token = listener.injectGenericCommentTypeList(token.next).previous;
     Token next = token.next;
     if (optional('<', next)) {
-      Token begin = next;
+      BeginToken begin = next;
+      Token end = begin.endToken;
+      if (end != null) {
+        Token beforeEnd = previousToken(begin, end);
+        if (rewriteEndToken(beforeEnd)) {
+          begin.endToken = null;
+        }
+      }
       beginStuff(begin);
       int count = 0;
       do {
         token = stuffParser(token.next);
         ++count;
       } while (optional(',', token.next));
-
-      // Rewrite `>>`, `>=`, and `>>=` tokens
-      next = token.next;
-      String value = next.stringValue;
-      if (value != null && value.length > 1) {
-        Token replacement = new Token(TokenType.GT, next.charOffset);
-        if (identical(value, '>>')) {
-          replacement.next = new Token(TokenType.GT, next.charOffset + 1);
-          token = rewriter.replaceTokenFollowing(token, replacement);
-        } else if (identical(value, '>=')) {
-          replacement.next = new Token(TokenType.EQ, next.charOffset + 1);
-          token = rewriter.replaceTokenFollowing(token, replacement);
-        } else if (identical(value, '>>=')) {
-          replacement.next = new Token(TokenType.GT, next.charOffset + 1);
-          replacement.next.next = new Token(TokenType.EQ, next.charOffset + 2);
-          token = rewriter.replaceTokenFollowing(token, replacement);
-        } else {
-          token = next;
+      if (end == null) {
+        if (rewriteEndToken(token)) {
+          begin.endToken = null;
         }
-      } else {
-        token = next;
       }
-
+      token = token.next;
       endStuff(count, begin, token);
       expect('>', token);
+      begin.endToken ??= token;
       return token;
     }
     handleNoStuff(next);
@@ -2989,16 +3006,13 @@ class Parser {
             if (token.next is BeginToken) {
               previous = token;
               token = token.next;
-              Token closeBrace = closeBraceTokenFor(token);
-              if (closeBrace == null) {
+              Token beforeCloseBrace = beforeCloseBraceTokenFor(token);
+              if (beforeCloseBrace == null) {
                 previous = reportUnmatchedToken(token);
                 token = previous.next;
               } else {
-                token = closeBrace;
-                // TODO(brianwilkerson): Remove the invocation of `previous`
-                // when `closeBraceTokenFor` returns the token before the
-                // closing brace.
-                previous = token.previous;
+                previous = beforeCloseBrace;
+                token = beforeCloseBrace.next;
               }
             }
           }
@@ -3027,8 +3041,8 @@ class Parser {
             if (token.next is BeginToken) {
               previous = token;
               token = token.next;
-              Token closeBrace = closeBraceTokenFor(token);
-              if (closeBrace == null) {
+              Token beforeCloseBrace = beforeCloseBraceTokenFor(token);
+              if (beforeCloseBrace == null) {
                 // Handle the edge case where the user is defining the less
                 // than operator, as in "bool operator <(other) => false;"
                 if (optional('operator', identifier)) {
@@ -3039,11 +3053,8 @@ class Parser {
                   token = previous.next;
                 }
               } else {
-                token = closeBrace;
-                // TODO(brianwilkerson): Remove the invocation of `previous`
-                // when `closeBraceTokenFor` returns the token before the
-                // closing brace.
-                previous = token.previous;
+                previous = beforeCloseBrace;
+                token = beforeCloseBrace.next;
               }
             }
           }
@@ -4395,6 +4406,7 @@ class Parser {
                     next.precedingComments),
                 new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
             rewriter.replaceTokenFollowing(token, replacement);
+            replacement.endToken = replacement.next;
             token = parseArgumentOrIndexStar(token, null);
           } else {
             token = reportUnexpectedToken(token.next);
@@ -4752,6 +4764,7 @@ class Parser {
         new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.offset),
         new Token(TokenType.CLOSE_SQUARE_BRACKET, token.offset + 1));
     rewriter.replaceTokenFollowing(beforeToken, replacement);
+    replacement.endToken = replacement.next;
     token = replacement.next;
     listener.handleLiteralList(0, replacement, constKeyword, token);
     return token;
