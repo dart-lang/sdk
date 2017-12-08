@@ -7,7 +7,7 @@
 // and also information about test-suites.
 
 import 'package:status_file/environment.dart';
-import 'result_models.dart';
+import 'result_json_models.dart';
 import 'configurations.dart';
 
 typedef String _LookUpFunction(Configuration configuration);
@@ -45,6 +45,7 @@ final _variables = {
   "minified": new _Variable.bool((c) => c.minified),
   "mode": new _Variable((c) => c.mode, Mode.names),
   "runtime": new _Variable(_runtimeName, Runtime.names),
+  "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
   "strong": new _Variable.bool((c) => c.strong),
   "system": new _Variable((c) => c.system, System.names),
   "use_sdk": new _Variable.bool((c) => c.useSdk)

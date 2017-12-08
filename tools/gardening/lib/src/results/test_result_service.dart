@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:core';
-import 'result_models.dart';
+import 'result_json_models.dart';
 import '../logger.dart';
 import '../cache_new.dart';
 import '../logdog.dart';
@@ -14,7 +14,6 @@ import '../logdog_rpc.dart';
 import '../luci_api.dart';
 import '../luci.dart';
 import '../buildbucket.dart';
-import 'util.dart';
 import '../util.dart';
 
 /// [TestResultService] provides functions to obtain [TestResult]s from logs.
@@ -166,7 +165,7 @@ class TestResultService {
       TestResult result = steps.fold(new TestResult(), (acc, buildStep) {
         return acc..combineWith([buildStep.testResult]);
       });
-      return new BuildBucketTestResult(build, result);
+      return new BuildBucketTestResult(build)..combineWith([result]);
     });
   }
 
@@ -228,10 +227,9 @@ class TestResultService {
 }
 
 /// Class that keeps track of a try build and the corresponding test result.
-class BuildBucketTestResult {
+class BuildBucketTestResult extends TestResult {
   final BuildBucketBuild build;
-  final TestResult testResult;
-  BuildBucketTestResult(this.build, this.testResult);
+  BuildBucketTestResult(this.build);
 }
 
 /// Class that keeps track of a test step and test result.

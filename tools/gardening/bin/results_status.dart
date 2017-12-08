@@ -12,15 +12,11 @@ import 'package:gardening/src/logger.dart';
 import 'package:gardening/src/luci.dart';
 import 'package:gardening/src/luci_api.dart';
 import 'package:gardening/src/results/configuration_environment.dart';
-import 'package:gardening/src/results/result_models.dart' as models;
+import 'package:gardening/src/results/result_json_models.dart' as models;
 import 'package:gardening/src/results/status_files.dart';
 import 'package:gardening/src/results/test_result_service.dart';
 import 'package:gardening/src/results/testpy_wrapper.dart';
-import 'package:gardening/src/results/util.dart';
 import 'package:gardening/src/util.dart';
-import 'package:gardening/src/workflow/workflow.dart';
-
-import 'results_status_workflow.dart';
 
 /// Class [StatusCommand] handles the 'status' subcommand and provides
 /// sub-commands for interacting with status files.
@@ -33,7 +29,6 @@ class StatusCommand extends Command {
 
   StatusCommand() {
     addSubcommand(new CheckStatusCommand());
-    addSubcommand(new UpdateStatusCommand());
   }
 }
 
@@ -199,21 +194,5 @@ class CheckStatusCommand extends Command {
         printer.println("");
       }
     }
-  }
-}
-
-/// Class [UpdateStatusCommand] handles the 'status update' subcommand and
-/// updates status files.
-class UpdateStatusCommand extends Command {
-  @override
-  String get description => "Update status files, from failure data and "
-      "existing status entries.";
-
-  @override
-  String get name => "update";
-
-  Future run() async {
-    var workflow = new Workflow();
-    return workflow.start(new AskForLogs());
   }
 }

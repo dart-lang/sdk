@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
-import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:args/args.dart';
-import 'package:gardening/src/luci.dart';
-import 'package:gardening/src/luci_api.dart';
 import 'package:gardening/src/results/status_expectations.dart';
 import 'package:gardening/src/results/status_files.dart';
+import 'package:gardening/src/results/test_result_helper.dart';
 import 'package:gardening/src/results/test_result_service.dart';
 import 'package:gardening/src/util.dart';
 import 'package:gardening/src/console_table.dart';
-import 'package:gardening/src/results/result_models.dart' as models;
-import 'package:gardening/src/results/util.dart';
+import 'package:gardening/src/results/result_json_models.dart' as models;
+import 'package:gardening/src/logdog.dart';
+import 'package:gardening/src/logdog_rpc.dart';
 import 'package:gardening/src/buildbucket.dart';
 import 'package:gardening/src/extended_printer.dart';
 
@@ -34,17 +33,6 @@ OutputTable getOutputTable(ArgResults argResults) {
   return new ConsoleTable(template: rows);
 }
 
-/// Determine if arguments is a CQ url or commit-number + patchset.
-bool isCqInput(ArgResults argResults) {
-  if (argResults.rest.length == 1) {
-    return isSwarmingTaskUrl(argResults.rest.first);
-  }
-  if (argResults.rest.length == 2) {
-    return areNumbers(argResults.rest);
-  }
-  return false;
-}
-
 String howToUse(String command) {
   return "Use by calling one of the following:\n\n"
       "\tget $command <file>                     : for a local result.log file.\n"
@@ -54,93 +42,6 @@ String howToUse(String command) {
       "\tget $command <builder>                  : for a builder name.\n"
       "\tget $command <builder> <build>          : for a builder and build number.\n"
       "\tget $command <builder_group>            : for a builder group.\n";
-}
-
-/// Utility method to get a single test-result no matter what has been passed in
-/// as arguments. The test-result can either be from a builder-group, a single
-/// build on a builder or from a log.
-Future<models.TestResult> getTestResult(ArgResults argResults) async {
-  if (argResults.rest.length == 0) {
-    print("No result.log file given as argument.");
-    print(howToUse(argResults.name));
-    return null;
-  }
-
-  var logger = createLogger();
-  var cache = createCacheFunction(logger);
-  var testResultService = new TestResultService(logger, cache);
-
-  String firstArgument = argResults.rest.first;
-
-  var luciApi = new LuciApi();
-  bool isBuilderGroup = (await getBuilderGroups(luciApi, DART_CLIENT, cache()))
-      .any((builder) => builder == firstArgument);
-  bool isBuilder = (await getAllBuilders(luciApi, DART_CLIENT, cache()))
-      .any((builder) => builder == firstArgument);
-
-  if (argResults.rest.length == 1) {
-    if (argResults.rest.first.startsWith("http")) {
-      return testResultService.fromLogdog(firstArgument);
-    } else if (isBuilderGroup) {
-      return testResultService.forBuilderGroup(firstArgument);
-    } else if (isBuilder) {
-      return testResultService.latestForBuilder(BUILDER_PROJECT, firstArgument);
-    }
-  }
-
-  var file = new File(argResults.rest.first);
-  if (await file.exists()) {
-    return testResultService.getFromFile(file);
-  }
-
-  if (argResults.rest.length == 2 &&
-      isBuilder &&
-      isNumber(argResults.rest[1])) {
-    var buildNumber = int.parse(argResults.rest[1]);
-    return testResultService.forBuild(
-        BUILDER_PROJECT, argResults.rest[0], buildNumber);
-  }
-
-  print("Too many arguments passed to command or arguments were incorrect.");
-  print(howToUse(argResults.name));
-  return null;
-}
-
-/// Utility method to get test results from the CQ.
-Future<Iterable<BuildBucketTestResult>> getTestResultsFromCq(
-    ArgResults argResults) async {
-  if (argResults.rest.length == 0) {
-    print("No result.log file given as argument.");
-    print(howToUse(argResults.name));
-    return null;
-  }
-
-  var logger = createLogger();
-  var createCache = createCacheFunction(logger);
-  var testResultService = new TestResultService(logger, createCache);
-
-  String firstArgument = argResults.rest.first;
-
-  if (argResults.rest.length == 1) {
-    if (!isSwarmingTaskUrl(firstArgument)) {
-      print("URI does not match "
-          "`https://ci.chromium.org/swarming/task/<taskid>?server...`.");
-      print(howToUse(argResults.name));
-      return null;
-    }
-    String swarmingTaskId = getSwarmingTaskId(firstArgument);
-    return await testResultService.getFromSwarmingTaskId(swarmingTaskId);
-  }
-
-  if (argResults.rest.length == 2 && areNumbers(argResults.rest)) {
-    int changeNumber = int.parse(firstArgument);
-    int patchset = int.parse(argResults.rest.last);
-    return await testResultService.fromGerrit(changeNumber, patchset);
-  }
-
-  print("Too many arguments passed to command or arguments were incorrect.");
-  print(howToUse(argResults.name));
-  return null;
 }
 
 /// [GetCommand] handles when given command 'get' and expect a sub-command.
@@ -162,7 +63,8 @@ class GetCommand extends Command {
 /// returns a list of tests with their respective results.
 class GetTestsWithResultCommand extends Command {
   @override
-  String get description => "Get results for tests.";
+  String get description => "Get a list of tests with their respective "
+      "results from result.logs found from input.";
 
   @override
   String get name => "tests";
@@ -172,8 +74,9 @@ class GetTestsWithResultCommand extends Command {
   }
 
   Future run() async {
-    models.TestResult testResults = await getTestResult(argResults);
+    models.TestResult testResults = await getTestResult(argResults.rest);
     if (testResults == null) {
+      print(howToUse("tests"));
       return;
     }
     var outputTable = getOutputTable(argResults)
@@ -191,10 +94,11 @@ class GetTestsWithResultCommand extends Command {
 /// 'result' and returns a list of tests with their result and expectations.
 class GetTestsWithResultAndExpectationCommand extends Command {
   @override
-  String get description => "Get results and expectations for tests.";
+  String get description => "Get a list of tests with their respective "
+      "results and expectations from result.logs found from input.";
 
   @override
-  String get name => "results";
+  String get name => "tests-with-expectations";
 
   GetTestsWithResultAndExpectationCommand() {
     buildArgs(argParser);
@@ -203,17 +107,20 @@ class GetTestsWithResultAndExpectationCommand extends Command {
   Future run() async {
     models.TestResult testResult = null;
 
-    if (isCqInput(argResults)) {
+    if (isCqInput(argResults.rest)) {
       Iterable<BuildBucketTestResult> buildBucketTestResults =
-          await getTestResultsFromCq(argResults);
-      Iterable<models.TestResult> testResults =
-          buildBucketTestResults.map((build) => build.testResult);
-      testResult = new models.TestResult()..combineWith(testResults);
+          await getTestResultsFromCq(argResults.rest);
+      if (buildBucketTestResults != null) {
+        testResult = buildBucketTestResults.fold<models.TestResult>(
+            new models.TestResult(),
+            (combined, buildResult) => combined..combineWith([buildResult]));
+      }
     } else {
-      testResult = await getTestResult(argResults);
+      testResult = await getTestResult(argResults.rest);
     }
 
     if (testResult == null) {
+      print(howToUse("results"));
       return;
     }
 
@@ -241,7 +148,8 @@ class GetTestsWithResultAndExpectationCommand extends Command {
 /// returns only the failing tests.
 class GetTestFailuresCommand extends Command {
   @override
-  String get description => "Get failures of tests.";
+  String get description => "Get a list of tests with their respective "
+      "results and expectations from result.logs found from input.";
 
   @override
   String get name => "failures";
@@ -250,51 +158,37 @@ class GetTestFailuresCommand extends Command {
     buildArgs(argParser);
   }
 
-  Future run() {
-    if (isCqInput(argResults)) {
-      return handleCqInput(argResults);
+  Future run() async {
+    List<models.TestResult> testResults = [];
+    if (isCqInput(argResults.rest)) {
+      var buildBucketResults = await getTestResultsFromCq(argResults.rest);
+      if (buildBucketResults == null) {
+        print(howToUse("failures"));
+        return;
+      }
+      testResults.addAll(buildBucketResults);
     } else {
-      return handleBuildbotInput(argResults);
-    }
-  }
-
-  Future handleCqInput(ArgResults argResults) async {
-    Iterable<BuildBucketTestResult> buildBucketTestResults =
-        await getTestResultsFromCq(argResults);
-
-    if (buildBucketTestResults == null) {
-      return;
+      var testResult = await getTestResult(argResults.rest);
+      if (testResult == null) {
+        print(howToUse("failures"));
+        return;
+      }
+      testResults.add(testResult);
     }
 
     print("All result logs fetched.");
     print("Calling test.py to find statuses for each test.");
     print("");
 
-    for (var buildResult in buildBucketTestResults) {
-      printBuild(buildResult.build);
+    for (var testResult in testResults) {
+      if (testResult is BuildBucketTestResult) {
+        printBuild(testResult.build);
+      }
       List<TestExpectationResult> results =
-          await getTestResultsWithExpectation(buildResult.testResult);
+          await getTestResultsWithExpectation(testResult);
       printFailingTestExpectationResults(results);
       print("");
     }
-  }
-
-  Future handleBuildbotInput(ArgResults argResults) async {
-    models.TestResult testResult = await getTestResult(argResults);
-
-    if (testResult == null) {
-      return;
-    }
-
-    print("All result logs fetched.");
-    var estimatedTime =
-        new Duration(milliseconds: testResult.results.length * 100 ~/ 1000);
-    print("Calling test.py to find status files for the configuration and "
-        "the expectation for ${testResult.results.length} tests. ");
-    List<TestExpectationResult> withExpectations =
-        await getTestResultsWithExpectation(testResult);
-    printFailingTestExpectationResults(withExpectations);
-    print("");
   }
 }
 

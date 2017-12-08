@@ -7,9 +7,9 @@ import 'dart:async';
 import 'package:gardening/src/results/configuration_environment.dart';
 import 'package:gardening/src/results/status_files.dart';
 
-import 'result_models.dart';
+import 'result_json_models.dart';
 import 'testpy_wrapper.dart';
-import 'util.dart';
+import '../util.dart';
 import 'package:status_file/expectation.dart';
 
 /// Finds the expectation for each test found in the [testResult] results and

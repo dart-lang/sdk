@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gardening/src/results/configuration_environment.dart';
-import 'package:gardening/src/util.dart';
 import 'package:status_file/status_file.dart';
 
 class StatusFiles {
