@@ -58,8 +58,4 @@ void foo() { }
 class GetPostfixCompletionTest_PreviewDart2 extends GetPostfixCompletionTest {
   @override
   bool get usePreviewDart2 => true;
-
-  @override
-  @failingTest
-  Future test_postfix_completion() => super.test_postfix_completion();
 }

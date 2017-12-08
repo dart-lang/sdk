@@ -512,20 +512,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstCaseExpression_typeLiteral() async {
-    return super.test_nonConstCaseExpression_typeLiteral();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonConstMapAsExpressionStatement_typeArguments() async {
-    return super.test_nonConstMapAsExpressionStatement_typeArguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_nonConstMapKey_constField() async {
     return super.test_nonConstMapKey_constField();
   }
@@ -691,13 +677,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedMethod_functionExpression_directCall() async {
     return super.test_undefinedMethod_functionExpression_directCall();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedMethod_static_conditionalAccess() async {
-    return super.test_undefinedMethod_static_conditionalAccess();
   }
 
   @override
