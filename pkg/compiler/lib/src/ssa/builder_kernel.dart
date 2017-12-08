@@ -2930,9 +2930,12 @@ class KernelSsaGraphBuilder extends ir.Visitor
       isFixedList = isFixedListConstructorCall;
     }
 
-    InterfaceType type = _elementMap.createInterfaceType(
+    InterfaceType instanceType = _elementMap.createInterfaceType(
         invocation.target.enclosingClass, invocation.arguments.types);
-    if (_checkAllTypeVariableBounds(function, type, sourceInformation)) return;
+    if (_checkAllTypeVariableBounds(
+        function, instanceType, sourceInformation)) {
+      return;
+    }
 
     TypeMask resultType = typeMask;
 
@@ -3010,9 +3013,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       if (closedWorld.rtiNeed.classNeedsRti(function.enclosingClass)) {
         _addTypeArguments(arguments, invocation.arguments, sourceInformation);
       }
-      addImplicitInstantiation(type);
+      instanceType = localsHandler.substInContext(instanceType);
+      addImplicitInstantiation(instanceType);
       _pushStaticInvocation(function, arguments, typeMask,
-          sourceInformation: sourceInformation);
+          sourceInformation: sourceInformation, instanceType: instanceType);
     }
 
     HInstruction newInstance = stack.last;
@@ -3517,9 +3521,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   void _pushStaticInvocation(
       MemberEntity target, List<HInstruction> arguments, TypeMask typeMask,
-      {SourceInformation sourceInformation,
-      // TODO(redemption): Pass instance type.
-      InterfaceType instanceType}) {
+      {SourceInformation sourceInformation, InterfaceType instanceType}) {
     // TODO(redemption): Pass current node if needed.
     if (_tryInlineMethod(target, null, null, arguments, null, sourceInformation,
         instanceType: instanceType)) {
@@ -4003,11 +4005,13 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ConstructorEntity constructor = _elementMap.getConstructor(target);
     ClassEntity cls = constructor.enclosingClass;
     TypeMask typeMask = new TypeMask.nonNullExact(cls, closedWorld);
-    InterfaceType type = _elementMap.createInterfaceType(
+    InterfaceType instanceType = _elementMap.createInterfaceType(
         target.enclosingClass, node.arguments.types);
 
-    if (_checkAllTypeVariableBounds(constructor, type, sourceInformation))
+    if (_checkAllTypeVariableBounds(
+        constructor, instanceType, sourceInformation)) {
       return;
+    }
 
     // TODO(sra): For JS-interop targets, process arguments differently.
     List<HInstruction> arguments = <HInstruction>[];
@@ -4025,10 +4029,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     if (closedWorld.rtiNeed.classNeedsRti(cls)) {
       _addTypeArguments(arguments, node.arguments, sourceInformation);
     }
-    addImplicitInstantiation(type);
+    instanceType = localsHandler.substInContext(instanceType);
+    addImplicitInstantiation(instanceType);
     _pushStaticInvocation(constructor, arguments, typeMask,
-        sourceInformation: sourceInformation);
-    removeImplicitInstantiation(type);
+        sourceInformation: sourceInformation, instanceType: instanceType);
+    removeImplicitInstantiation(instanceType);
   }
 
   @override
@@ -4418,7 +4423,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
     }
 
     void doInlining() {
-      registry.registerStaticUse(new StaticUse.inlining(function));
+      registry
+          .registerStaticUse(new StaticUse.inlining(function, instanceType));
 
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the

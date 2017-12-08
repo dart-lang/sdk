@@ -405,8 +405,10 @@ class StaticUse {
   }
 
   /// Inlining of [element].
-  factory StaticUse.inlining(FunctionEntity element) {
-    return new StaticUse.internal(element, StaticUseKind.INLINING);
+  factory StaticUse.inlining(
+      FunctionEntity element, InterfaceType instanceType) {
+    return new StaticUse.internal(
+        element, StaticUseKind.INLINING, instanceType);
   }
 
   bool operator ==(other) {

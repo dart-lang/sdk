@@ -584,7 +584,8 @@ class SsaAstGraphBuilder extends ast.Visitor
     }
 
     void doInlining() {
-      registry.registerStaticUse(new StaticUse.inlining(declaration));
+      registry
+          .registerStaticUse(new StaticUse.inlining(declaration, instanceType));
 
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the

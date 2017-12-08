@@ -52,19 +52,29 @@ abstract class ComputeValueMixin<T> {
 
   String getMemberValue(MemberEntity member) {
     if (member is FunctionEntity) {
-      StaticUse use = new StaticUse.inlining(member);
-      StaticUse useBody;
+      ConstructorBodyEntity constructorBody;
       if (member is ConstructorEntity && member.isGenerativeConstructor) {
-        useBody = new StaticUse.inlining(getConstructorBody(member));
+        constructorBody = getConstructorBody(member);
       }
       List<String> inlinedIn = <String>[];
       backend.codegenImpactsForTesting
-          .forEach((MemberEntity member, WorldImpact impact) {
-        if (impact.staticUses.contains(use)) {
-          inlinedIn.add(member.name);
-        }
-        if (useBody != null && impact.staticUses.contains(useBody)) {
-          inlinedIn.add('${member.name}+');
+          .forEach((MemberEntity user, WorldImpact impact) {
+        for (StaticUse use in impact.staticUses) {
+          if (use.kind == StaticUseKind.INLINING) {
+            if (use.element == member) {
+              if (use.type != null) {
+                inlinedIn.add('${user.name}:${use.type}');
+              } else {
+                inlinedIn.add(user.name);
+              }
+            } else if (use.element == constructorBody) {
+              if (use.type != null) {
+                inlinedIn.add('${user.name}+:${use.type}');
+              } else {
+                inlinedIn.add('${user.name}+');
+              }
+            }
+          }
         }
       });
       inlinedIn.sort();

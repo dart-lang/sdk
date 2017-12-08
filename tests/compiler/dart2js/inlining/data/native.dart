@@ -36,7 +36,7 @@ newCustomCreated() {
 class CustomElement extends HtmlElement {
   static final tag = 'x-foo';
 
-  /*element: CustomElement.:[newCustom]*/
+  /*element: CustomElement.:[newCustom:CustomElement]*/
   factory CustomElement() => new Element.tag(tag);
 
   /*element: CustomElement.created:[]*/
@@ -63,10 +63,10 @@ newNormalCreated() {
 }
 
 class NormalElement {
-  /*element: NormalElement.:[newNormal]*/
+  /*element: NormalElement.:[newNormal:NormalElement]*/
   factory NormalElement() => null;
 
-  /*element: NormalElement.created:[newNormalCreated,newNormalCreated+]*/
+  /*element: NormalElement.created:[newNormalCreated+,newNormalCreated:NormalElement]*/
   NormalElement.created() {
     print('foo');
   }
