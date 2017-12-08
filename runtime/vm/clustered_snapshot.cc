@@ -1871,17 +1871,14 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     objects_.Add(pool);
 
     intptr_t length = pool->ptr()->length_;
-    RawTypedData* info_array = pool->ptr()->info_array_;
 
     for (intptr_t i = 0; i < length; i++) {
       ObjectPool::EntryType entry_type =
-          static_cast<ObjectPool::EntryType>(info_array->ptr()->data()[i]);
+          static_cast<ObjectPool::EntryType>(pool->ptr()->entry_types()[i]);
       if (entry_type == ObjectPool::kTaggedObject) {
         s->Push(pool->ptr()->data()[i].raw_obj_);
       }
     }
-
-    // TODO(rmacnak): Allocate the object pool and its info array together.
   }
 
   void WriteAlloc(Serializer* s) {
@@ -1900,12 +1897,11 @@ class ObjectPoolSerializationCluster : public SerializationCluster {
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawObjectPool* pool = objects_[i];
-      RawTypedData* info_array = pool->ptr()->info_array_;
       intptr_t length = pool->ptr()->length_;
       s->Write<int32_t>(length);
       for (intptr_t j = 0; j < length; j++) {
         ObjectPool::EntryType entry_type =
-            static_cast<ObjectPool::EntryType>(info_array->ptr()->data()[j]);
+            static_cast<ObjectPool::EntryType>(pool->ptr()->entry_types()[j]);
         s->Write<int8_t>(entry_type);
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
         switch (entry_type) {
@@ -1967,24 +1963,16 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     bool is_vm_object = d->isolate() == Dart::vm_isolate();
-    PageSpace* old_space = d->heap()->old_space();
     for (intptr_t id = start_index_; id < stop_index_; id += 1) {
       intptr_t length = d->Read<int32_t>();
-      RawTypedData* info_array = reinterpret_cast<RawTypedData*>(
-          AllocateUninitialized(old_space, TypedData::InstanceSize(length)));
-      Deserializer::InitializeHeader(info_array, kTypedDataUint8ArrayCid,
-                                     TypedData::InstanceSize(length),
-                                     is_vm_object);
-      info_array->ptr()->length_ = Smi::New(length);
       RawObjectPool* pool = reinterpret_cast<RawObjectPool*>(d->Ref(id + 0));
       Deserializer::InitializeHeader(
           pool, kObjectPoolCid, ObjectPool::InstanceSize(length), is_vm_object);
       pool->ptr()->length_ = length;
-      pool->ptr()->info_array_ = info_array;
       for (intptr_t j = 0; j < length; j++) {
         ObjectPool::EntryType entry_type =
             static_cast<ObjectPool::EntryType>(d->Read<int8_t>());
-        info_array->ptr()->data()[j] = entry_type;
+        pool->ptr()->entry_types()[j] = entry_type;
         RawObjectPool::Entry& entry = pool->ptr()->data()[j];
         switch (entry_type) {
           case ObjectPool::kTaggedObject:

@@ -258,7 +258,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
       ASSERT(Utils::IsAligned(offset, 8));
       intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
       const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
-      if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+      if (pool.TypeAt(index) == ObjectPool::kTaggedObject) {
         *obj = pool.ObjectAt(index);
         return true;
       }

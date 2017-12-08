@@ -12391,23 +12391,12 @@ RawObjectPool* ObjectPool::New(intptr_t len) {
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
+    for (intptr_t i = 0; i < len; i++) {
+      result.SetTypeAt(i, ObjectPool::kImmediate);
+    }
   }
 
-  // TODO(fschneider): Compress info array to just use just enough bits for
-  // the entry type enum.
-  const TypedData& info_array = TypedData::Handle(
-      TypedData::New(kTypedDataInt8ArrayCid, len, Heap::kOld));
-  result.set_info_array(info_array);
   return result.raw();
-}
-
-void ObjectPool::set_info_array(const TypedData& info_array) const {
-  StorePointer(&raw_ptr()->info_array_, info_array.raw());
-}
-
-ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
-  ObjectPoolInfo pool_info(*this);
-  return pool_info.InfoAt(index);
 }
 
 const char* ObjectPool::ToCString() const {
@@ -12420,11 +12409,11 @@ void ObjectPool::DebugPrint() const {
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
     THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
-    if (InfoAt(i) == kTaggedObject) {
+    if (TypeAt(i) == kTaggedObject) {
       RawObject* obj = ObjectAt(i);
       THR_Print("0x%" Px " %s (obj)\n", reinterpret_cast<uword>(obj),
                 Object::Handle(obj).ToCString());
-    } else if (InfoAt(i) == kNativeEntry) {
+    } else if (TypeAt(i) == kNativeEntry) {
       THR_Print("0x%" Px " (native entry)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
