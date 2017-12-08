@@ -1052,6 +1052,7 @@ const_types_test/15: MissingCompileTimeError # Incorrectly allows using type par
 constant_type_literal_test/01: MissingCompileTimeError # Issue 28823
 error_stacktrace_test/00: Pass
 field3a_negative_test: StaticWarning # Issue 28823
+forwarding_stub_tearoff_test: CompileTimeError
 generic_list_checked_test: CompileTimeError
 generic_methods_closure_test: CompileTimeError # Issue 29070
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30207
