@@ -311,6 +311,7 @@ empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
 export_ambiguous_main_test: MissingCompileTimeError
+extract_type_arguments_test: CompileTimeError # Issue 31371
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory1_test/00: MissingCompileTimeError

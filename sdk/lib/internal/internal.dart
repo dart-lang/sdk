@@ -96,3 +96,56 @@ int parseHexByte(String source, int index) {
   int digit2 = hexDigitValue(source.codeUnitAt(index + 1));
   return digit1 * 16 + digit2 - (digit2 & 256);
 }
+
+/// Given an [instance] of some generic type [T], and [extract], a first-class
+/// generic function that takes the same number of type parameters as [T],
+/// invokes the function with the same type arguments that were passed to T
+/// when [instance] was constructed.
+///
+/// Example:
+///
+/// ```dart
+/// class Two<A, B> {}
+///
+/// print(extractTypeArguments<List>(<int>[], <T>() => new Set<T>()));
+/// // Prints: Instance of 'Set<int>'.
+///
+/// print(extractTypeArguments<Map>(<String, bool>{},
+///     <T, S>() => new Two<T, S>));
+/// // Prints: Instance of 'Two<String, bool>'.
+/// ```
+///
+/// The type argument T is important to choose which specific type parameter
+/// list in [instance]'s type hierarchy is being extracted. Consider:
+///
+/// ```dart
+/// class A<T> {}
+/// class B<T> {}
+///
+/// class C implements A<int>, B<String> {}
+///
+/// main() {
+///   var c = new C();
+///   print(extractTypeArguments<A>(c, <T>() => <T>[]));
+///   // Prints: Instance of 'List<int>'.
+///
+///   print(extractTypeArguments<B>(c, <T>() => <T>[]));
+///   // Prints: Instance of 'List<String>'.
+/// }
+/// ```
+///
+/// A caller must not:
+///
+/// *   Pass `null` for [instance].
+/// *   Use a non-class type (i.e. a function type) for [T].
+/// *   Use a non-generic type for [T].
+/// *   Pass an instance of a generic type and a function that don't both take
+///     the same number of type arguments:
+///
+///     ```dart
+///     extractTypeArguments<List>(<int>[], <T, S>() => null);
+///     ```
+///
+/// See this issue for more context:
+/// https://github.com/dart-lang/sdk/issues/31371
+external Object extractTypeArguments<T>(T instance, Function extract);

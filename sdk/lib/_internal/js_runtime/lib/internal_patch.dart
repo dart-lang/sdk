@@ -45,3 +45,9 @@ List<T> makeListFixedLength<T>(List<T> growableList) {
 List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
   return JSArray.markUnmodifiableList(fixedLengthList);
 }
+
+@patch
+Object extractTypeArguments<T>(T instance, Function extract) {
+  // TODO(31371): Implement this.
+  throw new UnimplementedError();
+}

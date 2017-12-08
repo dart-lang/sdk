@@ -47,6 +47,6 @@ List/*<E>*/ makeFixedListUnmodifiable/*<E>*/(List/*<E>*/ fixedLengthList) {
   return fixedLengthList;
 }
 
-// TODO(vsm): Make this an @patch.
-Object extractTypeArguments<T>(T instance, Function f) =>
-    dart.extractTypeArguments<T>(instance, f);
+@patch
+Object extractTypeArguments<T>(T instance, Function extract) =>
+    dart.extractTypeArguments<T>(instance, extract);

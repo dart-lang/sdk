@@ -142,6 +142,7 @@ error_stacktrace_test/00: MissingCompileTimeError
 example_constructor_test: RuntimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
+extract_type_arguments_test: CompileTimeError # Issue 31371
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory1_test/00: MissingCompileTimeError
