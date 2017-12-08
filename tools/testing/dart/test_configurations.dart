@@ -231,6 +231,9 @@ Future testConfigurations(List<Configuration> configurations) async {
       var printFailureSummary = progressIndicator != Progress.buildbot;
       eventListener.add(new TestFailurePrinter(printFailureSummary, formatter));
     }
+    if (firstConf.printPassingStdout) {
+      eventListener.add(new PassingStdoutPrinter(formatter));
+    }
     eventListener.add(ProgressIndicator.fromProgress(
         progressIndicator, startTime, formatter));
     if (printTiming) {

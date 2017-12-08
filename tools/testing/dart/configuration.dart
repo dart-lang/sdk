@@ -78,7 +78,8 @@ class Configuration {
       this.builderTag,
       this.outputDirectory,
       this.reproducingArguments,
-      this.fastTestsOnly})
+      this.fastTestsOnly,
+      this.printPassingStdout})
       : _packages = packages,
         _timeout = timeout;
 
@@ -122,6 +123,7 @@ class Configuration {
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
+  final bool printPassingStdout;
 
   // Various file paths.
 
