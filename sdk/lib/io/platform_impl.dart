@@ -41,16 +41,13 @@ class _Platform {
   static String packageRoot = _packageRoot();
   static String packageConfig = _packageConfig();
 
-  static String _cachedLocaleName;
-  static String get localeName {
-    if (_cachedLocaleName == null) {
-      var result = _localeName();
-      if (result is OSError) {
-        throw result;
-      }
-      _cachedLocaleName = result;
+  static String Function() _localeClosure;
+  static String localeName() {
+    final result = (_localeClosure == null) ? _localeName() : _localeClosure();
+    if (result is OSError) {
+      throw result;
     }
-    return _cachedLocaleName;
+    return result;
   }
 
   // Cache the OS environment. This can be an OSError instance if

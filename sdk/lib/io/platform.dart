@@ -72,7 +72,6 @@ class Platform {
   static final _operatingSystemVersion = _Platform.operatingSystemVersion;
   static final _localHostname = _Platform.localHostname;
   static final _version = _Platform.version;
-  static final _localeName = _Platform.localeName;
 
   /**
    * The number of individual execution units of the machine.
@@ -88,7 +87,7 @@ class Platform {
   /**
    * Get the name of the current locale.
    */
-  static String get localeName => _localeName;
+  static String get localeName => _Platform.localeName();
 
   /**
    * A string representing the operating system or platform.
