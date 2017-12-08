@@ -107,7 +107,11 @@ abstract class BuilderHelper {
       [int charOffset = -1]);
 
   Expression buildStaticInvocation(Procedure target, Arguments arguments,
-      {bool isConst, int charOffset, Member initialTarget});
+      {bool isConst,
+      int charOffset,
+      Member initialTarget,
+      int targetOffset: -1,
+      Class targetClass});
 
   Expression buildProblemExpression(ProblemBuilder builder, int offset);
 
@@ -729,13 +733,16 @@ class PropertyAccessor extends kernel.PropertyAccessor with FastaAccessor {
 
 class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
   StaticAccessor(
-      BuilderHelper helper, Token token, Member readTarget, Member writeTarget)
-      : super(helper, readTarget, writeTarget, token) {
+      BuilderHelper helper, Token token, Member readTarget, Member writeTarget,
+      {int targetOffset: -1, Class targetClass})
+      : super(
+            helper, targetOffset, targetClass, readTarget, writeTarget, token) {
     assert(readTarget != null || writeTarget != null);
   }
 
-  factory StaticAccessor.fromBuilder(BuilderHelper helper, Builder builder,
-      Token token, Builder builderSetter) {
+  factory StaticAccessor.fromBuilder(
+      BuilderHelper helper, Builder builder, Token token, Builder builderSetter,
+      {int targetOffset: -1, Class targetClass}) {
     if (builder is AccessErrorBuilder) {
       AccessErrorBuilder error = builder;
       builder = error.builder;
@@ -753,7 +760,8 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
         setter = builderSetter.target;
       }
     }
-    return new StaticAccessor(helper, token, getter, setter);
+    return new StaticAccessor(helper, token, getter, setter,
+        targetOffset: targetOffset, targetClass: targetClass);
   }
 
   String get plainNameForRead => (readTarget ?? writeTarget).name.name;
@@ -772,7 +780,9 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
           isImplicitCall: true);
     } else {
       return helper.buildStaticInvocation(readTarget, arguments,
-          charOffset: offset);
+          charOffset: offset,
+          targetOffset: targetOffset,
+          targetClass: targetClass);
     }
   }
 
@@ -986,10 +996,14 @@ class ParenthesizedExpression extends ReadOnlyAccessor {
 }
 
 class TypeDeclarationAccessor extends ReadOnlyAccessor {
+  /// The offset at which the [declaration] is referenced by this accessor,
+  /// or `-1` if the reference is implicit.
+  final int declarationReferenceOffset;
+
   final TypeDeclarationBuilder declaration;
 
-  TypeDeclarationAccessor(BuilderHelper helper, this.declaration,
-      String plainNameForRead, Token token)
+  TypeDeclarationAccessor(BuilderHelper helper, this.declarationReferenceOffset,
+      this.declaration, String plainNameForRead, Token token)
       : super(helper, null, plainNameForRead, token);
 
   Expression get expression {
@@ -1051,8 +1065,10 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
         } else if (builder.isField && !builder.isFinal) {
           setter = builder;
         }
-        accessor =
-            new StaticAccessor.fromBuilder(helper, builder, send.token, setter);
+        accessor = new StaticAccessor.fromBuilder(
+            helper, builder, send.token, setter,
+            targetOffset: declarationReferenceOffset,
+            targetClass: declaration.target);
       }
 
       return arguments == null

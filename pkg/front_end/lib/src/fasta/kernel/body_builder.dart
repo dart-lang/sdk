@@ -1235,7 +1235,8 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
         deprecated_addCompileTimeError(
             charOffset, "Not a constant expression.");
       }
-      return new TypeDeclarationAccessor(this, builder, name, token);
+      return new TypeDeclarationAccessor(
+          this, charOffset, builder, name, token);
     } else if (builder.isLocal) {
       if (constantExpressionRequired &&
           !builder.isConst &&
@@ -2330,7 +2331,11 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
 
   @override
   Expression buildStaticInvocation(Member target, Arguments arguments,
-      {bool isConst: false, int charOffset: -1, Member initialTarget}) {
+      {bool isConst: false,
+      int charOffset: -1,
+      Member initialTarget,
+      int targetOffset: -1,
+      Class targetClass}) {
     initialTarget ??= target;
     List<TypeParameter> typeParameters = target.function.typeParameters;
     if (target is Constructor) {
@@ -2361,7 +2366,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
             isConst: isConst)
           ..fileOffset = charOffset;
       } else {
-        return new ShadowStaticInvocation(target, arguments, isConst: isConst)
+        return new ShadowStaticInvocation(
+            targetOffset, targetClass, target, arguments,
+            isConst: isConst)
           ..fileOffset = charOffset;
       }
     }

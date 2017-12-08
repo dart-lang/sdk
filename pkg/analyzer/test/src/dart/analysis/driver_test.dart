@@ -2476,6 +2476,69 @@ class C<T> {
     }
   }
 
+  test_methodInvocation_staticMethod() async {
+    addTestFile(r'''
+main() {
+  C.m(1);
+}
+class C {
+  static void m(int p) {}
+  void foo() {
+    m(2);
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    ClassDeclaration cNode = result.unit.declarations[1];
+    ClassElement cElement = cNode.element;
+    MethodDeclaration mNode = cNode.members[0];
+    MethodElement mElement = mNode.element;
+
+    {
+      ExpressionStatement statement = mainStatements[0];
+      MethodInvocation invocation = statement.expression;
+      List<Expression> arguments = invocation.argumentList.arguments;
+
+      SimpleIdentifier target = invocation.target;
+      expect(target.staticElement, same(cElement));
+      expect(target.staticType, same(cElement.type));
+
+      var invokeTypeStr = '(int) → void';
+      expect(invocation.staticType.toString(), 'void');
+      expect(invocation.staticInvokeType.toString(), invokeTypeStr);
+      expect(invocation.staticInvokeType.element, same(mElement));
+      expect(invocation.methodName.staticElement, same(mElement));
+      expect(invocation.methodName.staticType.toString(), invokeTypeStr);
+
+      Expression argument = arguments[0];
+      expect(argument.staticParameterElement, mElement.parameters[0]);
+    }
+
+    {
+      MethodDeclaration fooNode = cNode.members[1];
+      BlockFunctionBody fooBody = fooNode.body;
+      List<Statement> statements = fooBody.block.statements;
+
+      ExpressionStatement statement = statements[0];
+      MethodInvocation invocation = statement.expression;
+      List<Expression> arguments = invocation.argumentList.arguments;
+
+      expect(invocation.target, isNull);
+
+      var invokeTypeStr = '(int) → void';
+      expect(invocation.staticType.toString(), 'void');
+      expect(invocation.staticInvokeType.toString(), invokeTypeStr);
+      expect(invocation.staticInvokeType.element, same(mElement));
+      expect(invocation.methodName.staticElement, same(mElement));
+      expect(invocation.methodName.staticType.toString(), invokeTypeStr);
+
+      Expression argument = arguments[0];
+      expect(argument.staticParameterElement, mElement.parameters[0]);
+    }
+  }
+
   test_methodInvocation_staticMethod_contextTypeParameter() async {
     addTestFile(r'''
 class C<T> {

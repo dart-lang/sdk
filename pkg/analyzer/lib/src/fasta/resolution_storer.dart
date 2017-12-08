@@ -525,8 +525,13 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool staticInvocationEnter(
-      StaticInvocation expression, DartType typeContext) {
+  bool staticInvocationEnter(StaticInvocation expression, int targetOffset,
+      Class targetClass, DartType typeContext) {
+    // If the static target is explicit (and is a class), record it.
+    if (targetClass != null) {
+      _recordReference(targetClass, targetOffset);
+      _recordType(targetClass.rawType, targetOffset);
+    }
     // When the invocation target is `VariableGet`, we record the target
     // before arguments. To ensure this order for method invocations, we
     // first record `null`, and then replace it on exit.
@@ -544,7 +549,8 @@ class ResolutionStorer extends TypeInferenceListener {
     // type later.
     _deferType(expression.fileOffset);
     _deferType(expression.arguments.fileOffset);
-    return super.staticInvocationEnter(expression, typeContext);
+    return super.staticInvocationEnter(
+        expression, targetOffset, targetClass, typeContext);
   }
 
   @override

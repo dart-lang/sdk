@@ -419,8 +419,8 @@ class TypeInferenceListener
   void staticGetExit(StaticGet expression, DartType inferredType) =>
       genericExpressionExit("staticGet", expression, inferredType);
 
-  bool staticInvocationEnter(
-          StaticInvocation expression, DartType typeContext) =>
+  bool staticInvocationEnter(StaticInvocation expression, int targetOffset,
+          Class targetClass, DartType typeContext) =>
       genericExpressionEnter("staticInvocation", expression, typeContext);
 
   void staticInvocationExit(

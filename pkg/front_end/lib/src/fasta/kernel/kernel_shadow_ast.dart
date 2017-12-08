@@ -1780,18 +1780,24 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
 /// Shadow object for [StaticInvocation].
 class ShadowStaticInvocation extends StaticInvocation
     implements ShadowExpression {
-  ShadowStaticInvocation(Procedure target, Arguments arguments,
+  /// If [_targetClass] is not `null`, the offset at which the explicit
+  /// reference to it is; otherwise `-1`.
+  int _targetOffset;
+
+  /// The [Class] that was explicitly referenced to get the target [Procedure],
+  /// or `null` if the class is implicit.
+  Class _targetClass;
+
+  ShadowStaticInvocation(this._targetOffset, this._targetClass,
+      Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
-
-  ShadowStaticInvocation.byReference(
-      Reference targetReference, Arguments arguments)
-      : super.byReference(targetReference, arguments);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener.staticInvocationEnter(this, typeContext) ||
+    typeNeeded = inferrer.listener.staticInvocationEnter(
+            this, _targetOffset, _targetClass, typeContext) ||
         typeNeeded;
     var calleeType = target.function.functionType;
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
