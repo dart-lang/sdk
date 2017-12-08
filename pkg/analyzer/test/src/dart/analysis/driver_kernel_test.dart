@@ -29,13 +29,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   bool get previewDart2 => true;
 
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_addFile_shouldRefresh() async {
-    await super.test_addFile_shouldRefresh();
-  }
-
 //  @failingTest
 //  @potentialAnalyzerProblem
   @override

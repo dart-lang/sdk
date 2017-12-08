@@ -1050,6 +1050,14 @@ class _ResolutionApplierContext implements TypeContext {
         element = resynthesizer
             .getElementFromCanonicalName(referencedNode.canonicalName);
         assert(element != null);
+      } else if (referencedNode is kernel.FunctionType) {
+        element = resynthesizer
+            .getElementFromCanonicalName(referencedNode.typedef.canonicalName);
+        assert(element != null);
+      } else if (referencedNode is kernel.InterfaceType) {
+        element = resynthesizer.getElementFromCanonicalName(
+            referencedNode.classNode.canonicalName);
+        assert(element != null);
       } else if (referencedNode is kernel.MemberGetterNode) {
         var memberElement = resynthesizer
             .getElementFromCanonicalName(referencedNode.member.canonicalName);

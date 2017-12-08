@@ -3961,6 +3961,38 @@ class C<T extends A, U extends List<A>, V> {}
     }
   }
 
+  test_typeLiteral() async {
+    addTestFile(r'''
+void main() {
+  int;
+  F;
+}
+typedef void F(int p);
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    FunctionTypeAlias fNode = unit.declarations[1];
+    FunctionTypeAliasElement fElement = fNode.element;
+
+    var statements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = statements[0];
+      SimpleIdentifier identifier = statement.expression;
+      expect(identifier.staticElement, same(typeProvider.intType.element));
+      expect(identifier.staticType, typeProvider.typeType);
+    }
+
+    {
+      ExpressionStatement statement = statements[1];
+      SimpleIdentifier identifier = statement.expression;
+      expect(identifier.staticElement, same(fElement));
+      expect(identifier.staticType, typeProvider.typeType);
+    }
+  }
+
   void _assertDefaultParameter(
       DefaultFormalParameter node, ParameterElement element,
       {String name, int offset, ParameterKind kind, DartType type}) {

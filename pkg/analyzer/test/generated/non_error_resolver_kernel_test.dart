@@ -195,13 +195,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_constEval_functionTypeLiteral() async {
-    return super.test_constEval_functionTypeLiteral();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_constEval_propertyExtraction_fieldStatic_targetType() async {
     return super.test_constEval_propertyExtraction_fieldStatic_targetType();
   }
@@ -547,13 +540,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstCaseExpression_typeLiteral() async {
-    return super.test_nonConstCaseExpression_typeLiteral();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_nonConstMapAsExpressionStatement_typeArguments() async {
     return super.test_nonConstMapAsExpressionStatement_typeArguments();
   }
@@ -717,22 +703,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeType_class() async {
-    return super.test_typeType_class();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeType_class_prefixed() async {
     return super.test_typeType_class_prefixed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeType_functionTypeAlias() async {
-    return super.test_typeType_functionTypeAlias();
   }
 
   @override
