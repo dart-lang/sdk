@@ -1656,7 +1656,6 @@ deferred_type_dependency_test/is: CompileTimeError # KernelVM bug: Deferred load
 deferred_type_dependency_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/type_annotation: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
-disassemble_test: Crash
 duplicate_export_negative_test: Fail # Issue 6134
 duplicate_implements_test/01: MissingCompileTimeError
 duplicate_implements_test/02: MissingCompileTimeError
