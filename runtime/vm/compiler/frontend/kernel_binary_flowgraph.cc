@@ -2735,7 +2735,7 @@ void StreamingConstantEvaluator::EvaluateGetStringLength(
   EvaluateExpression(expression_offset);
   if (result_.IsString()) {
     const String& str = String::Handle(Z, String::RawCast(result_.raw()));
-    result_ = Integer::New(str.Length());
+    result_ = Integer::New(str.Length(), H.allocation_space());
   } else {
     H.ReportError(
         script_, position,
@@ -3037,7 +3037,8 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
   intptr_t length = builder_->ReadListLength();  // read list length.
 
   bool all_string = true;
-  const Array& strings = Array::Handle(Z, Array::New(length));
+  const Array& strings =
+      Array::Handle(Z, Array::New(length, H.allocation_space()));
   for (intptr_t i = 0; i < length; ++i) {
     EvaluateExpression(builder_->ReaderOffset(),
                        false);  // read ith expression.
@@ -3222,8 +3223,8 @@ const Object& StreamingConstantEvaluator::RunFunction(
       (receiver != NULL ? 1 : 0) + (type_args != NULL ? 1 : 0);
 
   // Build up arguments.
-  const Array& arguments =
-      Array::ZoneHandle(Z, Array::New(extra_arguments + argument_count));
+  const Array& arguments = Array::ZoneHandle(
+      Z, Array::New(extra_arguments + argument_count, H.allocation_space()));
   intptr_t pos = 0;
   if (receiver != NULL) {
     arguments.SetAt(pos++, *receiver);
@@ -3242,7 +3243,8 @@ const Object& StreamingConstantEvaluator::RunFunction(
 
   // List of named.
   list_length = builder_->ReadListLength();  // read list length.
-  const Array& names = Array::ZoneHandle(Z, Array::New(list_length));
+  const Array& names =
+      Array::ZoneHandle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
     String& name =
         H.DartSymbol(builder_->ReadStringReference());  // read ith name index.
@@ -3261,7 +3263,8 @@ const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
   // We do not support generic methods yet.
   const int kTypeArgsLen = 0;
   const Array& args_descriptor = Array::Handle(
-      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names));
+      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names,
+                                  H.allocation_space()));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
@@ -3872,7 +3875,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   intptr_t named_argument_count = ReadListLength();
   Array& argument_names = Array::ZoneHandle(Z);
   if (named_argument_count > 0) {
-    argument_names = Array::New(named_argument_count);
+    argument_names = Array::New(named_argument_count, H.allocation_space());
     for (intptr_t i = 0; i < named_argument_count; ++i) {
       // ith variable offset.
       body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
@@ -6882,7 +6885,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
     SkipListOfExpressions();
     intptr_t named_list_length = ReadListLength();
-    argument_names ^= Array::New(named_list_length);
+    argument_names ^= Array::New(named_list_length, H.allocation_space());
     for (intptr_t i = 0; i < named_list_length; i++) {
       const String& arg_name = H.DartSymbol(ReadStringReference());
       argument_names.SetAt(i, arg_name);
@@ -9150,7 +9153,8 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
   }
 
   intptr_t list_length = ReadListLength();  // read list length.
-  const Array& metadata_values = Array::Handle(Z, Array::New(list_length));
+  const Array& metadata_values =
+      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
     // this will (potentially) read the expression, but reset the position.
     Instance& value = constant_evaluator_.EvaluateExpression(ReaderOffset());
