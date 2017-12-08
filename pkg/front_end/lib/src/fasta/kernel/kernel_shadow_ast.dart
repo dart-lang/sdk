@@ -2011,42 +2011,6 @@ class ShadowSyntheticExpression extends Let implements ShadowExpression {
   }
 }
 
-/// Shadow object for statements that are introduced by the front end as part
-/// of desugaring or the handling of error conditions.
-///
-/// By default, type inference skips these statements entirely.  Some derived
-/// classes may have type inference behaviors.
-///
-/// Visitors skip over objects of this type, so it is not included in serialized
-/// output.
-class ShadowSyntheticStatement extends Statement implements ShadowStatement {
-  /// The desugared kernel representation of this synthetic statement.
-  Statement desugared;
-
-  ShadowSyntheticStatement(this.desugared);
-
-  @override
-  void set parent(TreeNode node) {
-    super.parent = node;
-    desugared?.parent = node;
-  }
-
-  @override
-  accept(StatementVisitor v) => desugared.accept(v);
-
-  @override
-  accept1(StatementVisitor1 v, arg) => desugared.accept1(v, arg);
-
-  @override
-  transformChildren(Transformer v) => desugared.transformChildren(v);
-
-  @override
-  visitChildren(Visitor v) => desugared.visitChildren(v);
-
-  @override
-  void _inferStatement(ShadowTypeInferrer inferrer) {}
-}
-
 /// Shadow object for [ThisExpression].
 class ShadowThisExpression extends ThisExpression implements ShadowExpression {
   @override
