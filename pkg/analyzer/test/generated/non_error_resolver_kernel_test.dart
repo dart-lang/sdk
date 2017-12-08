@@ -386,13 +386,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_instance_creation_inside_annotation() async {
-    return super.test_instance_creation_inside_annotation();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invalidAnnotation_constantVariable_field() async {
     return super.test_invalidAnnotation_constantVariable_field();
   }

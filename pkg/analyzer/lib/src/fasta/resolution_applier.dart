@@ -310,8 +310,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    node.argumentList?.accept(this);
-
     ConstructorName constructorName = node.constructorName;
 
     DartType type = _getTypeFor(constructorName);
@@ -341,6 +339,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       constructorName.name.staticElement = element;
     }
 
+    node.argumentList?.accept(this);
     _associateArgumentsWithParameters(element?.parameters, node.argumentList);
   }
 

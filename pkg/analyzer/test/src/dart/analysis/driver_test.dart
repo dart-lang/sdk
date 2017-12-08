@@ -166,6 +166,34 @@ void topLevelFunction() {}
     }
   }
 
+  test_annotation_constructor_withNestedConstructorInvocation() async {
+    addTestFile('''
+class C {
+  const C();
+}
+class D {
+  final C c;
+  const D(this.c);
+}
+@D(const C())
+f() {}
+''');
+    var result = await driver.getResult(testFile);
+    var elementC = AstFinder.getClass(result.unit, 'C').element;
+    var constructorC = elementC.constructors[0];
+    var elementD = AstFinder.getClass(result.unit, 'D').element;
+    var constructorD = elementD.constructors[0];
+    var atD = AstFinder.getTopLevelFunction(result.unit, 'f').metadata[0];
+    InstanceCreationExpression constC = atD.arguments.arguments[0];
+
+    expect(atD.name.staticElement, elementD);
+    expect(atD.element, constructorD);
+
+    expect(constC.staticElement, constructorC);
+    expect(constC.staticType, elementC.type);
+    expect(constC.constructorName.staticElement, constructorC);
+  }
+
   test_annotation_kind_reference() async {
     String content = r'''
 const annotation_1 = 1;

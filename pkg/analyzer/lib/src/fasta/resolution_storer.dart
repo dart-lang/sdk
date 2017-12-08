@@ -247,20 +247,22 @@ class ResolutionStorer extends TypeInferenceListener {
   @override
   bool constructorInvocationEnter(
       InvocationExpression expression, DartType typeContext) {
-    return super.constructorInvocationEnter(expression, typeContext);
+    _deferReference(expression.fileOffset);
+    _deferType(expression.fileOffset);
+    return true;
   }
 
   @override
   void constructorInvocationExit(
       InvocationExpression expression, DartType inferredType) {
+    _replaceType(inferredType);
     if (expression is ConstructorInvocation) {
-      _recordReference(expression.target, expression.fileOffset);
+      _replaceReference(expression.target);
     } else if (expression is StaticInvocation) {
-      _recordReference(expression.target, expression.fileOffset);
+      _replaceReference(expression.target);
     } else {
       throw new UnimplementedError('${expression.runtimeType}');
     }
-    super.constructorInvocationExit(expression, inferredType);
   }
 
   @override
