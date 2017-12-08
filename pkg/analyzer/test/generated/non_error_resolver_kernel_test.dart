@@ -251,13 +251,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_expectedTwoMapTypeArguments() async {
-    return super.test_expectedTwoMapTypeArguments();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_fieldFormalParameter_functionTyped_named() async {
     return super.test_fieldFormalParameter_functionTyped_named();
   }
@@ -466,13 +459,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_invalidTypeArgumentInConstMap() async {
-    return super.test_invalidTypeArgumentInConstMap();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_invocationOfNonFunction_dynamic() async {
     // TODO(scheglov) This test fails only in checked mode.
     fail('This test fails only in checked mode');
@@ -504,13 +490,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_mapKeyTypeNotAssignable() async {
-    return super.test_mapKeyTypeNotAssignable();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/30834')
   test_memberWithClassName_setter() async {
     return super.test_memberWithClassName_setter();
@@ -535,6 +514,13 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_nonConstCaseExpression_constField() async {
     return super.test_nonConstCaseExpression_constField();
+  }
+
+  @override
+  @failingTest
+  @potentialAnalyzerProblem
+  test_nonConstCaseExpression_typeLiteral() async {
+    return super.test_nonConstCaseExpression_typeLiteral();
   }
 
   @override

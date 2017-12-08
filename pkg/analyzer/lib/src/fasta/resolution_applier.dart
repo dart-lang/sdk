@@ -336,7 +336,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitMapLiteral(MapLiteral node) {
     node.entries.accept(this);
-    DartType type = _getTypeFor(node);
+    DartType type = _getTypeFor(node.constKeyword ?? node.leftBracket);
     node.staticType = type;
     if (node.typeArguments != null) {
       _applyTypeArgumentsToList(type, node.typeArguments.arguments);

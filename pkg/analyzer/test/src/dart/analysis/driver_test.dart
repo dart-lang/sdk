@@ -2285,6 +2285,37 @@ void main() {
     }
   }
 
+  test_mapLiteral() async {
+    addTestFile(r'''
+void main() {
+  <int, double>{};
+  const <bool, String>{};
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    var statements = _getMainStatements(result);
+
+    {
+      ExpressionStatement statement = statements[0];
+      MapLiteral mapLiteral = statement.expression;
+      expect(
+          mapLiteral.staticType,
+          typeProvider.mapType
+              .instantiate([typeProvider.intType, typeProvider.doubleType]));
+    }
+
+    {
+      ExpressionStatement statement = statements[1];
+      MapLiteral mapLiteral = statement.expression;
+      expect(
+          mapLiteral.staticType,
+          typeProvider.mapType
+              .instantiate([typeProvider.boolType, typeProvider.stringType]));
+    }
+  }
+
   test_method_namedParameters() async {
     addTestFile(r'''
 class C {
