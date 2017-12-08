@@ -35,6 +35,14 @@ class StatusFiles {
   /// environment.
   List<StatusSectionEntry> sectionsWithTestForConfiguration(
       ConfigurationEnvironment environment, String testPath) {
+    return sectionsWithTest(testPath)
+        .where((entry) => entry.section.isEnabled(environment))
+        .toList();
+  }
+
+  /// Gets all section entries with test-expectations for a configuration
+  /// environment.
+  List<StatusSectionEntry> sectionsWithTest(String testPath) {
     List<StatusSectionEntry> matchingEntries = <StatusSectionEntry>[];
     if (_exactEntries.containsKey(testPath)) {
       matchingEntries.addAll(_exactEntries[testPath]);
@@ -58,9 +66,7 @@ class StatusFiles {
       matchingEntries.add(entry);
     });
 
-    return matchingEntries
-        .where((entry) => entry.section.isEnabled(environment))
-        .toList();
+    return matchingEntries;
   }
 
   /// Processes the expectations for matching against filenames. Generates
