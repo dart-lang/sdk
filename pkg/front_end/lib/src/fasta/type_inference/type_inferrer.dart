@@ -1074,7 +1074,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       ShadowVariableDeclaration formal = formals[i];
       if (ShadowVariableDeclaration.isImplicitlyTyped(formal)) {
         DartType inferredType;
-        if (formalTypesFromContext[i] != null) {
+        if (formalTypesFromContext[i] == coreTypes.nullClass.rawType) {
+          inferredType = coreTypes.objectClass.rawType;
+        } else if (formalTypesFromContext[i] != null) {
           inferredType = greatestClosure(coreTypes,
               substitution.substituteType(formalTypesFromContext[i]));
         } else {

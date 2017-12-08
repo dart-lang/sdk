@@ -1597,6 +1597,7 @@ built_in_identifier_type_annotation_test/67: MissingCompileTimeError # Issue 288
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 28815
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
+closure_param_null_to_object_test: RuntimeError
 implicit_downcast_during_constructor_invocation_test: RuntimeError
 implicit_downcast_during_for_in_element_test: RuntimeError
 implicit_downcast_during_for_in_iterable_test: RuntimeError
@@ -2931,6 +2932,7 @@ built_in_identifier_type_annotation_test/68: Crash # Issue 28815
 built_in_identifier_type_annotation_test/81: Crash # Issue 28815
 call_function_apply_test: RuntimeError # Issue 23873
 canonical_const2_test: RuntimeError, OK # Issue 1533
+closure_param_null_to_object_test: RuntimeError
 compile_time_constant_o_test/01: MissingCompileTimeError
 compile_time_constant_o_test/02: MissingCompileTimeError
 conditional_method_invocation_test/05: MissingCompileTimeError

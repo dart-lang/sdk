@@ -27,6 +27,7 @@ inference/bug30624: Crash
 inference/bug31133: Crash
 inference/bug31436: Crash
 inference/call_corner_cases: Crash
+inference/closure_param_null_to_object: Crash
 inference/constructors_infer_from_arguments_redirecting: Crash
 inference/constructors_too_many_positional_arguments: Crash
 inference/downwards_inference_annotations: Crash
