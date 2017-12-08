@@ -90,7 +90,6 @@ UriTranslator uriResolver;
 Future setup(Uri entryUri) async {
   var options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..reportMessages = true
     // Because this is only used to create a uriResolver, we don't allow any
     // whitelisting of error messages in the error handler.
     ..onError = onErrorHandler(false)

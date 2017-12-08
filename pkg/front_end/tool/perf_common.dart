@@ -8,10 +8,11 @@ library front_end.tool.perf_common;
 import 'dart:io';
 
 import 'package:front_end/src/api_prototype/front_end.dart';
+import 'package:front_end/src/fasta/command_line_reporting.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart';
-import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:kernel/target/flutter.dart' show FlutterTarget;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags;
+import 'package:kernel/target/vm.dart' show VmTarget;
 
 /// Error messages that we temporarily allow when compiling benchmarks in strong
 /// mode.
@@ -42,6 +43,11 @@ onErrorHandler(bool isStrong) => (CompilationMessage m) {
         if (!isStrong || !whitelistMessageCode.contains(m.code)) {
           exitCode = 1;
         }
+
+        var uri = m.span.start.sourceUrl;
+        var offset = m.span.start.offset;
+        stderr.writeln('$uri:$offset: '
+            '${severityName(m.severity, capitalized: true)}: ${m.message}');
       }
     };
 

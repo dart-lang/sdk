@@ -78,7 +78,6 @@ main(List<String> args) async {
   var compilerOptions = new CompilerOptions()
     ..fileSystem = overlayFs
     ..strongMode = strongMode
-    ..reportMessages = true
     ..onError = onErrorHandler(strongMode)
     ..target = createTarget(
         isFlutter: options['target'] == 'flutter', strongMode: strongMode);
