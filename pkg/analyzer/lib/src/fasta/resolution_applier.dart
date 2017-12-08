@@ -731,7 +731,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     } else if (typeAnnotation is TypeNameImpl) {
       typeAnnotation.type = type;
       SimpleIdentifier name = nameForElement(typeAnnotation.name);
-      name.staticElement = type.element;
+
+      Element typeElement = type.element;
+      if (typeElement is GenericFunctionTypeElement &&
+          typeElement.enclosingElement is GenericTypeAliasElement) {
+        typeElement = typeElement.enclosingElement;
+      }
+      name.staticElement = typeElement;
+
       name.staticType = type;
     }
     if (typeAnnotation is NamedType) {

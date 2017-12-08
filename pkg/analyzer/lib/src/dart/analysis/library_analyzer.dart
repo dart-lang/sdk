@@ -1149,65 +1149,6 @@ class _ResolutionApplierContext implements TypeContext {
     context = contextStack.removeLast();
   }
 
-  /// Given the [executable] element that corresponds to the [kernelNode],
-  /// and the [kernelType] that is the instantiated type of [kernelNode],
-  /// return the instantiated type of the [executable].
-  FunctionType instantiateFunctionType(ExecutableElement executable,
-      kernel.FunctionNode kernelNode, kernel.FunctionType kernelType) {
-    // Prepare all kernel type parameters.
-    var kernelTypeParameters = <kernel.TypeParameter>[];
-    for (kernel.TreeNode node = kernelNode; node != null; node = node.parent) {
-      if (node is kernel.Class) {
-        kernelTypeParameters.addAll(node.typeParameters);
-      } else if (node is kernel.FunctionNode) {
-        kernelTypeParameters.addAll(node.typeParameters);
-      }
-    }
-
-    // If no type parameters, the raw type of the element will do.
-    FunctionTypeImpl rawType = executable.type;
-    if (kernelTypeParameters.isEmpty) {
-      return rawType;
-    }
-
-    // Compute type arguments for kernel type parameters.
-    var kernelMap = kernel.unifyTypes(
-        kernelNode.functionType.withoutTypeParameters,
-        kernelType,
-        kernelTypeParameters.toSet());
-
-    // Prepare Analyzer type parameters, in the same order as kernel ones.
-    var astTypeParameters = <TypeParameterElement>[];
-    for (Element element = executable;
-        element != null;
-        element = element.enclosingElement) {
-      if (element is TypeParameterizedElement) {
-        astTypeParameters.addAll(element.typeParameters);
-      }
-    }
-
-    // Convert kernel type arguments into Analyzer types.
-    int length = astTypeParameters.length;
-    var usedTypeParameters = <TypeParameterElement>[];
-    var usedTypeArguments = <DartType>[];
-    for (var i = 0; i < length; i++) {
-      var kernelParameter = kernelTypeParameters[i];
-      var kernelArgument = kernelMap[kernelParameter];
-      if (kernelArgument != null) {
-        DartType astArgument = resynthesizer.getType(context, kernelArgument);
-        usedTypeParameters.add(astTypeParameters[i]);
-        usedTypeArguments.add(astArgument);
-      }
-    }
-
-    if (usedTypeParameters.isEmpty) {
-      return rawType;
-    }
-
-    // Replace Analyzer type parameters with type arguments.
-    return rawType.substitute4(usedTypeParameters, usedTypeArguments);
-  }
-
   /// Translate the given [declaration].
   void translateKernelDeclaration(kernel.TreeNode declaration) {
     if (declaration is kernel.VariableDeclaration) {
@@ -1249,8 +1190,12 @@ class _ResolutionApplierContext implements TypeContext {
       if (member != null) {
         ExecutableElementImpl element =
             resynthesizer.getElementFromCanonicalName(member.canonicalName);
-        return instantiateFunctionType(
-            element, member.function, kernelType.type);
+        return resynthesizer.instantiateFunctionType(
+            context,
+            element,
+            member.function,
+            member.function.functionType.withoutTypeParameters,
+            kernelType.type);
       }
       return null;
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {

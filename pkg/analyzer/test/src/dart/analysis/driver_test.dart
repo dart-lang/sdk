@@ -4271,6 +4271,41 @@ void main() {
     }
   }
 
+  test_type_functionTypeAlias() async {
+    addTestFile(r'''
+typedef T F<T>(bool a);
+class C {
+  F<int> f;
+}
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    FunctionTypeAlias alias = unit.declarations[0];
+    GenericTypeAliasElement aliasElement = alias.element;
+    FunctionType aliasType = aliasElement.type;
+
+    ClassDeclaration cNode = unit.declarations[1];
+
+    FieldDeclaration fDeclaration = cNode.members[0];
+    FunctionType instantiatedAliasType =
+        aliasType.instantiate([typeProvider.intType]);
+
+    TypeName typeName = fDeclaration.fields.type;
+    expect(typeName.type, instantiatedAliasType);
+
+    SimpleIdentifier typeIdentifier = typeName.name;
+    expect(typeIdentifier.staticElement, same(aliasElement));
+    expect(typeIdentifier.staticType, instantiatedAliasType);
+
+    List<TypeAnnotation> typeArguments = typeName.typeArguments.arguments;
+    expect(typeArguments, hasLength(1));
+    _assertTypeNameSimple(typeArguments[0], typeProvider.intType);
+  }
+
   test_typeLiteral() async {
     addTestFile(r'''
 void main() {

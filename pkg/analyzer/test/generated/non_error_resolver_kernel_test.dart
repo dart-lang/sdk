@@ -47,13 +47,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_argumentTypeNotAssignable_invocation_typedef_generic() async {
-    return super.test_argumentTypeNotAssignable_invocation_typedef_generic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_assignability_function_expr_rettype_from_typedef_cls() async {
     return super.test_assignability_function_expr_rettype_from_typedef_cls();
   }
