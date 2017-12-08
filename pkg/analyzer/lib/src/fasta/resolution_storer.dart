@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart';
+import 'package:front_end/src/fasta/type_inference/interface_resolver.dart';
 import 'package:front_end/src/fasta/type_inference/type_inference_listener.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
@@ -435,6 +436,9 @@ class ResolutionStorer extends TypeInferenceListener {
             ? arguments.fileOffset
             : expression.fileOffset);
     if (!isImplicitCall) {
+      if (interfaceMember is ForwardingStub) {
+        interfaceMember = ForwardingStub.getInterfaceTarget(interfaceMember);
+      }
       _replaceReference(interfaceMember);
       FunctionType invokeType = substitution == null
           ? calleeType
@@ -474,6 +478,9 @@ class ResolutionStorer extends TypeInferenceListener {
       DartType writeContext,
       Procedure combiner,
       DartType inferredType) {
+    if (writeMember is ForwardingStub) {
+      writeMember = ForwardingStub.getInterfaceTarget(writeMember);
+    }
     _replaceReference(new MemberSetterNode(writeMember));
     _replaceType(writeContext);
     _recordReference(
