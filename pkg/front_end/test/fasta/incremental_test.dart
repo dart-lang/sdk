@@ -35,6 +35,9 @@ import 'package:front_end/src/external_state_snapshot.dart'
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
 
+import 'package:front_end/src/incremental_kernel_generator_impl.dart'
+    show IncrementalKernelGeneratorImpl;
+
 import 'package:front_end/src/minimal_incremental_kernel_generator.dart'
     show MinimalIncrementalKernelGenerator;
 
@@ -56,11 +59,31 @@ final Uri base = Uri.parse("org-dartlang-test:///");
 
 final Uri entryPoint = base.resolve("main.dart");
 
+enum Generator {
+  original,
+  minimal,
+  fasta,
+}
+
+Generator generatorFromString(String string) {
+  if (string == null) return Generator.fasta;
+  switch (string) {
+    case "original":
+      return Generator.original;
+    case "minimal":
+      return Generator.minimal;
+    case "fasta":
+      return Generator.fasta;
+    default:
+      throw "Unknown generator: '$string'";
+  }
+}
+
 class Context extends ChainContext {
   final CompilerContext compilerContext;
   final ExternalStateSnapshot snapshot;
   final List<CompilationMessage> errors;
-  final bool useIKG;
+  final Generator requestedGenerator;
 
   final List<Step> steps = const <Step>[
     const ReadTest(),
@@ -70,7 +93,8 @@ class Context extends ChainContext {
 
   IncrementalKernelGenerator compiler;
 
-  Context(this.compilerContext, this.snapshot, this.errors, this.useIKG)
+  Context(
+      this.compilerContext, this.snapshot, this.errors, this.requestedGenerator)
       : compiler = new IncrementalCompiler(compilerContext);
 
   ProcessedOptions get options => compilerContext.options;
@@ -133,15 +157,21 @@ class PrepareIncrementalKernelGenerator
   const PrepareIncrementalKernelGenerator();
 
   Future<Result<TestCase>> run(TestCase test, Context context) async {
-    if (!context.useIKG) return pass(test);
-    context.compiler = await context
-        .runInContext<Future<IncrementalKernelGenerator>>(
-            (CompilerContext c) async {
-      UriTranslator uriTranslator = await c.options.getUriTranslator();
-      List<int> sdkOutlineBytes = await c.options.loadSdkSummaryBytes();
-      return new MinimalIncrementalKernelGenerator(c.options, uriTranslator,
-          sdkOutlineBytes, context.options.inputs.first);
-    });
+    if (Generator.fasta != context.requestedGenerator) {
+      context.compiler = await context
+          .runInContext<Future<IncrementalKernelGenerator>>(
+              (CompilerContext c) async {
+        UriTranslator uriTranslator = await c.options.getUriTranslator();
+        List<int> sdkOutlineBytes = await c.options.loadSdkSummaryBytes();
+        if (Generator.minimal == context.requestedGenerator) {
+          return new MinimalIncrementalKernelGenerator(c.options, uriTranslator,
+              sdkOutlineBytes, context.options.inputs.first);
+        } else {
+          return new IncrementalKernelGeneratorImpl(c.options, uriTranslator,
+              sdkOutlineBytes, context.options.inputs.first);
+        }
+      });
+    }
     return pass(test);
   }
 }
@@ -257,9 +287,11 @@ Future<Context> createContext(
   final ExternalStateSnapshot snapshot =
       new ExternalStateSnapshot(await options.loadSdkSummary(null));
 
-  final bool useIKG = environment["useIKG"] == "true";
+  final Generator requestedGenerator =
+      generatorFromString(environment["generator"]);
 
-  return new Context(new CompilerContext(options), snapshot, errors, useIKG);
+  return new Context(
+      new CompilerContext(options), snapshot, errors, requestedGenerator);
 }
 
 main([List<String> arguments = const []]) =>
