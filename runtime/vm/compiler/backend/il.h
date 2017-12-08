@@ -2620,8 +2620,8 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
 
   DECLARE_INSTRUCTION(AssertSubtype);
 
-  Value* instantiator_type_arguments() const { return inputs_[1]; }
-  Value* function_type_arguments() const { return inputs_[2]; }
+  Value* instantiator_type_arguments() const { return inputs_[0]; }
+  Value* function_type_arguments() const { return inputs_[1]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   const AbstractType& super_type() const { return super_type_; }
