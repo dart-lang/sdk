@@ -486,6 +486,7 @@ LayoutTests/fast/css/checked-pseudo-selector_t01: RuntimeError # Please triage t
 LayoutTests/fast/css/child-selector-implicit-tbody_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-none_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/content/content-normal_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css-escaped-identifier_t01: RuntimeError # co19 issue 14
 LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # Please triage this failure
@@ -517,6 +518,7 @@ LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # Please
 LayoutTests/fast/css/insertRule-media_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-hex-color_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/invalid-predefined-color_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/invalidation/targeted-class-shadow-combinator_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/max-device-aspect-ratio_t01: RuntimeError, Pass # Issue 28998
 LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # Please triage this failure
@@ -572,6 +574,8 @@ LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-search_t01: Pass, Runt
 LayoutTests/fast/dom/HTMLBaseElement/href-attribute-resolves-with-respect-to-document_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-autofocus_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-close-event_t01: RuntimeError
+LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/dialog-scrolled-viewport_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unfocusable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/HTMLDialogElement/inert-node-is-unselectable_t01: RuntimeError # Please triage this failure
@@ -930,6 +934,7 @@ LayoutTests/fast/text/window-find_t01: Pass, RuntimeError # Please triage this f
 LayoutTests/fast/text/zero-width-characters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/transforms/bounding-rect-zoom_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/transforms/hit-test-large-scale_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/url/anchor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/file-http-base_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/file_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/url/host_t01: RuntimeError # Please triage this failure
@@ -1249,10 +1254,6 @@ LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: Pass, RuntimeError # 30174
 LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: RuntimeError, Pass # Please triage this flake
 LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: RuntimeError, Pass # Please triage this flake
 LayoutTests/fast/canvas/webgl/triangle_t01: RuntimeError, Pass # Please triage this flake
-LayoutTests/fast/css/counters/complex-before_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/invalidation/targeted-class-shadow-combinator_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/dialog-open_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/HTMLDialogElement/dialog-return-value_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/multicol/newmulticol/balance_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError # Please triage this failure
@@ -1260,7 +1261,6 @@ LayoutTests/fast/text/international/combining-marks-position_t01: RuntimeError #
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/regional-indicator-symobls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/url/anchor_t01: RuntimeError # Please triage this failure
 LibTest/math/log_A01_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
