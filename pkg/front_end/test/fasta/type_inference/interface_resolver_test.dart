@@ -29,7 +29,7 @@ class InterfaceResolverTest {
 
   CoreTypes coreTypes;
 
-  ClassHierarchy classHierarchy = new IncrementalClassHierarchy();
+  ClassHierarchy classHierarchy;
 
   TypeSchemaEnvironment typeEnvironment;
 
@@ -38,11 +38,7 @@ class InterfaceResolverTest {
   InterfaceResolverTest() {
     program = createMockSdkProgram();
     program.libraries.add(testLib..parent = program);
-    coreTypes = new CoreTypes(program);
-    typeEnvironment =
-        new TypeSchemaEnvironment(coreTypes, classHierarchy, true);
-    interfaceResolver =
-        new InterfaceResolver(null, typeEnvironment, null, true);
+    resetInterfaceResolver();
   }
 
   InterfaceType get intType => coreTypes.intClass.rawType;
@@ -188,13 +184,25 @@ class InterfaceResolverTest {
   }
 
   Procedure makeSetter(
-      {String name: 'foo', DartType setterType: const DynamicType()}) {
-    var parameter = new ShadowVariableDeclaration('value', 0, type: setterType);
+      {String name: 'foo',
+      DartType setterType: const DynamicType(),
+      bool isCovariant: false}) {
+    var parameter = new ShadowVariableDeclaration('value', 0,
+        type: setterType, isCovariant: isCovariant);
     var body = new Block([]);
     var function = new FunctionNode(body,
         positionalParameters: [parameter], returnType: const VoidType());
     return new ShadowProcedure(
         new Name(name), ProcedureKind.Setter, function, false);
+  }
+
+  void resetInterfaceResolver() {
+    classHierarchy = new IncrementalClassHierarchy();
+    coreTypes = new CoreTypes(program);
+    typeEnvironment =
+        new TypeSchemaEnvironment(coreTypes, classHierarchy, true);
+    interfaceResolver =
+        new InterfaceResolver(null, typeEnvironment, null, true);
   }
 
   void test_candidate_for_field_getter() {
@@ -787,20 +795,20 @@ class InterfaceResolverTest {
     ]);
     var i1 = makeClass(name: 'I1', typeParameters: [t], procedures: [methodI1]);
     // Let's say D was previously compiled, so it already has a forwarding stub
-    var methodD = new ForwardingStub(
-        methodC,
-        methodC.name,
-        methodC.kind,
-        new FunctionNode(null, positionalParameters: [
-          new VariableDeclaration('x', type: intType),
-          new VariableDeclaration('y', type: intType)
-        ]));
     var d =
         makeClass(name: 'D', supertype: c.asThisSupertype, implementedTypes: [
       new Supertype(i1, [intType])
-    ], procedures: [
-      methodD
     ]);
+    var nodeD = getForwardingNode(d, false);
+    var methodD = ForwardingNode.createForwardingStubForTesting(
+        nodeD, Substitution.empty, methodC);
+    d.addMember(methodD);
+    ForwardingNode.createForwardingImplIfNeededForTesting(
+        nodeD, methodD.function);
+    // To ensure that we don't accidentally make use of information that was
+    // computed prior to adding the forwarding stub, reset the interface
+    // resolver.
+    resetInterfaceResolver();
     var u = new TypeParameter('U', objectType);
     var methodI2 = makeEmptyMethod(positionalParameters: [
       new VariableDeclaration('x', type: intType),
@@ -812,9 +820,43 @@ class InterfaceResolverTest {
         makeClass(name: 'E', supertype: d.asThisSupertype, implementedTypes: [
       new Supertype(i2, [intType])
     ]);
-    var node = getForwardingNode(e, false);
-    var stub = node.finalize();
+    var nodeE = getForwardingNode(e, false);
+    var stub = nodeE.finalize();
     expect(ForwardingStub.getInterfaceTarget(stub), same(methodC));
+    expect(getStubTarget(stub), same(methodC));
+  }
+
+  void test_interfaceTarget_cascaded_setter() {
+    var setterC = makeSetter(setterType: intType);
+    var c = makeClass(name: 'C', procedures: [setterC]);
+    var t = new TypeParameter('T', objectType);
+    var setterI1 = makeSetter(setterType: new TypeParameterType(t));
+    var i1 = makeClass(name: 'I1', typeParameters: [t], procedures: [setterI1]);
+    // Let's say D was previously compiled, so it already has a forwarding stub
+    var d =
+        makeClass(name: 'D', supertype: c.asThisSupertype, implementedTypes: [
+      new Supertype(i1, [intType])
+    ]);
+    var nodeD = getForwardingNode(d, true);
+    var setterD = ForwardingNode.createForwardingStubForTesting(
+        nodeD, Substitution.empty, setterC);
+    d.addMember(setterD);
+    ForwardingNode.createForwardingImplIfNeededForTesting(
+        nodeD, setterD.function);
+    // To ensure that we don't accidentally make use of information that was
+    // computed prior to adding the forwarding stub, reset the interface
+    // resolver.
+    resetInterfaceResolver();
+    var setterI2 = makeSetter(setterType: intType, isCovariant: true);
+    var i2 = makeClass(name: 'I2', procedures: [setterI2]);
+    var e = makeClass(
+        name: 'E',
+        supertype: d.asThisSupertype,
+        implementedTypes: [i2.asThisSupertype]);
+    var nodeE = getForwardingNode(e, true);
+    var stub = nodeE.finalize();
+    expect(ForwardingStub.getInterfaceTarget(stub), same(setterC));
+    expect(getStubTarget(stub), same(setterC));
   }
 
   void test_interfaceTarget_field() {

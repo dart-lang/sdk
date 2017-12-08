@@ -333,6 +333,9 @@ class ForwardingNode extends Procedure {
         .getDispatchTarget(superclass, procedure.name,
             setter: kind == ProcedureKind.Setter);
     if (superTarget == null) return;
+    if (superTarget is Procedure && superTarget.isForwardingStub) {
+      superTarget = _getForwardingStubSuperTarget(superTarget);
+    }
     procedure.isAbstract = false;
     if (!procedure.isForwardingStub) {
       _interfaceResolver._instrumentation?.record(
@@ -600,6 +603,21 @@ class ForwardingNode extends Procedure {
   /// For testing: get the list of candidates relevant to a given node.
   static List<Procedure> getCandidates(ForwardingNode node) {
     return node._candidates.sublist(node._start, node._end);
+  }
+
+  static Member _getForwardingStubSuperTarget(Procedure forwardingStub) {
+    // TODO(paulberry): when dartbug.com/31562 is fixed, this should become
+    // easier.
+    ReturnStatement body = forwardingStub.function.body;
+    var expression = body.expression;
+    if (expression is SuperMethodInvocation) {
+      return expression.interfaceTarget;
+    } else if (expression is SuperPropertySet) {
+      return expression.interfaceTarget;
+    } else {
+      return unhandled('${expression.runtimeType}',
+          '_getForwardingStubSuperTarget', -1, null);
+    }
   }
 }
 
