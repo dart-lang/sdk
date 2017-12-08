@@ -184,23 +184,24 @@ abstract class Compiler {
       this.environment: const _EmptyEnvironment(),
       MakeReporterFunction makeReporter})
       : this.options = options {
+    CompilerTask kernelFrontEndTask;
+    selfTask = new GenericTask('self', measurer);
     _outputProvider = new _CompilerOutput(this, outputProvider);
     if (makeReporter != null) {
       _reporter = makeReporter(this, options);
     } else {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
-    frontendStrategy = options.useKernel
-        ? new KernelFrontEndStrategy(options, reporter, environment,
-            options.kernelInitializedCompilerState)
-        : new ResolutionFrontEndStrategy(this);
-    backendStrategy = options.useKernel
-        ? new KernelBackendStrategy(this)
-        : new ElementBackendStrategy(this);
     if (options.useKernel) {
+      kernelFrontEndTask = new GenericTask('Front end', measurer);
+      frontendStrategy = new KernelFrontEndStrategy(kernelFrontEndTask, options,
+          reporter, environment, options.kernelInitializedCompilerState);
+      backendStrategy = new KernelBackendStrategy(this);
       _impactCache = <Entity, WorldImpact>{};
       _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
     } else {
+      frontendStrategy = new ResolutionFrontEndStrategy(this);
+      backendStrategy = new ElementBackendStrategy(this);
       _resolution = createResolution();
       _impactCache = _resolution._worldImpactCache;
       _impactCacheDeleter = _resolution;
@@ -242,8 +243,9 @@ abstract class Compiler {
       // objects needed by other tasks.
       enqueuer,
       dumpInfoTask = new DumpInfoTask(this),
-      selfTask = new GenericTask('self', measurer),
+      selfTask,
     ];
+    if (options.useKernel) tasks.add(kernelFrontEndTask);
     if (options.resolveOnly) {
       serialization.supportSerialization = true;
     }
