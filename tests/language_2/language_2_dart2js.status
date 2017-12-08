@@ -1090,11 +1090,6 @@ bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
 branch_canonicalization_test: RuntimeError
 built_in_identifier_test: RuntimeError # Issue 28815
-built_in_identifier_type_annotation_test/05: RuntimeError # Issue 28815
-built_in_identifier_type_annotation_test/39: RuntimeError # Issue 28815
-built_in_identifier_type_annotation_test/56: RuntimeError # Issue 28815
-built_in_identifier_type_annotation_test/73: RuntimeError # Issue 28815
-built_in_identifier_type_annotation_test/none: RuntimeError # Issue 28815
 call_function_apply_test: RuntimeError
 canonical_const2_test: RuntimeError
 check_member_static_test/02: MissingCompileTimeError
@@ -1281,7 +1276,6 @@ internal_library_test/02: Crash # NoSuchMethodError: Class 'DillLibraryBuilder' 
 invocation_mirror2_test: RuntimeError
 issue21079_test: RuntimeError
 issue23244_test: RuntimeError
-known_identifier_usage_error_test/none: RuntimeError # Issue 28815
 left_shift_test: RuntimeError
 library_env_test/has_mirror_support: RuntimeError
 list_literal1_test/01: MissingCompileTimeError

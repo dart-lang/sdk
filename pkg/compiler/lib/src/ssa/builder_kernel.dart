@@ -2942,6 +2942,17 @@ class KernelSsaGraphBuilder extends ir.Visitor
     bool isJSArrayTypedConstructor =
         function == commonElements.jsArrayTypedConstructor;
 
+    _inferredTypeOfNewList(ir.StaticInvocation node) {
+      MemberEntity element = sourceElement is ConstructorBodyEntity
+          ? (sourceElement as ConstructorBodyEntity).constructor
+          : sourceElement;
+      ;
+      return globalInferenceResults
+              .resultOfMember(element)
+              .typeOfNewList(node) ??
+          commonMasks.dynamicType;
+    }
+
     if (isFixedListConstructorCall) {
       assert(arguments.length == 1);
       HInstruction lengthInput = arguments.first;
@@ -2957,10 +2968,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
       js.Template code = js.js.parseForeignJS('new Array(#)');
       var behavior = new native.NativeBehavior();
-      // TODO(redemption): Find the full type being created here,
-      // e.g. JSArray<Set<T>>, via 'computeEffectiveTargetType'.
-      var expectedType = closedWorld.elementEnvironment
-          .getRawType(_commonElements.jsArrayClass);
+
+      var expectedType =
+          _elementMap.getDartType(invocation.getStaticType(null));
       behavior.typesInstantiated.add(expectedType);
       behavior.typesReturned.add(expectedType);
 
@@ -2973,9 +2983,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
         canThrow = false;
       }
 
-      // TODO(redemption): Pick up site-specific type inference type, which
-      // might be more precise, e.g. a container type.
-      resultType = commonMasks.fixedListType;
+      var inferredType = _inferredTypeOfNewList(invocation);
+      resultType = inferredType.containsAll(closedWorld)
+          ? commonMasks.fixedListType
+          : inferredType;
       HForeignCode foreign = new HForeignCode(code, resultType, arguments,
           nativeBehavior: behavior,
           throwBehavior: canThrow
@@ -2995,9 +3006,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     } else if (isGrowableListConstructorCall) {
       push(buildLiteralList(<HInstruction>[]));
-      // TODO(sra): Pick up type inference type, which might be more precise,
-      // e.g. a container type.
-      resultType = commonMasks.growableListType;
+      var inferredType = _inferredTypeOfNewList(invocation);
+      resultType = inferredType.containsAll(closedWorld)
+          ? commonMasks.growableListType
+          : inferredType;
       stack.last.instructionType = resultType;
     } else if (isJSArrayTypedConstructor) {
       // TODO(sra): Instead of calling the identity-like factory constructor,
@@ -3038,9 +3050,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       stack
           .add(_setListRuntimeTypeInfoIfNeeded(pop(), type, sourceInformation));
     }
-
-    // TODO(redemption): For redirecting factory constructors, check or trust
-    // the type.
   }
 
   void handleInvokeStaticForeign(
