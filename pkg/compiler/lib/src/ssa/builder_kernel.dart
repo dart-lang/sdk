@@ -4788,17 +4788,31 @@ class InlineWeeder extends ir.Visitor {
     // TODO(redemption): Implement inlining heuristic.
     MemberDefinition memberDefinition =
         elementMap.getMemberDefinition(function);
-    InlineWeeder visitor = new InlineWeeder();
+    InlineWeeder visitor = new InlineWeeder(maxInliningNodes);
     memberDefinition.node.accept(visitor);
     return visitor.tooDifficultReason;
   }
 
   bool seenReturn = false;
+  final int maxInliningNodes; // `null` for unbounded.
+  int nodeCount = 0;
   String tooDifficultReason;
   bool get tooDifficult => tooDifficultReason != null;
 
+  InlineWeeder(this.maxInliningNodes);
+
+  bool registerNode(ir.Node node) {
+    if (maxInliningNodes == null) return true;
+    if (nodeCount++ > maxInliningNodes) {
+      tooDifficultReason = 'too many nodes';
+      return false;
+    }
+    return true;
+  }
+
   defaultNode(ir.Node node) {
     if (tooDifficult) return;
+    if (!registerNode(node)) return;
     if (seenReturn) {
       tooDifficultReason = 'code after return';
       return;
