@@ -2148,7 +2148,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       }
     }
     push(new Catch(exception, body, guard: type, stackTrace: stackTrace)
-      ..fileOffset = offsetForToken(onKeyword));
+      ..fileOffset = offsetForToken(onKeyword ?? catchKeyword));
   }
 
   @override

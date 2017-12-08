@@ -148,6 +148,10 @@ class TypeInferenceListener
   void cascadeExpressionExit(Let expression, DartType inferredType) =>
       genericExpressionExit("cascade", expression, inferredType);
 
+  void catchStatementEnter(Catch statement) {}
+
+  void catchStatementExit(Catch statement) {}
+
   bool conditionalExpressionEnter(
           ConditionalExpression expression, DartType typeContext) =>
       genericExpressionEnter("conditionalExpression", expression, typeContext);

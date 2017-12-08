@@ -2079,7 +2079,9 @@ class ShadowTryCatch extends TryCatch implements ShadowStatement {
     inferrer.listener.tryCatchEnter(this);
     inferrer.inferStatement(body);
     for (var catch_ in catches) {
+      inferrer.listener.catchStatementEnter(catch_);
       inferrer.inferStatement(catch_.body);
+      inferrer.listener.catchStatementExit(catch_);
     }
     inferrer.listener.tryCatchExit(this);
   }

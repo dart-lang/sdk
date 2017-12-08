@@ -1031,7 +1031,7 @@ class _ResolutionApplierContext implements TypeContext {
         if (parent is kernel.Statement) {
           element = declarationToElement[referencedNode];
         } else {
-          assert(parent is kernel.FunctionNode);
+          assert(parent is kernel.FunctionNode || parent is kernel.Catch);
           // Might be a parameter of a local function.
           element = declarationToElement[referencedNode];
           // If no element, then it is a parameter of the context executable.

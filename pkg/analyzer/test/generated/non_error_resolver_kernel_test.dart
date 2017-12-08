@@ -554,34 +554,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonTypeInCatchClause_isClass() async {
-    return super.test_nonTypeInCatchClause_isClass();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonTypeInCatchClause_isFunctionTypeAlias() async {
-    return super.test_nonTypeInCatchClause_isFunctionTypeAlias();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonTypeInCatchClause_isTypeParameter() async {
-    return super.test_nonTypeInCatchClause_isTypeParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_nonTypeInCatchClause_noType() async {
-    return super.test_nonTypeInCatchClause_noType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_null_callMethod() async {
     return super.test_null_callMethod();
   }
@@ -626,20 +598,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_referencedBeforeDeclaration_cascade() async {
     return super.test_referencedBeforeDeclaration_cascade();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_rethrowOutsideCatch() async {
-    return super.test_rethrowOutsideCatch();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_returnOfInvalidType_dynamic() async {
-    return super.test_returnOfInvalidType_dynamic();
   }
 
   @override

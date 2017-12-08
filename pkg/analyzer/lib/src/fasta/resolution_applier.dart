@@ -127,6 +127,34 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitCatchClause(CatchClause node) {
+    DartType guardType = _getTypeFor(node.onKeyword ?? node.catchKeyword);
+    if (node.exceptionType != null) {
+      applyToTypeAnnotation(guardType, node.exceptionType);
+    }
+
+    SimpleIdentifier exception = node.exceptionParameter;
+    if (exception != null) {
+      LocalVariableElementImpl element = _getDeclarationFor(exception);
+      DartType type = _getTypeFor(exception);
+      element.type = type;
+      exception.staticElement = element;
+      exception.staticType = type;
+    }
+
+    SimpleIdentifier stackTrace = node.stackTraceParameter;
+    if (stackTrace != null) {
+      LocalVariableElementImpl element = _getDeclarationFor(stackTrace);
+      DartType type = _getTypeFor(stackTrace);
+      element.type = type;
+      stackTrace.staticElement = element;
+      stackTrace.staticType = type;
+    }
+
+    node.body.accept(this);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     node.condition.accept(this);
     node.thenExpression.accept(this);

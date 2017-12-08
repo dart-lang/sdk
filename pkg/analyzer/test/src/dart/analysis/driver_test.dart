@@ -4024,6 +4024,120 @@ typedef void F(int p);
     }
   }
 
+  test_tryCatch() async {
+    addTestFile(r'''
+void main() {
+  try {} catch (e, st) {
+    e;
+    st;
+  }
+  try {} on int catch (e, st) {
+    e;
+    st;
+  }
+  try {} catch (e) {
+    e;
+  }
+  try {} on int catch (e) {
+    e;
+  }
+  try {} on int {}
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    var typeProvider = unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    // catch (e, st)
+    {
+      TryStatement statement = statements[0];
+      CatchClause catchClause = statement.catchClauses[0];
+      expect(catchClause.exceptionType, isNull);
+
+      SimpleIdentifier exceptionNode = catchClause.exceptionParameter;
+      LocalVariableElement exceptionElement = exceptionNode.staticElement;
+      expect(exceptionElement.type, DynamicTypeImpl.instance);
+
+      SimpleIdentifier stackNode = catchClause.stackTraceParameter;
+      LocalVariableElement stackElement = stackNode.staticElement;
+      expect(stackElement.type, typeProvider.stackTraceType);
+
+      List<Statement> catchStatements = catchClause.body.statements;
+
+      ExpressionStatement exceptionStatement = catchStatements[0];
+      SimpleIdentifier exceptionIdentifier = exceptionStatement.expression;
+      expect(exceptionIdentifier.staticElement, same(exceptionElement));
+      expect(exceptionIdentifier.staticType, DynamicTypeImpl.instance);
+
+      ExpressionStatement stackStatement = catchStatements[1];
+      SimpleIdentifier stackIdentifier = stackStatement.expression;
+      expect(stackIdentifier.staticElement, same(stackElement));
+      expect(stackIdentifier.staticType, typeProvider.stackTraceType);
+    }
+
+    // on int catch (e, st)
+    {
+      TryStatement statement = statements[1];
+      CatchClause catchClause = statement.catchClauses[0];
+      _assertTypeNameSimple(catchClause.exceptionType, typeProvider.intType);
+
+      SimpleIdentifier exceptionNode = catchClause.exceptionParameter;
+      LocalVariableElement exceptionElement = exceptionNode.staticElement;
+      expect(exceptionElement.type, typeProvider.intType);
+
+      SimpleIdentifier stackNode = catchClause.stackTraceParameter;
+      LocalVariableElement stackElement = stackNode.staticElement;
+      expect(stackElement.type, typeProvider.stackTraceType);
+
+      List<Statement> catchStatements = catchClause.body.statements;
+
+      ExpressionStatement exceptionStatement = catchStatements[0];
+      SimpleIdentifier exceptionIdentifier = exceptionStatement.expression;
+      expect(exceptionIdentifier.staticElement, same(exceptionElement));
+      expect(exceptionIdentifier.staticType, typeProvider.intType);
+
+      ExpressionStatement stackStatement = catchStatements[1];
+      SimpleIdentifier stackIdentifier = stackStatement.expression;
+      expect(stackIdentifier.staticElement, same(stackElement));
+      expect(stackIdentifier.staticType, typeProvider.stackTraceType);
+    }
+
+    // catch (e)
+    {
+      TryStatement statement = statements[2];
+      CatchClause catchClause = statement.catchClauses[0];
+      expect(catchClause.exceptionType, isNull);
+      expect(catchClause.stackTraceParameter, isNull);
+
+      SimpleIdentifier exceptionNode = catchClause.exceptionParameter;
+      LocalVariableElement exceptionElement = exceptionNode.staticElement;
+      expect(exceptionElement.type, DynamicTypeImpl.instance);
+    }
+
+    // on int catch (e)
+    {
+      TryStatement statement = statements[3];
+      CatchClause catchClause = statement.catchClauses[0];
+      _assertTypeNameSimple(catchClause.exceptionType, typeProvider.intType);
+      expect(catchClause.stackTraceParameter, isNull);
+
+      SimpleIdentifier exceptionNode = catchClause.exceptionParameter;
+      LocalVariableElement exceptionElement = exceptionNode.staticElement;
+      expect(exceptionElement.type, typeProvider.intType);
+    }
+
+    // on int catch (e)
+    {
+      TryStatement statement = statements[4];
+      CatchClause catchClause = statement.catchClauses[0];
+      _assertTypeNameSimple(catchClause.exceptionType, typeProvider.intType);
+      expect(catchClause.exceptionParameter, isNull);
+      expect(catchClause.stackTraceParameter, isNull);
+    }
+  }
+
   void _assertDefaultParameter(
       DefaultFormalParameter node, ParameterElement element,
       {String name, int offset, ParameterKind kind, DartType type}) {

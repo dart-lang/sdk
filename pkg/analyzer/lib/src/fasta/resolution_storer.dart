@@ -227,6 +227,23 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  void catchStatementEnter(Catch node) {
+    _recordType(node.guard, node.fileOffset);
+
+    VariableDeclaration exception = node.exception;
+    if (exception != null) {
+      _recordDeclaration(exception, exception.fileOffset);
+      _recordType(exception.type, exception.fileOffset);
+    }
+
+    VariableDeclaration stackTrace = node.stackTrace;
+    if (stackTrace != null) {
+      _recordDeclaration(stackTrace, stackTrace.fileOffset);
+      _recordType(stackTrace.type, stackTrace.fileOffset);
+    }
+  }
+
+  @override
   bool constructorInvocationEnter(
       InvocationExpression expression, DartType typeContext) {
     return super.constructorInvocationEnter(expression, typeContext);
