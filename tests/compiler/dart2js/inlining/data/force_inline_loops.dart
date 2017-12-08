@@ -13,7 +13,7 @@ main() {
 // Force inline a top level method with loops.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _forLoop:[forceInlineLoops]*/
+/*element: _forLoop:loop,[forceInlineLoops]*/
 @ForceInline()
 _forLoop() {
   for (int i = 0; i < 10; i++) {
@@ -21,7 +21,7 @@ _forLoop() {
   }
 }
 
-/*element: _forInLoop:[forceInlineLoops]*/
+/*element: _forInLoop:loop,[forceInlineLoops]*/
 @ForceInline()
 _forInLoop() {
   for (var e in [0, 1, 2]) {
@@ -29,7 +29,7 @@ _forInLoop() {
   }
 }
 
-/*element: _whileLoop:[forceInlineLoops]*/
+/*element: _whileLoop:loop,[forceInlineLoops]*/
 @ForceInline()
 _whileLoop() {
   int i = 0;
@@ -39,7 +39,7 @@ _whileLoop() {
   }
 }
 
-/*element: _doLoop:[forceInlineLoops]*/
+/*element: _doLoop:loop,[forceInlineLoops]*/
 @ForceInline()
 _doLoop() {
   int i = 0;

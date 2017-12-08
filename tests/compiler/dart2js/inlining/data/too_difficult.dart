@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// ignore: IMPORT_INTERNAL_LIBRARY
+import 'dart:_js_helper';
+
 /*element: main:[]*/
 main() {
-  multipleReturns(true);
-  codeAfterReturn(true);
-  multipleThrows(true);
-  codeAfterThrow(true);
-  throwAndReturn(true);
   asyncMethod();
   asyncStarMethod();
   syncStarMethod();
@@ -21,96 +19,123 @@ main() {
   forInLoop();
   whileLoop();
   doLoop();
+
+  multipleReturns();
+  codeAfterReturn();
+  multipleThrows();
+  returnAndThrow();
 }
 
-/*element: multipleReturns:[]*/
-multipleReturns(c) {
+/*element: _multipleReturns:code after return*/
+_multipleReturns(c) {
   if (c)
     return;
   else
     return;
 }
 
-/*element: codeAfterReturn:[]*/
-codeAfterReturn(c) {
+/*element: multipleReturns:[]*/
+@NoInline()
+multipleReturns() {
+  _multipleReturns(true);
+  _multipleReturns(false);
+}
+
+/*element: _codeAfterReturn:code after return*/
+_codeAfterReturn(c) {
   if (c) return;
   print(c);
 }
 
+/*element: codeAfterReturn:[]*/
+@NoInline()
+codeAfterReturn() {
+  _codeAfterReturn(true);
+  _codeAfterReturn(false);
+}
+
+/*element: _multipleThrows:[]*/
+_multipleThrows(c) {
+  if (c)
+    throw '';
+  else
+    throw '';
+}
+
 /*element: multipleThrows:[]*/
-multipleThrows(c) {
-  if (c)
-    throw '';
-  else
-    throw '';
+@NoInline()
+multipleThrows() {
+  _multipleThrows(true);
+  _multipleThrows(false);
 }
 
-/*element: codeAfterThrow:[]*/
-codeAfterThrow(c) {
-  if (c) throw '';
-  print(c);
-}
-
-/*element: throwAndReturn:[]*/
-throwAndReturn(c) {
+/*element: _returnAndThrow:code after return*/
+_returnAndThrow(c) {
   if (c)
-    throw '';
-  else
     return;
+  else
+    throw '';
 }
 
-/*element: asyncMethod:[]*/
+/*element: returnAndThrow:[]*/
+@NoInline()
+returnAndThrow() {
+  _returnAndThrow(true);
+  _returnAndThrow(false);
+}
+
+/*element: asyncMethod:async/await*/
 asyncMethod() async {}
 
-/*element: asyncStarMethod:[]*/
+/*element: asyncStarMethod:async/await*/
 asyncStarMethod() async* {}
 
-/*element: syncStarMethod:[]*/
+/*element: syncStarMethod:async/await*/
 syncStarMethod() sync* {}
 
-/*element: localFunction:[]*/
+/*element: localFunction:closure*/
 localFunction() {
   // ignore: UNUSED_ELEMENT
   /*[]*/ local() {}
 }
 
-/*element: anonymousFunction:[]*/
+/*element: anonymousFunction:closure*/
 anonymousFunction() {
   /*[]*/ () {};
 }
 
-/*element: tryCatch:[]*/
+/*element: tryCatch:try*/
 tryCatch() {
   try {} catch (e) {}
 }
 
-/*element: tryFinally:[]*/
+/*element: tryFinally:try*/
 tryFinally() {
-  try {} catch (e) {}
+  try {} finally {}
 }
 
-/*element: tryWithRethrow:[]*/
+/*element: tryWithRethrow:try*/
 tryWithRethrow() {
   try {} catch (e) {
     rethrow;
   }
 }
 
-/*element: forLoop:[]*/
+/*element: forLoop:loop*/
 forLoop() {
   for (int i = 0; i < 10; i++) {
     print(i);
   }
 }
 
-/*element: forInLoop:[]*/
+/*element: forInLoop:loop*/
 forInLoop() {
   for (var e in [0, 1, 2]) {
     print(e);
   }
 }
 
-/*element: whileLoop:[]*/
+/*element: whileLoop:loop*/
 whileLoop() {
   int i = 0;
   while (i < 10) {
@@ -119,7 +144,7 @@ whileLoop() {
   }
 }
 
-/*element: doLoop:[]*/
+/*element: doLoop:loop*/
 doLoop() {
   int i = 0;
   do {

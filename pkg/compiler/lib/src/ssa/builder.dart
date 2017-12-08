@@ -6807,7 +6807,7 @@ class InlineWeeder extends ast.Visitor {
   static const INLINING_NODES_INSIDE_LOOP_ARG_FACTOR = 4;
 
   bool seenReturn = false;
-  bool tooDifficult = false;
+  String tooDifficultReason;
   int nodeCount = 0;
   final int maxInliningNodes; // `null` for unbounded.
   final bool allowLoops;
@@ -6817,10 +6817,21 @@ class InlineWeeder extends ast.Visitor {
   InlineWeeder._(this.elements, this.maxInliningNodes, this.allowLoops,
       this.enableUserAssertions);
 
+  bool get tooDifficult => tooDifficultReason != null;
+
   static bool canBeInlined(ResolvedAst resolvedAst, int maxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
+    return cannotBeInlinedReason(resolvedAst, maxInliningNodes,
+            allowLoops: allowLoops,
+            enableUserAssertions: enableUserAssertions) ==
+        null;
+  }
+
+  static String cannotBeInlinedReason(
+      ResolvedAst resolvedAst, int maxInliningNodes,
+      {bool allowLoops: false, bool enableUserAssertions: null}) {
     assert(enableUserAssertions is bool); // Ensure we passed it.
-    if (resolvedAst.elements.containsTryStatement) return false;
+    if (resolvedAst.elements.containsTryStatement) return 'try';
 
     InlineWeeder weeder = new InlineWeeder._(resolvedAst.elements,
         maxInliningNodes, allowLoops, enableUserAssertions);
@@ -6829,13 +6840,13 @@ class InlineWeeder extends ast.Visitor {
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     weeder.visit(functionExpression.asyncModifier);
-    return !weeder.tooDifficult;
+    return weeder.tooDifficultReason;
   }
 
   bool registerNode() {
     if (maxInliningNodes == null) return true;
     if (nodeCount++ > maxInliningNodes) {
-      tooDifficult = true;
+      tooDifficultReason = 'too many nodes';
       return false;
     } else {
       return true;
@@ -6849,7 +6860,7 @@ class InlineWeeder extends ast.Visitor {
   void visitNode(ast.Node node) {
     if (!registerNode()) return;
     if (seenReturn) {
-      tooDifficult = true;
+      tooDifficultReason = 'code after return';
     } else {
       node.visitChildren(this);
     }
@@ -6865,18 +6876,18 @@ class InlineWeeder extends ast.Visitor {
   @override
   void visitAsyncModifier(ast.AsyncModifier node) {
     if (node.isYielding || node.isAsynchronous) {
-      tooDifficult = true;
+      tooDifficultReason = 'async/await';
     }
   }
 
   void visitFunctionExpression(ast.Node node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    tooDifficultReason = 'closure';
   }
 
   void visitFunctionDeclaration(ast.Node node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    tooDifficultReason = 'closure';
   }
 
   void visitSend(ast.Send node) {
@@ -6897,12 +6908,14 @@ class InlineWeeder extends ast.Visitor {
     // It's actually not difficult to inline a method with a loop, but
     // our measurements show that it's currently better to not inline a
     // method that contains a loop.
-    if (!allowLoops) tooDifficult = true;
+    if (!allowLoops) {
+      tooDifficultReason = 'loop';
+    }
   }
 
   void visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    tooDifficultReason = 'redirecting factory';
   }
 
   void visitConditional(ast.Conditional node) {
@@ -6935,13 +6948,13 @@ class InlineWeeder extends ast.Visitor {
 
   void visitRethrow(ast.Rethrow node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    tooDifficultReason = 'rethrow';
   }
 
   void visitReturn(ast.Return node) {
     if (!registerNode()) return;
     if (seenReturn || identical(node.beginToken.stringValue, 'native')) {
-      tooDifficult = true;
+      tooDifficultReason = 'code after return';
       return;
     }
     node.visitChildren(this);
@@ -6953,7 +6966,7 @@ class InlineWeeder extends ast.Visitor {
     // For now, we don't want to handle throw after a return even if
     // it is in an "if".
     if (seenReturn) {
-      tooDifficult = true;
+      tooDifficultReason = 'code after return';
     } else {
       node.visitChildren(this);
     }
