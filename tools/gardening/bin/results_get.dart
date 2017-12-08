@@ -11,8 +11,6 @@ import 'package:gardening/src/results/test_result_service.dart';
 import 'package:gardening/src/util.dart';
 import 'package:gardening/src/console_table.dart';
 import 'package:gardening/src/results/result_json_models.dart' as models;
-import 'package:gardening/src/logdog.dart';
-import 'package:gardening/src/logdog_rpc.dart';
 import 'package:gardening/src/buildbucket.dart';
 import 'package:gardening/src/extended_printer.dart';
 
@@ -74,7 +72,8 @@ class GetTestsWithResultCommand extends Command {
   }
 
   Future run() async {
-    models.TestResult testResults = await getTestResult(argResults.rest);
+    models.TestResult testResults =
+        await getTestResultFromBuilder(argResults.rest);
     if (testResults == null) {
       print(howToUse("tests"));
       return;
@@ -116,7 +115,7 @@ class GetTestsWithResultAndExpectationCommand extends Command {
             (combined, buildResult) => combined..combineWith([buildResult]));
       }
     } else {
-      testResult = await getTestResult(argResults.rest);
+      testResult = await getTestResultFromBuilder(argResults.rest);
     }
 
     if (testResult == null) {
@@ -124,8 +123,10 @@ class GetTestsWithResultAndExpectationCommand extends Command {
       return;
     }
 
+    var statusExpectations = new StatusExpectations(testResult);
+    await statusExpectations.loadStatusFiles();
     List<TestExpectationResult> withExpectations =
-        await getTestResultsWithExpectation(testResult);
+        statusExpectations.getTestResultsWithExpectation();
 
     var outputTable = getOutputTable(argResults)
       ..addHeader(new Column("Test", width: 38), (TestExpectationResult item) {
@@ -168,7 +169,7 @@ class GetTestFailuresCommand extends Command {
       }
       testResults.addAll(buildBucketResults);
     } else {
-      var testResult = await getTestResult(argResults.rest);
+      var testResult = await getTestResultFromBuilder(argResults.rest);
       if (testResult == null) {
         print(howToUse("failures"));
         return;
@@ -184,8 +185,10 @@ class GetTestFailuresCommand extends Command {
       if (testResult is BuildBucketTestResult) {
         printBuild(testResult.build);
       }
+      var statusExpectations = new StatusExpectations(testResult);
+      await statusExpectations.loadStatusFiles();
       List<TestExpectationResult> results =
-          await getTestResultsWithExpectation(testResult);
+          statusExpectations.getTestResultsWithExpectation();
       printFailingTestExpectationResults(results);
       print("");
     }

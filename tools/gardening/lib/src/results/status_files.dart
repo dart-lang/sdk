@@ -3,23 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:gardening/src/results/configuration_environment.dart';
-import 'package:status_file/status_file.dart';
+import 'package:status_file/canonical_status_file.dart';
 
 class StatusFiles {
   Map<String, List<StatusSectionEntry>> _exactEntries = {};
   Map<StatusSectionEntry, List<RegExp>> _wildcardEntries = {};
+  List<StatusSectionWithFile> _sections = [];
+  final List<StatusFile> statusFiles;
 
   /// Constructs a [StatusFiles] from a list of status file paths.
   static StatusFiles read(Iterable<String> files) {
-    return new StatusFiles(files.map((file) {
+    var distinctFiles = new Set.from(files).toList();
+    return new StatusFiles(distinctFiles.map((file) {
       return new StatusFile.read(file);
     }).toList());
   }
 
-  StatusFiles(List<StatusFile> statusFiles) {
+  StatusFiles(this.statusFiles) {
     for (var file in statusFiles) {
       for (var section in file.sections) {
-        for (var entry in section.entries) {
+        _sections.add(new StatusSectionWithFile(file, section));
+        for (StatusEntry entry
+            in section.entries.where((entry) => entry is StatusEntry)) {
           var sectionEntry = new StatusSectionEntry(file, section, entry);
           if (entry.path.contains("*")) {
             _wildcardEntries[sectionEntry] = _processForMatching(entry.path);
@@ -29,6 +34,13 @@ class StatusFiles {
         }
       }
     }
+  }
+
+  /// Gets all section entries with test-expectations for a configuration
+  /// environment.
+  List<StatusSectionWithFile> sectionsForConfiguration(
+      ConfigurationEnvironment environment) {
+    return _sections.where((s) => s.section.isEnabled(environment)).toList();
   }
 
   /// Gets all section entries with test-expectations for a configuration
@@ -47,13 +59,22 @@ class StatusFiles {
     if (_exactEntries.containsKey(testPath)) {
       matchingEntries.addAll(_exactEntries[testPath]);
     }
-    // Test if it is a multi test.
-    RegExp isMultiTestMatcher = new RegExp(r"^((.*)_(test|t\d+))\/[^\/]+$");
+    // Test if it is a multi test by matching finding the name of the test
+    // (either by the test name ending with _test/ or _t<nr>/ and cutting out
+    // the remaining, as long as it does not contain the word _test
+    RegExp isMultiTestMatcher = new RegExp(r"^((.*)_(test|t\d+))\/(.+)$");
     Match isMultiTestMatch = isMultiTestMatcher.firstMatch(testPath);
     if (isMultiTestMatch != null) {
       String testFile = isMultiTestMatch.group(1);
       if (_exactEntries.containsKey(testFile)) {
         matchingEntries.addAll(_exactEntries[testFile]);
+      }
+      var multiTestParts = isMultiTestMatch.group(4).split('/');
+      for (var part in multiTestParts) {
+        testFile = "$testFile/$part";
+        if (_exactEntries.containsKey(testFile)) {
+          matchingEntries.addAll(_exactEntries[testFile]);
+        }
       }
     }
 
@@ -86,4 +107,12 @@ class StatusSectionEntry {
   final StatusSection section;
   final StatusEntry entry;
   StatusSectionEntry(this.statusFile, this.section, this.entry);
+}
+
+/// [StatusSectionWithFile] holds information about a section and the status
+/// file it belongs to.
+class StatusSectionWithFile {
+  final StatusFile statusFile;
+  final StatusSection section;
+  StatusSectionWithFile(this.statusFile, this.section);
 }

@@ -12,50 +12,72 @@ import 'testpy_wrapper.dart';
 import '../util.dart';
 import 'package:status_file/expectation.dart';
 
-/// Finds the expectation for each test found in the [testResult] results and
-/// outputs if the test succeeded or failed.
-Future<List<TestExpectationResult>> getTestResultsWithExpectation(
-    TestResult testResult) async {
-  // Build expectations from configurations. Each configuration may test
-  // multiple test suites.
-  Map<String, ConfigurationEnvironment> configurationEnvironments = {};
-  Map<String, Map<String, StatusFiles>> statusFilesMaps = {};
-  await Future.wait(testResult.configurations.keys.map((key) async {
-    Configuration configuration = testResult.configurations[key];
-    configurationEnvironments[key] =
-        new ConfigurationEnvironment(configuration);
-    var statusFilePathsMap = await statusFileListerMap(configuration);
-    statusFilesMaps[key] = {};
-    statusFilePathsMap.keys.forEach((suite) {
-      var statusFilePaths = statusFilePathsMap[suite].map((file) {
+class StatusExpectations {
+  final TestResult testResult;
+
+  final Map<Configuration, ConfigurationEnvironment> configurationEnvironments =
+      {};
+  final Map<String, StatusFiles> statusFilesMaps = {};
+
+  bool _isLoaded = false;
+
+  StatusExpectations(this.testResult);
+
+  /// Build expectations from configurations. Each configuration may test
+  /// multiple test suites.
+  Future loadStatusFiles() async {
+    if (_isLoaded) {
+      return;
+    }
+
+    Map<String, Iterable<String>> suiteStatusFiles = {};
+
+    await Future.wait(testResult.configurations.keys.map((key) async {
+      Configuration configuration = testResult.configurations[key];
+      if (!configurationEnvironments.containsKey(key)) {
+        configurationEnvironments[configuration] =
+            new ConfigurationEnvironment(configuration);
+      }
+      // We allow overwriting, since status files for a suite does not change.
+      suiteStatusFiles.addAll(await statusFileListerMap(configuration));
+    }));
+
+    suiteStatusFiles.keys.forEach((suite) {
+      var statusFilePaths = suiteStatusFiles[suite].map((file) {
         return "${PathHelper.sdkRepositoryRoot()}/$file";
       }).where((sf) {
         return new File(sf).existsSync();
       }).toList();
-      statusFilesMaps[key][suite] = StatusFiles.read(statusFilePaths);
+      statusFilesMaps[suite] = StatusFiles.read(statusFilePaths);
     });
-  }));
 
-  List<TestExpectationResult> expectationResults = [];
-  testResult.results.forEach((result) {
-    try {
-      ConfigurationEnvironment environment =
-          configurationEnvironments[result.configuration];
-      var testSuite = getSuiteNameForTest(result.name);
-      StatusFiles expectationSuite =
-          statusFilesMaps[result.configuration][testSuite];
-      var qualifiedName = getQualifiedNameForTest(result.name);
-      var statusFileEntries = expectationSuite.sectionsWithTestForConfiguration(
-          environment, qualifiedName);
-      expectationResults.add(new TestExpectationResult(statusFileEntries,
-          result, testResult.configurations[result.configuration]));
-    } catch (ex, st) {
-      print(ex);
-      print(st);
-    }
-  });
+    _isLoaded = true;
+  }
 
-  return expectationResults;
+  /// Finds the expectation for each test found in the [testResult] results and
+  /// outputs if the test succeeded or failed. The status files must have been
+  /// loaded.
+  List<TestExpectationResult> getTestResultsWithExpectation() {
+    assert(_isLoaded);
+    List<TestExpectationResult> expectationResults = [];
+    testResult.results.forEach((result) {
+      try {
+        Configuration configuration =
+            testResult.configurations[result.configuration];
+        ConfigurationEnvironment environment =
+            configurationEnvironments[configuration];
+        var testSuite = getSuiteNameForTest(result.name);
+        StatusFiles expectationSuite = statusFilesMaps[testSuite];
+        var qualifiedName = getQualifiedNameForTest(result.name);
+        var statusFileEntries = expectationSuite
+            .sectionsWithTestForConfiguration(environment, qualifiedName);
+        expectationResults.add(new TestExpectationResult(
+            statusFileEntries, result, configuration));
+      } catch (ex) {}
+    });
+
+    return expectationResults;
+  }
 }
 
 /// [TestExpectationResult] contains information about the result of running a
@@ -87,7 +109,8 @@ class TestExpectationResult {
       return _isSuccess;
     }
     Expectation outcome = Expectation.find(result.result);
-    Set<Expectation> testExpectations = _getTestExpectations();
+    Set<Expectation> testExpectations =
+        expectationsFromTest(result.testExpectations);
     Set<Expectation> expectationSet = expectations();
     _isSuccess = testExpectations.contains(outcome) ||
         expectationSet.contains(Expectation.skip) ||
@@ -97,20 +120,20 @@ class TestExpectationResult {
         });
     return _isSuccess;
   }
+}
 
-  Set<Expectation> _getTestExpectations() {
-    if (result.testExpectations == null) {
-      return new Set<Expectation>();
-    }
-    return result.testExpectations.map((exp) {
-      if (exp == "static-type-warning") {
-        return Expectation.staticWarning;
-      } else if (exp == "runtime-error") {
-        return Expectation.runtimeError;
-      } else if (exp == "compile-time-error") {
-        return Expectation.compileTimeError;
-      }
-      return null;
-    }).toSet();
+Set<Expectation> expectationsFromTest(List<String> testExpectations) {
+  if (testExpectations == null) {
+    return new Set<Expectation>();
   }
+  return testExpectations.map((exp) {
+    if (exp == "static-type-warning") {
+      return Expectation.staticWarning;
+    } else if (exp == "runtime-error") {
+      return Expectation.runtimeError;
+    } else if (exp == "compile-time-error") {
+      return Expectation.compileTimeError;
+    }
+    return null;
+  }).toSet();
 }

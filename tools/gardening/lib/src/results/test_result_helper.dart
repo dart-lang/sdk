@@ -11,10 +11,24 @@ import '../util.dart';
 import 'result_json_models.dart';
 import 'test_result_service.dart';
 
+Future<TestResult> getTestResult(List<String> arguments) async {
+  if (isCqInput(arguments)) {
+    Iterable<BuildBucketTestResult> buildBucketTestResults =
+        await getTestResultsFromCq(arguments);
+    if (buildBucketTestResults != null) {
+      return buildBucketTestResults.fold<TestResult>(new TestResult(),
+          (combined, buildResult) => combined..combineWith([buildResult]));
+    }
+  } else {
+    return await getTestResultFromBuilder(arguments);
+  }
+  return null;
+}
+
 /// Utility method to get a single test-result no matter what has been passed in
 /// as arguments. The test-result can either be from a builder-group, a single
 /// build on a builder or from a log.
-Future<TestResult> getTestResult(List<String> arguments) async {
+Future<TestResult> getTestResultFromBuilder(List<String> arguments) async {
   if (arguments.isEmpty) {
     print("No result.log file given as argument.");
     return null;
