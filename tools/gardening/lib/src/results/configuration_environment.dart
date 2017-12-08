@@ -20,7 +20,7 @@ final _variables = {
       new _Variable.bool((c) => c.compiler == Compiler.dart2analyzer.name),
   "arch": new _Variable((c) => c.arch, Architecture.names),
   "browser": new _Variable.bool((c) {
-    var runtime = new Runtime.fromName(c.runtime);
+    var runtime = runtimeFromName(c.runtime);
     return runtime != null ? runtime.isBrowser : false;
   }),
   "builder_tag": new _Variable((c) => c.builderTag ?? "", const []),
@@ -35,11 +35,11 @@ final _variables = {
   "hot_reload": new _Variable.bool((c) => c.hotReload),
   "hot_reload_rollback": new _Variable.bool((c) => c.hotReloadRollback),
   "ie": new _Variable.bool((c) {
-    var runtime = new Runtime.fromName(c.runtime);
+    var runtime = runtimeFromName(c.runtime);
     return runtime != null ? runtime.isIE : false;
   }),
   "jscl": new _Variable.bool((c) {
-    var runtime = new Runtime.fromName(c.runtime);
+    var runtime = runtimeFromName(c.runtime);
     return runtime != null ? runtime.isJSCommandLine : false;
   }),
   "minified": new _Variable.bool((c) => c.minified),

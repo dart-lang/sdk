@@ -88,12 +88,13 @@ class Workflow {
       return _navigate(action.nextStep, action.payload);
     } else if (action is BackWorkflowAction) {
       await _navigateLeave();
-      var lastStep = _lastSteps.removeLast();
-      while (lastStep != null && lastStep is! ComputeStep) {
+      _lastSteps.removeLast();
+      var lastStep = _lastSteps.last;
+      while (_lastSteps.isNotEmpty && lastStep is ComputeStep) {
         lastStep = _lastSteps.removeLast();
       }
-      if (currentStep != null) {
-        return _handleWorkflowAction(await currentStep.onShow(null));
+      if (lastStep != null) {
+        return _handleWorkflowAction(await lastStep.onShow(null));
       }
     }
   }
