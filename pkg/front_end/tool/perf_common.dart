@@ -37,19 +37,24 @@ final whitelistMessageCode = new Set<String>.from(<String>[
   codeUndefinedMethod.name,
 ]);
 
-onErrorHandler(bool isStrong) => (CompilationMessage m) {
-      if (m.severity == Severity.internalProblem ||
-          m.severity == Severity.error) {
-        if (!isStrong || !whitelistMessageCode.contains(m.code)) {
-          exitCode = 1;
-        }
-
+onErrorHandler(bool isStrong) {
+  bool messageReported = false;
+  return (CompilationMessage m) {
+    if (m.severity == Severity.internalProblem ||
+        m.severity == Severity.error) {
+      if (!isStrong || !whitelistMessageCode.contains(m.code)) {
         var uri = m.span.start.sourceUrl;
         var offset = m.span.start.offset;
         stderr.writeln('$uri:$offset: '
             '${severityName(m.severity, capitalized: true)}: ${m.message}');
+        exitCode = 1;
+      } else if (!messageReported) {
+        messageReported = true;
+        stderr.writeln('Whitelisted error messages omitted');
       }
-    };
+    }
+  };
+}
 
 /// Creates a [VmTarget] or [FlutterTarget] with strong-mode enabled or
 /// disabled.
