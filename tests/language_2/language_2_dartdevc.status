@@ -821,6 +821,10 @@ syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, 
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
 yieldstar_pause_test: Timeout
 
+# Skip Kernel tests on Windows until bot has been fixed (Issue 31539)
+[ $compiler == dartdevk && $system == windows ]
+*: Skip
+
 # Compiler tests for dartdevc and dartdevk.  These contain common expectations
 # for all runtimes including $runtime == none.  They are organized by: shared
 # expectations for dartdevc and dartdevk, then expectations for dartdevc, and
