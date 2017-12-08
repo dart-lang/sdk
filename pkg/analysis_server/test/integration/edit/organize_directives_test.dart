@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
@@ -12,6 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
+    defineReflectiveTests(OrganizeDirectivesTest_PreviewDart2);
   });
 }
 
@@ -73,4 +76,19 @@ int minified(int x, int y) => min(x, y);
       expect(message.error['code'], 'ORGANIZE_DIRECTIVES_ERROR');
     }
   }
+}
+
+@reflectiveTest
+class OrganizeDirectivesTest_PreviewDart2 extends OrganizeDirectivesTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  Future test_organize_directives() => super.test_organize_directives();
+
+  @override
+  @failingTest
+  Future test_organize_directives_no_changes() =>
+      super.test_organize_directives_no_changes();
 }

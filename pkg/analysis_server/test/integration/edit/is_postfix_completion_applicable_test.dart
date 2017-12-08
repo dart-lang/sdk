@@ -11,6 +11,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(IsPostfixCompletionApplicableTest);
+    defineReflectiveTests(IsPostfixCompletionApplicableTest_PreviewDart2);
   });
 }
 
@@ -38,4 +39,11 @@ void foo() { }
         await sendEditIsPostfixCompletionApplicable(pathname, '.tryon', loc);
     expect(result.value, isTrue);
   }
+}
+
+@reflectiveTest
+class IsPostfixCompletionApplicableTest_PreviewDart2
+    extends IsPostfixCompletionApplicableTest {
+  @override
+  bool get usePreviewDart2 => true;
 }
