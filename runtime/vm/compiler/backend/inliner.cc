@@ -2695,16 +2695,6 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   PrepareInlineByteArrayBaseOp(flow_graph, call, array_cid, view_cid, &array,
                                index, &cursor);
 
-  // Extract the instance call so we can use the function_name in the stored
-  // value check ICData.
-  InstanceCallInstr* i_call = NULL;
-  if (call->IsPolymorphicInstanceCall()) {
-    i_call = call->AsPolymorphicInstanceCall()->instance_call();
-  } else {
-    ASSERT(call->IsInstanceCall());
-    i_call = call->AsInstanceCall();
-  }
-  ASSERT(i_call != NULL);
   Cids* value_check = NULL;
   switch (view_cid) {
     case kTypedDataInt8ArrayCid:
