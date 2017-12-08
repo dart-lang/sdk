@@ -100,6 +100,10 @@ class OSThread : public BaseThread {
     return stack_limit_ + kStackSizeBuffer;
   }
 
+  bool HasStackHeadroom(intptr_t headroom = kStackSizeBuffer) {
+    return GetCurrentStackPointer() > (stack_limit_ + headroom);
+  }
+
   void RefineStackBoundsFromSP(uword sp) {
     if (sp > stack_base_) {
       stack_base_ = sp;
@@ -109,6 +113,12 @@ class OSThread : public BaseThread {
 
   // May fail for the main thread on Linux and Android.
   static bool GetCurrentStackBounds(uword* lower, uword* upper);
+
+  // Returns the current C++ stack pointer. Equivalent taking the address of a
+  // stack allocated local, but plays well with AddressSanitizer and SafeStack.
+  // Accurate enough for stack overflow checks but not accurate enough for
+  // alignment checks.
+  static uword GetCurrentStackPointer();
 
 #if defined(USING_SAFE_STACK)
   static uword GetCurrentSafestackPointer();

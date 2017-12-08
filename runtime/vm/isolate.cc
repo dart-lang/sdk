@@ -1201,7 +1201,8 @@ bool Isolate::CanReload() const {
   return !ServiceIsolate::IsServiceIsolateDescendant(this) && is_runnable() &&
          !IsReloading() &&
          (AtomicOperations::LoadRelaxed(&no_reload_scope_depth_) == 0) &&
-         IsolateCreationEnabled();
+         IsolateCreationEnabled() &&
+         OSThread::Current()->HasStackHeadroom(64 * KB);
 }
 
 bool Isolate::ReloadSources(JSONStream* js,

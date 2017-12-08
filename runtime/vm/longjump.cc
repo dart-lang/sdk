@@ -25,7 +25,7 @@ bool LongJumpScope::IsSafeToJump() {
   // We do not want to jump past Dart frames.  Note that this code
   // assumes the stack grows from high to low.
   Thread* thread = Thread::Current();
-  uword jumpbuf_addr = Thread::GetCurrentStackPointer();
+  uword jumpbuf_addr = OSThread::GetCurrentStackPointer();
 #if defined(USING_SIMULATOR)
   Simulator* sim = Simulator::Current();
   // When using simulator, only mutator thread should refer to Simulator

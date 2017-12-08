@@ -1078,7 +1078,7 @@ void Profiler::DumpStackTrace(void* context) {
 }
 
 void Profiler::DumpStackTrace(bool for_crash) {
-  uintptr_t sp = Thread::GetCurrentStackPointer();
+  uintptr_t sp = OSThread::GetCurrentStackPointer();
   uintptr_t fp = 0;
   uintptr_t pc = OS::GetProgramCounter();
 
@@ -1153,7 +1153,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
     return;
   }
 
-  uintptr_t sp = Thread::GetCurrentStackPointer();
+  uintptr_t sp = OSThread::GetCurrentStackPointer();
   uintptr_t fp = 0;
   uintptr_t pc = OS::GetProgramCounter();
 
@@ -1202,7 +1202,7 @@ Sample* Profiler::SampleNativeAllocation(intptr_t skip_count,
     return NULL;
   }
 
-  uintptr_t sp = Thread::GetCurrentStackPointer();
+  uintptr_t sp = OSThread::GetCurrentStackPointer();
   uintptr_t fp = 0;
   uintptr_t pc = OS::GetProgramCounter();
 
