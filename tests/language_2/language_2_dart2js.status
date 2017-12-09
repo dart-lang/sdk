@@ -1597,6 +1597,7 @@ built_in_identifier_type_annotation_test/68: MissingCompileTimeError # Issue 288
 checked_setter2_test: RuntimeError # Issue 31128
 checked_setter_test: RuntimeError # Issue 31128
 closure_param_null_to_object_test: RuntimeError
+extract_type_arguments_test: Crash # Issue 31371
 implicit_downcast_during_constructor_invocation_test: RuntimeError
 implicit_downcast_during_for_in_element_test: RuntimeError
 implicit_downcast_during_for_in_iterable_test: RuntimeError
