@@ -47,21 +47,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignability_function_expr_rettype_from_typedef_cls() async {
-    return super.test_assignability_function_expr_rettype_from_typedef_cls();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_assignability_function_expr_rettype_from_typedef_typedef() async {
-    return super
-        .test_assignability_function_expr_rettype_from_typedef_typedef();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_assignmentToFinals_importWithPrefix() async {
     return super.test_assignmentToFinals_importWithPrefix();
   }
@@ -202,13 +187,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_constEvelTypeNum_String() async {
-    return super.test_constEvelTypeNum_String();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_constRedirectSkipsSupertype() async {
     return super.test_constRedirectSkipsSupertype();
   }
@@ -218,20 +196,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_deprecatedMemberUse_hide() async {
-    return super.test_deprecatedMemberUse_hide();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_duplicateDefinition_emptyName() async {
-    return super.test_duplicateDefinition_emptyName();
   }
 
   @override
@@ -358,20 +322,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_importOfNonLibrary_libraryDeclared() async {
-    return super.test_importOfNonLibrary_libraryDeclared();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_importOfNonLibrary_libraryNotDeclared() async {
-    return super.test_importOfNonLibrary_libraryNotDeclared();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_importPrefixes_withFirstLetterDifference() async {
     return super.test_importPrefixes_withFirstLetterDifference();
   }
@@ -412,34 +362,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_invalidAnnotation_constConstructor_named_importWithPrefix() async {
     return super
         .test_invalidAnnotation_constConstructor_named_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_1() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_1();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_2() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_2();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_3() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_3();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invalidAssignment_implicitlyImplementFunctionViaCall_4() async {
-    return super.test_invalidAssignment_implicitlyImplementFunctionViaCall_4();
   }
 
   @override
@@ -598,22 +520,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_staticAccessToInstanceMember_method() async {
     return super.test_staticAccessToInstanceMember_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound() async {
-    return super
-        .test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_hasBound();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_noBound() async {
-    return super
-        .test_typeArgumentNotMatchingBounds_ofFunctionTypeAlias_noBound();
   }
 
   @override

@@ -545,7 +545,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     super.visitTopLevelVariableDeclaration(node);
-    _resolveMetadata(node, node.metadata, node.variables.variables[0].element);
+    VariableElement firstElement = node.variables.variables[0].element;
+    if (_applyKernelTypes) {
+      TypeAnnotation type = node.variables.type;
+      if (type != null) {
+        ResolutionApplier.applyToTypeAnnotation(firstElement.type, type);
+      }
+    }
+    _resolveMetadata(node, node.metadata, firstElement);
     return null;
   }
 

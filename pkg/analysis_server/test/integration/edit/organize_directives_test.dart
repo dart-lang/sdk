@@ -82,13 +82,4 @@ int minified(int x, int y) => min(x, y);
 class OrganizeDirectivesTest_PreviewDart2 extends OrganizeDirectivesTest {
   @override
   bool get usePreviewDart2 => true;
-
-  @override
-  @failingTest
-  Future test_organize_directives() => super.test_organize_directives();
-
-  @override
-  @failingTest
-  Future test_organize_directives_no_changes() =>
-      super.test_organize_directives_no_changes();
 }

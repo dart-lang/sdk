@@ -3959,6 +3959,7 @@ class C<T> {
   test_top_field_top() async {
     String content = r'''
 var a = 1;
+double b = 2.3;
 ''';
     addTestFile(content);
 
@@ -3967,16 +3968,36 @@ var a = 1;
     CompilationUnitElement unitElement = unit.element;
     var typeProvider = unitElement.context.typeProvider;
 
-    TopLevelVariableDeclaration aDeclaration = unit.declarations[0];
-    VariableDeclaration aNode = aDeclaration.variables.variables[0];
-    TopLevelVariableElement aElement = aNode.element;
-    expect(aElement, same(unitElement.topLevelVariables[0]));
-    expect(aElement.type, typeProvider.intType);
-    expect(aNode.name.staticElement, same(aElement));
-    expect(aNode.name.staticType, same(aElement.type));
+    {
+      TopLevelVariableDeclaration aDeclaration = unit.declarations[0];
+      VariableDeclaration aNode = aDeclaration.variables.variables[0];
+      TopLevelVariableElement aElement = aNode.element;
+      expect(aElement, same(unitElement.topLevelVariables[0]));
+      expect(aElement.type, typeProvider.intType);
+      expect(aNode.name.staticElement, same(aElement));
+      expect(aNode.name.staticType, same(aElement.type));
 
-    Expression aValue = aNode.initializer;
-    expect(aValue.staticType, typeProvider.intType);
+      Expression aValue = aNode.initializer;
+      expect(aValue.staticType, typeProvider.intType);
+    }
+
+    {
+      TopLevelVariableDeclaration bDeclaration = unit.declarations[1];
+
+      VariableDeclaration bNode = bDeclaration.variables.variables[0];
+      TopLevelVariableElement bElement = bNode.element;
+      expect(bElement, same(unitElement.topLevelVariables[1]));
+      expect(bElement.type, typeProvider.doubleType);
+
+      TypeName typeName = bDeclaration.variables.type;
+      _assertTypeNameSimple(typeName, typeProvider.doubleType);
+
+      expect(bNode.name.staticElement, same(bElement));
+      expect(bNode.name.staticType, same(bElement.type));
+
+      Expression aValue = bNode.initializer;
+      expect(aValue.staticType, typeProvider.doubleType);
+    }
   }
 
   test_top_function_namedParameters() async {
