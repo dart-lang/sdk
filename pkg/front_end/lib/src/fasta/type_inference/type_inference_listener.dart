@@ -302,12 +302,6 @@ class TypeInferenceListener
           LogicalExpression expression, DartType inferredType) =>
       genericExpressionExit("logicalExpression", expression, inferredType);
 
-  void loopAssignmentStatementEnter(ExpressionStatement statement) =>
-      genericStatementEnter('loopAssignmentStatement', statement);
-
-  void loopAssignmentStatementExit(ExpressionStatement statement) =>
-      genericStatementExit('loopAssignmentStatement', statement);
-
   bool mapLiteralEnter(MapLiteral expression, DartType typeContext) =>
       genericExpressionEnter("mapLiteral", expression, typeContext);
 

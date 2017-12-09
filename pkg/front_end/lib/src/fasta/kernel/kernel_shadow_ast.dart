@@ -767,6 +767,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     ShadowVariableDeclaration variable;
     var syntheticAssignment = _syntheticAssignment;
     Expression syntheticWrite;
+    DartType syntheticWriteType;
     if (_declaresVariable) {
       variable = this.variable;
       if (inferrer.strongMode && variable._implicitlyTyped) {
@@ -777,7 +778,8 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
       }
     } else if (syntheticAssignment is ShadowComplexAssignment) {
       syntheticWrite = syntheticAssignment.write;
-      context = syntheticAssignment._getWriteType(inferrer);
+      syntheticWriteType =
+          context = syntheticAssignment._getWriteType(inferrer);
     } else {
       context = const UnknownType();
     }
@@ -822,6 +824,19 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
         variable.initializer = implicitDowncast..parent = variable;
         body = combineStatements(variable, body)..parent = this;
       }
+    } else if (syntheticAssignment is ShadowSyntheticExpression) {
+      if (syntheticAssignment is ShadowComplexAssignment) {
+        inferrer.checkAssignability(
+            greatestClosure(inferrer.coreTypes, syntheticWriteType),
+            this.variable.type,
+            syntheticAssignment.rhs,
+            syntheticAssignment.rhs.fileOffset);
+        if (syntheticAssignment is ShadowPropertyAssign) {
+          syntheticAssignment._handleWriteContravariance(
+              inferrer, inferrer.thisType);
+        }
+      }
+      syntheticAssignment._replaceWithDesugared();
     }
     inferrer.listener.forInStatementExit(this, variable);
   }
@@ -1277,11 +1292,7 @@ class ShadowLoopAssignmentStatement extends ExpressionStatement
   ShadowLoopAssignmentStatement(Expression expression) : super(expression);
 
   @override
-  void _inferStatement(ShadowTypeInferrer inferrer) {
-    inferrer.listener.loopAssignmentStatementEnter(this);
-    inferrer.inferExpression(expression, null, false);
-    inferrer.listener.loopAssignmentStatementExit(this);
-  }
+  void _inferStatement(ShadowTypeInferrer inferrer) {}
 }
 
 /// Shadow object for [MapLiteral].
@@ -1600,6 +1611,14 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     return inferrer.getSetterType(writeMember, receiverType);
   }
 
+  Object _handleWriteContravariance(
+      ShadowTypeInferrer inferrer, DartType receiverType) {
+    var writeMember = inferrer.findPropertySetMember(receiverType, write);
+    inferrer.handlePropertySetContravariance(
+        receiver, writeMember, write is PropertySet ? write : null, write);
+    return writeMember;
+  }
+
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
@@ -1618,9 +1637,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     }
     Member writeMember;
     if (write != null) {
-      writeMember = inferrer.findPropertySetMember(receiverType, write);
-      inferrer.handlePropertySetContravariance(
-          receiver, writeMember, write is PropertySet ? write : null, write);
+      writeMember = _handleWriteContravariance(inferrer, receiverType);
     }
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member when
