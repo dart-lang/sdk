@@ -13,6 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindElementReferencesTest);
+    defineReflectiveTests(FindElementReferencesTest_PreviewDart2);
   });
 }
 
@@ -69,4 +70,15 @@ main() {
     expect(searchParams.isLast, isTrue);
     return searchParams.results;
   }
+}
+
+@reflectiveTest
+class FindElementReferencesTest_PreviewDart2 extends FindElementReferencesTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  // TODO(devoncarew): 'NoSuchMethodError: The getter 'source' was called on null'
+  Future test_findReferences() => new Future.error('failing test');
 }

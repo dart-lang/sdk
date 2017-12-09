@@ -94,6 +94,7 @@ front_end/*: SkipByDesign
 [ $runtime == vm ]
 analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/integration/completion: Pass, Slow
+analysis_server/test/integration/search/find_top_level_declarations_test: Pass, RuntimeError # 31571
 
 [ $runtime == vm && $checked ]
 analysis_server/test/completion_test: Pass, Slow

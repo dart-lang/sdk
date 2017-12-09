@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -11,6 +13,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindMemberReferencesTest);
+    defineReflectiveTests(FindMemberReferencesTest_PreviewDart2);
   });
 }
 
@@ -49,4 +52,15 @@ class Foo {
     expect(result.kind.name, SearchResultKind.INVOCATION.name);
     expect(result.path.first.name, 'baz');
   }
+}
+
+@reflectiveTest
+class FindMemberReferencesTest_PreviewDart2 extends FindMemberReferencesTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  // TODO(devoncarew): 'NoSuchMethodError: The getter 'element' was called on null'
+  Future test_findMemberReferences() => new Future.error('failing test');
 }

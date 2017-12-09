@@ -14,6 +14,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
+    defineReflectiveTests(GetTypeHierarchyTest_PreviewDart2);
   });
 }
 
@@ -272,4 +273,15 @@ class HierarchyResults {
       return null;
     }
   }
+}
+
+@reflectiveTest
+class GetTypeHierarchyTest_PreviewDart2 extends GetTypeHierarchyTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  // TODO(devoncarew): 'NoSuchMethodError: The getter 'source' was called on null'
+  Future test_getTypeHierarchy() => new Future.error('failing test');
 }
