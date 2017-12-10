@@ -12633,9 +12633,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_block() {
-    createParser('/** */ class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/** */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);
@@ -12644,9 +12644,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_block_withReference() {
-    createParser('/** [a] */ class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/** [a] */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);
@@ -12660,9 +12660,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_endOfLine() {
-    createParser('/// \n/// \n class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/// \n/// \n class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);

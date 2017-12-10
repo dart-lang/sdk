@@ -2853,30 +2853,6 @@ class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
   @override
   @failingTest
-  void test_parseDocumentationComment_block() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_block();
-  }
-
-  @override
-  @failingTest
-  void test_parseDocumentationComment_block_withReference() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_block_withReference();
-  }
-
-  @override
-  @failingTest
-  void test_parseDocumentationComment_endOfLine() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_endOfLine();
-  }
-
-  @override
-  @failingTest
   void test_parseTypeParameterList_single() {
     // TODO(brianwilkerson) Does not use all tokens.
     super.test_parseTypeParameterList_single();
