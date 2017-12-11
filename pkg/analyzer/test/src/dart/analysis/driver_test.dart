@@ -1416,6 +1416,53 @@ var b = new C.named();
     }
   }
 
+  test_instanceCreation_namedArgument() async {
+    addTestFile(r'''
+class X {
+  X(int a, {bool b, double c});
+}
+var v = new X(1, b: true, c: 3.0);
+''');
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+
+    ClassDeclaration xNode = unit.declarations[0];
+    ClassElement xElement = xNode.element;
+    ConstructorElement constructorElement = xElement.constructors[0];
+
+    TopLevelVariableDeclaration vDeclaration = unit.declarations[1];
+    VariableDeclaration vNode = vDeclaration.variables.variables[0];
+
+    InstanceCreationExpression creation = vNode.initializer;
+    List<Expression> arguments = creation.argumentList.arguments;
+    expect(creation.staticElement, constructorElement);
+    expect(creation.staticType, xElement.type);
+
+    TypeName typeName = creation.constructorName.type;
+    expect(typeName.typeArguments, isNull);
+
+    Identifier typeIdentifier = typeName.name;
+    expect(typeIdentifier.staticElement, xElement);
+    expect(typeIdentifier.staticType, xElement.type);
+
+    expect(creation.constructorName.name, isNull);
+
+    Expression aArgument = arguments[0];
+    ParameterElement aElement = constructorElement.parameters[0];
+    expect(aArgument.staticParameterElement, same(aElement));
+
+    NamedExpression bArgument = arguments[1];
+    ParameterElement bElement = constructorElement.parameters[1];
+    expect(bArgument.name.label.staticElement, same(bElement));
+    expect(bArgument.staticParameterElement, same(bElement));
+
+    NamedExpression cArgument = arguments[2];
+    ParameterElement cElement = constructorElement.parameters[2];
+    expect(cArgument.name.label.staticElement, same(cElement));
+    expect(cArgument.staticParameterElement, same(cElement));
+  }
+
   test_instanceCreation_noTypeArguments() async {
     String content = r'''
 class C {
@@ -2578,6 +2625,38 @@ class C<T> {
     }
   }
 
+  test_methodInvocation_namedArgument() async {
+    addTestFile(r'''
+void main() {
+  foo(1, b: true, c: 3.0);
+}
+void foo(int a, {bool b, double c}) {}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    FunctionDeclaration foo = result.unit.declarations[1];
+    ExecutableElement fooElement = foo.element;
+
+    ExpressionStatement statement = mainStatements[0];
+    MethodInvocation invocation = statement.expression;
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression aArgument = arguments[0];
+    ParameterElement aElement = fooElement.parameters[0];
+    expect(aArgument.staticParameterElement, same(aElement));
+
+    NamedExpression bArgument = arguments[1];
+    ParameterElement bElement = fooElement.parameters[1];
+    expect(bArgument.name.label.staticElement, same(bElement));
+    expect(bArgument.staticParameterElement, same(bElement));
+
+    NamedExpression cArgument = arguments[2];
+    ParameterElement cElement = fooElement.parameters[2];
+    expect(cArgument.name.label.staticElement, same(cElement));
+    expect(cArgument.staticParameterElement, same(cElement));
+  }
+
   test_methodInvocation_staticMethod() async {
     addTestFile(r'''
 main() {
@@ -2794,38 +2873,6 @@ void f<T, U>(T a, U b) {}
         expect(bArgumentParameter.baseElement, same(bElement));
       }
     }
-  }
-
-  test_namedArgument() async {
-    addTestFile(r'''
-void main() {
-  foo(1, b: true, c: 3.0);
-}
-void foo(int a, {bool b, double c}) {}
-''');
-    AnalysisResult result = await driver.getResult(testFile);
-    List<Statement> mainStatements = _getMainStatements(result);
-
-    FunctionDeclaration foo = result.unit.declarations[1];
-    ExecutableElement fooElement = foo.element;
-
-    ExpressionStatement statement = mainStatements[0];
-    MethodInvocation invocation = statement.expression;
-    List<Expression> arguments = invocation.argumentList.arguments;
-
-    Expression aArgument = arguments[0];
-    ParameterElement aElement = fooElement.parameters[0];
-    expect(aArgument.staticParameterElement, same(aElement));
-
-    NamedExpression bArgument = arguments[1];
-    ParameterElement bElement = fooElement.parameters[1];
-    expect(bArgument.name.label.staticElement, same(bElement));
-    expect(bArgument.staticParameterElement, same(bElement));
-
-    NamedExpression cArgument = arguments[2];
-    ParameterElement cElement = fooElement.parameters[2];
-    expect(cArgument.name.label.staticElement, same(cElement));
-    expect(cArgument.staticParameterElement, same(cElement));
   }
 
   test_postfixExpression_local() async {

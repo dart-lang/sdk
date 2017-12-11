@@ -131,13 +131,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_const_constructor_with_named_generic_parameter() async {
-    return super.test_const_constructor_with_named_generic_parameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_constConstructorWithNonConstSuper_redirectingFactory() async {
     return super.test_constConstructorWithNonConstSuper_redirectingFactory();
   }

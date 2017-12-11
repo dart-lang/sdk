@@ -327,8 +327,18 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       constructorName.name.staticElement = element;
     }
 
-    node.argumentList?.accept(this);
-    _associateArgumentsWithParameters(element?.parameters, node.argumentList);
+    ArgumentList argumentList = node.argumentList;
+    _associateArgumentsWithParameters(element?.parameters, argumentList);
+
+    // Apply resolution to arguments.
+    // Skip names of named arguments.
+    for (var argument in argumentList.arguments) {
+      if (argument is NamedExpression) {
+        argument.expression.accept(this);
+      } else {
+        argument.accept(this);
+      }
+    }
   }
 
   @override
