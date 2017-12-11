@@ -2689,7 +2689,7 @@ class _Uri implements Uri {
     return sb.toString();
   }
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is Uri) {
       Uri uri = other;

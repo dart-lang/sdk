@@ -158,7 +158,7 @@ namespace dart {
   V(_Double, >=, Double_greaterEqualThan, Bool, 0x4260c184)                    \
   V(_Double, <, Double_lessThan, Bool, 0x365d1eba)                             \
   V(_Double, <=, Double_lessEqualThan, Bool, 0x74b5eb64)                       \
-  V(_Double, ==, Double_equal, Bool, 0x7ec67775)                               \
+  V(_Double, ==, Double_equal, Bool, 0x613492fc)                               \
   V(_Double, +, Double_add, Double, 0x53994370)                                \
   V(_Double, -, Double_sub, Double, 0x3b69d466)                                \
   V(_Double, *, Double_mul, Double, 0x2bb9bd5d)                                \
@@ -225,7 +225,7 @@ namespace dart {
   V(_IntegerImplementation, _greaterThanFromInteger,                           \
     Integer_greaterThanFromInt, Bool, 0x4a50ed58)                              \
   V(_IntegerImplementation, >, Integer_greaterThan, Bool, 0x6599a6e1)          \
-  V(_IntegerImplementation, ==, Integer_equal, Bool, 0x6d56616e)               \
+  V(_IntegerImplementation, ==, Integer_equal, Bool, 0x58abc487)               \
   V(_IntegerImplementation, _equalToInteger, Integer_equalToInteger, Bool,     \
     0x063be842)                                                                \
   V(_IntegerImplementation, <, Integer_lessThan, Bool, 0x365d1eba)             \
@@ -472,7 +472,7 @@ namespace dart {
   V(_Double, >=, Double_greaterEqualThan, 0x4260c184)                          \
   V(_Double, <, Double_lessThan, 0x365d1eba)                                   \
   V(_Double, <=, Double_lessEqualThan, 0x74b5eb64)                             \
-  V(_Double, ==, Double_equal, 0x7ec67775)                                     \
+  V(_Double, ==, Double_equal, 0x613492fc)                                     \
   V(_Double, +, Double_add, 0x53994370)                                        \
   V(_Double, -, Double_sub, 0x3b69d466)                                        \
   V(_Double, *, Double_mul, 0x2bb9bd5d)                                        \
@@ -486,7 +486,7 @@ namespace dart {
   V(_IntegerImplementation, |, Integer_bitOr, 0x22d38a06)                      \
   V(_IntegerImplementation, ^, Integer_bitXor, 0x79078347)                     \
   V(_IntegerImplementation, >, Integer_greaterThan, 0x6599a6e1)                \
-  V(_IntegerImplementation, ==, Integer_equal, 0x6d56616e)                     \
+  V(_IntegerImplementation, ==, Integer_equal, 0x58abc487)                     \
   V(_IntegerImplementation, <, Integer_lessThan, 0x365d1eba)                   \
   V(_IntegerImplementation, <=, Integer_lessEqualThan, 0x74b5eb64)             \
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 0x4260c184)          \

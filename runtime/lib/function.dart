@@ -5,7 +5,7 @@
 // part of "core_patch.dart";
 
 class _Closure implements Function {
-  bool operator ==(other) native "Closure_equals";
+  bool operator ==(Object other) native "Closure_equals";
 
   int get hashCode {
     if (_hash == null) {
