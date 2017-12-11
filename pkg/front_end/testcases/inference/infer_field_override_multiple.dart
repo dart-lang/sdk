@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
+/*@testedFeatures=inference,error*/
 library test;
 
 abstract class A {
@@ -29,15 +29,15 @@ class E extends A implements B {
 // Superclasses don't have a consistent type for `x` so inference fails, even if
 // the types are related.
 class F extends A implements C {
-  var /*@topType=dynamic*/ x;
+  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ x;
 }
 
 class G extends A implements D {
-  var /*@topType=dynamic*/ x;
+  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ x;
 }
 
 class H extends C implements D {
-  var /*@topType=dynamic*/ x;
+  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToInconsistentOverrides*/ x;
 }
 
 main() {}

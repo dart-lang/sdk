@@ -335,6 +335,32 @@ const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
     tip: r"""Try specifying the file explicitly with the --packages option.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String string)>
+    templateCantInferTypeDueToInconsistentOverrides =
+    const Template<Message Function(String string)>(
+        messageTemplate:
+            r"""Can't infer the type of '#string': overridden members must all have the same type.""",
+        tipTemplate: r"""Specify the type explicitly.""",
+        withArguments: _withArgumentsCantInferTypeDueToInconsistentOverrides);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)>
+    codeCantInferTypeDueToInconsistentOverrides =
+    const Code<Message Function(String string)>(
+  "CantInferTypeDueToInconsistentOverrides",
+  templateCantInferTypeDueToInconsistentOverrides,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferTypeDueToInconsistentOverrides(String string) {
+  return new Message(codeCantInferTypeDueToInconsistentOverrides,
+      message:
+          """Can't infer the type of '$string': overridden members must all have the same type.""",
+      tip: """Specify the type explicitly.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

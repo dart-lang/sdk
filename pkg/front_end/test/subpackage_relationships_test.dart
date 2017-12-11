@@ -134,6 +134,7 @@ final subpackageRules = {
   ]),
   'lib/src/fasta/type_inference': new SubpackageRules(allowedDependencies: [
     'lib/src/base',
+    'lib/src/fasta/builder',
     'lib/src/fasta',
     'lib/src/fasta/kernel',
     'lib/src/fasta/source',

@@ -325,8 +325,8 @@ class ShadowClass extends Class {
 
   /// Creates API members for this class.
   void setupApiMembers(InterfaceResolver interfaceResolver) {
-    interfaceResolver.createApiMembers(
-        this, _inferenceInfo.gettersAndMethods, _inferenceInfo.setters);
+    interfaceResolver.createApiMembers(this, _inferenceInfo.gettersAndMethods,
+        _inferenceInfo.setters, _inferenceInfo.builder.library);
   }
 
   static void clearClassInferenceInfo(ShadowClass class_) {

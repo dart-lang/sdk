@@ -111,6 +111,7 @@ switch_case_test/none: CompileTimeError
 syntax_test/none: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
+type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
 type_promotion_functions_test/03: CompileTimeError # Issue 30895
 type_promotion_functions_test/04: CompileTimeError # Issue 30895

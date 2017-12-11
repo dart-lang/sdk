@@ -144,6 +144,7 @@ syntax_test/none: Fail # Issue 11575
 test_negative_test: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
+type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_variable_scope_test/none: Fail # Issue 11578
 type_variable_static_context_negative_test: Fail # Issue 12161
 vm/debug_break_enabled_vm_test: Skip
