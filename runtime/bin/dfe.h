@@ -33,6 +33,11 @@ class DFE {
     kernel_platform_ = kernel_platform;
   }
 
+  void* application_kernel_binary() const { return application_kernel_binary_; }
+  void set_application_kernel_binary(void* application_kernel_binary) {
+    application_kernel_binary_ = application_kernel_binary;
+  }
+
   bool kernel_file_specified() const { return kernel_file_specified_; }
   void set_kernel_file_specified(bool value) { kernel_file_specified_ = value; }
 
@@ -73,6 +78,11 @@ class DFE {
   char* kernel_binaries_path_;
   char* platform_binary_filename_;
   void* kernel_platform_;
+
+  // Kernel binary specified on the cmd line.
+  // Loaded instead of platform if --kernel-binaries is not specified.
+  void* application_kernel_binary_;
+
   bool kernel_file_specified_;  // Kernel file was specified on the cmd line.
 
   DISALLOW_COPY_AND_ASSIGN(DFE);

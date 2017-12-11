@@ -651,12 +651,11 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     if (useDfe) {
       if (!_isStrong) {
         args.add('--dfe=pkg/vm/bin/kernel_service.dart');
+        args.add('--kernel-binaries=' +
+            (_useSdk
+                ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+                : '${buildDir}'));
       }
-      // TODO(dartbug.com/30480): avoid using additional kernel binaries
-      args.add('--kernel-binaries=' +
-          (_useSdk
-              ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-              : '${buildDir}'));
     }
 
     args.add("--snapshot-kind=app-aot");
