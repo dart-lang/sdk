@@ -32,7 +32,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31593')
   test_abstractSuperMemberReference_superHasNoSuchMethod() async {
     return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
   }
@@ -175,13 +175,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_constEval_propertyExtraction_fieldStatic_targetType() async {
     return super.test_constEval_propertyExtraction_fieldStatic_targetType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_constEval_propertyExtraction_methodStatic_targetType() async {
-    return super.test_constEval_propertyExtraction_methodStatic_targetType();
   }
 
   @override
@@ -518,13 +511,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_staticAccessToInstanceMember_method() async {
-    return super.test_staticAccessToInstanceMember_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeType_class_prefixed() async {
     return super.test_typeType_class_prefixed();
   }
@@ -541,13 +527,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedConstructorInInitializer_redirecting() async {
     return super.test_undefinedConstructorInInitializer_redirecting();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedGetter_static_conditionalAccess() async {
-    return super.test_undefinedGetter_static_conditionalAccess();
   }
 
   @override
@@ -583,12 +562,5 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedSetter_importWithPrefix() async {
     return super.test_undefinedSetter_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedSetter_static_conditionalAccess() async {
-    return super.test_undefinedSetter_static_conditionalAccess();
   }
 }

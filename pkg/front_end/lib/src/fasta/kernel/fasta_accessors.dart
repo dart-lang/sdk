@@ -126,7 +126,8 @@ abstract class BuilderHelper {
   bool checkArguments(FunctionNode function, Arguments arguments,
       List<TypeParameter> typeParameters);
 
-  StaticGet makeStaticGet(Member readTarget, Token token);
+  StaticGet makeStaticGet(Member readTarget, Token token,
+      {int targetOffset: -1, Class targetClass});
 
   dynamic deprecated_addCompileTimeError(int charOffset, String message);
 
@@ -790,7 +791,7 @@ class StaticAccessor extends kernel.StaticAccessor with FastaAccessor {
 
   @override
   ShadowComplexAssignment startComplexAssignment(Expression rhs) =>
-      new ShadowStaticAssignment(rhs);
+      new ShadowStaticAssignment(targetOffset, targetClass, rhs);
 }
 
 class LoadLibraryAccessor extends kernel.LoadLibraryAccessor

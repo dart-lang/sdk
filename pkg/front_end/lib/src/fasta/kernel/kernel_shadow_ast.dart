@@ -1734,7 +1734,16 @@ abstract class ShadowStatement extends Statement {
 
 /// Concrete shadow object representing an assignment to a static variable.
 class ShadowStaticAssignment extends ShadowComplexAssignment {
-  ShadowStaticAssignment(Expression rhs) : super(rhs);
+  /// If [_targetClass] is not `null`, the offset at which the explicit
+  /// reference to it is; otherwise `-1`.
+  int _targetOffset;
+
+  /// The [Class] that was explicitly referenced to get the target [Procedure],
+  /// or `null` if the class is implicit.
+  Class _targetClass;
+
+  ShadowStaticAssignment(this._targetOffset, this._targetClass, Expression rhs)
+      : super(rhs);
 
   @override
   DartType _getWriteType(ShadowTypeInferrer inferrer) {
@@ -1745,8 +1754,8 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener
-            .staticAssignEnter(desugared, this.write, typeContext) ||
+    typeNeeded = inferrer.listener.staticAssignEnter(
+            desugared, _targetOffset, _targetClass, this.write, typeContext) ||
         typeNeeded;
     DartType readType;
     var read = this.read;
@@ -1776,13 +1785,23 @@ class ShadowStaticAssignment extends ShadowComplexAssignment {
 /// Concrete shadow object representing a read of a static variable in kernel
 /// form.
 class ShadowStaticGet extends StaticGet implements ShadowExpression {
-  ShadowStaticGet(Member target) : super(target);
+  /// If [_targetClass] is not `null`, the offset at which the explicit
+  /// reference to it is; otherwise `-1`.
+  int _targetOffset;
+
+  /// The [Class] that was explicitly referenced to get the target [Procedure],
+  /// or `null` if the class is implicit.
+  Class _targetClass;
+
+  ShadowStaticGet(this._targetOffset, this._targetClass, Member target)
+      : super(target);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded =
-        inferrer.listener.staticGetEnter(this, typeContext) || typeNeeded;
+    typeNeeded = inferrer.listener
+            .staticGetEnter(this, _targetOffset, _targetClass, typeContext) ||
+        typeNeeded;
     var target = this.target;
     if (target is ShadowField && target._inferenceNode != null) {
       target._inferenceNode.resolve();

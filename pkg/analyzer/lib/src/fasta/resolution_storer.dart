@@ -485,11 +485,18 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
-  bool staticAssignEnter(
-      Expression expression, Expression write, DartType typeContext) {
+  bool staticAssignEnter(Expression expression, int targetOffset,
+      Class targetClass, Expression write, DartType typeContext) {
+    // If the static target is explicit (and is a class), record it.
+    if (targetClass != null) {
+      _recordReference(targetClass, targetOffset);
+      _recordType(targetClass.rawType, targetOffset);
+    }
+
     _deferReference(write.fileOffset);
     _deferType(write.fileOffset);
-    return super.staticAssignEnter(expression, write, typeContext);
+    return super.staticAssignEnter(
+        expression, targetOffset, targetClass, write, typeContext);
   }
 
   @override
@@ -505,6 +512,18 @@ class ResolutionStorer extends TypeInferenceListener {
     _recordReference(
         combiner ?? const NullNode('assign-combiner'), write.fileOffset);
     _recordType(inferredType, write.fileOffset);
+  }
+
+  @override
+  bool staticGetEnter(StaticGet expression, int targetOffset, Class targetClass,
+      DartType typeContext) {
+    // If the static target is explicit (and is a class), record it.
+    if (targetClass != null) {
+      _recordReference(targetClass, targetOffset);
+      _recordType(targetClass.rawType, targetOffset);
+    }
+    return super
+        .staticGetEnter(expression, targetOffset, targetClass, typeContext);
   }
 
   @override

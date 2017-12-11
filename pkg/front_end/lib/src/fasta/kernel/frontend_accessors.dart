@@ -689,7 +689,8 @@ class StaticAccessor extends Accessor {
     if (readTarget == null) {
       return makeInvalidRead();
     } else {
-      var read = helper.makeStaticGet(readTarget, token);
+      var read = helper.makeStaticGet(readTarget, token,
+          targetOffset: targetOffset, targetClass: targetClass);
       complexAssignment?.read = read;
       return read;
     }

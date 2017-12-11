@@ -3599,8 +3599,10 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
   }
 
   @override
-  StaticGet makeStaticGet(Member readTarget, Token token) {
-    return new ShadowStaticGet(readTarget)..fileOffset = offsetForToken(token);
+  StaticGet makeStaticGet(Member readTarget, Token token,
+      {int targetOffset: -1, Class targetClass}) {
+    return new ShadowStaticGet(targetOffset, targetClass, readTarget)
+      ..fileOffset = offsetForToken(token);
   }
 }
 
