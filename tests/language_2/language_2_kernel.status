@@ -1680,6 +1680,7 @@ external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
+extract_type_arguments_test: CompileTimeError # Issue 31371
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
