@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:front_end/src/api_prototype/front_end.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show Program;
+import 'package:kernel/src/tool/batch_util.dart' as batch_util;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:kernel/target/vm.dart' show VmTarget;
 import 'package:vm/kernel_front_end.dart' show compileToKernel;
@@ -43,12 +45,20 @@ const _severityCaptions = const <Severity, String>{
 };
 
 main(List<String> arguments) async {
+  if (arguments.isNotEmpty && arguments.last == '--batch') {
+    await runBatchModeCompiler();
+  } else {
+    exit(await compile(arguments));
+  }
+}
+
+Future<int> compile(List<String> arguments) async {
   final ArgResults options = _argParser.parse(arguments);
   final String platformKernel = options['platform'];
 
   if ((options.rest.length != 1) || (platformKernel == null)) {
     print(_usage);
-    exit(_badUsageExitCode);
+    return _badUsageExitCode;
   }
 
   final String filename = options.rest.single;
@@ -82,11 +92,41 @@ main(List<String> arguments) async {
       aot: aot);
 
   if ((errors > 0) || (program == null)) {
-    exit(_compileTimeErrorExitCode);
+    return _compileTimeErrorExitCode;
   }
 
   final IOSink sink = new File(kernelBinaryFilename).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink);
   printer.writeProgramFile(program);
   await sink.close();
+
+  return 0;
+}
+
+Future runBatchModeCompiler() async {
+  await batch_util.runBatch((List<String> arguments) async {
+    // TODO(kustermann): Once we know where the new IKG api is and how to use
+    // it, we should take advantage of it.
+    //
+    // Important things to note:
+    //
+    //   * Our global transformations must never alter the AST structures which
+    //     the statefull IKG generator keeps across compilations.
+    //     => We need to make our own copy.
+    //
+    //   * We must ensure the stateful IKG generator keeps giving us all the
+    //     compile-time errors, warnings, hints for every compilation and we
+    //     report the compilation result accordingly.
+    //
+    final exitCode = await compile(arguments);
+    switch (exitCode) {
+      case 0:
+        return batch_util.CompilerOutcome.Ok;
+      case _compileTimeErrorExitCode:
+      case _badUsageExitCode:
+        return batch_util.CompilerOutcome.Fail;
+      default:
+        throw 'Could not obtain correct exit code from compiler.';
+    }
+  });
 }

@@ -602,20 +602,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    var buildDir = _configuration.buildDirectory;
-    String exec = Platform.executable;
+    final genKernel =
+        Platform.script.resolve('../../../pkg/vm/tool/gen_kernel').toFilePath();
+    final dillFile = tempKernelFile(tempDir);
     var args = [
       '--packages=.packages',
-      'pkg/vm/bin/gen_kernel.dart',
-      '--platform=${buildDir}/vm_platform_strong.dill',
       '--aot',
+      '--platform=${_configuration.buildDirectory}/vm_platform_strong.dill',
       '-o',
-      tempKernelFile(tempDir),
+      dillFile,
     ];
-    args.addAll(arguments.where((name) => name.endsWith('.dart')));
-    return Command.compilation('compile_to_kernel', tempDir,
-        bootstrapDependencies(), exec, args, environmentOverrides,
-        alwaysCompile: !_useSdk);
+    args.add(arguments.where((name) => name.endsWith('.dart')).single);
+    return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
+        genKernel, args, environmentOverrides);
   }
 
   /// Creates a command to clean up large temporary kernel files.
