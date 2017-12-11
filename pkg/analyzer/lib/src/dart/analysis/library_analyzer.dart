@@ -1061,24 +1061,32 @@ class _ResolutionApplierContext implements TypeContext {
             referencedNode.classNode.canonicalName);
         assert(element != null);
       } else if (referencedNode is kernel.MemberGetterNode) {
-        var memberElement = resynthesizer
-            .getElementFromCanonicalName(referencedNode.member.canonicalName);
-        assert(memberElement != null);
-        if (memberElement is PropertyInducingElementImpl) {
-          element = memberElement.getter;
-          assert(element != null);
+        if (referencedNode.member == null) {
+          element = null;
         } else {
-          element = memberElement;
+          var memberElement = resynthesizer
+              .getElementFromCanonicalName(referencedNode.member.canonicalName);
+          assert(memberElement != null);
+          if (memberElement is PropertyInducingElementImpl) {
+            element = memberElement.getter;
+            assert(element != null);
+          } else {
+            element = memberElement;
+          }
         }
       } else if (referencedNode is kernel.MemberSetterNode) {
-        var memberElement = resynthesizer
-            .getElementFromCanonicalName(referencedNode.member.canonicalName);
-        assert(memberElement != null);
-        if (memberElement is PropertyInducingElementImpl) {
-          element = memberElement.setter;
-          assert(element != null);
+        if (referencedNode.member == null) {
+          element = null;
         } else {
-          element = memberElement;
+          var memberElement = resynthesizer
+              .getElementFromCanonicalName(referencedNode.member.canonicalName);
+          assert(memberElement != null);
+          if (memberElement is PropertyInducingElementImpl) {
+            element = memberElement.setter;
+            assert(element != null);
+          } else {
+            element = memberElement;
+          }
         }
       } else if (referencedNode is kernel.NullNode) {
         element = null;

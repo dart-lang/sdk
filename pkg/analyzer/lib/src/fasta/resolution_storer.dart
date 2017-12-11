@@ -132,6 +132,8 @@ class InstrumentedResolutionStorer extends ResolutionStorer {
 /// A reference to the getter represented by the [member].
 /// The [member] might be either a getter itself, or a field.
 class MemberGetterNode implements TreeNode {
+  /// The member representing the getter, or `null` if the getter could not be
+  /// resolved.
   final Member member;
 
   MemberGetterNode(this.member);
@@ -162,6 +164,8 @@ class MemberInvocationDartType implements DartType {
 /// A reference to the setter represented by the [member].
 /// The [member] might be either a setter itself, or a field.
 class MemberSetterNode implements TreeNode {
+  /// The member representing the setter, or `null` if the setter could not be
+  /// resolved.
   final Member member;
 
   MemberSetterNode(this.member);

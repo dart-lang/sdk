@@ -91,19 +91,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_nullAwareInCondition_if_notTopLevel() async {
-//    NoSuchMethodError: The getter 'canonicalName' was called on null.
-//    Receiver: null
-//    Tried calling: canonicalName
-//    #0      Object.noSuchMethod (dart:core-patch/dart:core/object_patch.dart:46)
-//    #1      new _ResolutionApplierContext (package:analyzer/src/dart/analysis/library_analyzer.dart:1063:64)
-//    #2      LibraryAnalyzer._createResolutionApplier (package:analyzer/src/dart/analysis/library_analyzer.dart:426:16)
-    await super.test_nullAwareInCondition_if_notTopLevel();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
   test_propagatedFieldType() async {
     await super.test_propagatedFieldType();
   }
@@ -132,13 +119,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_undefinedGetter_inSubtype() async {
-    await super.test_undefinedGetter_inSubtype();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
   test_undefinedMethod_dynamic() async {
     await super.test_undefinedMethod_dynamic();
   }
@@ -162,13 +142,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @potentialAnalyzerProblem
   test_undefinedMethod_unionType_some() async {
     await super.test_undefinedMethod_unionType_some();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_undefinedSetter_inSubtype() async {
-    await super.test_undefinedSetter_inSubtype();
   }
 
   @failingTest
@@ -218,12 +191,5 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @potentialAnalyzerProblem
   test_unusedImport_prefix_topLevelFunction2() async {
     await super.test_unusedImport_prefix_topLevelFunction2();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_withSuperMixin() async {
-    await super.test_withSuperMixin();
   }
 }

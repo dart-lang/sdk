@@ -461,6 +461,23 @@ f(var message) {
     verify([source]);
   }
 
+  test_missingReturn_alwaysThrows() async {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+@alwaysThrows
+void a() {
+  throw 'msg';
+}
+
+int f() {
+  a();
+}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   test_missingReturn_emptyFunctionBody() async {
     Source source = addSource(r'''
 abstract class A {
@@ -487,23 +504,6 @@ abstract class A {
 
   test_missingReturn_voidReturnType() async {
     Source source = addSource("void f() {}");
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
-  test_missingReturn_alwaysThrows() async {
-    Source source = addSource(r'''
-import 'package:meta/meta.dart';
-
-@alwaysThrows
-void a() {
-  throw 'msg';
-}
-
-int f() {
-  a();
-}''');
     await computeAnalysisResult(source);
     assertNoErrors(source);
     verify([source]);
