@@ -1666,3 +1666,7 @@ DillOutlineSummary:
 CantInferTypeDueToInconsistentOverrides:
   template: "Can't infer the type of '#string': overridden members must all have the same type."
   tip: "Specify the type explicitly."
+
+CantInferTypeDueToCircularity:
+  template: "Can't infer the type of '#string': circularity found during type inference."
+  tip: "Specify the type explicitly."

@@ -335,6 +335,33 @@ const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
     tip: r"""Try specifying the file explicitly with the --packages option.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            string)> templateCantInferTypeDueToCircularity = const Template<
+        Message Function(String string)>(
+    messageTemplate:
+        r"""Can't infer the type of '#string': circularity found during type inference.""",
+    tipTemplate: r"""Specify the type explicitly.""",
+    withArguments: _withArgumentsCantInferTypeDueToCircularity);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string)> codeCantInferTypeDueToCircularity =
+    const Code<Message Function(String string)>(
+  "CantInferTypeDueToCircularity",
+  templateCantInferTypeDueToCircularity,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferTypeDueToCircularity(String string) {
+  return new Message(codeCantInferTypeDueToCircularity,
+      message:
+          """Can't infer the type of '$string': circularity found during type inference.""",
+      tip: """Specify the type explicitly.""",
+      arguments: {'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)>
     templateCantInferTypeDueToInconsistentOverrides =
     const Template<Message Function(String string)>(

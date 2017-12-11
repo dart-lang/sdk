@@ -111,6 +111,7 @@ switch_case_test/none: CompileTimeError
 syntax_test/none: CompileTimeError
 try_catch_on_syntax_test/10: MissingCompileTimeError
 try_catch_on_syntax_test/11: MissingCompileTimeError
+type_inference_circularity_test: MissingCompileTimeError
 type_inference_inconsistent_inheritance_test: MissingCompileTimeError
 type_promotion_functions_test/02: CompileTimeError # Issue 30895
 type_promotion_functions_test/03: CompileTimeError # Issue 30895
@@ -231,7 +232,6 @@ const_optional_args_test/01: MissingCompileTimeError
 const_qq_test: Crash
 const_switch2_test/01: MissingCompileTimeError
 const_syntax_test/05: MissingCompileTimeError
-const_syntax_test/08: MissingCompileTimeError
 const_syntax_test/09: Crash
 const_types_test/34: MissingCompileTimeError
 const_types_test/35: MissingCompileTimeError

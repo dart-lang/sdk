@@ -12,4 +12,5 @@ class A extends core::Object {
 static field self::A a = new self::A::•();
 static field dynamic x = () → dynamic => self::a.{self::A::b};
 static field () → () → dynamic y = () → () → dynamic => self::a.{self::A::c};
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:11:69: Error: Can't infer the type of 'b': circularity found during type inference.\nSpecify the type explicitly.\n  var /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ b = /*@returnType=dynamic*/ () =>\n                                                                    ^", "pkg/front_end/testcases/inference_new/infer_instance_field_ref_circular.dart:17:67: Error: Can't infer the type of 'x': circularity found during type inference.\nSpecify the type explicitly.\nvar /*@topType=dynamic*/ /*@error=CantInferTypeDueToCircularity*/ x = /*@returnType=dynamic*/ () =>\n                                                                  ^"]/* from null */;
 static method main() → dynamic {}

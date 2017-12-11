@@ -56,8 +56,8 @@ final P3 = new Point(0, 0) + 1;
 // expressions.
 final A0 = 42;
 final A1 = A0 + 1;
-final A2 = A3 + 1; //# 08: continued
-final A3 = A2 + 1; //# 08: continued
+final dynamic A2 = A3 + 1; //# 08: continued
+final dynamic A3 = A2 + 1; //# 08: continued
 
 class C0 {
   static final X = const C1();

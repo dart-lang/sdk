@@ -61,7 +61,12 @@ class AccessorInferenceNode extends MemberInferenceNode {
     var declaredMethod = _declaredMethod;
     var kind = declaredMethod.kind;
     var overriddenTypes = _computeAccessorOverriddenTypes();
-    if (!isCircular) {
+    if (isCircular) {
+      _library.addCompileTimeError(
+          templateCantInferTypeDueToCircularity.withArguments(_name),
+          _offset,
+          _fileUri);
+    } else {
       var inferredType = _matchTypes(overriddenTypes, _name, _offset);
       if (declaredMethod is SyntheticAccessor) {
         declaredMethod._field.type = inferredType;
@@ -887,7 +892,7 @@ class InterfaceResolver {
         } else if (procedure is SyntheticAccessor &&
             procedure._field.initializer != null) {
           var node = new FieldInitializerInferenceNode(
-              _typeInferenceEngine, procedure._field);
+              _typeInferenceEngine, procedure._field, library);
           ShadowField.setInferenceNode(procedure._field, node);
           return node;
         }

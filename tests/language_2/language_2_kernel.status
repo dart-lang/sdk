@@ -1544,7 +1544,6 @@ const_redirecting_factory_test: Crash # kernel_binary_flowgraph.cc: 2857: error:
 
 const_switch2_test/01: MissingCompileTimeError # KernelVM bug: Constant evaluation.
 const_syntax_test/05: MissingCompileTimeError # KernelVM bug: Constant evaluation.
-const_syntax_test/08: Crash
 const_types_test/01: MissingCompileTimeError
 const_types_test/02: MissingCompileTimeError
 const_types_test/03: MissingCompileTimeError
