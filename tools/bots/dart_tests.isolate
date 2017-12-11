@@ -20,7 +20,6 @@
               'pkg/meta/',
               'pkg/pkg.status',
               'pkg/status_file/',
-              'pkg/vm/',
               'runtime/tests/',
               '.packages']
   }

@@ -38,9 +38,6 @@ io/*: Skip # Issue 30618
 [ $compiler == dart2analyzer && ($builder_tag == strong || $strong) ]
 *: Skip # Issue 28649
 
-[ $compiler == dartk && $strong ]
-*: SkipByDesign
-
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 

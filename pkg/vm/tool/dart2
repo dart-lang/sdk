@@ -34,7 +34,6 @@ BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
 exec "$BIN_DIR"/dart                                                           \
      --strong                                                                  \
      --reify-generic-functions                                                 \
-     --limit-ints-to-64-bits                                                   \
      --dfe="${BIN_DIR}/gen/kernel-service.dart.snapshot"                       \
      --kernel-binaries="${BIN_DIR}"                                            \
      "$@"

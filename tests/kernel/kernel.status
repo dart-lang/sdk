@@ -17,10 +17,6 @@ unsorted/super_mixin_test: CompileTimeError
 unsorted/invocation_errors_test: StaticWarning
 unsorted/super_mixin_test: CompileTimeError
 
-[ $compiler == dartk && $strong ]
-unsorted/loop_test: RuntimeError
-unsorted/nsm_dispatcher_test: CompileTimeError
-unsorted/types_test: RuntimeError
-
 [ $runtime == dart_precompiled && $minified ]
 unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.
+

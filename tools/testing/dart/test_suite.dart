@@ -164,14 +164,6 @@ abstract class TestSuite {
     // Controlled by user with the option "--dart".
     var dartExecutable = configuration.dartPath;
 
-    if (configuration.usingDart2VMWrapper) {
-      if (dartExecutable != null) {
-        throw 'Can not use --dart when testing Dart 2.0 configuration';
-      }
-
-      dartExecutable = 'pkg/vm/tool/dart2';
-    }
-
     if (dartExecutable == null) {
       var suffix = executableBinarySuffix;
       dartExecutable = useSdk
@@ -823,8 +815,7 @@ class StandardTestSuite extends TestSuite {
       // turn on reified generics in the VM.
       // Note that VMOptions=--no-reify-generic-functions in test is ignored.
       // Also, enable Dart 2.0 fixed-size integers with --limit-ints-to-64-bits.
-      // Dart 2 VM wrapper (pkg/vm/tool/dart2) already passes correct arguments.
-      if (suiteName.endsWith("_2") && !configuration.usingDart2VMWrapper) {
+      if (suiteName.endsWith("_2")) {
         allVmOptions = allVmOptions.toList()
           ..add("--reify-generic-functions")
           ..add("--limit-ints-to-64-bits");

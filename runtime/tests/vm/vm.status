@@ -315,12 +315,6 @@ cc/Parser_AllocateVariables_MiddleChain: Crash
 cc/Parser_AllocateVariables_NestedCapturedVar: Crash
 cc/Parser_AllocateVariables_TwoChains: Crash
 
-[ $compiler == dartk && $strong ]
-dart/data_uri_spawn_test: CompileTimeError # Issue 31586
-dart/hello_fuchsia_test: RuntimeError
-dart/optimized_stacktrace_line_and_column_test: CompileTimeError # Issue 31586
-dart/optimized_stacktrace_line_test: CompileTimeError # Issue 31586
-
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/data_uri_import_test/base64: CompileTimeError
 dart/data_uri_import_test/nocharset: CompileTimeError
