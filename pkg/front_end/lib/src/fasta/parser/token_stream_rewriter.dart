@@ -31,18 +31,17 @@ class TokenStreamRewriter {
   TokenStreamRewriter();
 
   /// Insert the chain of tokens starting at the [insertedToken] immediately
-  /// before the [followingToken]. The [followingToken] is assumed to be
-  /// reachable from, but not the same as, the [previousToken].
-  Token insertToken(Token insertedToken, Token followingToken) {
-    Token previous = followingToken.previous;
-    previous.next = insertedToken;
-    insertedToken.previous = previous;
+  /// after the [previousToken]. Return the [previousToken].
+  Token insertTokenAfter(Token previousToken, Token insertedToken) {
+    Token afterToken = previousToken.next;
+    previousToken.next = insertedToken;
+    insertedToken.previous = previousToken;
 
     Token lastReplacement = _lastTokenInChain(insertedToken);
-    lastReplacement.next = followingToken;
-    followingToken.previous = lastReplacement;
+    lastReplacement.next = afterToken;
+    afterToken.previous = lastReplacement;
 
-    return insertedToken;
+    return previousToken;
   }
 
   /// Replace the single token immediately following the [previousToken] with

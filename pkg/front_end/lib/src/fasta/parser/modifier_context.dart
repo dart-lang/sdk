@@ -783,13 +783,13 @@ class TopLevelMethodModifierContext {
           // to be interpreted as the top level function's identifier.
           if (identical(next, afterModifiers)) {
             beforeName = next;
-            parser.rewriter.insertToken(
+            parser.rewriter.insertTokenAfter(
+                next,
                 new SyntheticStringToken(
                     TokenType.IDENTIFIER,
                     '#synthetic_function_${next.charOffset}',
                     token.charOffset,
-                    0),
-                next.next);
+                    0));
             return next;
           }
           // If the next token is an operator, then skip it

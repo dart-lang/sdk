@@ -462,12 +462,12 @@ class Parser {
     if (next.isOperator && optional('(', next.next)) {
       // This appears to be a top level operator declaration, which is invalid.
       reportRecoverableError(next, fasta.messageTopLevelOperator);
-      // Insert a synthetic identifer
+      // Insert a synthetic identifier
       // and continue parsing as a top level function.
-      rewriter.insertToken(
+      rewriter.insertTokenAfter(
+          next,
           new SyntheticStringToken(TokenType.IDENTIFIER,
-              '#synthetic_function_${next.charOffset}', token.charOffset, 0),
-          next.next);
+              '#synthetic_function_${next.charOffset}', token.charOffset, 0));
       return parseTopLevelMember(next);
     }
     // Ignore any preceding modifiers and just report the unexpected token
@@ -1065,7 +1065,7 @@ class Parser {
       Token replacement = link(
           new SyntheticBeginToken(TokenType.OPEN_PAREN, next.charOffset),
           new SyntheticToken(TokenType.CLOSE_PAREN, next.charOffset));
-      rewriter.insertToken(replacement, next);
+      rewriter.insertTokenAfter(token, replacement);
     }
     return parseFormalParameters(token, kind);
   }
@@ -1347,9 +1347,10 @@ class Parser {
   }
 
   Token skipBlock(Token token) {
+    Token previousToken = token;
     token = token.next;
     if (!optional('{', token)) {
-      token = recoverFromMissingBlock(token);
+      token = recoverFromMissingBlock(previousToken);
     }
     Token closeBrace = closeBraceTokenFor(token);
     if (closeBrace == null ||
@@ -1512,8 +1513,8 @@ class Parser {
             new SyntheticKeywordToken(Keyword.EXTENDS, next.offset);
         Token superclassToken = new SyntheticStringToken(
             TokenType.IDENTIFIER, 'Object', next.offset);
-        rewriter.insertToken(extendsKeyword, next);
-        rewriter.insertToken(superclassToken, next);
+        rewriter.insertTokenAfter(token, extendsKeyword);
+        rewriter.insertTokenAfter(extendsKeyword, superclassToken);
         token = parseType(extendsKeyword);
         token = parseMixinApplicationRest(token);
         listener.handleClassExtends(extendsKeyword);
@@ -3245,9 +3246,9 @@ class Parser {
   }
 
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
-    token = token.next;
-    reportRecoverableError(token, message);
-    return rewriter.insertToken(newToken, token);
+    reportRecoverableError(token.next, message);
+    rewriter.insertTokenAfter(token, newToken);
+    return newToken;
   }
 
   /// Report the given token as unexpected and return the next token if the next
@@ -3372,9 +3373,10 @@ class Parser {
   }
 
   Token skipClassBody(Token token) {
+    Token previousToken = token;
     token = token.next;
     if (!optional('{', token)) {
-      token = recoverFromMissingClassBody(token);
+      token = recoverFromMissingClassBody(previousToken);
     }
     Token closeBrace = closeBraceTokenFor(token);
     if (closeBrace == null ||
@@ -3395,10 +3397,11 @@ class Parser {
   Token parseClassBody(Token token, Token beforeBody) {
     // TODO(brianwilkerson): Remove the parameter `beforeBody` because it is not
     // being used.
+    Token previousToken = token;
     Token begin = token = token.next;
     listener.beginClassBody(token);
     if (!optional('{', token)) {
-      token = begin = recoverFromMissingClassBody(token);
+      token = begin = recoverFromMissingClassBody(previousToken);
     }
     int count = 0;
     while (notEofOrValue('}', token.next)) {
@@ -3971,7 +3974,7 @@ class Parser {
     Token begin = next;
     int statementCount = 0;
     if (!optional('{', next)) {
-      token = recoverFromMissingFunctionBody(next);
+      token = recoverFromMissingFunctionBody(token);
       listener.handleInvalidFunctionBody(token);
       return token.endGroup;
     }
@@ -4673,6 +4676,7 @@ class Parser {
   }
 
   Token parseParenthesizedExpression(Token token) {
+    Token previousToken = token;
     token = token.next;
     if (!optional('(', token)) {
       // Recover
@@ -4683,7 +4687,7 @@ class Parser {
       BeginToken replacement = link(
           new SyntheticBeginToken(TokenType.OPEN_PAREN, token.charOffset),
           new SyntheticToken(TokenType.CLOSE_PAREN, token.charOffset));
-      token = rewriter.insertToken(replacement, token);
+      token = rewriter.insertTokenAfter(previousToken, replacement).next;
     }
     BeginToken begin = token;
     token = parseExpression(token).next;
@@ -4888,7 +4892,7 @@ class Parser {
       BeginToken replacement = link(
           new SyntheticBeginToken(TokenType.OPEN_PAREN, token.offset),
           new SyntheticToken(TokenType.CLOSE_PAREN, token.offset));
-      rewriter.insertToken(replacement, next);
+      rewriter.insertTokenAfter(token, replacement);
     }
     token = parseArguments(token);
     return token;
@@ -5525,11 +5529,12 @@ class Parser {
   /// ;
   /// ```
   Token parseBlock(Token token) {
+    Token previousToken = token;
     Token begin = token = token.next;
     listener.beginBlock(begin);
     int statementCount = 0;
     if (!optional('{', token)) {
-      token = recoverFromMissingBlock(token);
+      token = recoverFromMissingBlock(previousToken);
     }
     while (notEofOrValue('}', token.next)) {
       Token startToken = token.next;
@@ -5964,44 +5969,47 @@ class Parser {
         next, fasta.templateExpectedClassMember);
   }
 
-  /// Report that the given [token] was expected to be the beginning of a block
-  /// but isn't, insert a synthetic pair of curly braces, and return the opening
-  /// curly brace.
-  Token recoverFromMissingBlock(Token token) {
+  /// Report that the token after [previousToken] was expected to be the
+  /// beginning of a block but isn't, insert a synthetic pair of curly braces,
+  /// and return the opening curly brace.
+  Token recoverFromMissingBlock(Token previousToken) {
     // TODO(brianwilkerson): Add context information (as a parameter) so that we
     // can (a) generate a better error and (b) unify this method with
     // `recoverFromMissingClassBody` and `recoverFromMissingFunctionBody`.
+    Token token = previousToken.next;
     reportRecoverableError(token, fasta.messageExpectedBlock);
     BeginToken replacement = link(
         new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertToken(replacement, token);
+    rewriter.insertTokenAfter(previousToken, replacement);
     return replacement;
   }
 
-  /// Report that the given [token] was expected to be the beginning of a class
-  /// body but isn't, insert a synthetic pair of curly braces, and return the
-  /// opening curly brace.
-  Token recoverFromMissingClassBody(Token token) {
+  /// Report that the token after [previousToken] was expected to be the
+  /// beginning of a class body but isn't, insert a synthetic pair of curly
+  /// braces, and return the opening curly brace.
+  Token recoverFromMissingClassBody(Token previousToken) {
+    Token token = previousToken.next;
     reportRecoverableError(
         token, fasta.templateExpectedClassBody.withArguments(token));
     BeginToken replacement = link(
         new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertToken(replacement, token);
+    rewriter.insertTokenAfter(previousToken, replacement);
     return replacement;
   }
 
-  /// Report that the given [token] was expected to be the beginning of a block
-  /// function body but isn't, insert a synthetic pair of curly braces, and
-  /// return the opening curly brace.
-  Token recoverFromMissingFunctionBody(Token token) {
+  /// Report that the token after [previousToken] was expected to be the
+  /// beginning of a block function body but isn't, insert a synthetic pair of
+  /// curly braces, and return the opening curly brace.
+  Token recoverFromMissingFunctionBody(Token previousToken) {
+    Token token = previousToken.next;
     reportRecoverableError(
         token, fasta.templateExpectedFunctionBody.withArguments(token));
     BeginToken replacement = link(
         new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, token.offset),
         new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, token.offset));
-    rewriter.insertToken(replacement, token);
+    rewriter.insertTokenAfter(previousToken, replacement);
     return replacement;
   }
 

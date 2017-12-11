@@ -4,8 +4,7 @@
 
 import 'package:front_end/src/fasta/parser/token_stream_rewriter.dart';
 import 'package:front_end/src/fasta/scanner/token.dart';
-import 'package:front_end/src/scanner/token.dart'
-    show BeginToken, Token, TokenType;
+import 'package:front_end/src/scanner/token.dart' show Token;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,19 +20,19 @@ abstract class TokenStreamRewriterTest {
   /// Indicates whether the tests should set up [Token.previous].
   bool get setPrevious;
 
-  void test_insertToken_end_single() {
+  void test_insertTokenAfter_end_single() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var eof = _link([a]);
     var rewriter = new TokenStreamRewriter();
-    expect(rewriter.insertToken(b, eof), same(b));
+    expect(rewriter.insertTokenAfter(a, b), same(a));
     expect(a.next, same(b));
     expect(b.next, same(eof));
     expect(eof.previous, same(b));
     expect(b.previous, same(a));
   }
 
-  void test_insertToken_middle_multiple() {
+  void test_insertTokenAfter_middle_multiple() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
@@ -42,20 +41,38 @@ abstract class TokenStreamRewriterTest {
     _link([a, b, e]);
     _link([c, d]);
     var rewriter = new TokenStreamRewriter();
-    rewriter.insertToken(c, e);
+    rewriter.insertTokenAfter(b, c);
     expect(a.next, same(b));
     expect(b.next, same(c));
     expect(c.next, same(d));
     expect(d.next, same(e));
   }
 
-  void test_insertToken_middle_single() {
+  void test_insertTokenAfter_middle_single() {
     var a = _makeToken(0, 'a');
     var b = _makeToken(1, 'b');
     var c = _makeToken(2, 'c');
     _link([a, c]);
     var rewriter = new TokenStreamRewriter();
-    rewriter.insertToken(b, c);
+    rewriter.insertTokenAfter(a, b);
+    expect(a.next, same(b));
+    expect(b.next, same(c));
+  }
+
+  void test_insertTokenAfter_second_insertion_earlier_in_stream() {
+    var a = _makeToken(0, 'a');
+    var b = _makeToken(1, 'b');
+    var c = _makeToken(2, 'c');
+    var d = _makeToken(3, 'd');
+    var e = _makeToken(4, 'e');
+    _link([a, c, e]);
+    var rewriter = new TokenStreamRewriter();
+    rewriter.insertTokenAfter(c, d);
+    expect(c.next, same(d));
+    expect(d.next, same(e));
+    // The next call to rewriter should be able to find the insertion point
+    // even though it is before the insertion point used above.
+    rewriter.insertTokenAfter(a, b);
     expect(a.next, same(b));
     expect(b.next, same(c));
   }
@@ -89,41 +106,6 @@ abstract class TokenStreamRewriterTest {
     expect(c.next, same(d));
   }
 
-  void test_second_insertion_earlier_in_stream() {
-    var a = _makeToken(0, 'a');
-    var b = _makeToken(1, 'b');
-    var c = _makeToken(2, 'c');
-    var d = _makeToken(3, 'd');
-    var e = _makeToken(4, 'e');
-    _link([a, c, e]);
-    var rewriter = new TokenStreamRewriter();
-    rewriter.insertToken(d, e);
-    expect(c.next, same(d));
-    expect(d.next, same(e));
-    // The next call to rewriter should be able to find the insertion point
-    // even though it is before the insertion point used above.
-    rewriter.insertToken(b, c);
-    expect(a.next, same(b));
-    expect(b.next, same(c));
-  }
-
-  void test_skip_group() {
-    var a = _makeBeginGroupToken(0);
-    var b = _makeToken(1, 'b');
-    var c = _makeToken(2, 'c');
-    var d = _makeToken(3, 'd');
-    var e = _makeToken(4, 'e');
-    a.endGroup = c;
-    _link([a, b, c, e]);
-    // The rewriter should skip from a to c when finding the insertion position;
-    // we test this by corrupting b's next pointer.
-    b.next = null;
-    var rewriter = new TokenStreamRewriter();
-    rewriter.insertToken(d, e);
-    expect(c.next, same(d));
-    expect(d.next, same(e));
-  }
-
   /// Links together the given [tokens] and adds an EOF token to the end of the
   /// token stream.
   ///
@@ -145,10 +127,6 @@ abstract class TokenStreamRewriterTest {
     return eof;
   }
 
-  BeginToken _makeBeginGroupToken(int charOffset) {
-    return new BeginToken(TokenType.OPEN_PAREN, charOffset);
-  }
-
   StringToken _makeToken(int charOffset, String text) {
     return new StringToken.fromString(null, text, charOffset);
   }
@@ -166,36 +144,6 @@ class TokenStreamRewriterTest_NoPrevious extends TokenStreamRewriterTest {
 
   @override
   bool get setPrevious => false;
-
-  @override
-  @failingTest
-  void test_insertToken_end_single() {
-    super.test_insertToken_end_single();
-  }
-
-  @override
-  @failingTest
-  void test_insertToken_middle_multiple() {
-    super.test_insertToken_middle_multiple();
-  }
-
-  @override
-  @failingTest
-  void test_insertToken_middle_single() {
-    super.test_insertToken_middle_single();
-  }
-
-  @override
-  @failingTest
-  void test_second_insertion_earlier_in_stream() {
-    super.test_second_insertion_earlier_in_stream();
-  }
-
-  @override
-  @failingTest
-  void test_skip_group() {
-    super.test_skip_group();
-  }
 }
 
 /// Concrete implementation of [TokenStreamRewriterTest] in which
