@@ -397,6 +397,7 @@ class Stack {
     for (int i = 0; i < count; i++) {
       final value = table[startIndex + i];
       tailList[i] = value is NullValue ? null : value;
+      table[startIndex + i] = null;
     }
     arrayLength -= count;
 
