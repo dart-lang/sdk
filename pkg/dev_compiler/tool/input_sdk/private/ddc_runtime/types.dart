@@ -94,7 +94,7 @@ class LazyJSType extends TypeRep {
     var raw = _rawJSType();
     if (raw != null) return raw;
     _warn('Cannot find native JavaScript type ($_dartName) for type check');
-    return _dynamic;
+    return JS('', '#.Object', global_);
   }
 
   @JSExportName('is')
