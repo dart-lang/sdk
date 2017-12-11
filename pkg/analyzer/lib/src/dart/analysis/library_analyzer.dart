@@ -1050,6 +1050,8 @@ class _ResolutionApplierContext implements TypeContext {
         element = resynthesizer
             .getElementFromCanonicalName(referencedNode.canonicalName);
         assert(element != null);
+      } else if (referencedNode is kernel.DynamicType) {
+        element = DynamicElementImpl.instance;
       } else if (referencedNode is kernel.FunctionType) {
         element = resynthesizer
             .getElementFromCanonicalName(referencedNode.typedef.canonicalName);

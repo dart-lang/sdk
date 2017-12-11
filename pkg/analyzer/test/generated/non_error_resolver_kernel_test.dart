@@ -138,13 +138,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_const_dynamic() async {
-    return super.test_const_dynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_constConstructorWithNonConstSuper_redirectingFactory() async {
     return super.test_constConstructorWithNonConstSuper_redirectingFactory();
   }
@@ -189,13 +182,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_dynamicIdentifier() async {
-    return super.test_dynamicIdentifier();
   }
 
   @override
