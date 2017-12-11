@@ -29,16 +29,20 @@ class GCCompactor : public ValueObject,
         heap_(heap) {}
   ~GCCompactor() {}
 
-  void CompactBySliding(HeapPage* pages, FreeList* freelist, Mutex* mutex);
+  void Compact(HeapPage* pages, FreeList* freelist, Mutex* mutex);
 
  private:
+  void PlanPage(HeapPage* page);
   void SlidePage(HeapPage* page);
+  uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
   uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
-  void MoveToExactAddress(uword addr);
-  void MoveToContiguousSize(intptr_t size);
+  void PlanMoveToExactAddress(uword addr);
+  void PlanMoveToContiguousSize(intptr_t size);
+  void SlideFreeUpTo(uword addr);
 
-  void ForwardPointersForSliding();
-  void ForwardPointerForSliding(RawObject** ptr);
+  void SetupImagePageBoundaries();
+  void ForwardPointers();
+  void ForwardPointer(RawObject** ptr);
   void VisitPointers(RawObject** first, RawObject** last);
   void VisitHandle(uword addr);
 

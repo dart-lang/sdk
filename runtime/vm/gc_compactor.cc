@@ -31,7 +31,7 @@ class ForwardingBlock {
  public:
   ForwardingBlock() : new_address_(0), live_bitvector_(0) {}
 
-  uword Lookup(uword old_addr) {
+  uword Lookup(uword old_addr) const {
     uword block_offset = old_addr & ~kBlockMask;
     intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
     ASSERT(first_unit_position < kBitsPerWord);
@@ -60,6 +60,14 @@ class ForwardingBlock {
                        << first_unit_position;
   }
 
+  bool IsLive(uword old_addr) const {
+    uword block_offset = old_addr & ~kBlockMask;
+    intptr_t first_unit_position = block_offset >> kObjectAlignmentLog2;
+    ASSERT(first_unit_position < kBitsPerWord);
+    return (live_bitvector_ & (static_cast<uword>(1) << first_unit_position)) !=
+           0;
+  }
+
   // Marks all bits after a given address. This is used to ensure that some
   // objects do not move (classes).
   void MarkAllFrom(uword start_addr) {
@@ -69,6 +77,7 @@ class ForwardingBlock {
     live_bitvector_ = static_cast<uword>(-1) << first_unit_position;
   }
 
+  uword new_address() const { return new_address_; }
   void set_new_address(uword value) { new_address_ = value; }
 
  private:
@@ -117,29 +126,41 @@ void HeapPage::FreeForwardingPage() {
 // time, keeping blocks from spanning page boundries (see ForwardingBlock). Free
 // space at the end of a page that is too small for the next block is added to
 // the freelist.
-void GCCompactor::CompactBySliding(HeapPage* pages,
-                                   FreeList* freelist,
-                                   Mutex* pages_lock) {
+void GCCompactor::Compact(HeapPage* pages,
+                          FreeList* freelist,
+                          Mutex* pages_lock) {
+  SetupImagePageBoundaries();
+
   {
-    TIMELINE_FUNCTION_GC_DURATION(thread(), "SlideObjects");
     MutexLocker ml(pages_lock);
 
-    free_page_ = pages;
-    free_current_ = free_page_->object_start();
-    free_end_ = free_page_->object_end();
-    freelist_ = freelist;
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread(), "Plan");
+      free_page_ = pages;
+      free_current_ = free_page_->object_start();
+      free_end_ = free_page_->object_end();
 
-    HeapPage* live_page = pages;
-    while (live_page != NULL) {
-      SlidePage(live_page);
-      live_page = live_page->next();
+      for (HeapPage* page = pages; page != NULL; page = page->next()) {
+        PlanPage(page);
+      }
+    }
+
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread(), "Slide");
+      free_page_ = pages;
+      free_current_ = free_page_->object_start();
+      free_end_ = free_page_->object_end();
+      freelist_ = freelist;
+
+      for (HeapPage* page = pages; page != NULL; page = page->next()) {
+        SlidePage(page);
+      }
     }
 
     // Add any leftover in the last used page to the freelist. This is required
     // to make the page walkable during forwarding, etc.
     intptr_t free_remaining = free_end_ - free_current_;
     if (free_remaining != 0) {
-      ASSERT(free_remaining >= kObjectAlignment);
       freelist->FreeLocked(free_current_, free_remaining);
     }
 
@@ -154,7 +175,7 @@ void GCCompactor::CompactBySliding(HeapPage* pages,
 
   {
     TIMELINE_FUNCTION_GC_DURATION(thread(), "ForwardPointers");
-    ForwardPointersForSliding();
+    ForwardPointers();
   }
 
   {
@@ -178,27 +199,38 @@ void GCCompactor::CompactBySliding(HeapPage* pages,
   }
 }
 
-void GCCompactor::SlidePage(HeapPage* page) {
+void GCCompactor::PlanPage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
   ForwardingPage* forwarding_page = page->AllocateForwardingPage();
   while (current < end) {
+    current = PlanBlock(current, forwarding_page);
+  }
+}
+
+void GCCompactor::SlidePage(HeapPage* page) {
+  uword current = page->object_start();
+  uword end = page->object_end();
+
+  ForwardingPage* forwarding_page = page->forwarding_page();
+  while (current < end) {
     current = SlideBlock(current, forwarding_page);
   }
 }
 
-uword GCCompactor::SlideBlock(uword first_object,
-                              ForwardingPage* forwarding_page) {
-  uword start = first_object & kBlockMask;
-  uword end = start + kBlockSize;
+uword GCCompactor::PlanBlock(uword first_object,
+                             ForwardingPage* forwarding_page) {
+  uword block_start = first_object & kBlockMask;
+  uword block_end = block_start + kBlockSize;
   ForwardingBlock* forwarding_block = forwarding_page->BlockFor(first_object);
 
   // 1. Compute bitvector of surviving allocation units in the block.
   bool has_class = false;
   intptr_t block_live_size = 0;
+  intptr_t block_dead_size = 0;
   uword current = first_object;
-  while (current < end) {
+  while (current < block_end) {
     RawObject* obj = RawObject::FromAddr(current);
     intptr_t size = obj->Size();
     if (obj->IsMarked()) {
@@ -209,6 +241,8 @@ uword GCCompactor::SlideBlock(uword first_object,
       ASSERT(static_cast<intptr_t>(forwarding_block->Lookup(current)) ==
              block_live_size);
       block_live_size += size;
+    } else {
+      block_dead_size += size;
     }
     current += size;
   }
@@ -217,7 +251,7 @@ uword GCCompactor::SlideBlock(uword first_object,
   if (has_class) {
     // This will waste the space used by dead objects that are before the class
     // object.
-    MoveToExactAddress(first_object);
+    PlanMoveToExactAddress(first_object);
     ASSERT(free_current_ == first_object);
 
     // This is not MarkAll because the first part of a block might
@@ -225,27 +259,35 @@ uword GCCompactor::SlideBlock(uword first_object,
     // or the page header.
     forwarding_block->MarkAllFrom(first_object);
     ASSERT(forwarding_block->Lookup(first_object) == 0);
-  } else {
-    MoveToContiguousSize(block_live_size);
-  }
-  forwarding_block->set_new_address(free_current_);
 
-  // 3. Move objects in the block.
+    forwarding_block->set_new_address(free_current_);
+    free_current_ += block_live_size + block_dead_size;
+  } else {
+    PlanMoveToContiguousSize(block_live_size);
+    forwarding_block->set_new_address(free_current_);
+    free_current_ += block_live_size;
+  }
+
+  return current;  // First object in the next block
+}
+
+uword GCCompactor::SlideBlock(uword first_object,
+                              ForwardingPage* forwarding_page) {
+  uword block_start = first_object & kBlockMask;
+  uword block_end = block_start + kBlockSize;
+  ForwardingBlock* forwarding_block = forwarding_page->BlockFor(first_object);
+
+  // Add any space wasted at the end of a page or due to class pinning to the
+  // free list.
+  SlideFreeUpTo(forwarding_block->new_address());
+
   uword old_addr = first_object;
-  while (old_addr < end) {
+  while (old_addr < block_end) {
     RawObject* old_obj = RawObject::FromAddr(old_addr);
     intptr_t size = old_obj->Size();
     if (old_obj->IsMarked()) {
-      // Assert the current free page has enough space. This we hold because we
-      // grabbed space for the whole block up front.
-      intptr_t free_remaining = free_end_ - free_current_;
-      ASSERT(free_remaining >= size);
-
-      uword new_addr = free_current_;
-      free_current_ += size;
+      uword new_addr = forwarding_block->Lookup(old_addr);
       RawObject* new_obj = RawObject::FromAddr(new_addr);
-
-      ASSERT(forwarding_page->Lookup(old_addr) == new_addr);
 
       // Fast path for no movement. There's often a large block of objects at
       // the beginning that don't move.
@@ -257,12 +299,15 @@ uword GCCompactor::SlideBlock(uword first_object,
                 reinterpret_cast<void*>(old_addr), size);
       }
       new_obj->ClearMarkBit();
-    } else {
-      if (has_class) {
-        // Add to free list; note we're not bothering to coalesce here.
-        freelist_->FreeLocked(old_addr, size);
-        free_current_ += size;
-      }
+      new_obj->VisitPointers(this);
+
+      ASSERT(free_current_ == new_addr);
+      free_current_ += size;
+    } else if (forwarding_block->IsLive(old_addr)) {
+      // Gap we're keeping to prevent class movement.
+      ASSERT(free_current_ == old_addr);
+      freelist_->FreeLocked(old_addr, size);
+      free_current_ += size;
     }
     old_addr += size;
   }
@@ -270,14 +315,11 @@ uword GCCompactor::SlideBlock(uword first_object,
   return old_addr;  // First object in the next block.
 }
 
-void GCCompactor::MoveToExactAddress(uword addr) {
-  // Skip space to ensure class objects do not move. Computing the size
-  // of larger objects requires consulting their class, whose old body
-  // might be overwritten during the sliding.
-  // TODO(rmacnak): Keep class sizes off heap or class objects in
-  // non-moving pages.
+void GCCompactor::SlideFreeUpTo(uword addr) {
+  if (free_current_ == addr) return;
 
   // Skip pages until class's page.
+  ASSERT(free_page_ != NULL);
   while (!free_page_->Contains(addr)) {
     intptr_t free_remaining = free_end_ - free_current_;
     if (free_remaining != 0) {
@@ -290,7 +332,6 @@ void GCCompactor::MoveToExactAddress(uword addr) {
     free_current_ = free_page_->object_start();
     free_end_ = free_page_->object_end();
   }
-  ASSERT(free_page_ != NULL);
 
   // Skip within page until class's address.
   intptr_t free_skip = addr - free_current_;
@@ -303,17 +344,35 @@ void GCCompactor::MoveToExactAddress(uword addr) {
   ASSERT(free_current_ == addr);
 }
 
-void GCCompactor::MoveToContiguousSize(intptr_t size) {
+void GCCompactor::PlanMoveToExactAddress(uword addr) {
+  // Skip space to ensure class objects do not move. Computing the size
+  // of larger objects requires consulting their class, whose old body
+  // might be overwritten during the sliding.
+  // TODO(rmacnak): Keep class sizes off heap or class objects in
+  // non-moving pages.
+
+  // Skip pages until class's page.
+  ASSERT(free_page_ != NULL);
+  while (!free_page_->Contains(addr)) {
+    // And advance to the next free page.
+    free_page_ = free_page_->next();
+    ASSERT(free_page_ != NULL);
+    free_current_ = free_page_->object_start();
+    free_end_ = free_page_->object_end();
+  }
+
+  // Skip within page until class's address.
+  free_current_ = addr;
+}
+
+void GCCompactor::PlanMoveToContiguousSize(intptr_t size) {
   // Move the free cursor to ensure 'size' bytes of contiguous space.
   ASSERT(size <= kPageSize);
 
   // Check if the current free page has enough space.
   intptr_t free_remaining = free_end_ - free_current_;
   if (free_remaining < size) {
-    if (free_remaining != 0) {
-      freelist_->FreeLocked(free_current_, free_remaining);
-    }
-    // And advance to the next free page.
+    // Not enough; advance to the next free page.
     free_page_ = free_page_->next();
     ASSERT(free_page_ != NULL);
     free_current_ = free_page_->object_start();
@@ -323,8 +382,34 @@ void GCCompactor::MoveToContiguousSize(intptr_t size) {
   }
 }
 
+void GCCompactor::SetupImagePageBoundaries() {
+  for (intptr_t i = 0; i < kMaxImagePages; i++) {
+    image_page_ranges_[i].base = 0;
+    image_page_ranges_[i].size = 0;
+  }
+  intptr_t next_offset = 0;
+  HeapPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
+  while (image_page != NULL) {
+    RELEASE_ASSERT(next_offset <= kMaxImagePages);
+    image_page_ranges_[next_offset].base = image_page->object_start();
+    image_page_ranges_[next_offset].size =
+        image_page->object_end() - image_page->object_start();
+    image_page = image_page->next();
+    next_offset++;
+  }
+  image_page = heap_->old_space()->image_pages_;
+  while (image_page != NULL) {
+    RELEASE_ASSERT(next_offset <= kMaxImagePages);
+    image_page_ranges_[next_offset].base = image_page->object_start();
+    image_page_ranges_[next_offset].size =
+        image_page->object_end() - image_page->object_start();
+    image_page = image_page->next();
+    next_offset++;
+  }
+}
+
 DART_FORCE_INLINE
-void GCCompactor::ForwardPointerForSliding(RawObject** ptr) {
+void GCCompactor::ForwardPointer(RawObject** ptr) {
   RawObject* old_target = *ptr;
   if (old_target->IsSmiOrNewObject()) {
     return;  // Not moved.
@@ -350,49 +435,30 @@ void GCCompactor::ForwardPointerForSliding(RawObject** ptr) {
 
 void GCCompactor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** ptr = first; ptr <= last; ptr++) {
-    ForwardPointerForSliding(ptr);
+    ForwardPointer(ptr);
   }
 }
 
 void GCCompactor::VisitHandle(uword addr) {
   FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
-  ForwardPointerForSliding(handle->raw_addr());
+  ForwardPointer(handle->raw_addr());
 }
 
-void GCCompactor::ForwardPointersForSliding() {
+void GCCompactor::ForwardPointers() {
   // N.B.: This pointer visitor is not idempotent. We must take care to visit
   // each pointer exactly once.
-
-  // Collect image page boundaries.
-  for (intptr_t i = 0; i < kMaxImagePages; i++) {
-    image_page_ranges_[i].base = 0;
-    image_page_ranges_[i].size = 0;
-  }
-  intptr_t next_offset = 0;
-  HeapPage* image_page = Dart::vm_isolate()->heap()->old_space()->image_pages_;
-  while (image_page != NULL) {
-    RELEASE_ASSERT(next_offset <= kMaxImagePages);
-    image_page_ranges_[next_offset].base = image_page->object_start();
-    image_page_ranges_[next_offset].size =
-        image_page->object_end() - image_page->object_start();
-    image_page = image_page->next();
-    next_offset++;
-  }
-  image_page = heap_->old_space()->image_pages_;
-  while (image_page != NULL) {
-    RELEASE_ASSERT(next_offset <= kMaxImagePages);
-    image_page_ranges_[next_offset].base = image_page->object_start();
-    image_page_ranges_[next_offset].size =
-        image_page->object_end() - image_page->object_start();
-    image_page = image_page->next();
-    next_offset++;
-  }
 
   // Heap pointers.
   // N.B.: We forward the heap before forwarding the stack. This limits the
   // amount of following of forwarding pointers needed to get at stack maps.
-  heap_->VisitObjectPointers(this);
+  // Regular pages already visited during sliding. Code and image pages have no
+  // pointers to forward. Visit large pages and new-space.
+  for (HeapPage* large_page = heap_->old_space()->large_pages_;
+       large_page != NULL; large_page = large_page->next()) {
+    large_page->VisitObjectPointers(this);
+  }
+  heap_->new_space()->VisitObjectPointers(this);
 
   // C++ pointers.
   isolate()->VisitObjectPointers(this, StackFrameIterator::kDontValidateFrames);

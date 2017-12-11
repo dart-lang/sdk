@@ -1083,7 +1083,7 @@ void PageSpace::ConcurrentSweep(Isolate* isolate) {
 void PageSpace::Compact(Thread* thread) {
   thread->isolate()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
-  compactor.CompactBySliding(pages_, &freelist_[HeapPage::kData], pages_lock_);
+  compactor.Compact(pages_, &freelist_[HeapPage::kData], pages_lock_);
   thread->isolate()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {
