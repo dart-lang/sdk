@@ -9,7 +9,7 @@ commit queue.
 It is recommended to have a separate checkout for this branch, so switching
 to/from this branch does not populate/delete all files in the master branch.
 
-### Initial setup:
+## Initial setup:
 
 ```console
 mkdir config
