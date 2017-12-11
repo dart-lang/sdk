@@ -60,70 +60,70 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeConstructor() async {
     return super.test_commentReference_beforeConstructor();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeEnum() async {
     return super.test_commentReference_beforeEnum();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeFunction_blockBody() async {
     return super.test_commentReference_beforeFunction_blockBody();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeFunction_expressionBody() async {
     return super.test_commentReference_beforeFunction_expressionBody();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeFunctionTypeAlias() async {
     return super.test_commentReference_beforeFunctionTypeAlias();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeGenericTypeAlias() async {
     return super.test_commentReference_beforeGenericTypeAlias();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeGetter() async {
     return super.test_commentReference_beforeGetter();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_beforeMethod() async {
     return super.test_commentReference_beforeMethod();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_class() async {
     return super.test_commentReference_class();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31604')
   test_commentReference_setter() async {
     return super.test_commentReference_setter();
   }
