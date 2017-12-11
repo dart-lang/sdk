@@ -108,6 +108,9 @@ class CommandOutput extends UniqueObject {
 
   /// Called when producing output for a test failure to describe this output.
   void describe(Progress progress, OutputWriter output) {
+    output.subsection("exit code");
+    output.write(exitCode.toString());
+
     if (diagnostics.isNotEmpty) {
       output.subsection("diagnostics");
       output.writeAll(diagnostics);
@@ -512,7 +515,7 @@ class BrowserCommandOutput extends CommandOutput
 
     if (_result.browserOutput.stderr.isNotEmpty) {
       output.subsection("Browser stderr");
-      output.write(_result.browserOutput.stdout.toString());
+      output.write(_result.browserOutput.stderr.toString());
     }
   }
 
