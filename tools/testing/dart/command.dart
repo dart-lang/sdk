@@ -52,14 +52,14 @@ class Command {
         workingDirectory: workingDirectory);
   }
 
-  static Command vmKernelCompilation(
+  static Command kernelCompilation(
       String outputFile,
       bool neverSkipCompilation,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
       Map<String, String> environment) {
-    return new VMKernelCompilationCommand._(outputFile, neverSkipCompilation,
+    return new KernelCompilationCommand._(outputFile, neverSkipCompilation,
         bootstrapDependencies, executable, arguments, environment);
   }
 
@@ -282,15 +282,15 @@ class CompilationCommand extends ProcessCommand {
       deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
 }
 
-class VMKernelCompilationCommand extends CompilationCommand {
-  VMKernelCompilationCommand._(
+class KernelCompilationCommand extends CompilationCommand {
+  KernelCompilationCommand._(
       String outputFile,
       bool neverSkipCompilation,
       List<Uri> bootstrapDependencies,
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides)
-      : super._('vm_compile_to_kernel', outputFile, neverSkipCompilation,
+      : super._('dartk', outputFile, neverSkipCompilation,
             bootstrapDependencies, executable, arguments, environmentOverrides);
 
   int get maxNumRetries => 1;
