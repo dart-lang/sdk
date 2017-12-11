@@ -331,8 +331,7 @@
             "--use-sdk",
             "language_2",
             "corelib_2",
-            "lib_2",
-            "lib_strong"
+            "lib_2"
           ]
         },
         {

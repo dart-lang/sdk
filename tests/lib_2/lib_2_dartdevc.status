@@ -3,9 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
-html/custom/attribute_changed_callback_test: RuntimeError # Issue 31577
-html/custom/constructor_calls_created_synchronously_test: RuntimeError # Issue 31577
-html/custom/document_register_basic_test: RuntimeError # Issue 29922
+html/custom/attribute_changed_callback_test: Skip # Issue 31577
+html/custom/constructor_calls_created_synchronously_test: Skip # Issue 31577
+html/custom/created_callback_test: Skip # Issue 31577
+html/custom/document_register_basic_test: Skip # Issue 31577
 html/custom/document_register_template_test: Skip # Issue 31577
 html/custom/document_register_type_extensions_test/construction: Skip # Issue 31577
 html/custom/document_register_type_extensions_test/constructors: Skip # Issue 31577

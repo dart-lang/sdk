@@ -13,9 +13,9 @@ main() {
   useHtmlConfiguration();
 
   test('TimeStamp', () {
-    Event event = new Event('test');
+    var event = new Event('test');
 
-    int timeStamp = event.timeStamp;
+    var timeStamp = event.timeStamp;
     expect(timeStamp, greaterThan(0));
   });
 
@@ -33,19 +33,19 @@ main() {
   // The next test is not asynchronous because [on['test'].dispatch(event)] fires the event
   // and event listener synchronously.
   test('EventTarget', () {
-    Element element = new Element.tag('test');
+    var element = new Element.tag('test');
     element.id = 'eventtarget';
-    window.document.body.append(element);
+    document.body.append(element);
 
-    int invocationCounter = 0;
+    var invocationCounter = 0;
     void handler(Event e) {
       expect(e.type, equals('test'));
-      Element target = e.target;
+      var target = e.target;
       expect(element, equals(target));
       invocationCounter++;
     }
 
-    Event event = new Event('test');
+    var event = new Event('test');
 
     invocationCounter = 0;
     element.dispatchEvent(event);
@@ -84,24 +84,24 @@ main() {
   });
 
   test('InitMouseEvent', () {
-    DivElement div = new Element.tag('div');
-    MouseEvent event = new MouseEvent('zebra', relatedTarget: div);
+    var div = new Element.tag('div');
+    var event = new MouseEvent('zebra', relatedTarget: div);
   });
 
   test('DOM event callbacks are associated with the correct zone', () {
     var callbacks = [];
 
-    final element = new Element.tag('test');
+    var element = new Element.tag('test');
     element.id = 'eventtarget';
     document.body.append(element);
 
     // runZoned executes the function synchronously, but we don't want to
     // rely on this. We therefore wrap it into an expectAsync.
     runZoned(expectAsync(() {
-      Zone zone = Zone.current;
+      var zone = Zone.current;
       expect(zone, isNot(equals(Zone.root)));
 
-      var sub;
+      StreamSubscription<Event> sub;
 
       void handler(Event e) {
         expect(Zone.current, equals(zone));

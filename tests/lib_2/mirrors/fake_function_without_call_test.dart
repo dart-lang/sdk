@@ -14,7 +14,7 @@ class MultiArityFunction implements Function {
 }
 
 main() {
-  var f = new MultiArityFunction();
+  dynamic f = new MultiArityFunction();
 
   Expect.isTrue(f is Function);
   Expect.equals('a', f('a'));
@@ -23,7 +23,7 @@ main() {
   Expect.equals('a', Function.apply(f, ['a']));
   Expect.equals('a,b', Function.apply(f, ['a', 'b']));
   Expect.equals('a,b,c', Function.apply(f, ['a', 'b', 'c']));
-  Expect.throws(() => f.foo('a', 'b', 'c'), (e) => e is NoSuchMethodError);
+  Expect.throwsNoSuchMethodError(() => f.foo('a', 'b', 'c'));
 
   ClosureMirror cm = reflect(f);
   Expect.isTrue(cm is ClosureMirror);

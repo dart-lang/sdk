@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:typed_data';
+
 import 'package:expect/expect.dart';
 
 void testIterableFunctions<T extends num>(
@@ -17,7 +18,7 @@ void testIterableFunctions<T extends num>(
     Expect.equals(first, list.single);
     Expect.equals(first, list.singleWhere((x) => x == last));
   } else {
-    Expect.throws(() => list.single, (e) => e is StateError);
+    Expect.throwsStateError(() => list.single);
     bool isFirst = true;
     Expect.equals(first, list.singleWhere((x) {
       if (isFirst) {
@@ -97,7 +98,7 @@ void testIterableFunctions<T extends num>(
   l2.add(first);
   Expect.equals(first, l2.last);
   var l3 = list.toList(growable: false);
-  Expect.throws(() => l3.add(last), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => l3.add(last));
 }
 
 void emptyChecks<T extends num>(List<T> list, T zero) {
@@ -105,12 +106,12 @@ void emptyChecks<T extends num>(List<T> list, T zero) {
 
   Expect.isTrue(list.isEmpty);
 
-  Expect.throws(() => list.first, (e) => e is StateError);
-  Expect.throws(() => list.last, (e) => e is StateError);
-  Expect.throws(() => list.single, (e) => e is StateError);
-  Expect.throws(() => list.firstWhere((x) => true), (e) => e is StateError);
-  Expect.throws(() => list.lastWhere((x) => true), (e) => e is StateError);
-  Expect.throws(() => list.singleWhere((x) => true), (e) => e is StateError);
+  Expect.throwsStateError(() => list.first);
+  Expect.throwsStateError(() => list.last);
+  Expect.throwsStateError(() => list.single);
+  Expect.throwsStateError(() => list.firstWhere((x) => true));
+  Expect.throwsStateError(() => list.lastWhere((x) => true));
+  Expect.throwsStateError(() => list.singleWhere((x) => true));
 
   Expect.isFalse(list.any((x) => true));
   Expect.isFalse(list.contains(null));
@@ -147,7 +148,7 @@ void emptyChecks<T extends num>(List<T> list, T zero) {
   Expect.equals(list.length, whereList.length);
   Expect.equals(list.length, whereCount);
 
-  Expect.throws(() => list.reduce((x, y) => x), (e) => e is StateError);
+  Expect.throwsStateError(() => list.reduce((x, y) => x));
 
   Expect.isTrue(list.skip(list.length).isEmpty);
   Expect.isTrue(list.skip(0).isEmpty);
@@ -162,7 +163,7 @@ void emptyChecks<T extends num>(List<T> list, T zero) {
   l2.add(zero);
   Expect.equals(zero, l2.last);
   var l3 = list.toList(growable: false);
-  Expect.throws(() => l3.add(zero), (e) => e is UnsupportedError);
+  Expect.throwsUnsupportedError(() => l3.add(zero));
 }
 
 main() {

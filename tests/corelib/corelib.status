@@ -66,7 +66,7 @@ string_case_test/01: RuntimeError # jsshell does not recognize character 223 aka
 unicode_test: RuntimeError # jsshell does not recognize character 223 aka \xdf
 
 [ $strong ]
-*: SkipByDesign # tests/corelib_strong has the strong mode versions of these tests.
+*: SkipByDesign # tests/corelib_2 has the strong mode versions of these tests.
 
 [ $arch == simarmv5te && ($runtime == dart_precompiled || $runtime == vm) ]
 big_integer_parsed_mul_div_vm_test: Pass, Slow

@@ -16,7 +16,7 @@ class Z<T> {}
 class B extends A {}
 
 class C
-    extends A<num, int> // //# 01: static type warning
+    extends A<num, int> //# 01: compile-time error
 {}
 
 class D extends A<int> {}
@@ -146,7 +146,7 @@ main() {
   Expect.equals(
       reflect(new I()).type, reflect(new I()).type.originalDeclaration);
 
-  // Library members are all uninstantaited generics or non-generics.
+  // Library members are all uninstantiated generics or non-generics.
   currentMirrorSystem().libraries.values.forEach((libraryMirror) {
     libraryMirror.declarations.values.forEach((declaration) {
       if (declaration is ClassMirror) {

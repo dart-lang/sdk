@@ -161,7 +161,7 @@ mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 
 mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 
 [ $strong ]
-*: SkipByDesign # tests/lib_strong has the strong mode versions of these tests.
+*: SkipByDesign # tests/lib_2 has the strong mode versions of these tests.
 
 [ $arch == ia32 && $mode == debug && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Skip # Verification OOM.
