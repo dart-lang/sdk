@@ -302,30 +302,11 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     DartType type = _getTypeFor(constructorName);
     ConstructorElement element = _getReferenceFor(constructorName);
-    ClassElement classElement = element?.enclosingElement;
 
     node.staticElement = element;
     node.staticType = type;
 
-    Identifier typeIdentifier = constructorName.type.name;
-    if (typeIdentifier is SimpleIdentifier) {
-      applyToTypeAnnotation(type, constructorName.type);
-      if (constructorName.name != null) {
-        constructorName.name.staticElement = element;
-      }
-    } else if (typeIdentifier is PrefixedIdentifier) {
-      // TODO(scheglov) Rewrite AST using knowledge about prefixes.
-      // TODO(scheglov) Add support for `new prefix.Type()`.
-      // TODO(scheglov) Add support for `new prefix.Type.name()`.
-      assert(constructorName.name == null);
-      constructorName.period = typeIdentifier.period;
-      constructorName.name = typeIdentifier.identifier;
-      SimpleIdentifier classNode = typeIdentifier.prefix;
-      constructorName.type = astFactory.typeName(classNode, null);
-      classNode.staticElement = classElement;
-      classNode.staticType = type;
-      constructorName.name.staticElement = element;
-    }
+    applyConstructorElement(type, element, constructorName);
 
     ArgumentList argumentList = node.argumentList;
     _associateArgumentsWithParameters(element?.parameters, argumentList);
@@ -622,6 +603,36 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     assert(!synthetic || entity == null);
     kernel.DartType kernelType = _types[_typeIndex++];
     return _typeContext.translateType(kernelType);
+  }
+
+  /// Apply the [type] that is created by the [constructorName] and the
+  /// [constructorElement] it references.
+  static void applyConstructorElement(DartType type,
+      ConstructorElement constructorElement, ConstructorName constructorName) {
+    ClassElement classElement = constructorElement?.enclosingElement;
+
+    Identifier typeIdentifier = constructorName.type.name;
+    if (typeIdentifier is SimpleIdentifier) {
+      applyToTypeAnnotation(type, constructorName.type);
+      if (constructorName.name != null) {
+        constructorName.name.staticElement = constructorElement;
+      }
+    } else if (typeIdentifier is PrefixedIdentifier) {
+      // TODO(scheglov) Rewrite AST using knowledge about prefixes.
+      // TODO(scheglov) Add support for `new prefix.Type()`.
+      // TODO(scheglov) Add support for `new prefix.Type.name()`.
+      assert(constructorName.name == null);
+      constructorName.period = typeIdentifier.period;
+      constructorName.name = typeIdentifier.identifier;
+
+      SimpleIdentifier classNode = typeIdentifier.prefix;
+      classNode.staticElement = classElement;
+      classNode.staticType = type;
+
+      constructorName.type = astFactory.typeName(classNode, null);
+      constructorName.type.type = type;
+      constructorName.name.staticElement = constructorElement;
+    }
   }
 
   /// Apply the [type] to the [typeAnnotation] by setting the type of the

@@ -724,14 +724,25 @@ class LibraryAnalyzer {
         }
         for (var member in declaration.members) {
           if (member is ConstructorDeclaration) {
-            var context = member.element as ElementImpl;
-            var resolution = resolutions.next();
-            var applier = _createResolutionApplier(context, resolution);
-            member.initializers.accept(applier);
-            member.parameters.accept(applier);
-            member.body.accept(applier);
-            applier.applyToAnnotations(member);
-            applier.checkDone();
+            var context = member.element as ConstructorElementImpl;
+            ConstructorName redirectName = member.redirectedConstructor;
+            if (redirectName != null) {
+              var redirectedConstructor = context.redirectedConstructor;
+              redirectName.staticElement = redirectedConstructor;
+              ResolutionApplier.applyConstructorElement(
+                  redirectedConstructor.returnType,
+                  redirectedConstructor,
+                  redirectName);
+              // TODO(scheglov) Add support for type parameterized redirects.
+            } else {
+              var resolution = resolutions.next();
+              var applier = _createResolutionApplier(context, resolution);
+              member.initializers.accept(applier);
+              member.parameters.accept(applier);
+              member.body.accept(applier);
+              applier.applyToAnnotations(member);
+              applier.checkDone();
+            }
           } else if (member is FieldDeclaration) {
             List<VariableDeclaration> fields = member.fields.variables;
             if (fields.length != 1) {
