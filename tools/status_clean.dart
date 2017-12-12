@@ -310,7 +310,7 @@ class MultiTestDetector {
         var tests = new Map<String, String>();
         var outcomes = new Map<String, Set<String>>();
         if (multiTestRegExp.hasMatch(new File(file).readAsStringSync())) {
-          ExtractTestsFromMultitest(new Path(file), tests, outcomes);
+          extractTestsFromMultitest(new Path(file), tests, outcomes);
         }
         return tests.keys.toList();
       } catch (error) {

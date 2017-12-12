@@ -14,7 +14,7 @@ import 'package:compiler/src/util/uri_extras.dart' show relativize;
 import 'memory_compiler.dart';
 
 import '../../../tools/testing/dart/multitest.dart'
-    show ExtractTestsFromMultitest;
+    show extractTestsFromMultitest;
 import '../../../tools/testing/dart/path.dart' show Path;
 
 /// Check the analysis of the multitests in [testFiles] to result in the
@@ -37,7 +37,7 @@ void check(Map<String, List<String>> testFiles,
         Map<String, String> testSources = {};
         Map<String, Set<String>> testOutcomes = {};
         String fileName = 'tests/$testFile';
-        ExtractTestsFromMultitest(
+        extractTestsFromMultitest(
             new Path(fileName), testSources, testOutcomes);
         return Future.forEach(testSources.keys, (String testName) async {
           String testFileName = '$fileName/$testName';
