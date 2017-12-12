@@ -15,11 +15,11 @@ import 'builder/builder.dart' show LibraryBuilder;
 
 import 'dill/dill_target.dart' show DillTarget;
 
-import 'graph/graph.dart' show computeStrongComponents;
-
 import 'kernel/kernel_target.dart' show KernelTarget;
 
 import 'source/source_graph.dart' show SourceGraph;
+
+import 'source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -115,67 +115,65 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
     });
   }
 
-  List<LibraryBuilder> computeReusedLibraries(List<Uri> invalidatedUris) {
+  List<LibraryBuilder> computeReusedLibraries(Iterable<Uri> invalidatedUris) {
     if (userCode == null) return const <LibraryBuilder>[];
-    List<List<Uri>> components =
-        computeStrongComponents(new SourceGraph(userCode.loader));
-    Map<Uri, Component> libraryToComponent = <Uri, Component>{};
-    Component root = new Component(null);
-    Component previous = root;
-    for (List<Uri> libraries in components) {
-      Component component = new Component(libraries);
-      previous.next = component;
-      previous = component;
-      for (Uri uri in libraries) {
-        libraryToComponent[uri] = component;
-      }
-    }
-    ticker.logMs("Computed strong components");
-    Set<Component> invalidatedComponents = new Set<Component>();
-    for (Uri uri in invalidatedUris) {
-      Component component = libraryToComponent[uri];
-      if (component == null) {
-        print("Internal error: $uri has no component");
-        return const <LibraryBuilder>[];
-      }
-      invalidatedComponents.add(component);
-    }
-    List<LibraryBuilder> preservedBuilders = <LibraryBuilder>[];
-    Component current = root.next;
-    while (current != null) {
-      if (invalidatedComponents.contains(current)) {
-        // TODO(ahe): We may decided to reuse less libraries than we safely
-        // could in this situation:
-        // Lib A has no dependencies.
-        // Lib B imports lib A.
-        // Lib C imports lib A.
-        // lib D imports lib B and C.
-        // In this case, we might recompile lib C if lib B changes because our
-        // components could be: [A], [B], [C], [D] (notice C comes after B).
-        break;
-      }
-      for (Uri uri in current.libraries) {
-        LibraryBuilder library = userCode.loader.builders[uri];
-        if (library == null) {
-          print("Internal error: $uri has no library");
-          return const <LibraryBuilder>[];
+
+    // [invalidatedUris] converted to a set.
+    Set<Uri> invalidatedFileUris = invalidatedUris.toSet();
+
+    // Maps all non-platform LibraryBuilders from their import URI.
+    Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
+
+    // Invalidated URIs translated back to their import URI (package:, dart:,
+    // etc.).
+    List<Uri> invalidatedImportUris = <Uri>[];
+
+    // Compute [builders] and [invalidatedImportUris].
+    userCode.loader.builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader != platform.loader) {
+        assert(library is SourceLibraryBuilder);
+        builders[uri] = library;
+        if (invalidatedFileUris.contains(uri) ||
+            (uri != library.fileUri &&
+                invalidatedFileUris.contains(library.fileUri))) {
+          invalidatedImportUris.add(uri);
         }
-        preservedBuilders.add(library);
       }
-      current = current.next;
+    });
+
+    SourceGraph graph = new SourceGraph(builders);
+
+    // Compute direct dependencies for each import URI (the reverse of the
+    // edges returned by `graph.neighborsOf`).
+    Map<Uri, Set<Uri>> directDependencies = <Uri, Set<Uri>>{};
+    for (Uri vertex in graph.vertices) {
+      for (Uri neighbor in graph.neighborsOf(vertex)) {
+        (directDependencies[neighbor] ??= new Set<Uri>()).add(vertex);
+      }
     }
-    return preservedBuilders;
+
+    // Remove all dependencies of [invalidatedImportUris] from builders.
+    List<Uri> workList = invalidatedImportUris;
+    while (workList.isNotEmpty) {
+      LibraryBuilder current = builders.remove(workList.removeLast());
+      // [current] is null if the corresponding key (URI) has already been
+      // removed.
+      if (current != null) {
+        Set<Uri> s = directDependencies[current.uri];
+        if (s != null) {
+          // [s] is null for leaves.
+          for (Uri dependency in s) {
+            workList.add(dependency);
+          }
+        }
+      }
+    }
+
+    return builders.values.toList();
   }
 
   @override
   void invalidate(Uri uri) {
     invalidatedUris.add(uri);
   }
-}
-
-class Component {
-  final List<Uri> libraries;
-  Component next;
-
-  Component(this.libraries);
 }

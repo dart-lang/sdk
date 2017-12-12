@@ -4,7 +4,7 @@
 
 library fasta.source_graph;
 
-import 'package:kernel/kernel.dart' show Library;
+import '../builder/builder.dart' show LibraryBuilder;
 
 import '../export.dart' show Export;
 
@@ -14,41 +14,34 @@ import '../import.dart' show Import;
 
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
-import 'source_loader.dart' show SourceLoader;
-
 class SourceGraph implements Graph<Uri> {
-  final SourceLoader<Library> loader;
+  final Map<Uri, LibraryBuilder> builders;
 
-  SourceGraph(this.loader);
+  SourceGraph(this.builders);
 
-  Iterable<Uri> get vertices {
-    return loader.builders.keys.where((Uri uri) {
-      return loader.builders[uri].loader == loader;
-    });
-  }
+  Iterable<Uri> get vertices => builders.keys;
 
   Iterable<Uri> neighborsOf(Uri vertex) sync* {
-    SourceLibraryBuilder library = loader.builders[vertex];
+    SourceLibraryBuilder library = builders[vertex];
     if (library == null) {
       throw "Library not found: $vertex";
     }
-    assert(library.loader == loader);
     for (Import import in library.imports) {
-      if (import.imported.loader == loader) {
-        yield import.imported.uri;
+      Uri uri = import.imported.uri;
+      if (builders.containsKey(uri)) {
+        yield uri;
       }
     }
     for (Export export in library.exports) {
-      if (export.exported.loader == loader) {
-        yield export.exported.uri;
+      Uri uri = export.exported.uri;
+      if (builders.containsKey(uri)) {
+        yield uri;
       }
     }
     for (SourceLibraryBuilder part in library.parts) {
-      if (part.loader == loader) {
-        if (loader.builders[part.uri] != null) {
-          // TODO(ahe): This seems fishy. Are we removing parts from builders?
-          yield part.uri;
-        }
+      Uri uri = part.uri;
+      if (builders.containsKey(uri)) {
+        yield uri;
       }
     }
   }

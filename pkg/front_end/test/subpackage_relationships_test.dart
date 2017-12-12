@@ -71,7 +71,6 @@ final subpackageRules = {
     'lib/src/base',
     'lib/src/fasta/builder',
     'lib/src/fasta/dill',
-    'lib/src/fasta/graph',
     'lib/src/fasta/kernel',
     'lib/src/fasta/parser',
     'lib/src/fasta/scanner',
