@@ -879,7 +879,9 @@ class StandardTestSuite extends TestSuite {
       commands.addAll(compilationArtifact.commands);
     }
 
-    if (expectCompileError(info) && compilerConfiguration.hasCompiler) {
+    if (expectCompileError(info) &&
+        compilerConfiguration.hasCompiler &&
+        !compilerConfiguration.runRuntimeDespiteMissingCompileTimeError) {
       // Do not attempt to run the compiled result. A compilation
       // error should be reported by the compilation command.
       return commands;

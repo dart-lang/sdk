@@ -876,6 +876,13 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
   }
 
   Expectation result(TestCase testCase) {
+    // TODO(kustermann): Currently the batch mode runner (which can be found
+    // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
+    // between different kinds of failures and will mark a failed
+    // compilation to just an exit code of "1".  So we treat all `exitCode ==
+    // 1`s as compile-time errors as well.
+    const int kBatchModeCompileTimeErrorExit = 1;
+
     // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.dartkCrash;
     if (hasTimedOut) return Expectation.timeout;
@@ -889,7 +896,8 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
     // Multitests are handled specially.
     if (testCase.expectCompileError) {
-      if (exitCode == VMCommandOutput._compileErrorExitCode) {
+      if (exitCode == VMCommandOutput._compileErrorExitCode ||
+          exitCode == kBatchModeCompileTimeErrorExit) {
         return Expectation.pass;
       }
       return Expectation.missingCompileTimeError;
@@ -897,7 +905,8 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
     // The actual outcome depends on the exitCode.
     var outcome = Expectation.pass;
-    if (exitCode == VMCommandOutput._compileErrorExitCode) {
+    if (exitCode == VMCommandOutput._compileErrorExitCode ||
+        exitCode == kBatchModeCompileTimeErrorExit) {
       outcome = Expectation.compileTimeError;
     } else if (exitCode != 0) {
       // This is a general fail, in case we get an unknown nonzero exitcode.

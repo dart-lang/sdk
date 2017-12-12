@@ -46,6 +46,10 @@ abstract class CompilerConfiguration {
     throw new UnsupportedError("This compiler does not support DFE.");
   }
 
+  /// Whether to run the runtime on the compilation result of a test which
+  /// expects a compile-time error and the compiler did not emit one.
+  bool get runRuntimeDespiteMissingCompileTimeError => false;
+
   factory CompilerConfiguration(Configuration configuration) {
     switch (configuration.compiler) {
       case Compiler.dart2analyzer:
@@ -203,6 +207,19 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
   bool get useDfe => true;
 
   bool get _isAot => false;
+
+  // Issue(http://dartbug.com/29840): Currently fasta sometimes does not emit a
+  // compile-time error (even though it should).  The VM will emit some of these
+  // compile-time errors (e.g. in constant evaluator, class finalizer, ...).
+  //
+  //   => Since this distinction between fasta and vm reported compile-time
+  //      errors do not exist when running dart with the kernel-service, we will
+  //      also not make this distinction when compiling to .dill and then run.
+  //
+  // The corresponding http://dartbug.com/29840 tracks to get the frontend to
+  // emit all necessary compile-time errors (and *additionally* encode them
+  // in the AST in certain cases).
+  bool get runRuntimeDespiteMissingCompileTimeError => true;
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
