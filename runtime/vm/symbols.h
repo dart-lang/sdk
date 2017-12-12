@@ -359,6 +359,7 @@ class ObjectPointerVisitor;
   V(Index, "index")                                                            \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
+  V(DartInternalPackage, "package:dart_internal/")                             \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartNativeWrappersLibName, "nativewrappers")                               \
   V(DartCore, "dart:core")                                                     \
@@ -427,6 +428,7 @@ class ObjectPointerVisitor;
   V(ConstructorStacktracePrefix, "new ")                                       \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
+  V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
   V(_name, "_name")                                                            \

@@ -856,8 +856,8 @@ class DevCompilerCommandOutput extends CommandOutput {
   }
 }
 
-class KernelCompilationCommandOutput extends CompilationCommandOutput {
-  KernelCompilationCommandOutput(
+class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
+  VMKernelCompilationCommandOutput(
       Command command,
       int exitCode,
       bool timedOut,
@@ -876,19 +876,48 @@ class KernelCompilationCommandOutput extends CompilationCommandOutput {
   }
 
   Expectation result(TestCase testCase) {
-    Expectation result = super.result(testCase);
-    if (result.canBeOutcomeOf(Expectation.crash)) {
+    // TODO(kustermann): Currently the batch mode runner (which can be found
+    // in `test_runner.dart:BatchRunnerProcess`) does not really distinguish
+    // between different kinds of failures and will mark a failed
+    // compilation to just an exit code of "1".  So we treat all `exitCode ==
+    // 1`s as compile-time errors as well.
+    const int kBatchModeCompileTimeErrorExit = 1;
+
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.dartkCrash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // If the frontend had an uncaught exception, then we'll consider this a
+    // crash.
+    if (exitCode == VMCommandOutput._uncaughtExceptionExitCode) {
       return Expectation.dartkCrash;
-    } else if (result.canBeOutcomeOf(Expectation.timeout)) {
-      return Expectation.dartkTimeout;
-    } else if (result.canBeOutcomeOf(Expectation.compileTimeError)) {
-      return Expectation.dartkCompileTimeError;
     }
-    return result;
+
+    // Multitests are handled specially.
+    if (testCase.expectCompileError) {
+      if (exitCode == VMCommandOutput._compileErrorExitCode ||
+          exitCode == kBatchModeCompileTimeErrorExit) {
+        return Expectation.pass;
+      }
+      return Expectation.missingCompileTimeError;
+    }
+
+    // The actual outcome depends on the exitCode.
+    var outcome = Expectation.pass;
+    if (exitCode == VMCommandOutput._compileErrorExitCode ||
+        exitCode == kBatchModeCompileTimeErrorExit) {
+      outcome = Expectation.compileTimeError;
+    } else if (exitCode != 0) {
+      // This is a general fail, in case we get an unknown nonzero exitcode.
+      outcome = Expectation.fail;
+    }
+
+    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 
   /// If the compiler was able to produce a Kernel IR file we want to run the
-  /// result on the Dart VM. We therefore mark the [KernelCompilationCommand]
+  /// result on the Dart VM. We therefore mark the [VMKernelCompilationCommand]
   /// as successful.
   ///
   /// This ensures we test that the DartVM produces correct CompileTime errors
@@ -954,8 +983,8 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
   } else if (command is VmCommand) {
     return new VMCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, pid);
-  } else if (command is KernelCompilationCommand) {
-    return new KernelCompilationCommandOutput(
+  } else if (command is VMKernelCompilationCommand) {
+    return new VMKernelCompilationCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AdbPrecompilationCommand) {
     return new VMCommandOutput(

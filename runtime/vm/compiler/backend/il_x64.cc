@@ -3855,17 +3855,16 @@ DEFINE_EMIT(SimdBinaryOp,
   SIMD_OP_FLOAT_ARITH(V, Sqrt, sqrt)                                           \
   SIMD_OP_FLOAT_ARITH(V, Negate, negate)                                       \
   SIMD_OP_FLOAT_ARITH(V, Abs, abs)                                             \
-  V(Float32x4Reciprocal, reciprocalps)                                         \
+  V(Float32x4Reciprocal, rcpps)                                                \
   V(Float32x4ReciprocalSqrt, rsqrtps)
 
 DEFINE_EMIT(SimdUnaryOp, (SameAsFirstInput, XmmRegister value)) {
   // TODO(dartbug.com/30949) select better register constraints to avoid
-  // redundant move of input into a different register because all instructions
-  // below support two operand forms.
+  // redundant move of input into a different register.
   switch (instr->kind()) {
 #define EMIT(Name, op)                                                         \
   case SimdOpInstr::k##Name:                                                   \
-    __ op(value);                                                              \
+    __ op(value, value);                                                       \
     break;
     SIMD_OP_SIMPLE_UNARY(EMIT)
 #undef EMIT
@@ -4060,7 +4059,7 @@ DEFINE_EMIT(Int32x4Select,
   // Copy mask.
   __ movaps(temp, mask);
   // Invert it.
-  __ notps(temp);
+  __ notps(temp, temp);
   // mask = mask & trueValue.
   __ andps(mask, trueValue);
   // temp = temp & falseValue.
@@ -4263,7 +4262,7 @@ LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister value = locs()->in(0).fpu_reg();
   ASSERT(locs()->out(0).fpu_reg() == value);
-  __ DoubleNegate(value);
+  __ DoubleNegate(value, value);
 }
 
 LocationSummary* MathMinMaxInstr::MakeLocationSummary(Zone* zone,
@@ -4350,7 +4349,7 @@ void MathMinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_min) {
     __ cmovgeq(result, right);
   } else {
-    __ cmovlessq(result, right);
+    __ cmovlq(result, right);
   }
 }
 

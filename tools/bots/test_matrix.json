@@ -20,6 +20,7 @@
       "pkg/meta/",
       "pkg/pkg.status",
       "pkg/status_file/",
+      "pkg/vm/",
       "runtime/",
       "sdk/",
       ".packages"
@@ -309,8 +310,8 @@
     },
     {
       "builders": [
-        "ddc-linux-release",
-        "ddc-win-release"
+        "ddc-linux-release-chrome",
+        "ddc-win-release-chrome"
       ],
       "meta": {
         "description": "This configuration is used by the ddc builder group."
@@ -325,7 +326,6 @@
           "name": "ddc tests",
           "arguments": [
             "-cdartdevc",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -338,7 +338,6 @@
           "name": "ddc kernel tests",
           "arguments": [
             "-cdartdevk",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -349,35 +348,39 @@
           "name": "ddc sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddc sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "-rnone"
           ]
         }
       ]
     },
     {
       "builders": [
-        "ddc-mac-release"
+        "ddc-mac-release-chrome"
       ],
       "meta": {
         "description": "This configuration is used by the ddc builder group."
@@ -392,7 +395,6 @@
           "name": "ddc tests",
           "arguments": [
             "-cdartdevc",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -406,7 +408,6 @@
           "name": "ddc kernel tests",
           "arguments": [
             "-cdartdevk",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -417,28 +418,32 @@
           "name": "ddc sourcemap tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddc sourcemap stacktrace tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap stacktrace tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "-rnone"
           ]
         }
       ]

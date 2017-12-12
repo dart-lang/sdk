@@ -1012,9 +1012,8 @@ class TypeDeclarationAccessor extends ReadOnlyAccessor {
       int offset = offsetForToken(token);
       if (declaration is KernelInvalidTypeBuilder) {
         KernelInvalidTypeBuilder declaration = this.declaration;
-        helper.library.addWarning(
-            declaration.message, declaration.charOffset, declaration.fileUri);
-        helper.addWarning(declaration.message, offset, token.length);
+        helper.addWarning(
+            declaration.message.messageObject, offset, token.length);
         super.expression = new Throw(
             new StringLiteral(declaration.message.message)
               ..fileOffset = offsetForToken(token))

@@ -117,3 +117,67 @@ _BufferAndStart _ensureFastAndSerializableByteData(
 class _IOCrypto {
   external static Uint8List getRandomBytes(int count);
 }
+
+// The implementation of waitForEventSync if there is one, and null otherwise.
+void Function(int timeoutMillis) _waitForEventSyncImpl;
+
+/**
+ * Synchronously blocks the calling isolate to wait for asynchronous events to
+ * complete.
+ *
+ * WARNING: EXPERIMENTAL. USE AT YOUR OWN RISK.
+ *
+ * If the [timeout] parameter is supplied, [waitForEventSync] will return after
+ * the specified timeout even if no events have occurred.
+ *
+ * This call does the following:
+ * - suspends the current execution stack,
+ * - runs the microtask queue until it is empty,
+ * - waits until the event queue is not empty,
+ * - handles events on the event queue, plus their associated microtasks,
+ *   until the event queue is empty,
+ * - resumes the original stack.
+ *
+ * This function will synchronously throw the first exception it encounters in
+ * running the microtasks and event handlers, leaving the remaining microtasks
+ * and events on their respective queues.
+ *
+ * Please note that this call is only safe to make in code that is running in
+ * the standalone command-line Dart VM. Further, because it suspends the current
+ * execution stack until all other events have been processed, even when running
+ * in the standalone command-line VM there exists a risk that the current
+ * execution stack will be starved.
+ *
+ * Example:
+ *
+ * ```
+ * main() {
+ *   bool condition = false;
+ *   ...
+ *   // Some asynchronous opertion that eventually sets 'condition' true.
+ *   ...
+ *   print("Waiting for 'condition'");
+ *   Duration timeout = const Duration(seconds: 10);
+ *   Timer.run(() {});  // Ensure that there is at least one event.
+ *   Stopwatch s = new Stopwatch()..start();
+ *   while (!condition) {
+ *     if (s.elapsed > timeout) {
+ *       print("timed out waiting for 'condition'!");
+ *       break;
+ *     }
+ *     print("still waiting...");
+ *     waitForEventSync(timeout: timeout);
+ *   }
+ *   s.stop();
+ * }
+ * ```
+ */
+@Experimental(message: "This feature is only available in the standalone VM")
+void waitForEventSync({Duration timeout}) {
+  if (_waitForEventSyncImpl == null) {
+    throw new UnsupportedError(
+        "waitForEventSync is not supported on this platform");
+  }
+  final int timeout_millis = timeout == null ? 0 : timeout.inMilliseconds;
+  _waitForEventSyncImpl(timeout_millis);
+}

@@ -106,6 +106,9 @@ main(List<String> args) async {
   timer1.stop();
   print("Libraries changed: ${delta.newProgram.libraries.length}");
   print("Initial compilation took: ${timer1.elapsedMilliseconds}ms");
+  if (delta.newProgram.libraries.length < 1) {
+    throw "No libraries were changed";
+  }
 
   for (final ChangeSet changeSet in changeSets) {
     await applyEdits(changeSet.edits, overlayFs, generator, uriTranslator);
@@ -117,6 +120,9 @@ main(List<String> args) async {
         "Libraries changed: ${delta.newProgram.libraries.length}");
     print("Change '${changeSet.name}' - "
         "Incremental compilation took: ${iterTimer.elapsedMilliseconds}ms");
+    if (delta.newProgram.libraries.length < 1) {
+      throw "No libraries were changed";
+    }
   }
 
   dir.deleteSync(recursive: true);
@@ -239,7 +245,7 @@ class Edit {
   final String replacement;
 
   Edit(String uriString, this.original, this.replacement)
-      : uri = Uri.base.resolve(uriString);
+      : uri = _resolveOverlayUri(uriString);
 
   String toString() => 'Edit($uri, "$original" -> "$replacement")';
 }
@@ -254,8 +260,12 @@ class ChangeSet {
   String toString() => 'ChangeSet($name, $edits)';
 }
 
-_resolveOverlayUri(String uriString) =>
-    Uri.base.resolve(uriString).replace(scheme: 'org-dartlang-overlay');
+_resolveOverlayUri(String uriString) {
+  Uri result = Uri.base.resolve(uriString);
+  return result.isScheme("file")
+      ? result.replace(scheme: 'org-dartlang-overlay')
+      : result;
+}
 
 ArgParser argParser = new ArgParser()
   ..addOption('target',

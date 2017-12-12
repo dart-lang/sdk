@@ -41,40 +41,13 @@ struct ByteMnemonic {
   const char* mnem;
 };
 
+#define ALU_ENTRY(name, code)                                                  \
+  {code * 8 + 0, BYTE_OPER_REG_OP_ORDER, #name},                               \
+      {code * 8 + 1, OPER_REG_OP_ORDER, #name},                                \
+      {code * 8 + 2, BYTE_REG_OPER_OP_ORDER, #name},                           \
+      {code * 8 + 3, REG_OPER_OP_ORDER, #name},
 static const ByteMnemonic two_operands_instr[] = {
-    {0x00, BYTE_OPER_REG_OP_ORDER, "add"},
-    {0x01, OPER_REG_OP_ORDER, "add"},
-    {0x02, BYTE_REG_OPER_OP_ORDER, "add"},
-    {0x03, REG_OPER_OP_ORDER, "add"},
-    {0x08, BYTE_OPER_REG_OP_ORDER, "or"},
-    {0x09, OPER_REG_OP_ORDER, "or"},
-    {0x0A, BYTE_REG_OPER_OP_ORDER, "or"},
-    {0x0B, REG_OPER_OP_ORDER, "or"},
-    {0x10, BYTE_OPER_REG_OP_ORDER, "adc"},
-    {0x11, OPER_REG_OP_ORDER, "adc"},
-    {0x12, BYTE_REG_OPER_OP_ORDER, "adc"},
-    {0x13, REG_OPER_OP_ORDER, "adc"},
-    {0x18, BYTE_OPER_REG_OP_ORDER, "sbb"},
-    {0x19, OPER_REG_OP_ORDER, "sbb"},
-    {0x1A, BYTE_REG_OPER_OP_ORDER, "sbb"},
-    {0x1B, REG_OPER_OP_ORDER, "sbb"},
-    {0x20, BYTE_OPER_REG_OP_ORDER, "and"},
-    {0x21, OPER_REG_OP_ORDER, "and"},
-    {0x22, BYTE_REG_OPER_OP_ORDER, "and"},
-    {0x23, REG_OPER_OP_ORDER, "and"},
-    {0x28, BYTE_OPER_REG_OP_ORDER, "sub"},
-    {0x29, OPER_REG_OP_ORDER, "sub"},
-    {0x2A, BYTE_REG_OPER_OP_ORDER, "sub"},
-    {0x2B, REG_OPER_OP_ORDER, "sub"},
-    {0x30, BYTE_OPER_REG_OP_ORDER, "xor"},
-    {0x31, OPER_REG_OP_ORDER, "xor"},
-    {0x32, BYTE_REG_OPER_OP_ORDER, "xor"},
-    {0x33, REG_OPER_OP_ORDER, "xor"},
-    {0x38, BYTE_OPER_REG_OP_ORDER, "cmp"},
-    {0x39, OPER_REG_OP_ORDER, "cmp"},
-    {0x3A, BYTE_REG_OPER_OP_ORDER, "cmp"},
-    {0x3B, REG_OPER_OP_ORDER, "cmp"},
-    {0x63, REG_OPER_OP_ORDER, "movsxd"},
+    X86_ALU_CODES(ALU_ENTRY){0x63, REG_OPER_OP_ORDER, "movsxd"},
     {0x84, BYTE_REG_OPER_OP_ORDER, "test"},
     {0x85, REG_OPER_OP_ORDER, "test"},
     {0x86, BYTE_REG_OPER_OP_ORDER, "xchg"},
@@ -86,31 +59,29 @@ static const ByteMnemonic two_operands_instr[] = {
     {0x8D, REG_OPER_OP_ORDER, "lea"},
     {-1, UNSET_OP_ORDER, ""}};
 
+#define ZERO_OPERAND_ENTRY(name, opcode) {opcode, UNSET_OP_ORDER, #name},
 static const ByteMnemonic zero_operands_instr[] = {
-    {0xC3, UNSET_OP_ORDER, "ret"},   {0xC9, UNSET_OP_ORDER, "leave"},
-    {0xF4, UNSET_OP_ORDER, "hlt"},   {0xFC, UNSET_OP_ORDER, "cld"},
-    {0xCC, UNSET_OP_ORDER, "int3"},  {0x60, UNSET_OP_ORDER, "pushad"},
-    {0x61, UNSET_OP_ORDER, "popad"}, {0x9C, UNSET_OP_ORDER, "pushfd"},
-    {0x9D, UNSET_OP_ORDER, "popfd"}, {0x9E, UNSET_OP_ORDER, "sahf"},
-    {0x99, UNSET_OP_ORDER, "cdq"},   {0x9B, UNSET_OP_ORDER, "fwait"},
-    {0xA4, UNSET_OP_ORDER, "movs"},  {0xA5, UNSET_OP_ORDER, "movs"},
-    {0xA6, UNSET_OP_ORDER, "cmps"},  {0xA7, UNSET_OP_ORDER, "cmps"},
-    {-1, UNSET_OP_ORDER, ""}};
+    X86_ZERO_OPERAND_1_BYTE_INSTRUCTIONS(ZERO_OPERAND_ENTRY){-1, UNSET_OP_ORDER,
+                                                             ""}};
 
 static const ByteMnemonic call_jump_instr[] = {{0xE8, UNSET_OP_ORDER, "call"},
                                                {0xE9, UNSET_OP_ORDER, "jmp"},
                                                {-1, UNSET_OP_ORDER, ""}};
 
+#define SHORT_IMMEDIATE_ENTRY(name, code) {code * 8 + 5, UNSET_OP_ORDER, #name},
 static const ByteMnemonic short_immediate_instr[] = {
-    {0x05, UNSET_OP_ORDER, "add"}, {0x0D, UNSET_OP_ORDER, "or"},
-    {0x15, UNSET_OP_ORDER, "adc"}, {0x1D, UNSET_OP_ORDER, "sbb"},
-    {0x25, UNSET_OP_ORDER, "and"}, {0x2D, UNSET_OP_ORDER, "sub"},
-    {0x35, UNSET_OP_ORDER, "xor"}, {0x3D, UNSET_OP_ORDER, "cmp"},
-    {-1, UNSET_OP_ORDER, ""}};
+    X86_ALU_CODES(SHORT_IMMEDIATE_ENTRY){-1, UNSET_OP_ORDER, ""}};
 
 static const char* const conditional_code_suffix[] = {
-    "o", "no", "c",  "nc", "z", "nz", "na", "a",
-    "s", "ns", "pe", "po", "l", "ge", "le", "g"};
+#define STRINGIFY(name, number) #name,
+    X86_CONDITIONAL_SUFFIXES(STRINGIFY)
+#undef STRINGIFY
+};
+
+#define STRINGIFY_NAME(name, code) #name,
+static const char* const xmm_conditional_code_suffix[] = {
+    XMM_CONDITIONAL_CODES(STRINGIFY_NAME)};
+#undef STRINGIFY_NAME
 
 enum InstructionType {
   NO_INSTR,
@@ -132,6 +103,18 @@ enum Prefixes {
   REP_PREFIX = 0xF3,
   REPEQ_PREFIX = REP_PREFIX
 };
+
+struct XmmMnemonic {
+  const char* ps_name;
+  const char* pd_name;
+  const char* ss_name;
+  const char* sd_name;
+};
+
+#define XMM_INSTRUCTION_ENTRY(name, code)                                      \
+  {#name "ps", #name "pd", #name "ss", #name "sd"},
+static const XmmMnemonic xmm_instructions[] = {
+    XMM_ALU_CODES(XMM_INSTRUCTION_ENTRY)};
 
 struct InstructionDesc {
   const char* mnem;
@@ -605,7 +588,7 @@ void DisassemblerX64::PrintDisp(int disp, const char* after) {
 // Returns number of bytes used by machine instruction, including *data byte.
 // Writes immediate instructions to 'tmp_buffer_'.
 int DisassemblerX64::PrintImmediateOp(uint8_t* data) {
-  bool byte_size_immediate = (*data & 0x02) != 0;
+  bool byte_size_immediate = (*data & 0x03) != 1;
   uint8_t modrm = *(data + 1);
   int mod, regop, rm;
   get_modrm(modrm, &mod, &regop, &rm);
@@ -1153,13 +1136,11 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
           // REP.
           Print("rep ");
         }
-        // TODO(srdjan): Should we enable printing of REX.W?
-        // if (rex_w()) Print("REX.W ");
-        Print("%s%s", idesc.mnem, operand_size_code());
-      } else if (current == 0xC3 || current == 0xCC) {
-        Print("%s", idesc.mnem);  // ret and int3 don't need a size specifier.
+        Print("%s", idesc.mnem);
+      } else if (current == 0x99 && rex_w()) {
+        Print("cqo");  // Cdql is called cdq and cdqq is called cqo.
       } else {
-        Print("%s%s", idesc.mnem, operand_size_code());
+        Print("%s", idesc.mnem);
       }
       (*data)++;
       break;
@@ -1347,16 +1328,14 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
         current += PrintRightXMMOperand(current);
       } else {
         const char* mnemonic = "?";
-        if (opcode == 0x14) {
+        if (opcode == 0x5A) {
+          mnemonic = "cvtpd2ps";
+        } else if (0x51 <= opcode && opcode <= 0x5F) {
+          mnemonic = xmm_instructions[opcode & 0xF].pd_name;
+        } else if (opcode == 0x14) {
           mnemonic = "unpcklpd";
         } else if (opcode == 0x15) {
           mnemonic = "unpckhpd";
-        } else if (opcode == 0x54) {
-          mnemonic = "andpd";
-        } else if (opcode == 0x56) {
-          mnemonic = "orpd";
-        } else if (opcode == 0x57) {
-          mnemonic = "xorpd";
         } else if (opcode == 0x2E) {
           mnemonic = "ucomisd";
         } else if (opcode == 0x2F) {
@@ -1365,22 +1344,6 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "paddd";
         } else if (opcode == 0xFA) {
           mnemonic = "psubd";
-        } else if (opcode == 0x58) {
-          mnemonic = "addpd";
-        } else if (opcode == 0x5C) {
-          mnemonic = "subpd";
-        } else if (opcode == 0x59) {
-          mnemonic = "mulpd";
-        } else if (opcode == 0x5E) {
-          mnemonic = "divpd";
-        } else if (opcode == 0x5D) {
-          mnemonic = "minpd";
-        } else if (opcode == 0x5F) {
-          mnemonic = "maxpd";
-        } else if (opcode == 0x51) {
-          mnemonic = "sqrtpd";
-        } else if (opcode == 0x5A) {
-          mnemonic = "cvtpd2ps";
         } else if (opcode == 0xEF) {
           mnemonic = "pxor";
         } else {
@@ -1424,10 +1387,12 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       get_modrm(*current, &mod, &regop, &rm);
       Print("cvtsd2si%s %s,", operand_size_code(), NameOfCPURegister(regop));
       current += PrintRightXMMOperand(current);
-    } else if ((opcode & 0xF8) == 0x58 || opcode == 0x51) {
-      // XMM arithmetic. Mnemonic was retrieved at the start of this function.
+    } else if (0x51 <= opcode && opcode <= 0x5F) {
+      // XMM arithmetic. Get the F2 0F prefix version of the mnemonic.
       int mod, regop, rm;
       get_modrm(*current, &mod, &regop, &rm);
+      const char* mnemonic =
+          opcode == 0x5A ? "cvtsd2ss" : xmm_instructions[opcode & 0xF].sd_name;
       Print("%s %s,", mnemonic, NameOfXMMRegister(regop));
       current += PrintRightXMMOperand(current);
     } else {
@@ -1463,17 +1428,10 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
             NameOfCPURegister(regop));
       current += PrintRightXMMOperand(current);
     } else if (0x51 <= opcode && opcode <= 0x5F) {
-      static const char* mnemonics[] = {"sqrtss", "rsqrtss",  "rcpss", NULL,
-                                        NULL,     NULL,       NULL,    "addss",
-                                        "mulss",  "cvtss2sd", NULL,    "subss",
-                                        "minss",  "divss",    "maxss"};
       int mod, regop, rm;
       get_modrm(*current, &mod, &regop, &rm);
-      const char* mnemonic = mnemonics[opcode - 0x51];
-      if (mnemonic == NULL) {
-        UnimplementedInstruction();
-        mnemonic = "UNIMPLEMENTED";
-      }
+      const char* mnemonic =
+          opcode == 0x5A ? "cvtss2sd" : xmm_instructions[opcode & 0xF].ss_name;
       Print("%s %s,", mnemonic, NameOfXMMRegister(regop));
       current += PrintRightXMMOperand(current);
     } else if (opcode == 0x7E) {
@@ -1553,18 +1511,10 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     Print("%s %s,", mnemonic, NameOfXMMRegister(regop));
     current += PrintRightXMMOperand(current);
   } else if (0x51 <= opcode && opcode <= 0x5F) {
-    // ...ps xmm, xmm/m128
-    static const char* mnemonics[] = {"sqrtps", "rsqrtps",  "rcpps", "andps",
-                                      NULL,     "orps",     "xorps", "addps",
-                                      "mulps",  "cvtsd2ss", NULL,    "subps",
-                                      "minps",  "divps",    "maxps"};
-    const char* mnemonic = mnemonics[opcode - 0x51];
-    if (mnemonic == NULL) {
-      UnimplementedInstruction();
-      mnemonic = "???";
-    }
     int mod, regop, rm;
     get_modrm(*current, &mod, &regop, &rm);
+    const char* mnemonic =
+        opcode == 0x5A ? "cvtps2pd" : xmm_instructions[opcode & 0xF].ps_name;
     Print("%s %s,", mnemonic, NameOfXMMRegister(regop));
     current += PrintRightXMMOperand(current);
   } else if (opcode == 0xC2 || opcode == 0xC6) {
@@ -1572,12 +1522,14 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     get_modrm(*current, &mod, &regop, &rm);
     if (opcode == 0xC2) {
       Print("cmpps %s,", NameOfXMMRegister(regop));
+      current += PrintRightXMMOperand(current);
+      Print(" [%s]", xmm_conditional_code_suffix[*current]);
     } else {
       ASSERT(opcode == 0xC6);
       Print("shufps %s,", NameOfXMMRegister(regop));
+      current += PrintRightXMMOperand(current);
+      Print(" [%x]", *current);
     }
-    current += PrintRightXMMOperand(current);
-    Print(" [%x]", *current);
     current++;
   } else if ((opcode & 0xF0) == 0x80) {
     // Jcc: Conditional jump (branch).
@@ -1625,12 +1577,10 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
 // The argument is the second byte of the two-byte opcode.
 // Returns NULL if the instruction is not handled here.
 const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
-  if (0x51 <= opcode && opcode <= 0x5F) {
-    static const char* mnemonics[] = {"sqrtsd", "rsqrtsd", "rcpsd", NULL,
-                                      NULL,     NULL,      NULL,    "addsd",
-                                      "mulsd",  NULL,      NULL,    "subsd",
-                                      "minsd",  "divsd",   "maxsd"};
-    return mnemonics[opcode - 0x51];
+  if (opcode == 0x5A) {
+    return "cvtps2pd";
+  } else if (0x51 <= opcode && opcode <= 0x5F) {
+    return xmm_instructions[opcode & 0xF].ps_name;
   }
   if (0xA2 <= opcode && opcode <= 0xBF) {
     static const char* mnemonics[] = {
@@ -1759,11 +1709,8 @@ int DisassemblerX64::InstructionDecode(uword pc) {
       } break;
 
       case 0x80: {
-        data++;
-        Print("cmpb ");
-        data += PrintRightByteOperand(data);
-        Print(",");
-        data += PrintImmediate(data, BYTE_SIZE);
+        byte_size_operand_ = true;
+        data += PrintImmediateOp(data);
       } break;
 
       case 0x88:  // 8bit, fall through

@@ -128,8 +128,12 @@ abstract class TestSuite {
 
   TestSuite(this.configuration, this.suiteName, this.statusFilePaths) {
     _environmentOverrides = {
-      'DART_CONFIGURATION': configuration.configurationDirectory
+      'DART_CONFIGURATION': configuration.configurationDirectory,
     };
+
+    if (useSdk && configuration.usingDart2VMWrapper) {
+      _environmentOverrides['DART_USE_SDK'] = '1';
+    }
   }
 
   Map<String, String> get environmentOverrides => _environmentOverrides;
@@ -163,6 +167,14 @@ abstract class TestSuite {
   String get dartVmBinaryFileName {
     // Controlled by user with the option "--dart".
     var dartExecutable = configuration.dartPath;
+
+    if (configuration.usingDart2VMWrapper) {
+      if (dartExecutable != null) {
+        throw 'Can not use --dart when testing Dart 2.0 configuration';
+      }
+
+      dartExecutable = 'pkg/vm/tool/dart2';
+    }
 
     if (dartExecutable == null) {
       var suffix = executableBinarySuffix;
@@ -261,12 +273,14 @@ abstract class TestSuite {
       [TestInformation info]) {
     var displayName = '$suiteName/$testName';
 
-    // If the test is not going to be run at all, then a RuntimeError will
-    // never occur. Instead, treat that as Pass.
-    if (configuration.runtime == Runtime.none &&
-        expectations.contains(Expectation.runtimeError)) {
+    // If the test is not going to be run at all, then a RuntimeError,
+    // MissingRuntimeError or Timeout will never occur.
+    // Instead, treat that as Pass.
+    if (configuration.runtime == Runtime.none) {
       expectations = expectations.toSet();
       expectations.remove(Expectation.runtimeError);
+      expectations.remove(Expectation.missingRuntimeError);
+      expectations.remove(Expectation.timeout);
       if (expectations.isEmpty) expectations.add(Expectation.pass);
     }
 
@@ -815,7 +829,8 @@ class StandardTestSuite extends TestSuite {
       // turn on reified generics in the VM.
       // Note that VMOptions=--no-reify-generic-functions in test is ignored.
       // Also, enable Dart 2.0 fixed-size integers with --limit-ints-to-64-bits.
-      if (suiteName.endsWith("_2")) {
+      // Dart 2 VM wrapper (pkg/vm/tool/dart2) already passes correct arguments.
+      if (suiteName.endsWith("_2") && !configuration.usingDart2VMWrapper) {
         allVmOptions = allVmOptions.toList()
           ..add("--reify-generic-functions")
           ..add("--limit-ints-to-64-bits");
@@ -864,7 +879,9 @@ class StandardTestSuite extends TestSuite {
       commands.addAll(compilationArtifact.commands);
     }
 
-    if (expectCompileError(info) && compilerConfiguration.hasCompiler) {
+    if (expectCompileError(info) &&
+        compilerConfiguration.hasCompiler &&
+        !compilerConfiguration.runRuntimeDespiteMissingCompileTimeError) {
       // Do not attempt to run the compiled result. A compilation
       // error should be reported by the compilation command.
       return commands;

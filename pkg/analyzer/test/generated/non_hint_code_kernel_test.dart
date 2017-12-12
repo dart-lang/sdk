@@ -34,36 +34,8 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_deadCode_statementAfterIfWithoutElse() async {
-    await super.test_deadCode_statementAfterIfWithoutElse();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
   test_deprecatedMemberUse_inDeprecatedLibrary() async {
     await super.test_deprecatedMemberUse_inDeprecatedLibrary();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_divisionOptimization() async {
-//    NoSuchMethodError: The getter 'element' was called on null.
-//    Receiver: null
-//    Tried calling: element
-//    #0      Object.noSuchMethod (dart:core-patch/dart:core/object_patch.dart:46)
-//    #1      ResolutionApplier.visitMethodInvocation (package:analyzer/src/fasta/resolution_applier.dart:385:48)
-//    #2      MethodInvocationImpl.accept (package:analyzer/src/dart/ast/ast.dart:7595:49)
-//    #3      ResolutionApplier.visitBinaryExpression (package:analyzer/src/fasta/resolution_applier.dart:115:23)
-    await super.test_divisionOptimization();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_divisionOptimization_supressIfDivisionOverridden() async {
-    await super.test_divisionOptimization_supressIfDivisionOverridden();
   }
 
   @failingTest
@@ -84,8 +56,9 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_unnecessaryCast_conditionalExpression() async {
-    await super.test_unnecessaryCast_conditionalExpression();
+  test_unnecessaryCast_generics() async {
+    // Expected 0 errors of type HintCode.UNNECESSARY_CAST, found 1 (90)
+    await super.test_unnecessaryCast_generics();
   }
 
   @failingTest

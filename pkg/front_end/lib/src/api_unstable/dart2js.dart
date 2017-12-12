@@ -5,7 +5,6 @@
 import 'dart:async' show Future;
 
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/scanner/token.dart' show StringToken;
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/kernel.dart' show Program;
 import 'package:kernel/target/targets.dart' show Target;
@@ -52,7 +51,6 @@ Future<Program> compile(InitializedCompilerState state, bool verbose,
   processedOpts.inputs.clear();
   processedOpts.inputs.add(input);
   processedOpts.clearFileSystemCache();
-  StringToken.canonicalizer.clear();
 
   var compilerResult = await CompilerContext.runWithOptions(processedOpts,
       (CompilerContext context) async {

@@ -25,7 +25,7 @@ class C<T extends core::Object> extends core::Object { // from org-dartlang-test
   static factory b<T extends core::Object>() → self::C<self::C::b::T>
     let dynamic #redirecting_factory = lib::C::b in invalid-expression;
 }
-static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/qualified.dart: Error: The type 'lib.Missing' can't be used as supertype."]/* from null */;
+static const field dynamic #errors = const <dynamic>["pkg/front_end/testcases/qualified.dart:11:7: Error: The type 'lib.Missing' can't be used as supertype.\nclass Bad extends lib.Missing {\n      ^"]/* from null */;
 static method main() → dynamic {
   new self::C::•<core::String>();
   new self::C::a<core::String>();

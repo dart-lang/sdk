@@ -6342,7 +6342,8 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
   // libraries, including indirectly through exports.
   const String& lib_url = String::Handle(Z, library_.url());
   if (canon_url.StartsWith(Symbols::DartSchemePrivate()) &&
-      !lib_url.StartsWith(Symbols::DartScheme())) {
+      !lib_url.StartsWith(Symbols::DartScheme()) &&
+      !lib_url.StartsWith(Symbols::DartInternalPackage())) {
     ReportError(import_pos, "private library is not accessible");
   }
 

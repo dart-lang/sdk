@@ -1101,6 +1101,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
   @override
   void visitBlock(ir.Block block) {
     assert(!isAborted());
+    if (!isReachable) return; // This can only happen when inlining.
     for (ir.Statement statement in block.statements) {
       statement.accept(this);
       if (!isReachable) {
@@ -2195,7 +2196,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       localsHandler = new LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
       if (!isAborted() &&
-          switchCase == switchCases.last &&
+          // TODO(johnniwinther): Reinsert this if `isReachable` is no longer
+          // set to `false` when `_tryInlineMethod` sees an always throwing
+          // method.
+          //switchCase == switchCases.last &&
           !isDefaultCase(switchCase)) {
         // If there is no default, we will add one later to avoid
         // the critical edge. So we generate a break statement to make
@@ -4336,6 +4340,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // so we should not query for its type.
       if (function is! ConstructorBodyEntity) {
         if (globalInferenceResults.resultOfMember(function).throwsAlways) {
+          // TODO(johnniwinther): It seems wrong to set `isReachable` to `false`
+          // since we are _not_ going to inline [function]. This has
+          // implications in switch cases where we might need to insert a
+          // `break` that was skipped due to `isReachable` being `false`.
           isReachable = false;
           return false;
         }
@@ -4798,6 +4806,13 @@ class InlineWeeder extends ir.Visitor {
     InlineWeeder visitor = new InlineWeeder(maxInliningNodes, allowLoops);
     ir.FunctionNode node = getFunctionNode(elementMap, function);
     node.accept(visitor);
+    if (function.isConstructor) {
+      MemberDefinition definition = elementMap.getMemberDefinition(function);
+      ir.Node node = definition.node;
+      if (node is ir.Constructor) {
+        node.initializers.forEach((n) => n.accept(visitor));
+      }
+    }
     return visitor.tooDifficultReason;
   }
 
@@ -4833,15 +4848,17 @@ class InlineWeeder extends ir.Visitor {
   visitReturnStatement(ir.ReturnStatement node) {
     if (seenReturn) {
       tooDifficultReason = 'code after return';
-    } else {
-      seenReturn = true;
+      return;
     }
+    node.visitChildren(this);
+    seenReturn = true;
   }
 
   visitThrow(ir.Throw node) {
     if (seenReturn) {
       tooDifficultReason = 'code after return';
     }
+    node.visitChildren(this);
   }
 
   _handleLoop() {

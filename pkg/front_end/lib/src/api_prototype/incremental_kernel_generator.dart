@@ -10,6 +10,9 @@ import 'package:front_end/src/incremental_kernel_generator_impl.dart';
 import 'package:front_end/src/minimal_incremental_kernel_generator.dart';
 import 'package:kernel/kernel.dart';
 
+import 'package:front_end/src/fasta/incremental_compiler.dart'
+    show IncrementalCompiler;
+
 import 'compiler_options.dart';
 
 /// The type of the function that clients can pass to track used files.
@@ -140,10 +143,13 @@ abstract class IncrementalKernelGenerator {
       CompilerOptions options, Uri entryPoint,
       {WatchUsedFilesFn watch, bool useMinimalGenerator: false}) async {
     var processedOptions = new ProcessedOptions(options, false, [entryPoint]);
-    return await CompilerContext.runWithOptions(processedOptions, (_) async {
+    return await CompilerContext.runWithOptions(processedOptions,
+        (compilerContext) async {
       var uriTranslator = await processedOptions.getUriTranslator();
       var sdkOutlineBytes = await processedOptions.loadSdkSummaryBytes();
-      if (useMinimalGenerator) {
+      if (const String.fromEnvironment("ikg-variant") == "fasta") {
+        return new IncrementalCompiler(compilerContext);
+      } else if (useMinimalGenerator) {
         return new MinimalIncrementalKernelGenerator(
             processedOptions, uriTranslator, sdkOutlineBytes, entryPoint,
             watch: watch);

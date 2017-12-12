@@ -10433,7 +10433,24 @@ class C {
   void test_incompleteTypeParameters() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C<K {
-}''', codes: [ParserErrorCode.EXPECTED_TOKEN]);
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1)]);
+    // one class
+    List<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
+    // validate the type parameters
+    TypeParameterList typeParameters = classDecl.typeParameters;
+    expect(typeParameters.typeParameters, hasLength(1));
+    // synthetic '>'
+    Token token = typeParameters.endToken;
+    expect(token.type, TokenType.GT);
+    expect(token.isSynthetic, isTrue);
+  }
+
+  void test_incompleteTypeParameters2() {
+    CompilationUnit unit = parseCompilationUnit(r'''
+class C<K extends L<T> {
+}''', errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 23, 1)]);
     // one class
     List<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
@@ -10450,6 +10467,38 @@ class C<K {
   void test_invalidFunctionBodyModifier() {
     parseCompilationUnit("f() sync {}",
         codes: [ParserErrorCode.MISSING_STAR_AFTER_SYNC]);
+  }
+
+  void test_invalidTypeParameters() {
+    CompilationUnit unit = parseCompilationUnit(r'''
+class C {
+  G<int double> g;
+}''',
+        errors: usingFastaParser
+            ? [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 6),
+                expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 18, 6)
+              ]
+            : [
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 6),
+                expectedError(ParserErrorCode.EXPECTED_TOKEN, 18, 6),
+                expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 24, 1),
+                expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 24, 1),
+                expectedError(
+                    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 26, 1)
+              ]);
+    // one class
+    List<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
+    // validate members
+    if (usingFastaParser) {
+      expect(classDecl.members, hasLength(1));
+      FieldDeclaration fields = classDecl.members.first;
+      expect(fields.fields.variables, hasLength(1));
+      VariableDeclaration field = fields.fields.variables.first;
+      expect(field.name.name, 'g');
+    }
   }
 
   void test_isExpression_noType() {

@@ -14,13 +14,6 @@ import("io_impl_sources.gni")
 import("io_sources.gni")
 import("vmservice/vmservice_sources.gni")
 
-declare_args() {
-  # Controls the kind of core snapshot linked into the standalone VM. Using a
-  # core-jit snapshot breaks the ability to change various flags that affect
-  # code generation.
-  dart_core_snapshot_kind = "core"
-}
-
 # Generate a resources.cc file for the service isolate without Observatory.
 action("gen_resources_cc") {
   visibility = [ ":*" ]  # Only targets in this file can see this.

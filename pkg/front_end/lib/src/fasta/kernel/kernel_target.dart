@@ -187,7 +187,7 @@ class KernelTarget extends TargetImplementation {
     List<ClassBuilder> result = <ClassBuilder>[];
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
       library.forEach((String name, Builder member) {
-        if (member is KernelClassBuilder) {
+        if (member is ClassBuilder) {
           result.add(member);
         }
       });
@@ -380,19 +380,22 @@ class KernelTarget extends TargetImplementation {
   void installDefaultSupertypes() {
     Class objectClass = this.objectClass;
     loader.builders.forEach((Uri uri, LibraryBuilder library) {
-      library.forEach((String name, Builder builder) {
-        if (builder is SourceClassBuilder) {
-          Class cls = builder.target;
-          if (cls != objectClass) {
-            cls.supertype ??= objectClass.asRawSupertype;
-            builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
-              ..bind(objectClassBuilder);
+      if (library.loader == loader) {
+        library.forEach((String name, Builder builder) {
+          if (builder is SourceClassBuilder) {
+            Class cls = builder.target;
+            if (cls != objectClass) {
+              cls.supertype ??= objectClass.asRawSupertype;
+              builder.supertype ??= new KernelNamedTypeBuilder("Object", null)
+                ..bind(objectClassBuilder);
+            }
+            if (builder.isMixinApplication) {
+              cls.mixedInType = builder.mixedInType
+                  .buildSupertype(library, builder.charOffset, builder.fileUri);
+            }
           }
-          if (builder.isMixinApplication) {
-            cls.mixedInType = builder.mixedInType.buildSupertype(library);
-          }
-        }
-      });
+        });
+      }
     });
     ticker.logMs("Installed Object as implicit superclass");
   }

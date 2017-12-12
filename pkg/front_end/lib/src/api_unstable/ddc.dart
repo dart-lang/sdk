@@ -6,7 +6,6 @@ import 'dart:async' show Future;
 
 import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/scanner/token.dart' show StringToken;
 import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:front_end/src/multi_root_file_system.dart';
 import 'package:kernel/kernel.dart' show Program;
@@ -56,9 +55,6 @@ Future<InitializedCompilerState> initializeCompiler(
         .forEach((lib) => lib.isExternal = false);
     (await oldState.processedOpts.loadInputSummaries(null))
         .forEach((p) => p.libraries.forEach((lib) => lib.isExternal = false));
-
-    // Avoid static leak.
-    StringToken.canonicalizer.clear();
 
     return oldState;
   }

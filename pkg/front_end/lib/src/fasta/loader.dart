@@ -142,8 +142,10 @@ abstract class Loader<L> {
   Future<Null> buildBodies() async {
     assert(coreLibrary != null);
     for (LibraryBuilder library in builders.values) {
-      currentUriForCrashReporting = library.uri;
-      await buildBody(library);
+      if (library.loader == this) {
+        currentUriForCrashReporting = library.uri;
+        await buildBody(library);
+      }
     }
     currentUriForCrashReporting = null;
     logSummary(templateSourceBodySummary);

@@ -6010,9 +6010,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   intptr_t argument_check_bits = 0;
   if (I->strong()) {
     argument_check_bits = ArgumentCheckBitsForSetter(
-        // TODO(sjindel): Change 'Function::null_function()' to
-        // '*interface_target' and fix breakages.
-        Function::null_function(), static_cast<DispatchCategory>(flags & 3));
+        *interface_target, static_cast<DispatchCategory>(flags & 3));
   }
 
   if (direct_call.check_receiver_for_null_) {
@@ -6509,9 +6507,7 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
           Utils::SignedNBitMask(strong_checked_type_arguments);
       break;
     case Interface: {
-      // TODO(sjindel): Restore this assertion once '*interface_target'
-      // is passed to this function instead of 'Function::null_function()'.
-      // ASSERT(!interface_target.IsNull() || !I->strong());
+      ASSERT(!interface_target.IsNull() || !I->strong());
       if (interface_target.IsNull()) {
         argument_check_bits =
             Utils::SignedNBitMask(strong_checked_arguments + 1);
@@ -6547,6 +6543,7 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
         }
       }
 
+      fn_helper.SetJustRead(FunctionNodeHelper::kTypeParameters);
       fn_helper.ReadUntilExcluding(FunctionNodeHelper::kPositionalParameters);
       intptr_t num_interface_pos_params = ReadListLength();
       ASSERT(num_interface_pos_params >= positional_argument_count);
@@ -6744,11 +6741,9 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   if (I->strong()) {
     ArgumentCheckBitsForInvocation(
         argument_count - 1, type_args_len, positional_argument_count,
-        argument_names,
-        // TODO(sjindel): Change 'Function::null_function()' to
-        // '*interface_target' and fix breakages.
-        Function::null_function(), static_cast<DispatchCategory>(flags & 3),
-        &argument_check_bits, &type_argument_check_bits);
+        argument_names, *interface_target,
+        static_cast<DispatchCategory>(flags & 3), &argument_check_bits,
+        &type_argument_check_bits);
   }
 
   if (!direct_call.target_.IsNull()) {

@@ -124,13 +124,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_constConstructorWithNonConstSuper_redirectingFactory() async {
-    return super.test_constConstructorWithNonConstSuper_redirectingFactory();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_constConstructorWithNonConstSuper_unresolved() async {
     return super.test_constConstructorWithNonConstSuper_unresolved();
   }
@@ -422,27 +415,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_recursiveConstructorRedirect() async {
     return super.test_recursiveConstructorRedirect();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_recursiveFactoryRedirect() async {
-    return super.test_recursiveFactoryRedirect();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_redirectToInvalidFunctionType() async {
-    return super.test_redirectToInvalidFunctionType();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_redirectToNonConstConstructor() async {
-    return super.test_redirectToNonConstConstructor();
   }
 
   @override

@@ -175,6 +175,13 @@ class Configuration {
     return _servers;
   }
 
+  /// Returns true if this configuration is considered Dart 2.0 configuration
+  /// by VM (which is identified by using common front-end and strong mode).
+  /// In this case instead of invoking VM binary directly we use
+  /// pkg/vm/tool/dart2 wrapper script, which takes care of passing
+  /// correct arguments to VM binary.
+  bool get usingDart2VMWrapper => isStrong && compiler == Compiler.dartk;
+
   /// The base directory named for this configuration, like:
   ///
   ///     none_vm_release_x64

@@ -2742,13 +2742,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incompleteTypeParameters() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteTypeParameters();
-  }
-
-  @override
-  @failingTest
   void test_isExpression_noType() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_isExpression_noType();

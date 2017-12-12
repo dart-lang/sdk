@@ -1276,6 +1276,136 @@ class B extends A {
     }
   }
 
+  test_constructor_redirected() async {
+    addTestFile(r'''
+class A implements B {
+  A(int a);
+  A.named(double a);
+}
+class B {
+  factory B.one(int b) = A;
+  factory B.two(double b) = A.named;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+
+    ClassDeclaration aNode = result.unit.declarations[0];
+    ClassElement aElement = aNode.element;
+
+    ClassDeclaration bNode = result.unit.declarations[1];
+
+    {
+      ConstructorElement aUnnamed = aElement.constructors[0];
+
+      ConstructorDeclaration constructor = bNode.members[0];
+      ConstructorElement element = constructor.element;
+      expect(element.redirectedConstructor, same(aUnnamed));
+
+      var constructorName = constructor.redirectedConstructor;
+      expect(constructorName.staticElement, same(aUnnamed));
+
+      TypeName typeName = constructorName.type;
+      expect(typeName.type, aElement.type);
+
+      SimpleIdentifier identifier = typeName.name;
+      expect(identifier.staticElement, same(aElement));
+      expect(identifier.staticType, aElement.type);
+
+      expect(constructorName.name, isNull);
+    }
+
+    {
+      ConstructorElement aNamed = aElement.constructors[1];
+
+      ConstructorDeclaration constructor = bNode.members[1];
+      ConstructorElement element = constructor.element;
+      expect(element.redirectedConstructor, same(aNamed));
+
+      var constructorName = constructor.redirectedConstructor;
+      expect(constructorName.staticElement, same(aNamed));
+
+      TypeName typeName = constructorName.type;
+      expect(typeName.type, aElement.type);
+
+      SimpleIdentifier identifier = typeName.name;
+      expect(identifier.staticElement, same(aElement));
+      expect(identifier.staticType, aElement.type);
+
+      expect(constructorName.name.staticElement, aNamed);
+      expect(constructorName.name.staticType, isNull);
+    }
+  }
+
+  test_constructor_redirected_generic() async {
+    addTestFile(r'''
+class A<T> implements B<T> {
+  A(int a);
+  A.named(double a);
+}
+class B<U> {
+  factory B.one(int b) = A<U>;
+  factory B.two(double b) = A<U>.named;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.errors, isEmpty);
+
+    ClassDeclaration aNode = result.unit.declarations[0];
+    ClassElement aElement = aNode.element;
+
+    ClassDeclaration bNode = result.unit.declarations[1];
+    TypeParameterType uType = bNode.element.typeParameters[0].type;
+    InterfaceType auType = aElement.type.instantiate([uType]);
+
+    {
+      ConstructorElement expectedElement = aElement.constructors[0];
+
+      ConstructorDeclaration constructor = bNode.members[0];
+      ConstructorElement element = constructor.element;
+
+      ConstructorMember actualMember = element.redirectedConstructor;
+      expect(actualMember.baseElement, same(expectedElement));
+      expect(actualMember.definingType, auType);
+
+      var constructorName = constructor.redirectedConstructor;
+      expect(constructorName.staticElement, same(actualMember));
+
+      TypeName typeName = constructorName.type;
+      expect(typeName.type, auType);
+
+      SimpleIdentifier identifier = typeName.name;
+      expect(identifier.staticElement, same(aElement));
+      expect(identifier.staticType, auType);
+
+      expect(constructorName.name, isNull);
+    }
+
+    {
+      ConstructorElement expectedElement = aElement.constructors[1];
+
+      ConstructorDeclaration constructor = bNode.members[1];
+      ConstructorElement element = constructor.element;
+
+      ConstructorMember actualMember = element.redirectedConstructor;
+      expect(actualMember.baseElement, same(expectedElement));
+      expect(actualMember.definingType, auType);
+
+      var constructorName = constructor.redirectedConstructor;
+      expect(constructorName.staticElement, same(actualMember));
+
+      TypeName typeName = constructorName.type;
+      expect(typeName.type, auType);
+
+      SimpleIdentifier identifier = typeName.name;
+      expect(identifier.staticElement, same(aElement));
+      expect(identifier.staticType, auType);
+
+      expect(constructorName.name.staticElement, same(actualMember));
+      expect(constructorName.name.staticType, isNull);
+    }
+  }
+
   test_error_unresolvedTypeAnnotation() async {
     String content = r'''
 main() {

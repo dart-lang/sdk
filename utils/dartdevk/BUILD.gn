@@ -1,4 +1,4 @@
-# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -64,11 +64,6 @@ dart2js_compile("dartdevk_web") {
   main = rebase_path("../../pkg/dev_compiler/web/main.dart")
   out = "$root_out_dir/dev_compiler/build/web/ddk_web_compiler.js"
 }
-
-#dart2js_compile("stack_trace_mapper") {
-#  main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
-#  out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
-#}
 
 # Apply dev_compiler's patch files to create the Dart version of the dartdevk
 # SDK.

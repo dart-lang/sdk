@@ -219,11 +219,11 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
     library.addCompileTimeError(message, charOffset, fileUri, context: context);
   }
 
-  void addWarning(Message message, int charOffset) {
-    library.addWarning(message, charOffset, fileUri);
+  void addWarning(Message message, int charOffset, {LocatedMessage context}) {
+    library.addWarning(message, charOffset, fileUri, context: context);
   }
 
-  void addNit(Message message, int charOffset) {
-    library.addNit(message, charOffset, fileUri);
+  void addNit(Message message, int charOffset, {LocatedMessage context}) {
+    library.addNit(message, charOffset, fileUri, context: context);
   }
 }
