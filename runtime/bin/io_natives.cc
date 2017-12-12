@@ -81,6 +81,7 @@ namespace bin {
   V(Filter_Processed, 3)                                                       \
   V(InternetAddress_Parse, 1)                                                  \
   V(IOService_NewServicePort, 0)                                               \
+  V(IOUtils_WaitForEventSync, 1)                                               \
   V(Namespace_Create, 2)                                                       \
   V(Namespace_GetDefault, 0)                                                   \
   V(Namespace_GetPointer, 1)                                                   \
