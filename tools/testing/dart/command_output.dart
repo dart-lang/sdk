@@ -876,11 +876,35 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
   }
 
   Expectation result(TestCase testCase) {
-    Expectation result = super.result(testCase);
-    if (result.canBeOutcomeOf(Expectation.crash)) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.dartkCrash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+
+    // If the frontend had an uncaught exception, then we'll consider this a
+    // crash.
+    if (exitCode == VMCommandOutput._uncaughtExceptionExitCode) {
       return Expectation.dartkCrash;
     }
-    return result;
+
+    // Multitests are handled specially.
+    if (testCase.expectCompileError) {
+      if (exitCode == VMCommandOutput._compileErrorExitCode) {
+        return Expectation.pass;
+      }
+      return Expectation.missingCompileTimeError;
+    }
+
+    // The actual outcome depends on the exitCode.
+    var outcome = Expectation.pass;
+    if (exitCode == VMCommandOutput._compileErrorExitCode) {
+      outcome = Expectation.compileTimeError;
+    } else if (exitCode != 0) {
+      // This is a general fail, in case we get an unknown nonzero exitcode.
+      outcome = Expectation.fail;
+    }
+
+    return _negateOutcomeIfNegativeTest(outcome, testCase.isNegative);
   }
 
   /// If the compiler was able to produce a Kernel IR file we want to run the

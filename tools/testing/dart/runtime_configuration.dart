@@ -225,7 +225,8 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     String type = artifact.mimeType;
     if (script != null &&
         type != 'application/dart' &&
-        type != 'application/dart-snapshot') {
+        type != 'application/dart-snapshot' &&
+        type != 'application/kernel-ir') {
       throw "Dart VM cannot run files of type '$type'.";
     }
     String executable = suite.dartVmBinaryFileName;

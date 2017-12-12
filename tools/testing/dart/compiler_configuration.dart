@@ -67,6 +67,9 @@ abstract class CompilerConfiguration {
         return new PrecompilerCompilerConfiguration(configuration);
 
       case Compiler.dartk:
+        if (configuration.architecture == Architecture.simdbc64) {
+          return new VMKernelCompilerConfiguration(configuration);
+        }
         return new NoneCompilerConfiguration(configuration, useDfe: true);
 
       case Compiler.dartkp:
@@ -132,6 +135,8 @@ abstract class CompilerConfiguration {
 
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
+  // This boolean is used by the [VMTestSuite] for running cc tests via
+  // run_vm_tests.
   final bool useDfe;
 
   NoneCompilerConfiguration(Configuration configuration, {this.useDfe: false})
@@ -183,6 +188,56 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(originalArguments);
+  }
+}
+
+class VMKernelCompilerConfiguration extends CompilerConfiguration
+    with VMKernelCompilerMixin {
+  VMKernelCompilerConfiguration(Configuration configuration)
+      : super._subclass(configuration);
+
+  // This boolean is used by the [VMTestSuite] for running cc tests via
+  // run_vm_tests.  We enable it here, so the cc tests continue to use the
+  // kernel-isolate.  All the remaining tests will use a separate compilation
+  // command (which this class represents).
+  bool get useDfe => true;
+
+  bool get _isAot => false;
+
+  CommandArtifact computeCompilationArtifact(String tempDir,
+      List<String> arguments, Map<String, String> environmentOverrides) {
+    final commands = <Command>[
+      computeCompileToKernelCommand(tempDir, arguments, environmentOverrides),
+    ];
+    return new CommandArtifact(
+        commands, tempKernelFile(tempDir), 'application/kernel-ir');
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    var args = <String>[];
+    if (_isStrong) {
+      args.add('--strong');
+    }
+    if (_isChecked) {
+      args.add('--enable_asserts');
+      args.add('--enable_type_checks');
+    }
+    if (_configuration.hotReload) {
+      args.add('--hot-reload-test-mode');
+    } else if (_configuration.hotReloadRollback) {
+      args.add('--hot-reload-rollback-test-mode');
+    }
+
+    return args
+      ..addAll(vmOptions)
+      ..addAll(sharedOptions)
+      ..addAll(_replaceDartFiles(originalArguments, artifact.filename));
   }
 }
 
@@ -548,12 +603,17 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-class PrecompilerCompilerConfiguration extends CompilerConfiguration {
+class PrecompilerCompilerConfiguration extends CompilerConfiguration
+    with VMKernelCompilerMixin {
+  // This boolean is used by the [VMTestSuite] for running cc tests via
+  // run_vm_tests.
   final bool useDfe;
 
   bool get _isAndroid => _configuration.system == System.android;
   bool get _isArm => _configuration.architecture == Architecture.arm;
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
+
+  bool get _isAot => true;
 
   PrecompilerCompilerConfiguration(Configuration configuration,
       {this.useDfe: false})
@@ -596,35 +656,6 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
     return new CommandArtifact(
         commands, '$tempDir', 'application/dart-precompiled');
-  }
-
-  String tempKernelFile(String tempDir) => '$tempDir/out.dill';
-
-  Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
-      Map<String, String> environmentOverrides) {
-    final genKernel =
-        Platform.script.resolve('../../../pkg/vm/tool/gen_kernel').toFilePath();
-
-    final kernelBinariesFolder = _useSdk
-        ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-        : '${_configuration.buildDirectory}';
-
-    final vmPlatform = _isStrong
-        ? '$kernelBinariesFolder/vm_platform_strong.dill'
-        : '$kernelBinariesFolder/vm_platform.dill';
-
-    final dillFile = tempKernelFile(tempDir);
-    final args = [
-      '--aot',
-      _isStrong ? '--strong-mode' : '--no-strong-mode',
-      '--platform=$vmPlatform',
-      '-o',
-      dillFile,
-    ];
-    args.add(arguments.where((name) => name.endsWith('.dart')).single);
-
-    return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
-        genKernel, args, environmentOverrides);
   }
 
   /// Creates a command to clean up large temporary kernel files.
@@ -879,12 +910,10 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
     }
-    args..addAll(vmOptions)..addAll(sharedOptions)..addAll(originalArguments);
-    for (var i = 0; i < args.length; i++) {
-      if (args[i].endsWith(".dart")) {
-        args[i] = artifact.filename;
-      }
-    }
+    args
+      ..addAll(vmOptions)
+      ..addAll(sharedOptions)
+      ..addAll(_replaceDartFiles(originalArguments, artifact.filename));
     return args;
   }
 }
@@ -966,5 +995,44 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     return <String>[];
+  }
+}
+
+abstract class VMKernelCompilerMixin {
+  Configuration get _configuration;
+  bool get _useSdk;
+  bool get _isStrong;
+  bool get _isAot;
+
+  List<Uri> bootstrapDependencies();
+
+  String tempKernelFile(String tempDir) => '$tempDir/out.dill';
+
+  Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    final genKernel =
+        Platform.script.resolve('../../../pkg/vm/tool/gen_kernel').toFilePath();
+
+    final kernelBinariesFolder = _useSdk
+        ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+        : '${_configuration.buildDirectory}';
+
+    final vmPlatform = _isStrong
+        ? '$kernelBinariesFolder/vm_platform_strong.dill'
+        : '$kernelBinariesFolder/vm_platform.dill';
+
+    final dillFile = tempKernelFile(tempDir);
+
+    final args = [
+      _isAot ? '--aot' : '--no-aot',
+      _isStrong ? '--strong-mode' : '--no-strong-mode',
+      '--platform=$vmPlatform',
+      '-o',
+      dillFile,
+    ];
+    args.add(arguments.where((name) => name.endsWith('.dart')).single);
+
+    return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
+        genKernel, args, environmentOverrides);
   }
 }
