@@ -11,9 +11,15 @@ import 'package:kernel/kernel.dart' show Program, loadProgramFromBytes;
 import '../api_prototype/incremental_kernel_generator.dart'
     show DeltaProgram, IncrementalKernelGenerator;
 
+import 'builder/builder.dart' show LibraryBuilder;
+
 import 'dill/dill_target.dart' show DillTarget;
 
+import 'graph/graph.dart' show computeStrongComponents;
+
 import 'kernel/kernel_target.dart' show KernelTarget;
+
+import 'source/source_graph.dart' show SourceGraph;
 
 import 'compiler_context.dart' show CompilerContext;
 
@@ -63,12 +69,15 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
 
   DillTarget platform;
 
+  KernelTarget userCode;
+
   IncrementalCompiler(this.context)
       : ticker = new Ticker(isVerbose: context.options.verbose);
 
   @override
   Future<FastaDelta> computeDelta({Uri entryPoint}) async {
     return context.runInContext<Future<FastaDelta>>((CompilerContext c) async {
+      ticker.reset();
       if (platform == null) {
         UriTranslator uriTranslator = await c.options.getUriTranslator();
         ticker.logMs("Read packages file");
@@ -85,23 +94,88 @@ class IncrementalCompiler extends DeprecatedIncrementalKernelGenerator {
 
       List<Uri> invalidatedUris = this.invalidatedUris.toList();
       this.invalidatedUris.clear();
-      print("Changed URIs: ${invalidatedUris.join('\n')}");
 
-      KernelTarget kernelTarget = new KernelTarget(
+      List<LibraryBuilder> reusedLibraries =
+          computeReusedLibraries(invalidatedUris);
+      ticker.logMs("Decided to reuse ${reusedLibraries.length} libraries");
+
+      userCode = new KernelTarget(
           c.fileSystem, false, platform, platform.uriTranslator,
           uriToSource: c.uriToSource);
+      for (LibraryBuilder library in reusedLibraries) {
+        userCode.loader.builders[library.uri] = library;
+      }
 
-      kernelTarget.read(entryPoint);
+      userCode.read(entryPoint);
 
-      await kernelTarget.buildOutlines();
+      await userCode.buildOutlines();
 
       return new FastaDelta(
-          await kernelTarget.buildProgram(verify: c.options.verify));
+          await userCode.buildProgram(verify: c.options.verify));
     });
+  }
+
+  List<LibraryBuilder> computeReusedLibraries(List<Uri> invalidatedUris) {
+    if (userCode == null) return const <LibraryBuilder>[];
+    List<List<Uri>> components =
+        computeStrongComponents(new SourceGraph(userCode.loader));
+    Map<Uri, Component> libraryToComponent = <Uri, Component>{};
+    Component root = new Component(null);
+    Component previous = root;
+    for (List<Uri> libraries in components) {
+      Component component = new Component(libraries);
+      previous.next = component;
+      previous = component;
+      for (Uri uri in libraries) {
+        libraryToComponent[uri] = component;
+      }
+    }
+    ticker.logMs("Computed strong components");
+    Set<Component> invalidatedComponents = new Set<Component>();
+    for (Uri uri in invalidatedUris) {
+      Component component = libraryToComponent[uri];
+      if (component == null) {
+        print("Internal error: $uri has no component");
+        return const <LibraryBuilder>[];
+      }
+      invalidatedComponents.add(component);
+    }
+    List<LibraryBuilder> preservedBuilders = <LibraryBuilder>[];
+    Component current = root.next;
+    while (current != null) {
+      if (invalidatedComponents.contains(current)) {
+        // TODO(ahe): We may decided to reuse less libraries than we safely
+        // could in this situation:
+        // Lib A has no dependencies.
+        // Lib B imports lib A.
+        // Lib C imports lib A.
+        // lib D imports lib B and C.
+        // In this case, we might recompile lib C if lib B changes because our
+        // components could be: [A], [B], [C], [D] (notice C comes after B).
+        break;
+      }
+      for (Uri uri in current.libraries) {
+        LibraryBuilder library = userCode.loader.builders[uri];
+        if (library == null) {
+          print("Internal error: $uri has no library");
+          return const <LibraryBuilder>[];
+        }
+        preservedBuilders.add(library);
+      }
+      current = current.next;
+    }
+    return preservedBuilders;
   }
 
   @override
   void invalidate(Uri uri) {
     invalidatedUris.add(uri);
   }
+}
+
+class Component {
+  final List<Uri> libraries;
+  Component next;
+
+  Component(this.libraries);
 }

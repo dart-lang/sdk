@@ -18,7 +18,7 @@ class TestGraph implements Graph<String> {
   Iterable<String> neighborsOf(String vertex) => graph[vertex];
 }
 
-test(String expected, Map<String, List<String>> graph) {
+void test(String expected, Map<String, List<String>> graph) {
   List<List<String>> result = computeStrongComponents(new TestGraph(graph));
   Expect.stringEquals(expected, "$result");
 }
@@ -59,5 +59,12 @@ main() {
     "C": ["D"],
     "B": ["C"],
     "A": ["B"],
+  });
+
+  test("[[A], [B], [C], [D]]", {
+    "A": [],
+    "B": ["A"],
+    "C": ["A"],
+    "D": ["B", "C"],
   });
 }
