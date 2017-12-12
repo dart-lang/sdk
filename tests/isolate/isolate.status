@@ -104,6 +104,55 @@ spawn_uri_test: SkipByDesign # Loading another file is not supported in JS shell
 [ $compiler == dart2js && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == ff || $runtime == safari) ]
 isolate_stress_test: Pass, Slow # Issue 10697
 
+[ $compiler == dartk && $strong ]
+checked_test: RuntimeError
+count_test: CompileTimeError
+cross_isolate_message_test: CompileTimeError
+error_at_spawnuri_test: RuntimeError
+error_exit_at_spawnuri_test: RuntimeError
+exit_at_spawnuri_test: RuntimeError
+function_send1_test: CompileTimeError
+function_send_test: CompileTimeError
+handle_error2_test: CompileTimeError
+handle_error3_test: CompileTimeError
+illegal_msg_function_test: CompileTimeError
+illegal_msg_mirror_test: CompileTimeError
+isolate_complex_messages_test: CompileTimeError
+isolate_current_test: CompileTimeError
+issue_21398_parent_isolate1_test: RuntimeError
+issue_21398_parent_isolate_test: RuntimeError
+issue_22778_test: Crash
+issue_24243_parent_isolate_test: RuntimeError
+kill_self_synchronously_test: RuntimeError
+kill_test: CompileTimeError
+mandel_isolate_test: CompileTimeError
+message2_test: CompileTimeError
+message3_test/byteBuffer: CompileTimeError
+message3_test/constInstance: CompileTimeError
+message3_test/constList: CompileTimeError
+message3_test/constList_identical: CompileTimeError
+message3_test/constMap: CompileTimeError
+message3_test/fun: CompileTimeError
+message3_test/int32x4: CompileTimeError
+message3_test/none: CompileTimeError
+message_test: CompileTimeError
+mint_maker_test: CompileTimeError
+nested_spawn2_test: CompileTimeError
+nested_spawn_test: CompileTimeError
+raw_port_test: CompileTimeError
+request_reply_test: CompileTimeError
+spawn_function_custom_class_test: CompileTimeError
+spawn_function_test: CompileTimeError
+spawn_uri_exported_main_test: RuntimeError
+spawn_uri_multi_test/none: CompileTimeError
+spawn_uri_nested_vm_test: CompileTimeError
+spawn_uri_test: CompileTimeError
+spawn_uri_vm_test: CompileTimeError
+static_function_test: CompileTimeError
+timer_isolate_test: CompileTimeError
+typed_message_test: CompileTimeError
+unresolved_ports_test: CompileTimeError
+
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 
