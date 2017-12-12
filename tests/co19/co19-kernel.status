@@ -16,21 +16,10 @@ Language/Classes/Constructors/Generative_Constructors/execution_of_an_initialize
 Language/Classes/Superinterfaces/more_than_once_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Classes/Superinterfaces/superclass_as_superinterface_t01: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Classes/definition_t23: RuntimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/bitwise_operators_t05: Crash
 Language/Expressions/Constants/depending_on_itself_t01: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t01: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Constants/depending_on_itself_t02: MissingCompileTimeError
 Language/Expressions/Constants/depending_on_itself_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/exception_t01: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/exception_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/exception_t03: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/logical_expression_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/logical_expression_t04: Crash
-Language/Expressions/Constants/math_operators_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/math_operators_t03: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/no_other_constant_expressions_t11: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Constants/ternary_operator_t02: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
-Language/Expressions/Instance_Creation/Const/exception_t01: Crash # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Null/extend_or_implement_t02: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Null/extend_or_implement_t03: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
 Language/Expressions/Null/extend_or_implement_t04: MissingCompileTimeError # New entries after going from kernel-service to batch-mode compilation. Please investigate.
