@@ -7,7 +7,7 @@ part of dart._vmservice;
 enum MessageType { Request, Notification, Response }
 
 class Message {
-  final Completer _completer = new Completer.sync();
+  final Completer<String> _completer = new Completer<String>.sync();
   bool get completed => _completer.isCompleted;
 
   /// Future of response.
@@ -187,7 +187,7 @@ class Message {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
-      _completer.complete(value);
+      _setResponseFromPort(value);
     };
     var keys = _makeAllString(params.keys.toList(growable: false));
     var values = _makeAllString(params.values.toList(growable: false));
@@ -235,34 +235,40 @@ class Message {
     final receivePort = new RawReceivePort();
     receivePort.handler = (value) {
       receivePort.close();
-      _completer.complete(value);
+      _setResponseFromPort(value);
     };
+    final keys = params.keys.toList(growable: false);
+    final values = params.values.toList(growable: false);
+    if (!_methodNeedsObjectParameters(method)) {
+      _makeAllString(keys);
+      _makeAllString(values);
+    }
+
+    final request = new List(6)
+      ..[0] = 0 // Make room for OOB message type.
+      ..[1] = receivePort.sendPort
+      ..[2] = serial
+      ..[3] = method
+      ..[4] = keys
+      ..[5] = values;
+
     if (_methodNeedsObjectParameters(method)) {
       // We use a different method invocation path here.
-      var keys = params.keys.toList(growable: false);
-      var values = params.values.toList(growable: false);
-      var request = new List(6)
-        ..[0] = 0 // Make room for OOB message type.
-        ..[1] = receivePort.sendPort
-        ..[2] = serial
-        ..[3] = method
-        ..[4] = keys
-        ..[5] = values;
       sendObjectRootServiceMessage(request);
-      return _completer.future;
     } else {
-      var keys = _makeAllString(params.keys.toList(growable: false));
-      var values = _makeAllString(params.values.toList(growable: false));
-      var request = new List(6)
-        ..[0] = 0 // Make room for OOB message type.
-        ..[1] = receivePort.sendPort
-        ..[2] = serial
-        ..[3] = method
-        ..[4] = keys
-        ..[5] = values;
       sendRootServiceMessage(request);
-      return _completer.future;
     }
+
+    return _completer.future;
+  }
+
+  void _setResponseFromPort(response) {
+    if (response is List) {
+      // See JSONStream::PostReply for the format of messages that arrive from
+      // VM.
+      response = utf8.decode(response[0]);
+    }
+    _completer.complete(response);
   }
 
   void setResponse(String response) {
