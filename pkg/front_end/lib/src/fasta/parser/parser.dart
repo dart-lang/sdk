@@ -1633,7 +1633,7 @@ class Parser {
     Message message = context.recoveryTemplate.withArguments(next);
     Token identifier = new SyntheticStringToken(
         TokenType.IDENTIFIER, stringValue, next.charOffset, 0);
-    return rewriteAndRecover(token, message, identifier);
+    return rewriteAndRecover(token, message, identifier).next;
   }
 
   /// Parse a simple identifier at the given [token], and return the identifier
@@ -1671,9 +1671,7 @@ class Parser {
         // forgotten the `operator` keyword.
         token = rewriteAndRecover(token, fasta.messageMissingOperatorKeyword,
             new SyntheticKeywordToken(Keyword.OPERATOR, next.offset));
-        // TODO(brianwilkerson): Remove the invocation of `previous` when
-        // `rewriteAndRecover` returns the token before the new token.
-        return parseOperatorName(token.previous);
+        return parseOperatorName(token);
       } else {
         reportRecoverableErrorWithToken(next, context.recoveryTemplate);
         if (context == IdentifierContext.methodDeclaration) {
@@ -2470,7 +2468,8 @@ class Parser {
             Message message = fasta.templateExpectedButGot.withArguments('.');
             Token newToken =
                 new SyntheticToken(TokenType.PERIOD, token.charOffset);
-            periodAfterThis = rewriteAndRecover(thisKeyword, message, newToken);
+            periodAfterThis =
+                rewriteAndRecover(thisKeyword, message, newToken).next;
           } else {
             periodAfterThis = token;
           }
@@ -3177,7 +3176,7 @@ class Parser {
     if (optional(':', token.next)) return token.next;
     Message message = fasta.templateExpectedButGot.withArguments(':');
     Token newToken = new SyntheticToken(TokenType.COLON, token.charOffset);
-    return rewriteAndRecover(token, message, newToken);
+    return rewriteAndRecover(token, message, newToken).next;
   }
 
   Token ensureParseLiteralString(Token token) {
@@ -3218,13 +3217,15 @@ class Parser {
     if (optional(';', next)) return next;
     Message message = fasta.templateExpectedButGot.withArguments(';');
     Token newToken = new SyntheticToken(TokenType.SEMICOLON, next.charOffset);
-    return rewriteAndRecover(token, message, newToken);
+    return rewriteAndRecover(token, message, newToken).next;
   }
 
+  /// Report an error at the token after [token] that has the given [message].
+  /// Insert the [newToken] after [token] and return [token].
   Token rewriteAndRecover(Token token, Message message, Token newToken) {
     reportRecoverableError(token.next, message);
     rewriter.insertTokenAfter(token, newToken);
-    return newToken;
+    return token;
   }
 
   void rewriteGtCompositeOrRecover(Token token, Token next, String value) {
@@ -4557,7 +4558,7 @@ class Parser {
           Message message = fasta.templateExpectedButGot.withArguments(']');
           Token newToken = new SyntheticToken(
               TokenType.CLOSE_SQUARE_BRACKET, next.charOffset);
-          next = rewriteAndRecover(token, message, newToken);
+          next = rewriteAndRecover(token, message, newToken).next;
         }
         listener.handleIndexedExpression(openSquareBracket, next);
         token = next;
@@ -5216,9 +5217,10 @@ class Parser {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
-              token,
-              fasta.templateExpectedButGot.withArguments(','),
-              new SyntheticToken(TokenType.COMMA, next.offset));
+                  token,
+                  fasta.templateExpectedButGot.withArguments(','),
+                  new SyntheticToken(TokenType.COMMA, next.offset))
+              .next;
         } else {
           reportRecoverableError(
               next, fasta.templateExpectedButGot.withArguments(')'));
