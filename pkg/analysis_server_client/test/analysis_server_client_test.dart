@@ -23,7 +23,7 @@ void main() {
   });
 
   test('test_listenToOutput_good', () async {
-    when(_process.stdout).thenReturn(_goodMessage());
+    when(_process.stdout).thenAnswer((_) => _goodMessage());
 
     final future = serverWrapper.send('blahMethod', null);
     serverWrapper.listenToOutput();
@@ -35,7 +35,7 @@ void main() {
   });
 
   test('test_listenToOutput_error', () async {
-    when(_process.stdout).thenReturn(_badMessage());
+    when(_process.stdout).thenAnswer((_) => _badMessage());
     final future = serverWrapper.send('blahMethod', null);
     future.catchError((e) {
       expect(e, new isInstanceOf<ServerErrorMessage>());
@@ -48,7 +48,7 @@ void main() {
   });
 
   test('test_listenToOutput_event', () async {
-    when(_process.stdout).thenReturn(_eventMessage());
+    when(_process.stdout).thenAnswer((_) => _eventMessage());
 
     void eventHandler(String event, Map<String, Object> params) {
       expect(event, 'fooEvent');
