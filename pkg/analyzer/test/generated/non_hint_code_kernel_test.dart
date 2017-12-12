@@ -62,13 +62,6 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_divisionOptimization_supressIfDivisionNotDefinedInCore() async {
-    await super.test_divisionOptimization_supressIfDivisionNotDefinedInCore();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
   test_divisionOptimization_supressIfDivisionOverridden() async {
     await super.test_divisionOptimization_supressIfDivisionOverridden();
   }
@@ -91,78 +84,8 @@ class NonHintCodeTest_Kernel extends NonHintCodeTest_Driver {
   @failingTest
   @override
   @potentialAnalyzerProblem
-  test_propagatedFieldType() async {
-    await super.test_propagatedFieldType();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_proxy_annotation_prefixed() async {
-    await super.test_proxy_annotation_prefixed();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_proxy_annotation_prefixed2() async {
-    await super.test_proxy_annotation_prefixed2();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_proxy_annotation_prefixed3() async {
-    await super.test_proxy_annotation_prefixed3();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_undefinedMethod_dynamic() async {
-    await super.test_undefinedMethod_dynamic();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_undefinedMethod_inSubtype() async {
-    await super.test_undefinedMethod_inSubtype();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_undefinedMethod_unionType_all() async {
-    await super.test_undefinedMethod_unionType_all();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_undefinedMethod_unionType_some() async {
-    await super.test_undefinedMethod_unionType_some();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unnecessaryCast_13855_parameter_A() async {
-    await super.test_unnecessaryCast_13855_parameter_A();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
   test_unnecessaryCast_conditionalExpression() async {
     await super.test_unnecessaryCast_conditionalExpression();
-  }
-
-  @failingTest
-  @override
-  @potentialAnalyzerProblem
-  test_unnecessaryCast_generics() async {
-    await super.test_unnecessaryCast_generics();
   }
 
   @failingTest

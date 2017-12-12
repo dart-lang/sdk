@@ -1207,7 +1207,7 @@ class _ResolutionApplierContext implements TypeContext {
             member.function.functionType.withoutTypeParameters,
             kernelType.type);
       }
-      return null;
+      return DynamicTypeImpl.instance;
     } else if (kernelType is kernel.IndexAssignNullFunctionType) {
       return null;
     } else {

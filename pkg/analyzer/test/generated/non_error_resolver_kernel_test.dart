@@ -32,13 +32,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @FastaProblem('https://github.com/dart-lang/sdk/issues/31593')
-  test_abstractSuperMemberReference_superHasNoSuchMethod() async {
-    return super.test_abstractSuperMemberReference_superHasNoSuchMethod();
-  }
-
-  @override
-  @failingTest
   @potentialAnalyzerProblem
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
@@ -420,13 +413,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_null_callMethod() async {
-    return super.test_null_callMethod();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_prefixCollidesWithTopLevelMembers() async {
     return super.test_prefixCollidesWithTopLevelMembers();
   }
@@ -457,13 +443,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_redirectToNonConstConstructor() async {
     return super.test_redirectToNonConstConstructor();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_referencedBeforeDeclaration_cascade() async {
-    return super.test_referencedBeforeDeclaration_cascade();
   }
 
   @override
