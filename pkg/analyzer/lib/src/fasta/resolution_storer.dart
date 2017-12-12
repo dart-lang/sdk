@@ -489,6 +489,11 @@ class ResolutionStorer extends TypeInferenceListener {
   }
 
   @override
+  void redirectingInitializerEnter(RedirectingInitializer initializer) {
+    _recordReference(initializer.target, initializer.fileOffset);
+  }
+
+  @override
   bool staticAssignEnter(Expression expression, int targetOffset,
       Class targetClass, Expression write, DartType typeContext) {
     // If the static target is explicit (and is a class), record it.

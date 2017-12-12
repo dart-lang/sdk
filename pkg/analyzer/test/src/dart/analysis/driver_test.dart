@@ -1276,6 +1276,65 @@ class B extends A {
     }
   }
 
+  test_constructor_initializer_this() async {
+    addTestFile(r'''
+class C {
+  C(int a, [int b]);
+  C.named(int a, {int b});
+  C.one(int p) : this(1, 2);
+  C.two(int p) : this.named(3, b: 4);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    ClassDeclaration cNode = result.unit.declarations[0];
+    ClassElement cElement = cNode.element;
+
+    {
+      var unnamedConstructor = cElement.constructors[0];
+
+      ConstructorDeclaration constructor = cNode.members[2];
+      RedirectingConstructorInvocation initializer =
+          constructor.initializers[0];
+      expect(initializer.staticElement, same(unnamedConstructor));
+      expect(initializer.constructorName, isNull);
+
+      List<Expression> arguments = initializer.argumentList.arguments;
+
+      Expression aArgument = arguments[0];
+      ParameterElement aElement = unnamedConstructor.parameters[0];
+      expect(aArgument.staticParameterElement, same(aElement));
+
+      Expression bArgument = arguments[1];
+      ParameterElement bElement = unnamedConstructor.parameters[1];
+      expect(bArgument.staticParameterElement, same(bElement));
+    }
+
+    {
+      var namedConstructor = cElement.constructors[1];
+
+      ConstructorDeclaration constructor = cNode.members[3];
+      RedirectingConstructorInvocation initializer =
+          constructor.initializers[0];
+      expect(initializer.staticElement, same(namedConstructor));
+
+      var constructorName = initializer.constructorName;
+      expect(constructorName.staticElement, same(namedConstructor));
+      expect(constructorName.staticType, isNull);
+
+      List<Expression> arguments = initializer.argumentList.arguments;
+
+      Expression aArgument = arguments[0];
+      ParameterElement aElement = namedConstructor.parameters[0];
+      expect(aArgument.staticParameterElement, same(aElement));
+
+      NamedExpression bArgument = arguments[1];
+      ParameterElement bElement = namedConstructor.parameters[1];
+      expect(bArgument.name.label.staticElement, same(bElement));
+      expect(bArgument.staticParameterElement, same(bElement));
+    }
+  }
+
   test_constructor_redirected() async {
     addTestFile(r'''
 class A implements B {

@@ -151,13 +151,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
-  test_constRedirectSkipsSupertype() async {
-    return super.test_constRedirectSkipsSupertype();
-  }
-
-  @override
-  @failingTest
   @FastaProblem('https://github.com/dart-lang/sdk/issues/28434')
   test_constructorDeclaration_scope_signature() async {
     return super.test_constructorDeclaration_scope_signature();
@@ -399,22 +392,8 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstValueInInitializer_redirecting() async {
-    return super.test_nonConstValueInInitializer_redirecting();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_prefixCollidesWithTopLevelMembers() async {
     return super.test_prefixCollidesWithTopLevelMembers();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_recursiveConstructorRedirect() async {
-    return super.test_recursiveConstructorRedirect();
   }
 
   @override
@@ -450,13 +429,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @potentialAnalyzerProblem
   test_typeType_functionTypeAlias_prefixed() async {
     return super.test_typeType_functionTypeAlias_prefixed();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_undefinedConstructorInInitializer_redirecting() async {
-    return super.test_undefinedConstructorInInitializer_redirecting();
   }
 
   @override

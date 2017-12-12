@@ -310,16 +310,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
     _associateArgumentsWithParameters(element?.parameters, argumentList);
-
-    // Apply resolution to arguments.
-    // Skip names of named arguments.
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        argument.expression.accept(this);
-      } else {
-        argument.accept(this);
-      }
-    }
+    _applyResolutionToArguments(argumentList);
   }
 
   @override
@@ -371,15 +362,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       _associateArgumentsWithParameters(invokeType.parameters, argumentList);
     }
 
-    // Apply resolution to arguments.
-    // Skip names of named arguments.
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        argument.expression.accept(this);
-      } else {
-        argument.accept(this);
-      }
-    }
+    _applyResolutionToArguments(argumentList);
   }
 
   @override
@@ -436,6 +419,20 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     node.target?.accept(this);
     node.propertyName.accept(this);
     node.staticType = node.propertyName.staticType;
+  }
+
+  @override
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    SimpleIdentifier constructorName = node.constructorName;
+
+    ConstructorElement element = _getReferenceFor(constructorName ?? node);
+    node.staticElement = element;
+    constructorName?.staticElement = element;
+
+    ArgumentList argumentList = node.argumentList;
+    _associateArgumentsWithParameters(element?.parameters, argumentList);
+    _applyResolutionToArguments(argumentList);
   }
 
   @override
@@ -530,6 +527,17 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         if (type != null) {
           applyToTypeAnnotation(type, node.type);
         }
+      }
+    }
+  }
+
+  /// Apply resolution to arguments of the [argumentList].
+  void _applyResolutionToArguments(ArgumentList argumentList) {
+    for (var argument in argumentList.arguments) {
+      if (argument is NamedExpression) {
+        argument.expression.accept(this);
+      } else {
+        argument.accept(this);
       }
     }
   }
