@@ -574,18 +574,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       List<String> arguments, Map<String, String> environmentOverrides) {
     var commands = <Command>[];
 
-    if (_isStrong) {
-      commands.add(computeCompileToKernelCommand(
-          tempDir, arguments, environmentOverrides));
-    }
+    commands.add(computeCompileToKernelCommand(
+        tempDir, arguments, environmentOverrides));
 
     commands.add(
-        computeCompilationCommand(tempDir, arguments, environmentOverrides));
+        computeDartBootstrapCommand(tempDir, arguments, environmentOverrides));
 
-    if (_isStrong) {
-      commands.add(computeRemoveKernelFileCommand(
-          tempDir, arguments, environmentOverrides));
-    }
+    commands.add(computeRemoveKernelFileCommand(
+        tempDir, arguments, environmentOverrides));
 
     if (!_configuration.useBlobs) {
       commands.add(
@@ -604,14 +600,25 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     final genKernel =
         Platform.script.resolve('../../../pkg/vm/tool/gen_kernel').toFilePath();
+
+    final kernelBinariesFolder = _useSdk
+        ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+        : '${_configuration.buildDirectory}';
+
+    final vmPlatform = _isStrong
+        ? '$kernelBinariesFolder/vm_platform_strong.dill'
+        : '$kernelBinariesFolder/vm_platform.dill';
+
     final dillFile = tempKernelFile(tempDir);
-    var args = [
+    final args = [
       '--aot',
-      '--platform=${_configuration.buildDirectory}/vm_platform_strong.dill',
+      _isStrong ? '--strong-mode' : '--no-strong-mode',
+      '--platform=$vmPlatform',
       '-o',
       dillFile,
     ];
     args.add(arguments.where((name) => name.endsWith('.dart')).single);
+
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides);
   }
@@ -631,7 +638,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
         alwaysCompile: !_useSdk);
   }
 
-  Command computeCompilationCommand(String tempDir, List<String> arguments,
+  Command computeDartBootstrapCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var buildDir = _configuration.buildDirectory;
     String exec;
@@ -645,17 +652,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       exec = "$buildDir/dart_bootstrap";
     }
 
-    var args = <String>[];
-    if (useDfe) {
-      if (!_isStrong) {
-        args.add('--dfe=pkg/vm/bin/kernel_service.dart');
-        args.add('--kernel-binaries=' +
-            (_useSdk
-                ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-                : '${buildDir}'));
-      }
-    }
-
+    final args = <String>[];
     args.add("--snapshot-kind=app-aot");
     if (_configuration.useBlobs) {
       args.add("--snapshot=$tempDir/out.aotsnapshot");
