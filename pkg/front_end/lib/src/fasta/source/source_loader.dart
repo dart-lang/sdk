@@ -670,7 +670,6 @@ class SourceLoader<L> extends Loader<L> {
             message.code == fasta_codes.codeConstructorNotFound ||
             message.code == fasta_codes.codeSuperclassHasNoDefaultConstructor ||
             message.code == fasta_codes.codeTypeArgumentsOnTypeVariable ||
-            message.code == fasta_codes.codeTypeNotFound ||
             message.code == fasta_codes.codeUnspecified)) {
       // TODO(ahe): All warnings should have a charOffset, but currently, some
       // warnings lack them.
