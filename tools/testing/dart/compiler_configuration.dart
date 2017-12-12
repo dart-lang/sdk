@@ -574,14 +574,18 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       List<String> arguments, Map<String, String> environmentOverrides) {
     var commands = <Command>[];
 
-    commands.add(computeCompileToKernelCommand(
-        tempDir, arguments, environmentOverrides));
+    if (useDfe) {
+      commands.add(computeCompileToKernelCommand(
+          tempDir, arguments, environmentOverrides));
+    }
 
     commands.add(
         computeDartBootstrapCommand(tempDir, arguments, environmentOverrides));
 
-    commands.add(computeRemoveKernelFileCommand(
-        tempDir, arguments, environmentOverrides));
+    if (useDfe) {
+      commands.add(computeRemoveKernelFileCommand(
+          tempDir, arguments, environmentOverrides));
+    }
 
     if (!_configuration.useBlobs) {
       commands.add(
