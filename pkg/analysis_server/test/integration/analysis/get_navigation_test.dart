@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
+    defineReflectiveTests(GetNavigationTest_PreviewDart2);
   });
 }
 
@@ -64,4 +65,14 @@ class Bar {
         await sendAnalysisGetNavigation(pathname, 0, 0);
     expect(result.targets, isEmpty);
   }
+}
+
+@reflectiveTest
+class GetNavigationTest_PreviewDart2 extends GetNavigationTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  test_navigation() => super.test_navigation();
 }

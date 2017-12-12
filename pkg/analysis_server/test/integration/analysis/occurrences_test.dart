@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OccurrencesTest);
+    defineReflectiveTests(OccurrencesTest_PreviewDart2);
   });
 }
 
@@ -65,4 +66,10 @@ main() {
       check('sum', ['sum = 0', 'sum +=', 'sum)']);
     });
   }
+}
+
+@reflectiveTest
+class OccurrencesTest_PreviewDart2 extends OccurrencesTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

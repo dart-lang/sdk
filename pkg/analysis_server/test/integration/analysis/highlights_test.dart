@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
+    defineReflectiveTests(AnalysisHighlightsTest_PreviewDart2);
   });
 }
 
@@ -143,4 +144,14 @@ int topLevelVariable;
       expect(highlights, isEmpty);
     });
   }
+}
+
+@reflectiveTest
+class AnalysisHighlightsTest_PreviewDart2 extends AnalysisHighlightsTest {
+  @override
+  bool get usePreviewDart2 => true;
+
+  @override
+  @failingTest
+  test_highlights() => super.test_highlights();
 }

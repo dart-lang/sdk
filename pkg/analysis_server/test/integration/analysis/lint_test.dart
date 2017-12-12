@@ -12,6 +12,7 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LintIntegrationTest);
+    defineReflectiveTests(LintIntegrationTest_PreviewDart2);
   });
 }
 
@@ -80,4 +81,10 @@ class a { // lint: not CamelCase
     expect(error.severity, AnalysisErrorSeverity.INFO);
     expect(error.type, AnalysisErrorType.LINT);
   }
+}
+
+@reflectiveTest
+class LintIntegrationTest_PreviewDart2 extends LintIntegrationTest {
+  @override
+  bool get usePreviewDart2 => true;
 }
