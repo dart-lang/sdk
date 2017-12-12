@@ -261,12 +261,14 @@ abstract class TestSuite {
       [TestInformation info]) {
     var displayName = '$suiteName/$testName';
 
-    // If the test is not going to be run at all, then a RuntimeError will
-    // never occur. Instead, treat that as Pass.
-    if (configuration.runtime == Runtime.none &&
-        expectations.contains(Expectation.runtimeError)) {
+    // If the test is not going to be run at all, then a RuntimeError,
+    // MissingRuntimeError or Timeout will never occur.
+    // Instead, treat that as Pass.
+    if (configuration.runtime == Runtime.none) {
       expectations = expectations.toSet();
       expectations.remove(Expectation.runtimeError);
+      expectations.remove(Expectation.missingRuntimeError);
+      expectations.remove(Expectation.timeout);
       if (expectations.isEmpty) expectations.add(Expectation.pass);
     }
 
