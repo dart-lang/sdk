@@ -70,6 +70,10 @@ class MessageHandler {
   // Returns true on success.
   MessageStatus HandleOOBMessages();
 
+  // Blocks the thread on a condition variable until a message arrives, and then
+  // handles all messages.
+  MessageStatus PauseAndHandleAllMessages(int64_t timeout_millis);
+
   // Returns true if there are pending OOB messages for this message
   // handler.
   bool HasOOBMessages();
@@ -232,6 +236,7 @@ class MessageHandler {
   // This flag is not thread safe and can only reliably be accessed on a single
   // thread.
   bool oob_message_handling_allowed_;
+  bool paused_for_messages_;
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;      // The number of pause messages received.
 #if !defined(PRODUCT)

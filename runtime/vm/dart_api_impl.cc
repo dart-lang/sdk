@@ -1672,6 +1672,36 @@ DART_EXPORT Dart_Handle Dart_HandleMessages() {
   return Api::Success();
 }
 
+DART_EXPORT Dart_Handle Dart_WaitForEventSync(int64_t timeout_millis) {
+  Thread* T = Thread::Current();
+  Isolate* I = T->isolate();
+  CHECK_API_SCOPE(T);
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_BEGIN_END_BASIC;
+  TransitionNativeToVM transition(T);
+  if (I->message_notify_callback() != NULL) {
+    return Api::NewError("waitForEventSync is not supported by this embedder");
+  }
+  // NB: If waitForEventSync() is moved from dart:io to dart:async, then
+  // this call can be made from Dart code instead of from the runtime.
+  Object& result =
+      Object::Handle(Z, DartLibraryCalls::EnsureScheduleImmediate());
+  if (result.IsError()) {
+    return Api::NewHandle(T, result.raw());
+  }
+  result = DartLibraryCalls::DrainMicrotaskQueue();
+  if (result.IsError()) {
+    return Api::NewHandle(T, result.raw());
+  }
+  if (I->message_handler()->PauseAndHandleAllMessages(timeout_millis) !=
+      MessageHandler::kOK) {
+    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
+    T->clear_sticky_error();
+    return error;
+  }
+  return Api::Success();
+}
+
 DART_EXPORT bool Dart_HandleServiceMessages() {
 #if defined(PRODUCT)
   return true;

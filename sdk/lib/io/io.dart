@@ -205,6 +205,7 @@ import 'dart:typed_data';
 
 export 'dart:_http';
 
+part 'annotations.dart';
 part 'bytes_builder.dart';
 part 'common.dart';
 part 'data_transformer.dart';

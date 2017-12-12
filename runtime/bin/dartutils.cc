@@ -572,6 +572,12 @@ Dart_Handle DartUtils::SetupIOLibrary(const char* namespc_path,
   Dart_Handle set_script_name =
       Dart_SetField(platform_type, script_name, dart_script);
   RETURN_IF_ERROR(set_script_name);
+
+  Dart_Handle wait_for_event =
+      Dart_Invoke(io_lib, NewString("_getWaitForEventSyncClosure"), 0, NULL);
+  RETURN_IF_ERROR(wait_for_event);
+  RETURN_IF_ERROR(Dart_SetField(io_lib, NewString("_waitForEventSyncImpl"),
+                                wait_for_event));
   return Dart_Null();
 }
 
