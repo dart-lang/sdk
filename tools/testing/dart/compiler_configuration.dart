@@ -710,8 +710,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
     if (_isStrong) {
       args.add('--strong');
-      args.addAll(arguments.where((name) => !name.endsWith('.dart')));
-      args.add(tempKernelFile(tempDir));
+    }
+    if (useDfe) {
+      args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
     } else {
       args.addAll(arguments);
     }
