@@ -644,8 +644,6 @@ class SourceLoader<L> extends Loader<L> {
             message.code == fasta_codes.codeConstConstructorWithBody ||
             message.code == fasta_codes.codeConstructorNotFound ||
             message.code == fasta_codes.codeSuperclassHasNoDefaultConstructor ||
-            message.code == fasta_codes.codeSupertypeIsIllegal ||
-            message.code == fasta_codes.codeSupertypeIsTypeVariable ||
             message.code == fasta_codes.codeTypeArgumentsOnTypeVariable ||
             message.code == fasta_codes.codeTypeNotFound ||
             message.code == fasta_codes.codeUnspecified)) {
