@@ -309,8 +309,8 @@
     },
     {
       "builders": [
-        "ddc-linux-release",
-        "ddc-win-release"
+        "ddc-linux-release-chrome",
+        "ddc-win-release-chrome"
       ],
       "meta": {
         "description": "This configuration is used by the ddc builder group."
@@ -375,7 +375,7 @@
     },
     {
       "builders": [
-        "ddc-mac-release"
+        "ddc-mac-release-chrome"
       ],
       "meta": {
         "description": "This configuration is used by the ddc builder group."
