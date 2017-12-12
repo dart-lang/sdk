@@ -741,10 +741,6 @@ super_operator_index8_test: RuntimeError
 truncdiv_test: RuntimeError # Issue 29920
 yieldstar_pause_test: Skip # Times out
 
-[ $compiler == dartdevk && $runtime == none ]
-no_such_method_negative_test: Fail
-prefix6_negative_test: Fail
-
 [ $compiler == dartdevk && $runtime != none ]
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
 conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
