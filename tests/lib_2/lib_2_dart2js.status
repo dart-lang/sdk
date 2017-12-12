@@ -262,7 +262,7 @@ async/timer_not_available_test: RuntimeError
 
 [ $compiler == dart2js && $runtime == safari ]
 html/audiobuffersourcenode_test: RuntimeError
-html/custom/attribute_changed_callback_test: Pass, Timeout
+html/custom/attribute_changed_callback_test: RuntimeError, Timeout
 html/custom/constructor_calls_created_synchronously_test: Pass, Timeout
 html/custom/created_callback_test: Pass, Timeout
 html/custom/document_register_basic_test: Pass, Timeout
