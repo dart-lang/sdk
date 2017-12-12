@@ -739,7 +739,6 @@ super_operator_index5_test: RuntimeError
 super_operator_index7_test: RuntimeError
 super_operator_index8_test: RuntimeError
 truncdiv_test: RuntimeError # Issue 29920
-yieldstar_pause_test: Skip # Times out
 
 [ $compiler == dartdevk && $runtime != none ]
 callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
@@ -820,7 +819,6 @@ regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
 syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
 type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
-yieldstar_pause_test: Timeout
 
 # Compiler tests for dartdevc and dartdevk.  These contain common expectations
 # for all runtimes including $runtime == none.  They are organized by: shared
