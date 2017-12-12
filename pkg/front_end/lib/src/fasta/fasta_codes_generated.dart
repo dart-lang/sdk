@@ -3409,6 +3409,26 @@ const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
     message: r"""An operator can't have optional parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateOverriddenMethodCause =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""This is the overriden method ('#name').""",
+        withArguments: _withArgumentsOverriddenMethodCause);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeOverriddenMethodCause =
+    const Code<Message Function(String name)>(
+  "OverriddenMethodCause",
+  templateOverriddenMethodCause,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverriddenMethodCause(String name) {
+  return new Message(codeOverriddenMethodCause,
+      message: """This is the overriden method ('$name').""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String name,

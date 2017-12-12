@@ -1148,6 +1148,9 @@ IllegalMixin:
 OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
 
+OverriddenMethodCause:
+  template: "This is the overriden method ('#name')."
+
 OverrideMismatchNamedParameter:
   template: "The method '#name' doesn't have the named parameter '#name2' of overriden method '#name3'."
 
