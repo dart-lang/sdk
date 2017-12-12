@@ -32,9 +32,9 @@ for %%i in ("%SDK_DIR%\..\") do set DART_ROOT=%%~fi
 rem Remove trailing backslash if there is one
 if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
-set DEV_COMPILER=%DART_ROOT%\third_party\pkg\dev_compiler\bin\dartdevk.dart
+set DEV_COMPILER=%DART_ROOT%\pkg\dev_compiler\bin\dartdevk.dart
 
-"%DART%" "--packages=%SDK_DIR%\.packages" %EXTRA_VM_OPTIONS% "%DEV_COMPILER%" %*
+"%DART%" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%DEV_COMPILER%" %*
 
 endlocal
 
