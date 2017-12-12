@@ -676,8 +676,6 @@ static Dart_QualifiedFunctionName standalone_entry_points[] = {
     {"dart:io", "::", "_makeDatagram"},
     {"dart:io", "::", "_makeUint8ListView"},
     {"dart:io", "::", "_setupHooks"},
-    {"dart:io", "::", "_getWaitForEventSyncClosure"},
-    {"dart:io", "::", "_waitForEventSyncImpl"},
     {"dart:io", "_EmbedderConfig", "_mayExit"},
     {"dart:io", "_ExternalBuffer", "get:end"},
     {"dart:io", "_ExternalBuffer", "get:start"},
