@@ -250,7 +250,9 @@ class AnalyzerDietListener extends DietListener {
         _declarationOffsets,
         _referenceOffsets,
         _typeOffsets);
+    ast.AstNode formalsAsAstNode = formals;
     ast.AstNode bodyAsAstNode = body;
+    formalsAsAstNode?.accept(resolutionApplier);
     bodyAsAstNode.accept(resolutionApplier);
     resolutionApplier.checkDone();
 
