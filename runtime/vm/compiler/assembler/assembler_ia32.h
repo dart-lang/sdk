@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_ia32.h"
+#include "vm/constants_x86.h"
 
 namespace dart {
 

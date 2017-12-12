@@ -136,46 +136,6 @@ enum ScaleFactor {
   TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
 
-enum Condition {
-  OVERFLOW = 0,
-  NO_OVERFLOW = 1,
-  BELOW = 2,
-  ABOVE_EQUAL = 3,
-  EQUAL = 4,
-  NOT_EQUAL = 5,
-  BELOW_EQUAL = 6,
-  ABOVE = 7,
-  SIGN = 8,
-  NOT_SIGN = 9,
-  PARITY_EVEN = 10,
-  PARITY_ODD = 11,
-  LESS = 12,
-  GREATER_EQUAL = 13,
-  LESS_EQUAL = 14,
-  GREATER = 15,
-
-  ZERO = EQUAL,
-  NOT_ZERO = NOT_EQUAL,
-  NEGATIVE = SIGN,
-  POSITIVE = NOT_SIGN,
-  CARRY = BELOW,
-  NOT_CARRY = ABOVE_EQUAL,
-
-  // Platform-independent variants declared for all platforms
-  // EQUAL,
-  // NOT_EQUAL,
-  // LESS,
-  // LESS_EQUAL,
-  // GREATER_EQUAL,
-  // GREATER,
-  UNSIGNED_LESS = BELOW,
-  UNSIGNED_LESS_EQUAL = BELOW_EQUAL,
-  UNSIGNED_GREATER = ABOVE,
-  UNSIGNED_GREATER_EQUAL = ABOVE_EQUAL,
-
-  INVALID_CONDITION = 16
-};
-
 #define R(reg) (1 << (reg))
 
 #if defined(_WIN64)
