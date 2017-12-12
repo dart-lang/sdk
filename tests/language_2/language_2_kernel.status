@@ -296,9 +296,7 @@ compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
 compile_time_constant_static5_test/23: CompileTimeError # Issue 31402 (Field declaration)
 conditional_import_string_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-conditional_import_string_test: DartkCompileTimeError
 conditional_import_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-conditional_import_test: DartkCompileTimeError
 conditional_method_invocation_test/12: MissingCompileTimeError
 conditional_method_invocation_test/13: MissingCompileTimeError
 conditional_property_access_test/10: MissingCompileTimeError

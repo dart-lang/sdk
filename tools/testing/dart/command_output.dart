@@ -856,8 +856,8 @@ class DevCompilerCommandOutput extends CommandOutput {
   }
 }
 
-class KernelCompilationCommandOutput extends CompilationCommandOutput {
-  KernelCompilationCommandOutput(
+class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
+  VMKernelCompilationCommandOutput(
       Command command,
       int exitCode,
       bool timedOut,
@@ -879,16 +879,12 @@ class KernelCompilationCommandOutput extends CompilationCommandOutput {
     Expectation result = super.result(testCase);
     if (result.canBeOutcomeOf(Expectation.crash)) {
       return Expectation.dartkCrash;
-    } else if (result.canBeOutcomeOf(Expectation.timeout)) {
-      return Expectation.dartkTimeout;
-    } else if (result.canBeOutcomeOf(Expectation.compileTimeError)) {
-      return Expectation.dartkCompileTimeError;
     }
     return result;
   }
 
   /// If the compiler was able to produce a Kernel IR file we want to run the
-  /// result on the Dart VM. We therefore mark the [KernelCompilationCommand]
+  /// result on the Dart VM. We therefore mark the [VMKernelCompilationCommand]
   /// as successful.
   ///
   /// This ensures we test that the DartVM produces correct CompileTime errors
@@ -954,8 +950,8 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
   } else if (command is VmCommand) {
     return new VMCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, pid);
-  } else if (command is KernelCompilationCommand) {
-    return new KernelCompilationCommandOutput(
+  } else if (command is VMKernelCompilationCommand) {
+    return new VMKernelCompilationCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AdbPrecompilationCommand) {
     return new VMCommandOutput(
