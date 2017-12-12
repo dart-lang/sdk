@@ -2480,7 +2480,6 @@ class Parser {
           if (!token.isIdentifier) {
             // Recover from a missing identifier by inserting one.
             token = insertSyntheticIdentifier(beforeToken, nameContext);
-            beforeToken = previousToken(periodAfterThis, token);
           }
           beforeNameToken = beforeToken;
           beforeToken = nameToken = token;
@@ -2577,7 +2576,6 @@ class Parser {
           // We need to recompute the before tokens because [ensureIdentifier]
           // can cause synthetic tokens to be inserted.
           beforeToken = previousToken(beforeToken, token);
-          beforeNameToken = previousToken(beforeNameToken, nameToken);
         } else {
           listener.handleNoName(nameToken);
         }
@@ -2635,59 +2633,21 @@ class Parser {
       Function endStuff, Function handleNoStuff) {
     // TODO(brianwilkerson): Rename to `parseStuffOpt`?
 
-    bool rewriteEndToken(Token beforeEnd) {
-      Token end = beforeEnd.next;
-      String value = end?.stringValue;
-      if (value != null && value.length > 1) {
-        if (identical(value, '>>')) {
-          Token replacement = new Token(TokenType.GT, end.charOffset);
-          replacement.next = new Token(TokenType.GT, end.charOffset + 1);
-          rewriter.replaceTokenFollowing(beforeEnd, replacement);
-          return true;
-        } else if (identical(value, '>=')) {
-          Token replacement = new Token(TokenType.GT, end.charOffset);
-          replacement.next = new Token(TokenType.EQ, end.charOffset + 1);
-          rewriter.replaceTokenFollowing(beforeEnd, replacement);
-          return true;
-        } else if (identical(value, '>>=')) {
-          Token replacement = new Token(TokenType.GT, end.charOffset);
-          replacement.next = new Token(TokenType.GT, end.charOffset + 1);
-          replacement.next.next = new Token(TokenType.EQ, end.charOffset + 2);
-          rewriter.replaceTokenFollowing(beforeEnd, replacement);
-          return true;
-        }
-      }
-      return false;
-    }
-
     // TODO(brianwilkerson): Remove the invocation of `previous` when
     // `injectGenericCommentTypeList` returns the last consumed token.
     token = listener.injectGenericCommentTypeList(token.next).previous;
     Token next = token.next;
     if (optional('<', next)) {
       BeginToken begin = next;
-      Token end = begin.endToken;
-      if (end != null) {
-        Token beforeEnd = previousToken(begin, end);
-        if (rewriteEndToken(beforeEnd)) {
-          begin.endToken = null;
-        }
-      }
+      rewriteLtEndGroupOpt(begin);
       beginStuff(begin);
       int count = 0;
       do {
         token = stuffParser(token.next);
         ++count;
       } while (optional(',', token.next));
-      if (end == null) {
-        if (rewriteEndToken(token)) {
-          begin.endToken = null;
-        }
-      }
-      token = token.next;
+      token = begin.endToken = ensureGt(token);
       endStuff(count, begin, token);
-      expect('>', token);
-      begin.endToken ??= token;
       return token;
     }
     handleNoStuff(next);
@@ -3232,8 +3192,24 @@ class Parser {
     return parseLiteralString(token);
   }
 
-  /// If the given [token] is a semi-colon, return it. Otherwise, report an
-  /// error, insert a synthetic semi-colon, and return the inserted semi-colon.
+  /// If the token after [token] is a '>', return it.
+  /// If the next token is a composite greater-than token such as '>>',
+  /// then replace that token with separate tokens, and return the first '>'.
+  /// Otherwise, report an error, insert a synthetic '>',
+  /// and return that newly inserted synthetic '>'.
+  Token ensureGt(Token token) {
+    Token next = token.next;
+    String value = next.stringValue;
+    if (value == '>') {
+      return next;
+    }
+    rewriteGtCompositeOrRecover(token, next, value);
+    return token.next;
+  }
+
+  /// If the token after [token] is a semi-colon, return it.
+  /// Otherwise, report an error, insert a synthetic semi-colon,
+  /// and return the inserted semi-colon.
   Token ensureSemicolon(Token token) {
     // TODO(danrubel): Once all expect(';'...) call sites have been converted
     // to use this method, remove similar semicolon recovery code
@@ -3249,6 +3225,36 @@ class Parser {
     reportRecoverableError(token.next, message);
     rewriter.insertTokenAfter(token, newToken);
     return newToken;
+  }
+
+  void rewriteGtCompositeOrRecover(Token token, Token next, String value) {
+    assert(value != '>');
+    Token replacement = new Token(TokenType.GT, next.charOffset);
+    if (identical(value, '>>')) {
+      replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+    } else if (identical(value, '>=')) {
+      replacement.next = new Token(TokenType.EQ, next.charOffset + 1);
+    } else if (identical(value, '>>=')) {
+      replacement.next = new Token(TokenType.GT, next.charOffset + 1);
+      replacement.next.next = new Token(TokenType.EQ, next.charOffset + 2);
+    } else {
+      // Recovery
+      rewriteAndRecover(token, fasta.templateExpectedToken.withArguments('>'),
+          new SyntheticToken(TokenType.GT, next.offset));
+      return;
+    }
+    rewriter.replaceTokenFollowing(token, replacement);
+  }
+
+  void rewriteLtEndGroupOpt(BeginToken beginToken) {
+    assert(optional('<', beginToken));
+    Token end = beginToken.endGroup;
+    String value = end?.stringValue;
+    if (value != null && value.length > 1) {
+      Token beforeEnd = previousToken(beginToken, end);
+      rewriteGtCompositeOrRecover(beforeEnd, end, value);
+      beginToken.endGroup = null;
+    }
   }
 
   /// Report the given token as unexpected and return the next token if the next

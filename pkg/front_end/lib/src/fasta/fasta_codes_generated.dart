@@ -1372,7 +1372,7 @@ const Template<Message Function(String string)> templateExpectedToken =
 const Code<Message Function(String string)> codeExpectedToken =
     const Code<Message Function(String string)>(
         "ExpectedToken", templateExpectedToken,
-        analyzerCode: "EXPECTED_TOKEN", dart2jsCode: "GENERIC");
+        analyzerCode: "EXPECTED_TOKEN", dart2jsCode: "*fatal*");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExpectedToken(String string) {

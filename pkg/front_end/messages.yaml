@@ -260,7 +260,7 @@ ExpectedString:
 ExpectedToken:
   template: "Expected to find '#string'."
   analyzerCode: EXPECTED_TOKEN
-  dart2jsCode: GENERIC
+  dart2jsCode: "*fatal*"
 
 ExpectedType:
   template: "Expected a type, but got '#lexeme'."
