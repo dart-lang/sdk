@@ -667,7 +667,9 @@ class ResolverTestCase extends EngineTestCase {
     options ??= defaultAnalysisOptions;
     if (enableNewAnalysisDriver) {
       if (previewDart2) {
-        (options as AnalysisOptionsImpl).useFastaParser = true;
+        (options as AnalysisOptionsImpl)
+          ..strongMode = true
+          ..useFastaParser = true;
       }
       DartSdk sdk = new MockSdk(resourceProvider: resourceProvider)
         ..context.analysisOptions = options;
