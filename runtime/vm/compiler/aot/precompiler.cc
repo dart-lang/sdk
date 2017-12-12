@@ -417,6 +417,7 @@ void Precompiler::DoCompileAll(
       // can be used. Also ensures lookup of entry points won't miss functions
       // because their class hasn't been finalized yet.
       FinalizeAllClasses();
+      ASSERT(Error::Handle(Z, T->sticky_error()).IsNull());
 
       ClassFinalizer::SortClasses();
       TypeRangeCache trc(this, T, I->class_table()->NumCids());
@@ -424,6 +425,7 @@ void Precompiler::DoCompileAll(
 
       // Precompile static initializers to compute result type information.
       PrecompileStaticInitializers();
+      ASSERT(Error::Handle(Z, T->sticky_error()).IsNull());
 
       // Precompile constructors to compute type information for final fields.
       ClassFinalizer::ClearAllCode();
@@ -526,6 +528,9 @@ void Precompiler::DoCompileAll(
 }
 
 static void CompileStaticInitializerIgnoreErrors(const Field& field) {
+  ASSERT(Error::Handle(Thread::Current()->zone(),
+                       Thread::Current()->sticky_error())
+             .IsNull());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     const Function& initializer =
@@ -538,7 +543,11 @@ static void CompileStaticInitializerIgnoreErrors(const Field& field) {
   } else {
     // Ignore compile-time errors here. If the field is actually used,
     // the error will be reported later during Iterate().
+    Thread::Current()->clear_sticky_error();
   }
+  ASSERT(Error::Handle(Thread::Current()->zone(),
+                       Thread::Current()->sticky_error())
+             .IsNull());
 }
 
 void Precompiler::PrecompileStaticInitializers() {
@@ -1419,6 +1428,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
+  ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
 
   ParsedFunction* parsed_function;
   // Check if this field is coming from the Kernel binary.
@@ -1433,7 +1443,12 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
                                         parsed_function,
                                         /* optimized = */ true);
-  helper.Compile(&pipeline);
+  if (!helper.Compile(&pipeline)) {
+    Error& error = Error::Handle(zone, thread->sticky_error());
+    ASSERT(!error.IsNull());
+    Jump(error);
+    UNREACHABLE();
+  }
 
   if (compute_type && field.is_final()) {
     intptr_t result_cid = pipeline.result_type().ToCid();
@@ -1454,6 +1469,8 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
     Disassembler::DisassembleCode(parsed_function->function(), code,
                                   /* optimized = */ true);
   }
+
+  ASSERT(Error::Handle(zone, thread->sticky_error()).IsNull());
   return parsed_function->function().raw();
 }
 

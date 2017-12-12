@@ -2517,6 +2517,7 @@ bool StreamingConstantEvaluator::IsCached(intptr_t offset) {
 
 Instance& StreamingConstantEvaluator::EvaluateExpression(intptr_t offset,
                                                          bool reset_position) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   if (!GetCachedConstant(offset, &result_)) {
     ASSERT(IsAllowedToEvaluate());
     intptr_t original_offset = builder_->ReaderOffset();
@@ -2784,12 +2785,16 @@ void StreamingConstantEvaluator::EvaluateStaticGet() {
   NameIndex target =
       builder_->ReadCanonicalNameReference();  // read target_reference.
 
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
+
   if (H.IsField(target)) {
     const Field& field = Field::Handle(Z, H.LookupFieldByKernelField(target));
     if (!field.is_const()) {
       H.ReportError(script_, position, "Not a constant field.");
     }
     if (field.StaticValue() == Object::transition_sentinel().raw()) {
+      builder_->InlineBailout(
+          "kernel::StreamingConstantEvaluator::EvaluateStaticGet::Cyclic");
       H.ReportError(script_, position, "Not a constant expression.");
     } else if (field.StaticValue() == Object::sentinel().raw()) {
       field.SetStaticValue(Object::transition_sentinel());
@@ -3634,6 +3639,7 @@ void StreamingFlowGraphBuilder::SetupDefaultParameterValues() {
 
 Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
     NameIndex canonical_name) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   Field& field =
       Field::ZoneHandle(Z, H.LookupFieldByKernelField(canonical_name));
   if (PeekTag() == kNullLiteral) {
@@ -3651,6 +3657,7 @@ Fragment StreamingFlowGraphBuilder::BuildFieldInitializer(
 
 Fragment StreamingFlowGraphBuilder::BuildInitializers(
     const Class& parent_class) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   Fragment instructions;
 
   // Start by getting the position of the constructors initializer.
@@ -4298,6 +4305,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
 }
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraph(intptr_t kernel_offset) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   const Function& function = parsed_function()->function();
 
   // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
@@ -6337,6 +6345,7 @@ Fragment StreamingFlowGraphBuilder::BuildDirectPropertySet(TokenPosition* p) {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildStaticGet(TokenPosition* p) {
+  ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
   intptr_t offset = ReaderOffset() - 1;  // Include the tag.
 
   TokenPosition position = ReadPosition();  // read position.
