@@ -347,28 +347,32 @@
           "name": "ddc sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddc sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "-rnone"
           ]
         }
       ]
@@ -413,28 +417,32 @@
           "name": "ddc sourcemap tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddc sourcemap stacktrace tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart",
+            "-rnone"
           ]
         },
         {
           "name": "ddk sourcemap stacktrace tests",
           "script": "out/xcodebuild/dart",
           "arguments": [
-            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart"
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart",
+            "-rnone"
           ]
         }
       ]
