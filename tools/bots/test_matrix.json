@@ -325,7 +325,6 @@
           "name": "ddc tests",
           "arguments": [
             "-cdartdevc",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -338,7 +337,6 @@
           "name": "ddc kernel tests",
           "arguments": [
             "-cdartdevk",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -392,7 +390,6 @@
           "name": "ddc tests",
           "arguments": [
             "-cdartdevc",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
@@ -406,7 +403,6 @@
           "name": "ddc kernel tests",
           "arguments": [
             "-cdartdevk",
-            "-rchrome",
             "--checked",
             "--strong",
             "--use-sdk",
