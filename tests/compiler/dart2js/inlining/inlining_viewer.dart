@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Helper program that shows the inferrer data on a dart program.
+/// Helper program that shows the inlining data on a dart program.
 
+import 'package:compiler/src/js_backend/backend.dart';
 import '../equivalence/show_helper.dart';
-import 'inference_test_helper.dart';
+import 'inlining_test.dart';
 
 main(List<String> args) async {
-  await show(args, computeMemberAstTypeMasks, computeMemberIrTypeMasks);
+  JavaScriptBackend.cacheCodegenImpactForTesting = true;
+  await show(args, computeMemberAstInlinings, computeMemberIrInlinings);
 }

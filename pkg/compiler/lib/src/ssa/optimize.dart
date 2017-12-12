@@ -10,7 +10,6 @@ import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../common_elements.dart' show CommonElements;
 import '../elements/entities.dart';
-import '../elements/resolution_types.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart';
@@ -1305,7 +1304,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         HInstruction selectTypeArgumentFromObjectCreation(int index)) {
       InterfaceType thisType = _closedWorld.dartTypes.getThisType(createdClass);
 
-      HInstruction instructionForTypeVariable(ResolutionTypeVariableType tv) {
+      HInstruction instructionForTypeVariable(TypeVariableType tv) {
         return selectTypeArgumentFromObjectCreation(
             thisType.typeArguments.indexOf(tv));
       }

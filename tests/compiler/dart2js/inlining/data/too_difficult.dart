@@ -24,6 +24,10 @@ main() {
   codeAfterReturn();
   multipleThrows();
   returnAndThrow();
+
+  throwClosure();
+  returnClosure();
+  closureInInitializer();
 }
 
 /*element: _multipleReturns:code after return*/
@@ -151,4 +155,29 @@ doLoop() {
     print(i);
     i++;
   } while (i < 10);
+}
+
+/*element: returnClosure:closure*/
+returnClosure() {
+  return /*[]*/ () {};
+}
+
+/*element: throwClosure:closure*/
+throwClosure() {
+  throw /*[]*/ () {};
+}
+
+class Class1 {
+  var f;
+
+  /*element: Class1.:closure*/
+  Class1() : f = (/*[]*/ () {}) {
+    print(f);
+  }
+}
+
+/*element: closureInInitializer:[]*/
+@NoInline()
+closureInInitializer() {
+  new Class1();
 }

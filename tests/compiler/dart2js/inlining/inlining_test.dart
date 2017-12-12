@@ -116,6 +116,9 @@ class InliningAstComputer extends AstDataExtractor
   @override
   String getTooDifficultReason(MemberEntity member) {
     if (member is MethodElement) {
+      if (member is ConstructorElement && member.isDefaultConstructor) {
+        return null;
+      }
       return ast.InlineWeeder.cannotBeInlinedReason(member.resolvedAst, null,
           enableUserAssertions: true);
     }
