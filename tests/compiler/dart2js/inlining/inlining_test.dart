@@ -14,6 +14,8 @@ import 'package:compiler/src/tree/nodes.dart' as ast;
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_backend_strategy.dart';
+import 'package:compiler/src/ssa/builder.dart' as ast;
+import 'package:compiler/src/ssa/builder_kernel.dart' as kernel;
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -26,7 +28,7 @@ main(List<String> args) {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(
         dataDir, computeMemberAstInlinings, computeMemberIrInlinings,
-        args: args);
+        args: args, skipForKernel: []);
   });
 }
 
@@ -48,17 +50,51 @@ void computeMemberAstInlinings(
 abstract class ComputeValueMixin<T> {
   JavaScriptBackend get backend;
 
+  ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor);
+
+  String getTooDifficultReason(MemberEntity member);
+
   String getMemberValue(MemberEntity member) {
-    StaticUse use = new StaticUse.inlining(member);
-    List<String> inlinedIn = <String>[];
-    backend.codegenImpactsForTesting
-        .forEach((MemberEntity member, WorldImpact impact) {
-      if (impact.staticUses.contains(use)) {
-        inlinedIn.add(member.name);
+    if (member is FunctionEntity) {
+      ConstructorBodyEntity constructorBody;
+      if (member is ConstructorEntity && member.isGenerativeConstructor) {
+        constructorBody = getConstructorBody(member);
       }
-    });
-    inlinedIn.sort();
-    return '[${inlinedIn.join(',')}]';
+      List<String> inlinedIn = <String>[];
+      backend.codegenImpactsForTesting
+          .forEach((MemberEntity user, WorldImpact impact) {
+        for (StaticUse use in impact.staticUses) {
+          if (use.kind == StaticUseKind.INLINING) {
+            if (use.element == member) {
+              if (use.type != null) {
+                inlinedIn.add('${user.name}:${use.type}');
+              } else {
+                inlinedIn.add(user.name);
+              }
+            } else if (use.element == constructorBody) {
+              if (use.type != null) {
+                inlinedIn.add('${user.name}+:${use.type}');
+              } else {
+                inlinedIn.add('${user.name}+');
+              }
+            }
+          }
+        }
+      });
+      StringBuffer sb = new StringBuffer();
+      String tooDifficultReason = getTooDifficultReason(member);
+      inlinedIn.sort();
+      if (tooDifficultReason != null) {
+        sb.write(tooDifficultReason);
+        if (inlinedIn.isNotEmpty) {
+          sb.write(',[${inlinedIn.join(',')}]');
+        }
+      } else {
+        sb.write('[${inlinedIn.join(',')}]');
+      }
+      return sb.toString();
+    }
+    return null;
   }
 }
 
@@ -70,6 +106,21 @@ class InliningAstComputer extends AstDataExtractor
   InliningAstComputer(DiagnosticReporter reporter,
       Map<Id, ActualData> actualMap, ResolvedAst resolvedAst, this.backend)
       : super(reporter, actualMap, resolvedAst);
+
+  @override
+  ConstructorBodyEntity getConstructorBody(
+      covariant ConstructorElement constructor) {
+    return constructor.enclosingClass.lookupConstructorBody(constructor.name);
+  }
+
+  @override
+  String getTooDifficultReason(MemberEntity member) {
+    if (member is MethodElement) {
+      return ast.InlineWeeder.cannotBeInlinedReason(member.resolvedAst, null,
+          enableUserAssertions: true);
+    }
+    return null;
+  }
 
   @override
   String computeElementValue(Id id, AstElement element) {
@@ -127,6 +178,18 @@ class InliningIrComputer extends IrDataExtractor
       this.backend,
       this._closureDataLookup)
       : super(reporter, actualMap);
+
+  ConstructorBodyEntity getConstructorBody(ConstructorEntity constructor) {
+    return _elementMap
+        .getConstructorBody(_elementMap.getMemberDefinition(constructor).node);
+  }
+
+  @override
+  String getTooDifficultReason(MemberEntity member) {
+    if (member is! FunctionEntity) return null;
+    return kernel.InlineWeeder.cannotBeInlinedReason(_elementMap, member, null,
+        enableUserAssertions: true);
+  }
 
   @override
   String computeMemberValue(Id id, ir.Member node) {

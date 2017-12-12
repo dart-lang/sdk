@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:gardening/src/results/configurations.dart';
-import 'package:gardening/src/results/result_models.dart' as models;
+import 'package:gardening/src/results/result_json_models.dart' as models;
 import 'package:gardening/src/results/testpy_wrapper.dart';
 
 /// Helper function to add all standard arguments to the [argParser].

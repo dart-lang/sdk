@@ -7,7 +7,7 @@ static method test() → dynamic {
   core::int i = 1;
   core::Object o = 1;
   () → core::num a = () → core::int => i;
-  () → core::num b = (() → core::Object => o) as{TypeError} () → core::num;
+  () → core::num b = () → core::num => o as{TypeError} core::num;
   () → core::num c = () → core::int {
     return i;
   };

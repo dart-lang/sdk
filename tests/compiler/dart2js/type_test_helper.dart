@@ -14,7 +14,8 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/elements.dart'
-    show Element, MemberElement, ClassElement, LibraryElement, TypedefElement;
+    show ClassElement, LibraryElement, TypedefElement;
+import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'compiler_helper.dart' as mock;
 import 'memory_compiler.dart' as memory;
@@ -39,8 +40,6 @@ class TypeEnvironment {
 
   Resolution get resolution => compiler.resolution;
 
-  Types get types => resolution.types;
-
   static Future<TypeEnvironment> create(String source,
       {CompileMode compileMode: CompileMode.mock,
       bool useDillCompiler: false,
@@ -48,7 +47,8 @@ class TypeEnvironment {
       bool expectNoWarningsOrErrors: false,
       bool stopAfterTypeInference: false,
       String mainSource,
-      bool testBackendWorld: false}) async {
+      bool testBackendWorld: false,
+      Map<String, String> fieldTypeMap: const <String, String>{}}) async {
     Uri uri;
     Compiler compiler;
     if (mainSource != null) {
@@ -128,13 +128,40 @@ class TypeEnvironment {
     }
   }
 
-  Element getElement(String name) {
-    LibraryElement mainApp = elementEnvironment.mainLibrary;
-    dynamic element = mainApp.find(name);
-    Expect.isNotNull(element);
-    if (element.isClass) {
+  CommonElements get commonElements {
+    if (testBackendWorld) {
+      return compiler.backendClosedWorldForTesting.commonElements;
+    } else {
+      return compiler.frontendStrategy.commonElements;
+    }
+  }
+
+  DartTypes get types {
+    if (resolution != null) {
+      return resolution.types;
+    } else {
+      if (testBackendWorld) {
+        return compiler.backendClosedWorldForTesting.dartTypes;
+      } else {
+        KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+        return frontendStrategy.elementMap.types;
+      }
+    }
+  }
+
+  Entity getElement(String name) {
+    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+    dynamic element = elementEnvironment.lookupLibraryMember(mainLibrary, name);
+    element ??= elementEnvironment.lookupClass(mainLibrary, name);
+    element ??=
+        elementEnvironment.lookupClass(commonElements.coreLibrary, name);
+    if (element == null && mainLibrary is LibraryElement) {
+      element = mainLibrary.find(name);
+    }
+    Expect.isNotNull(element, "No element named '$name' found.");
+    if (element is ClassElement) {
       element.ensureResolved(compiler.resolution);
-    } else if (element.isTypedef) {
+    } else if (element is TypedefElement) {
       element.computeType(compiler.resolution);
     }
     return element;
@@ -143,44 +170,78 @@ class TypeEnvironment {
   ClassEntity getClass(String name) {
     LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
     ClassEntity element = elementEnvironment.lookupClass(mainLibrary, name);
-    Expect.isNotNull(element);
+    Expect.isNotNull(element, "No class named '$name' found.");
     if (element is ClassElement) {
       element.ensureResolved(compiler.resolution);
     }
     return element;
   }
 
-  ResolutionDartType getElementType(String name) {
+  DartType getElementType(String name) {
     dynamic element = getElement(name);
-    return element.computeType(compiler.resolution);
+    if (element is FieldEntity) {
+      return elementEnvironment.getFieldType(element);
+    } else if (element is FunctionEntity) {
+      return elementEnvironment.getFunctionType(element);
+    } else if (element is ClassEntity) {
+      return elementEnvironment.getThisType(element);
+    } else {
+      /// ignore: undefined_method
+      return element.computeType(compiler.resolution);
+    }
   }
 
-  ResolutionDartType operator [](String name) {
-    if (name == 'dynamic') return const ResolutionDynamicType();
-    if (name == 'void') return const ResolutionVoidType();
+  DartType operator [](String name) {
+    if (name == 'dynamic') {
+      if (resolution != null) {
+        return const ResolutionDynamicType();
+      } else {
+        return const DynamicType();
+      }
+    }
+    if (name == 'void') {
+      if (resolution != null) {
+        return const ResolutionVoidType();
+      } else {
+        return const VoidType();
+      }
+    }
     return getElementType(name);
   }
 
-  ResolutionDartType getMemberType(ClassElement element, String name) {
-    MemberElement member = element.localLookup(name);
-    return member.computeType(compiler.resolution);
+  DartType getMemberType(ClassEntity cls, String name) {
+    MemberEntity member = elementEnvironment.lookupLocalClassMember(cls, name);
+    if (member is FieldEntity) {
+      return elementEnvironment.getFieldType(member);
+    } else if (member is FunctionEntity) {
+      return elementEnvironment.getFunctionType(member);
+    }
+    throw 'Unexpected member: $member';
   }
 
-  bool isSubtype(ResolutionDartType T, ResolutionDartType S) {
+  DartType getFieldType(String name) {
+    LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
+    FieldEntity field =
+        elementEnvironment.lookupLibraryMember(mainLibrary, name);
+    Expect.isNotNull(field);
+    return elementEnvironment.getFieldType(field);
+  }
+
+  bool isSubtype(DartType T, DartType S) {
     return types.isSubtype(T, S);
   }
 
   bool isMoreSpecific(ResolutionDartType T, ResolutionDartType S) {
-    return types.isMoreSpecific(T, S);
+    return (types as Types).isMoreSpecific(T, S);
   }
 
   ResolutionDartType computeLeastUpperBound(
       ResolutionDartType T, ResolutionDartType S) {
-    return types.computeLeastUpperBound(T, S);
+    return (types as Types).computeLeastUpperBound(T, S);
   }
 
   ResolutionDartType flatten(ResolutionDartType T) {
-    return types.flatten(T);
+    return (types as Types).flatten(T);
   }
 
   ResolutionFunctionType functionType(
@@ -207,4 +268,54 @@ class TypeEnvironment {
       return compiler.resolutionWorldBuilder.closedWorldForTesting;
     }
   }
+}
+
+/// Data used to create a function type either as method declaration or a
+/// typedef declaration.
+class FunctionTypeData {
+  final String returnType;
+  final String name;
+  final String parameters;
+
+  const FunctionTypeData(this.returnType, this.name, this.parameters);
+
+  String toString() => '$returnType $name$parameters';
+}
+
+/// Return source code that declares the function types in [dataList] as
+/// method declarations of the form:
+///
+///     $returnType $name$parameters => null;
+String createMethods(List<FunctionTypeData> dataList,
+    {String additionalData: '', String prefix: ''}) {
+  StringBuffer sb = new StringBuffer();
+  for (FunctionTypeData data in dataList) {
+    sb.writeln(
+        '${data.returnType} $prefix${data.name}${data.parameters} => null;');
+  }
+  sb.write(additionalData);
+  return sb.toString();
+}
+
+/// Return source code that declares the function types in [dataList] as
+/// typedefs of the form:
+///
+///     typedef fx = $returnType Function$parameters;
+///     fx $name;
+///
+/// where a field using the typedef is add to make the type accessible by name.
+String createTypedefs(List<FunctionTypeData> dataList,
+    {String additionalData: '', String prefix: ''}) {
+  StringBuffer sb = new StringBuffer();
+  for (int index = 0; index < dataList.length; index++) {
+    FunctionTypeData data = dataList[index];
+    sb.writeln(
+        'typedef f$index = ${data.returnType} Function${data.parameters};');
+  }
+  for (int index = 0; index < dataList.length; index++) {
+    FunctionTypeData data = dataList[index];
+    sb.writeln('f$index $prefix${data.name};');
+  }
+  sb.write(additionalData);
+  return sb.toString();
 }

@@ -707,7 +707,7 @@ _callDartFunctionFastCaptureThis(callback, self, List arguments) {
   return Function.apply(callback, [self]..addAll(arguments));
 }
 
-Function/*=F*/ allowInterop/*<F extends Function>*/(Function/*=F*/ f) {
+F allowInterop<F extends Function>(F f) {
   if (JS('bool', 'typeof(#) == "function"', f)) {
     // Already supports interop, just use the existing function.
     return f;

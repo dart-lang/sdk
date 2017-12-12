@@ -29,6 +29,7 @@ convert:third_party/pkg/convert/lib
 crypto:third_party/pkg/crypto/lib
 csslib:third_party/pkg/csslib/lib
 dart2js_info:third_party/pkg/dart2js_info/lib
+dart_internal:pkg/dart_internal/lib
 dart_messages:pkg/dart_messages/lib
 dart_style:third_party/pkg_tested/dart_style/lib
 dartdoc:third_party/pkg/dartdoc/lib

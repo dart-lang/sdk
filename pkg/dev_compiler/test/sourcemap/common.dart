@@ -64,10 +64,9 @@ class StepWithD8 extends Step<Data, Data, ChainContext> {
   String get name => "step";
 
   Future<Result<Data>> run(Data data, ChainContext context) async {
-    var outWrapperPathRelative =
-        path.relative(path.join(data.outDir.path, "wrapper.js"));
-    ProcessResult runResult = runD8AndStep(
-        data.outDir.path, data.code, ['--module', outWrapperPathRelative]);
+    var outWrapperPath = path.join(data.outDir.path, "wrapper.js");
+    ProcessResult runResult =
+        runD8AndStep(data.outDir.path, data.code, ['--module', outWrapperPath]);
     data.d8Output = runResult.stdout.split("\n");
     return pass(data);
   }
@@ -98,4 +97,8 @@ File findInOutDir(String relative) {
 
 String get dartExecutable {
   return Platform.resolvedExecutable;
+}
+
+String uriPathForwardSlashed(Uri uri) {
+  return uri.toFilePath().replaceAll("\\", "/");
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 main() {
+  // ignore: unused_local_variable
   Foo foo = new Foo.named();
 }
 

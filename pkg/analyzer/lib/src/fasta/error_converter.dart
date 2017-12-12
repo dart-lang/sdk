@@ -271,6 +271,30 @@ class FastaErrorReporter {
             offset,
             length);
         return;
+      case "INVALID_CAST_FUNCTION":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_FUNCTION, offset, length);
+        return;
+      case "INVALID_CAST_FUNCTION_EXPR":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_FUNCTION_EXPR, offset, length);
+        return;
+      case "INVALID_CAST_LITERAL_LIST":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_LITERAL_LIST, offset, length);
+        return;
+      case "INVALID_CAST_LITERAL_MAP":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_LITERAL_MAP, offset, length);
+        return;
+      case "INVALID_CAST_METHOD":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_METHOD, offset, length);
+        return;
+      case "INVALID_CAST_NEW_EXPR":
+        errorReporter?.reportErrorForOffset(
+            StrongModeCode.INVALID_CAST_NEW_EXPR, offset, length);
+        return;
       case "INVALID_MODIFIER_ON_SETTER":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, offset, length);

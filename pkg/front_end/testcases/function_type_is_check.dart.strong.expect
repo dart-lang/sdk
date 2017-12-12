@@ -12,5 +12,5 @@ static method test(dynamic f) → dynamic {
     return 100;
 }
 static method main() → dynamic {
-  exp::Expect::equals(111, self::test(() → dynamic => null).+(self::test((core::Object o) → dynamic => null)).+(self::test((core::Object o, core::StackTrace t) → dynamic => null)));
+  exp::Expect::equals(111, self::test(() → core::Null => null).+(self::test((core::Object o) → core::Null => null)).+(self::test((core::Object o, core::StackTrace t) → core::Null => null)));
 }

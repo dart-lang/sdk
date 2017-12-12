@@ -57,9 +57,6 @@ import 'package:front_end/src/api_prototype/physical_file_system.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/byte_store/protected_file_byte_store.dart';
 import 'package:front_end/src/fasta/uri_translator.dart';
-import 'package:kernel/target/flutter.dart';
-import 'package:kernel/target/targets.dart';
-import 'package:kernel/target/vm.dart';
 
 import 'perf_common.dart';
 
@@ -77,16 +74,13 @@ main(List<String> args) async {
       parse(JSON.decode(new File.fromUri(editsUri).readAsStringSync()));
 
   var overlayFs = new OverlayFileSystem();
-  var targetFlags = new TargetFlags(strongMode: options['mode'] == 'strong');
+  bool strongMode = options['mode'] == 'strong';
   var compilerOptions = new CompilerOptions()
     ..fileSystem = overlayFs
-    ..strongMode = (options['mode'] == 'strong')
-    ..reportMessages = true
-    ..onError = onErrorHandler(options['mode'] == 'strong')
-    ..target = options['target'] == 'flutter'
-        ? new FlutterTarget(targetFlags)
-        : new VmTarget(targetFlags);
-
+    ..strongMode = strongMode
+    ..onError = onErrorHandler(strongMode)
+    ..target = createTarget(
+        isFlutter: options['target'] == 'flutter', strongMode: strongMode);
   if (options['sdk-summary'] != null) {
     compilerOptions.sdkSummary = _resolveOverlayUri(options["sdk-summary"]);
   }

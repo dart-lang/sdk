@@ -2,16 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library tests.html.mirrors_2_test;
-
+import 'dart:html';
 @MirrorsUsed(targets: "tests.html.mirrors_2_test")
 import 'dart:mirrors';
-import 'dart:html';
 
 import 'package:expect/expect.dart' show NoInline;
 import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 /// Regression test for http://dartbug/28196
 ///

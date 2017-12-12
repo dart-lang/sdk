@@ -220,7 +220,8 @@ abstract class AbstractParserTestCase implements ParserTestHelpers {
 
   SimpleIdentifier parseSimpleIdentifier(String code);
 
-  Statement parseStatement(String source, [bool enableLazyAssignmentOperators]);
+  Statement parseStatement(String source,
+      {bool enableLazyAssignmentOperators, int expectedEndOffset});
 
   Expression parseStringLiteral(String code);
 
@@ -9455,7 +9456,7 @@ class ParserTestCase extends EngineTestCase
    * is `true`, then lazy assignment operators should be enabled.
    */
   Statement parseStatement(String source,
-      [bool enableLazyAssignmentOperators]) {
+      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
     listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
@@ -10349,15 +10350,26 @@ class C {
   }
 
   void test_incompleteLocalVariable_atTheEndOfBlock() {
-    Statement statement = parseStatement('String v }');
+    Statement statement = parseStatement('String v }', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
 
+  void test_incompleteLocalVariable_atTheEndOfBlock_modifierOnly() {
+    Statement statement = parseStatement('final }', expectedEndOffset: 6);
+    listener.assertErrors([
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 1),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 6, 1)
+    ]);
+    expect(statement, new isInstanceOf<VariableDeclarationStatement>());
+    expect(statement.toSource(), 'final ;');
+  }
+
   void test_incompleteLocalVariable_beforeIdentifier() {
-    Statement statement = parseStatement('String v String v2;');
+    Statement statement =
+        parseStatement('String v String v2;', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10365,7 +10377,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeKeyword() {
-    Statement statement = parseStatement('String v if (true) {}');
+    Statement statement =
+        parseStatement('String v if (true) {}', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 2)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10373,7 +10386,7 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeNextBlock() {
-    Statement statement = parseStatement('String v {}');
+    Statement statement = parseStatement('String v {}', expectedEndOffset: 9);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10381,7 +10394,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_parameterizedType() {
-    Statement statement = parseStatement('List<String> v {}');
+    Statement statement =
+        parseStatement('List<String> v {}', expectedEndOffset: 15);
     listener
         .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 15, 1)]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
@@ -10573,18 +10587,26 @@ class C<K {
   }
 
   void test_missing_commaInArgumentList() {
-    parseExpression("f(x: 1 y: 2)",
+    MethodInvocation expression = parseExpression("f(x: 1 y: 2)",
         codes: usingFastaParser
             ? [ParserErrorCode.UNEXPECTED_TOKEN]
             : [ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<Expression> arguments = expression.argumentList.arguments;
+    expect(arguments, hasLength(2));
   }
 
   void test_missingComma_beforeNamedArgument() {
     createParser('(a b: c)');
     ArgumentList argumentList = parser.parseArgumentList();
     expectNotNullIfNoErrors(argumentList);
-    listener
-        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 3, 1)]);
+    listener.assertErrors([
+      expectedError(
+          usingFastaParser
+              ? ParserErrorCode.UNEXPECTED_TOKEN
+              : ParserErrorCode.EXPECTED_TOKEN,
+          3,
+          1)
+    ]);
     expect(argumentList.arguments, hasLength(2));
   }
 
@@ -12611,9 +12633,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_block() {
-    createParser('/** */ class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/** */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);
@@ -12622,9 +12644,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_block_withReference() {
-    createParser('/** [a] */ class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/** [a] */ class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);
@@ -12638,9 +12660,9 @@ class C {}
   }
 
   void test_parseDocumentationComment_endOfLine() {
-    createParser('/// \n/// \n class');
-    Comment comment = parser
-        .parseDocumentationComment(parser.parseDocumentationCommentTokens());
+    createParser('/// \n/// \n class C {}');
+    CompilationUnit unit = parser.parseCompilationUnit2();
+    Comment comment = unit.declarations[0].documentationComment;
     expectNotNullIfNoErrors(comment);
     listener.assertNoErrors();
     expect(comment.isBlock, isFalse);
@@ -14455,51 +14477,7 @@ abstract class StatementParserTestMixin implements AbstractParserTestCase {
 }
 
 @reflectiveTest
-class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {
-  void test_parseDirectives_complete() {
-    CompilationUnit unit =
-        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_empty() {
-    CompilationUnit unit = parseDirectives("");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_mixed() {
-    CompilationUnit unit =
-        parseDirectives("library l; class A {} part 'foo.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_multiple() {
-    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(2));
-  }
-
-  void test_parseDirectives_script() {
-    CompilationUnit unit = parseDirectives("#! /bin/dart");
-    expect(unit.scriptTag, isNotNull);
-    expect(unit.directives, hasLength(0));
-  }
-
-  void test_parseDirectives_single() {
-    CompilationUnit unit = parseDirectives("library l;");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(1));
-  }
-
-  void test_parseDirectives_topLevelDeclaration() {
-    CompilationUnit unit = parseDirectives("class A {}");
-    expect(unit.scriptTag, isNull);
-    expect(unit.directives, hasLength(0));
-  }
-}
+class TopLevelParserTest extends ParserTestCase with TopLevelParserTestMixin {}
 
 /**
  * Tests which exercise the parser using a complete compilation unit or
@@ -15590,6 +15568,50 @@ Function(int, String) v;
     expect(partOfDirective.ofKeyword, isNotNull);
     expect(partOfDirective.libraryName, isNotNull);
     expect(partOfDirective.semicolon, isNotNull);
+  }
+
+  void test_parseDirectives_complete() {
+    CompilationUnit unit =
+        parseDirectives("#! /bin/dart\nlibrary l;\nclass A {}");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_empty() {
+    CompilationUnit unit = parseDirectives("");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_mixed() {
+    CompilationUnit unit =
+        parseDirectives("library l; class A {} part 'foo.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_multiple() {
+    CompilationUnit unit = parseDirectives("library l;\npart 'a.dart';");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(2));
+  }
+
+  void test_parseDirectives_script() {
+    CompilationUnit unit = parseDirectives("#! /bin/dart");
+    expect(unit.scriptTag, isNotNull);
+    expect(unit.directives, hasLength(0));
+  }
+
+  void test_parseDirectives_single() {
+    CompilationUnit unit = parseDirectives("library l;");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(1));
+  }
+
+  void test_parseDirectives_topLevelDeclaration() {
+    CompilationUnit unit = parseDirectives("class A {}");
+    expect(unit.scriptTag, isNull);
+    expect(unit.directives, hasLength(0));
   }
 
   void test_parseEnumDeclaration_one() {

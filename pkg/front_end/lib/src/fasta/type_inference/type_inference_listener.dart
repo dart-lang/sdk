@@ -148,6 +148,10 @@ class TypeInferenceListener
   void cascadeExpressionExit(Let expression, DartType inferredType) =>
       genericExpressionExit("cascade", expression, inferredType);
 
+  void catchStatementEnter(Catch statement) {}
+
+  void catchStatementExit(Catch statement) {}
+
   bool conditionalExpressionEnter(
           ConditionalExpression expression, DartType typeContext) =>
       genericExpressionEnter("conditionalExpression", expression, typeContext);
@@ -298,12 +302,6 @@ class TypeInferenceListener
           LogicalExpression expression, DartType inferredType) =>
       genericExpressionExit("logicalExpression", expression, inferredType);
 
-  void loopAssignmentStatementEnter(ExpressionStatement statement) =>
-      genericStatementEnter('loopAssignmentStatement', statement);
-
-  void loopAssignmentStatementExit(ExpressionStatement statement) =>
-      genericStatementExit('loopAssignmentStatement', statement);
-
   bool mapLiteralEnter(MapLiteral expression, DartType typeContext) =>
       genericExpressionEnter("mapLiteral", expression, typeContext);
 
@@ -415,8 +413,8 @@ class TypeInferenceListener
   void staticGetExit(StaticGet expression, DartType inferredType) =>
       genericExpressionExit("staticGet", expression, inferredType);
 
-  bool staticInvocationEnter(
-          StaticInvocation expression, DartType typeContext) =>
+  bool staticInvocationEnter(StaticInvocation expression, int targetOffset,
+          Class targetClass, DartType typeContext) =>
       genericExpressionEnter("staticInvocation", expression, typeContext);
 
   void staticInvocationExit(

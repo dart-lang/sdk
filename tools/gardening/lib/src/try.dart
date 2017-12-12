@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 /// [Try] is similar to Haskell monad, where
 /// a computation may throw an exception.
 /// There is no checking of passing null into

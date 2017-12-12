@@ -121,11 +121,54 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitCascadeExpression(CascadeExpression node) {
+    visitNode(node);
+    node.staticType = node.target.staticType;
+  }
+
+  @override
+  void visitCatchClause(CatchClause node) {
+    DartType guardType = _getTypeFor(node.onKeyword ?? node.catchKeyword);
+    if (node.exceptionType != null) {
+      applyToTypeAnnotation(guardType, node.exceptionType);
+    }
+
+    SimpleIdentifier exception = node.exceptionParameter;
+    if (exception != null) {
+      LocalVariableElementImpl element = _getDeclarationFor(exception);
+      DartType type = _getTypeFor(exception);
+      element.type = type;
+      exception.staticElement = element;
+      exception.staticType = type;
+    }
+
+    SimpleIdentifier stackTrace = node.stackTraceParameter;
+    if (stackTrace != null) {
+      LocalVariableElementImpl element = _getDeclarationFor(stackTrace);
+      DartType type = _getTypeFor(stackTrace);
+      element.type = type;
+      stackTrace.staticElement = element;
+      stackTrace.staticType = type;
+    }
+
+    node.body.accept(this);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     node.condition.accept(this);
     node.thenExpression.accept(this);
     node.elseExpression.accept(this);
     node.staticType = _getTypeFor(node.question);
+  }
+
+  @override
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    FieldElement fieldElement = _getReferenceFor(node.equals);
+    node.fieldName.staticElement = fieldElement;
+    node.fieldName.staticType = fieldElement.type;
+
+    node.expression.accept(this);
   }
 
   @override
@@ -216,6 +259,27 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFunctionExpression(FunctionExpression node) {
+    FormalParameterList parameterList = node.parameters;
+
+    FunctionElementImpl element = _getDeclarationFor(node);
+    _typeContext.enterLocalFunction(element);
+
+    // Associate the elements with the nodes.
+    if (element != null) {
+      node.element = element;
+      node.staticType = element.type;
+      _applyParameters(element.parameters, parameterList.parameters);
+    }
+
+    // Apply resolution to default values.
+    parameterList.accept(this);
+
+    node.body.accept(this);
+    _typeContext.exitLocalFunction(element);
+  }
+
+  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.function.accept(this);
     // TODO(brianwilkerson) Visit node.typeArguments.
@@ -246,8 +310,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    node.argumentList?.accept(this);
-
     ConstructorName constructorName = node.constructorName;
 
     DartType type = _getTypeFor(constructorName);
@@ -277,6 +339,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       constructorName.name.staticElement = element;
     }
 
+    node.argumentList?.accept(this);
     _associateArgumentsWithParameters(element?.parameters, node.argumentList);
   }
 
@@ -300,7 +363,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
   @override
   void visitMapLiteral(MapLiteral node) {
     node.entries.accept(this);
-    DartType type = _getTypeFor(node);
+    DartType type = _getTypeFor(node.constKeyword ?? node.leftBracket);
     node.staticType = type;
     if (node.typeArguments != null) {
       _applyTypeArgumentsToList(type, node.typeArguments.arguments);
@@ -442,6 +505,22 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       }
     }
     node.staticType = _typeContext.stringType;
+  }
+
+  @override
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    SimpleIdentifier constructorName = node.constructorName;
+    var superElement = _typeContext.enclosingClassElement.supertype.element;
+    if (constructorName == null) {
+      node.staticElement = superElement.unnamedConstructor;
+    } else {
+      String name = constructorName.name;
+      var superConstructor = superElement.getNamedConstructor(name);
+      node.staticElement = superConstructor;
+      constructorName.staticElement = superConstructor;
+    }
+
+    node.argumentList.accept(this);
   }
 
   @override
@@ -652,7 +731,14 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     } else if (typeAnnotation is TypeNameImpl) {
       typeAnnotation.type = type;
       SimpleIdentifier name = nameForElement(typeAnnotation.name);
-      name.staticElement = type.element;
+
+      Element typeElement = type.element;
+      if (typeElement is GenericFunctionTypeElement &&
+          typeElement.enclosingElement is GenericTypeAliasElement) {
+        typeElement = typeElement.enclosingElement;
+      }
+      name.staticElement = typeElement;
+
       name.staticType = type;
     }
     if (typeAnnotation is NamedType) {

@@ -21,7 +21,7 @@
 ///
 /// and:
 ///
-///     [ $compiler == dart2js && $dart2js_with_kernel && $checked ]
+///     [ $compiler == dart2js && $checked && $dart2js_with_kernel ]
 library compiler.status_files.update_from_log;
 
 import 'dart:io';
@@ -36,7 +36,7 @@ final dart2jsConfigurations = {
   'fast-startup':
       r'[ $compiler == dart2js && $dart2js_with_kernel && $fast_startup ]',
   'checked-mode':
-      r'[ $compiler == dart2js && $dart2js_with_kernel && $checked ]',
+      r'[ $compiler == dart2js && $checked && $dart2js_with_kernel ]',
 };
 
 final dart2jsStatusFiles = {

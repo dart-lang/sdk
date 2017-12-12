@@ -1,78 +1,77 @@
-# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
-packages/*: Skip # Skip packages folder
-
-analyze_test: Slow, Pass
-
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 analyze_dart_test: Slow, Pass
-
+analyze_test: Slow, Pass
+async_await_syntax_test: Pass # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
+backend_dart/opt_cyclic_redundant_phi_test: Fail # Issue 20159
+boolified_operator_test: Fail # Issue 8001
+check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
 compile_with_empty_libraries_test: Fail # Issue 24223
-
+equivalence/id_equivalence_test: Pass, Slow
+gvn_dynamic_field_get_test: Fail # Issue 18519
 inference/inference_test: Slow, Pass
 inference/swarm_test: Slow, Pass
-
+inlining/inlining_test: Slow, Pass
 kernel/*: Slow, Pass
-
-boolified_operator_test: Fail # Issue 8001
-
+logical_expression_test: Fail # Issue 17027
+mirrors/library_exports_hidden_test: Fail
+mirrors/library_exports_shown_test: Fail
+mirrors/library_imports_hidden_test: Fail
+mirrors/library_imports_prefixed_show_hide_test: Fail
+mirrors/library_imports_prefixed_test: Fail
+mirrors/library_imports_shown_test: Fail
+packages/*: Skip # Skip packages folder
+patch_test/bug: RuntimeError # Issue 21132
+quarantined/http_test: Pass, Slow
 serialization/analysis1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/analysis5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/compilation_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/compilation0_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/compilation1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/compilation4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/compilation3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
+serialization/compilation4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/compilation5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
+serialization/compilation_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/library_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-serialization/model_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model3_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model4_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/model5_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
+serialization/model_1_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
 serialization/native_data_test: Skip # Skip most serialization tests. These are very slow and are no longer a priority.
-
-async_await_syntax_test: Pass # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
-
 simple_function_subtype_test: Fail # simple_function_subtype_test is temporarily(?) disabled due to new method for building function type tests.
-
-simple_inferrer_const_closure_test: Fail # Issue 16507
 simple_inferrer_const_closure2_test: Fail # Issue 16507
+simple_inferrer_const_closure_test: Fail # Issue 16507
 simple_inferrer_global_field_closure_test: Fail # Issue 16507
-
-logical_expression_test: Fail # Issue 17027
-
-gvn_dynamic_field_get_test: Fail # Issue 18519
-
-backend_dart/opt_cyclic_redundant_phi_test: Fail # Issue 20159
-
-mirrors/library_exports_hidden_test: Fail
-mirrors/library_exports_shown_test: Fail
-mirrors/library_imports_hidden_test: Fail
-mirrors/library_imports_prefixed_test: Fail
-mirrors/library_imports_prefixed_show_hide_test: Fail
-mirrors/library_imports_shown_test: Fail
-
-patch_test/bug: RuntimeError # Issue 21132
-
-quarantined/http_test: Pass, Slow
-
-sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_invokes_test: Pass, Slow
+sourcemaps/source_mapping_operators_test: Pass, Slow
 sourcemaps/source_mapping_test: Pass, Slow
-
-check_elements_invariants_test: Skip # Times out even with Slow marker. Slow due to inlining in the CPS backend
-
+subtype_test: Slow, Pass
 uri_retention_test: Fail # Issue 26504
-equivalence/id_equivalence_test: Pass, Slow
 
-[ ! $checked ]
-exit_code_test: Skip # This tests requires checked mode.
-serialization*: Slow, Pass
-jsinterop/declaration_test: Slow, Pass
+[ $mode == debug ]
+analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
+analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
+analyze_unused_dart2js_test: Pass, Slow
+check_elements_invariants_test: Skip # Slow and only needs to be run in one configuration
+check_members_test: Pass, Slow
+dart2js_batch_test: Pass, Slow
+deferred_load_graph_segmentation_test: Pass, Slow
+deferred_load_mapping_test: Pass, Slow
+deferred_mirrors_test: Pass, Slow
+duplicate_library_test: Pass, Slow
+exit_code_test: Pass, Slow
+import_mirrors_test: Pass, Slow
+in_user_code_test: Pass, Slow
+message_kind_test: Pass, Slow
+mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
+show_package_warnings_test: Pass, Slow
+source_map_pub_build_validity_test: Pass, Slow
+
+[ $system == linux ]
+dart2js_batch2_test: Pass, RuntimeError # Issue 29021
 
 [ $checked ]
 analyze_dart2js_helpers_test: Pass, Slow
@@ -85,41 +84,22 @@ exit_code_test: Pass, Slow
 import_mirrors_test: Slow, Pass
 interop_anonymous_unreachable_test: Pass, Slow
 jsinterop/declaration_test: Slow, Pass
-mirror_final_field_inferrer2_test: Pass, Slow
-source_map_pub_build_validity_test: Pass, Slow
-serialization*: Slow, Pass
-uri_retention_test: Pass, Slow
-value_range_test: Pass, Slow
 jsinterop/world_test: Pass, Slow
-sourcemaps/stacktrace_test: Pass, Slow
 kernel/visitor_test: Pass, Slow
+mirror_final_field_inferrer2_test: Pass, Slow
 output_type_test: Pass, Slow
 preserve_uris_test: Pass, Slow
-
-[ $mode == debug ]
-check_elements_invariants_test: Skip # Slow and only needs to be run in one configuration
-
-mirror_final_field_inferrer2_test: Crash, Pass, Slow # Issue 15581
-
-analyze_unused_dart2js_test: Pass, Slow
-check_members_test: Pass, Slow
-dart2js_batch_test: Pass, Slow
-deferred_load_graph_segmentation_test: Pass, Slow
-deferred_load_mapping_test: Pass, Slow
-deferred_mirrors_test: Pass, Slow
-duplicate_library_test: Pass, Slow
-exit_code_test: Pass, Slow
-import_mirrors_test: Pass, Slow
-in_user_code_test: Pass, Slow
-message_kind_test: Pass, Slow
-show_package_warnings_test: Pass, Slow
+serialization*: Slow, Pass
 source_map_pub_build_validity_test: Pass, Slow
+sourcemaps/stacktrace_test: Pass, Slow
+uri_retention_test: Pass, Slow
+value_range_test: Pass, Slow
 
-analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
-analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
+[ !$checked ]
+exit_code_test: Skip # This tests requires checked mode.
+jsinterop/declaration_test: Slow, Pass
+serialization*: Slow, Pass
 
-[ $jscl || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari ]
+[ $runtime == chrome || $runtime == ff || $runtime == firefox || $runtime == safari || $jscl ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
 
-[ $system == linux ]
-dart2js_batch2_test: Pass, RuntimeError # Issue 29021

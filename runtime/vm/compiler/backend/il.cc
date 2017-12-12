@@ -2730,23 +2730,24 @@ BoxInstr* BoxInstr::Create(Representation from, Value* value) {
 
 UnboxInstr* UnboxInstr::Create(Representation to,
                                Value* value,
-                               intptr_t deopt_id) {
+                               intptr_t deopt_id,
+                               SpeculativeMode speculative_mode) {
   switch (to) {
     case kUnboxedInt32:
       return new UnboxInt32Instr(UnboxInt32Instr::kNoTruncation, value,
-                                 deopt_id);
+                                 deopt_id, speculative_mode);
 
     case kUnboxedUint32:
-      return new UnboxUint32Instr(value, deopt_id);
+      return new UnboxUint32Instr(value, deopt_id, speculative_mode);
 
     case kUnboxedInt64:
-      return new UnboxInt64Instr(value, deopt_id);
+      return new UnboxInt64Instr(value, deopt_id, speculative_mode);
 
     case kUnboxedDouble:
     case kUnboxedFloat32x4:
     case kUnboxedFloat64x2:
     case kUnboxedInt32x4:
-      return new UnboxInstr(to, value, deopt_id);
+      return new UnboxInstr(to, value, deopt_id, speculative_mode);
 
     default:
       UNREACHABLE();
@@ -3748,24 +3749,43 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 }
 
 void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const intptr_t value_cid = value()->Type()->ToCid();
-  const intptr_t box_cid = BoxCid();
+  if (speculative_mode() == kNotSpeculative) {
+    switch (representation()) {
+      case kUnboxedDouble:
+        EmitLoadFromBox(compiler);
+        break;
 
-  if (value_cid == box_cid) {
-    EmitLoadFromBox(compiler);
-  } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
-    EmitSmiConversion(compiler);
-  } else if (FLAG_experimental_strong_mode &&
-             (representation() == kUnboxedDouble) &&
-             value()->Type()->IsNullableDouble()) {
-    EmitLoadFromBox(compiler);
-  } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
-             (representation() == kUnboxedInt64) &&
-             value()->Type()->IsNullableInt()) {
-    EmitLoadInt64FromBoxOrSmi(compiler);
+      case kUnboxedInt64: {
+        ASSERT(FLAG_limit_ints_to_64_bits);
+        EmitLoadInt64FromBoxOrSmi(compiler);
+        break;
+      }
+
+      default:
+        UNREACHABLE();
+        break;
+    }
   } else {
-    ASSERT(CanDeoptimize());
-    EmitLoadFromBoxWithDeopt(compiler);
+    ASSERT(speculative_mode() == kGuardInputs);
+    const intptr_t value_cid = value()->Type()->ToCid();
+    const intptr_t box_cid = BoxCid();
+
+    if (value_cid == box_cid) {
+      EmitLoadFromBox(compiler);
+    } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
+      EmitSmiConversion(compiler);
+    } else if (FLAG_experimental_strong_mode &&
+               (representation() == kUnboxedDouble) &&
+               value()->Type()->IsNullableDouble()) {
+      EmitLoadFromBox(compiler);
+    } else if (FLAG_experimental_strong_mode && FLAG_limit_ints_to_64_bits &&
+               (representation() == kUnboxedInt64) &&
+               value()->Type()->IsNullableInt()) {
+      EmitLoadInt64FromBoxOrSmi(compiler);
+    } else {
+      ASSERT(CanDeoptimize());
+      EmitLoadFromBoxWithDeopt(compiler);
+    }
   }
 }
 
@@ -3875,7 +3895,7 @@ ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
                                                         Value* new_right) {
   return new RelationalOpInstr(token_pos(), kind(), new_left, new_right,
-                               operation_cid(), deopt_id());
+                               operation_cid(), deopt_id(), speculative_mode());
 }
 
 ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,

@@ -2545,7 +2545,7 @@ static int LowestFirst(const intptr_t* a, const intptr_t* b) {
 static RawArray* AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   intptr_t size = source->length();
   if (size == 0) {
-    return Array::New(0);
+    return Object::empty_array().raw();
   }
 
   source->Sort(LowestFirst);

@@ -140,7 +140,11 @@ class _GrowableList<T> extends ListBase<T> {
 
   T operator [](int index) native "GrowableList_getIndexed";
 
-  void operator []=(int index, T value) native "GrowableList_setIndexed";
+  void operator []=(int index, T value) {
+    _setIndexed(index, value);
+  }
+
+  void _setIndexed(int index, T value) native "GrowableList_setIndexed";
 
   void add(T value) {
     var len = length;

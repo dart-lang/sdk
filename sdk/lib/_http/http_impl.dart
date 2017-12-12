@@ -2347,7 +2347,7 @@ class _HttpConnection extends LinkedListEntry<_HttpConnection>
   _HttpConnection(this._socket, this._httpServer)
       : _httpParser = new _HttpParser.requestParser() {
     _connections[_serviceId] = this;
-    _httpParser.listenToStream(_socket as Object/*=Socket*/);
+    _httpParser.listenToStream(_socket);
     _subscription = _httpParser.listen((incoming) {
       _httpServer._markActive(this);
       // If the incoming was closed, close the connection.

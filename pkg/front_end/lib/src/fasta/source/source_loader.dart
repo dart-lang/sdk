@@ -46,13 +46,16 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         Message,
+        SummaryTemplate,
+        Template,
         templateCyclicClassHierarchy,
         templateExtendingEnum,
         templateExtendingRestricted,
         templateIllegalMixin,
         templateIllegalMixinDueToConstructors,
         templateIllegalMixinDueToConstructorsCause,
-        templateInternalProblemUriMissingScheme;
+        templateInternalProblemUriMissingScheme,
+        templateSourceOutlineSummary;
 
 import '../fasta_codes.dart' as fasta_codes;
 
@@ -107,6 +110,9 @@ class SourceLoader<L> extends Loader<L> {
   SourceLoader(this.fileSystem, this.includeComments, KernelTarget target)
       : super(target);
 
+  Template<SummaryTemplate> get outlineSummaryTemplate =>
+      templateSourceOutlineSummary;
+
   Future<Token> tokenize(SourceLibraryBuilder library,
       {bool suppressLexicalErrors: false}) async {
     Uri uri = library.fileUri;
@@ -132,12 +138,12 @@ class SourceLoader<L> extends Loader<L> {
         zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
         bytes = zeroTerminatedBytes;
         sourceBytes[uri] = bytes;
+        byteCount += rawBytes.length;
       } on FileSystemException catch (e) {
         return deprecated_inputError(uri, -1, e.message);
       }
     }
 
-    byteCount += bytes.length - 1;
     ScannerResult result = scan(bytes, includeComments: includeComments);
     Token token = result.tokens;
     if (!suppressLexicalErrors) {

@@ -112,7 +112,7 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
     FileUriNode fileParent = parentsStack.last;
     Program p = fileParent.enclosingProgram;
-    String fileUri = fileParent.fileUri;
+    Uri fileUri = fileParent.fileUri;
 
     var loc = p.getLocation(fileUri, offset);
     _previousLine = _line;

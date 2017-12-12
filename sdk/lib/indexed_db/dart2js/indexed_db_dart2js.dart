@@ -639,12 +639,12 @@ class IdbFactory extends Interceptor {
  * Ties a request to a completer, so the completer is completed when it succeeds
  * and errors out when the request errors.
  */
-Future/*<T>*/ _completeRequest/*<T>*/(Request request) {
-  var completer = new Completer/*<T>*/ .sync();
+Future<T> _completeRequest<T>(Request request) {
+  var completer = new Completer<T>.sync();
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {
-    dynamic/*=T*/ result = request.result;
+    T result = request.result;
     completer.complete(result);
   });
   request.onError.listen(completer.completeError);

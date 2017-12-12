@@ -16,6 +16,8 @@ import '../support/integration_tests.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetImportElementsIntegrationTest);
+    defineReflectiveTests(
+        AnalysisGetImportElementsIntegrationTest_PreviewDart2);
   });
 }
 
@@ -136,4 +138,11 @@ class C {}
       new SourceEdit(0, 0, "import 'dart:math';\n\n")
     ], expectedFile: libName);
   }
+}
+
+@reflectiveTest
+class AnalysisGetImportElementsIntegrationTest_PreviewDart2
+    extends AnalysisGetImportElementsIntegrationTest {
+  @override
+  bool get usePreviewDart2 => true;
 }

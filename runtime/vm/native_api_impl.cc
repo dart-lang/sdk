@@ -106,46 +106,40 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 
 // --- Verification tools ---
 
-static void CompileAll(Thread* thread, Dart_Handle* result) {
-  ASSERT(thread != NULL);
-  const Error& error = Error::Handle(thread->zone(), Library::CompileAll());
-  if (error.IsNull()) {
-    *result = Api::Success();
-  } else {
-    *result = Api::NewHandle(thread, error.raw());
-  }
-}
-
 DART_EXPORT Dart_Handle Dart_CompileAll() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   DARTSCOPE(Thread::Current());
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  CompileAll(T, &result);
-  return result;
-}
-
-static void ParseAll(Thread* thread, Dart_Handle* result) {
-  ASSERT(thread != NULL);
-  const Error& error = Error::Handle(thread->zone(), Library::ParseAll(thread));
-  if (error.IsNull()) {
-    *result = Api::Success();
-  } else {
-    *result = Api::NewHandle(thread, error.raw());
+  const Error& error = Error::Handle(T->zone(), Library::CompileAll());
+  if (!error.IsNull()) {
+    return Api::NewHandle(T, error.raw());
   }
+  return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_ParseAll() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot compile on an AOT runtime.", CURRENT_FUNC);
+#else
   DARTSCOPE(Thread::Current());
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
-  ParseAll(T, &result);
-  return result;
+  const Error& error = Error::Handle(T->zone(), Library::ParseAll(T));
+  if (!error.IsNull()) {
+    return Api::NewHandle(T, error.raw());
+  }
+  return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 }  // namespace dart

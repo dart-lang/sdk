@@ -20,8 +20,8 @@
 ///
 library runtime.tools.kernel_service;
 
-import 'dart:async' show Future;
-import 'dart:io' show Platform hide FileSystemEntity;
+import 'dart:async' show Future, ZoneSpecification, runZoned;
+import 'dart:io' show Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
@@ -77,7 +77,11 @@ abstract class Compiler {
       };
   }
 
-  Future<Program> compile(Uri script);
+  Future<Program> compile(Uri script) {
+    return runWithPrintToStderr(() => compileInternal(script));
+  }
+
+  Future<Program> compileInternal(Uri script);
 }
 
 class IncrementalCompiler extends Compiler {
@@ -88,7 +92,7 @@ class IncrementalCompiler extends Compiler {
       : super(fileSystem, platformKernel, strongMode: strongMode);
 
   @override
-  Future<Program> compile(Uri script) async {
+  Future<Program> compileInternal(Uri script) async {
     if (generator == null) {
       generator = await IncrementalKernelGenerator.newInstance(options, script);
     }
@@ -111,7 +115,7 @@ class SingleShotCompiler extends Compiler {
       : super(fileSystem, platformKernel, strongMode: strongMode);
 
   @override
-  Future<Program> compile(Uri script) async {
+  Future<Program> compileInternal(Uri script) async {
     return requireMain
         ? kernelForProgram(script, options)
         : kernelForBuildUnit([script], options..chaseDependencies = true);
@@ -370,4 +374,10 @@ class _CompilationCrash extends _CompilationFail {
   String get errorString => "${exception}\n${stack}";
 
   String toString() => "_CompilationCrash(${errorString})";
+}
+
+Future<T> runWithPrintToStderr<T>(Future<T> f()) {
+  return runZoned(() => new Future<T>(f),
+      zoneSpecification: new ZoneSpecification(
+          print: (_1, _2, _3, String line) => stderr.writeln(line)));
 }

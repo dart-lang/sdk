@@ -84,9 +84,6 @@ static void DeterministicModeHandler(bool value) {
   if (value) {
     FLAG_background_compilation = false;
     FLAG_collect_code = false;
-    // Parallel marking doesn't introduce non-determinism in the object
-    // iteration order.
-    FLAG_concurrent_sweep = false;
     FLAG_random_seed = 0x44617274;  // "Dart"
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     FLAG_load_deferred_eagerly = true;
@@ -1204,7 +1201,8 @@ bool Isolate::CanReload() const {
   return !ServiceIsolate::IsServiceIsolateDescendant(this) && is_runnable() &&
          !IsReloading() &&
          (AtomicOperations::LoadRelaxed(&no_reload_scope_depth_) == 0) &&
-         IsolateCreationEnabled();
+         IsolateCreationEnabled() &&
+         OSThread::Current()->HasStackHeadroom(64 * KB);
 }
 
 bool Isolate::ReloadSources(JSONStream* js,
@@ -1700,6 +1698,25 @@ class FinalizeWeakPersistentHandlesVisitor : public HandleVisitor {
   DISALLOW_COPY_AND_ASSIGN(FinalizeWeakPersistentHandlesVisitor);
 };
 
+// static
+void Isolate::NotifyLowMemory() {
+  MonitorLocker ml(isolates_list_monitor_);
+  if (!creation_enabled_) {
+    return;  // VM is shutting down
+  }
+  for (Isolate* isolate = isolates_list_head_; isolate != NULL;
+       isolate = isolate->next_) {
+    if (isolate == Dart::vm_isolate()) {
+      // Nothing to compact / isolate structure not completely initialized.
+    } else if (isolate == Isolate::Current()) {
+      isolate->heap()->NotifyLowMemory();
+    } else {
+      MutexLocker ml(isolate->mutex_);
+      isolate->heap()->NotifyLowMemory();
+    }
+  }
+}
+
 void Isolate::LowLevelShutdown() {
   // Ensure we have a zone and handle scope so that we can call VM functions,
   // but we no longer allocate new heap objects.
@@ -1829,8 +1846,9 @@ void Isolate::Shutdown() {
     // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
     PageSpace* old_space = heap_->old_space();
     MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
+    while (old_space->sweeper_tasks() > 0 ||
+           old_space->low_memory_tasks() > 0) {
+      ml.WaitWithSafepointCheck(thread);
     }
   }
 
@@ -1853,7 +1871,8 @@ void Isolate::Shutdown() {
   if (heap_ != NULL) {
     PageSpace* old_space = heap_->old_space();
     MonitorLocker ml(old_space->tasks_lock());
-    ASSERT(old_space->tasks() == 0);
+    ASSERT(old_space->sweeper_tasks() == 0);
+    ASSERT(old_space->low_memory_tasks() == 0);
   }
 #endif
 

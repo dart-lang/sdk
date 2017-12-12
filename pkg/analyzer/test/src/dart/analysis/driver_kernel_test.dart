@@ -22,19 +22,24 @@ const potentialAnalyzerProblem = const Object();
 class AnalysisDriverResolutionTest_Kernel extends AnalysisDriverResolutionTest {
   @override
   bool get previewDart2 => true;
+
+  @failingTest
+  @potentialAnalyzerProblem
+  @override
+  test_annotation_constructor_withNestedConstructorInvocation() async {
+    // This test is failing because analyzer and kernel disagree about how to
+    // resolve annotations and constructors. Kernel is consistent between
+    // annotations that invoke a constructor and other constructor invocations,
+    // while analyzer treats them differently. They also differ in terms of the
+    // resolution of the constructor name's element.
+    await super.test_annotation_constructor_withNestedConstructorInvocation();
+  }
 }
 
 @reflectiveTest
 class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   bool get previewDart2 => true;
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_addFile_shouldRefresh() async {
-    await super.test_addFile_shouldRefresh();
-  }
 
 //  @failingTest
 //  @potentialAnalyzerProblem
@@ -132,20 +137,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @override
   test_getErrors() async {
     await super.test_getErrors();
-  }
-
-  @potentialAnalyzerProblem
-  @override
-  test_getIndex() async {
-    // TODO(scheglov) This test fails even with @failingTest
-//    await super.test_getIndex();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
-  test_getResult_errors() async {
-    await super.test_getResult_errors();
   }
 
   @failingTest

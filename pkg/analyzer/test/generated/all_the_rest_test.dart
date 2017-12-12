@@ -1526,7 +1526,8 @@ on String catch (e, s) { return 1; }''');
   }
 
   void _assertHasReturn(bool expectedResult, String source) {
-    Statement statement = parseStatement(source, enableLazyAssignmentOperators);
+    Statement statement = parseStatement(source,
+        enableLazyAssignmentOperators: enableLazyAssignmentOperators);
     expect(ExitDetector.exits(statement), expectedResult);
   }
 

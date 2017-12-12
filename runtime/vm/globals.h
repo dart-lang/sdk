@@ -114,7 +114,7 @@ static const uword kZapUninitializedWord = 0xabababababababab;
 #elif defined(HOST_ARCH_X64)
 // We don't have the asm equivalent to get at the frame pointer on
 // windows x64, return the stack pointer instead.
-#define COPY_FP_REGISTER(fp) fp = Thread::GetCurrentStackPointer();
+#define COPY_FP_REGISTER(fp) fp = OSThread::GetCurrentStackPointer();
 #else
 #error Unknown host architecture.
 #endif

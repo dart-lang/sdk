@@ -51,6 +51,20 @@ String _usageMessage(ArgParser ddcArgParser) =>
     'Usage: $_binaryName [options...] <sources...>\n\n'
     '${ddcArgParser.usage}';
 
+Uri stringToUri(String s, {bool windows}) {
+  windows ??= Platform.isWindows;
+  if (windows) {
+    s = s.replaceAll("\\", "/");
+  }
+
+  Uri result = Uri.base.resolve(s);
+  if (windows && result.scheme.length == 1) {
+    // Assume c: or similar --- interpret as file path.
+    return new Uri.file(s, windows: true);
+  }
+  return result;
+}
+
 class CompilerResult {
   final fe.InitializedCompilerState compilerState;
   final bool result;
@@ -87,7 +101,7 @@ Future<CompilerResult> _compile(List<String> args,
   var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
 
   var summaryUris =
-      (argResults['summary'] as List<String>).map(Uri.parse).toList();
+      (argResults['summary'] as List<String>).map(stringToUri).toList();
 
   var sdkSummaryPath = argResults['dart-sdk-summary'] ??
       path.absolute(ddcPath, 'gen', 'sdk', 'ddc_sdk.dill');
@@ -95,7 +109,7 @@ Future<CompilerResult> _compile(List<String> args,
   var packageFile =
       argResults['packages'] ?? path.absolute(ddcPath, '..', '..', '.packages');
 
-  var inputs = argResults.rest.map(Uri.base.resolve).toList();
+  var inputs = argResults.rest.map(stringToUri).toList();
 
   var succeeded = true;
   void errorHandler(fe.CompilationMessage error) {

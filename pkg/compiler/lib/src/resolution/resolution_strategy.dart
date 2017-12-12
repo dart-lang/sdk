@@ -629,6 +629,9 @@ class _CompilerElementEnvironment extends ElementEnvironment {
             "${setter ? 'setter' : 'getter'}: '$name'.");
       }
     }
+    if (member is! MemberElement) {
+      member = null;
+    }
     if (member == null && required) {
       failedAt(
           member,
@@ -652,7 +655,10 @@ class _CompilerElementEnvironment extends ElementEnvironment {
   @override
   ClassElement lookupClass(covariant LibraryElement library, String name,
       {bool required: false}) {
-    ClassElement cls = library.implementation.findLocal(name);
+    Element cls = library.implementation.findLocal(name);
+    if (cls is! ClassElement) {
+      cls = null;
+    }
     if (cls == null && required) {
       failedAt(
           library,

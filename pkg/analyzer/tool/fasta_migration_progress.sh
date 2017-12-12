@@ -9,16 +9,23 @@
 
 # Run the suite to extract the total number of tests from the runner output.
 # TODO(sigmund): don't require `dart` to be on the path.
-total=$(dart pkg/analyzer/test/generated/parser_fasta_test.dart | \
-  tail -1 | \
-  sed -e "s/.*+\([0-9]*\)[^0-9].*All tests passed.*$/\1/")
+total=$(find pkg/analyzer/test -name parser_fasta_test.dart -exec dart {} \; \
+    -or -name *_kernel_test.dart -exec dart {} \; 2>/dev/null | \
+  egrep '(All tests passed|Some tests failed)' | \
+  sed -e "s/.*+\([0-9]*\)[^0-9].*All tests passed.*$/\1/" | \
+  # For failures, parse +10 -1 into 10+1 so we can call bc
+  sed -e "s/.*+\([0-9]*\)[^0-9].*-\([0-9]*\)[^0-9].*Some tests failed.*$/\1+\2/" | \
+  # concatenate with + and call bc to add up failures
+  paste -sd+ | \
+  bc)
 
 # Count tests marked with the @failingTest annotation.
-fail=$(cat pkg/analyzer/test/generated/parser_fasta_test.dart | \
+fail=$(cat pkg/analyzer/test/generated/parser_fasta_test.dart \
+    $(find pkg/analyzer/test -name *_kernel_test.dart) | \
   grep failingTest | wc -l)
 
 pass_rate=$(bc <<< "scale=1; 100*($total-$fail)/$total")
-echo "Parser-fasta tests:         $(($total - $fail))/$total ($pass_rate%)"
+echo "CFE enabled tests:          $(($total - $fail))/$total ($pass_rate%)"
 
 # Metric 2: analyzer tests with fasta enabled.
 
@@ -26,7 +33,7 @@ echo "Parser-fasta tests:         $(($total - $fail))/$total ($pass_rate%)"
 # count the number of individual tests (a single test case in a test file) that
 # are passing or failing.
 
-echo "Analyzer tests files:"
+echo "Analyzer tests files (with fasta enabled):"
 logfile=$1
 delete=0
 
@@ -39,8 +46,9 @@ if [[ $logfile == '' ]]; then
   # delete=1
   python tools/test.py -m release --checked --use-sdk \
      --vm-options="-DuseFastaParser=true" \
+     --print_passing_stdout \
      pkg/analy > $logfile
-fi;
+fi
 
 pass=$(tail -1 $logfile | sed -e "s/.*+\s*\([0-9]*\) |.*$/\1/")
 fail=$(tail -1 $logfile | sed -e "s/.* -\s*\([0-9]*\)\].*$/\1/")
@@ -49,18 +57,35 @@ pass_rate=$(bc <<< "scale=1; 100*$pass/($pass + $fail)")
 echo "  Test files passing:       $pass/$(($pass + $fail)) ($pass_rate%)"
 
 # Tests use package:test, which contains a summary line saying how many tests
-# passed and failed. The line has this form:
+# passed and failed.
+#
+# Files in which all tests pass end in:
+#
+#    MM:SS  +pp: All tests passed
+#
+# with some extra crap for color highlighting. Count those tests up:
+passing_tests_temp=$(cat $logfile | \
+  grep "All tests passed" | \
+  sed -e "s/.*+\([0-9]*\).*All tests passed.*/\1/" |
+  paste -sd+ | # concatenate with +
+  bc) # sum
+
+# Test files which had at least one failure end in:
 #
 #    MM:SS  +pp -ff: Some tests failed
 #
 # but also contains some escape sequences for color highlighting. The code below
-# extracts the passing (pp) and failing (ff) numbers and tallies them up:
+# extracts the passing (pp) and failing (ff) numbers, plus the all-tests-passed
+# counts, and prints the results:
 cat $logfile | \
   grep "Some tests failed" | \
   sed -e "s/.*+\([0-9]*\).* -\([0-9]*\).*/\1 \2/" | \
-   awk '{
+   awk '
+  {
     pass += $1
     total += $1 + $2
+  } BEGIN {
+    total = pass = '$passing_tests_temp'
   } END {
     printf ("  Individual tests passing: %d/%d (%.1f%)\n", \
       pass/2, total/2,(100 * pass / total))

@@ -629,7 +629,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
           type: new InterfaceType(
               helper.streamIteratorClass, [valueVariable.type]));
 
-      // await iterator.moveNext()
+      // await :for-iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
           new VariableGet(iteratorVariable),
           new Name('moveNext'),
@@ -637,7 +637,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
           helper.streamIteratorMoveNext))
         ..fileOffset = stmt.fileOffset;
 
-      // var <variable> = iterator.current;
+      // T <variable> = :for-iterator.current;
       valueVariable.initializer = new PropertyGet(
           new VariableGet(iteratorVariable),
           new Name('current'),
@@ -650,8 +650,10 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       // if (:for-iterator._subscription != null) await :for-iterator.cancel();
       var tryFinalizer = new IfStatement(
           new Not(new MethodInvocation(
-              new PropertyGet(new VariableGet(iteratorVariable),
-                  new Name("_subscription", helper.asyncLibrary)),
+              new PropertyGet(
+                  new VariableGet(iteratorVariable),
+                  new Name("_subscription", helper.asyncLibrary),
+                  helper.coreTypes.streamIteratorSubscription),
               new Name("=="),
               new Arguments([new NullLiteral()]),
               helper.coreTypes.objectEquals)),

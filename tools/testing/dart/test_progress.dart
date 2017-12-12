@@ -434,6 +434,31 @@ class TestFailurePrinter extends EventListener {
   }
 }
 
+class PassingStdoutPrinter extends EventListener {
+  final Formatter _formatter;
+  final _failureSummary = <String>[];
+
+  PassingStdoutPrinter([this._formatter = Formatter.normal]);
+
+  void done(TestCase test) {
+    if (!test.unexpectedOutput) {
+      var lines = <String>[];
+      var output = new OutputWriter(_formatter, lines);
+      for (final command in test.commands) {
+        var commandOutput = test.commandOutputs[command];
+        if (commandOutput == null) continue;
+
+        commandOutput.describe(test.configuration.progress, output);
+      }
+      for (var line in lines) {
+        print(line);
+      }
+    }
+  }
+
+  void allDone() {}
+}
+
 class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
 

@@ -149,19 +149,26 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     var buildDir = _configuration.buildDirectory;
     var args = <String>[];
     if (useDfe) {
-      args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
-      args.add('--kernel-binaries=' +
-          (_useSdk
-              ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
-              : '${buildDir}'));
+      // DFE+strong configuration is a Dart 2.0 configuration which uses
+      // pkg/vm/tool/dart2 wrapper script, which takes care of passing
+      // correct arguments to VM binary. No need to pass any additional
+      // arguments.
+      if (!_isStrong) {
+        args.add('--dfe=${buildDir}/gen/kernel-service.dart.snapshot');
+        args.add('--kernel-binaries=' +
+            (_useSdk
+                ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal'
+                : '${buildDir}'));
+      }
       if (_isDebug) {
         // Temporarily disable background compilation to avoid flaky crashes
         // (see http://dartbug.com/30016 for details).
         args.add('--no-background-compilation');
       }
-    }
-    if (_isStrong) {
-      args.add('--strong');
+    } else {
+      if (_isStrong) {
+        args.add('--strong');
+      }
     }
     if (_isChecked) {
       args.add('--enable_asserts');
@@ -451,7 +458,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
     var sharedOptions = arguments.sublist(0, arguments.length - 1);
     var inputFile = arguments.last;
-    var outputFile = "$tempDir/${inputFile.replaceAll('.dart', '.js')}";
+    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
+    var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
 
     return new CommandArtifact(
         [createCommand(inputFile, outputFile, sharedOptions, environment)],
@@ -530,7 +538,8 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
     // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
     var sharedOptions = arguments.sublist(0, arguments.length - 1);
     var inputFile = arguments.last;
-    var outputFile = "$tempDir/${inputFile.replaceAll('.dart', '.js')}";
+    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
+    var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
 
     return new CommandArtifact(
         [createCommand(inputFile, outputFile, sharedOptions, environment)],
@@ -593,19 +602,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    var buildDir = _configuration.buildDirectory;
-    String exec = Platform.executable;
+    final genKernel =
+        Platform.script.resolve('../../../pkg/vm/tool/gen_kernel').toFilePath();
+    final dillFile = tempKernelFile(tempDir);
     var args = [
       '--packages=.packages',
-      'pkg/vm/bin/precompiler_kernel_front_end.dart',
-      '--platform=${buildDir}/vm_platform_strong.dill',
+      '--aot',
+      '--platform=${_configuration.buildDirectory}/vm_platform_strong.dill',
       '-o',
-      tempKernelFile(tempDir),
+      dillFile,
     ];
-    args.addAll(arguments.where((name) => name.endsWith('.dart')));
-    return Command.compilation('compile_to_kernel', tempDir,
-        bootstrapDependencies(), exec, args, environmentOverrides,
-        alwaysCompile: !_useSdk);
+    args.add(arguments.where((name) => name.endsWith('.dart')).single);
+    return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
+        genKernel, args, environmentOverrides);
   }
 
   /// Creates a command to clean up large temporary kernel files.
@@ -795,7 +804,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
     }
-
+    if (_isStrong) {
+      args.add('--strong');
+    }
     var dir = artifact.filename;
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
       // On android the precompiled snapshot will be pushed to a different

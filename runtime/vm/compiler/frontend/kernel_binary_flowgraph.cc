@@ -2735,7 +2735,7 @@ void StreamingConstantEvaluator::EvaluateGetStringLength(
   EvaluateExpression(expression_offset);
   if (result_.IsString()) {
     const String& str = String::Handle(Z, String::RawCast(result_.raw()));
-    result_ = Integer::New(str.Length());
+    result_ = Integer::New(str.Length(), H.allocation_space());
   } else {
     H.ReportError(
         script_, position,
@@ -3037,7 +3037,8 @@ void StreamingConstantEvaluator::EvaluateStringConcatenation() {
   intptr_t length = builder_->ReadListLength();  // read list length.
 
   bool all_string = true;
-  const Array& strings = Array::Handle(Z, Array::New(length));
+  const Array& strings =
+      Array::Handle(Z, Array::New(length, H.allocation_space()));
   for (intptr_t i = 0; i < length; ++i) {
     EvaluateExpression(builder_->ReaderOffset(),
                        false);  // read ith expression.
@@ -3222,8 +3223,8 @@ const Object& StreamingConstantEvaluator::RunFunction(
       (receiver != NULL ? 1 : 0) + (type_args != NULL ? 1 : 0);
 
   // Build up arguments.
-  const Array& arguments =
-      Array::ZoneHandle(Z, Array::New(extra_arguments + argument_count));
+  const Array& arguments = Array::ZoneHandle(
+      Z, Array::New(extra_arguments + argument_count, H.allocation_space()));
   intptr_t pos = 0;
   if (receiver != NULL) {
     arguments.SetAt(pos++, *receiver);
@@ -3242,7 +3243,8 @@ const Object& StreamingConstantEvaluator::RunFunction(
 
   // List of named.
   list_length = builder_->ReadListLength();  // read list length.
-  const Array& names = Array::ZoneHandle(Z, Array::New(list_length));
+  const Array& names =
+      Array::ZoneHandle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
     String& name =
         H.DartSymbol(builder_->ReadStringReference());  // read ith name index.
@@ -3261,7 +3263,8 @@ const Object& StreamingConstantEvaluator::RunFunction(const Function& function,
   // We do not support generic methods yet.
   const int kTypeArgsLen = 0;
   const Array& args_descriptor = Array::Handle(
-      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names));
+      Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names,
+                                  H.allocation_space()));
   const Object& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
@@ -3872,7 +3875,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   intptr_t named_argument_count = ReadListLength();
   Array& argument_names = Array::ZoneHandle(Z);
   if (named_argument_count > 0) {
-    argument_names = Array::New(named_argument_count);
+    argument_names = Array::New(named_argument_count, H.allocation_space());
     for (intptr_t i = 0; i < named_argument_count; ++i) {
       // ith variable offset.
       body += LoadLocal(LookupVariable(ReaderOffset() + data_program_offset_));
@@ -5934,7 +5937,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertyGet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
+  if (I->strong() && !H.IsRoot(itarget_name) &&
       (H.IsGetter(itarget_name) || H.IsField(itarget_name))) {
     interface_target = &Function::ZoneHandle(
         Z, LookupMethodByMember(itarget_name, H.DartGetterName(itarget_name)));
@@ -5998,7 +6001,7 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name)) {
+  if (I->strong() && !H.IsRoot(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z, LookupMethodByMember(itarget_name, H.DartSetterName(itarget_name)));
     ASSERT(setter_name.raw() == interface_target->name());
@@ -6007,7 +6010,9 @@ Fragment StreamingFlowGraphBuilder::BuildPropertySet(TokenPosition* p) {
   intptr_t argument_check_bits = 0;
   if (I->strong()) {
     argument_check_bits = ArgumentCheckBitsForSetter(
-        *interface_target, static_cast<DispatchCategory>(flags & 3));
+        // TODO(sjindel): Change 'Function::null_function()' to
+        // '*interface_target' and fix breakages.
+        Function::null_function(), static_cast<DispatchCategory>(flags & 3));
   }
 
   if (direct_call.check_receiver_for_null_) {
@@ -6435,7 +6440,9 @@ intptr_t StreamingFlowGraphBuilder::ArgumentCheckBitsForSetter(
       // All bits are 0.
       break;
     case Interface: {
-      if (!interface_target.IsImplicitGetterOrSetter()) {
+      // TODO(sjindel): Revise checking interface target for null.
+      if (interface_target.IsNull() ||
+          !interface_target.IsImplicitGetterOrSetter()) {
         intptr_t type_argument_check_bits_unused;
         ArgumentCheckBitsForInvocation(
             1, 0, 1, Array::null_array(), interface_target, category,
@@ -6502,7 +6509,9 @@ void StreamingFlowGraphBuilder::ArgumentCheckBitsForInvocation(
           Utils::SignedNBitMask(strong_checked_type_arguments);
       break;
     case Interface: {
-      ASSERT(!interface_target.IsNull() || !FLAG_experimental_strong_mode);
+      // TODO(sjindel): Restore this assertion once '*interface_target'
+      // is passed to this function instead of 'Function::null_function()'.
+      // ASSERT(!interface_target.IsNull() || !I->strong());
       if (interface_target.IsNull()) {
         argument_check_bits =
             Utils::SignedNBitMask(strong_checked_arguments + 1);
@@ -6717,8 +6726,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   const Function* interface_target = &Function::null_function();
   const NameIndex itarget_name =
       ReadCanonicalNameReference();  // read interface_target_reference.
-  if (FLAG_experimental_strong_mode && !H.IsRoot(itarget_name) &&
-      !H.IsField(itarget_name)) {
+  if (I->strong() && !H.IsRoot(itarget_name) && !H.IsField(itarget_name)) {
     interface_target = &Function::ZoneHandle(
         Z,
         LookupMethodByMember(itarget_name, H.DartProcedureName(itarget_name)));
@@ -6736,9 +6744,11 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
   if (I->strong()) {
     ArgumentCheckBitsForInvocation(
         argument_count - 1, type_args_len, positional_argument_count,
-        argument_names, *interface_target,
-        static_cast<DispatchCategory>(flags & 3), &argument_check_bits,
-        &type_argument_check_bits);
+        argument_names,
+        // TODO(sjindel): Change 'Function::null_function()' to
+        // '*interface_target' and fix breakages.
+        Function::null_function(), static_cast<DispatchCategory>(flags & 3),
+        &argument_check_bits, &type_argument_check_bits);
   }
 
   if (!direct_call.target_.IsNull()) {
@@ -6875,7 +6885,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
 
     SkipListOfExpressions();
     intptr_t named_list_length = ReadListLength();
-    argument_names ^= Array::New(named_list_length);
+    argument_names ^= Array::New(named_list_length, H.allocation_space());
     for (intptr_t i = 0; i < named_list_length; i++) {
       const String& arg_name = H.DartSymbol(ReadStringReference());
       argument_names.SetAt(i, arg_name);
@@ -9143,7 +9153,8 @@ RawObject* StreamingFlowGraphBuilder::EvaluateMetadata(intptr_t kernel_offset) {
   }
 
   intptr_t list_length = ReadListLength();  // read list length.
-  const Array& metadata_values = Array::Handle(Z, Array::New(list_length));
+  const Array& metadata_values =
+      Array::Handle(Z, Array::New(list_length, H.allocation_space()));
   for (intptr_t i = 0; i < list_length; ++i) {
     // this will (potentially) read the expression, but reset the position.
     Instance& value = constant_evaluator_.EvaluateExpression(ReaderOffset());

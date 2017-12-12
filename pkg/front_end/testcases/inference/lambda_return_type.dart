@@ -11,7 +11,7 @@ test() {
   int i = 1;
   Object o = 1;
   FunctionReturningNum a = /*@returnType=int*/ () => i;
-  FunctionReturningNum b = /*@returnType=Object*/ () => o;
+  FunctionReturningNum b = /*@returnType=num*/ () => o;
   FunctionReturningNum c = /*@returnType=int*/ () {
     return i;
   };

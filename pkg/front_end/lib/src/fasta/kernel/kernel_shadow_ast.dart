@@ -595,6 +595,15 @@ class ShadowConstructorInvocation extends ConstructorInvocation
     inferrer.listener.constructorInvocationExit(this, inferredType);
     return inferredType;
   }
+
+  /// Determines whether the given [ShadowConstructorInvocation] represents an
+  /// invocation of a redirected factory constructor.
+  ///
+  /// This is static to avoid introducing a method that would be visible to the
+  /// kernel.
+  static bool isRedirected(ShadowConstructorInvocation expression) {
+    return !identical(expression._initialTarget, expression.target);
+  }
 }
 
 /// Concrete shadow object representing a continue statement from a switch
@@ -758,6 +767,7 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
     ShadowVariableDeclaration variable;
     var syntheticAssignment = _syntheticAssignment;
     Expression syntheticWrite;
+    DartType syntheticWriteType;
     if (_declaresVariable) {
       variable = this.variable;
       if (inferrer.strongMode && variable._implicitlyTyped) {
@@ -768,7 +778,8 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
       }
     } else if (syntheticAssignment is ShadowComplexAssignment) {
       syntheticWrite = syntheticAssignment.write;
-      context = syntheticAssignment._getWriteType(inferrer);
+      syntheticWriteType =
+          context = syntheticAssignment._getWriteType(inferrer);
     } else {
       context = const UnknownType();
     }
@@ -813,6 +824,19 @@ class ShadowForInStatement extends ForInStatement implements ShadowStatement {
         variable.initializer = implicitDowncast..parent = variable;
         body = combineStatements(variable, body)..parent = this;
       }
+    } else if (syntheticAssignment is ShadowSyntheticExpression) {
+      if (syntheticAssignment is ShadowComplexAssignment) {
+        inferrer.checkAssignability(
+            greatestClosure(inferrer.coreTypes, syntheticWriteType),
+            this.variable.type,
+            syntheticAssignment.rhs,
+            syntheticAssignment.rhs.fileOffset);
+        if (syntheticAssignment is ShadowPropertyAssign) {
+          syntheticAssignment._handleWriteContravariance(
+              inferrer, inferrer.thisType);
+        }
+      }
+      syntheticAssignment._replaceWithDesugared();
     }
     inferrer.listener.forInStatementExit(this, variable);
   }
@@ -1268,11 +1292,7 @@ class ShadowLoopAssignmentStatement extends ExpressionStatement
   ShadowLoopAssignmentStatement(Expression expression) : super(expression);
 
   @override
-  void _inferStatement(ShadowTypeInferrer inferrer) {
-    inferrer.listener.loopAssignmentStatementEnter(this);
-    inferrer.inferExpression(expression, null, false);
-    inferrer.listener.loopAssignmentStatementExit(this);
-  }
+  void _inferStatement(ShadowTypeInferrer inferrer) {}
 }
 
 /// Shadow object for [MapLiteral].
@@ -1591,6 +1611,14 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     return inferrer.getSetterType(writeMember, receiverType);
   }
 
+  Object _handleWriteContravariance(
+      ShadowTypeInferrer inferrer, DartType receiverType) {
+    var writeMember = inferrer.findPropertySetMember(receiverType, write);
+    inferrer.handlePropertySetContravariance(
+        receiver, writeMember, write is PropertySet ? write : null, write);
+    return writeMember;
+  }
+
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
@@ -1609,7 +1637,7 @@ class ShadowPropertyAssign extends ShadowComplexAssignmentWithReceiver {
     }
     Member writeMember;
     if (write != null) {
-      writeMember = inferrer.findPropertySetMember(receiverType, write);
+      writeMember = _handleWriteContravariance(inferrer, receiverType);
     }
     // To replicate analyzer behavior, we base type inference on the write
     // member.  TODO(paulberry): would it be better to use the read member when
@@ -1769,18 +1797,24 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
 /// Shadow object for [StaticInvocation].
 class ShadowStaticInvocation extends StaticInvocation
     implements ShadowExpression {
-  ShadowStaticInvocation(Procedure target, Arguments arguments,
+  /// If [_targetClass] is not `null`, the offset at which the explicit
+  /// reference to it is; otherwise `-1`.
+  int _targetOffset;
+
+  /// The [Class] that was explicitly referenced to get the target [Procedure],
+  /// or `null` if the class is implicit.
+  Class _targetClass;
+
+  ShadowStaticInvocation(this._targetOffset, this._targetClass,
+      Procedure target, Arguments arguments,
       {bool isConst: false})
       : super(target, arguments, isConst: isConst);
-
-  ShadowStaticInvocation.byReference(
-      Reference targetReference, Arguments arguments)
-      : super.byReference(targetReference, arguments);
 
   @override
   DartType _inferExpression(
       ShadowTypeInferrer inferrer, DartType typeContext, bool typeNeeded) {
-    typeNeeded = inferrer.listener.staticInvocationEnter(this, typeContext) ||
+    typeNeeded = inferrer.listener.staticInvocationEnter(
+            this, _targetOffset, _targetClass, typeContext) ||
         typeNeeded;
     var calleeType = target.function.functionType;
     var inferredType = inferrer.inferInvocation(typeContext, typeNeeded,
@@ -1994,42 +2028,6 @@ class ShadowSyntheticExpression extends Let implements ShadowExpression {
   }
 }
 
-/// Shadow object for statements that are introduced by the front end as part
-/// of desugaring or the handling of error conditions.
-///
-/// By default, type inference skips these statements entirely.  Some derived
-/// classes may have type inference behaviors.
-///
-/// Visitors skip over objects of this type, so it is not included in serialized
-/// output.
-class ShadowSyntheticStatement extends Statement implements ShadowStatement {
-  /// The desugared kernel representation of this synthetic statement.
-  Statement desugared;
-
-  ShadowSyntheticStatement(this.desugared);
-
-  @override
-  void set parent(TreeNode node) {
-    super.parent = node;
-    desugared?.parent = node;
-  }
-
-  @override
-  accept(StatementVisitor v) => desugared.accept(v);
-
-  @override
-  accept1(StatementVisitor1 v, arg) => desugared.accept1(v, arg);
-
-  @override
-  transformChildren(Transformer v) => desugared.transformChildren(v);
-
-  @override
-  visitChildren(Visitor v) => desugared.visitChildren(v);
-
-  @override
-  void _inferStatement(ShadowTypeInferrer inferrer) {}
-}
-
 /// Shadow object for [ThisExpression].
 class ShadowThisExpression extends ThisExpression implements ShadowExpression {
   @override
@@ -2068,7 +2066,9 @@ class ShadowTryCatch extends TryCatch implements ShadowStatement {
     inferrer.listener.tryCatchEnter(this);
     inferrer.inferStatement(body);
     for (var catch_ in catches) {
+      inferrer.listener.catchStatementEnter(catch_);
       inferrer.inferStatement(catch_.body);
+      inferrer.listener.catchStatementExit(catch_);
     }
     inferrer.listener.tryCatchExit(this);
   }
@@ -2417,6 +2417,14 @@ class ShadowVariableDeclaration extends VariableDeclaration
   /// the kernel.
   static bool isImplicitlyTyped(ShadowVariableDeclaration variable) =>
       variable._implicitlyTyped;
+
+  /// Determines whether the given [ShadowVariableDeclaration] represents a
+  /// local function.
+  ///
+  /// This is static to avoid introducing a method that would be visible to the
+  /// kernel.
+  static bool isLocalFunction(ShadowVariableDeclaration variable) =>
+      variable._isLocalFunction;
 }
 
 /// Concrete shadow object representing a read from a variable in kernel form.

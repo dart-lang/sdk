@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library js_custom_test;
+import 'dart:html';
+import 'dart:mirrors';
 
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
-import 'dart:html';
-import '../utils.dart';
-import 'dart:mirrors';
+
+import 'utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';

@@ -348,6 +348,9 @@ abstract class ElementHandle implements Element {
   int get hashCode => _location.hashCode;
 
   @override
+  bool get isAlwaysThrows => actualElement.isAlwaysThrows;
+
+  @override
   bool get isDeprecated => actualElement.isDeprecated;
 
   @override

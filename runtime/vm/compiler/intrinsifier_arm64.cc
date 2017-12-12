@@ -57,13 +57,8 @@ void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
   assembler->mov(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
 }
 
-// Intrinsify only for Smi value and index. Non-smi values need a store buffer
-// update. Array length is always a Smi.
-void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->argument_type_checks()) {
-    return;
-  }
-
+// Intrinsify only for Smi index.
+void Intrinsifier::ObjectArraySetIndexedUnchecked(Assembler* assembler) {
   Label fall_through;
   __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
   __ BranchIfNotSmi(R1, &fall_through);

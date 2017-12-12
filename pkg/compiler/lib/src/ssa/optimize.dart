@@ -2668,6 +2668,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   // Pure operations that do not escape their inputs.
   void visitBinaryArithmetic(HBinaryArithmetic instruction) {}
+  void visitBoundsCheck(HBoundsCheck instruction) {}
   void visitConstant(HConstant instruction) {}
   void visitIf(HIf instruction) {}
   void visitInterceptor(HInterceptor instruction) {}
@@ -2918,21 +2919,25 @@ class MemorySet {
       // Don't always create phis for HGetLength. The phi confuses array bounds
       // check elimination and the resulting variable-heavy code probably is
       // confusing for JavaScript VMs. In practice, this mostly affects the
-      // expansion of for-in loops on Arrays, so we partially match the
-      // expression
+      // expansion of for-in loops on Arrays, so we match the expression
       //
       //     checkConcurrentModificationError(array.length == _end, array)
       //
-      // starting with the HGetLength of the array.length.
+      // starting with the HGetLength of the `array.length`, in the case where
+      // `array.length` is not used elsewhere (i.e. not already optimized to use
+      // a previous use, in the loop condition).
       //
       // TODO(sra): Figure out a better way ensure 'nice' loop code.
       // TODO(22407): The phi would not be so bad if it did not confuse bounds
       // check elimination.
       // TODO(25437): We could add a phi if we undid the harmful cases.
-      for (var user in second.usedBy) {
+      if (second.usedBy.length == 1) {
+        var user = second.usedBy.single;
         if (user is HIdentity && user.usedBy.length == 1) {
           HInstruction user2 = user.usedBy.single;
-          if (user2 is HInvokeStatic) {
+          if (user2 is HInvokeStatic &&
+              user2.element ==
+                  closedWorld.commonElements.checkConcurrentModificationError) {
             return null;
           }
         }
@@ -2976,12 +2981,31 @@ class MemorySet {
         bool isNonEscapingUse(HInstruction use) {
           if (use is HReturn) return true; // Escapes, but so does control.
           if (use is HFieldGet) return true;
-          if (use is HFieldSet &&
-              use.receiver.nonCheck() == instruction &&
-              use.value.nonCheck() != instruction) {
-            return true;
+          if (use is HFieldSet) {
+            return use.value.nonCheck() != instruction;
           }
           if (use is HTypeInfoReadVariable) return true;
+          if (use is HGetLength) return true;
+          if (use is HBoundsCheck) return true;
+          if (use is HIndex) return true;
+          if (use is HIndexAssign) {
+            return use.value.nonCheck() != instruction;
+          }
+          if (use is HInterceptor) return true;
+          if (use is HInvokeDynamicMethod) {
+            MemberEntity element = use.element;
+            if (element != null) {
+              if (element == closedWorld.commonElements.jsArrayAdd) {
+                return use.inputs.last != instruction;
+              }
+            }
+          }
+          if (use is HInvokeStatic) {
+            if (use.element ==
+                closedWorld.commonElements.checkConcurrentModificationError)
+              return true;
+          }
+
           return false;
         }
 

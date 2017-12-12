@@ -2,13 +2,32 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Skip entire suite if not running in strong mode.
-[ ! $strong ]
-*: SkipByDesign
+# TODO(29919): HTML tests are not supported on dartdevc in test.dart yet.
+[ $compiler == dartdevc ]
+html/custom/attribute_changed_callback_test: Crash # Issue 29922
+html/custom/constructor_calls_created_synchronously_test: Crash # Issue 29922
+html/custom/created_callback_test: CompileTimeError # Issue 29922
+html/custom/document_register_basic_test: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/construction: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/constructors: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/createElement with type extension: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/functional: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/namespaces: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/parsing: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/registration: CompileTimeError # Issue 29922
+html/custom/document_register_type_extensions_test/single-parameter createElement: CompileTimeError # Issue 29922
+html/custom/element_upgrade_test: CompileTimeError # Issue 29922
+html/custom/entered_left_view_test: Crash # Issue 29922
+html/custom/js_custom_test: Crash # Issue 29922
+html/custom/mirrors_test: Crash # Issue 29922
+html/custom/regress_194523002_test: Crash # Issue 29922
+html/deferred_multi_app_htmltest: Skip # Issue 29919
+html/no_linked_scripts_htmltest: Skip # Issue 29919
+html/scripts_htmltest: Skip # Issue 29919
+html/two_scripts_htmltest: Skip # Issue 29919
 
 # Skip tests that are not yet strong-mode clean.
 [ $strong ]
-
 async/print_test/01: Skip # Temporalily disable the following tests until we figure out why they started failing.
 async/print_test/none: Skip # Temporalily disable the following tests until we figure out why they started failing.
 html/cross_frame_test: Skip # Temporalily disable the following tests until we figure out why they started failing.
@@ -67,29 +86,13 @@ mirrors/reflected_type_test: Skip
 mirrors/regress_16321_test: Skip
 mirrors/regress_19731_test: Skip
 
-# TODO(29919): HTML tests are not supported on dartdevc in test.dart yet.
-[ $compiler == dartdevc ]
-html/custom/attribute_changed_callback_test: Crash # Issue 29922
-html/custom/constructor_calls_created_synchronously_test: Crash # Issue 29922
-html/custom/created_callback_test: CompileTimeError # Issue 29922
-html/custom/document_register_basic_test: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/construction: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/constructors: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/createElement with type extension: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/functional: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/namespaces: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/parsing: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/registration: CompileTimeError # Issue 29922
-html/custom/document_register_type_extensions_test/single-parameter createElement: CompileTimeError # Issue 29922
-html/custom/element_upgrade_test: CompileTimeError # Issue 29922
-html/custom/entered_left_view_test: Crash # Issue 29922
-html/custom/js_custom_test: Crash # Issue 29922
-html/custom/mirrors_test: Crash # Issue 29922
-html/custom/regress_194523002_test: Crash # Issue 29922
-html/deferred_multi_app_htmltest: Skip # Issue 29919
-html/no_linked_scripts_htmltest: Skip # Issue 29919
-html/scripts_htmltest: Skip # Issue 29919
-html/two_scripts_htmltest: Skip # Issue 29919
+# Skip entire suite if not running in strong mode.
+[ !$strong ]
+*: SkipByDesign
+
+[ $compiler == dartdevc && $runtime == chrome ]
+html/element_animate_test/timing_dict: RuntimeError # Issue 29922
+html/element_types_keygen_test: RuntimeError # Issue 29922
 
 [ $compiler == dartdevc && $runtime != none ]
 async/future_or_non_strong_test: RuntimeError # Issue 29922
@@ -140,10 +143,3 @@ mirrors/library_uri_package_test: RuntimeError # Issue 29922
 mirrors/local_function_is_static_test: RuntimeError # Issue 29922
 mirrors/metadata_test: RuntimeError # Issue 29922
 
-[ $compiler == dartdevc && $runtime == chrome ]
-html/element_animate_test/timing_dict: RuntimeError # Issue 29922
-html/element_types_keygen_test: RuntimeError # Issue 29922
-
-[ $compiler == dartdevc && $runtime == drt ]
-
-[ $compiler == dartdevc && $system == windows ]

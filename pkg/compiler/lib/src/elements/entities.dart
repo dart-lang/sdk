@@ -257,12 +257,15 @@ class ParameterStructure {
   /// The named parameters sorted alphabetically.
   final List<String> namedParameters;
 
-  const ParameterStructure(
-      this.requiredParameters, this.positionalParameters, this.namedParameters);
+  /// The number of type parameters.
+  final int typeParameters;
 
-  const ParameterStructure.getter() : this(0, 0, const <String>[]);
+  const ParameterStructure(this.requiredParameters, this.positionalParameters,
+      this.namedParameters, this.typeParameters);
 
-  const ParameterStructure.setter() : this(1, 1, const <String>[]);
+  const ParameterStructure.getter() : this(0, 0, const <String>[], 0);
+
+  const ParameterStructure.setter() : this(1, 1, const <String>[], 0);
 
   /// The number of optional parameters (positional or named).
   int get optionalParameters =>
@@ -274,20 +277,23 @@ class ParameterStructure {
   /// Returns the [CallStructure] corresponding to a call site passing all
   /// parameters both required and optional.
   CallStructure get callStructure {
-    return new CallStructure(
-        positionalParameters + namedParameters.length, namedParameters);
+    return new CallStructure(positionalParameters + namedParameters.length,
+        namedParameters, typeParameters);
   }
 
   int get hashCode => Hashing.listHash(
       namedParameters,
       Hashing.objectHash(
-          positionalParameters, Hashing.objectHash(requiredParameters)));
+          positionalParameters,
+          Hashing.objectHash(
+              requiredParameters, Hashing.objectHash(typeParameters))));
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ParameterStructure) return false;
     if (requiredParameters != other.requiredParameters ||
         positionalParameters != other.positionalParameters ||
+        typeParameters != other.typeParameters ||
         namedParameters.length != other.namedParameters.length) {
       return false;
     }
@@ -304,7 +310,8 @@ class ParameterStructure {
     sb.write('ParameterStructure(');
     sb.write('requiredParameters=$requiredParameters,');
     sb.write('positionalParameters=$positionalParameters,');
-    sb.write('namedParameters={${namedParameters.join(',')}})');
+    sb.write('namedParameters={${namedParameters.join(',')}},');
+    sb.write('typeParameters=$typeParameters)');
     return sb.toString();
   }
 }

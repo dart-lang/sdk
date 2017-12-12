@@ -11,7 +11,6 @@ import 'flutter.dart' show FlutterTarget;
 import 'vm.dart' show VmTarget;
 import 'vmcc.dart' show VmClosureConvertedTarget;
 import 'vmreify.dart' show VmGenericTypesReifiedTarget;
-import 'implementation_option.dart' show ImplementationOption;
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -20,18 +19,12 @@ class TargetFlags {
   bool treeShake;
   List<ProgramRoot> programRoots;
   Uri kernelRuntime;
-  final List<ImplementationOption> implementationOptions;
 
   TargetFlags(
       {this.strongMode: false,
       this.treeShake: false,
       this.programRoots: const <ProgramRoot>[],
-      this.kernelRuntime,
-      this.implementationOptions}) {
-    if (implementationOptions != null) {
-      implementationOptions.forEach(ImplementationOption.validate);
-    }
-  }
+      this.kernelRuntime}) {}
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);

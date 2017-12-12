@@ -10,7 +10,7 @@ f() {
   var /*@type=dynamic*/ b = null;
   var /*@type=dynamic*/ c = throw 'foo';
   var /*@type=() -> int*/ d = /*@returnType=int*/ () => 0;
-  var /*@type=() -> dynamic*/ e = /*@returnType=dynamic*/ () => null;
+  var /*@type=() -> Null*/ e = /*@returnType=Null*/ () => null;
   var /*@type=() -> <BottomType>*/ f = /*@returnType=<BottomType>*/ () =>
       throw 'foo';
   var /*@type=() -> int*/ g = /*@returnType=int*/ () {

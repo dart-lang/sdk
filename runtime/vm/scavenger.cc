@@ -394,6 +394,8 @@ intptr_t Scavenger::NewSizeInWords(intptr_t old_size_in_words) const {
 }
 
 SemiSpace* Scavenger::Prologue(Isolate* isolate) {
+  NOT_IN_PRODUCT(isolate->class_table()->ResetCountersNew());
+
   isolate->PrepareForGC();
 
   // Flip the two semi-spaces so that to_ is always the space for allocating
@@ -496,7 +498,7 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   {
     PageSpace* page_space = heap_->old_space();
     MonitorLocker ml(page_space->tasks_lock());
-    if (page_space->tasks() == 0) {
+    if (page_space->sweeper_tasks() == 0) {
       VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
       heap_->old_space()->VisitObjectPointers(&verify_store_buffer_visitor);
     }
@@ -507,6 +509,8 @@ void Scavenger::Epilogue(Isolate* isolate, SemiSpace* from) {
   if (heap_ != NULL) {
     heap_->UpdateGlobalMaxUsed();
   }
+
+  NOT_IN_PRODUCT(isolate->class_table()->UpdatePromoted());
 }
 
 bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {

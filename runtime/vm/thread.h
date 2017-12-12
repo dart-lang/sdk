@@ -168,6 +168,7 @@ class Thread : public BaseThread {
     kCompilerTask = 0x2,
     kSweeperTask = 0x4,
     kMarkerTask = 0x8,
+    kLowMemoryTask = 0x10,
   };
   // Converts a TaskKind to its corresponding C-String name.
   static const char* TaskKindToCString(TaskKind kind);
@@ -203,12 +204,6 @@ class Thread : public BaseThread {
   void SetStackLimit(uword value);
   void SetStackLimitFromStackBase(uword stack_base);
   void ClearStackLimit();
-
-  // Returns the current C++ stack pointer. Equivalent taking the address of a
-  // stack allocated local, but plays well with AddressSanitizer and SafeStack.
-  // Accurate enough for stack overflow checks but not accurate enough for
-  // alignment checks.
-  static uword GetCurrentStackPointer();
 
   // Access to the current stack limit for generated code.  This may be
   // overwritten with a special value to trigger interrupts.

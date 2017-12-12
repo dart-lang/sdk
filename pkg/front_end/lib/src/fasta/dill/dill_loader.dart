@@ -8,6 +8,9 @@ import 'dart:async' show Future;
 
 import 'package:kernel/ast.dart' show Library, Program, Source;
 
+import '../fasta_codes.dart'
+    show SummaryTemplate, Template, templateDillOutlineSummary;
+
 import '../kernel/kernel_builder.dart' show LibraryBuilder;
 
 import '../loader.dart' show Loader;
@@ -27,10 +30,13 @@ class DillLoader extends Loader<Library> {
 
   DillLoader(TargetImplementation target) : super(target);
 
+  Template<SummaryTemplate> get outlineSummaryTemplate =>
+      templateDillOutlineSummary;
+
   /// Append compiled libraries from the given [program]. If the [filter] is
   /// provided, append only libraries whose [Uri] is accepted by the [filter].
   List<DillLibraryBuilder> appendLibraries(Program program,
-      [bool filter(Uri uri)]) {
+      {bool filter(Uri uri), int byteCount: 0}) {
     var builders = <DillLibraryBuilder>[];
     for (Library library in program.libraries) {
       if (filter == null || filter(library.importUri)) {
@@ -41,6 +47,7 @@ class DillLoader extends Loader<Library> {
       }
     }
     uriToSource.addAll(program.uriToSource);
+    this.byteCount += byteCount;
     return builders;
   }
 

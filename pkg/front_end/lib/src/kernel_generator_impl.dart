@@ -64,8 +64,8 @@ Future<CompilerResult> generateKernelInternal(
     CanonicalName nameRoot = sdkSummary?.root ?? new CanonicalName.root();
     if (sdkSummary != null) {
       var excluded = externalLibs(sdkSummary);
-      dillTarget.loader
-          .appendLibraries(sdkSummary, (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(sdkSummary,
+          filter: (uri) => !excluded.contains(uri));
     }
 
     // TODO(sigmund): provide better error reporting if input summaries or
@@ -73,8 +73,8 @@ Future<CompilerResult> generateKernelInternal(
     // sort them).
     for (var inputSummary in await options.loadInputSummaries(nameRoot)) {
       var excluded = externalLibs(inputSummary);
-      dillTarget.loader
-          .appendLibraries(inputSummary, (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(inputSummary,
+          filter: (uri) => !excluded.contains(uri));
     }
 
     // All summaries are considered external and shouldn't include source-info.
@@ -88,8 +88,8 @@ Future<CompilerResult> generateKernelInternal(
     // marked external.
     for (var dependency in await options.loadLinkDependencies(nameRoot)) {
       var excluded = externalLibs(dependency);
-      dillTarget.loader
-          .appendLibraries(dependency, (uri) => !excluded.contains(uri));
+      dillTarget.loader.appendLibraries(dependency,
+          filter: (uri) => !excluded.contains(uri));
     }
 
     await dillTarget.buildOutlines();

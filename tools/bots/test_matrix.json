@@ -20,6 +20,7 @@
       "pkg/meta/",
       "pkg/pkg.status",
       "pkg/status_file/",
+      "pkg/vm/",
       "runtime/",
       "sdk/",
       ".packages"
@@ -310,7 +311,6 @@
     {
       "builders": [
         "ddc-linux-release",
-        "ddc-mac-release",
         "ddc-win-release"
       ],
       "meta": {
@@ -345,6 +345,102 @@
             "--strong",
             "--use-sdk",
             "language_2"
+          ]
+        },
+        {
+          "name": "ddc sourcemap tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart"
+          ]
+        },
+        {
+          "name": "ddk sourcemap tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart"
+          ]
+        },
+        {
+          "name": "ddc sourcemap stacktrace tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart"
+          ]
+        },
+        {
+          "name": "ddk sourcemap stacktrace tests",
+          "script": "out/ReleaseX64/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "ddc-mac-release"
+      ],
+      "meta": {
+        "description": "This configuration is used by the ddc builder group."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["dart2js_bot", "dartdevc_test"]
+        },
+        {
+          "name": "ddc tests",
+          "arguments": [
+            "-cdartdevc",
+            "-rchrome",
+            "--checked",
+            "--strong",
+            "--use-sdk",
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "lib_strong"
+          ]
+        },
+        {
+          "name": "ddc kernel tests",
+          "arguments": [
+            "-cdartdevk",
+            "-rchrome",
+            "--checked",
+            "--strong",
+            "--use-sdk",
+            "language_2"
+          ]
+        },
+        {
+          "name": "ddc sourcemap tests",
+          "script": "out/xcodebuild/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddc_suite.dart"
+          ]
+        },
+        {
+          "name": "ddk sourcemap tests",
+          "script": "out/xcodebuild/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/sourcemaps_ddk_suite.dart"
+          ]
+        },
+        {
+          "name": "ddc sourcemap stacktrace tests",
+          "script": "out/xcodebuild/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddc_suite.dart"
+          ]
+        },
+        {
+          "name": "ddk sourcemap stacktrace tests",
+          "script": "out/xcodebuild/dart",
+          "arguments": [
+            "pkg/dev_compiler/test/sourcemap/stacktrace_ddk_suite.dart"
           ]
         }
       ]

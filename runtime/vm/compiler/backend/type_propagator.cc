@@ -938,12 +938,8 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType(CompileType::kNonNullable, cid, &type);
   }
 
-  if (FLAG_experimental_strong_mode && block_->IsGraphEntry()) {
-    LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
-    const AbstractType& param_type = scope->VariableAt(index())->type();
-    TraceStrongModeType(this, param_type);
-    return CompileType::FromAbstractType(param_type);
-  }
+  // TODO(dartbug.com/30480): Figure out how to use parameter types
+  // without interfering with argument type checks.
 
   return CompileType::Dynamic();
 }

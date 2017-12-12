@@ -280,7 +280,7 @@ class Parser {
   factory Parser(Source source, AnalysisErrorListener errorListener,
       {bool useFasta}) {
     if ((useFasta ?? false) || Parser.useFasta) {
-      return new _Parser2(source, errorListener);
+      return new _Parser2(source, errorListener, allowNativeClause: true);
     } else {
       return new Parser.withoutFasta(source, errorListener);
     }

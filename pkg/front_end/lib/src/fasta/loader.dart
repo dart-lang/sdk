@@ -13,7 +13,13 @@ import 'builder/builder.dart' show Builder, LibraryBuilder;
 import 'deprecated_problems.dart' show firstSourceUri;
 
 import 'messages.dart'
-    show LocatedMessage, Message, messagePlatformPrivateLibraryAccess;
+    show
+        LocatedMessage,
+        Message,
+        SummaryTemplate,
+        Template,
+        messagePlatformPrivateLibraryAccess,
+        templateSourceBodySummary;
 
 import 'severity.dart' show Severity;
 
@@ -59,6 +65,8 @@ abstract class Loader<L> {
   Loader(this.target);
 
   Ticker get ticker => target.ticker;
+
+  Template<SummaryTemplate> get outlineSummaryTemplate;
 
   /// Look up a library builder by the name [uri], or if such doesn't
   /// exist, create one. The canonical URI of the library is [uri], and its
@@ -138,16 +146,7 @@ abstract class Loader<L> {
       await buildBody(library);
     }
     currentUriForCrashReporting = null;
-    ticker.log((Duration elapsed, Duration sinceStart) {
-      int libraryCount = builders.length;
-      double ms =
-          elapsed.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND;
-      String message = "Built $libraryCount compilation units";
-      print("""
-$sinceStart: $message ($byteCount bytes) in ${format(ms, 3, 0)}ms, that is,
-${format(byteCount / ms, 3, 12)} bytes/ms, and
-${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
-    });
+    logSummary(templateSourceBodySummary);
   }
 
   Future<Null> buildOutlines() async {
@@ -158,18 +157,24 @@ ${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
       await buildOutline(library);
     }
     currentUriForCrashReporting = null;
+    logSummary(outlineSummaryTemplate);
+  }
+
+  void logSummary(Template<SummaryTemplate> template) {
     ticker.log((Duration elapsed, Duration sinceStart) {
-      int libraryCount = builders.length;
+      int libraryCount = 0;
+      builders.forEach((Uri uri, LibraryBuilder library) {
+        if (library.loader == this) libraryCount++;
+      });
       double ms =
           elapsed.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND;
-      String message = "Built outlines for $libraryCount compilation units";
-      // TODO(ahe): Share this message with [buildBodies]. Also make it easy to
-      // tell the difference between outlines read from a dill file or source
-      // files. Currently, [libraryCount] is wrong for dill files.
-      print("""
-$sinceStart: $message ($byteCount bytes) in ${format(ms, 3, 0)}ms, that is,
-${format(byteCount / ms, 3, 12)} bytes/ms, and
-${format(ms / libraryCount, 3, 12)} ms/compilation unit.""");
+      Message message = template.withArguments(
+          libraryCount,
+          byteCount,
+          "${format(ms, 3, 0)}ms",
+          format(byteCount / ms, 3, 12),
+          format(ms / libraryCount, 3, 12));
+      print("$sinceStart: ${message.message}");
     });
   }
 

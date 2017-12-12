@@ -748,6 +748,8 @@ class Isolate : public BaseIsolate {
 
   void MaybeIncreaseReloadEveryNStackOverflowChecks();
 
+  static void NotifyLowMemory();
+
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().

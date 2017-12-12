@@ -78,7 +78,8 @@ class Configuration {
       this.builderTag,
       this.outputDirectory,
       this.reproducingArguments,
-      this.fastTestsOnly})
+      this.fastTestsOnly,
+      this.printPassingStdout})
       : _packages = packages,
         _timeout = timeout;
 
@@ -122,6 +123,7 @@ class Configuration {
   final bool writeDebugLog;
   final bool writeTestOutcomeLog;
   final bool writeResultLog;
+  final bool printPassingStdout;
 
   // Various file paths.
 
@@ -172,6 +174,13 @@ class Configuration {
     }
     return _servers;
   }
+
+  /// Returns true if this configuration is considered Dart 2.0 configuration
+  /// by VM (which is identified by using common front-end and strong mode).
+  /// In this case instead of invoking VM binary directly we use
+  /// pkg/vm/tool/dart2 wrapper script, which takes care of passing
+  /// correct arguments to VM binary.
+  bool get usingDart2VMWrapper => isStrong && compiler == Compiler.dartk;
 
   /// The base directory named for this configuration, like:
   ///

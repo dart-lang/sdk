@@ -16,3 +16,19 @@ bool optional(String value, Token token) {
 /// Returns the close brace, bracket, or parenthesis of [left]. For '<', it may
 /// return null.
 Token closeBraceTokenFor(BeginToken left) => left.endToken;
+
+/// Returns the token before the close brace, bracket, or parenthesis
+/// associated with [left]. For '<', it may return `null`.
+Token beforeCloseBraceTokenFor(BeginToken left) {
+  Token endToken = left.endToken;
+  if (endToken == null) {
+    return null;
+  }
+  Token token = left;
+  Token next = token.next;
+  while (next != endToken && next != next.next) {
+    token = next;
+    next = token.next;
+  }
+  return token;
+}

@@ -10722,9 +10722,8 @@ class Document extends Node {
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element/*=T*/ > querySelectorAll/*<T extends Element>*/(
-          String selectors) =>
-      new _FrozenElementList/*<T>*/ ._wrap(_querySelectorAll(selectors));
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+      new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -10742,8 +10741,7 @@ class Document extends Node {
   @deprecated
   @Experimental()
   @DomName('Document.querySelectorAll')
-  ElementList<Element/*=T*/ > queryAll/*<T extends Element>*/(
-          String relativeSelectors) =>
+  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /// Checks if [registerElement] is supported on the current platform.
@@ -10865,9 +10863,8 @@ class DocumentFragment extends Node
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  ElementList<Element/*=T*/ > querySelectorAll/*<T extends Element>*/(
-          String selectors) =>
-      new _FrozenElementList/*<T>*/ ._wrap(_querySelectorAll(selectors));
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+      new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   String get innerHtml {
     final e = new DivElement();
@@ -10922,8 +10919,7 @@ class DocumentFragment extends Node
   @deprecated
   @Experimental()
   @DomName('DocumentFragment.querySelectorAll')
-  ElementList<Element/*=T*/ > queryAll/*<T extends Element>*/(
-          String relativeSelectors) =>
+  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() {
@@ -11671,11 +11667,11 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
         another.y <= top + height;
   }
 
-  Point get topLeft => new Point/*<num>*/(this.left, this.top);
-  Point get topRight => new Point/*<num>*/(this.left + this.width, this.top);
+  Point get topLeft => new Point(this.left, this.top);
+  Point get topRight => new Point(this.left + this.width, this.top);
   Point get bottomRight =>
-      new Point/*<num>*/(this.left + this.width, this.top + this.height);
-  Point get bottomLeft => new Point/*<num>*/(this.left, this.top + this.height);
+      new Point(this.left + this.width, this.top + this.height);
+  Point get bottomLeft => new Point(this.left, this.top + this.height);
 
   // To suppress missing implicit constructor warnings.
   factory DomRectReadOnly._() {
@@ -13464,9 +13460,8 @@ class Element extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   @DomName('Element.querySelectorAll')
-  ElementList<Element/*=T*/ > querySelectorAll/*<T extends Element>*/(
-          String selectors) =>
-      new _FrozenElementList/*<T>*/ ._wrap(_querySelectorAll(selectors));
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+      new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -13484,8 +13479,7 @@ class Element extends Node
   @deprecated
   @DomName('Element.querySelectorAll')
   @Experimental()
-  ElementList<Element/*=T*/ > queryAll/*<T extends Element>*/(
-          String relativeSelectors) =>
+  ElementList<T> queryAll<T extends Element>(String relativeSelectors) =>
       querySelectorAll(relativeSelectors);
 
   /**
@@ -14101,14 +14095,13 @@ class Element extends Node
     bool sameAsParent = identical(current, parent);
     bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
     if (current == null || sameAsParent) {
-      if (foundAsParent) return new Point/*<num>*/(0, 0);
+      if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
     }
     Element parentOffset = current.offsetParent;
     Point p = Element._offsetToHelper(parentOffset, parent);
-    return new Point/*<num>*/(
-        p.x + current.offsetLeft, p.y + current.offsetTop);
+    return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
   static HtmlDocument _parseDocument;
@@ -25347,14 +25340,14 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.clientX')
   @DomName('MouseEvent.clientY')
-  Point get client => new Point/*<num>*/(_clientX, _clientY);
+  Point get client => new Point(_clientX, _clientY);
 
   @DomName('MouseEvent.movementX')
   @DomName('MouseEvent.movementY')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental()
-  Point get movement => new Point/*<num>*/(_movementX, _movementY);
+  Point get movement => new Point(_movementX, _movementY);
 
   /**
    * The coordinates of the mouse pointer in target node coordinates.
@@ -25367,7 +25360,7 @@ class MouseEvent extends UIEvent {
     if (JS('bool', '!!#.offsetX', this)) {
       var x = JS('int', '#.offsetX', this);
       var y = JS('int', '#.offsetY', this);
-      return new Point/*<num>*/(x, y);
+      return new Point(x, y);
     } else {
       // Firefox does not support offsetX.
       if (!(this.target is Element)) {
@@ -25375,21 +25368,21 @@ class MouseEvent extends UIEvent {
       }
       Element target = this.target;
       var point = (this.client - target.getBoundingClientRect().topLeft);
-      return new Point/*<num>*/(point.x.toInt(), point.y.toInt());
+      return new Point(point.x.toInt(), point.y.toInt());
     }
   }
 
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
-  Point get screen => new Point/*<num>*/(_screenX, _screenY);
+  Point get screen => new Point(_screenX, _screenY);
 
   @DomName('MouseEvent.layerX')
   @DomName('MouseEvent.layerY')
-  Point get layer => new Point/*<num>*/(_layerX, _layerY);
+  Point get layer => new Point(_layerX, _layerY);
 
   @DomName('MouseEvent.pageX')
   @DomName('MouseEvent.pageY')
-  Point get page => new Point/*<num>*/(_pageX, _pageY);
+  Point get page => new Point(_pageX, _pageY);
 
   @DomName('MouseEvent.dataTransfer')
   DataTransfer get dataTransfer =>
@@ -34833,15 +34826,15 @@ class Touch extends Interceptor {
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point/*<num>*/(__clientX, __clientY);
+  Point get client => new Point(__clientX, __clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point/*<num>*/(__pageX, __pageY);
+  Point get page => new Point(__pageX, __pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point/*<num>*/(__screenX, __screenY);
+  Point get screen => new Point(__screenX, __screenY);
 
   @DomName('Touch.radiusX')
   @DocsEditable()
@@ -39010,7 +39003,7 @@ class _BeforeUnloadEventStreamProvider
         e, _eventType, useCapture);
   }
 
-  ElementStream<BeforeUnloadEvent> _forElementList(ElementList e,
+  ElementStream<BeforeUnloadEvent> _forElementList(ElementList<Element> e,
       {bool useCapture: false}) {
     // Specify the generic type for _ElementEventStreamImpl only in dart2js.
     return new _ElementListEventStreamImpl<BeforeUnloadEvent>(
@@ -40025,11 +40018,11 @@ class _ClientRect extends Interceptor implements Rectangle {
         another.y <= top + height;
   }
 
-  Point get topLeft => new Point/*<num>*/(this.left, this.top);
-  Point get topRight => new Point/*<num>*/(this.left + this.width, this.top);
+  Point get topLeft => new Point(this.left, this.top);
+  Point get topRight => new Point(this.left + this.width, this.top);
   Point get bottomRight =>
-      new Point/*<num>*/(this.left + this.width, this.top + this.height);
-  Point get bottomLeft => new Point/*<num>*/(this.left, this.top + this.height);
+      new Point(this.left + this.width, this.top + this.height);
+  Point get bottomLeft => new Point(this.left, this.top + this.height);
 
   // To suppress missing implicit constructor warnings.
   factory _ClientRect._() {
@@ -42768,7 +42761,8 @@ class EventStreamProvider<T extends Event> {
    *
    * [addEventListener](http://docs.webplatform.org/wiki/dom/methods/addEventListener)
    */
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+  ElementStream<T> _forElementList(ElementList<Element> e,
+      {bool useCapture: false}) {
     return new _ElementListEventStreamImpl<T>(e, _eventType, useCapture);
   }
 
@@ -43126,7 +43120,8 @@ class _CustomEventStreamProvider<T extends Event>
     return new _ElementEventStreamImpl<T>(e, _eventTypeGetter(e), useCapture);
   }
 
-  ElementStream<T> _forElementList(ElementList e, {bool useCapture: false}) {
+  ElementStream<T> _forElementList(ElementList<Element> e,
+      {bool useCapture: false}) {
     return new _ElementListEventStreamImpl<T>(
         e, _eventTypeGetter(e), useCapture);
   }
@@ -45075,9 +45070,9 @@ class NodeValidatorBuilder implements NodeValidator {
       Iterable<String> uriAttributes}) {
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
-        ?.map/*<String>*/((name) => '$tagNameUpper::${name.toLowerCase()}');
+        ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
     var uriAttrs = uriAttributes
-        ?.map/*<String>*/((name) => '$tagNameUpper::${name.toLowerCase()}');
+        ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -45101,9 +45096,9 @@ class NodeValidatorBuilder implements NodeValidator {
     var baseNameUpper = baseName.toUpperCase();
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
-        ?.map/*<String>*/((name) => '$baseNameUpper::${name.toLowerCase()}');
+        ?.map<String>((name) => '$baseNameUpper::${name.toLowerCase()}');
     var uriAttrs = uriAttributes
-        ?.map/*<String>*/((name) => '$baseNameUpper::${name.toLowerCase()}');
+        ?.map<String>((name) => '$baseNameUpper::${name.toLowerCase()}');
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }

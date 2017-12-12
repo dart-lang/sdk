@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library tests.html.mirrors_test;
-
+import 'dart:html';
 @MirrorsUsed(targets: const [A, B])
 import 'dart:mirrors';
-import 'dart:html';
+
 import 'package:unittest/html_individual_config.dart';
 import 'package:unittest/unittest.dart';
-import '../utils.dart';
+
+import 'utils.dart';
 
 /// Regression test for a tricky mirrors+custom_elements issue:
 /// dart2js mirrors cache dispatch information on the Object's constructor.

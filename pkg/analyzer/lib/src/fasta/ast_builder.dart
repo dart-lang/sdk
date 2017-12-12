@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart' show AstFactory;
 import 'package:analyzer/dart/ast/standard_ast_factory.dart' as standard;
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:front_end/src/fasta/parser.dart'
     show
         Assert,
@@ -16,8 +20,14 @@ import 'package:front_end/src/fasta/parser.dart'
         optional,
         Parser;
 import 'package:front_end/src/fasta/scanner/string_scanner.dart';
+import 'package:front_end/src/fasta/scanner.dart' hide StringToken;
 import 'package:front_end/src/scanner/token.dart'
-    show SyntheticBeginToken, SyntheticToken, CommentToken;
+    show
+        StringToken,
+        SyntheticBeginToken,
+        SyntheticStringToken,
+        SyntheticToken,
+        CommentToken;
 
 import 'package:front_end/src/fasta/problems.dart' show unhandled;
 import 'package:front_end/src/fasta/messages.dart'
@@ -1011,7 +1021,7 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     Token keyword = modifiers?.finalConstOrVarKeyword;
     Token covariantKeyword = modifiers?.covariantKeyword;
-    List<Annotation> metadata = pop(); // TODO(paulberry): Metadata.
+    List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata,
         thisKeyword ?? typeOrFunctionTypedParameter?.beginToken ?? nameToken);
 
@@ -2294,10 +2304,310 @@ class AstBuilder extends ScopeListener {
     return null;
   }
 
-  /**
-   * Parse a documentation comment. Return the documentation comment that was
-   * parsed, or `null` if there was no comment.
-   */
+  /// Search the given list of [ranges] for a range that contains the given
+  /// [index]. Return the range that was found, or `null` if none of the ranges
+  /// contain the index.
+  List<int> _findRange(List<List<int>> ranges, int index) {
+    int rangeCount = ranges.length;
+    for (int i = 0; i < rangeCount; i++) {
+      List<int> range = ranges[i];
+      if (range[0] <= index && index <= range[1]) {
+        return range;
+      } else if (index < range[0]) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// Return a list of the ranges of characters in the given [comment] that
+  /// should be treated as code blocks.
+  List<List<int>> _getCodeBlockRanges(String comment) {
+    List<List<int>> ranges = <List<int>>[];
+    int length = comment.length;
+    if (length < 3) {
+      return ranges;
+    }
+    int index = 0;
+    int firstChar = comment.codeUnitAt(0);
+    if (firstChar == 0x2F) {
+      int secondChar = comment.codeUnitAt(1);
+      int thirdChar = comment.codeUnitAt(2);
+      if ((secondChar == 0x2A && thirdChar == 0x2A) ||
+          (secondChar == 0x2F && thirdChar == 0x2F)) {
+        index = 3;
+      }
+    }
+    if (comment.startsWith('    ', index)) {
+      int end = index + 4;
+      while (end < length &&
+          comment.codeUnitAt(end) != 0xD &&
+          comment.codeUnitAt(end) != 0xA) {
+        end = end + 1;
+      }
+      ranges.add(<int>[index, end]);
+      index = end;
+    }
+    while (index < length) {
+      int currentChar = comment.codeUnitAt(index);
+      if (currentChar == 0xD || currentChar == 0xA) {
+        index = index + 1;
+        while (index < length &&
+            Character.isWhitespace(comment.codeUnitAt(index))) {
+          index = index + 1;
+        }
+        if (comment.startsWith('      ', index)) {
+          int end = index + 6;
+          while (end < length &&
+              comment.codeUnitAt(end) != 0xD &&
+              comment.codeUnitAt(end) != 0xA) {
+            end = end + 1;
+          }
+          ranges.add(<int>[index, end]);
+          index = end;
+        }
+      } else if (index + 1 < length &&
+          currentChar == 0x5B &&
+          comment.codeUnitAt(index + 1) == 0x3A) {
+        int end = comment.indexOf(':]', index + 2);
+        if (end < 0) {
+          end = length;
+        }
+        ranges.add(<int>[index, end]);
+        index = end + 1;
+      } else {
+        index = index + 1;
+      }
+    }
+    return ranges;
+  }
+
+  ///
+  /// Given that we have just found bracketed text within the given [comment],
+  /// look to see whether that text is (a) followed by a parenthesized link
+  /// address, (b) followed by a colon, or (c) followed by optional whitespace
+  /// and another square bracket. The [rightIndex] is the index of the right
+  /// bracket. Return `true` if the bracketed text is followed by a link
+  /// address.
+  ///
+  /// This method uses the syntax described by the
+  /// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
+  /// project.
+  bool _isLinkText(String comment, int rightIndex) {
+    int length = comment.length;
+    int index = rightIndex + 1;
+    if (index >= length) {
+      return false;
+    }
+    int nextChar = comment.codeUnitAt(index);
+    if (nextChar == 0x28 || nextChar == 0x3A) {
+      return true;
+    }
+    while (Character.isWhitespace(nextChar)) {
+      index = index + 1;
+      if (index >= length) {
+        return false;
+      }
+      nextChar = comment.codeUnitAt(index);
+    }
+    return nextChar == 0x5B;
+  }
+
+  /// Parse a comment reference from the source between square brackets. The
+  /// [referenceSource] is the source occurring between the square brackets
+  /// within a documentation comment. The [sourceOffset] is the offset of the
+  /// first character of the reference source. Return the comment reference that
+  /// was parsed, or `null` if no reference could be found.
+  /// ```
+  /// commentReference ::=
+  ///     'new'? prefixedIdentifier
+  /// ```
+  CommentReference _parseCommentReference(
+      String referenceSource, int sourceOffset) {
+    // TODO(brianwilkerson) The errors are not getting the right offset/length
+    // and are being duplicated.
+    void offsetTokens(Token token) {
+      while (token.type != TokenType.EOF) {
+        token.offset = token.offset + sourceOffset;
+        token = token.next;
+      }
+    }
+
+    try {
+      BooleanErrorListener listener = new BooleanErrorListener();
+      ScannerResult result = scanString(referenceSource);
+      Token firstToken = result.tokens;
+      offsetTokens(firstToken);
+      if (listener.errorReported) {
+        return null;
+      }
+      if (firstToken.type == TokenType.EOF) {
+        Token syntheticToken =
+            new SyntheticStringToken(TokenType.IDENTIFIER, "", sourceOffset);
+        syntheticToken.setNext(firstToken);
+        return ast.commentReference(null, ast.simpleIdentifier(syntheticToken));
+      }
+      Token newKeyword = null;
+      if (_tokenMatchesKeyword(firstToken, Keyword.NEW)) {
+        newKeyword = firstToken;
+        firstToken = firstToken.next;
+      }
+      if (firstToken.isUserDefinableOperator) {
+        if (firstToken.next.type != TokenType.EOF) {
+          return null;
+        }
+        Identifier identifier = ast.simpleIdentifier(firstToken);
+        return ast.commentReference(null, identifier);
+      } else if (_tokenMatchesKeyword(firstToken, Keyword.OPERATOR)) {
+        Token secondToken = firstToken.next;
+        if (secondToken.isUserDefinableOperator) {
+          if (secondToken.next.type != TokenType.EOF) {
+            return null;
+          }
+          Identifier identifier = ast.simpleIdentifier(secondToken);
+          return ast.commentReference(null, identifier);
+        }
+        return null;
+      } else if (_tokenMatchesIdentifier(firstToken)) {
+        Token secondToken = firstToken.next;
+        Token thirdToken = secondToken.next;
+        Token nextToken;
+        Identifier identifier;
+        if (_tokenMatches(secondToken, TokenType.PERIOD)) {
+          if (thirdToken.isUserDefinableOperator) {
+            identifier = ast.prefixedIdentifier(
+                ast.simpleIdentifier(firstToken),
+                secondToken,
+                ast.simpleIdentifier(thirdToken));
+            nextToken = thirdToken.next;
+          } else if (_tokenMatchesKeyword(thirdToken, Keyword.OPERATOR)) {
+            Token fourthToken = thirdToken.next;
+            if (fourthToken.isUserDefinableOperator) {
+              identifier = ast.prefixedIdentifier(
+                  ast.simpleIdentifier(firstToken),
+                  secondToken,
+                  ast.simpleIdentifier(fourthToken));
+              nextToken = fourthToken.next;
+            } else {
+              return null;
+            }
+          } else if (_tokenMatchesIdentifier(thirdToken)) {
+            identifier = ast.prefixedIdentifier(
+                ast.simpleIdentifier(firstToken),
+                secondToken,
+                ast.simpleIdentifier(thirdToken));
+            nextToken = thirdToken.next;
+          }
+        } else {
+          identifier = ast.simpleIdentifier(firstToken);
+          nextToken = firstToken.next;
+        }
+        if (nextToken.type != TokenType.EOF) {
+          return null;
+        }
+        return ast.commentReference(newKeyword, identifier);
+      } else {
+        Keyword keyword = firstToken.keyword;
+        if (keyword == Keyword.THIS ||
+            keyword == Keyword.NULL ||
+            keyword == Keyword.TRUE ||
+            keyword == Keyword.FALSE) {
+          // TODO(brianwilkerson) If we want to support this we will need to
+          // extend the definition of CommentReference to take an expression
+          // rather than an identifier. For now we just ignore it to reduce the
+          // number of errors produced, but that's probably not a valid long
+          // term approach.
+          return null;
+        }
+      }
+    } catch (exception) {
+      // Ignored because we assume that it wasn't a real comment reference.
+    }
+    return null;
+  }
+
+  /// Parse all of the comment references occurring in the given array of
+  /// documentation comments. The [tokens] are the comment tokens representing
+  /// the documentation comments to be parsed. Return the comment references that
+  /// were parsed.
+  /// ```
+  /// commentReference ::=
+  ///     '[' 'new'? qualified ']' libraryReference?
+  ///
+  /// libraryReference ::=
+  ///      '(' stringLiteral ')'
+  /// ```
+  List<CommentReference> _parseCommentReferences(List<Token> tokens) {
+    List<CommentReference> references = <CommentReference>[];
+    bool isInGitHubCodeBlock = false;
+    for (Token token in tokens) {
+      String comment = token.lexeme;
+      // Skip GitHub code blocks.
+      // https://help.github.com/articles/creating-and-highlighting-code-blocks/
+      if (tokens.length != 1) {
+        if (comment.indexOf('```') != -1) {
+          isInGitHubCodeBlock = !isInGitHubCodeBlock;
+        }
+        if (isInGitHubCodeBlock) {
+          continue;
+        }
+      }
+      // Remove GitHub include code.
+      comment = _removeGitHubInlineCode(comment);
+      // Find references.
+      int length = comment.length;
+      List<List<int>> codeBlockRanges = _getCodeBlockRanges(comment);
+      int leftIndex = comment.indexOf('[');
+      while (leftIndex >= 0 && leftIndex + 1 < length) {
+        List<int> range = _findRange(codeBlockRanges, leftIndex);
+        if (range == null) {
+          int nameOffset = token.offset + leftIndex + 1;
+          int rightIndex = comment.indexOf(']', leftIndex);
+          if (rightIndex >= 0) {
+            int firstChar = comment.codeUnitAt(leftIndex + 1);
+            if (firstChar != 0x27 && firstChar != 0x22) {
+              if (_isLinkText(comment, rightIndex)) {
+                // TODO(brianwilkerson) Handle the case where there's a library
+                // URI in the link text.
+              } else {
+                CommentReference reference = _parseCommentReference(
+                    comment.substring(leftIndex + 1, rightIndex), nameOffset);
+                if (reference != null) {
+                  references.add(reference);
+                }
+              }
+            }
+          } else {
+            // terminating ']' is not typed yet
+            int charAfterLeft = comment.codeUnitAt(leftIndex + 1);
+            Token nameToken;
+            if (Character.isLetterOrDigit(charAfterLeft)) {
+              int nameEnd = StringUtilities.indexOfFirstNotLetterDigit(
+                  comment, leftIndex + 1);
+              String name = comment.substring(leftIndex + 1, nameEnd);
+              nameToken =
+                  new StringToken(TokenType.IDENTIFIER, name, nameOffset);
+            } else {
+              nameToken = new SyntheticStringToken(
+                  TokenType.IDENTIFIER, '', nameOffset);
+            }
+            nameToken.setNext(new Token.eof(nameToken.end));
+            references.add(
+                ast.commentReference(null, ast.simpleIdentifier(nameToken)));
+            // next character
+            rightIndex = leftIndex + 1;
+          }
+          leftIndex = comment.indexOf('[', rightIndex);
+        } else {
+          leftIndex = comment.indexOf('[', range[1]);
+        }
+      }
+    }
+    return references;
+  }
+
+  /// Parse a documentation comment. Return the documentation comment that was
+  /// parsed, or `null` if there was no comment.
   Comment _parseDocumentationCommentOpt(CommentToken commentToken) {
     List<Token> tokens = <Token>[];
     while (commentToken != null) {
@@ -2316,11 +2626,47 @@ class AstBuilder extends ScopeListener {
       }
       commentToken = commentToken.next;
     }
-    // TODO(brianwilkerson) Use the code in analyzer's parser to parse the
-    // references inside the comment.
-    List<CommentReference> references = <CommentReference>[];
+    List<CommentReference> references = _parseCommentReferences(tokens);
     return tokens.isEmpty ? null : ast.documentationComment(tokens, references);
   }
+
+  /// Remove any substrings in the given [comment] that represent in-line code
+  /// in markdown.
+  String _removeGitHubInlineCode(String comment) {
+    int index = 0;
+    while (true) {
+      int beginIndex = comment.indexOf('`', index);
+      if (beginIndex == -1) {
+        break;
+      }
+      int endIndex = comment.indexOf('`', beginIndex + 1);
+      if (endIndex == -1) {
+        break;
+      }
+      comment = comment.substring(0, beginIndex + 1) +
+          ' ' * (endIndex - beginIndex - 1) +
+          comment.substring(endIndex);
+      index = endIndex + 1;
+    }
+    return comment;
+  }
+
+  /// Return `true` if the given [token] has the given [type].
+  bool _tokenMatches(Token token, TokenType type) => token.type == type;
+
+  /// Return `true` if the given [token] is a valid identifier. Valid
+  /// identifiers include built-in identifiers (pseudo-keywords).
+  bool _tokenMatchesIdentifier(Token token) =>
+      _tokenMatches(token, TokenType.IDENTIFIER) ||
+      _tokenMatchesPseudoKeyword(token);
+
+  /// Return `true` if the given [token] matches the given [keyword].
+  bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
+      token.keyword == keyword;
+
+  /// Return `true` if the given [token] matches a pseudo keyword.
+  bool _tokenMatchesPseudoKeyword(Token token) =>
+      token.keyword?.isBuiltInOrPseudo ?? false;
 
   @override
   void debugEvent(String name) {

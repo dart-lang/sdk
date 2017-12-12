@@ -330,10 +330,15 @@ class PageSpace {
   }
 
   Monitor* tasks_lock() const { return tasks_lock_; }
-  intptr_t tasks() const { return tasks_; }
-  void set_tasks(intptr_t val) {
+  intptr_t sweeper_tasks() const { return sweeper_tasks_; }
+  void set_sweeper_tasks(intptr_t val) {
     ASSERT(val >= 0);
-    tasks_ = val;
+    sweeper_tasks_ = val;
+  }
+  intptr_t low_memory_tasks() const { return low_memory_tasks_; }
+  void set_low_memory_tasks(intptr_t val) {
+    ASSERT(val >= 0);
+    low_memory_tasks_ = val;
   }
 
   // Attempt to allocate from bump block rather than normal freelist.
@@ -434,7 +439,8 @@ class PageSpace {
 
   // Keep track of running MarkSweep tasks.
   Monitor* tasks_lock_;
-  intptr_t tasks_;
+  int32_t sweeper_tasks_;
+  int32_t low_memory_tasks_;
 #if defined(DEBUG)
   Thread* iterating_thread_;
 #endif

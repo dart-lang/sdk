@@ -23,11 +23,13 @@ import 'package:kernel/ast.dart'
         AsyncMarker,
         BottomType,
         Class,
+        ConstructorInvocation,
         DartType,
         DispatchCategory,
         DynamicType,
         Expression,
         Field,
+        FunctionExpression,
         FunctionNode,
         FunctionType,
         Initializer,
@@ -35,6 +37,7 @@ import 'package:kernel/ast.dart'
         InvocationExpression,
         Let,
         ListLiteral,
+        MapLiteral,
         Member,
         MethodInvocation,
         Name,
@@ -42,8 +45,8 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         PropertyGet,
         PropertySet,
-        ReturnStatement,
         Statement,
+        StaticGet,
         SuperMethodInvocation,
         SuperPropertyGet,
         SuperPropertySet,
@@ -51,6 +54,7 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
+        VariableGet,
         VoidType;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -162,27 +166,13 @@ class ClosureContext {
         inferrer, type, unwrappedType, expression, fileOffset, isYieldStar);
   }
 
-  DartType inferReturnType(
-      TypeInferrerImpl inferrer, bool isExpressionFunction) {
+  DartType inferReturnType(TypeInferrerImpl inferrer) {
     assert(_needToInferReturnType);
-    DartType inferredReturnType =
-        inferrer.inferReturnType(_inferredReturnType, isExpressionFunction);
-    if (!isExpressionFunction &&
-        returnContext != null &&
+    DartType inferredReturnType = inferrer.inferReturnType(_inferredReturnType);
+    if (returnContext != null &&
         !_analyzerSubtypeOf(inferrer, inferredReturnType, returnContext)) {
-      // For block-bodied functions, if the inferred return type isn't a
-      // subtype of the context, we use the context.  We use analyzer subtyping
-      // rules here.
-      // TODO(paulberry): this is inherited from analyzer; it's not part of
-      // the spec.  See also dartbug.com/29606.
-      inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
-    } else if (isExpressionFunction &&
-        returnContext != null &&
-        inferredReturnType is DynamicType) {
-      // For expression-bodied functions, if the inferred return type is
-      // `dynamic`, we use the context.
-      // TODO(paulberry): this is inherited from analyzer; it's not part of the
-      // spec.
+      // If the inferred return type isn't a subtype of the context, we use the
+      // context.
       inferredReturnType = greatestClosure(inferrer.coreTypes, returnContext);
     }
 
@@ -208,7 +198,13 @@ class ClosureContext {
       var expectedType = isYieldStar
           ? _wrapAsyncOrGenerator(inferrer, returnContext)
           : returnContext;
-      inferrer.checkAssignability(expectedType, type, expression, fileOffset);
+      if (expectedType != null) {
+        inferrer.checkAssignability(
+            greatestClosure(inferrer.coreTypes, expectedType),
+            type,
+            expression,
+            fileOffset);
+      }
     }
   }
 
@@ -388,6 +384,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// an implicit downcast if appropriate.
   Expression checkAssignability(DartType expectedType, DartType actualType,
       Expression expression, int fileOffset) {
+    assert(expectedType == null || isKnown(expectedType));
     // We don't need to insert assignability checks when doing top level type
     // inference since top level type inference only cares about the type that
     // is inferred (the kernel code is discarded).
@@ -410,13 +407,24 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           parent?.replaceChild(expression, errorNode);
           return errorNode;
         } else {
-          // Insert an implicit downcast.
-          var parent = expression.parent;
-          var typeCheck = new AsExpression(expression, expectedType)
-            ..isTypeError = true
-            ..fileOffset = fileOffset;
-          parent?.replaceChild(expression, typeCheck);
-          return typeCheck;
+          var template = _getPreciseTypeErrorTemplate(expression);
+          if (template != null) {
+            // The type of the expression is known precisely, so an implicit
+            // downcast is guaranteed to fail.  Insert a compile-time error.
+            var parent = expression.parent;
+            var errorNode = helper.wrapInCompileTimeError(
+                expression, template.withArguments(actualType, expectedType));
+            parent?.replaceChild(expression, errorNode);
+            return errorNode;
+          } else {
+            // Insert an implicit downcast.
+            var parent = expression.parent;
+            var typeCheck = new AsExpression(expression, expectedType)
+              ..isTypeError = true
+              ..fileOffset = fileOffset;
+            parent?.replaceChild(expression, typeCheck);
+            return typeCheck;
+          }
         }
       } else {
         return null;
@@ -784,6 +792,35 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
+  /// Determines the dispatch category of a [PropertySet].
+  void handlePropertySetContravariance(Expression receiver,
+      Object interfaceMember, PropertySet desugaredSet, Expression expression) {
+    DispatchCategory callKind;
+    if (receiver is ThisExpression || receiver == null) {
+      callKind = DispatchCategory.viaThis;
+    } else if (interfaceMember == null) {
+      callKind = DispatchCategory.dynamicDispatch;
+    } else {
+      callKind = DispatchCategory.interface;
+    }
+    desugaredSet?.dispatchCategory = callKind;
+    if (instrumentation != null) {
+      int offset = expression.fileOffset;
+      switch (callKind) {
+        case DispatchCategory.dynamicDispatch:
+          instrumentation.record(uri, offset, 'callKind',
+              new InstrumentationValueLiteral('dynamic'));
+          break;
+        case DispatchCategory.viaThis:
+          instrumentation.record(
+              uri, offset, 'callKind', new InstrumentationValueLiteral('this'));
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   /// Modifies a type as appropriate when inferring a declared variable's type.
   DartType inferDeclarationType(DartType initializerType) {
     if (initializerType is BottomType ||
@@ -1037,7 +1074,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       ShadowVariableDeclaration formal = formals[i];
       if (ShadowVariableDeclaration.isImplicitlyTyped(formal)) {
         DartType inferredType;
-        if (formalTypesFromContext[i] != null) {
+        if (formalTypesFromContext[i] == coreTypes.nullClass.rawType) {
+          inferredType = coreTypes.objectClass.rawType;
+        } else if (formalTypesFromContext[i] != null) {
           inferredType = greatestClosure(coreTypes,
               substitution.substituteType(formalTypesFromContext[i]));
         } else {
@@ -1058,10 +1097,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
-    bool isExpressionFunction = function.body is ReturnStatement;
     bool needToSetReturnType = hasImplicitReturnType && strongMode;
     ClosureContext oldClosureContext = this.closureContext;
-    bool needImplicitDowncasts = returnContext != null && !isExpressionFunction;
+    bool needImplicitDowncasts = returnContext != null;
     ClosureContext closureContext = new ClosureContext(
         this,
         function.asyncMarker,
@@ -1078,8 +1116,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // or `void` if `B’` contains no `return` expressions.
     DartType inferredReturnType;
     if (needToSetReturnType) {
-      inferredReturnType =
-          closureContext.inferReturnType(this, isExpressionFunction);
+      inferredReturnType = closureContext.inferReturnType(this);
     }
 
     // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B` with
@@ -1223,18 +1260,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   }
 
   /// Modifies a type as appropriate when inferring a closure return type.
-  DartType inferReturnType(DartType returnType, bool isExpressionFunction) {
+  DartType inferReturnType(DartType returnType) {
     if (returnType == null) {
       // Analyzer infers `Null` if there is no `return` expression; the spec
       // says to return `void`.  TODO(paulberry): resolve this difference.
       return coreTypes.nullClass.rawType;
-    }
-    if (isExpressionFunction &&
-        returnType is InterfaceType &&
-        identical(returnType.classNode, coreTypes.nullClass)) {
-      // Analyzer coerces `Null` to `dynamic` in expression functions; the spec
-      // doesn't say to do this.  TODO(paulberry): resolve this difference.
-      return const DynamicType();
     }
     return returnType;
   }
@@ -1402,5 +1432,49 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     return classHierarchy.getInterfaceMember(class_, name, setter: setter);
+  }
+
+  /// Determines if the given [expression]'s type is precisely known at compile
+  /// time.
+  ///
+  /// If it is, an error message template is returned, which can be used by the
+  /// caller to report an invalid cast.  Otherwise, `null` is returned.
+  Template<Message Function(DartType, DartType)> _getPreciseTypeErrorTemplate(
+      Expression expression) {
+    if (expression is ListLiteral) {
+      return templateInvalidCastLiteralList;
+    }
+    if (expression is MapLiteral) {
+      return templateInvalidCastLiteralMap;
+    }
+    if (expression is FunctionExpression) {
+      return templateInvalidCastFunctionExpr;
+    }
+    if (expression is ConstructorInvocation) {
+      if (ShadowConstructorInvocation.isRedirected(expression)) {
+        return null;
+      } else {
+        return templateInvalidCastNewExpr;
+      }
+    }
+    if (expression is StaticGet) {
+      var target = expression.target;
+      if (target is Procedure && target.kind == ProcedureKind.Method) {
+        if (target.enclosingClass != null) {
+          return templateInvalidCastStaticMethod;
+        } else {
+          return templateInvalidCastTopLevelFunction;
+        }
+      }
+      return null;
+    }
+    if (expression is VariableGet) {
+      var variable = expression.variable;
+      if (variable is ShadowVariableDeclaration &&
+          ShadowVariableDeclaration.isLocalFunction(variable)) {
+        return templateInvalidCastLocalFunction;
+      }
+    }
+    return null;
   }
 }

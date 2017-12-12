@@ -19,7 +19,7 @@ convertDartToNative_Dictionary(Map dict, [void postCreate(dynamic)]) {
   if (postCreate != null) {
     postCreate(object);
   }
-  dict.forEach((String key, value) {
+  dict.forEach((key, value) {
     JS('void', '#[#] = #', object, key, value);
   });
   return object;

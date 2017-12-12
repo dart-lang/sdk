@@ -1445,9 +1445,31 @@ class RedirectingFactoryConstructor extends Member {
 class Procedure extends Member implements FileUriNode {
   ProcedureKind kind;
   int flags = 0;
-  // function is null if and only if abstract, external,
-  // or builder (below) is set.
+  // function is null if and only if abstract, external.
   FunctionNode function;
+
+  // The function node's body might be lazily loaded, meaning that this value
+  // might not be set correctly yet. Make sure the body is loaded before
+  // returning anything.
+  int get transformerFlags {
+    function?.body;
+    return super.transformerFlags;
+  }
+
+  // The function node's body might be lazily loaded, meaning that this value
+  // might get overwritten later (when the body is read). To avoid that read the
+  // body now and only set the value afterwards.
+  void set transformerFlags(int newValue) {
+    function?.body;
+    super.transformerFlags = newValue;
+  }
+
+  // This function will set the transformer flags without loading the body.
+  // Used when reading the binary. For other cases one should probably use
+  // `transformerFlags = value;`.
+  void setTransformerFlagsWithoutLazyLoading(int newValue) {
+    super.transformerFlags = newValue;
+  }
 
   /// The uri of the source file this procedure was loaded from.
   Uri fileUri;

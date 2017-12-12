@@ -11,8 +11,8 @@ class C<T> {
   T /*@covariance=genericInterface, genericImpl*/ x;
   void set y(T /*@covariance=genericInterface, genericImpl*/ value) {}
   void f(T /*@covariance=genericInterface, genericImpl*/ value) {
-    this.x = value;
-    this.y = value;
+    this. /*@callKind=this*/ x = value;
+    this. /*@callKind=this*/ y = value;
   }
 }
 

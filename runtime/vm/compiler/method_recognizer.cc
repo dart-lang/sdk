@@ -41,10 +41,12 @@ intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
 
     case kObjectArrayGetIndexed:
     case kObjectArraySetIndexed:
+    case kObjectArraySetIndexedUnchecked:
       return kArrayCid;
 
     case kGrowableArrayGetIndexed:
     case kGrowableArraySetIndexed:
+    case kGrowableArraySetIndexedUnchecked:
       return kGrowableObjectArrayCid;
 
     case kFloat32ArrayGetIndexed:

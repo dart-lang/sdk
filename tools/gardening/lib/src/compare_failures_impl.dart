@@ -7,7 +7,6 @@
 /// Use this to detect flakiness of failures, especially timeouts.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'bot.dart';
 import 'buildbot_structures.dart';

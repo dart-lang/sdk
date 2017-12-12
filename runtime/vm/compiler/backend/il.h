@@ -653,6 +653,14 @@ class Instruction : public ZoneAllocated {
   enum Tag { FOR_EACH_INSTRUCTION(DECLARE_TAG) };
 #undef DECLARE_TAG
 
+  enum SpeculativeMode {
+    // Types of inputs should be checked when unboxing for this instruction.
+    kGuardInputs,
+    // Each input is guaranteed to have a valid type for the input
+    // representation and its type should not be checked when unboxing.
+    kNotSpeculative
+  };
+
   explicit Instruction(intptr_t deopt_id = Thread::kNoDeoptId)
       : deopt_id_(deopt_id),
         lifetime_position_(kNoPlaceId),
@@ -816,6 +824,9 @@ class Instruction : public ZoneAllocated {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     return kTagged;
   }
+
+  // By default, instructions should check types of inputs when unboxing.
+  virtual SpeculativeMode speculative_mode() const { return kGuardInputs; }
 
   // Representation of the value produced by this computation.
   virtual Representation representation() const { return kTagged; }
@@ -2620,8 +2631,8 @@ class AssertSubtypeInstr : public TemplateInstruction<2, Throws, Pure> {
 
   DECLARE_INSTRUCTION(AssertSubtype);
 
-  Value* instantiator_type_arguments() const { return inputs_[1]; }
-  Value* function_type_arguments() const { return inputs_[2]; }
+  Value* instantiator_type_arguments() const { return inputs_[0]; }
+  Value* function_type_arguments() const { return inputs_[1]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   const AbstractType& super_type() const { return super_type_; }
@@ -3211,8 +3222,10 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
                     Value* left,
                     Value* right,
                     intptr_t cid,
-                    intptr_t deopt_id)
-      : TemplateComparison(token_pos, kind, deopt_id) {
+                    intptr_t deopt_id,
+                    SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateComparison(token_pos, kind, deopt_id),
+        speculative_mode_(speculative_mode) {
     ASSERT(Token::IsRelationalOperator(kind));
     SetInputAt(0, left);
     SetInputAt(1, right);
@@ -3234,9 +3247,17 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
     return kTagged;
   }
 
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return ComparisonInstr::AttributesEqual(other) &&
+           (speculative_mode() == other->AsRelationalOp()->speculative_mode());
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
 };
 
@@ -4930,11 +4951,18 @@ class BoxInt64Instr : public BoxIntegerInstr {
 
 class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  static UnboxInstr* Create(Representation to, Value* value, intptr_t deopt_id);
+  static UnboxInstr* Create(Representation to,
+                            Value* value,
+                            intptr_t deopt_id,
+                            SpeculativeMode speculative_mode = kGuardInputs);
 
   Value* value() const { return inputs_[0]; }
 
   virtual bool ComputeCanDeoptimize() const {
+    if (speculative_mode() == kNotSpeculative) {
+      return false;
+    }
+
     const intptr_t value_cid = value()->Type()->ToCid();
     const intptr_t box_cid = BoxCid();
 
@@ -4946,20 +4974,10 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
       return false;
     }
 
-    if (FLAG_experimental_strong_mode) {
-      if ((representation() == kUnboxedDouble) &&
-          value()->Type()->IsNullableDouble()) {
-        return false;
-      }
-
-      if (FLAG_limit_ints_to_64_bits && (representation() == kUnboxedInt64) &&
-          value()->Type()->IsNullableInt()) {
-        return false;
-      }
-    }
-
     return true;
   }
+
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
 
   virtual Representation representation() const { return representation_; }
 
@@ -4967,7 +4985,9 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return representation() == other->AsUnbox()->representation();
+    UnboxInstr* other_unbox = other->AsUnbox();
+    return (representation() == other_unbox->representation()) &&
+           (speculative_mode() == other_unbox->speculative_mode());
   }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
@@ -4977,8 +4997,13 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual TokenPosition token_pos() const { return TokenPosition::kBox; }
 
  protected:
-  UnboxInstr(Representation representation, Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), representation_(representation) {
+  UnboxInstr(Representation representation,
+             Value* value,
+             intptr_t deopt_id,
+             SpeculativeMode speculative_mode)
+      : TemplateDefinition(deopt_id),
+        representation_(representation),
+        speculative_mode_(speculative_mode) {
     SetInputAt(0, value);
   }
 
@@ -4994,6 +5019,7 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   intptr_t ValueOffset() const { return Boxing::ValueOffset(representation_); }
 
   const Representation representation_;
+  const SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxInstr);
 };
@@ -5005,8 +5031,9 @@ class UnboxIntegerInstr : public UnboxInstr {
   UnboxIntegerInstr(Representation representation,
                     TruncationMode truncation_mode,
                     Value* value,
-                    intptr_t deopt_id)
-      : UnboxInstr(representation, value, deopt_id),
+                    intptr_t deopt_id,
+                    SpeculativeMode speculative_mode)
+      : UnboxInstr(representation, value, deopt_id, speculative_mode),
         is_truncating_(truncation_mode == kTruncate) {}
 
   bool is_truncating() const { return is_truncating_; }
@@ -5036,8 +5063,13 @@ class UnboxInteger32Instr : public UnboxIntegerInstr {
   UnboxInteger32Instr(Representation representation,
                       TruncationMode truncation_mode,
                       Value* value,
-                      intptr_t deopt_id)
-      : UnboxIntegerInstr(representation, truncation_mode, value, deopt_id) {}
+                      intptr_t deopt_id,
+                      SpeculativeMode speculative_mode)
+      : UnboxIntegerInstr(representation,
+                          truncation_mode,
+                          value,
+                          deopt_id,
+                          speculative_mode) {}
 
   DECLARE_INSTRUCTION_BACKEND()
 
@@ -5047,8 +5079,14 @@ class UnboxInteger32Instr : public UnboxIntegerInstr {
 
 class UnboxUint32Instr : public UnboxInteger32Instr {
  public:
-  UnboxUint32Instr(Value* value, intptr_t deopt_id)
-      : UnboxInteger32Instr(kUnboxedUint32, kTruncate, value, deopt_id) {
+  UnboxUint32Instr(Value* value,
+                   intptr_t deopt_id,
+                   SpeculativeMode speculative_mode = kGuardInputs)
+      : UnboxInteger32Instr(kUnboxedUint32,
+                            kTruncate,
+                            value,
+                            deopt_id,
+                            speculative_mode) {
     ASSERT(is_truncating());
   }
 
@@ -5066,8 +5104,13 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
  public:
   UnboxInt32Instr(TruncationMode truncation_mode,
                   Value* value,
-                  intptr_t deopt_id)
-      : UnboxInteger32Instr(kUnboxedInt32, truncation_mode, value, deopt_id) {}
+                  intptr_t deopt_id,
+                  SpeculativeMode speculative_mode = kGuardInputs)
+      : UnboxInteger32Instr(kUnboxedInt32,
+                            truncation_mode,
+                            value,
+                            deopt_id,
+                            speculative_mode) {}
 
   virtual bool ComputeCanDeoptimize() const;
 
@@ -5083,8 +5126,14 @@ class UnboxInt32Instr : public UnboxInteger32Instr {
 
 class UnboxInt64Instr : public UnboxIntegerInstr {
  public:
-  UnboxInt64Instr(Value* value, intptr_t deopt_id)
-      : UnboxIntegerInstr(kUnboxedInt64, kNoTruncation, value, deopt_id) {}
+  UnboxInt64Instr(Value* value,
+                  intptr_t deopt_id,
+                  SpeculativeMode speculative_mode)
+      : UnboxIntegerInstr(kUnboxedInt64,
+                          kNoTruncation,
+                          value,
+                          deopt_id,
+                          speculative_mode) {}
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -5262,8 +5311,12 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
                       Value* left,
                       Value* right,
                       intptr_t deopt_id,
-                      TokenPosition token_pos)
-      : TemplateDefinition(deopt_id), op_kind_(op_kind), token_pos_(token_pos) {
+                      TokenPosition token_pos,
+                      SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateDefinition(deopt_id),
+        op_kind_(op_kind),
+        token_pos_(token_pos),
+        speculative_mode_(speculative_mode) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -5284,6 +5337,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
     // was inherited from another instruction that could deoptimize.
@@ -5298,12 +5353,15 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsBinaryDoubleOp()->op_kind();
+    const BinaryDoubleOpInstr* other_bin_op = other->AsBinaryDoubleOp();
+    return (op_kind() == other_bin_op->op_kind()) &&
+           (speculative_mode() == other_bin_op->speculative_mode());
   }
 
  private:
   const Token::Kind op_kind_;
   const TokenPosition token_pos_;
+  const SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
 };
@@ -5752,8 +5810,10 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
   BinaryInt64OpInstr(Token::Kind op_kind,
                      Value* left,
                      Value* right,
-                     intptr_t deopt_id)
-      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id) {
+                     intptr_t deopt_id,
+                     SpeculativeMode speculative_mode = kGuardInputs)
+      : BinaryIntegerOpInstr(op_kind, left, right, deopt_id),
+        speculative_mode_(speculative_mode) {
     if (FLAG_limit_ints_to_64_bits) {
       mark_truncating();
     }
@@ -5785,12 +5845,20 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
     return kUnboxedInt64;
   }
 
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return BinaryIntegerOpInstr::AttributesEqual(other) &&
+           (speculative_mode() == other->AsBinaryInt64Op()->speculative_mode());
+  }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
   virtual CompileType ComputeType() const;
 
   DECLARE_INSTRUCTION(BinaryInt64Op)
 
  private:
+  const SpeculativeMode speculative_mode_;
   DISALLOW_COPY_AND_ASSIGN(BinaryInt64OpInstr);
 };
 
@@ -5842,8 +5910,13 @@ class ShiftInt64OpInstr : public BinaryIntegerOpInstr {
 // Handles only NEGATE.
 class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  UnaryDoubleOpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
-      : TemplateDefinition(deopt_id), op_kind_(op_kind) {
+  UnaryDoubleOpInstr(Token::Kind op_kind,
+                     Value* value,
+                     intptr_t deopt_id,
+                     SpeculativeMode speculative_mode = kGuardInputs)
+      : TemplateDefinition(deopt_id),
+        op_kind_(op_kind),
+        speculative_mode_(speculative_mode) {
     ASSERT(op_kind == Token::kNEGATE);
     SetInputAt(0, value);
   }
@@ -5869,12 +5942,17 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return speculative_mode() == other->AsUnaryDoubleOp()->speculative_mode();
+  }
 
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
   const Token::Kind op_kind_;
+  const SpeculativeMode speculative_mode_;
 
   DISALLOW_COPY_AND_ASSIGN(UnaryDoubleOpInstr);
 };

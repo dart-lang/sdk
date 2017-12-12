@@ -7,5 +7,5 @@ typedef G = (core::double) → core::List<core::int>;
 static method generic<T extends core::Object>((self::generic::T) → dynamic a, (self::generic::T) → dynamic b) → self::generic::T
   return null;
 static method main() → dynamic {
-  (core::num) → core::List<core::int> v = self::generic<(core::num) → core::List<core::int>>(((core::int) → core::Iterable<core::num> f) → dynamic => null, ((core::double) → core::List<core::int> g) → dynamic => null);
+  (core::num) → core::List<core::int> v = self::generic<(core::num) → core::List<core::int>>(((core::int) → core::Iterable<core::num> f) → core::Null => null, ((core::double) → core::List<core::int> g) → core::Null => null);
 }

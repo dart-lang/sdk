@@ -211,14 +211,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       collectConstantsInBody(analyzableElement, constants);
     }
 
-    // TODO(sigurdm): How is metadata on a patch-class handled?
-    if (element is ClassEntity) {
-      constants.addAll(elementEnvironment.getClassMetadata(element));
-    } else if (element is MemberEntity) {
-      constants.addAll(elementEnvironment.getMemberMetadata(element));
-    } else if (element is TypedefEntity) {
-      constants.addAll(elementEnvironment.getTypedefMetadata(element));
-    }
+    collectConstantsFromMetadata(element, constants);
 
     if (element is FunctionEntity) {
       _collectTypeDependencies(
@@ -263,6 +256,13 @@ abstract class DeferredLoadTask extends CompilerTask {
     // Other elements, in particular instance members, are ignored as
     // they are processed as part of the class.
   }
+
+  /// Extract the set of constants that are used in annotations of [element].
+  ///
+  /// If the underlying system doesn't support mirrors, then no constants are
+  /// added.
+  void collectConstantsFromMetadata(
+      Entity element, Set<ConstantValue> constants);
 
   /// Extract the set of constants that are used in the body of [element].
   void collectConstantsInBody(Entity element, Set<ConstantValue> constants);
@@ -688,9 +688,13 @@ abstract class DeferredLoadTask extends CompilerTask {
 
     _elementToSet = null;
     _constantToSet = null;
+    cleanup();
     return new OutputUnitData(this.isProgramSplit, this.mainOutputUnit,
         entityMap, constantMap, importSets);
   }
+
+  /// Frees up strategy-specific temporary data.
+  void cleanup() {}
 
   void beforeResolution(LibraryEntity mainLibrary) {
     if (mainLibrary == null) return;

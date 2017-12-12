@@ -3798,6 +3798,16 @@ bool Class::IsDartFunctionClass() const {
   return raw() == Type::Handle(Type::DartFunctionType()).type_class();
 }
 
+bool Class::IsFutureClass() const {
+  return (library() == Library::AsyncLibrary()) &&
+         (Name() == Symbols::Future().raw());
+}
+
+bool Class::IsFutureOrClass() const {
+  return (library() == Library::AsyncLibrary()) &&
+         (Name() == Symbols::FutureOr().raw());
+}
+
 // If test_kind == kIsSubtypeOf, checks if type S is a subtype of type T.
 // If test_kind == kIsMoreSpecificThan, checks if S is more specific than T.
 // Type S is specified by this class parameterized with 'type_arguments', and
@@ -3812,12 +3822,12 @@ bool Class::TypeTestNonRecursive(const Class& cls,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) {
-  // Use the thsi object as if it was the receiver of this method, but instead
-  // of recursing reset it to the super class and loop.
+  // Use the 'this_class' object as if it was the receiver of this method, but
+  // instead of recursing, reset it to the super class and loop.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  Class& thsi = Class::Handle(zone, cls.raw());
+  Class& this_class = Class::Handle(zone, cls.raw());
   while (true) {
     // Check for DynamicType.
     // Each occurrence of DynamicType in type T is interpreted as the dynamic
@@ -3827,14 +3837,25 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // Check for NullType, which, as of Dart 1.5, is a subtype of (and is more
     // specific than) any type. Note that the null instance is not handled here.
-    if (thsi.IsNullClass()) {
+    if (this_class.IsNullClass()) {
+      return true;
+    }
+    // Class FutureOr is mapped to dynamic in non-strong mode.
+    // Detect snapshots compiled in strong mode and run in non-strong mode.
+    ASSERT(isolate->strong() || !other.IsFutureOrClass());
+    // In strong mode, check if 'other' is 'FutureOr'.
+    // If so, apply additional subtyping rules.
+    if (isolate->strong() &&
+        this_class.FutureOrTypeTest(zone, type_arguments, other,
+                                    other_type_arguments, bound_error,
+                                    bound_trail, space)) {
       return true;
     }
     // In the case of a subtype test, each occurrence of DynamicType in type S
     // is interpreted as the bottom type, a subtype of all types, but not in
     // strong mode.
     // However, DynamicType is not more specific than any type.
-    if (thsi.IsDynamicClass()) {
+    if (this_class.IsDynamicClass()) {
       return !isolate->strong() && (test_kind == Class::kIsSubtypeOf);
     }
     // Check for ObjectType. Any type that is not NullType or DynamicType
@@ -3844,16 +3865,16 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // If other is neither Object, dynamic or void, then ObjectType/VoidType
     // can't be a subtype of other.
-    if (thsi.IsObjectClass() || thsi.IsVoidClass()) {
+    if (this_class.IsObjectClass() || this_class.IsVoidClass()) {
       return false;
     }
     // Check for reflexivity.
-    if (thsi.raw() == other.raw()) {
-      const intptr_t num_type_params = thsi.NumTypeParameters();
+    if (this_class.raw() == other.raw()) {
+      const intptr_t num_type_params = this_class.NumTypeParameters();
       if (num_type_params == 0) {
         return true;
       }
-      const intptr_t num_type_args = thsi.NumTypeArguments();
+      const intptr_t num_type_args = this_class.NumTypeArguments();
       const intptr_t from_index = num_type_args - num_type_params;
       // Since we do not truncate the type argument vector of a subclass (see
       // below), we only check a subvector of the proper length.
@@ -3876,14 +3897,14 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     if (other.IsDartFunctionClass()) {
       // Check if type S has a call() method.
       const Function& call_function =
-          Function::Handle(zone, thsi.LookupCallFunctionForTypeTest());
+          Function::Handle(zone, this_class.LookupCallFunctionForTypeTest());
       if (!call_function.IsNull()) {
         return true;
       }
     }
     // Check for 'direct super type' specified in the implements clause
     // and check for transitivity at the same time.
-    Array& interfaces = Array::Handle(zone, thsi.interfaces());
+    Array& interfaces = Array::Handle(zone, this_class.interfaces());
     AbstractType& interface = AbstractType::Handle(zone);
     Class& interface_class = Class::Handle(zone);
     TypeArguments& interface_args = TypeArguments::Handle(zone);
@@ -3899,7 +3920,7 @@ bool Class::TypeTestNonRecursive(const Class& cls,
           // runtime if this type test returns false at compile time.
           continue;
         }
-        ClassFinalizer::FinalizeType(thsi, interface);
+        ClassFinalizer::FinalizeType(this_class, interface);
         interfaces.SetAt(i, interface);
       }
       if (interface.IsMalbounded()) {
@@ -3939,8 +3960,8 @@ bool Class::TypeTestNonRecursive(const Class& cls,
       }
     }
     // "Recurse" up the class hierarchy until we have reached the top.
-    thsi = thsi.SuperClass();
-    if (thsi.IsNull()) {
+    this_class = this_class.SuperClass();
+    if (this_class.IsNull()) {
       return false;
     }
   }
@@ -3964,6 +3985,41 @@ bool Class::TypeTest(TypeTestKind test_kind,
   return TypeTestNonRecursive(*this, test_kind, type_arguments, other,
                               other_type_arguments, bound_error, bound_trail,
                               space);
+}
+
+bool Class::FutureOrTypeTest(Zone* zone,
+                             const TypeArguments& type_arguments,
+                             const Class& other,
+                             const TypeArguments& other_type_arguments,
+                             Error* bound_error,
+                             TrailPtr bound_trail,
+                             Heap::Space space) const {
+  // In strong mode, there is no difference between 'is subtype of' and
+  // 'is more specific than'.
+  ASSERT(Isolate::Current()->strong());
+  if (other.IsFutureOrClass()) {
+    if (other_type_arguments.IsNull()) {
+      return true;
+    }
+    const AbstractType& other_type_arg =
+        AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    if (!type_arguments.IsNull() && IsFutureClass()) {
+      const AbstractType& type_arg =
+          AbstractType::Handle(zone, type_arguments.TypeAt(0));
+      if (type_arg.TypeTest(Class::kIsSubtypeOf, other_type_arg, bound_error,
+                            bound_trail, space)) {
+        return true;
+      }
+    }
+    if (other_type_arg.IsType() &&
+        TypeTest(Class::kIsSubtypeOf, type_arguments,
+                 Class::Handle(zone, other_type_arg.type_class()),
+                 TypeArguments::Handle(other_type_arg.arguments()), bound_error,
+                 bound_trail, space)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool Class::IsTopLevel() const {
@@ -6626,6 +6682,13 @@ bool Function::TypeTest(TypeTestKind test_kind,
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     const AbstractType& res_type = AbstractType::Handle(zone, result_type());
     if (res_type.IsVoidType()) {
+      // In strong mode, check if 'other' is 'FutureOr'.
+      // If so, apply additional subtyping rules.
+      if (isolate->strong() &&
+          res_type.FutureOrTypeTest(zone, other_res_type, bound_error,
+                                    bound_trail, space)) {
+        return true;
+      }
       return false;
     }
     if (test_kind == kIsSubtypeOf) {
@@ -12328,23 +12391,12 @@ RawObjectPool* ObjectPool::New(intptr_t len) {
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetLength(len);
+    for (intptr_t i = 0; i < len; i++) {
+      result.SetTypeAt(i, ObjectPool::kImmediate);
+    }
   }
 
-  // TODO(fschneider): Compress info array to just use just enough bits for
-  // the entry type enum.
-  const TypedData& info_array = TypedData::Handle(
-      TypedData::New(kTypedDataInt8ArrayCid, len, Heap::kOld));
-  result.set_info_array(info_array);
   return result.raw();
-}
-
-void ObjectPool::set_info_array(const TypedData& info_array) const {
-  StorePointer(&raw_ptr()->info_array_, info_array.raw());
-}
-
-ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
-  ObjectPoolInfo pool_info(*this);
-  return pool_info.InfoAt(index);
 }
 
 const char* ObjectPool::ToCString() const {
@@ -12357,11 +12409,11 @@ void ObjectPool::DebugPrint() const {
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
     THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
-    if (InfoAt(i) == kTaggedObject) {
+    if (TypeAt(i) == kTaggedObject) {
       RawObject* obj = ObjectAt(i);
       THR_Print("0x%" Px " %s (obj)\n", reinterpret_cast<uword>(obj),
                 Object::Handle(obj).ToCString());
-    } else if (InfoAt(i) == kNativeEntry) {
+    } else if (TypeAt(i) == kNativeEntry) {
       THR_Print("0x%" Px " (native entry)\n", RawValueAt(i));
     } else {
       THR_Print("0x%" Px " (raw)\n", RawValueAt(i));
@@ -15673,7 +15725,9 @@ bool Instance::IsInstanceOf(
   if (other.IsVoidType()) {
     return true;
   }
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
     if (other.IsObjectType() || other.IsDartFunctionType() ||
@@ -15699,6 +15753,10 @@ bool Instance::IsInstanceOf(
           instantiated_other.IsDartFunctionType()) {
         return true;
       }
+    }
+    if (isolate->strong() &&
+        IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
+      return true;
     }
     if (!instantiated_other.IsFunctionType()) {
       return false;
@@ -15789,10 +15847,48 @@ bool Instance::IsInstanceOf(
     ASSERT(cls.IsNullClass());
     // As of Dart 1.5, the null instance and Null type are handled differently.
     // We already checked other for dynamic and void.
+    if (isolate->strong() &&
+        IsFutureOrInstanceOf(zone, instantiated_other, bound_error)) {
+      return true;
+    }
     return other_class.IsNullClass() || other_class.IsObjectClass();
   }
   return cls.IsSubtypeOf(type_arguments, other_class, other_type_arguments,
                          bound_error, NULL, Heap::kOld);
+}
+
+bool Instance::IsFutureOrInstanceOf(Zone* zone,
+                                    const AbstractType& other,
+                                    Error* bound_error) const {
+  ASSERT(Isolate::Current()->strong());
+  if (other.IsType() &&
+      Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
+    if (other.arguments() == TypeArguments::null()) {
+      return true;
+    }
+    const TypeArguments& other_type_arguments =
+        TypeArguments::Handle(zone, other.arguments());
+    const AbstractType& other_type_arg =
+        AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    if (Class::Handle(zone, clazz()).IsFutureClass()) {
+      const TypeArguments& type_arguments =
+          TypeArguments::Handle(zone, GetTypeArguments());
+      if (!type_arguments.IsNull()) {
+        const AbstractType& type_arg =
+            AbstractType::Handle(zone, type_arguments.TypeAt(0));
+        if (type_arg.IsSubtypeOf(other_type_arg, bound_error, NULL,
+                                 Heap::kOld)) {
+          return true;
+        }
+      }
+    }
+    // Retry the IsInstanceOf function after unwrapping type arg of FutureOr.
+    if (IsInstanceOf(other_type_arg, Object::null_type_arguments(),
+                     Object::null_type_arguments(), bound_error)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool Instance::OperatorEquals(const Instance& other) const {
@@ -16455,7 +16551,9 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       IsNullType()) {
     return true;
   }
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   if (IsBoundedType() || other.IsBoundedType()) {
     if (Equals(other)) {
       return true;
@@ -16533,6 +16631,12 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     if (bound.IsMoreSpecificThan(other, bound_error, NULL, space)) {
       return true;
     }
+    // In strong mode, check if 'other' is 'FutureOr'.
+    // If so, apply additional subtyping rules.
+    if (isolate->strong() &&
+        FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
+      return true;
+    }
     return false;  // TODO(regis): We should return "maybe after instantiation".
   }
   if (other.IsTypeParameter()) {
@@ -16574,12 +16678,48 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
   }
   if (IsFunctionType()) {
+    // In strong mode, check if 'other' is 'FutureOr'.
+    // If so, apply additional subtyping rules.
+    if (isolate->strong() &&
+        FutureOrTypeTest(zone, other, bound_error, bound_trail, space)) {
+      return true;
+    }
     return false;
   }
   return type_cls.TypeTest(test_kind, TypeArguments::Handle(zone, arguments()),
                            Class::Handle(zone, other.type_class()),
                            TypeArguments::Handle(zone, other.arguments()),
                            bound_error, bound_trail, space);
+}
+
+bool AbstractType::FutureOrTypeTest(Zone* zone,
+                                    const AbstractType& other,
+                                    Error* bound_error,
+                                    TrailPtr bound_trail,
+                                    Heap::Space space) const {
+  // In strong mode, there is no difference between 'is subtype of' and
+  // 'is more specific than'.
+  ASSERT(Isolate::Current()->strong());
+  if (other.IsType() &&
+      Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
+    if (other.arguments() == TypeArguments::null()) {
+      return true;
+    }
+    // This function is only called with a receiver that is void type, a
+    // function type, or an uninstantiated type parameter, therefore, it cannot
+    // be of class Future and we can spare the check.
+    ASSERT(IsVoidType() || IsFunctionType() || IsTypeParameter());
+    const TypeArguments& other_type_arguments =
+        TypeArguments::Handle(zone, other.arguments());
+    const AbstractType& other_type_arg =
+        AbstractType::Handle(zone, other_type_arguments.TypeAt(0));
+    // Retry the TypeTest function after unwrapping type arg of FutureOr.
+    if (TypeTest(Class::kIsSubtypeOf, other_type_arg, bound_error, bound_trail,
+                 space)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 intptr_t AbstractType::Hash() const {

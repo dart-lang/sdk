@@ -939,7 +939,7 @@ class BinaryBuilder {
       node.annotations = annotations;
       node.function = function;
       function?.parent = node;
-      node.transformerFlags = transformerFlags;
+      node.setTransformerFlagsWithoutLazyLoading(transformerFlags);
     }
     _byteOffset = endOffset;
     return node;

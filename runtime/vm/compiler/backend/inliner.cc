@@ -2346,7 +2346,9 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                        call->GetBlock()->try_index(), Thread::kNoDeoptId);
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->argument_type_checks()) {
+  if (flow_graph->isolate()->argument_type_checks() &&
+      (kind != MethodRecognizer::kObjectArraySetIndexedUnchecked &&
+       kind != MethodRecognizer::kGrowableArraySetIndexedUnchecked)) {
     // Only type check for the value. A type check for the index is not
     // needed here because we insert a deoptimizing smi-check for the case
     // the index is not a smi.
@@ -2693,16 +2695,6 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   PrepareInlineByteArrayBaseOp(flow_graph, call, array_cid, view_cid, &array,
                                index, &cursor);
 
-  // Extract the instance call so we can use the function_name in the stored
-  // value check ICData.
-  InstanceCallInstr* i_call = NULL;
-  if (call->IsPolymorphicInstanceCall()) {
-    i_call = call->AsPolymorphicInstanceCall()->instance_call();
-  } else {
-    ASSERT(call->IsInstanceCall());
-    i_call = call->AsInstanceCall();
-  }
-  ASSERT(i_call != NULL);
   Cids* value_check = NULL;
   switch (view_cid) {
     case kTypedDataInt8ArrayCid:
@@ -3180,6 +3172,8 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
     case MethodRecognizer::kGrowableArraySetIndexed:
+    case MethodRecognizer::kObjectArraySetIndexedUnchecked:
+    case MethodRecognizer::kGrowableArraySetIndexedUnchecked:
       return InlineSetIndexed(flow_graph, kind, target, call, receiver,
                               token_pos, /* value_check = */ NULL, entry, last);
     case MethodRecognizer::kInt8ArraySetIndexed:

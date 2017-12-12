@@ -13,8 +13,7 @@ import 'package:front_end/src/api_prototype/kernel_generator.dart'
 import 'package:kernel/ast.dart' show Program;
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-// TODO(alexmarkov): Move this transformation to pkg/vm.
-import 'package:kernel/transformations/precompiler.dart' as transformPrecompiler
+import 'transformations/cha_devirtualization.dart' as chaDevirtualization
     show transformProgram;
 
 /// Generates a kernel representation of the program whose main library is in
@@ -39,6 +38,6 @@ _runGlobalTransformations(Program program, bool strongMode) {
   // TODO(alexmarkov): AOT-specific whole-program transformations.
 
   if (strongMode) {
-    transformPrecompiler.transformProgram(coreTypes, program);
+    chaDevirtualization.transformProgram(coreTypes, program);
   }
 }

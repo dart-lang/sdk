@@ -23,6 +23,7 @@ import '../native/native.dart' as native;
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import 'element_map.dart';
+import 'element_map_impl.dart';
 import 'kernel_debug.dart';
 
 abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
@@ -43,7 +44,12 @@ abstract class KernelToElementMapBaseMixin implements KernelToElementMap {
   CallStructure getCallStructure(ir.Arguments arguments) {
     int argumentCount = arguments.positional.length + arguments.named.length;
     List<String> namedArguments = arguments.named.map((e) => e.name).toList();
-    return new CallStructure(argumentCount, namedArguments);
+    return new CallStructure(
+        argumentCount,
+        namedArguments,
+        DartTypeConverter.enableFunctionTypeVariables
+            ? arguments.types.length
+            : 0);
   }
 
   @override

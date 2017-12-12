@@ -2,236 +2,23 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime == vm ]
-LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
-LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail  # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
-LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail  # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
-
-[ $runtime == vm && $checked ]
-LibTest/typed_data/Float64List/firstWhere_A02_t01: Fail # These tests fail in checked mode because they are incorrect.
-LibTest/typed_data/Float64List/reduce_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
-LibTest/typed_data/Float64List/add_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
-LibTest/typed_data/Float32List/reduce_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
-
-[$runtime == vm && $compiler == none && $system == fuchsia]
-*: Skip  # Tests not included in the image.
-
-[ ($runtime == vm || $runtime == dart_precompiled) && ($compiler != dartk && $compiler != dartkp) ]
-Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: CompileTimeError # Issue 114
-
-[ $runtime == dart_precompiled ]
-Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: CompileTimeError # Issue 114
-
-[ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Issue 1296
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, Fail # Issue 22200
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError, Fail # Issue 22200
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError, Fail # Issue 22200
-LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 1296
-
-LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
-
-Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError, fail # Dart issue 12916
-
-Language/Libraries_and_Scripts/Scripts/top_level_main_t01: skip # Issue 29895
-
-Language/Statements/Assert/execution_t02: skip # co19 issue 734
-Language/Statements/Assert/execution_t03: skip # co19 issue 734
-Language/Statements/Assert/type_t02: skip # co19 issue 734
-Language/Statements/Assert/type_t05: skip # co19 issue 734
-
-LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Issue 15974
-LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Issue 15974
-LibTest/isolate/Isolate/spawn_A03_t02: Skip # Issue 15974
-LibTest/isolate/Isolate/spawn_A04_t01: Skip # Issue 15974
-LibTest/isolate/Isolate/spawn_A04_t04: Skip # Issue 15974
-LibTest/isolate/Isolate/spawn_A06_t03: Skip # Issue 15974
-LibTest/isolate/Isolate/spawn_A06_t05: Skip # Issue 15974
-LibTest/isolate/Isolate/spawn_A04_t03: Skip # Flaky, Issue 15974
-
-LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
-LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
-
-[ $runtime == vm || $runtime == flutter || $runtime == dart_precompiled ]
-LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
-LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
-
-[ ($runtime == vm || $runtime == dart_precompiled ) && $mode == debug ]
-LibTest/core/List/List_class_A01_t02: Pass, Slow
-
-[ ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64 && $arch != simdbc) ]
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-
-[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == arm64 ]
-LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
-LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
-
-[ ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) ]
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Timeout
-LibTest/collection/IterableBase/IterableBase_class_A01_t02: Skip  # Timeout
-LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Skip  # Timeout
-LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
-LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
-LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
-
-[ $system == windows ]
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
-LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
-
-[ $runtime == vm || $runtime == dart_precompiled || $runtime == flutter]
-LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
-LibTest/html/*: SkipByDesign # dart:html not supported on VM.
-LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
-WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
-Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail # Issue 25967
-Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail # Issue 25967
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: RuntimeError # Issue 25748
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
-Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
-Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
-
-[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
-Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
-
-#
-# flutter runs with --error-on-bad-type so the following two tests end up
-# with errors and pass
-#
-[ $runtime == flutter ]
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Pass
-Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: Pass
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: Pass
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: Pass
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: Pass
-
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == flutter) && $compiler != dartk && $compiler != dartkp ]
-Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
-Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
-Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
-Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
-Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
-Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
-Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
-
-Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
-Language/Libraries_and_Scripts/Exports/reexport_t01: fail # Dart issue 12916
-Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
-Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
-Language/Statements/Labels/syntax_t03: fail # Dart issue 2238
-Language/Statements/Switch/syntax_t02: fail # Dart issue 12908
-
-[ $runtime == dart_precompiled ]
-Language/Metadata/*: SkipByDesign # Uses dart:mirrors
-Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
-
-[ $compiler == precompiler || $compiler == app_jit || $mode == product || $runtime == flutter]
-Language/Libraries_and_Scripts/Imports/deferred_import_t01: Skip # Eager loading
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Eager loading
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager loading
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager loading
-
-[ $runtime == dart_precompiled ]
-LibTest/isolate/Isolate/spawnUri*: SkipByDesign # Isolate.spawnUri
-
 [ $compiler == precompiler ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 
-[ $compiler == precompiler || $compiler == app_jit ]
-Language/Mixins/Mixin_Application/error_t01: Pass
-Language/Mixins/Mixin_Application/error_t02: Pass
-Language/Mixins/declaring_constructor_t01: Pass
+[ $runtime == dart_precompiled ]
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t02: CompileTimeError # Issue 114
+Language/Expressions/Null/instance_of_class_null_t01: Skip # Uses dart:mirrors
+Language/Metadata/*: SkipByDesign # Uses dart:mirrors
+LibTest/isolate/Isolate/spawnUri*: SkipByDesign # Isolate.spawnUri
 
-[ ($arch == simdbc || $arch == simdbc64) && $mode == debug ]
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
-LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
-
-[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
-*: Skip # Issue 27294
-
-LibTest/math/log_A01_t01: RuntimeError # Precision of Math.log (Issue #18998)
-Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
-
-[ $compiler == precompiler && $runtime == dart_precompiled && $arch == simarm ]
-LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
-
-[ $hot_reload || $hot_reload_rollback || $runtime == flutter ]
-Language/Expressions/Assignment/prefix_object_t02: Skip # Requires deferred libraries
-Language/Expressions/Constants/constant_constructor_t03: Skip # Requires deferred libraries
-Language/Expressions/Constants/identifier_denotes_a_constant_t06: Skip # Requires deferred libraries
-Language/Expressions/Constants/identifier_denotes_a_constant_t07: Skip # Requires deferred libraries
-Language/Expressions/Constants/static_constant_t06: Skip # Requires deferred libraries
-Language/Expressions/Constants/static_constant_t07: Skip # Requires deferred libraries
-Language/Expressions/Constants/top_level_function_t04: Skip # Requires deferred libraries
-Language/Expressions/Constants/top_level_function_t05: Skip # Requires deferred libraries
-Language/Expressions/Instance_Creation/Const/deferred_type_t01: Skip # Requires deferred libraries
-Language/Expressions/Instance_Creation/Const/deferred_type_t02: Skip # Requires deferred libraries
-Language/Expressions/Instance_Creation/New/evaluation_t19: Skip # Requires deferred libraries
-Language/Expressions/Instance_Creation/New/evaluation_t20: Skip # Requires deferred libraries
-Language/Expressions/Type_Cast/evaluation_t10: Skip # Requires deferred libraries
-Language/Expressions/Type_Test/evaluation_t10: Skip # Requires deferred libraries
-Language/Libraries_and_Scripts/Imports/deferred_import_t01: Skip # Requires deferred libraries
-Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Requires deferred libraries
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Requires deferred libraries
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Requires deferred libraries
-Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: Skip # Requires deferred libraries
-Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # Requires deferred libraries
-Language/Types/Dynamic_Type_System/deferred_type_error_t01: Skip # Requires deferred libraries
-Language/Types/Static_Types/deferred_type_t01: Skip # Requires deferred libraries
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # Requires deferred libraries
-LibTest/collection/IterableBase/IterableBase_class_A01_t02: Pass, Timeout
-LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Pass, Timeout
-LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
-LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
-LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
-LibTest/core/List/List_class_A01_t01: Pass, Timeout
-LibTest/core/List/List_class_A01_t02: Pass, Timeout
-LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
-LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
-LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
-LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
-LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
-LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Slow
-
-[ $runtime == vm && $mode == release && $system == linux && ($arch == x64 || $arch == ia32)]
-LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
-
-[ $runtime == vm && $mode == release && $system == linux && $arch == ia32]
-service/dev_fs_spawn_test: Pass, Fail # Issue 28411
-
-# flutter uses --error_on_bad_type, --error_on_bad_override and
-# --await_is_keyword so that tests failing with a Compilation Error is fine.
+#
+# flutter runs with --error-on-bad-type so the following two tests end up
+# with errors and pass
+#
 [ $runtime == flutter ]
-LibTest/isolate/Isolate/spawnUri* : Skip # spawnUri is not supported by flutter
-LibTest/collection/SplayTreeSet/SplayTreeSet.from_A02_t04: Pass, Timeout
-LibTest/collection/LinkedList/addFirst_A01_t01: Pass, Timeout # Flutter Issue 9109
-LibTest/typed_data/Int32List/buffer_A01_t02: Pass, Timeout # Flutter Issue 9109
-LibTest/collection/DoubleLinkedQueueEntry/append_A01_t01: Pass, Timeout # Flutter Issue 9109
-
-LibTest/async/Future/doWhile_A05_t01: Pass, RuntimeError # Flutter Issue 9109
-LibTest/async/Future/forEach_A04_t02: Pass, RuntimeError # Flutter Issue 9109
-LibTest/async/StreamController/StreamController.broadcast_A04_t01: Pass, RuntimeError # Flutter Issue 9109
-LibTest/async/Stream/timeout_A01_t01: Pass, RuntimeError # Flutter Issue 9109
-LibTest/async/Stream/timeout_A03_t01: Pass, RuntimeError # Flutter Issue 9109
-LibTest/async/Stream/timeout_A04_t01: Pass, RuntimeError # Flutter Issue 9109
-LibTest/isolate/ReceivePort/sendPort_A01_t01: Pass, Timeout # Flutter Issue 9109
-
 Language/Classes/Abstract_Instance_Members/override_more_required_parameters_t01: CompileTimeError
 Language/Classes/Abstract_Instance_Members/override_no_named_parameters_t01: CompileTimeError
 Language/Classes/Abstract_Instance_Members/override_not_a_subtype_t01: CompileTimeError
@@ -258,9 +45,12 @@ Language/Classes/Setters/override_t02: CompileTimeError
 Language/Errors_and_Warnings/static_warning_t01: CompileTimeError
 Language/Expressions/Assignment/expression_assignment_failed_t06: CompileTimeError
 Language/Expressions/Assignment/super_assignment_failed_t05: CompileTimeError
-Language/Expressions/Instance_Creation/malformed_or_malbounded_t01: CompileTimeError
-Language/Expressions/Instance_Creation/malformed_or_malbounded_t03: CompileTimeError
-Language/Expressions/Instance_Creation/malformed_or_malbounded_t07: CompileTimeError
+Language/Expressions/Await_Expressions/syntax_t07: CompileTimeError
+Language/Expressions/Await_Expressions/syntax_t08: CompileTimeError
+Language/Expressions/Await_Expressions/syntax_t09: CompileTimeError
+Language/Expressions/Identifier_Reference/async_and_generator_t01: CompileTimeError
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t14: Pass
+Language/Expressions/Identifier_Reference/built_in_not_dynamic_t19: Pass
 Language/Expressions/Instance_Creation/New/evaluation_t03: CompileTimeError
 Language/Expressions/Instance_Creation/New/evaluation_t16: CompileTimeError
 Language/Expressions/Instance_Creation/New/evaluation_t17: CompileTimeError
@@ -274,6 +64,9 @@ Language/Expressions/Instance_Creation/New/type_t01: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_t02: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_t03: CompileTimeError
 Language/Expressions/Instance_Creation/New/type_t05: CompileTimeError
+Language/Expressions/Instance_Creation/malformed_or_malbounded_t01: CompileTimeError
+Language/Expressions/Instance_Creation/malformed_or_malbounded_t03: CompileTimeError
+Language/Expressions/Instance_Creation/malformed_or_malbounded_t07: CompileTimeError
 Language/Expressions/Null/instance_of_class_null_t01: CompileTimeError
 Language/Expressions/Type_Cast/evaluation_t04: CompileTimeError
 Language/Expressions/Type_Cast/evaluation_t05: CompileTimeError
@@ -323,8 +116,8 @@ Language/Metadata/before_param_t06: CompileTimeError
 Language/Metadata/before_param_t07: CompileTimeError
 Language/Metadata/before_param_t08: CompileTimeError
 Language/Metadata/before_param_t09: CompileTimeError
-Language/Metadata/before_typedef_t01: CompileTimeError
 Language/Metadata/before_type_param_t01: CompileTimeError
+Language/Metadata/before_typedef_t01: CompileTimeError
 Language/Metadata/before_variable_t01: CompileTimeError
 Language/Metadata/before_variable_t02: CompileTimeError
 Language/Mixins/Mixin_Application/syntax_t21: CompileTimeError
@@ -337,6 +130,9 @@ Language/Overview/Scoping/hiding_declaration_t28: CompileTimeError
 Language/Statements/Try/malformed_type_t01: CompileTimeError
 Language/Statements/Try/malformed_type_t02: CompileTimeError
 Language/Statements/Try/malformed_type_t03: CompileTimeError
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: Pass
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: Pass
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: Pass
 Language/Types/Dynamic_Type_System/malbounded_type_error_t01: CompileTimeError
 Language/Types/Parameterized_Types/Actual_Type_of_Declaration/actual_type_t02: CompileTimeError
 Language/Types/Parameterized_Types/Actual_Type_of_Declaration/actual_type_t03: CompileTimeError
@@ -358,13 +154,196 @@ Language/Types/Static_Types/malformed_type_t03: CompileTimeError
 Language/Types/Static_Types/malformed_type_t04: CompileTimeError
 Language/Types/Static_Types/malformed_type_t05: CompileTimeError
 Language/Types/Static_Types/malformed_type_t06: CompileTimeError
-Language/Expressions/Await_Expressions/syntax_t07: CompileTimeError
-Language/Expressions/Await_Expressions/syntax_t08: CompileTimeError
-Language/Expressions/Await_Expressions/syntax_t09: CompileTimeError
-Language/Expressions/Identifier_Reference/async_and_generator_t01: CompileTimeError
+LibTest/async/Future/doWhile_A05_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/Future/forEach_A04_t02: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/Stream/timeout_A01_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/Stream/timeout_A03_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/Stream/timeout_A04_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/async/StreamController/StreamController.broadcast_A04_t01: Pass, RuntimeError # Flutter Issue 9109
+LibTest/collection/DoubleLinkedQueueEntry/append_A01_t01: Pass, Timeout # Flutter Issue 9109
+LibTest/collection/LinkedList/addFirst_A01_t01: Pass, Timeout # Flutter Issue 9109
+LibTest/collection/SplayTreeSet/SplayTreeSet.from_A02_t04: Pass, Timeout
+LibTest/isolate/Isolate/spawnUri*: Skip # spawnUri is not supported by flutter
+LibTest/isolate/ReceivePort/sendPort_A01_t01: Pass, Timeout # Flutter Issue 9109
+LibTest/typed_data/Int32List/buffer_A01_t02: Pass, Timeout # Flutter Issue 9109
+
+[ $runtime == vm ]
+LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
+LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
+LibTest/isolate/Isolate/spawn_A04_t01: Pass, Fail # Issue 28269, These tests are timing dependent and should be non-flaky once the fix for https://github.com/dart-lang/co19/issues/86 is merged into master. (They are skipped on $runtime == pre_compiled below.)
+
+[ $system == windows ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Slow
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
+
+[ $arch == arm64 && ($compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
+LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673, These tests take too much memory (300 MB) for our 1 GB test machine co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
+
+[ $arch != arm64 && $arch != simarm64 && $arch != simdbc && $arch != simdbc64 && $arch != x64 && ($runtime == dart_precompiled || $runtime == vm) ]
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
+
+[ $arch == ia32 && $mode == release && $runtime == vm && $system == linux ]
+service/dev_fs_spawn_test: Pass, Fail # Issue 28411
+
+[ $arch == simarm && $compiler == precompiler && $runtime == dart_precompiled ]
+LibTest/typed_data/Float32x4/operator_division_A01_t02: RuntimeError # Issue #26675
+
+[ $builder_tag == asan && $mode == debug && ($runtime == dart_precompiled || $runtime == vm) ]
+Language/Types/Interface_Types/subtype_t27: Skip # Issue 21174.
+
+[ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t01: MissingCompileTimeError # Issue 25496
+Language/Expressions/Method_Invocation/Ordinary_Invocation/object_method_invocation_t02: MissingCompileTimeError # Issue 25496
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t01: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t02: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t03: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t04: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t05: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t06: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t07: MissingCompileTimeError # Issue 24332
+Language/Expressions/Property_Extraction/Getter_Access_and_Method_Extraction/class_object_member_t08: MissingCompileTimeError # Issue 24332
+Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Exports/reexport_t01: Fail # Dart issue 12916
+Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
+Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
+Language/Mixins/Mixin_Application/syntax_t16: CompileTimeError # Issue 25765
+Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Issue 24767
+Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Issue 24767
+Language/Statements/Labels/syntax_t03: Fail # Dart issue 2238
+Language/Statements/Switch/syntax_t02: Fail # Dart issue 12908
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t01: MissingCompileTimeError # Issue 25495
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t03: MissingCompileTimeError # Issue 25495
+Language/Statements/Yield_and_Yield_Each/Yield_Each/location_t05: MissingCompileTimeError # Issue 25495
+
+[ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
+Language/Classes/Constructors/Generative_Constructors/initializing_formals_execution_t02: CompileTimeError # Issue 114
+
+[ $compiler == none && $runtime == vm && $system == fuchsia ]
+*: Skip # Tests not included in the image.
+
+[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
+*: Skip # Issue 27294
+Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
+LibTest/math/log_A01_t01: RuntimeError # Precision of Math.log (Issue #18998)
+
+[ $mode == debug && ($arch == simdbc || $arch == simdbc64) ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
+
+[ $mode == debug && ($runtime == dart_precompiled || $runtime == vm) ]
+LibTest/core/List/List_class_A01_t02: Pass, Slow
+
+[ $mode == release && $runtime == vm && $system == linux && ($arch == ia32 || $arch == x64) ]
+LibTest/isolate/Isolate/spawn_A04_t05: Pass, Slow
 
 # Obfuscated mode expectations
 [ $runtime == dart_precompiled && $minified ]
-Language/Enums/declaration_equivalent_t01: Skip  # Enum.toString is obfuscated.
-Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: Skip  # Uses new Symbol() instead of const Symbol()
-LibTest/core/Symbol/Symbol_A01_t01: Skip  # Uses new Symbol()
+Language/Enums/declaration_equivalent_t01: Skip # Enum.toString is obfuscated.
+Language/Expressions/Property_Extraction/Super_Getter_Access_and_Method_Closurization/no_such_method_t01: Skip # Uses new Symbol() instead of const Symbol()
+LibTest/core/Symbol/Symbol_A01_t01: Skip # Uses new Symbol()
+
+[ $runtime == vm && $checked ]
+LibTest/typed_data/Float32List/reduce_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
+LibTest/typed_data/Float64List/add_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
+LibTest/typed_data/Float64List/firstWhere_A02_t01: Fail # These tests fail in checked mode because they are incorrect.
+LibTest/typed_data/Float64List/reduce_A01_t01: Fail # These tests fail in checked mode because they are incorrect.
+
+[ ($arch == simarm || $arch == simarm64 || $arch == simarmv5te || $arch == simarmv6 || $arch == simdbc || $arch == simdbc64) && ($runtime == dart_precompiled || $runtime == vm) ]
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Skip # Timeout
+LibTest/collection/IterableBase/IterableBase_class_A01_t02: Skip # Timeout
+LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Skip # Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t01: Skip # Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip # Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # Timeout
+LibTest/core/Uri/Uri_A06_t03: Skip # Timeout
+
+[ $compiler == app_jit || $compiler == precompiler ]
+Language/Mixins/Mixin_Application/error_t01: Pass
+Language/Mixins/Mixin_Application/error_t02: Pass
+Language/Mixins/declaring_constructor_t01: Pass
+
+[ $compiler == app_jit || $compiler == precompiler || $mode == product || $runtime == flutter ]
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: Skip # Eager loading
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Eager loading
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager loading
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager loading
+
+[ $runtime == dart_precompiled || $runtime == flutter || $runtime == vm ]
+Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
+Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail # Issue 25967
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail # Issue 25967
+Language/Libraries_and_Scripts/Exports/reexport_t02: MissingCompileTimeError, Fail # Dart issue 12916
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Skip # Issue 29895
+Language/Statements/Assert/execution_t02: Skip # co19 issue 734
+Language/Statements/Assert/execution_t03: Skip # co19 issue 734
+Language/Statements/Assert/type_t02: Skip # co19 issue 734
+Language/Statements/Assert/type_t05: Skip # co19 issue 734
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
+Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
+LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: RuntimeError # Issue 1296
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: RuntimeError, Fail # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: RuntimeError, Fail # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: RuntimeError, Fail # Issue 22200
+LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # Issue 1296
+LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
+LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
+LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
+LibTest/html/*: SkipByDesign # dart:html not supported on VM.
+LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Issue 15974
+LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Issue 15974
+LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
+LibTest/isolate/Isolate/spawn_A03_t02: Skip # Issue 15974
+LibTest/isolate/Isolate/spawn_A04_t01: Skip # Issue 15974
+LibTest/isolate/Isolate/spawn_A04_t03: Skip # Flaky, Issue 15974
+LibTest/isolate/Isolate/spawn_A04_t04: Skip # Issue 15974
+LibTest/isolate/Isolate/spawn_A06_t03: Skip # Issue 15974
+LibTest/isolate/Isolate/spawn_A06_t05: Skip # Issue 15974
+LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
+LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
+WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
+
+[ $runtime == flutter || $hot_reload || $hot_reload_rollback ]
+Language/Expressions/Assignment/prefix_object_t02: Skip # Requires deferred libraries
+Language/Expressions/Constants/constant_constructor_t03: Skip # Requires deferred libraries
+Language/Expressions/Constants/identifier_denotes_a_constant_t06: Skip # Requires deferred libraries
+Language/Expressions/Constants/identifier_denotes_a_constant_t07: Skip # Requires deferred libraries
+Language/Expressions/Constants/static_constant_t06: Skip # Requires deferred libraries
+Language/Expressions/Constants/static_constant_t07: Skip # Requires deferred libraries
+Language/Expressions/Constants/top_level_function_t04: Skip # Requires deferred libraries
+Language/Expressions/Constants/top_level_function_t05: Skip # Requires deferred libraries
+Language/Expressions/Instance_Creation/Const/deferred_type_t01: Skip # Requires deferred libraries
+Language/Expressions/Instance_Creation/Const/deferred_type_t02: Skip # Requires deferred libraries
+Language/Expressions/Instance_Creation/New/evaluation_t19: Skip # Requires deferred libraries
+Language/Expressions/Instance_Creation/New/evaluation_t20: Skip # Requires deferred libraries
+Language/Expressions/Type_Cast/evaluation_t10: Skip # Requires deferred libraries
+Language/Expressions/Type_Test/evaluation_t10: Skip # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/deferred_import_t01: Skip # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/deferred_import_t02: Skip # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t03: Skip # Requires deferred libraries
+Language/Libraries_and_Scripts/Imports/static_type_t01: Skip # Requires deferred libraries
+Language/Types/Dynamic_Type_System/deferred_type_error_t01: Skip # Requires deferred libraries
+Language/Types/Static_Types/deferred_type_t01: Skip # Requires deferred libraries
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Skip # Requires deferred libraries
+LibTest/collection/DoubleLinkedQueue/DoubleLinkedQueue_class_A01_t01: Pass, Slow
+LibTest/collection/IterableBase/IterableBase_class_A01_t02: Pass, Timeout
+LibTest/collection/IterableMixin/IterableMixin_class_A02_t01: Pass, Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t01: Pass, Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t01: Pass, Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
+LibTest/core/List/List_class_A01_t01: Pass, Timeout
+LibTest/core/List/List_class_A01_t02: Pass, Timeout
+LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
+LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
+LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
+LibTest/isolate/ReceivePort/take_A01_t02: Skip # Issue 27773
+

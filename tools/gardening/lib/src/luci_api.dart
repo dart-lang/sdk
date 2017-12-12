@@ -91,7 +91,6 @@ class LuciApi {
 
   /// [_makeGetRequest] performs a get request to [uri].
   Future<String> _makeGetRequest(Uri uri) async {
-    String uriString = uri.toString();
     var request = await _client.getUrl(uri);
     var response = await request.close();
     if (response.statusCode != 200) {

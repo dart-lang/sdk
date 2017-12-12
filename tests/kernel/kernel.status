@@ -1,22 +1,26 @@
 # Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 unsorted/invocation_errors_test: RuntimeError
+
+[ $compiler == dart2js ]
+unsorted/invocation_errors_test: Pass
+unsorted/loop_test: Skip
+unsorted/nsm_dispatcher_test: Skip # The test uses Symbol without MirrorsUsed
+unsorted/super_initializer_test: Skip
+unsorted/super_mixin_test: CompileTimeError
+
+[ $builder_tag == strong && $compiler == dart2analyzer ]
+*: Skip # Issue 28649
 
 [ $compiler == dart2analyzer && $runtime == none ]
 unsorted/invocation_errors_test: StaticWarning
 unsorted/super_mixin_test: CompileTimeError
 
-[ $compiler == dart2analyzer && $builder_tag == strong ]
-*: Skip # Issue 28649
-
-[ $compiler == dart2js ]
-unsorted/invocation_errors_test: Pass
-unsorted/nsm_dispatcher_test: Skip # The test uses Symbol without MirrorsUsed
-unsorted/super_initializer_test: Skip
-unsorted/super_mixin_test: CompileTimeError
-unsorted/loop_test: Skip
+[ $compiler == dartk && $strong ]
+unsorted/loop_test: RuntimeError
+unsorted/nsm_dispatcher_test: CompileTimeError
+unsorted/types_test: RuntimeError
 
 [ $runtime == dart_precompiled && $minified ]
-unsorted/symbol_literal_test: Skip  # Expects unobfuscated Symbol.toString.
+unsorted/symbol_literal_test: Skip # Expects unobfuscated Symbol.toString.

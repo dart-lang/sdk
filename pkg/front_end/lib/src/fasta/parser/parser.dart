@@ -29,6 +29,7 @@ import '../../scanner/token.dart'
 
 import '../scanner/token_constants.dart'
     show
+        CLOSE_CURLY_BRACKET_TOKEN,
         COMMA_TOKEN,
         DOUBLE_TOKEN,
         EOF_TOKEN,
@@ -90,7 +91,7 @@ import 'token_stream_rewriter.dart' show TokenStreamRewriter;
 import 'type_continuation.dart'
     show TypeContinuation, typeContiunationFromFormalParameterKind;
 
-import 'util.dart' show closeBraceTokenFor, optional;
+import 'util.dart' show beforeCloseBraceTokenFor, closeBraceTokenFor, optional;
 
 /// An event generating parser of Dart programs. This parser expects all tokens
 /// in a linked list (aka a token stream).
@@ -304,7 +305,7 @@ class Parser {
     DirectiveContext directiveState = new DirectiveContext();
     token = syntheticPreviousToken(token);
     while (!token.next.isEof) {
-      Token start = token.next;
+      final Token start = token.next;
       token = parseTopLevelDeclarationImpl(token, directiveState);
       listener.endTopLevelDeclaration(token.next);
       count++;
@@ -318,6 +319,65 @@ class Parser {
         listener.endTopLevelDeclaration(token.next);
         count++;
       }
+    }
+    token = token.next;
+    listener.endCompilationUnit(count, token);
+    // Clear fields that could lead to memory leak.
+    cachedRewriter = null;
+    return token;
+  }
+
+  /// This method exists for analyzer compatibility only
+  /// and will be removed once analyzer/fasta integration is complete.
+  ///
+  /// Similar to [parseUnit], this method parses a compilation unit,
+  /// but stops when it reaches the first declaration or EOF.
+  ///
+  /// This method is only invoked from outside the parser. As a result, this
+  /// method takes the next token to be consumed rather than the last consumed
+  /// token and returns the token after the last consumed token rather than the
+  /// last consumed token.
+  Token parseDirectives(Token token) {
+    listener.beginCompilationUnit(token);
+    int count = 0;
+    DirectiveContext directiveState = new DirectiveContext();
+    token = syntheticPreviousToken(token);
+    while (!token.next.isEof) {
+      final Token start = token.next;
+      final String value = start.stringValue;
+      final String nextValue = start.next.stringValue;
+
+      // If a built-in keyword is being used as function name, then stop.
+      if (identical(nextValue, '.') ||
+          identical(nextValue, '<') ||
+          identical(nextValue, '(')) {
+        break;
+      }
+
+      if (identical(token.next.type, TokenType.SCRIPT_TAG)) {
+        directiveState?.checkScriptTag(this, token.next);
+        token = parseScript(token);
+      } else {
+        token = parseMetadataStar(token);
+        if (identical(value, 'import')) {
+          directiveState?.checkImport(this, token);
+          token = parseImport(token);
+        } else if (identical(value, 'export')) {
+          directiveState?.checkExport(this, token);
+          token = parseExport(token);
+        } else if (identical(value, 'library')) {
+          directiveState?.checkLibrary(this, token);
+          token = parseLibraryName(token);
+        } else if (identical(value, 'part')) {
+          token = parsePartOrPartOf(token, directiveState);
+        } else if (identical(value, ';')) {
+          token = start;
+        } else {
+          listener.handleDirectivesOnly();
+          break;
+        }
+      }
+      listener.endTopLevelDeclaration(token.next);
     }
     token = token.next;
     listener.endCompilationUnit(count, token);
@@ -1725,7 +1785,7 @@ class Parser {
         context == IdentifierContext.localFunctionDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];
     } else if (context == IdentifierContext.localVariableDeclaration) {
-      followingValues = [';', '=', ','];
+      followingValues = [';', '=', ',', '}'];
     } else if (context == IdentifierContext.methodDeclaration ||
         context == IdentifierContext.methodDeclarationContinuation) {
       followingValues = ['.', '(', '{', '=>'];
@@ -2103,10 +2163,15 @@ class Parser {
       return token.previous;
     }
 
-    /// Returns true if [kind] is '=', ';', or ',', that is, if [kind] could be
-    /// the end of a variable declaration.
+    /// Returns true if [kind] could be the end of a variable declaration.
     bool looksLikeVariableDeclarationEnd(int kind) {
-      return EQ_TOKEN == kind || SEMICOLON_TOKEN == kind || COMMA_TOKEN == kind;
+      return EQ_TOKEN == kind ||
+          SEMICOLON_TOKEN == kind ||
+          COMMA_TOKEN == kind ||
+          // Recovery: Return true for these additional invalid situations
+          // in which we assume a missing semicolon.
+          OPEN_CURLY_BRACKET_TOKEN == kind ||
+          CLOSE_CURLY_BRACKET_TOKEN == kind;
     }
 
     /// Returns true if [token] could be the start of a function body.
@@ -2568,43 +2633,60 @@ class Parser {
   Token parseStuff(Token token, Function beginStuff, Function stuffParser,
       Function endStuff, Function handleNoStuff) {
     // TODO(brianwilkerson): Rename to `parseStuffOpt`?
+
+    bool rewriteEndToken(Token beforeEnd) {
+      Token end = beforeEnd.next;
+      String value = end?.stringValue;
+      if (value != null && value.length > 1) {
+        if (identical(value, '>>')) {
+          Token replacement = new Token(TokenType.GT, end.charOffset);
+          replacement.next = new Token(TokenType.GT, end.charOffset + 1);
+          rewriter.replaceTokenFollowing(beforeEnd, replacement);
+          return true;
+        } else if (identical(value, '>=')) {
+          Token replacement = new Token(TokenType.GT, end.charOffset);
+          replacement.next = new Token(TokenType.EQ, end.charOffset + 1);
+          rewriter.replaceTokenFollowing(beforeEnd, replacement);
+          return true;
+        } else if (identical(value, '>>=')) {
+          Token replacement = new Token(TokenType.GT, end.charOffset);
+          replacement.next = new Token(TokenType.GT, end.charOffset + 1);
+          replacement.next.next = new Token(TokenType.EQ, end.charOffset + 2);
+          rewriter.replaceTokenFollowing(beforeEnd, replacement);
+          return true;
+        }
+      }
+      return false;
+    }
+
     // TODO(brianwilkerson): Remove the invocation of `previous` when
     // `injectGenericCommentTypeList` returns the last consumed token.
     token = listener.injectGenericCommentTypeList(token.next).previous;
     Token next = token.next;
     if (optional('<', next)) {
-      Token begin = next;
+      BeginToken begin = next;
+      Token end = begin.endToken;
+      if (end != null) {
+        Token beforeEnd = previousToken(begin, end);
+        if (rewriteEndToken(beforeEnd)) {
+          begin.endToken = null;
+        }
+      }
       beginStuff(begin);
       int count = 0;
       do {
         token = stuffParser(token.next);
         ++count;
       } while (optional(',', token.next));
-
-      // Rewrite `>>`, `>=`, and `>>=` tokens
-      next = token.next;
-      String value = next.stringValue;
-      if (value != null && value.length > 1) {
-        Token replacement = new Token(TokenType.GT, next.charOffset);
-        if (identical(value, '>>')) {
-          replacement.next = new Token(TokenType.GT, next.charOffset + 1);
-          token = rewriter.replaceTokenFollowing(token, replacement);
-        } else if (identical(value, '>=')) {
-          replacement.next = new Token(TokenType.EQ, next.charOffset + 1);
-          token = rewriter.replaceTokenFollowing(token, replacement);
-        } else if (identical(value, '>>=')) {
-          replacement.next = new Token(TokenType.GT, next.charOffset + 1);
-          replacement.next.next = new Token(TokenType.EQ, next.charOffset + 2);
-          token = rewriter.replaceTokenFollowing(token, replacement);
-        } else {
-          token = next;
+      if (end == null) {
+        if (rewriteEndToken(token)) {
+          begin.endToken = null;
         }
-      } else {
-        token = next;
       }
-
+      token = token.next;
       endStuff(count, begin, token);
       expect('>', token);
+      begin.endToken ??= token;
       return token;
     }
     handleNoStuff(next);
@@ -2924,16 +3006,13 @@ class Parser {
             if (token.next is BeginToken) {
               previous = token;
               token = token.next;
-              Token closeBrace = closeBraceTokenFor(token);
-              if (closeBrace == null) {
+              Token beforeCloseBrace = beforeCloseBraceTokenFor(token);
+              if (beforeCloseBrace == null) {
                 previous = reportUnmatchedToken(token);
                 token = previous.next;
               } else {
-                token = closeBrace;
-                // TODO(brianwilkerson): Remove the invocation of `previous`
-                // when `closeBraceTokenFor` returns the token before the
-                // closing brace.
-                previous = token.previous;
+                previous = beforeCloseBrace;
+                token = beforeCloseBrace.next;
               }
             }
           }
@@ -2962,8 +3041,8 @@ class Parser {
             if (token.next is BeginToken) {
               previous = token;
               token = token.next;
-              Token closeBrace = closeBraceTokenFor(token);
-              if (closeBrace == null) {
+              Token beforeCloseBrace = beforeCloseBraceTokenFor(token);
+              if (beforeCloseBrace == null) {
                 // Handle the edge case where the user is defining the less
                 // than operator, as in "bool operator <(other) => false;"
                 if (optional('operator', identifier)) {
@@ -2974,11 +3053,8 @@ class Parser {
                   token = previous.next;
                 }
               } else {
-                token = closeBrace;
-                // TODO(brianwilkerson): Remove the invocation of `previous`
-                // when `closeBraceTokenFor` returns the token before the
-                // closing brace.
-                previous = token.previous;
+                previous = beforeCloseBrace;
+                token = beforeCloseBrace.next;
               }
             }
           }
@@ -4330,6 +4406,7 @@ class Parser {
                     next.precedingComments),
                 new Token(TokenType.CLOSE_SQUARE_BRACKET, next.charOffset + 1));
             rewriter.replaceTokenFollowing(token, replacement);
+            replacement.endToken = replacement.next;
             token = parseArgumentOrIndexStar(token, null);
           } else {
             token = reportUnexpectedToken(token.next);
@@ -4687,6 +4764,7 @@ class Parser {
         new BeginToken(TokenType.OPEN_SQUARE_BRACKET, token.offset),
         new Token(TokenType.CLOSE_SQUARE_BRACKET, token.offset + 1));
     rewriter.replaceTokenFollowing(beforeToken, replacement);
+    replacement.endToken = replacement.next;
     token = replacement.next;
     listener.handleLiteralList(0, replacement, constKeyword, token);
     return token;
@@ -5101,8 +5179,43 @@ class Parser {
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
       if (!optional(',', next)) {
-        token = ensureCloseParen(token, begin);
-        break;
+        if (optional(')', next)) {
+          token = next;
+          break;
+        }
+        // Recovery
+        // TODO(danrubel): Consider using isPostIdentifierForRecovery
+        // and isStartOfNextSibling.
+        if (next.isKeywordOrIdentifier ||
+            next.type == TokenType.DOUBLE ||
+            next.type == TokenType.HASH ||
+            next.type == TokenType.HEXADECIMAL ||
+            next.type == TokenType.IDENTIFIER ||
+            next.type == TokenType.INT ||
+            next.type == TokenType.STRING ||
+            optional('{', next) ||
+            optional('(', next) ||
+            optional('[', next) ||
+            optional('[]', next) ||
+            optional('<', next) ||
+            optional('!', next) ||
+            optional('-', next) ||
+            optional('~', next) ||
+            optional('++', next) ||
+            optional('--', next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          next = rewriteAndRecover(
+              token,
+              fasta.templateExpectedButGot.withArguments(','),
+              new SyntheticToken(TokenType.COMMA, next.offset));
+        } else {
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments(')'));
+          // Scanner guarantees a closing parenthesis
+          token = begin.endGroup;
+          break;
+        }
       }
       token = next;
     }

@@ -1,111 +1,7 @@
 # Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
-
 # Sections in this file should contain "$compiler == dartdevc" or dartdevk.
-
-# Compiler tests for dartdevc and dartdevk.  These contain common expectations
-# for all runtimes including $runtime == none.  They are organized by: shared
-# expectations for dartdevc and dartdevk, then expectations for dartdevc, and
-# then expectations for dartdevk.
-[ ($compiler == dartdevc || $compiler == dartdevk) && $runtime == none ]
-unhandled_exception_negative_test: Fail
-closure_call_wrong_argument_count_negative_test: Fail
-
-# Skip Kernel tests on Windows until bot has been fixed (Issue 31539)
-[ $compiler == dartdevk && $system == windows ]
-*: Skip
-
-[ ($compiler == dartdevc && $runtime == none) || $compiler == dartdevk ]
-instantiate_type_variable_test/01: CompileTimeError
-setter_no_getter_call_test/01: CompileTimeError
-
-[ $compiler == dartdevc || $compiler == dartdevk ]
-vm/*: SkipByDesign # VM only tests.; VM only tests.
-abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
-abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
-abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
-async_return_types_test/nestedFuture: MissingCompileTimeError
-bit_operations_test/01: MissingCompileTimeError
-bit_operations_test/02: MissingCompileTimeError
-built_in_identifier_prefix_test: CompileTimeError
-config_import_corelib_test: CompileTimeError
-field3_test/01: MissingCompileTimeError
-generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
-generic_list_checked_test: CompileTimeError
-generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
-generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
-generic_tearoff_test: CompileTimeError
-internal_library_test/02: Crash
-int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
-method_override7_test/03: MissingCompileTimeError # Issue 30514
-multiline_newline_test/04: MissingCompileTimeError
-multiline_newline_test/04r: MissingCompileTimeError
-multiline_newline_test/05: MissingCompileTimeError
-multiline_newline_test/05r: MissingCompileTimeError
-override_field_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/02: MissingCompileTimeError
-override_inheritance_abstract_test/03: MissingCompileTimeError
-override_inheritance_abstract_test/04: MissingCompileTimeError
-override_inheritance_abstract_test/08: MissingCompileTimeError
-override_inheritance_abstract_test/09: MissingCompileTimeError
-override_inheritance_abstract_test/10: MissingCompileTimeError
-override_inheritance_abstract_test/11: MissingCompileTimeError
-override_inheritance_abstract_test/12: MissingCompileTimeError
-override_inheritance_abstract_test/13: MissingCompileTimeError
-override_inheritance_abstract_test/14: MissingCompileTimeError
-override_inheritance_abstract_test/17: MissingCompileTimeError
-override_inheritance_abstract_test/19: MissingCompileTimeError
-override_inheritance_abstract_test/20: MissingCompileTimeError
-override_inheritance_abstract_test/21: MissingCompileTimeError
-override_inheritance_abstract_test/22: MissingCompileTimeError
-override_inheritance_abstract_test/23: MissingCompileTimeError
-override_inheritance_abstract_test/24: MissingCompileTimeError
-override_inheritance_abstract_test/25: MissingCompileTimeError
-override_inheritance_abstract_test/26: MissingCompileTimeError
-override_inheritance_no_such_method_test/13: MissingCompileTimeError
-parser_quirks_test: CompileTimeError
-regress_27617_test/1: MissingCompileTimeError
-void_type_function_types_test/none: CompileTimeError # Issue 30514
-void_type_override_test/none: CompileTimeError # Issue 30514
-void_type_usage_test/call_as: CompileTimeError # Issue 30514
-void_type_usage_test/call_for: CompileTimeError # Issue 30514
-void_type_usage_test/call_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/field_assign2: CompileTimeError # Issue 30514
-void_type_usage_test/field_assign: CompileTimeError # Issue 30514
-void_type_usage_test/final_local_as: CompileTimeError # Issue 30514
-void_type_usage_test/final_local_for: CompileTimeError # Issue 30514
-void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/global_as: CompileTimeError # Issue 30514
-void_type_usage_test/global_for: CompileTimeError # Issue 30514
-void_type_usage_test/global_for_in2: CompileTimeError # Issue 30514
-void_type_usage_test/global_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/instance2_as: CompileTimeError # Issue 30514
-void_type_usage_test/instance2_for: CompileTimeError # Issue 30514
-void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30514
-void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/instance3_as: CompileTimeError # Issue 30514
-void_type_usage_test/instance3_for: CompileTimeError # Issue 30514
-void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30514
-void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/instance_as: CompileTimeError # Issue 30514
-void_type_usage_test/instance_for: CompileTimeError # Issue 30514
-void_type_usage_test/instance_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/local_as: CompileTimeError # Issue 30514
-void_type_usage_test/local_assign: CompileTimeError # Issue 30514
-void_type_usage_test/local_for: CompileTimeError # Issue 30514
-void_type_usage_test/local_for_in2: CompileTimeError # Issue 30514
-void_type_usage_test/local_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/none: CompileTimeError # Issue 30514
-void_type_usage_test/param_as: CompileTimeError # Issue 30514
-void_type_usage_test/param_for: CompileTimeError # Issue 30514
-void_type_usage_test/param_for_in2: CompileTimeError # Issue 30514
-void_type_usage_test/param_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/paren_as: CompileTimeError # Issue 30514
-void_type_usage_test/paren_for: CompileTimeError # Issue 30514
-void_type_usage_test/paren_stmt: CompileTimeError # Issue 30514
-void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 
 [ $compiler == dartdevc ]
 accessor_conflict_export2_test: CompileTimeError # Issue 25626
@@ -121,11 +17,14 @@ assertion_initializer_const_error2_test/cc11: Pass # Issue #31319
 assertion_initializer_const_error2_test/none: Pass
 assertion_initializer_const_function_test/01: Crash
 assertion_initializer_test: CompileTimeError
-black_listed_test/none: fail # Issue 14228
+await_test: Crash # Issue 31540
+black_listed_test/none: Fail # Issue 14228
+bug31436_test: CompileTimeError
 built_in_identifier_prefix_test: CompileTimeError
 built_in_identifier_type_annotation_test/22: MissingCompileTimeError # Issue 28816
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: CompileTimeError
+closure_param_null_to_object_test: RuntimeError
 combiner_type_lookup_indexed_test: CompileTimeError # Issue #31484
 combiner_type_lookup_instance_test: CompileTimeError # Issue #31484
 combiner_type_lookup_static_test: CompileTimeError # Issue #31484
@@ -146,6 +45,7 @@ final_syntax_test/01: MissingCompileTimeError
 final_syntax_test/02: MissingCompileTimeError
 final_syntax_test/03: MissingCompileTimeError
 final_syntax_test/04: MissingCompileTimeError
+forwarding_stub_tearoff_test: CompileTimeError
 fuzzy_arrows_test/01: MissingCompileTimeError
 generic_local_functions_test: CompileTimeError
 generic_methods_closure_test: CompileTimeError # Issue 29920
@@ -224,10 +124,6 @@ type_variable_scope_test/none: CompileTimeError
 void_type_callbacks_test/00: MissingCompileTimeError # Issue 30514
 void_type_callbacks_test/01: MissingCompileTimeError # Issue 30514
 
-[ $compiler == dartdevk && $runtime == none ]
-no_such_method_negative_test: Fail
-prefix6_negative_test: Fail
-
 [ $compiler == dartdevk ]
 abstract_factory_constructor_test/00: MissingCompileTimeError
 abstract_getter_test/01: MissingCompileTimeError
@@ -256,6 +152,7 @@ async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
 async_return_types_test/tooManyTypeParameters: MissingCompileTimeError
 async_return_types_test/wrongReturnType: Crash # Maltyped input from Fasta, issue 31414
+await_test: CompileTimeError # Issue 31541
 bad_named_parameters2_test/01: MissingCompileTimeError
 bad_named_parameters_test/01: MissingCompileTimeError
 bad_named_parameters_test/02: MissingCompileTimeError
@@ -267,6 +164,7 @@ bad_override_test/02: MissingCompileTimeError
 bad_override_test/03: MissingCompileTimeError
 bad_override_test/04: MissingCompileTimeError
 bad_override_test/05: MissingCompileTimeError
+bug31436_test: RuntimeError
 built_in_identifier_type_annotation_test/22: Crash # Crashes in Fasta, issue 31416
 built_in_identifier_type_annotation_test/52: MissingCompileTimeError
 built_in_identifier_type_annotation_test/53: MissingCompileTimeError
@@ -284,9 +182,9 @@ built_in_identifier_type_annotation_test/65: MissingCompileTimeError
 built_in_identifier_type_annotation_test/66: MissingCompileTimeError
 built_in_identifier_type_annotation_test/67: MissingCompileTimeError
 built_in_identifier_type_annotation_test/68: MissingCompileTimeError
+call_function2_test: CompileTimeError # Issue 31402; Error: A value of type '#lib1::Bar' can't be assigned to a variable of type '(dart.core::Object) → dart.core::Object'.
 call_function_apply_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::A' can't be assigned to a variable of type 'dart.core::Function'.
 call_function_test: CompileTimeError
-call_function2_test: CompileTimeError # Issue 31402; Error: A value of type '#lib1::Bar' can't be assigned to a variable of type '(dart.core::Object) → dart.core::Object'.
 call_non_method_field_test/01: MissingCompileTimeError
 call_non_method_field_test/02: MissingCompileTimeError
 call_with_no_such_method_test: CompileTimeError # Issue 31402 Error: A value of type '#lib1::F' can't be assigned to a variable of type 'dart.core::Function'.
@@ -308,9 +206,10 @@ compile_time_constant_static2_test/04: MissingCompileTimeError
 compile_time_constant_static3_test/04: MissingCompileTimeError
 compile_time_constant_static4_test/02: MissingCompileTimeError
 compile_time_constant_static4_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/03: MissingCompileTimeError
-compile_time_constant_static5_test/13: MissingCompileTimeError
-compile_time_constant_static5_test/18: MissingCompileTimeError
+compile_time_constant_static5_test/11: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/16: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/21: CompileTimeError # Issue 31537
+compile_time_constant_static5_test/23: CompileTimeError # Issue 31537
 config_import_test: CompileTimeError
 const_constructor2_test/20: MissingCompileTimeError
 const_constructor2_test/22: MissingCompileTimeError
@@ -387,6 +286,7 @@ emit_const_fields_test: CompileTimeError # Issue 31533
 export_ambiguous_main_test: MissingCompileTimeError
 external_test/21: CompileTimeError
 external_test/24: CompileTimeError
+extract_type_arguments_test: CompileTimeError # Issue 31371
 f_bounded_quantification_test/01: MissingCompileTimeError
 f_bounded_quantification_test/02: MissingCompileTimeError
 factory2_test/03: MissingCompileTimeError
@@ -403,80 +303,79 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 field_override_test/00: MissingCompileTimeError
 field_override_test/01: MissingCompileTimeError
-field_override_test/none: MissingCompileTimeError
 final_attempt_reinitialization_test/01: Crash
 final_attempt_reinitialization_test/02: Crash
 final_syntax_test/09: Crash
 function_propagation_test: CompileTimeError
 function_subtype_bound_closure7_test: CompileTimeError
+function_type/function_type10_test: CompileTimeError
+function_type/function_type11_test: CompileTimeError
+function_type/function_type14_test: CompileTimeError
+function_type/function_type15_test: CompileTimeError
+function_type/function_type18_test: CompileTimeError
+function_type/function_type19_test: CompileTimeError
+function_type/function_type20_test: CompileTimeError
+function_type/function_type21_test: CompileTimeError
+function_type/function_type22_test: CompileTimeError
+function_type/function_type23_test: CompileTimeError
+function_type/function_type24_test: CompileTimeError
+function_type/function_type25_test: CompileTimeError
+function_type/function_type26_test: CompileTimeError
+function_type/function_type27_test: CompileTimeError
+function_type/function_type28_test: CompileTimeError
+function_type/function_type29_test: CompileTimeError
+function_type/function_type2_test: CompileTimeError
+function_type/function_type30_test: CompileTimeError
+function_type/function_type31_test: CompileTimeError
+function_type/function_type32_test: CompileTimeError
+function_type/function_type33_test: CompileTimeError
+function_type/function_type34_test: CompileTimeError
+function_type/function_type35_test: CompileTimeError
+function_type/function_type36_test: CompileTimeError
+function_type/function_type37_test: CompileTimeError
+function_type/function_type38_test: CompileTimeError
+function_type/function_type39_test: CompileTimeError
+function_type/function_type3_test: CompileTimeError
+function_type/function_type40_test: CompileTimeError
+function_type/function_type41_test: CompileTimeError
+function_type/function_type42_test: CompileTimeError
+function_type/function_type43_test: CompileTimeError
+function_type/function_type44_test: CompileTimeError
+function_type/function_type45_test: CompileTimeError
+function_type/function_type46_test: CompileTimeError
+function_type/function_type47_test: CompileTimeError
+function_type/function_type48_test: CompileTimeError
+function_type/function_type49_test: CompileTimeError
+function_type/function_type50_test: CompileTimeError
+function_type/function_type51_test: CompileTimeError
+function_type/function_type54_test: CompileTimeError
+function_type/function_type55_test: CompileTimeError
+function_type/function_type58_test: CompileTimeError
+function_type/function_type59_test: CompileTimeError
+function_type/function_type62_test: CompileTimeError
+function_type/function_type63_test: CompileTimeError
+function_type/function_type66_test: CompileTimeError
+function_type/function_type67_test: CompileTimeError
+function_type/function_type6_test: CompileTimeError
+function_type/function_type70_test: CompileTimeError
+function_type/function_type71_test: CompileTimeError
+function_type/function_type74_test: CompileTimeError
+function_type/function_type75_test: CompileTimeError
+function_type/function_type78_test: CompileTimeError
+function_type/function_type79_test: CompileTimeError
+function_type/function_type7_test: CompileTimeError
+function_type/function_type82_test: CompileTimeError
+function_type/function_type83_test: CompileTimeError
+function_type/function_type86_test: CompileTimeError
+function_type/function_type87_test: CompileTimeError
+function_type/function_type90_test: CompileTimeError
+function_type/function_type91_test: CompileTimeError
+function_type/function_type94_test: CompileTimeError
+function_type/function_type95_test: CompileTimeError
+function_type/function_type98_test: CompileTimeError
+function_type/function_type99_test: CompileTimeError
 function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
-function_type/function_type79_test: CompileTimeError
-function_type/function_type20_test: CompileTimeError
-function_type/function_type71_test: CompileTimeError
-function_type/function_type55_test: CompileTimeError
-function_type/function_type82_test: CompileTimeError
-function_type/function_type25_test: CompileTimeError
-function_type/function_type35_test: CompileTimeError
-function_type/function_type7_test: CompileTimeError
-function_type/function_type54_test: CompileTimeError
-function_type/function_type70_test: CompileTimeError
-function_type/function_type30_test: CompileTimeError
-function_type/function_type58_test: CompileTimeError
-function_type/function_type42_test: CompileTimeError
-function_type/function_type2_test: CompileTimeError
-function_type/function_type11_test: CompileTimeError
-function_type/function_type63_test: CompileTimeError
-function_type/function_type47_test: CompileTimeError
-function_type/function_type83_test: CompileTimeError
-function_type/function_type59_test: CompileTimeError
-function_type/function_type36_test: CompileTimeError
-function_type/function_type10_test: CompileTimeError
-function_type/function_type24_test: CompileTimeError
-function_type/function_type40_test: CompileTimeError
-function_type/function_type75_test: CompileTimeError
-function_type/function_type33_test: CompileTimeError
-function_type/function_type95_test: CompileTimeError
-function_type/function_type34_test: CompileTimeError
-function_type/function_type51_test: CompileTimeError
-function_type/function_type43_test: CompileTimeError
-function_type/function_type41_test: CompileTimeError
-function_type/function_type49_test: CompileTimeError
-function_type/function_type38_test: CompileTimeError
-function_type/function_type67_test: CompileTimeError
-function_type/function_type27_test: CompileTimeError
-function_type/function_type19_test: CompileTimeError
-function_type/function_type46_test: CompileTimeError
-function_type/function_type28_test: CompileTimeError
-function_type/function_type99_test: CompileTimeError
-function_type/function_type44_test: CompileTimeError
-function_type/function_type50_test: CompileTimeError
-function_type/function_type18_test: CompileTimeError
-function_type/function_type29_test: CompileTimeError
-function_type/function_type32_test: CompileTimeError
-function_type/function_type31_test: CompileTimeError
-function_type/function_type14_test: CompileTimeError
-function_type/function_type66_test: CompileTimeError
-function_type/function_type39_test: CompileTimeError
-function_type/function_type48_test: CompileTimeError
-function_type/function_type87_test: CompileTimeError
-function_type/function_type37_test: CompileTimeError
-function_type/function_type21_test: CompileTimeError
-function_type/function_type86_test: CompileTimeError
-function_type/function_type98_test: CompileTimeError
-function_type/function_type91_test: CompileTimeError
-function_type/function_type26_test: CompileTimeError
-function_type/function_type6_test: CompileTimeError
-function_type/function_type74_test: CompileTimeError
-function_type/function_type90_test: CompileTimeError
-function_type/function_type23_test: CompileTimeError
-function_type/function_type45_test: CompileTimeError
-function_type/function_type22_test: CompileTimeError
-function_type/function_type62_test: CompileTimeError
-function_type/function_type15_test: CompileTimeError
-function_type/function_type78_test: CompileTimeError
-function_type/function_type94_test: CompileTimeError
-function_type/function_type3_test: CompileTimeError
 generalized_void_syntax_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: CompileTimeError
@@ -502,6 +401,7 @@ initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
+issue13179_test: CompileTimeError # Issue 31537
 issue18628_2_test/01: MissingCompileTimeError
 issue_25671a_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
 issue_25671b_test/01: CompileTimeError # Warning: The method 'A::noSuchMethod' has fewer positional arguments than those of overridden method 'Object::noSuchMethod'.
@@ -653,7 +553,6 @@ named_parameters_test/04: MissingCompileTimeError
 named_parameters_test/06: MissingCompileTimeError
 named_parameters_test/08: MissingCompileTimeError
 named_parameters_test/10: MissingCompileTimeError
-named_parameters_type_test/01: MissingCompileTimeError
 null_no_such_method_test: CompileTimeError # Issue 31533
 null_test/02: MissingCompileTimeError
 null_test/03: MissingCompileTimeError
@@ -714,8 +613,6 @@ override_inheritance_no_such_method_test/09: MissingCompileTimeError
 override_inheritance_no_such_method_test/10: MissingCompileTimeError
 override_inheritance_no_such_method_test/12: MissingCompileTimeError
 override_method_with_field_test/01: MissingCompileTimeError
-positional_parameters_type_test/01: MissingCompileTimeError
-positional_parameters_type_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/01: MissingCompileTimeError
 redirecting_factory_default_values_test/02: MissingCompileTimeError
 redirecting_factory_default_values_test/03: MissingCompileTimeError
@@ -766,6 +663,15 @@ syntax_test/31: MissingCompileTimeError
 syntax_test/32: MissingCompileTimeError
 syntax_test/33: MissingCompileTimeError
 try_catch_test/01: MissingCompileTimeError
+type_promotion_functions_test/02: CompileTimeError # Issue 31537
+type_promotion_functions_test/03: CompileTimeError # Issue 31537
+type_promotion_functions_test/04: CompileTimeError # Issue 31537
+type_promotion_functions_test/09: CompileTimeError # Issue 31537
+type_promotion_functions_test/11: CompileTimeError # Issue 31537
+type_promotion_functions_test/12: CompileTimeError # Issue 31537
+type_promotion_functions_test/13: CompileTimeError # Issue 31537
+type_promotion_functions_test/14: CompileTimeError # Issue 31537
+type_promotion_functions_test/none: CompileTimeError # Issue 31537
 type_promotion_logical_and_test/01: MissingCompileTimeError
 type_promotion_more_specific_test/04: CompileTimeError # Issue 31533
 type_variable_bounds2_test: MissingCompileTimeError
@@ -783,12 +689,156 @@ void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
 wrong_number_type_arguments_test/01: MissingCompileTimeError
 
+[ $compiler == dartdevc && $runtime != none ]
+async_star_test/01: RuntimeError
+async_star_test/03: RuntimeError
+async_star_test/04: RuntimeError
+async_star_test/05: RuntimeError
+async_star_test/none: RuntimeError
+await_future_test: Pass, Timeout # Issue 29920
+bit_operations_test: RuntimeError # No bigints on web.
+const_evaluation_test/01: RuntimeError # Issue 29920
+covariance_field_test/03: RuntimeError
+covariant_override/tear_off_type_test: RuntimeError # Issue 28395
+deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
+execute_finally6_test: RuntimeError # Issue 29920
+expect_test: RuntimeError # Issue 29920
+f_bounded_quantification3_test: RuntimeError # Issue 29920
+final_field_initialization_order_test: RuntimeError # Issue 31058
+first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
+forwarding_stub_tearoff_generic_test: RuntimeError
+fuzzy_arrows_test/03: RuntimeError # Issue 29630
+generic_method_types_test/02: RuntimeError
+getter_closure_execution_order_test: RuntimeError # Issue 29920
+implicit_downcast_during_compound_assignment_test: RuntimeError
+implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
+implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
+label_test: RuntimeError
+lazy_static3_test: RuntimeError # Issue 30852
+lazy_static8_test: RuntimeError # Issue 30852
+left_shift_test: RuntimeError # Ints and doubles are unified.
+library_env_test/has_io_support: RuntimeError, OK
+library_env_test/has_mirror_support: RuntimeError, OK
+library_env_test/has_no_html_support: RuntimeError, OK
+list_is_test: RuntimeError # Issue 29920
+mixin_super_test: RuntimeError
+mixin_super_use_test: RuntimeError
+multiline_newline_test/03: RuntimeError
+multiline_newline_test/03r: RuntimeError
+multiline_newline_test/none: RuntimeError
+regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
+regress_29784_test/02: Crash # assert initializers not implemented
+stacktrace_test: RuntimeError # Issue 29920
+super_call4_test: RuntimeError
+super_no_such_method1_test: RuntimeError
+super_no_such_method2_test: RuntimeError
+super_no_such_method3_test: RuntimeError
+super_no_such_method4_test: RuntimeError
+super_operator_index5_test: RuntimeError
+super_operator_index7_test: RuntimeError
+super_operator_index8_test: RuntimeError
+truncdiv_test: RuntimeError # Issue 29920
+yieldstar_pause_test: Skip # Times out
+
+[ $compiler == dartdevk && $runtime == none ]
+no_such_method_negative_test: Fail
+prefix6_negative_test: Fail
+
+[ $compiler == dartdevk && $runtime != none ]
+callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
+conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+constant_string_interpolation2_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
+cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
+cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
+deferred_closurize_load_library_test: RuntimeError # NoSuchMethodError: method not found: 'then'
+enum_duplicate_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_duplicate_test/02: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_duplicate_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_mirror_test: RuntimeError # Expect.equals(expected: <Foo.BAR>, actual: <null>) fails.
+enum_private_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
+f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
+field_override_optimization_test: RuntimeError # Expect.fail('This should also be unreachable')
+first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
+forwarding_stub_tearoff_test: RuntimeError
+function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
+function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_bound_closure5a_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_bound_closure6_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_bound_closure7_test: RuntimeError # ReferenceError: TTodynamic is not defined
+function_subtype_cast0_test: RuntimeError # CastError: Casting value of type '(int) => void' to type '(dynamic) => void' which is incompatible
+function_subtype_cast2_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_cast3_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_checked0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
+function_subtype_local1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
+function_subtype_local2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_local5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_not0_test: RuntimeError # Expect.isFalse(true) fails.
+function_subtype_not2_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_not3_test: RuntimeError # ReferenceError: TTovoid is not defined
+function_subtype_simple1_test: RuntimeError # Expect.isTrue(false) fails.
+function_subtype_top_level1_test: RuntimeError # ReferenceError: TAndStringToint is not defined
+function_subtype_typearg5_test: RuntimeError # ReferenceError: JSArrayOfXAndXToX is not defined
+function_type_alias2_test: RuntimeError # Expect.isTrue(false) fails.
+function_type_alias3_test: RuntimeError # TypeError: library11.Library111$ is not a function
+function_type_alias4_test: RuntimeError # Expect.isTrue(false) fails.
+function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
+generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
+generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
+generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
+generic_method_types_test/02: RuntimeError
+generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
+generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
+generic_test: RuntimeError # ReferenceError: BOfT is not defined
+library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+method_override_test: RuntimeError # Expect.isTrue(false) fails.
+mixin_bound_test: RuntimeError
+mixin_extends_field_test: RuntimeError # Expect.equals(expected: <M1-bar>, actual: <null>) fails.
+mixin_field_test: RuntimeError # NoSuchMethodError: method not found: 'bar'
+mixin_forwarding_constructor1_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
+mixin_forwarding_constructor2_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
+mixin_forwarding_constructor3_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
+mixin_illegal_super_use_test/none: RuntimeError # TypeError: e.bar is not a function
+mixin_is_test: RuntimeError # Expect.isTrue(false) fails.
+mixin_method_test: RuntimeError # Expect.equals(expected: <M2-bar>, actual: <M1-bar>) fails.
+mixin_mixin_type_arguments_test: RuntimeError
+mixin_naming_test: RuntimeError # Expect.isTrue(false) fails.
+mixin_regress_13688_test: RuntimeError
+mixin_type_parameter5_test: RuntimeError
+mock_writable_final_field_test: RuntimeError # Expect.listEquals(list length, expected: <1>, actual: <0>) fails: Next element <123>
+mock_writable_final_private_field_test: RuntimeError
+nested_generic_closure_test: RuntimeError # Expect.equals(at index 3: Expected <...(<F>(F) => F) => void>, Found: <...(<F extends Object>(F) => F) => void...>) fails.
+recursive_generic_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
+recursive_inheritance_test: RuntimeError # Expect.isTrue(false) fails.
+redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
+redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
+regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
+regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
+runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
+syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
+type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
+yieldstar_pause_test: Timeout
+
+# Compiler tests for dartdevc and dartdevk.  These contain common expectations
+# for all runtimes including $runtime == none.  They are organized by: shared
+# expectations for dartdevc and dartdevk, then expectations for dartdevc, and
+# then expectations for dartdevk.
+[ $runtime == none && ($compiler == dartdevc || $compiler == dartdevk) ]
+closure_call_wrong_argument_count_negative_test: Fail
+unhandled_exception_negative_test: Fail
+
 # Runtime tests for dartdevc and dartdevk.  These contain expectations for tests
 # that fail at run time, so they should not include $runtime == none which
 # cannot fail at run time.  They are organized by: shared expectations for
 # dartdevc and dartdevk, then expectations for dartdevc, and then expectations
 # for dartdevk.
-[ ($compiler == dartdevc || $compiler == dartdevk) && $runtime != none ]
+[ $runtime != none && ($compiler == dartdevc || $compiler == dartdevk) ]
 assertion_test: RuntimeError # Issue 30326; Expect.equals(expected: <1>, actual: <0>) fails.
 async_star_cancel_while_paused_test: RuntimeError # Issue 29920; Uncaught Expect.listEquals(list length, expected: <4>, actual: <3>) fails: Next element <*3>
 async_star_pause_test: RuntimeError # Uncaught Expect.listEquals(at index 2, expected: <0+>, actual: <0!>) fails
@@ -889,144 +939,94 @@ switch_label_test: RuntimeError # Issue 29920; UnimplementedError: node <ShadowC
 switch_try_catch_test: RuntimeError # Issue 29920; Expect.throws: Unexpected 'UnimplementedError: node <ShadowContinueSwitchStatement> see https://github.com/dart-lang/sdk/issues/29352 `continue #L1;
 truncdiv_test: RuntimeError # Issue 29920; Expect.throws fails: Did not throw
 
-[ $compiler == dartdevc && $runtime != none ]
-async_star_test/01: RuntimeError
-async_star_test/03: RuntimeError
-async_star_test/04: RuntimeError
-async_star_test/05: RuntimeError
-async_star_test/none: RuntimeError
-await_future_test: Pass, Timeout # Issue 29920
-bit_operations_test: RuntimeError # No bigints on web.
-const_evaluation_test/01: RuntimeError # Issue 29920
-covariance_field_test/03: RuntimeError
-covariant_override/tear_off_type_test: RuntimeError # Issue 28395
-deferred_load_library_wrong_args_test/01: MissingRuntimeError, RuntimeError # Issue 29920
-execute_finally6_test: RuntimeError # Issue 29920
-expect_test: RuntimeError # Issue 29920
-f_bounded_quantification3_test: RuntimeError # Issue 29920
-final_field_initialization_order_test: RuntimeError # Issue 31058
-first_class_types_test: RuntimeError, OK # Strong mode reifies inferred type argument.
-fuzzy_arrows_test/03: RuntimeError # Issue 29630
-generic_method_types_test/02: RuntimeError
-getter_closure_execution_order_test: RuntimeError # Issue 29920
-implicit_downcast_during_compound_assignment_test: RuntimeError
-implicit_downcast_during_indexed_compound_assignment_test: RuntimeError
-implicit_downcast_during_indexed_if_null_assignment_test: RuntimeError
-label_test: RuntimeError
-lazy_static3_test: RuntimeError # Issue 30852
-lazy_static8_test: RuntimeError # Issue 30852
-left_shift_test: RuntimeError # Ints and doubles are unified.
-library_env_test/has_io_support: RuntimeError, OK
-library_env_test/has_mirror_support: RuntimeError, OK
-library_env_test/has_no_html_support: RuntimeError, OK
-list_is_test: RuntimeError # Issue 29920
-mixin_super_test: RuntimeError
-mixin_super_use_test: RuntimeError
-multiline_newline_test/03: RuntimeError
-multiline_newline_test/03r: RuntimeError
-multiline_newline_test/none: RuntimeError
-regress_24283_test: RuntimeError, OK # Requires 64 bit numbers.
-regress_29784_test/02: Crash # assert initializers not implemented
-stacktrace_test: RuntimeError # Issue 29920
-super_call4_test: RuntimeError
-super_no_such_method1_test: RuntimeError
-super_no_such_method2_test: RuntimeError
-super_no_such_method3_test: RuntimeError
-super_no_such_method4_test: RuntimeError
-super_operator_index5_test: RuntimeError
-super_operator_index7_test: RuntimeError
-super_operator_index8_test: RuntimeError
-truncdiv_test: RuntimeError # Issue 29920
-yieldstar_pause_test: Skip # Times out
+[ $compiler == dartdevc || $compiler == dartdevk ]
+abstract_override_adds_optional_args_concrete_subclass_test: MissingCompileTimeError # Issue #30568
+abstract_override_adds_optional_args_concrete_test: MissingCompileTimeError # Issue #30568
+abstract_override_adds_optional_args_supercall_test: MissingCompileTimeError # Issue #30568
+async_return_types_test/nestedFuture: MissingCompileTimeError
+bit_operations_test/01: MissingCompileTimeError
+bit_operations_test/02: MissingCompileTimeError
+built_in_identifier_prefix_test: CompileTimeError
+config_import_corelib_test: CompileTimeError
+field3_test/01: MissingCompileTimeError
+generic_function_type_as_type_argument_test/01: MissingCompileTimeError # Issue 29920
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError # Issue 29920
+generic_list_checked_test: CompileTimeError
+generic_methods_overriding_test/01: MissingCompileTimeError # Issue 29920
+generic_methods_overriding_test/03: MissingCompileTimeError # Issue 29920
+generic_tearoff_test: CompileTimeError
+int64_literal_test/*: Skip # This is testing Dart 2.0 int64 semantics.
+internal_library_test/02: Crash
+method_override7_test/03: MissingCompileTimeError # Issue 30514
+multiline_newline_test/04: MissingCompileTimeError
+multiline_newline_test/04r: MissingCompileTimeError
+multiline_newline_test/05: MissingCompileTimeError
+multiline_newline_test/05r: MissingCompileTimeError
+override_field_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/02: MissingCompileTimeError
+override_inheritance_abstract_test/03: MissingCompileTimeError
+override_inheritance_abstract_test/04: MissingCompileTimeError
+override_inheritance_abstract_test/08: MissingCompileTimeError
+override_inheritance_abstract_test/09: MissingCompileTimeError
+override_inheritance_abstract_test/10: MissingCompileTimeError
+override_inheritance_abstract_test/11: MissingCompileTimeError
+override_inheritance_abstract_test/12: MissingCompileTimeError
+override_inheritance_abstract_test/13: MissingCompileTimeError
+override_inheritance_abstract_test/14: MissingCompileTimeError
+override_inheritance_abstract_test/17: MissingCompileTimeError
+override_inheritance_abstract_test/19: MissingCompileTimeError
+override_inheritance_abstract_test/20: MissingCompileTimeError
+override_inheritance_abstract_test/21: MissingCompileTimeError
+override_inheritance_abstract_test/22: MissingCompileTimeError
+override_inheritance_abstract_test/23: MissingCompileTimeError
+override_inheritance_abstract_test/24: MissingCompileTimeError
+override_inheritance_abstract_test/25: MissingCompileTimeError
+override_inheritance_abstract_test/26: MissingCompileTimeError
+override_inheritance_no_such_method_test/13: MissingCompileTimeError
+parser_quirks_test: CompileTimeError
+regress_27617_test/1: MissingCompileTimeError
+vm/*: SkipByDesign # VM only tests.; VM only tests.
+void_type_function_types_test/none: CompileTimeError # Issue 30514
+void_type_override_test/none: CompileTimeError # Issue 30514
+void_type_usage_test/call_as: CompileTimeError # Issue 30514
+void_type_usage_test/call_for: CompileTimeError # Issue 30514
+void_type_usage_test/call_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/field_assign: CompileTimeError # Issue 30514
+void_type_usage_test/field_assign2: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_as: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_for: CompileTimeError # Issue 30514
+void_type_usage_test/final_local_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/global_as: CompileTimeError # Issue 30514
+void_type_usage_test/global_for: CompileTimeError # Issue 30514
+void_type_usage_test/global_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/global_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_for_in3: CompileTimeError # Issue 30514
+void_type_usage_test/instance2_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_for_in3: CompileTimeError # Issue 30514
+void_type_usage_test/instance3_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/instance_as: CompileTimeError # Issue 30514
+void_type_usage_test/instance_for: CompileTimeError # Issue 30514
+void_type_usage_test/instance_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/local_as: CompileTimeError # Issue 30514
+void_type_usage_test/local_assign: CompileTimeError # Issue 30514
+void_type_usage_test/local_for: CompileTimeError # Issue 30514
+void_type_usage_test/local_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/local_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/none: CompileTimeError # Issue 30514
+void_type_usage_test/param_as: CompileTimeError # Issue 30514
+void_type_usage_test/param_for: CompileTimeError # Issue 30514
+void_type_usage_test/param_for_in2: CompileTimeError # Issue 30514
+void_type_usage_test/param_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/paren_as: CompileTimeError # Issue 30514
+void_type_usage_test/paren_for: CompileTimeError # Issue 30514
+void_type_usage_test/paren_stmt: CompileTimeError # Issue 30514
+void_type_usage_test/setter_assign: CompileTimeError # Issue 30514
 
-[ $compiler == dartdevk && $runtime != none ]
-callable_test/none: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-compile_time_constant_static5_test/23: RuntimeError # Type 'A' is not a subtype of type 'B', issue 30546
-conditional_import_string_test: RuntimeError # Unsupported operation: String.fromEnvironment can only be used as a const constructor
-conditional_import_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-constant_string_interpolation2_test: RuntimeError # TypeError: Cannot read property 'Symbol(dartx.toString)' of null
-cyclic_type_test/00: RuntimeError # Expect.equals(expected: <Derived>, actual: <dynamic>) fails.
-cyclic_type_test/01: RuntimeError # Expect.equals(at index 0: Expected <Derived<Derived<int>>...>, Found: <dynamic>) fails.
-deferred_closurize_load_library_test: RuntimeError # NoSuchMethodError: method not found: 'then'
-enum_duplicate_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_duplicate_test/02: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_duplicate_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_mirror_test: RuntimeError # Expect.equals(expected: <Foo.BAR>, actual: <null>) fails.
-enum_private_test/01: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_private_test/none: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-enum_test: RuntimeError # NoSuchMethodError: method not found: '<Unexpected Null Value>'
-f_bounded_equality_test: RuntimeError # Expect.equals(expected: <dynamic>, actual: <Real>) fails.
-field_override_optimization_test: RuntimeError # Expect.fail('This should also be unreachable')
-first_class_types_test: RuntimeError # Expect.equals(expected: <List>, actual: <List<int>>) fails.
-function_subtype_bound_closure1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
-function_subtype_bound_closure2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure5a_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure6_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_bound_closure7_test: RuntimeError # ReferenceError: TTodynamic is not defined
-function_subtype_cast0_test: RuntimeError # CastError: Casting value of type '(int) => void' to type '(dynamic) => void' which is incompatible
-function_subtype_cast2_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_cast3_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_checked0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_subtype_closure0_test: RuntimeError # Expect.throws(TypeError) fails: Did not throw
-function_subtype_local1_test: RuntimeError # Expect.isTrue(false, 'foo is Foo') fails.
-function_subtype_local2_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_local5_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_not0_test: RuntimeError # Expect.isFalse(true) fails.
-function_subtype_not2_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_not3_test: RuntimeError # ReferenceError: TTovoid is not defined
-function_subtype_simple1_test: RuntimeError # Expect.isTrue(false) fails.
-function_subtype_top_level1_test: RuntimeError # ReferenceError: TAndStringToint is not defined
-function_subtype_typearg5_test: RuntimeError # ReferenceError: JSArrayOfXAndXToX is not defined
-function_type_alias2_test: RuntimeError # Expect.isTrue(false) fails.
-function_type_alias3_test: RuntimeError # TypeError: library11.Library111$ is not a function
-function_type_alias4_test: RuntimeError # Expect.isTrue(false) fails.
-function_type_alias_test: RuntimeError # Expect.isTrue(false) fails.
-generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
-generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
-generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
-generic_method_types_test/02: RuntimeError
-generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
-generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
-generic_test: RuntimeError # ReferenceError: BOfT is not defined
-implicit_downcast_during_function_literal_arrow_test: RuntimeError
-issue13179_test: RuntimeError
-library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-library_env_test/has_mirror_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-library_env_test/has_no_html_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-method_override_test: RuntimeError # Expect.isTrue(false) fails.
-mixin_bound_test: RuntimeError
-mixin_extends_field_test: RuntimeError # Expect.equals(expected: <M1-bar>, actual: <null>) fails.
-mixin_field_test: RuntimeError # NoSuchMethodError: method not found: 'bar'
-mixin_forwarding_constructor1_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
-mixin_forwarding_constructor2_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
-mixin_forwarding_constructor3_test: RuntimeError # Expect.equals(expected: <2>, actual: <null>) fails.
-mixin_illegal_super_use_test/none: RuntimeError # TypeError: e.bar is not a function
-mixin_is_test: RuntimeError # Expect.isTrue(false) fails.
-mixin_method_test: RuntimeError # Expect.equals(expected: <M2-bar>, actual: <M1-bar>) fails.
-mixin_mixin_type_arguments_test: RuntimeError
-mixin_naming_test: RuntimeError # Expect.isTrue(false) fails.
-mixin_regress_13688_test: RuntimeError
-mixin_type_parameter5_test: RuntimeError
-mock_writable_final_field_test: RuntimeError # Expect.listEquals(list length, expected: <1>, actual: <0>) fails: Next element <123>
-mock_writable_final_private_field_test: RuntimeError
-nested_generic_closure_test: RuntimeError # Expect.equals(at index 3: Expected <...(<F>(F) => F) => void>, Found: <...(<F extends Object>(F) => F) => void...>) fails.
-recursive_generic_test: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
-recursive_inheritance_test: RuntimeError # Expect.isTrue(false) fails.
-redirecting_factory_long_test: RuntimeError # Expect.isTrue(false) fails.
-redirecting_factory_reflection_test: RuntimeError # UnimplementedError: node <InvalidExpression> `invalid-expression`
-regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
-regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
-runtime_type_function_test: RuntimeError # Expect.fail('Type print string does not match expectation
-syncstar_yield_test/copyParameters: RuntimeError # Expect.equals(expected: <2>, actual: <3>) fails.
-type_literal_test: RuntimeError # Expect.equals(expected: <Func>, actual: <(bool) => int>) fails.
-type_promotion_functions_test/02: RuntimeError
-type_promotion_functions_test/03: RuntimeError
-type_promotion_functions_test/04: RuntimeError
-type_promotion_functions_test/09: RuntimeError
-type_promotion_functions_test/11: RuntimeError
-type_promotion_functions_test/12: RuntimeError
-type_promotion_functions_test/13: RuntimeError
-type_promotion_functions_test/14: RuntimeError
-type_promotion_functions_test/none: RuntimeError
-yieldstar_pause_test: Timeout
+[ $compiler == dartdevk || $compiler == dartdevc && $runtime == none ]
+instantiate_type_variable_test/01: CompileTimeError
+setter_no_getter_call_test/01: CompileTimeError
+

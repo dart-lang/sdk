@@ -2027,12 +2027,13 @@ class FastaParserTestCase extends Object
   @override
   CompilationUnit parseDirectives(String source,
       [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
-    // TODO(paulberry,ahe,danrubel): analyzer parser has the ability to
-    // stop parsing as soon as the first non-directive is encountered; this is
-    // useful for quickly traversing an import graph.  Consider adding a similar
-    // ability to Fasta's parser.
-    throw 'fasta parser does not have a method that just parses directives'
-        ' and stops when it finds the first declaration or EOF.';
+    createParser(source);
+    CompilationUnit unit =
+        _parserProxy.parseDirectives(_parserProxy.currentToken);
+    expect(unit, isNotNull);
+    expect(unit.declarations, hasLength(0));
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
   }
 
   @override
@@ -2219,8 +2220,8 @@ class FastaParserTestCase extends Object
 
   @override
   Statement parseStatement(String source,
-      [bool enableLazyAssignmentOperators]) {
-    createParser(source);
+      {bool enableLazyAssignmentOperators, int expectedEndOffset}) {
+    createParser(source, expectedEndOffset: expectedEndOffset);
     Statement statement = _parserProxy.parseStatement2();
     assertErrors(codes: NO_ERROR_COMPARISON);
     return statement;
@@ -2720,13 +2721,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incompleteLocalVariable_atTheEndOfBlock() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_atTheEndOfBlock();
-  }
-
-  @override
-  @failingTest
   void test_incompleteLocalVariable_beforeIdentifier() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_beforeIdentifier();
@@ -2737,20 +2731,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_incompleteLocalVariable_beforeKeyword() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteLocalVariable_beforeKeyword();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_beforeNextBlock() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_beforeNextBlock();
-  }
-
-  @override
-  @failingTest
-  void test_incompleteLocalVariable_parameterizedType() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteLocalVariable_parameterizedType();
   }
 
   @override
@@ -2779,13 +2759,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
   void test_keywordInPlaceOfIdentifier() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_keywordInPlaceOfIdentifier();
-  }
-
-  @override
-  @failingTest
-  void test_missingComma_beforeNamedArgument() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_missingComma_beforeNamedArgument();
   }
 
   @override
@@ -2878,30 +2851,6 @@ class ScopeProxy implements Scope {
 @reflectiveTest
 class SimpleParserTest_Fasta extends FastaParserTestCase
     with SimpleParserTestMixin {
-  @override
-  @failingTest
-  void test_parseDocumentationComment_block() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_block();
-  }
-
-  @override
-  @failingTest
-  void test_parseDocumentationComment_block_withReference() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_block_withReference();
-  }
-
-  @override
-  @failingTest
-  void test_parseDocumentationComment_endOfLine() {
-    // TODO(brianwilkerson) exception:
-    // NoSuchMethodError: Class 'ParserProxy' has no instance method 'parseDocumentationCommentTokens'.
-    super.test_parseDocumentationComment_endOfLine();
-  }
-
   @override
   @failingTest
   void test_parseTypeParameterList_single() {

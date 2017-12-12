@@ -9,7 +9,7 @@ import 'dart:mirrors';
 
 import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
+import 'utils.dart';
 
 class A extends HtmlElement {
   static final tag = 'x-a';

@@ -32,6 +32,7 @@
 % - Constant `==` operations now also allowed if just one operand is null.
 % - Make flatten not be recursive.
 % - Disallow implementing two instantiations of the same generic interface.
+% - Update "FutureOr" specification for Dart 2.0.
 %
 % 1.15
 % - Change how language specification describes control flow.
@@ -8399,28 +8400,47 @@ The name \DYNAMIC{} denotes a \code{Type} object even though \DYNAMIC{} is not a
 The built-in type declaration \code{FutureOr},
 which is declared in the library \code{dart:async},
 defines a generic type with one type parameter (\ref{generics}).
-If the \code{FutureOr} type, optionally followed by type arguments,
-is used as a type, it denotes the \DYNAMIC{} type.
-As such, the \code{FutureOr} type cannot be used where \DYNAMIC{} cannot be
-used as a type.
-If the type arguments applied to \code{FutureOr} would issue static warnings
+
+\LMHash{}
+The \code{FutureOr<$T$>} type is a non-class type with the following
+type relations:
+\begin{itemize}
+    \item{} $T$ <: \code{FutureOr<$T$>}.
+    \item{} \code{Future<$T$>} <: \code{FutureOr<$T$>}.
+    \item{} If $T$ <: $S$ and \code{Future<$T$>} <: $S$
+        then \code{FutureOr<$T$>} <: $S$.
+        \commentary{In particular, \code{FutureOr<$T$>} <: \code{Object}.}
+\end{itemize}.
+\commentary{The last point guarantees that generic type \code{FutureOr} is
+{\em covariant} in its type parameter, just like class types.
+That is, if $S$ <: $T$ then \code{FutureOr<$S$>} <: \code{FutureOr<$T$>}.}
+If the type arguments passed to \code{FutureOr} would issue static warnings
 if applied to a normal generic class with one type parameter,
-the same warnings are issued for \code{FutureOr},
-even though the type arguments are otherwise ignored.
+the same warnings are issued for \code{FutureOr}.
 The name \code{FutureOr} as an expression
-denotes the same \code{Type} object as \DYNAMIC{}.
+denotes a \code{Type} object representing the type \code{FutureOr<dynamic>}.
 
 \rationale{
-The \code{FutureOr} type is reserved for future use,
-for cases where a value can be either an instance of the type \metavar{type}
+The \code{FutureOr<\metavar{type}>} type represents a case where a value can be
+either an instance of the type \metavar{type}
 or the type \code{Future<\metavar{type}>}.
 Such cases occur naturally in asynchronous code.
-Using \code{FutureOr} instead of \DYNAMIC{} will allow some tools
+Using \code{FutureOr} instead of \DYNAMIC{} allows some tools
 to provide a more precise type analysis.
 }
-%\rationale {
-%Type objects reify the run-time types of instances. No instance ever has type \DYNAMIC{}.
-%}
+
+\LMHash{}
+The type \code{FutureOr<$T$>} has an interface that is identical to that
+of \code{Object}.
+\commentary{The only members that can be invoked on a value with static type
+\code{FutureOr<$T$>} are members that are also on \code{Object}.}
+\rationale{We only want to allow invocations of members that are inherited from
+a common supertype of both $T$ and \code{Future<$T$>}.
+In most cases the only common supertype is \code{Object}. The exceptions, like
+\code{FutureOr<Future<Object>>} which has \code{Future<Object>} as common
+supertype, are few and not practically useful, so for now we choose to
+only allow invocations of members inherited from \code{Object}.
+}
 
 
 \subsection{Type Void}

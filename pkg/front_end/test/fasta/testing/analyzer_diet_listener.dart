@@ -68,7 +68,7 @@ class AnalyzerDietListener extends DietListener {
   /// The list of local declarations in the body builder for the method
   /// currently being compiled, or `null` if no method is currently being
   /// compiled.
-  List<kernel.Statement> _kernelDeclarations;
+  List<kernel.TreeNode> _kernelDeclarations;
 
   /// The list of objects referenced by the body builder for the method
   /// currently being compiled, or `null` if no method is currently being
@@ -266,7 +266,7 @@ class AnalyzerDietListener extends DietListener {
       void parserCallback()) {
     // Create a body builder to do type inference, and a listener to record the
     // types that are inferred.
-    _kernelDeclarations = <kernel.Statement>[];
+    _kernelDeclarations = <kernel.TreeNode>[];
     _kernelReferences = <kernel.Node>[];
     _kernelTypes = <kernel.DartType>[];
     _declarationOffsets = <int>[];
@@ -298,7 +298,7 @@ class AnalyzerDietListener extends DietListener {
 
   /// Translates the given kernel declarations into analyzer elements.
   static List<ast.Element> _translateDeclarations(
-      List<kernel.Statement> kernelDeclarations) {
+      List<kernel.TreeNode> kernelDeclarations) {
     // TODO(scheglov): implement proper translation of elements.
     return new List<ast.Element>.filled(kernelDeclarations.length, null);
   }

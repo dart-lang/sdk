@@ -20,6 +20,7 @@ import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/fasta/kernel/kernel_shadow_ast.dart' as kernel;
 import 'package:front_end/src/fasta/kernel/redirecting_factory_body.dart';
 import 'package:kernel/kernel.dart' as kernel;
+import 'package:kernel/type_algebra.dart' as kernel;
 import 'package:kernel/type_environment.dart' as kernel;
 import 'package:path/path.dart' as pathos;
 
@@ -237,6 +238,15 @@ class KernelResynthesizer implements ElementResynthesizer {
     }
 
     if (kernelType is kernel.FunctionType) {
+      var typedef = kernelType.typedef;
+      if (typedef != null) {
+        GenericTypeAliasElementImpl typedefElement =
+            getElementFromCanonicalName(typedef.canonicalName);
+        GenericFunctionTypeElementImpl functionElement =
+            typedefElement.function;
+        return instantiateFunctionType(
+            context, functionElement, typedef, typedef.type, kernelType);
+      }
       var typeElement =
           new GenericFunctionTypeElementImpl.forKernel(context, kernelType);
       return typeElement.type;
@@ -244,6 +254,69 @@ class KernelResynthesizer implements ElementResynthesizer {
 
     // TODO(scheglov) Support other kernel types.
     throw new UnimplementedError('For ${kernelType.runtimeType}');
+  }
+
+  /// Given the [executable] element that corresponds to the [kernelNode],
+  /// and the [kernelType] that is the instantiated type of [kernelNode],
+  /// return the instantiated type of the [executable].
+  FunctionType instantiateFunctionType(
+      ElementImpl context,
+      FunctionTypedElement executable,
+      kernel.TreeNode kernelNode,
+      kernel.FunctionType kernelRawType,
+      kernel.FunctionType kernelType) {
+    // Prepare all kernel type parameters.
+    var kernelTypeParameters = <kernel.TypeParameter>[];
+    for (kernel.TreeNode node = kernelNode; node != null; node = node.parent) {
+      if (node is kernel.Class) {
+        kernelTypeParameters.addAll(node.typeParameters);
+      } else if (node is kernel.FunctionNode) {
+        kernelTypeParameters.addAll(node.typeParameters);
+      } else if (node is kernel.Typedef) {
+        kernelTypeParameters.addAll(node.typeParameters);
+      }
+    }
+
+    // If no type parameters, the raw type of the element will do.
+    FunctionTypeImpl rawType = executable.type;
+    if (kernelTypeParameters.isEmpty) {
+      return rawType;
+    }
+
+    // Compute type arguments for kernel type parameters.
+    var kernelMap = kernel.unifyTypes(
+        kernelRawType, kernelType, kernelTypeParameters.toSet());
+
+    // Prepare Analyzer type parameters, in the same order as kernel ones.
+    var astTypeParameters = <TypeParameterElement>[];
+    for (Element element = executable;
+        element != null;
+        element = element.enclosingElement) {
+      if (element is TypeParameterizedElement) {
+        astTypeParameters.addAll(element.typeParameters);
+      }
+    }
+
+    // Convert kernel type arguments into Analyzer types.
+    int length = astTypeParameters.length;
+    var usedTypeParameters = <TypeParameterElement>[];
+    var usedTypeArguments = <DartType>[];
+    for (var i = 0; i < length; i++) {
+      var kernelParameter = kernelTypeParameters[i];
+      var kernelArgument = kernelMap[kernelParameter];
+      if (kernelArgument != null) {
+        DartType astArgument = getType(context, kernelArgument);
+        usedTypeParameters.add(astTypeParameters[i]);
+        usedTypeArguments.add(astArgument);
+      }
+    }
+
+    if (usedTypeParameters.isEmpty) {
+      return rawType;
+    }
+
+    // Replace Analyzer type parameters with type arguments.
+    return rawType.substitute4(usedTypeParameters, usedTypeArguments);
   }
 
   void _buildTypeProvider() {

@@ -189,9 +189,7 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
         Isolate* isolate = thread->isolate();
-        uword c_stack_pos = Thread::GetCurrentStackPointer();
-        uword c_stack_limit = OSThread::Current()->stack_limit_with_headroom();
-        if (c_stack_pos < c_stack_limit) {
+        if (!OSThread::Current()->HasStackHeadroom()) {
           const Instance& exception =
               Instance::Handle(zone, isolate->object_store()->stack_overflow());
           return UnhandledException::New(exception, StackTrace::Handle(zone));

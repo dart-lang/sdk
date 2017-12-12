@@ -115,8 +115,7 @@ Future<CompiledData> computeData(
     if (member is ConstructorElement && member.isRedirectingFactory) {
       return;
     }
-    if (skipUnprocessedMembers &&
-        !closedWorld.processedMembers.contains(member)) {
+    if (!closedWorld.processedMembers.contains(member)) {
       return;
     }
     if (member.enclosingClass != null) {
@@ -138,8 +137,7 @@ Future<CompiledData> computeData(
   if (forMainLibraryOnly) {
     LibraryEntity mainLibrary = elementEnvironment.mainLibrary;
     elementEnvironment.forEachClass(mainLibrary, (ClassEntity cls) {
-      if (closedWorld.isInstantiated(cls) &&
-          !elementEnvironment.isEnumClass(cls)) {
+      if (!elementEnvironment.isEnumClass(cls)) {
         elementEnvironment.forEachConstructor(cls, processMember);
       }
       elementEnvironment.forEachLocalClassMember(cls, processMember);

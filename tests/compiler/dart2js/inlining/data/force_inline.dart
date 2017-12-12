@@ -11,6 +11,7 @@ main() {
   forceInlineTwice1();
   forceInlineTwice2();
   forceInlineNested();
+  forceInlineOptional();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -65,4 +66,18 @@ _forceInlineNested2() {
 @NoInline()
 forceInlineNested() {
   _forceInlineNested2();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Force inline a top level method with optional argument.
+////////////////////////////////////////////////////////////////////////////////
+
+/*element: _forceInlineOptional:[forceInlineOptional]*/
+@ForceInline()
+_forceInlineOptional([x]) {}
+
+/*element: forceInlineOptional:[]*/
+@NoInline()
+forceInlineOptional() {
+  _forceInlineOptional();
 }

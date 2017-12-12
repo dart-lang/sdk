@@ -322,16 +322,19 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
           if (Token::IsRelationalOperator(op_kind)) {
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
-            replacement = new (Z)
-                RelationalOpInstr(instr->token_pos(), op_kind, left_value,
-                                  right_value, kMintCid, Thread::kNoDeoptId);
+            replacement = new (Z) RelationalOpInstr(
+                instr->token_pos(), op_kind, left_value, right_value, kMintCid,
+                Thread::kNoDeoptId, Instruction::kNotSpeculative);
 
           } else {
             // TODO(dartbug.com/30480): Figure out how to handle null in
             // equality comparisons.
-            replacement = new (Z) EqualityCompareInstr(
-                instr->token_pos(), op_kind, left_value->CopyWithType(Z),
-                right_value->CopyWithType(Z), kMintCid, Thread::kNoDeoptId);
+            // replacement = new (Z) EqualityCompareInstr(
+            //     instr->token_pos(), op_kind, left_value->CopyWithType(Z),
+            //     right_value->CopyWithType(Z), kMintCid, Thread::kNoDeoptId);
+            replacement = new (Z) CheckedSmiComparisonInstr(
+                instr->token_kind(), left_value->CopyWithType(Z),
+                right_value->CopyWithType(Z), instr);
           }
           // TODO(dartbug.com/30480): Enable comparisons with Smi.
         } else if (false &&
@@ -361,9 +364,9 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
             (op_kind == Token::kGT) || (op_kind == Token::kGTE)) {
           left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
-          replacement = new (Z)
-              RelationalOpInstr(instr->token_pos(), op_kind, left_value,
-                                right_value, kDoubleCid, Thread::kNoDeoptId);
+          replacement = new (Z) RelationalOpInstr(
+              instr->token_pos(), op_kind, left_value, right_value, kDoubleCid,
+              Thread::kNoDeoptId, Instruction::kNotSpeculative);
         }
       }
       break;
@@ -385,7 +388,8 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
       Value* right_value = instr->PushArgumentAt(receiver_index + 1)->value();
       CompileType* left_type = left_value->Type();
       CompileType* right_type = right_value->Type();
-      if (left_type->IsNullableInt() && right_type->IsNullableInt()) {
+      if (left_type->IsNullableInt() && right_type->IsNullableInt() &&
+          (op_kind != Token::kDIV)) {
         if (FLAG_limit_ints_to_64_bits &&
             FlowGraphCompiler::SupportsUnboxedMints()) {
           if ((op_kind == Token::kSHR) || (op_kind == Token::kSHL)) {
@@ -400,9 +404,10 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
             left_value = PrepareStaticOpInput(left_value, kMintCid, instr);
             right_value = PrepareStaticOpInput(right_value, kMintCid, instr);
             replacement = new BinaryInt64OpInstr(
-                op_kind, left_value, right_value, Thread::kNoDeoptId);
+                op_kind, left_value, right_value, Thread::kNoDeoptId,
+                Instruction::kNotSpeculative);
           }
-        } else if (op_kind != Token::kDIV) {
+        } else {
           replacement =
               new (Z) CheckedSmiOpInstr(op_kind, left_value->CopyWithType(Z),
                                         right_value->CopyWithType(Z), instr);
@@ -419,9 +424,9 @@ bool AotCallSpecializer::TryOptimizeInstanceCallUsingStaticTypes(
             (op_kind == Token::kMUL) || (op_kind == Token::kDIV)) {
           left_value = PrepareStaticOpInput(left_value, kDoubleCid, instr);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, instr);
-          replacement = new (Z)
-              BinaryDoubleOpInstr(op_kind, left_value, right_value,
-                                  Thread::kNoDeoptId, instr->token_pos());
+          replacement = new (Z) BinaryDoubleOpInstr(
+              op_kind, left_value, right_value, Thread::kNoDeoptId,
+              instr->token_pos(), Instruction::kNotSpeculative);
         }
       }
       break;
@@ -466,9 +471,9 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
           left_value =
               PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, call);
-          replacement = new (Z)
-              BinaryDoubleOpInstr(op_kind, left_value, right_value,
-                                  Thread::kNoDeoptId, call->token_pos());
+          replacement = new (Z) BinaryDoubleOpInstr(
+              op_kind, left_value, right_value, Thread::kNoDeoptId,
+              call->token_pos(), Instruction::kNotSpeculative);
         }
       } else if ((op_kind == Token::kLT) || (op_kind == Token::kLTE) ||
                  (op_kind == Token::kGT) || (op_kind == Token::kGTE)) {
@@ -480,16 +485,17 @@ bool AotCallSpecializer::TryOptimizeStaticCallUsingStaticTypes(
           left_value =
               PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
           right_value = PrepareStaticOpInput(right_value, kDoubleCid, call);
-          replacement = new (Z)
-              RelationalOpInstr(call->token_pos(), op_kind, left_value,
-                                right_value, kDoubleCid, Thread::kNoDeoptId);
+          replacement = new (Z) RelationalOpInstr(
+              call->token_pos(), op_kind, left_value, right_value, kDoubleCid,
+              Thread::kNoDeoptId, Instruction::kNotSpeculative);
         }
       } else if (op_kind == Token::kNEGATE) {
         ASSERT(call->FirstArgIndex() == 0);
         Value* left_value = call->PushArgumentAt(0)->value();
         left_value = PrepareReceiverOfDevirtualizedCall(left_value, kDoubleCid);
         replacement = new (Z)
-            UnaryDoubleOpInstr(Token::kNEGATE, left_value, call->deopt_id());
+            UnaryDoubleOpInstr(Token::kNEGATE, left_value, call->deopt_id(),
+                               Instruction::kNotSpeculative);
       }
     }
   }

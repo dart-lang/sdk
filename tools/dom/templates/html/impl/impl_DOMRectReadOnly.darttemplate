@@ -89,11 +89,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
            another.y <= top + height;
   }
 
-  Point get topLeft => new Point/*<num>*/(this.left, this.top);
-  Point get topRight => new Point/*<num>*/(this.left + this.width, this.top);
-  Point get bottomRight => new Point/*<num>*/(this.left + this.width,
+  Point get topLeft => new Point(this.left, this.top);
+  Point get topRight => new Point(this.left + this.width, this.top);
+  Point get bottomRight => new Point(this.left + this.width,
       this.top + this.height);
-  Point get bottomLeft => new Point/*<num>*/(this.left,
+  Point get bottomLeft => new Point(this.left,
       this.top + this.height);
 
   $!MEMBERS}

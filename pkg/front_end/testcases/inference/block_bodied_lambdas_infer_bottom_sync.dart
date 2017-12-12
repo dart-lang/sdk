@@ -14,7 +14,7 @@ test() {
   };
   String y = f(42);
 
-  f = /*error:INVALID_CAST_FUNCTION_EXPR*/ /*@returnType=String*/ (/*@type=Object*/ x) =>
+  f = /*error:INVALID_CAST_FUNCTION_EXPR*/ /*@returnType=Null*/ (/*@type=Object*/ x) =>
       'hello';
 
   foo(/*@returnType=Null*/ (/*@type=Object*/ x) {

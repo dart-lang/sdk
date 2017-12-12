@@ -1111,6 +1111,12 @@ class Class : public Object {
   // Check if this class represents the 'Function' class.
   bool IsDartFunctionClass() const;
 
+  // Check if this class represents the 'Future' class.
+  bool IsFutureClass() const;
+
+  // Check if this class represents the 'FutureOr' class.
+  bool IsFutureOrClass() const;
+
   // Check if this class represents the 'Closure' class.
   bool IsClosureClass() const { return id() == kClosureCid; }
   static bool IsClosureClass(RawClass* cls) {
@@ -1540,6 +1546,17 @@ class Class : public Object {
                 TrailPtr bound_trail,
                 Heap::Space space) const;
 
+  // Returns true if the type specified by this class and type_arguments is a
+  // subtype of FutureOr<T> specified by other class and other_type_arguments.
+  // Returns false if other class is not a FutureOr.
+  bool FutureOrTypeTest(Zone* zone,
+                        const TypeArguments& type_arguments,
+                        const Class& other,
+                        const TypeArguments& other_type_arguments,
+                        Error* bound_error,
+                        TrailPtr bound_trail,
+                        Heap::Space space) const;
+
   static bool TypeTestNonRecursive(const Class& cls,
                                    TypeTestKind test_kind,
                                    const TypeArguments& type_arguments,
@@ -1555,7 +1572,7 @@ class Class : public Object {
   friend class Object;
   friend class Type;
   friend class Intrinsifier;
-  friend class ProgramVisitor;
+  friend class ClassFunctionVisitor;
 };
 
 // Unresolved class is used for storing unresolved names which will be resolved
@@ -4007,9 +4024,9 @@ class KernelProgramInfo : public Object {
   friend class Class;
 };
 
-// ObjectPool contains constants, immediates and addresses embedded in code
-// and deoptimization infos. Each entry has an type-info associated with it
-// which is stored in a typed data array (info_array).
+// ObjectPool contains constants, immediates and addresses referenced by
+// generated code and deoptimization infos. Each entry has an type associated
+// with it which is stored in-inline after all the entries.
 class ObjectPool : public Object {
  public:
   enum EntryType {
@@ -4034,36 +4051,38 @@ class ObjectPool : public Object {
     StoreNonPointer(&raw_ptr()->length_, value);
   }
 
-  RawTypedData* info_array() const { return raw_ptr()->info_array_; }
-
-  void set_info_array(const TypedData& info_array) const;
-
   static intptr_t length_offset() { return OFFSET_OF(RawObjectPool, length_); }
   static intptr_t data_offset() {
     return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data);
   }
   static intptr_t element_offset(intptr_t index) {
     return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data) +
-           kBytesPerElement * index;
+           sizeof(RawObjectPool::Entry) * index;
   }
 
-  EntryType InfoAt(intptr_t index) const;
+  EntryType TypeAt(intptr_t index) const {
+    return static_cast<EntryType>(raw_ptr()->entry_types()[index]);
+  }
+  void SetTypeAt(intptr_t index, EntryType type) const {
+    StoreNonPointer(&raw_ptr()->entry_types()[index],
+                    static_cast<uint8_t>(type));
+  }
 
   RawObject* ObjectAt(intptr_t index) const {
-    ASSERT(InfoAt(index) == kTaggedObject);
+    ASSERT(TypeAt(index) == kTaggedObject);
     return EntryAddr(index)->raw_obj_;
   }
   void SetObjectAt(intptr_t index, const Object& obj) const {
-    ASSERT(InfoAt(index) == kTaggedObject);
+    ASSERT(TypeAt(index) == kTaggedObject);
     StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
   }
 
   uword RawValueAt(intptr_t index) const {
-    ASSERT(InfoAt(index) != kTaggedObject);
+    ASSERT(TypeAt(index) != kTaggedObject);
     return EntryAddr(index)->raw_value_;
   }
   void SetRawValueAt(intptr_t index, uword raw_value) const {
-    ASSERT(InfoAt(index) != kTaggedObject);
+    ASSERT(TypeAt(index) != kTaggedObject);
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
   }
 
@@ -4073,12 +4092,13 @@ class ObjectPool : public Object {
     return 0;
   }
 
-  static const intptr_t kBytesPerElement = sizeof(RawObjectPool::Entry);
+  static const intptr_t kBytesPerElement =
+      sizeof(RawObjectPool::Entry) + sizeof(uint8_t);
   static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
-    ASSERT(sizeof(RawObjectPool) == (sizeof(RawObject) + (2 * kWordSize)));
+    ASSERT(sizeof(RawObjectPool) == (sizeof(RawObject) + (1 * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawObjectPool) +
                                  (len * kBytesPerElement));
@@ -4090,7 +4110,8 @@ class ObjectPool : public Object {
   // adjusting for the tag-bit.
   static intptr_t IndexFromOffset(intptr_t offset) {
     ASSERT(Utils::IsAligned(offset + kHeapObjectTag, kWordSize));
-    return (offset + kHeapObjectTag - data_offset()) / kBytesPerElement;
+    return (offset + kHeapObjectTag - data_offset()) /
+           sizeof(RawObjectPool::Entry);
   }
 
   static intptr_t OffsetFromIndex(intptr_t index) {
@@ -5441,6 +5462,13 @@ class Instance : public Object {
                     const TypeArguments& other_function_type_arguments,
                     Error* bound_error) const;
 
+  // Returns true if the type of this instance is a subtype of FutureOr<T>
+  // specified by instantiated type 'other'.
+  // Returns false if other type is not a FutureOr.
+  bool IsFutureOrInstanceOf(Zone* zone,
+                            const AbstractType& other,
+                            Error* bound_error) const;
+
   bool IsValidNativeIndex(int index) const {
     return ((index >= 0) && (index < clazz()->ptr()->num_native_fields_));
   }
@@ -6025,12 +6053,20 @@ class AbstractType : public Instance {
       const TypeArguments& function_type_args);
 
  private:
-  // Check the subtype or 'more specific' relationship.
+  // Check the 'is subtype of' or 'is more specific than' relationship.
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractType& other,
                 Error* bound_error,
                 TrailPtr bound_trail,
                 Heap::Space space) const;
+
+  // Returns true if this type is a subtype of FutureOr<T> specified by 'other'.
+  // Returns false if other type is not a FutureOr.
+  bool FutureOrTypeTest(Zone* zone,
+                        const AbstractType& other,
+                        Error* bound_error,
+                        TrailPtr bound_trail,
+                        Heap::Space space) const;
 
   // Return the internal or public name of this type, including the names of its
   // type arguments, if any.
@@ -8942,25 +8978,6 @@ class UserTag : public Instance {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UserTag, Instance);
   friend class Class;
-};
-
-class ObjectPoolInfo : public ValueObject {
- public:
-  explicit ObjectPoolInfo(const ObjectPool& pool)
-      : array_(TypedData::Handle(pool.info_array())) {}
-
-  explicit ObjectPoolInfo(const TypedData& info_array) : array_(info_array) {}
-
-  ObjectPool::EntryType InfoAt(intptr_t i) {
-    return static_cast<ObjectPool::EntryType>(array_.GetInt8(i));
-  }
-
-  void SetInfoAt(intptr_t i, ObjectPool::EntryType info) {
-    array_.SetInt8(i, static_cast<int8_t>(info));
-  }
-
- private:
-  const TypedData& array_;
 };
 
 // Breaking cycles and loops.

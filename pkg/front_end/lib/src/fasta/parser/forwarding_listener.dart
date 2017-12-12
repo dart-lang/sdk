@@ -932,6 +932,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleDirectivesOnly() {
+    listener?.handleDirectivesOnly();
+  }
+
+  @override
   void handleDottedName(int count, Token firstIdentifier) {
     listener?.handleDottedName(count, firstIdentifier);
   }
