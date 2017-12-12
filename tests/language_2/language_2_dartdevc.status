@@ -546,6 +546,7 @@ mixin_type_parameters_errors_test/02: MissingCompileTimeError
 mixin_type_parameters_errors_test/03: MissingCompileTimeError
 mixin_type_parameters_errors_test/04: MissingCompileTimeError
 mixin_type_parameters_errors_test/05: MissingCompileTimeError
+mixin_with_named_import_test: Crash
 multiline_newline_test/06: MissingCompileTimeError
 multiline_newline_test/06r: MissingCompileTimeError
 named_constructor_test/01: MissingCompileTimeError
