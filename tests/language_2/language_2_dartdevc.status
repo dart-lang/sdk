@@ -642,6 +642,7 @@ super_getter_setter_test: CompileTimeError
 super_in_async3_test: Crash
 super_in_async4_test: Crash
 super_in_async6_test: Crash
+super_in_constructor_test: RuntimeError
 super_in_finally_test: Crash
 super_no_such_method1_test: CompileTimeError
 super_no_such_method2_test: CompileTimeError
