@@ -6,7 +6,12 @@ library fasta.test.graph_test;
 
 import 'package:expect/expect.dart' show Expect;
 
+import 'package:test_reflective_loader/test_reflective_loader.dart'
+    show defineReflectiveSuite, defineReflectiveTests, reflectiveTest;
+
 import 'package:front_end/src/fasta/graph/graph.dart';
+
+import '../src/dependency_walker_test.dart' show DependencyWalkerTest;
 
 class TestGraph implements Graph<String> {
   final Map<String, List<String>> graph;
@@ -67,4 +72,22 @@ main() {
     "C": ["A"],
     "D": ["B", "C"],
   });
+
+  // TODO(ahe): Move the tests from DependencyWalkerTest here.
+  defineReflectiveSuite(() {
+    defineReflectiveTests(GraphTest);
+  });
+}
+
+@reflectiveTest
+class GraphTest extends DependencyWalkerTest {
+  void checkGraph(Map<String, List<String>> graph, String startingNodeName,
+      List<List<String>> expectedEvaluations, List<bool> expectedSccFlags) {
+    List<List<String>> result = computeStrongComponents(new TestGraph(graph));
+    List<List<String>> expectedReversed = <List<String>>[];
+    for (List<String> list in expectedEvaluations) {
+      expectedReversed.add(list.reversed.toList());
+    }
+    Expect.stringEquals(expectedReversed.join(", "), result.join(", "));
+  }
 }
