@@ -83,7 +83,9 @@
     decompression routines.
   * Added `IOOverrides` and `HttpOverrides` to aid in writing tests that wish to
     mock varios `dart:io` objects.
-  * Added `Stdin.hasTerminal`.
+  * Added `Stdin.hasTerminal`, which is true if stdin is attached to a terminal.
+  * Added `waitForEventSync`, which suspends execution until an asynchronous
+    event oocurs.
 
 * `dart:isolate`
   * Rename `IMMEDIATE` and `BEFORE_NEXT_EVENT` on `Isolate` to `immediate` and
