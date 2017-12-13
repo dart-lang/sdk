@@ -51,9 +51,11 @@ class BaseTest {
   /// [args] and an [options] file path.  The value of [options] defaults to
   /// an empty options file to avoid unwanted configuration from an otherwise
   /// discovered options file.
-  Future<Null> drive(String source,
-      {String options: emptyOptionsFile,
-      List<String> args: const <String>[]}) async {
+  Future<Null> drive(
+    String source, {
+    String options: emptyOptionsFile,
+    List<String> args: const <String>[],
+  }) async {
     driver = new Driver(isTesting: true);
     var cmd = [
       '--options',
