@@ -314,7 +314,6 @@ dynamic_nosuchmethod_test: Fail # mirrors not supported
 [ $compiler == dartdevc && $runtime != none ]
 apply2_test: RuntimeError # Issue 29921
 apply3_test: RuntimeError # Issue 29921
-bigint_test: Pass, Slow
 compare_to2_test: RuntimeError # Issue 30170
 date_time10_test: RuntimeError # Issue 29921
 error_stack_trace_test/nullThrown: RuntimeError # .stackTrace not present for exception caught from 'throw null;'
