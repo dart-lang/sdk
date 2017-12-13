@@ -756,6 +756,23 @@ class ReadOnlyAccessor extends Accessor {
       super._finish(makeLet(value, body), complexAssignment);
 }
 
+abstract class DelayedErrorAccessor extends Accessor {
+  DelayedErrorAccessor(BuilderHelper helper, Token token)
+      : super(helper, token);
+
+  Expression buildError();
+
+  Expression _makeSimpleRead() => buildError();
+  Expression _makeSimpleWrite(Expression value, bool voidContext,
+          ShadowComplexAssignment complexAssignment) =>
+      buildError();
+  Expression _makeRead(ShadowComplexAssignment complexAssignment) =>
+      buildError();
+  Expression _makeWrite(Expression value, bool voidContext,
+          ShadowComplexAssignment complexAssignment) =>
+      buildError();
+}
+
 Expression makeLet(VariableDeclaration variable, Expression body) {
   if (variable == null) return body;
   return new Let(variable, body);

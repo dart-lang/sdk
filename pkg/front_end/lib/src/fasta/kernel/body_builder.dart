@@ -1427,9 +1427,7 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     debugEvent("LiteralInt");
     int value = int.parse(token.lexeme, onError: (_) => null);
     if (value == null) {
-      push(buildCompileTimeError(
-          fasta.templateIntegerLiteralIsOutOfRange.withArguments(token),
-          token.charOffset));
+      push(new LargeIntAccessor(this, token));
     } else {
       push(new ShadowIntLiteral(value)..fileOffset = offsetForToken(token));
     }
@@ -2207,6 +2205,17 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
       String operator = token.stringValue;
       if (optional("-", token)) {
         operator = "unary-";
+
+        var new_receiver = null;
+        if (receiver is LargeIntAccessor) {
+          int value =
+              int.parse("-" + receiver.token.lexeme, onError: (_) => null);
+          if (value != null) {
+            new_receiver = new ShadowIntLiteral(value)
+              ..fileOffset = offsetForToken(token);
+          }
+        }
+        if (new_receiver != null) receiver = new_receiver;
       }
       bool isSuper = false;
       Expression receiverValue;

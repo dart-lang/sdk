@@ -10,7 +10,10 @@ import 'package:kernel/ast.dart'
 import '../../scanner/token.dart' show Token;
 
 import '../fasta_codes.dart'
-    show messageInvalidInitializer, messageLoadLibraryTakesNoArguments;
+    show
+        messageInvalidInitializer,
+        messageLoadLibraryTakesNoArguments,
+        templateIntegerLiteralIsOutOfRange;
 
 import '../messages.dart' show Message;
 
@@ -29,6 +32,7 @@ import 'frontend_accessors.dart' as kernel
         LoadLibraryAccessor,
         PropertyAccessor,
         ReadOnlyAccessor,
+        DelayedErrorAccessor,
         StaticAccessor,
         SuperIndexAccessor,
         SuperPropertyAccessor,
@@ -983,6 +987,18 @@ class ReadOnlyAccessor extends kernel.ReadOnlyAccessor with FastaAccessor {
         adjustForImplicitCall(plainNameForRead, offset),
         isImplicitCall: true);
   }
+}
+
+class LargeIntAccessor extends kernel.DelayedErrorAccessor with FastaAccessor {
+  final String plainNameForRead = null;
+
+  LargeIntAccessor(BuilderHelper helper, Token token) : super(helper, token);
+
+  Expression buildError() => helper.buildCompileTimeError(
+      templateIntegerLiteralIsOutOfRange.withArguments(token),
+      token.charOffset);
+
+  Expression doInvocation(int offset, Arguments arguments) => buildError();
 }
 
 class ParenthesizedExpression extends ReadOnlyAccessor {

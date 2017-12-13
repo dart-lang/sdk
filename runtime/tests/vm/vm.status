@@ -67,9 +67,6 @@ cc/IsolateReload_KernelIncrementalCompileGenerics: Skip
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
 
-[ $compiler == dartkp ]
-dart/truncating_ints_test: CompileTimeError # Issue 31339
-
 [ $compiler == precompiler ]
 dart/byte_array_test: Skip # Incompatible flag --disable_alloc_stubs_after_gc
 
@@ -397,4 +394,3 @@ dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
-

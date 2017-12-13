@@ -18590,6 +18590,8 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   int64_t value = 0;
   const char* cstr = str.ToCString();
   if (!OS::StringToInt64(cstr, &value)) {
+    // TODO(T31600): Remove overflow checking code when 64-bit ints semantics
+    // are only supported through the Kernel FE.
     if (FLAG_limit_ints_to_64_bits) {
       if (strcmp(cstr, kMaxInt64Plus1) == 0) {
         // Allow MAX_INT64 + 1 integer literal as it can be used as an argument
@@ -18615,6 +18617,8 @@ RawInteger* Integer::NewCanonical(const String& str) {
   int64_t value = 0;
   const char* cstr = str.ToCString();
   if (!OS::StringToInt64(cstr, &value)) {
+    // TODO(T31600): Remove overflow checking code when 64-bit ints semantics
+    // are only supported through the Kernel FE.
     if (FLAG_limit_ints_to_64_bits) {
       if (strcmp(cstr, kMaxInt64Plus1) == 0) {
         // Allow MAX_INT64 + 1 integer literal as it can be used as an argument

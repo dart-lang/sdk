@@ -159,6 +159,17 @@ class int {
         if (result >= positiveOverflowLimit) {
           if ((result > positiveOverflowLimit) ||
               (smi > _int64OverflowLimits[tableIndex + 2])) {
+            // Although the unsigned overflow limits do not depend on the
+            // platform, the multiplier and block size, which are used to
+            // compute it, do.
+            int X = is64Bit ? 1 : 0;
+            if (radix == 16 &&
+                !(result >= _int64UnsignedOverflowLimits[X] &&
+                    (result > _int64UnsignedOverflowLimits[X] ||
+                        smi > _int64UnsignedSmiOverflowLimits[X])) &&
+                blockEnd + blockSize > end) {
+              return (result * multiplier) + smi;
+            }
             return null;
           }
         } else if (result <= negativeOverflowLimit) {
@@ -245,6 +256,12 @@ class int {
 
   static const _maxInt64 = 0x7fffffffffffffff;
   static const _minInt64 = -_maxInt64 - 1;
+
+  static const _int64UnsignedOverflowLimits = const [0xfffffffff, 0xf];
+  static const _int64UnsignedSmiOverflowLimits = const [
+    0xfffffff,
+    0xfffffffffffffff
+  ];
 
   /// In the `--limit-ints-to-64-bits` mode calculation of the expression
   ///
