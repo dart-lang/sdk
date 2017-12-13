@@ -219,7 +219,9 @@ class KernelLoader {
                               const Field& field,
                               FieldHelper* field_helper);
 
-  void SetupFieldAccessorFunction(const Class& klass, const Function& function);
+  void SetupFieldAccessorFunction(const Class& klass,
+                                  const Function& function,
+                                  const AbstractType& field_type);
 
   void LoadLibraryImportsAndExports(Library* library);
 
