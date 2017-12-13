@@ -64,7 +64,8 @@ import 'dart:_js_helper'
         findDispatchTagForInterceptorClass,
         setNativeSubclassDispatchRecord,
         makeLeafDispatchRecord,
-        registerGlobalObject;
+        registerGlobalObject,
+        applyExtension;
 import 'dart:_interceptors'
     show
         Interceptor,
@@ -9745,6 +9746,7 @@ class DirectoryEntry extends Entry {
   Future<Entry> _getFile(String path, {Map options}) {
     var completer = new Completer<Entry>();
     __getFile(path, options: options, successCallback: (value) {
+      applyExtension('FileEntry', value);
       completer.complete(value);
     }, errorCallback: (error) {
       completer.completeError(error);
@@ -17234,6 +17236,7 @@ class FileEntry extends Entry {
   Future<FileWriter> createWriter() {
     var completer = new Completer<FileWriter>();
     _createWriter((value) {
+      applyExtension('FileWriter', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -17253,6 +17256,7 @@ class FileEntry extends Entry {
   Future<Blob> file() {
     var completer = new Completer<Blob>();
     _file((value) {
+      applyExtension('Blob', value);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);
@@ -38402,6 +38406,8 @@ class Window extends EventTarget
   Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
     __requestFileSystem(type, size, (value) {
+      applyExtension('DOMFileSystem', value);
+      applyExtension('DirectoryEntry', value.root);
       completer.complete(value);
     }, (error) {
       completer.completeError(error);

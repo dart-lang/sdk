@@ -837,6 +837,11 @@ void registerGlobalObject(object) {
   }
 }
 
+/// Expose browser JS classes.
+void applyExtension(name, nativeObject) {
+  dart.applyExtension(name, nativeObject);
+}
+
 /// Used internally by DDC to map ES6 symbols to Dart.
 class PrivateSymbol implements Symbol {
   // TODO(jmesserly): could also get this off the native symbol instead of

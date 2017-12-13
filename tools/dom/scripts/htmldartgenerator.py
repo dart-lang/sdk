@@ -12,8 +12,9 @@ from generator import AnalyzeOperation, ConstantOutputOrder, \
     TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from copy import deepcopy
 from htmlrenamer import convert_to_future_members, custom_html_constructors, \
-    keep_overloaded_members, overloaded_and_renamed, private_html_members, \
-    renamed_html_members, renamed_overloads, removed_html_members
+    GetDDC_Extension, keep_overloaded_members, overloaded_and_renamed,\
+    private_html_members, renamed_html_members, renamed_overloads, \
+    removed_html_members
 from generator import TypeOrVar
 import logging
 import monitored
@@ -671,6 +672,12 @@ class HtmlDartGenerator(object):
     callback_info = GetCallbackInfo(
         self._database.GetInterface(info.callback_args[0].type_id))
 
+    extensions = GetDDC_Extension(self._interface, info.declared_name)
+    if extensions:
+      ddc_extensions = "\n".join(extensions);
+    else:
+      ddc_extensions = ''
+
     param_list = info.ParametersAsArgumentList()
     metadata = ''
     if '_RenamingAnnotation' in dir(self):
@@ -682,6 +689,7 @@ class HtmlDartGenerator(object):
         '    var completer = new Completer$(FUTURE_GENERIC)();\n'
         '    $ORIGINAL_FUNCTION($PARAMS_LIST\n'
         '        $NAMED_PARAM($VARIABLE_NAME) { '
+        '$DDC_EXTENSION\n'
         'completer.complete($VARIABLE_NAME); }'
         '$ERROR_CALLBACK);\n'
         '    return completer.future;\n'
@@ -697,6 +705,7 @@ class HtmlDartGenerator(object):
             if info.requires_named_arguments and
               info.callback_args[0].is_optional else ''),
         VARIABLE_NAME= '' if len(callback_info.param_infos) == 0 else 'value',
+        DDC_EXTENSION=ddc_extensions,
         ERROR_CALLBACK=('' if len(info.callback_args) == 1 else
             (',\n        %s(error) { completer.completeError(error); }' %
             ('%s : ' % info.callback_args[1].name
