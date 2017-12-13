@@ -453,13 +453,6 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
 
   @failingTest
   @override
-  test_unusedLocalVariable_isInvoked() async {
-    // Expected 0 errors of type HintCode.UNUSED_LOCAL_VARIABLE, found 1 (30)
-    return super.test_unusedLocalVariable_isInvoked();
-  }
-
-  @failingTest
-  @override
   test_unusedShownName() async {
     // Expected 1 errors of type HintCode.UNUSED_SHOWN_NAME, found 0
     return super.test_unusedShownName();

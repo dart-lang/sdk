@@ -1210,7 +1210,8 @@ class _ResolutionApplierContext implements TypeContext {
       return element.type;
     } else if (kernelType is kernel.MemberInvocationDartType) {
       kernel.Member member = kernelType.member;
-      if (member != null) {
+      if (member is kernel.Procedure &&
+          member.kind == kernel.ProcedureKind.Method) {
         ExecutableElementImpl element =
             resynthesizer.getElementFromCanonicalName(member.canonicalName);
         return resynthesizer.instantiateFunctionType(

@@ -346,13 +346,18 @@ class ResolutionApplier extends GeneralizingAstVisitor {
 
     ArgumentList argumentList = node.argumentList;
 
-    _getReferenceFor(node.methodName); // raw element
+    Element invokeElement = _getReferenceFor(node.methodName);
     DartType invokeType = _getTypeFor(node.methodName);
     DartType resultType = _getTypeFor(argumentList);
 
+    if (invokeElement is PropertyInducingElement) {
+      PropertyInducingElement property = invokeElement;
+      invokeElement = property.getter;
+    }
+
     node.staticInvokeType = invokeType;
     node.staticType = resultType;
-    node.methodName.staticElement = invokeType.element;
+    node.methodName.staticElement = invokeElement;
     node.methodName.staticType = invokeType;
 
     if (invokeType is FunctionType) {

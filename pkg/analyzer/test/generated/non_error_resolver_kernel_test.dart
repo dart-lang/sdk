@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'non_error_resolver_driver_test.dart';
@@ -244,7 +243,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31641')
   test_invalidAnnotation_constantVariable_field() async {
     return super.test_invalidAnnotation_constantVariable_field();
   }
@@ -278,31 +277,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   test_invalidAnnotation_constConstructor_named_importWithPrefix() async {
     return super
         .test_invalidAnnotation_constConstructor_named_importWithPrefix();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invocationOfNonFunction_dynamic() async {
-    // TODO(scheglov) This test fails only in checked mode.
-    fail('This test fails only in checked mode');
-    return super.test_invocationOfNonFunction_dynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invocationOfNonFunction_functionTypeTypeParameter() async {
-    return super.test_invocationOfNonFunction_functionTypeTypeParameter();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_invocationOfNonFunction_getter() async {
-    // TODO(scheglov) This test fails only in checked mode.
-    fail('This test fails only in checked mode');
-    return super.test_invocationOfNonFunction_getter();
   }
 
   @override

@@ -3042,6 +3042,153 @@ void foo(int a, {bool b, double c}) {}
     expect(cArgument.staticParameterElement, same(cElement));
   }
 
+  test_methodInvocation_notFunction_field_dynamic() async {
+    addTestFile(r'''
+class C {
+  dynamic f;
+  foo() {
+    f(1);
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    ClassDeclaration cDeclaration = result.unit.declarations[0];
+
+    FieldDeclaration fDeclaration = cDeclaration.members[0];
+    VariableDeclaration fNode = fDeclaration.fields.variables[0];
+    FieldElement fElement = fNode.element;
+
+    MethodDeclaration fooDeclaration = cDeclaration.members[1];
+    BlockFunctionBody fooBody = fooDeclaration.body;
+    List<Statement> fooStatements = fooBody.block.statements;
+
+    ExpressionStatement statement = fooStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.methodName.staticElement, same(fElement.getter));
+    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    expect(invocation.staticType, DynamicTypeImpl.instance);
+
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression argument = arguments[0];
+    expect(argument.staticParameterElement, isNull);
+  }
+
+  test_methodInvocation_notFunction_getter_dynamic() async {
+    addTestFile(r'''
+class C {
+  get f => null;
+  foo() {
+    f(1);
+  }
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    ClassDeclaration cDeclaration = result.unit.declarations[0];
+
+    MethodDeclaration fDeclaration = cDeclaration.members[0];
+    PropertyAccessorElement fElement = fDeclaration.element;
+
+    MethodDeclaration fooDeclaration = cDeclaration.members[1];
+    BlockFunctionBody fooBody = fooDeclaration.body;
+    List<Statement> fooStatements = fooBody.block.statements;
+
+    ExpressionStatement statement = fooStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.methodName.staticElement, same(fElement));
+    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    expect(invocation.staticType, DynamicTypeImpl.instance);
+
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression argument = arguments[0];
+    expect(argument.staticParameterElement, isNull);
+  }
+
+  test_methodInvocation_notFunction_local_dynamic() async {
+    addTestFile(r'''
+main(f) {
+  f(1);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    FunctionDeclaration mainDeclaration = result.unit.declarations[0];
+    FunctionExpression mainFunction = mainDeclaration.functionExpression;
+    ParameterElement fElement = mainFunction.parameters.parameters[0].element;
+
+    BlockFunctionBody mainBody = mainFunction.body;
+    List<Statement> mainStatements = mainBody.block.statements;
+
+    ExpressionStatement statement = mainStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.methodName.staticElement, same(fElement));
+    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    expect(invocation.staticType, DynamicTypeImpl.instance);
+
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression argument = arguments[0];
+    expect(argument.staticParameterElement, isNull);
+  }
+
+  test_methodInvocation_notFunction_local_functionTyped() async {
+    addTestFile(r'''
+main(String f(int a)) {
+  f(1);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    FunctionDeclaration mainDeclaration = result.unit.declarations[0];
+    FunctionExpression mainFunction = mainDeclaration.functionExpression;
+    ParameterElement fElement = mainFunction.parameters.parameters[0].element;
+
+    BlockFunctionBody mainBody = mainFunction.body;
+    List<Statement> mainStatements = mainBody.block.statements;
+
+    ExpressionStatement statement = mainStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.methodName.staticElement, same(fElement));
+    expect(invocation.staticInvokeType.toString(), '(int) → String');
+    expect(invocation.staticType, typeProvider.stringType);
+
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression argument = arguments[0];
+    expect(argument.staticParameterElement, isNotNull);
+  }
+
+  test_methodInvocation_notFunction_topLevelVariable_dynamic() async {
+    addTestFile(r'''
+dynamic f;
+main() {
+  f(1);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+
+    TopLevelVariableDeclaration fDeclaration = result.unit.declarations[0];
+    VariableDeclaration fNode = fDeclaration.variables.variables[0];
+    TopLevelVariableElement fElement = fNode.element;
+
+    List<Statement> mainStatements = _getMainStatements(result);
+
+    ExpressionStatement statement = mainStatements[0];
+    MethodInvocation invocation = statement.expression;
+    expect(invocation.methodName.staticElement, same(fElement.getter));
+    expect(invocation.staticInvokeType, DynamicTypeImpl.instance);
+    expect(invocation.staticType, DynamicTypeImpl.instance);
+
+    List<Expression> arguments = invocation.argumentList.arguments;
+
+    Expression argument = arguments[0];
+    expect(argument.staticParameterElement, isNull);
+  }
+
   test_methodInvocation_staticMethod() async {
     addTestFile(r'''
 main() {
