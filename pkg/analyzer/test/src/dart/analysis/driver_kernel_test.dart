@@ -88,13 +88,6 @@ class AnalysisDriverTest_Kernel extends AnalysisDriverTest {
   @failingTest
   @potentialAnalyzerProblem
   @override
-  test_const_circular_reference() async {
-    await super.test_const_circular_reference();
-  }
-
-  @failingTest
-  @potentialAnalyzerProblem
-  @override
   test_const_externalConstFactory() async {
     await super.test_const_externalConstFactory();
   }

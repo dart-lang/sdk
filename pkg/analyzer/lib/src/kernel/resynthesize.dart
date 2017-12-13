@@ -488,6 +488,7 @@ class _ExprBuilder {
     if (expr is kernel.StringLiteral) {
       return AstTestFactory.string2(expr.value);
     }
+
     if (expr is kernel.StringConcatenation) {
       List<InterpolationElement> elements = expr.expressions
           .map(_build)
@@ -495,6 +496,7 @@ class _ExprBuilder {
           .toList(growable: false);
       return AstTestFactory.string(elements);
     }
+
     if (expr is kernel.SymbolLiteral) {
       List<String> components = expr.value.split('.').toList();
       return AstTestFactory.symbolLiteral(components);
@@ -522,6 +524,20 @@ class _ExprBuilder {
       }
 
       return AstTestFactory.mapLiteral(keyword, typeArguments, entries);
+    }
+
+    // Invalid annotations are represented as Let.
+    if (expr is kernel.Let) {
+      kernel.Let let = expr;
+      if (_isConstantExpressionErrorThrow(let.variable.initializer) ||
+          _isConstantExpressionErrorThrow(let.body)) {
+        throw const _CompilationErrorFound();
+      }
+    }
+
+    // Stop if there is an error.
+    if (_isConstantExpressionErrorThrow(expr)) {
+      throw const _CompilationErrorFound();
     }
 
     if (expr is kernel.StaticGet) {
@@ -572,6 +588,10 @@ class _ExprBuilder {
       return AstTestFactory.binaryExpression(left, operator, right);
     }
 
+    if (expr is kernel.AsExpression && expr.isTypeError) {
+      return _build(expr.operand);
+    }
+
     if (expr is kernel.Let) {
       var body = expr.body;
       if (body is kernel.ConditionalExpression) {
@@ -595,25 +615,20 @@ class _ExprBuilder {
     }
 
     if (expr is kernel.MethodInvocation) {
-      kernel.Member member = expr.interfaceTarget;
-      if (member is kernel.Procedure) {
-        if (member.kind == kernel.ProcedureKind.Operator) {
-          var left = _build(expr.receiver);
-          String operatorName = expr.name.name;
-          List<kernel.Expression> args = expr.arguments.positional;
-          if (args.isEmpty) {
-            if (operatorName == 'unary-') {
-              return AstTestFactory.prefixExpression(TokenType.MINUS, left);
-            }
-            if (operatorName == '~') {
-              return AstTestFactory.prefixExpression(TokenType.TILDE, left);
-            }
-          } else if (args.length == 1) {
-            var operator = _toBinaryOperatorTokenType(operatorName);
-            var right = _build(args.single);
-            return AstTestFactory.binaryExpression(left, operator, right);
-          }
+      var left = _build(expr.receiver);
+      String operatorName = expr.name.name;
+      List<kernel.Expression> args = expr.arguments.positional;
+      if (args.isEmpty) {
+        if (operatorName == 'unary-') {
+          return AstTestFactory.prefixExpression(TokenType.MINUS, left);
         }
+        if (operatorName == '~') {
+          return AstTestFactory.prefixExpression(TokenType.TILDE, left);
+        }
+      } else if (args.length == 1) {
+        var operator = _toBinaryOperatorTokenType(operatorName);
+        var right = _build(args.single);
+        return AstTestFactory.binaryExpression(left, operator, right);
       }
     }
 
@@ -658,20 +673,6 @@ class _ExprBuilder {
       identifier.staticElement = element;
       identifier.staticType = _context.libraryContext.resynthesizer.typeType;
       return identifier;
-    }
-
-    // Invalid annotations are represented as Let.
-    if (expr is kernel.Let) {
-      kernel.Let let = expr;
-      if (_isConstantExpressionErrorThrow(let.variable.initializer) ||
-          _isConstantExpressionErrorThrow(let.body)) {
-        throw const _CompilationErrorFound();
-      }
-    }
-
-    // Stop if there is an error.
-    if (_isConstantExpressionErrorThrow(expr)) {
-      throw const _CompilationErrorFound();
     }
 
     // TODO(scheglov): complete getExpression

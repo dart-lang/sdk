@@ -350,13 +350,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_nonConstValueInInitializer_binary_dynamic() async {
-    return super.test_nonConstValueInInitializer_binary_dynamic();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_prefixCollidesWithTopLevelMembers() async {
     return super.test_prefixCollidesWithTopLevelMembers();
   }
