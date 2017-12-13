@@ -922,6 +922,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Builds a SSA graph for FunctionNodes of external methods.
   void buildExternalFunctionNode(ir.FunctionNode functionNode) {
+    // TODO(johnniwinther): Non-js-interop external functions should
+    // throw a runtime error.
     assert(functionNode.body == null);
     openFunction(functionNode);
     ir.TreeNode parent = functionNode.parent;
@@ -4270,7 +4272,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
    * Try to inline [element] within the correct context of the builder. The
    * insertion point is the state of the builder.
    */
-  // TODO(redemption): Use this.
   bool _tryInlineMethod(
       FunctionEntity function,
       Selector selector,
@@ -4282,6 +4283,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // TODO(johnniwinther,sra): Remove this when inlining is more mature.
     if (function.library.canonicalUri.scheme == 'dart') {
       // Temporarily disable inlining of platform libraries.
+      return false;
+    }
+    if (function.isExternal) {
+      // Don't inline external methods; these should just fail at runtime.
       return false;
     }
 
