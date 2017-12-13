@@ -326,6 +326,7 @@ type Constructor extends Member {
   FileOffset fileEndOffset;
   Byte flags (isConst, isExternal);
   Name name;
+  UriReference fileUri;
   List<Expression> annotations;
   FunctionNode function;
   List<Initializer> initializers;
@@ -364,6 +365,7 @@ type RedirectingFactoryConstructor extends Member {
   FileOffset fileEndOffset;
   Byte flags;
   Name name;
+  UriReference fileUri;
   List<Expression> annotations;
   List<DartType> typeArguments;
   MemberReference targetReference;

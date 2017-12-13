@@ -312,6 +312,7 @@ class ConstructorHelper {
     kEndPosition,
     kFlags,
     kName,
+    kSourceUriIndex,
     kAnnotations,
     kFunction,
     kInitializers,
@@ -344,6 +345,7 @@ class ConstructorHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   uint8_t flags_;
+  intptr_t source_uri_index_;
   intptr_t annotation_count_;
 
  private:

@@ -726,6 +726,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
+    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
@@ -788,6 +789,7 @@ class BinaryPrinter extends Visitor implements BinarySink {
     writeOffset(node.fileEndOffset);
     writeByte(node.flags);
     writeName(node.name);
+    writeUriReference(node.fileUri);
     writeAnnotationList(node.annotations);
     writeReference(node.targetReference);
     writeNodeList(node.typeArguments);

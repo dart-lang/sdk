@@ -410,7 +410,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
-      : constructor = new Constructor(null)
+      : constructor = new Constructor(null, fileUri: compilationUnit?.fileUri)
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,

@@ -877,6 +877,7 @@ class BinaryBuilder {
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
+    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     assert(((_) => true)(debugPath.add(node.name?.name ?? 'constructor')));
     var function = readFunctionNode(false, -1);
@@ -895,6 +896,7 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
       node.name = name;
+      node.fileUri = fileUri;
       node.annotations = annotations;
       node.function = function..parent = node;
       node.transformerFlags = transformerFlags;
@@ -959,6 +961,7 @@ class BinaryBuilder {
     var fileEndOffset = readOffset();
     var flags = readByte();
     var name = readName();
+    var fileUri = readUriReference();
     var annotations = readAnnotationList(node);
     debugPath.add(node.name?.name ?? 'redirecting-factory-constructor');
     var targetReference = readMemberReference();
@@ -978,6 +981,7 @@ class BinaryBuilder {
       node.fileEndOffset = fileEndOffset;
       node.flags = flags;
       node.name = name;
+      node.fileUri = fileUri;
       node.annotations = annotations;
       node.targetReference = targetReference;
       node.typeArguments.addAll(typeArguments);

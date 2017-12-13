@@ -261,6 +261,12 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
     case kName:
       builder_->SkipName();  // read name.
       if (++next_read_ == field) return;
+    case kSourceUriIndex:
+      source_uri_index_ = builder_->ReadUInt();  // read source_uri_index.
+      builder_->current_script_id_ = source_uri_index_;
+      builder_->record_token_position(position_);
+      builder_->record_token_position(end_position_);
+      if (++next_read_ == field) return;
     case kAnnotations: {
       annotation_count_ = builder_->ReadListLength();  // read list length.
       for (intptr_t i = 0; i < annotation_count_; ++i) {
