@@ -81,6 +81,8 @@ abstract class Stream<T> {
   factory Stream.fromIterable(Iterable<T> data) => null;
 }
 
+abstract class StreamIterator<T> {}
+
 abstract class StreamSubscription<T> {
   Future cancel();
   void onData(void handleData(T data));

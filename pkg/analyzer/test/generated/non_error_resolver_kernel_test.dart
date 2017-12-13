@@ -32,7 +32,7 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31625')
   test_ambiguousImport_showCombinator() async {
     return super.test_ambiguousImport_showCombinator();
   }
@@ -335,14 +335,14 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31628')
   test_nonConstCaseExpression_constField() async {
     return super.test_nonConstCaseExpression_constField();
   }
 
   @override
   @failingTest
-  @potentialAnalyzerProblem
+  @FastaProblem('https://github.com/dart-lang/sdk/issues/31627')
   test_nonConstMapKey_constField() async {
     return super.test_nonConstMapKey_constField();
   }
