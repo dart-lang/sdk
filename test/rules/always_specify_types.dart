@@ -38,6 +38,15 @@ e(final int x) {}
 @optionalTypeArgs
 class P<T> { }
 
+@optionalTypeArgs
+void g<T>() {}
+
+//https://github.com/dart-lang/linter/issues/851
+void test() {
+  g<dynamic>(); //OK
+  g(); //OK
+}
+
 main() {
   var x = ''; //LINT [3:3]
   for (var i = 0; i < 10; ++i) {  //LINT [8:3]
