@@ -149,13 +149,6 @@ class CheckedModeCompileTimeErrorCodeTest_Kernel
 
   @failingTest
   @override
-  test_fieldTypeOk_null() async {
-    // UnimplementedError: kernel: (AsExpression) x as{TypeError} dart.core::int
-    await super.test_fieldTypeOk_null();
-  }
-
-  @failingTest
-  @override
   test_fieldTypeOk_unresolved_null() async {
     // UnimplementedError: kernel: (AsExpression) x as{TypeError} invalid-type
     await super.test_fieldTypeOk_unresolved_null();
