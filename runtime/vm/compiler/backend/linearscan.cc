@@ -103,7 +103,10 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
   // TODO(fschneider): Handle saving and restoring these registers when
   // generating intrinsic code.
   if (intrinsic_mode) {
+#if !defined(TARGET_ARCH_DBC)
     blocked_cpu_registers_[ARGS_DESC_REG] = true;
+#endif
+
 #if !defined(TARGET_ARCH_IA32)
     // Need to preserve CODE_REG to be able to store the PC marker
     // and load the pool pointer.
@@ -674,17 +677,12 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
   intptr_t range_end = range->End();
   if (defn->IsParameter()) {
     ParameterInstr* param = defn->AsParameter();
-    // Assert that copied and non-copied parameters are mutually exclusive.
-    // This might change in the future and, if so, the index will be wrong.
-    ASSERT((flow_graph_.num_copied_params() == 0) ||
-           (flow_graph_.num_non_copied_params() == 0));
     intptr_t slot_index = param->index();
     ASSERT(slot_index >= 0);
     ASSERT((param->base_reg() == FPREG) || (param->base_reg() == SPREG));
     if (param->base_reg() == FPREG) {
-      // Slot index for the leftmost copied parameter is 0.
       // Slot index for the rightmost fixed parameter is -1.
-      slot_index -= flow_graph_.num_non_copied_params();
+      slot_index -= flow_graph_.num_direct_parameters();
     }
 
 #if defined(TARGET_ARCH_DBC)
@@ -701,36 +699,19 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     range->set_assigned_location(
         Location::StackSlot(slot_index, param->base_reg()));
     range->set_spill_slot(Location::StackSlot(slot_index, param->base_reg()));
-
   } else if (defn->IsSpecialParameter()) {
     SpecialParameterInstr* param = defn->AsSpecialParameter();
+    ASSERT(param->kind() == SpecialParameterInstr::kArgDescriptor);
     Location loc;
 #if defined(TARGET_ARCH_DBC)
-    intptr_t slot_index = flow_graph_.num_copied_params();
-    if ((param->kind() == SpecialParameterInstr::kContext) &&
-        flow_graph_.isolate()->reify_generic_functions() &&
-        flow_graph_.function().IsGeneric()) {
-      // The first slot is used for function type arguments, either as their
-      // permanent location or as their temporary location when captured.
-      // So use the next one for the context.
-      // (see FlowGraphCompiler::EmitFrameEntry)
-      slot_index++;
-    }
-    loc = Location::RegisterLocation(slot_index);
+    loc = Location::ArgumentsDescriptorLocation();
+    range->set_assigned_location(loc);
 #else
-    if (param->kind() == SpecialParameterInstr::kContext) {
-      loc = Location::RegisterLocation(CTX);
-    } else {
-      ASSERT(param->kind() == SpecialParameterInstr::kTypeArgs);
-      loc = Location::StackSlot(flow_graph_.num_copied_params(), FPREG);
-      range->set_assigned_location(loc);
-      range->set_spill_slot(loc);
-    }
+    loc = Location::RegisterLocation(ARGS_DESC_REG);
+    range->set_assigned_location(loc);
 #endif  // defined(TARGET_ARCH_DBC)
-
     if (loc.IsRegister()) {
       AssignSafepoints(defn, range);
-      range->set_assigned_location(loc);
       if (range->End() > kNormalEntryPos) {
         LiveRange* tail = range->SplitAt(kNormalEntryPos);
         CompleteRange(tail, Location::kRegister);
@@ -3002,9 +2983,8 @@ void FlowGraphAllocator::AllocateRegisters() {
   // introducing a separate field. It has roughly the same meaning:
   // number of used registers determines how big of a frame to reserve for
   // this function on DBC stack.
-  entry->set_spill_slot_count(Utils::Maximum(
-      (last_used_cpu_register + 1) + (last_used_fpu_register + 1),
-      flow_graph_.num_copied_params()));
+  entry->set_spill_slot_count((last_used_cpu_register + 1) +
+                              (last_used_fpu_register + 1));
 #endif
 
   if (FLAG_print_ssa_liveranges) {

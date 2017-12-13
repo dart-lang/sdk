@@ -372,6 +372,9 @@ class EmbeddedArray<T, 0> {
   M(Phi)                                                                       \
   M(Redefinition)                                                              \
   M(Parameter)                                                                 \
+  M(LoadIndexedUnsafe)                                                         \
+  M(StoreIndexedUnsafe)                                                        \
+  M(TailCall)                                                                  \
   M(ParallelMove)                                                              \
   M(PushArgument)                                                              \
   M(Return)                                                                    \
@@ -2031,6 +2034,148 @@ class ParameterInstr : public Definition {
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
 
+// Stores a tagged pointer to a slot accessable from a fixed register.  It has
+// the form:
+//
+//     base_reg[index + #constant] = value
+//
+//   Input 0: A tagged Smi [index]
+//   Input 1: A tagged pointer [value]
+//   offset:  A signed constant offset which fits into 8 bits
+//
+// Currently this instruction uses pinpoints the register to be FP.
+//
+// This lowlevel instruction is non-inlinable since it makes assumptons about
+// the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
+class StoreIndexedUnsafeInstr : public TemplateDefinition<2, NoThrow> {
+ public:
+  StoreIndexedUnsafeInstr(Value* index, Value* value, intptr_t offset)
+      : offset_(offset) {
+    SetInputAt(kIndexPos, index);
+    SetInputAt(kValuePos, value);
+  }
+
+  enum { kIndexPos = 0, kValuePos = 1 };
+
+  DECLARE_INSTRUCTION(StoreIndexedUnsafe)
+
+  virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    ASSERT(index == kIndexPos || index == kValuePos);
+    return kTagged;
+  }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsStoreIndexedUnsafe()->offset() == offset();
+  }
+
+  Value* index() const { return inputs_[kIndexPos]; }
+  Value* value() const { return inputs_[kValuePos]; }
+  Register base_reg() const { return FPREG; }
+  intptr_t offset() const { return offset_; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const intptr_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreIndexedUnsafeInstr);
+};
+
+// Loads a tagged pointer from slot accessable from a fixed register.  It has
+// the form:
+//
+//     base_reg[index + #constant]
+//
+//   Input 0: A tagged Smi [index]
+//   offset:  A signed constant offset which fits into 8 bits
+//
+// Currently this instruction uses pinpoints the register to be FP.
+//
+// This lowlevel instruction is non-inlinable since it makes assumptons about
+// the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
+class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
+ public:
+  LoadIndexedUnsafeInstr(Value* index, intptr_t offset) : offset_(offset) {
+    SetInputAt(0, index);
+  }
+
+  DECLARE_INSTRUCTION(LoadIndexedUnsafe)
+
+  virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    ASSERT(index == 0);
+    return kTagged;
+  }
+  virtual Representation representation() const { return kTagged; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsLoadIndexedUnsafe()->offset() == offset();
+  }
+
+  Value* index() const { return InputAt(0); }
+  Register base_reg() const { return FPREG; }
+  intptr_t offset() const { return offset_; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const intptr_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
+};
+
+// Unwinds the current frame and taill calls a target.
+//
+// The return address saved by the original caller of this frame will be in it's
+// usual location (stack or LR).  The arguments descriptor supplied by the
+// original caller will be put into ARGS_DESC_REG.
+//
+// This lowlevel instruction is non-inlinable since it makes assumptons about
+// the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
+class TailCallInstr : public Instruction {
+ public:
+  TailCallInstr(const Code& code, Value* arg_desc)
+      : code_(code), arg_desc_(NULL) {
+    SetInputAt(0, arg_desc);
+  }
+
+  DECLARE_INSTRUCTION(TailCall)
+
+  const Code& code() const { return code_; }
+
+  virtual intptr_t InputCount() const { return 1; }
+  virtual Value* InputAt(intptr_t i) const {
+    ASSERT(i == 0);
+    return arg_desc_;
+  }
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    ASSERT(i == 0);
+    arg_desc_ = value;
+  }
+
+  // Two tailcalls can be canonicalized into one instruction if both have the
+  // same destination.
+  virtual bool AllowsCSE() const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return &other->AsTailCall()->code() == &code();
+  }
+
+  // Since no code after this instruction will be executed, there will be no
+  // side-effects for the following code.
+  virtual bool HasUnknownSideEffects() const { return false; }
+  virtual bool MayThrow() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Code& code_;
+  Value* arg_desc_;
+};
+
 class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit PushArgumentInstr(Value* value) { SetInputAt(0, value); }
@@ -2745,11 +2890,12 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
 };
 
-// Denotes a special parameter, currently either the context of a closure
-// or the type arguments of a generic function.
+// Denotes a special parameter, currently either the context of a closure,
+// the type arguments of a generic function or an arguments descriptor.
 class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  enum SpecialParameterKind { kContext, kTypeArgs };
+  enum SpecialParameterKind { kContext, kTypeArgs, kArgDescriptor };
+
   SpecialParameterInstr(SpecialParameterKind kind, intptr_t deopt_id)
       : TemplateDefinition(deopt_id), kind_(kind) {}
 
@@ -2764,6 +2910,23 @@ class SpecialParameterInstr : public TemplateDefinition<0, NoThrow> {
     return kind() == other->AsSpecialParameter()->kind();
   }
   SpecialParameterKind kind() const { return kind_; }
+
+  const char* ToCString() const;
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+  static const char* KindToCString(SpecialParameterKind kind) {
+    switch (kind) {
+      case kContext:
+        return "kContext";
+      case kTypeArgs:
+        return "kTypeArgs";
+      case kArgDescriptor:
+        return "kArgDescriptor";
+    }
+    UNREACHABLE();
+    return NULL;
+  }
 
  private:
   const SpecialParameterKind kind_;

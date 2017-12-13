@@ -59,6 +59,17 @@ class BaseGrowableArray : public B {
     return data_[index];
   }
 
+  void FillWith(const T& value, intptr_t start, intptr_t length) {
+    ASSERT(start >= 0);
+    ASSERT(length >= 0);
+    ASSERT(start <= length_);
+
+    Resize(start + length);
+    for (intptr_t i = 0; i < length; ++i) {
+      data_[start + i] = value;
+    }
+  }
+
   const T& At(intptr_t index) const { return operator[](index); }
 
   T& Last() const {

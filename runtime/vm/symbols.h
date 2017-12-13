@@ -92,6 +92,7 @@ class ObjectPointerVisitor;
   V(InterpolateSingle, "_interpolateSingle")                                   \
   V(Iterator, "iterator")                                                      \
   V(NoSuchMethod, "noSuchMethod")                                              \
+  V(ArgDescVar, ":arg_desc")                                                   \
   V(CurrentContextVar, ":current_context_var")                                 \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(ExceptionParameter, ":exception")                                          \
@@ -397,6 +398,7 @@ class ObjectPointerVisitor;
   V(OptimizedOut, "<optimized out>")                                           \
   V(NotInitialized, "<not initialized>")                                       \
   V(NotNamed, "<not named>")                                                   \
+  V(OriginalParam, ":original:")                                               \
   V(TempParam, ":temp_param")                                                  \
   V(_UserTag, "_UserTag")                                                      \
   V(Default, "Default")                                                        \

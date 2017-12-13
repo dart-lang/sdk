@@ -35,6 +35,7 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
 #define PARAMS_A_D uintptr_t ra, uintptr_t rd
 #define PARAMS_D uintptr_t rd
 #define PARAMS_A_B_C uintptr_t ra, uintptr_t rb, uintptr_t rc
+#define PARAMS_A_B_Y uintptr_t ra, uintptr_t rb, intptr_t ry
 #define PARAMS_A uintptr_t ra
 #define PARAMS_T intptr_t x
 #define PARAMS_A_X uintptr_t ra, intptr_t x
@@ -44,6 +45,7 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
 #define ENCODE_A_D , ra, rd
 #define ENCODE_D , 0, rd
 #define ENCODE_A_B_C , ra, rb, rc
+#define ENCODE_A_B_Y , ra, rb, ry
 #define ENCODE_A , ra, 0
 #define ENCODE_T , x
 #define ENCODE_A_X , ra, x
@@ -53,6 +55,7 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
 #define FENCODE_A_D Encode
 #define FENCODE_D Encode
 #define FENCODE_A_B_C Encode
+#define FENCODE_A_B_Y Encode
 #define FENCODE_A Encode
 #define FENCODE_T EncodeSigned
 #define FENCODE_A_X EncodeSigned

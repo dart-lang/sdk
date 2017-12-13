@@ -777,6 +777,11 @@ ScopeBuildingResult* StreamingScopeBuilder::BuildScopes() {
     parsed_function_->set_function_type_arguments(type_args_var);
   }
 
+  if (parsed_function_->has_arg_desc_var()) {
+    needs_expr_temp_ = true;
+    scope_->AddVariable(parsed_function_->arg_desc_var());
+  }
+
   LocalVariable* context_var = parsed_function_->current_context_var();
   context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
@@ -3838,14 +3843,20 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
     const Function& function) {
+  // The prologue builder needs the default parameter values.
+  SetupDefaultParameterValues();
+
   const Function& target = Function::ZoneHandle(Z, function.parent_function());
 
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
+
   flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
       *parsed_function(), normal_entry, Compiler::kNoOSRDeoptId);
-  SetupDefaultParameterValues();
 
-  Fragment body(normal_entry);
+  Fragment body(instruction_cursor);
   body += flow_graph_builder_->CheckStackOverflowInPrologue();
 
   intptr_t type_args_len = 0;
@@ -3905,31 +3916,23 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   // Return the result.
   body += Return(function_node_helper.end_position_);
 
-  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), flow_graph_builder_->graph_entry_,
                 flow_graph_builder_->last_used_block_id_, prologue_info);
 }
 
-LocalVariable* StreamingFlowGraphBuilder::LookupParameterDirect(
-    intptr_t kernel_offset,
-    intptr_t parameter_index) {
-  LocalVariable* var = LookupVariable(kernel_offset);
-  LocalVariable* parameter =
-      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                            Symbols::TempParam(), var->type());
-  parameter->set_index(parameter_index);
-  if (var->is_captured()) parameter->set_is_captured_parameter(true);
-  return parameter;
-}
-
 FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
+  // The prologue builder needs the default parameter values.
+  SetupDefaultParameterValues();
+
   const Function& dart_function = parsed_function()->function();
   TargetEntryInstr* normal_entry = flow_graph_builder_->BuildTargetEntry();
+  PrologueInfo prologue_info(-1, -1);
+  BlockEntryInstr* instruction_cursor =
+      flow_graph_builder_->BuildPrologue(normal_entry, &prologue_info);
+
   flow_graph_builder_->graph_entry_ = new (Z) GraphEntryInstr(
       *parsed_function(), normal_entry, flow_graph_builder_->osr_id_);
-
-  SetupDefaultParameterValues();
 
   Fragment body;
 
@@ -3998,29 +4001,29 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     intptr_t parameter_count = dart_function.NumParameters();
     intptr_t parameter_index = parsed_function()->first_parameter_index();
 
+    const ParsedFunction& pf = *flow_graph_builder_->parsed_function_;
+    const Function& function = pf.function();
+
     for (intptr_t i = 0; i < parameter_count; ++i, --parameter_index) {
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_captured()) {
-        // There is no LocalVariable describing the on-stack parameter so
-        // create one directly and use the same type.
-        LocalVariable* parameter = new (Z)
-            LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                          Symbols::TempParam(), variable->type());
-        parameter->set_index(parameter_index);
-        // Mark the stack variable so it will be ignored by the code for
-        // try/catch.
-        parameter->set_is_captured_parameter(true);
+        LocalVariable& raw_parameter = *pf.RawParameterVariable(i);
+        ASSERT((function.HasOptionalParameters() &&
+                raw_parameter.owner() == scope) ||
+               (!function.HasOptionalParameters() &&
+                raw_parameter.owner() == NULL));
+        ASSERT(!raw_parameter.is_captured());
 
         // Copy the parameter from the stack to the context.  Overwrite it
         // with a null constant on the stack so the original value is
         // eligible for garbage collection.
         body += LoadLocal(context);
-        body += LoadLocal(parameter);
+        body += LoadLocal(&raw_parameter);
         body += flow_graph_builder_->StoreInstanceField(
             TokenPosition::kNoSource,
             Context::variable_offset(variable->index()));
         body += NullConstant();
-        body += StoreLocal(TokenPosition::kNoSource, parameter);
+        body += StoreLocal(TokenPosition::kNoSource, &raw_parameter);
         body += Drop();
       }
     }
@@ -4287,7 +4290,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     flow_graph_builder_->context_depth_ = current_context_depth;
   }
 
-  normal_entry->LinkTo(body.entry);
+  instruction_cursor->LinkTo(body.entry);
 
   GraphEntryInstr* graph_entry = flow_graph_builder_->graph_entry_;
   // When compiling for OSR, use a depth first search to find the OSR
@@ -4298,7 +4301,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(bool constructor) {
     graph_entry->RelinkToOsrEntry(Z,
                                   flow_graph_builder_->last_used_block_id_ + 1);
   }
-  PrologueInfo prologue_info(-1, -1);
   return new (Z)
       FlowGraph(*parsed_function(), graph_entry,
                 flow_graph_builder_->last_used_block_id_, prologue_info);

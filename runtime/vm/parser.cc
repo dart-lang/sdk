@@ -13,6 +13,7 @@
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler_stats.h"
@@ -167,6 +168,52 @@ static RawTypeArguments* NewTypeArguments(
   return a.raw();
 }
 
+ParsedFunction::ParsedFunction(Thread* thread, const Function& function)
+    : thread_(thread),
+      function_(function),
+      code_(Code::Handle(zone(), function.unoptimized_code())),
+      node_sequence_(NULL),
+      regexp_compile_data_(NULL),
+      instantiator_(NULL),
+      function_type_arguments_(NULL),
+      parent_type_arguments_(NULL),
+      current_context_var_(NULL),
+      arg_desc_var_(NULL),
+      expression_temp_var_(NULL),
+      finally_return_temp_var_(NULL),
+      deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
+      guarded_fields_(new ZoneGrowableArray<const Field*>()),
+      default_parameter_values_(NULL),
+      raw_type_arguments_var_(NULL),
+      first_parameter_index_(0),
+      num_stack_locals_(0),
+      have_seen_await_expr_(false),
+      kernel_scopes_(NULL) {
+  ASSERT(function.IsZoneHandle());
+  // Every function has a local variable for the current context.
+  LocalVariable* temp = new (zone())
+      LocalVariable(function.token_pos(), function.token_pos(),
+                    Symbols::CurrentContextVar(), Object::dynamic_type());
+  current_context_var_ = temp;
+
+  const bool reify_generic_argument =
+      function.IsGeneric() && Isolate::Current()->reify_generic_functions();
+
+  const bool load_optional_arguments = function.HasOptionalParameters();
+
+  const bool check_arguments =
+      (function_.IsClosureFunction() || function_.IsConvertedClosureFunction());
+
+  const bool need_argument_descriptor =
+      load_optional_arguments || check_arguments || reify_generic_argument;
+
+  if (need_argument_descriptor) {
+    arg_desc_var_ = new (zone())
+        LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                      Symbols::ArgDescVar(), Object::dynamic_type());
+  }
+}
+
 void ParsedFunction::AddToGuardedFields(const Field* field) const {
   if ((field->guarded_cid() == kDynamicCid) ||
       (field->guarded_cid() == kIllegalCid)) {
@@ -274,32 +321,97 @@ void ParsedFunction::AllocateVariables() {
   const intptr_t num_fixed_params = function().num_fixed_parameters();
   const intptr_t num_opt_params = function().NumOptionalParameters();
   const intptr_t num_params = num_fixed_params + num_opt_params;
-  // Compute start indices to parameters and locals, and the number of
-  // parameters to copy.
-  if (num_opt_params == 0) {
-    // Parameter i will be at fp[kParamEndSlotFromFp + num_params - i] and
-    // local variable j will be at fp[kFirstLocalSlotFromFp - j].
-    first_parameter_index_ = kParamEndSlotFromFp + num_params;
-    first_stack_local_index_ = kFirstLocalSlotFromFp;
-    num_copied_params_ = 0;
-  } else {
-    // Parameter i will be at fp[kFirstLocalSlotFromFp - i] and local variable
-    // j will be at fp[kFirstLocalSlotFromFp - num_params - j].
-    first_parameter_index_ = kFirstLocalSlotFromFp;
-    first_stack_local_index_ = first_parameter_index_ - num_params;
-    num_copied_params_ = num_params;
+
+  // Before we start allocating frame indices to variables, we'll setup the
+  // parameters array, which can be used to access the raw parameters (i.e. not
+  // the potentially variables which are in the context)
+
+  for (intptr_t param = 0; param < function().NumParameters(); ++param) {
+    LocalVariable* raw_parameter = scope->VariableAt(param);
+    if (raw_parameter->is_captured()) {
+      String& tmp = String::ZoneHandle(Z);
+      tmp = Symbols::FromConcat(T, Symbols::OriginalParam(),
+                                raw_parameter->name());
+
+      RELEASE_ASSERT(scope->LocalLookupVariable(tmp) == NULL);
+      raw_parameter = new LocalVariable(raw_parameter->declaration_token_pos(),
+                                        raw_parameter->token_pos(), tmp,
+                                        raw_parameter->type());
+      if (function().HasOptionalParameters()) {
+        bool ok = scope->AddVariable(raw_parameter);
+        ASSERT(ok);
+
+        // Currently our optimizer cannot prove liveness of variables properly
+        // when a function has try/catch.  It therefore makes the conservative
+        // estimate that all [LocalVariable]s in the frame are live and spills
+        // them before call sites (in some shape or form).
+        //
+        // Since we are guaranteed to not need that, we tell the try/catch
+        // spilling mechanism not to care about this variable.
+        raw_parameter->set_is_captured_parameter(true);
+
+      } else {
+        raw_parameter->set_index(kParamEndSlotFromFp +
+                                 function().NumParameters() - param);
+      }
+    }
+    raw_parameters_.Add(raw_parameter);
+  }
+  if (function_type_arguments_ != NULL) {
+    LocalVariable* raw_type_args_parameter = function_type_arguments_;
+    if (function_type_arguments_->is_captured()) {
+      String& tmp = String::ZoneHandle(Z);
+      tmp = Symbols::FromConcat(T, Symbols::OriginalParam(),
+                                function_type_arguments_->name());
+
+      ASSERT(scope->LocalLookupVariable(tmp) == NULL);
+      raw_type_args_parameter =
+          new LocalVariable(raw_type_args_parameter->declaration_token_pos(),
+                            raw_type_args_parameter->token_pos(), tmp,
+                            raw_type_args_parameter->type());
+      bool ok = scope->AddVariable(raw_type_args_parameter);
+      ASSERT(ok);
+    }
+    raw_type_arguments_var_ = raw_type_args_parameter;
+  }
+
+  // The copy parameters implementation will still write to local variables
+  // which we assign indices as with the old CopyParams implementation.
+  intptr_t parameter_frame_index_start;
+  intptr_t reamining_local_variables_start;
+  {
+    // Compute start indices to parameters and locals, and the number of
+    // parameters to copy.
+    if (num_opt_params == 0) {
+      // Parameter i will be at fp[kParamEndSlotFromFp + num_params - i] and
+      // local variable j will be at fp[kFirstLocalSlotFromFp - j].
+      parameter_frame_index_start = first_parameter_index_ =
+          kParamEndSlotFromFp + num_params;
+      reamining_local_variables_start = kFirstLocalSlotFromFp;
+    } else {
+      // Parameter i will be at fp[kFirstLocalSlotFromFp - i] and local variable
+      // j will be at fp[kFirstLocalSlotFromFp - num_params - j].
+      parameter_frame_index_start = first_parameter_index_ =
+          kFirstLocalSlotFromFp;
+      reamining_local_variables_start = first_parameter_index_ - num_params;
+    }
+  }
+
+  if (function_type_arguments_ != NULL && num_opt_params > 0) {
+    reamining_local_variables_start--;
   }
 
   // Allocate parameters and local variables, either in the local frame or
   // in the context(s).
   bool found_captured_variables = false;
   int next_free_frame_index = scope->AllocateVariables(
-      first_parameter_index_, num_params, first_stack_local_index_, NULL,
-      &found_captured_variables);
+      parameter_frame_index_start, num_params,
+      parameter_frame_index_start > 0 ? kFirstLocalSlotFromFp
+                                      : kFirstLocalSlotFromFp - num_params,
+      NULL, &found_captured_variables);
 
   // Frame indices are relative to the frame pointer and are decreasing.
-  ASSERT(next_free_frame_index <= first_stack_local_index_);
-  num_stack_locals_ = first_stack_local_index_ - next_free_frame_index;
+  num_stack_locals_ = -(next_free_frame_index - kFirstLocalSlotFromFp);
 }
 
 struct CatchParamDesc {
@@ -324,8 +436,6 @@ void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
   // Parameter i will be at fp[kParamEndSlotFromFp + num_params - i] and
   // local variable j will be at fp[kFirstLocalSlotFromFp - j].
   first_parameter_index_ = kParamEndSlotFromFp + num_params;
-  first_stack_local_index_ = kFirstLocalSlotFromFp;
-  num_copied_params_ = 0;
 
   // Frame indices are relative to the frame pointer and are decreasing.
   num_stack_locals_ = num_stack_locals;
@@ -1063,6 +1173,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   }
 #endif  // !PRODUCT
   SequenceNode* node_sequence = NULL;
+
   switch (func.kind()) {
     case RawFunction::kImplicitClosureFunction:
       node_sequence = parser.ParseImplicitClosure(func);
@@ -1454,6 +1565,11 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
 
   OpenFunctionBlock(func);
 
+  if (parsed_function_->has_arg_desc_var() && FunctionLevel() == 0) {
+    EnsureExpressionTemp();
+    current_block_->scope->AddVariable(parsed_function_->arg_desc_var());
+  }
+
   const Function& parent = Function::Handle(func.parent_function());
   intptr_t type_args_len = 0;  // Length of type args vector passed to parent.
   LocalVariable* type_args_var = NULL;
@@ -1673,6 +1789,11 @@ void Parser::BuildDispatcherScope(const Function& func,
     current_block_->scope->AddVariable(type_args_var);
     ASSERT(FunctionLevel() == 0);
     parsed_function_->set_function_type_arguments(type_args_var);
+  }
+
+  if (parsed_function_->has_arg_desc_var() && FunctionLevel() == 0) {
+    EnsureExpressionTemp();
+    current_block_->scope->AddVariable(parsed_function_->arg_desc_var());
   }
 }
 
@@ -3249,6 +3370,12 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
   }
 
   OpenFunctionBlock(func);
+
+  if (parsed_function_->has_arg_desc_var() && FunctionLevel() == 0) {
+    EnsureExpressionTemp();
+    current_block_->scope->AddVariable(parsed_function_->arg_desc_var());
+  }
+
   ParamList params;
   ASSERT(CurrentToken() == Token::kLPAREN);
 
@@ -3420,6 +3547,11 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
 
   ASSERT(!func.IsGenerativeConstructor());
   OpenFunctionBlock(func);  // Build local scope for function.
+
+  if (parsed_function_->has_arg_desc_var() && FunctionLevel() == 0) {
+    EnsureExpressionTemp();
+    current_block_->scope->AddVariable(parsed_function_->arg_desc_var());
+  }
 
   if (Isolate::Current()->reify_generic_functions()) {
     // Lookup function type arguments variable in parent function scope, if any.

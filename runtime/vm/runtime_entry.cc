@@ -1603,6 +1603,7 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
   // name of the closurized function so that exception contains more
   // relevant information.
   const Function& function = Function::Handle(receiver.function());
+  ASSERT(!function.IsNull());
   const String& original_function_name =
       String::Handle(function.QualifiedUserVisibleName());
   const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(

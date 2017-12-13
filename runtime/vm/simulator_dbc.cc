@@ -500,7 +500,8 @@ DART_FORCE_INLINE static uint32_t* SavedCallerPC(RawObject** FP) {
 
 DART_FORCE_INLINE static RawFunction* FrameFunction(RawObject** FP) {
   RawFunction* function = static_cast<RawFunction*>(FP[kFunctionSlotFromFp]);
-  ASSERT(SimulatorHelpers::GetClassId(function) == kFunctionCid);
+  ASSERT(SimulatorHelpers::GetClassId(function) == kFunctionCid ||
+         SimulatorHelpers::GetClassId(function) == kNullCid);
   return function;
 }
 
@@ -932,6 +933,24 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
   Invoke(thread, call_base, top, pc, FP, SP);
 }
 
+DART_FORCE_INLINE void Simulator::PrepareForTailCall(
+    RawCode* code,
+    RawImmutableArray* args_desc,
+    RawObject** FP,
+    RawObject*** SP,
+    uint32_t** pc) {
+  // Drop all stack locals.
+  *SP = FP - 1;
+
+  // Replace the callee with the new [code].
+  FP[kFunctionSlotFromFp] = Object::null();
+  FP[kPcMarkerSlotFromFp] = code;
+  *pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+  pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
+  pp_ = code->ptr()->object_pool_;
+  argdesc_ = args_desc;
+}
+
 // Note: functions below are marked DART_NOINLINE to recover performance on
 // ARM where inlining these functions into the interpreter loop seemed to cause
 // some code quality issues.
@@ -1044,6 +1063,15 @@ static DART_NOINLINE bool InvokeNativeAutoScopeWrapper(Thread* thread,
 #define DECODE_A_B_C                                                           \
   rB = ((op >> Bytecode::kBShift) & Bytecode::kBMask);                         \
   rC = ((op >> Bytecode::kCShift) & Bytecode::kCMask);
+
+#define DECLARE_A_B_Y                                                          \
+  uint16_t rB;                                                                 \
+  int8_t rY;                                                                   \
+  USE(rB);                                                                     \
+  USE(rY)
+#define DECODE_A_B_Y                                                           \
+  rB = ((op >> Bytecode::kBShift) & Bytecode::kBMask);                         \
+  rY = ((op >> Bytecode::kYShift) & Bytecode::kYMask);
 
 #define DECLARE_0
 #define DECODE_0
@@ -1308,7 +1336,6 @@ RawObject* Simulator::Call(const Code& code,
   RawBool* true_value = Bool::True().raw();
   RawBool* false_value = Bool::False().raw();
   RawObject* null_value = Object::null();
-  RawObject* empty_context = Object::empty_context().raw();
 
 #if defined(DEBUG)
   Function& function_h = Function::Handle();
@@ -1319,166 +1346,24 @@ RawObject* Simulator::Call(const Code& code,
 
   // Bytecode handlers (see constants_dbc.h for bytecode descriptions).
   {
-    BYTECODE(Entry, A_B_C);
-    const uint8_t num_fixed_params = rA;
-    const uint16_t num_locals = rB;
-    const uint16_t context_reg = rC;
+    BYTECODE(Entry, A_D);
+    const uint16_t num_locals = rD;
 
-    // Decode arguments descriptor.
-    const intptr_t pos_count = SimulatorHelpers::ArgDescPosCount(argdesc_);
-
-    // Check that we got the right number of positional parameters.
-    if (pos_count != num_fixed_params) {
-      // Mismatch can only occur if current function is a closure.
-      goto ClosureNoSuchMethod;
+    // Initialize locals with null & set SP.
+    for (intptr_t i = 0; i < num_locals; i++) {
+      FP[i] = null_value;
     }
-
-    // Initialize locals with null and set current context variable to
-    // empty context.
-    {
-      RawObject** L = FP;
-      for (intptr_t i = 0; i < num_locals; i++) {
-        L[i] = null_value;
-      }
-      L[context_reg] = empty_context;
-      SP = FP + num_locals - 1;
-    }
+    SP = FP + num_locals - 1;
 
     DISPATCH();
   }
 
   {
     BYTECODE(EntryOptimized, A_D);
-    const uint8_t num_fixed_params = rA;
     const uint16_t num_registers = rD;
-
-    // Decode arguments descriptor.
-    const intptr_t pos_count = SimulatorHelpers::ArgDescPosCount(argdesc_);
-
-    // Check that we got the right number of positional parameters.
-    if (pos_count != num_fixed_params) {
-      // Mismatch can only occur if current function is a closure.
-      goto ClosureNoSuchMethod;
-    }
 
     // Reserve space for registers used by the optimized code.
     SP = FP + num_registers - 1;
-
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(EntryOptional, A_B_C);
-    const uint16_t num_fixed_params = rA;
-    const uint16_t num_opt_pos_params = rB;
-    const uint16_t num_opt_named_params = rC;
-    const intptr_t min_num_pos_args = num_fixed_params;
-    const intptr_t max_num_pos_args = num_fixed_params + num_opt_pos_params;
-
-    // Decode arguments descriptor.
-    const intptr_t arg_count = SimulatorHelpers::ArgDescArgCount(argdesc_);
-    const intptr_t pos_count = SimulatorHelpers::ArgDescPosCount(argdesc_);
-    const intptr_t named_count = (arg_count - pos_count);
-
-    // Check that got the right number of positional parameters.
-    if ((min_num_pos_args > pos_count) || (pos_count > max_num_pos_args)) {
-      goto ClosureNoSuchMethod;
-    }
-
-    // Copy all passed position arguments.
-    RawObject** first_arg = FrameArguments(FP, arg_count);
-    memmove(FP, first_arg, pos_count * kWordSize);
-
-    if (num_opt_named_params != 0) {
-      // This is a function with named parameters.
-      // Walk the list of named parameters and their
-      // default values encoded as pairs of LoadConstant instructions that
-      // follows the entry point and find matching values via arguments
-      // descriptor.
-      RawObject** argdesc_data = argdesc_->ptr()->data();
-
-      intptr_t i = named_count - 1;           // argument position
-      intptr_t j = num_opt_named_params - 1;  // parameter position
-      while ((j >= 0) && (i >= 0)) {
-        // Fetch formal parameter information: name, default value, target slot.
-        const uint32_t load_name = pc[2 * j];
-        const uint32_t load_value = pc[2 * j + 1];
-        ASSERT(Bytecode::DecodeOpcode(load_name) == Bytecode::kLoadConstant);
-        ASSERT(Bytecode::DecodeOpcode(load_value) == Bytecode::kLoadConstant);
-        const uint8_t reg = Bytecode::DecodeA(load_name);
-        ASSERT(reg == Bytecode::DecodeA(load_value));
-
-        RawString* name = static_cast<RawString*>(
-            LOAD_CONSTANT(Bytecode::DecodeD(load_name)));
-        if (name == argdesc_data[ArgumentsDescriptor::name_index(i)]) {
-          // Parameter was passed. Fetch passed value.
-          const intptr_t arg_index = Smi::Value(static_cast<RawSmi*>(
-              argdesc_data[ArgumentsDescriptor::position_index(i)]));
-          FP[reg] = first_arg[arg_index];
-          i--;  // Consume passed argument.
-        } else {
-          // Parameter was not passed. Fetch default value.
-          FP[reg] = LOAD_CONSTANT(Bytecode::DecodeD(load_value));
-        }
-        j--;  // Next formal parameter.
-      }
-
-      // If we have unprocessed formal parameters then initialize them all
-      // using default values.
-      while (j >= 0) {
-        const uint32_t load_name = pc[2 * j];
-        const uint32_t load_value = pc[2 * j + 1];
-        ASSERT(Bytecode::DecodeOpcode(load_name) == Bytecode::kLoadConstant);
-        ASSERT(Bytecode::DecodeOpcode(load_value) == Bytecode::kLoadConstant);
-        const uint8_t reg = Bytecode::DecodeA(load_name);
-        ASSERT(reg == Bytecode::DecodeA(load_value));
-
-        FP[reg] = LOAD_CONSTANT(Bytecode::DecodeD(load_value));
-        j--;
-      }
-
-      // If we have unprocessed passed arguments that means we have mismatch
-      // between formal parameters and concrete arguments. This can only
-      // occur if the current function is a closure.
-      if (i != -1) {
-        goto ClosureNoSuchMethod;
-      }
-
-      // Skip LoadConstant-s encoding information about named parameters.
-      pc += num_opt_named_params * 2;
-
-      // SP points past copied arguments.
-      SP = FP + num_fixed_params + num_opt_named_params - 1;
-    } else {
-      ASSERT(num_opt_pos_params != 0);
-      if (named_count != 0) {
-        // Function can't have both named and optional positional parameters.
-        // This kind of mismatch can only occur if the current function
-        // is a closure.
-        goto ClosureNoSuchMethod;
-      }
-
-      // Process the list of default values encoded as a sequence of
-      // LoadConstant instructions after EntryOpt bytecode.
-      // Execute only those that correspond to parameters that were not passed.
-      for (intptr_t i = pos_count - num_fixed_params; i < num_opt_pos_params;
-           i++) {
-        const uint32_t load_value = pc[i];
-        ASSERT(Bytecode::DecodeOpcode(load_value) == Bytecode::kLoadConstant);
-#if defined(DEBUG)
-        const uint8_t reg = Bytecode::DecodeA(load_value);
-        ASSERT((num_fixed_params + i) == reg);
-#endif
-        FP[num_fixed_params + i] = LOAD_CONSTANT(Bytecode::DecodeD(load_value));
-      }
-
-      // Skip LoadConstant-s encoding default values for optional positional
-      // parameters.
-      pc += num_opt_pos_params;
-
-      // SP points past the last copied parameter.
-      SP = FP + max_num_pos_args - 1;
-    }
 
     DISPATCH();
   }
@@ -2080,6 +1965,30 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(GreaterThanTOS, A_B_C);
     SMI_FASTPATH_TOS(RawObject*, SMI_GT);
+    DISPATCH();
+  }
+  {
+    BYTECODE(SmiAddTOS, 0);
+    RawSmi* left = Smi::RawCast(SP[-1]);
+    RawSmi* right = Smi::RawCast(SP[-0]);
+    SP--;
+    SP[0] = Smi::New(Smi::Value(left) + Smi::Value(right));
+    DISPATCH();
+  }
+  {
+    BYTECODE(SmiSubTOS, 0);
+    RawSmi* left = Smi::RawCast(SP[-1]);
+    RawSmi* right = Smi::RawCast(SP[-0]);
+    SP--;
+    SP[0] = Smi::New(Smi::Value(left) - Smi::Value(right));
+    DISPATCH();
+  }
+  {
+    BYTECODE(SmiMulTOS, 0);
+    RawSmi* left = Smi::RawCast(SP[-1]);
+    RawSmi* right = Smi::RawCast(SP[-0]);
+    SP--;
+    SP[0] = Smi::New(Smi::Value(left) * Smi::Value(right));
     DISPATCH();
   }
   {
@@ -3449,6 +3358,50 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(IfSmiLtTOS, 0);
+    RawSmi* left = Smi::RawCast(SP[-1]);
+    RawSmi* right = Smi::RawCast(SP[-0]);
+    if (!(Smi::Value(left) < Smi::Value(right))) {
+      pc++;
+    }
+    SP -= 2;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfSmiLeTOS, 0);
+    RawSmi* left = Smi::RawCast(SP[-1]);
+    RawSmi* right = Smi::RawCast(SP[-0]);
+    if (!(Smi::Value(left) <= Smi::Value(right))) {
+      pc++;
+    }
+    SP -= 2;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfSmiGeTOS, 0);
+    RawSmi* left = Smi::RawCast(SP[-1]);
+    RawSmi* right = Smi::RawCast(SP[-0]);
+    if (!(Smi::Value(left) >= Smi::Value(right))) {
+      pc++;
+    }
+    SP -= 2;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(IfSmiGtTOS, 0);
+    RawSmi* left = Smi::RawCast(SP[-1]);
+    RawSmi* right = Smi::RawCast(SP[-0]);
+    if (!(Smi::Value(left) > Smi::Value(right))) {
+      pc++;
+    }
+    SP -= 2;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(IfEqStrict, A_D);
     RawObject* lhs = FP[rA];
     RawObject* rhs = FP[rD];
@@ -3748,6 +3701,89 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(TailCall, 0);
+    RawCode* code = RAW_CAST(Code, SP[-0]);
+    RawImmutableArray* args_desc = RAW_CAST(ImmutableArray, SP[-1]);
+    PrepareForTailCall(code, args_desc, FP, &SP, &pc);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(TailCallOpt, A_D);
+    RawImmutableArray* args_desc = RAW_CAST(ImmutableArray, FP[rA]);
+    RawCode* code = RAW_CAST(Code, FP[rD]);
+    PrepareForTailCall(code, args_desc, FP, &SP, &pc);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadArgDescriptor, 0);
+    SP++;
+    SP[0] = argdesc_;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadArgDescriptorOpt, A);
+    FP[rA] = argdesc_;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(NoSuchMethod, 0);
+    goto ClosureNoSuchMethod;
+  }
+
+  {
+    BYTECODE(LoadFpRelativeSlot, A_X);
+    RawSmi* index = RAW_CAST(Smi, SP[-0]);
+    const int16_t offset = rD;
+    SP[-0] = FP[-(Smi::Value(index) + offset)];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadFpRelativeSlotOpt, A_B_Y);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    const int8_t offset = rY;
+    FP[rA] = FP[-(Smi::Value(index) + offset)];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreFpRelativeSlot, A_X);
+    RawSmi* index = RAW_CAST(Smi, SP[-1]);
+    const int16_t offset = rD;
+    FP[-(Smi::Value(index) + offset) - 0] = SP[-0];
+    SP--;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreFpRelativeSlotOpt, A_B_Y);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    const int8_t offset = rY;
+    FP[-(Smi::Value(index) + offset) - 0] = FP[rA];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedTOS, 0);
+    // Currently this instruction is only emitted if it's safe to do.
+    ASSERT(!SP[0]->IsHeapObject());
+    ASSERT(SP[-1]->IsArray() || SP[-1]->IsImmutableArray());
+
+    const intptr_t index_scale = rA;
+    RawSmi* index = RAW_CAST(Smi, SP[-0]);
+    RawArray* array = Array::RawCast(SP[-1]);
+
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    SP[-1] = array->ptr()->data()[Smi::Value(index) << index_scale];
+    SP--;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(LoadIndexed, A_B_C);
     RawObject* obj = FP[rB];
     ASSERT(obj->IsArray() || obj->IsImmutableArray());
@@ -3862,7 +3898,7 @@ RawObject* Simulator::Call(const Code& code,
   ClosureNoSuchMethod:
 #if defined(DEBUG)
     function_h ^= FrameFunction(FP);
-    ASSERT(function_h.IsClosureFunction());
+    ASSERT(function_h.IsNull() || function_h.IsClosureFunction());
 #endif
 
     // Restore caller context as we are going to throw NoSuchMethod.

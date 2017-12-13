@@ -104,7 +104,7 @@ class LocalVariable : public ZoneAllocated {
   // allocated to the frame.
   // var_count is the total number of stack-allocated variables including
   // all parameters.
-  int BitIndexIn(intptr_t var_count) const;
+  int BitIndexIn(intptr_t fixed_parameter_count) const;
 
  private:
   static const int kUninitializedIndex = INT_MIN;
