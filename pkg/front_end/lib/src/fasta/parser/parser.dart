@@ -3632,12 +3632,10 @@ class Parser {
       }
     } else {
       token = ensureIdentifier(beforeName, IdentifierContext.methodDeclaration);
+      token = parseQualifiedRestOpt(
+          token, IdentifierContext.methodDeclarationContinuation);
     }
 
-    // TODO(brianwilkerson): Move the next statement inside the else above
-    // because operator names can't be qualified.
-    token = parseQualifiedRestOpt(
-        token, IdentifierContext.methodDeclarationContinuation);
     bool isGetter = false;
     if (getOrSet == null) {
       token = parseTypeVariablesOpt(token);
