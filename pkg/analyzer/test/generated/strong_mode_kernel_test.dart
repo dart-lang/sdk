@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'strong_mode_test.dart';
@@ -30,6 +31,341 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   bool get enableNewAnalysisDriver => true;
+
+  @override
+  bool get previewDart2 => true;
+
+  @override
+  @failingTest
+  test_async_star_method_propagation() async {
+    // Bad state: No type information for Stream at 124
+    await super.test_async_star_method_propagation();
+  }
+
+  @override
+  @failingTest
+  test_async_star_propagation() async {
+    // Bad state: No type information for Stream at 105
+    await super.test_async_star_propagation();
+  }
+
+  @override
+  @failingTest
+  test_constrainedByBounds2() async {
+    // Expected: InterfaceTypeImpl:<int>
+    await super.test_constrainedByBounds2();
+  }
+
+  @override
+  @failingTest
+  test_constrainedByBounds3() async {
+    // Expected: InterfaceTypeImpl:<int>
+    await super.test_constrainedByBounds3();
+  }
+
+  @override
+  @failingTest
+  test_constrainedByBounds4() async {
+    // Bad state: Expected a type for 4 at 119; got one for kernel offset 118
+    await super.test_constrainedByBounds4();
+  }
+
+  @override
+  @failingTest
+  test_constrainedByBounds5() async {
+    // Bad state: Expected a type for 4 at 119; got one for kernel offset 118
+    await super.test_constrainedByBounds5();
+  }
+
+  @override
+  @failingTest
+  test_covarianceChecks() async {
+    // NoSuchMethodError: The method 'toList' was called on null.
+    await super.test_covarianceChecks();
+  }
+
+  @override
+  @failingTest
+  test_covarianceChecks_genericMethods() async {
+    // NoSuchMethodError: The method 'toList' was called on null.
+    await super.test_covarianceChecks_genericMethods();
+  }
+
+  @override
+  @failingTest
+  test_covarianceChecks_returnFunction() async {
+    // AnalysisException: Element mismatch in /test.dart at class C<T>
+    await super.test_covarianceChecks_returnFunction();
+  }
+
+  @override
+  @failingTest
+  test_covarianceChecks_superclass() async {
+    // NoSuchMethodError: The method 'toList' was called on null.
+    await super.test_covarianceChecks_superclass();
+  }
+
+  @override
+  @failingTest
+  test_functionLiteral_assignment_typedArguments() async {
+    // Expected: InterfaceTypeImpl:<String>
+    await super.test_functionLiteral_assignment_typedArguments();
+  }
+
+  @override
+  @failingTest
+  test_functionLiteral_assignment_unTypedArguments() async {
+    // Expected: InterfaceTypeImpl:<String>
+    await super.test_functionLiteral_assignment_unTypedArguments();
+  }
+
+  @override
+  @failingTest
+  test_functionLiteral_functionExpressionInvocation_typedArguments() async {
+    // Bad state: Expected a type for null at 154; got one for kernel offset 142
+    await super
+        .test_functionLiteral_functionExpressionInvocation_typedArguments();
+  }
+
+  @override
+  @failingTest
+  test_functionLiteral_functionExpressionInvocation_unTypedArguments() async {
+    // Bad state: Expected a type for null at 150; got one for kernel offset 142
+    await super
+        .test_functionLiteral_functionExpressionInvocation_unTypedArguments();
+  }
+
+  @override
+  @failingTest
+  test_functionLiteral_functionInvocation_typedArguments() async {
+    // Expected: InterfaceTypeImpl:<String>
+    await super.test_functionLiteral_functionInvocation_typedArguments();
+  }
+
+  @override
+  @failingTest
+  test_functionLiteral_functionInvocation_unTypedArguments() async {
+    // Expected: InterfaceTypeImpl:<String>
+    await super.test_functionLiteral_functionInvocation_unTypedArguments();
+  }
+
+  @override
+  @failingTest
+  test_functionLiteral_methodInvocation_typedArguments() async {
+    // Expected: InterfaceTypeImpl:<String>
+    await super.test_functionLiteral_methodInvocation_typedArguments();
+  }
+
+  @override
+  @failingTest
+  test_functionLiteral_methodInvocation_unTypedArguments() async {
+    // Expected: InterfaceTypeImpl:<String>
+    await super.test_functionLiteral_methodInvocation_unTypedArguments();
+  }
+
+  @override
+  @failingTest
+  test_futureOr_downwards8() async {
+    // type 'BottomTypeImpl' is not a subtype of type 'InterfaceType' in type cast where
+    await super.test_futureOr_downwards8();
+  }
+
+  @override
+  @failingTest
+  test_futureOr_methods2() async {
+    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
+    await super.test_futureOr_methods2();
+  }
+
+  @override
+  @failingTest
+  test_futureOr_methods3() async {
+    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
+    await super.test_futureOr_methods3();
+  }
+
+  @override
+  @failingTest
+  test_futureOr_methods4() async {
+    // Expected 1 errors of type StaticTypeWarningCode.UNDEFINED_METHOD, found 0
+    await super.test_futureOr_methods4();
+  }
+
+  @override
+  @failingTest
+  test_futureOr_no_return() async {
+    // Expected: InterfaceTypeImpl:<Null>
+    await super.test_futureOr_no_return();
+  }
+
+  @override
+  @failingTest
+  test_futureOr_no_return_value() async {
+    // Expected: InterfaceTypeImpl:<Null>
+    await super.test_futureOr_no_return_value();
+  }
+
+  @override
+  @failingTest
+  test_futureOr_return_null() async {
+    // Expected: InterfaceTypeImpl:<Null>
+    await super.test_futureOr_return_null();
+  }
+
+  @override
+  @failingTest
+  test_futureOr_upwards2() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0
+    await super.test_futureOr_upwards2();
+  }
+
+  @override
+  @failingTest
+  test_futureOrNull_no_return() async {
+    // Bad state: Found 2 argument types for 1 type arguments
+    await super.test_futureOrNull_no_return();
+  }
+
+  @override
+  @failingTest
+  test_futureOrNull_no_return_value() async {
+    // Bad state: Found 2 argument types for 1 type arguments
+    await super.test_futureOrNull_no_return_value();
+  }
+
+  @override
+  @failingTest
+  test_futureOrNull_return_null() async {
+    // Bad state: Found 2 argument types for 1 type arguments
+    await super.test_futureOrNull_return_null();
+  }
+
+  @override
+  @failingTest
+  test_generic_partial() async {
+    // AnalysisException: Element mismatch in /test.dart at class A<T>
+    await super.test_generic_partial();
+  }
+
+  @override
+  @failingTest
+  test_inference_error_arguments() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
+    //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
+    await super.test_inference_error_arguments();
+  }
+
+  @override
+  @failingTest
+  test_inference_error_arguments2() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
+    //          2 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
+    await super.test_inference_error_arguments2();
+  }
+
+  @override
+  @failingTest
+  test_inference_error_extendsFromReturn() async {
+    // Expected 2 errors of type StrongModeCode.STRONG_MODE_INVALID_CAST_LITERAL, found 0
+    await super.test_inference_error_extendsFromReturn();
+  }
+
+  @override
+  @failingTest
+  test_inference_error_extendsFromReturn2() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0
+    await super.test_inference_error_extendsFromReturn2();
+  }
+
+  @override
+  @failingTest
+  test_inference_error_genericFunction() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
+    //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
+    await super.test_inference_error_genericFunction();
+  }
+
+  @override
+  @failingTest
+  test_inference_error_returnContext() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0
+    await super.test_inference_error_returnContext();
+  }
+
+  @override
+  @failingTest
+  test_inference_simplePolymorphicRecursion_function() async {
+    // Expected: 'T'
+    await super.test_inference_simplePolymorphicRecursion_function();
+  }
+
+  @override
+  @failingTest
+  test_inference_simplePolymorphicRecursion_interface() async {
+    // Expected: 'T'
+    await super.test_inference_simplePolymorphicRecursion_interface();
+  }
+
+  @override
+  @failingTest
+  test_inference_simplePolymorphicRecursion_simple() async {
+    // RangeError (index): Invalid value: Valid value range is empty: 0
+    await super.test_inference_simplePolymorphicRecursion_simple();
+  }
+
+  @override
+  @failingTest
+  test_inferGenericInstantiation() async {
+    // Expected: '(dynamic) → dynamic'
+    await super.test_inferGenericInstantiation();
+  }
+
+  @override
+  @failingTest
+  test_inferGenericInstantiation2() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
+    //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0
+    await super.test_inferGenericInstantiation2();
+  }
+
+  @override
+  @failingTest
+  test_inferredFieldDeclaration_propagation() async {
+    // Expected: InterfaceTypeImpl:<int>
+    await super.test_inferredFieldDeclaration_propagation();
+  }
+
+  @override
+  @failingTest
+  test_instanceCreation() async {
+    // AnalysisException: Element mismatch in /test.dart at class A<S, T>
+    await super.test_instanceCreation();
+    // TODO(brianwilkerson) This test fails as expected when run as part of a
+    // larger group of tests, but does not fail when run individually (such as
+    // on the bots).
+    fail('Flaky test');
+  }
+
+  @override
+  @failingTest
+  test_pinning_multipleConstraints1() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_CAST_LITERAL, found 0
+    await super.test_pinning_multipleConstraints1();
+  }
+
+  @override
+  @failingTest
+  test_pinning_multipleConstraints3() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_CAST_LITERAL, found 0
+    await super.test_pinning_multipleConstraints3();
+  }
+
+  @override
+  @failingTest
+  test_redirectingConstructor_propagation() async {
+    // AnalysisException: Element mismatch in /test.dart at class A
+    await super.test_redirectingConstructor_propagation();
+  }
 }
 
 @reflectiveTest
@@ -40,6 +376,127 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
 
   @override
   bool get enableNewAnalysisDriver => true;
+
+  @override
+  bool get previewDart2 => true;
+
+  @override
+  test_futureOr_promotion3() async {
+    // Test passes even though the overridden method fails.
+    await super.test_futureOr_promotion3();
+  }
+
+  @override
+  @failingTest
+  test_genericFunction_parameter() async {
+    // Failed to resolve 1 nodes:
+    await super.test_genericFunction_parameter();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_explicitTypeParams() async {
+    // Bad state: Found 2 argument types for 1 type arguments
+    await super.test_genericMethod_explicitTypeParams();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_functionExpressionInvocation_explicit() async {
+    // Bad state: Expected element declaration for analyzer offset 230; got one for kernel offset 233
+    await super.test_genericMethod_functionExpressionInvocation_explicit();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_functionExpressionInvocation_inferred() async {
+    // Bad state: Expected element declaration for analyzer offset 230; got one for kernel offset 233
+    await super.test_genericMethod_functionExpressionInvocation_inferred();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_functionInvocation_explicit() async {
+    // Failed to resolve 1 nodes:
+    await super.test_genericMethod_functionInvocation_explicit();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_functionInvocation_inferred() async {
+    // Failed to resolve 1 nodes:
+    await super.test_genericMethod_functionInvocation_inferred();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_implicitDynamic() async {
+    // Expected: '<T>((dynamic) → T) → T'
+    await super.test_genericMethod_implicitDynamic();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_max_doubleDouble_prefixed() async {
+    // Bad state: Expected element reference for analyzer offset 49; got one for kernel offset 54
+    await super.test_genericMethod_max_doubleDouble_prefixed();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_nestedCapture() async {
+    // Bad state: Found 2 argument types for 1 type arguments
+    await super.test_genericMethod_nestedCapture();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_override_invalidReturnType() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
+    await super.test_genericMethod_override_invalidReturnType();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_override_invalidTypeParamBounds() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
+    await super.test_genericMethod_override_invalidTypeParamBounds();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_override_invalidTypeParamCount() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_INVALID_METHOD_OVERRIDE, found 0
+    await super.test_genericMethod_override_invalidTypeParamCount();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_partiallyAppliedErrorWithBound() async {
+    // Bad state: Found 0 argument types for 1 type arguments
+    await super.test_genericMethod_partiallyAppliedErrorWithBound();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_tearoff() async {
+    // Failed to resolve 1 nodes:
+    await super.test_genericMethod_tearoff();
+  }
+
+  @override
+  @failingTest
+  test_genericMethod_then_prefixed() async {
+    // Expected 0 errors of type HintCode.UNUSED_IMPORT, found 1 (7)
+    await super.test_genericMethod_then_prefixed();
+  }
+
+  @override
+  @failingTest
+  test_implicitBounds() async {
+    // Expected: 'B<num>'
+    await super.test_implicitBounds();
+  }
 
   @override
   @failingTest
@@ -103,6 +560,76 @@ class StrongModeStaticTypeAnalyzer2Test_Kernel
   test_instantiateToBounds_class_ok_referenceOther_multi() async {
     return super.test_instantiateToBounds_class_ok_referenceOther_multi();
   }
+
+  @override
+  @failingTest
+  test_instantiateToBounds_class_ok_simpleBounds() async {
+    // Expected: 'B<num>'
+    await super.test_instantiateToBounds_class_ok_simpleBounds();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_direct_class_class() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
+    await super.test_notInstantiatedBound_direct_class_class();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_direct_class_typedef() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
+    await super.test_notInstantiatedBound_direct_class_typedef();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_direct_typedef_class() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
+    await super.test_notInstantiatedBound_direct_typedef_class();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_functionType() async {
+    // Expected 2 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
+    await super.test_notInstantiatedBound_functionType();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_indirect_class_class() async {
+    // Expected 1 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
+    await super.test_notInstantiatedBound_indirect_class_class();
+  }
+
+  @override
+  @failingTest
+  test_notInstantiatedBound_indirect_class_class2() async {
+    // Expected 2 errors of type StrongModeCode.STRONG_MODE_NOT_INSTANTIATED_BOUND, found 0
+    await super.test_notInstantiatedBound_indirect_class_class2();
+  }
+
+  @override
+  @failingTest
+  test_setterWithDynamicTypeIsError() async {
+    // Expected 2 errors of type StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, found 0
+    await super.test_setterWithDynamicTypeIsError();
+  }
+
+  @override
+  @failingTest
+  test_setterWithNoVoidType() async {
+    // Expected 1 errors of type StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, found 0
+    await super.test_setterWithNoVoidType();
+  }
+
+  @override
+  @failingTest
+  test_setterWithOtherTypeIsError() async {
+    // Expected 2 errors of type StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, found 0
+    await super.test_setterWithOtherTypeIsError();
+  }
 }
 
 @reflectiveTest
@@ -113,4 +640,7 @@ class StrongModeTypePropagationTest_Kernel
 
   @override
   bool get enableNewAnalysisDriver => true;
+
+  @override
+  bool get previewDart2 => true;
 }

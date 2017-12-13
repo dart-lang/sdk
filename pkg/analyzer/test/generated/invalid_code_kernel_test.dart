@@ -20,6 +20,9 @@ class InvalidCodeTest_Kernel extends InvalidCodeTest {
   @override
   bool get enableNewAnalysisDriver => true;
 
+  @override
+  bool get previewDart2 => true;
+
   @failingTest
   @override
   test_constructorAndMethodNameCollision() async {
