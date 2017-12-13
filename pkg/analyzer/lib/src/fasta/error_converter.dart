@@ -408,6 +408,12 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             ParserErrorCode.PREFIX_AFTER_COMBINATOR, offset, length);
         return;
+      case "REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
+            offset,
+            length);
+        return;
       case "RETURN_IN_GENERATOR":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.RETURN_IN_GENERATOR, offset, length);

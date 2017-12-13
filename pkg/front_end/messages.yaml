@@ -1294,6 +1294,14 @@ FactoryTopLevelDeclaration:
   script:
     - "factory class C {}"
 
+RedirectionInNonFactory:
+  template: "Only factory constructor can specify '=' redirection."
+  tip: "Try making this a factory constructor, or remove the redirection."
+  analyzerCode: REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
+  dart2jsCode: "*fatal*"
+  script:
+    - "class C { C() = D; }"
+
 TopLevelOperator:
   template: "Operators must be declared within a class."
   tip: "Try removing the operator, moving it to a class, or converting it to be a function."

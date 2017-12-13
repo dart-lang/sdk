@@ -3865,6 +3865,18 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
     message: r"""An optional named parameter can't start with '_'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRedirectionInNonFactory = messageRedirectionInNonFactory;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRedirectionInNonFactory = const MessageCode(
+    "RedirectionInNonFactory",
+    analyzerCode: "REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR",
+    dart2jsCode: "*fatal*",
+    message: r"""Only factory constructor can specify '=' redirection.""",
+    tip:
+        r"""Try making this a factory constructor, or remove the redirection.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateRedirectionTargetNotFound =
     const Template<Message Function(String name)>(

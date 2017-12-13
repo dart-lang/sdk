@@ -2027,8 +2027,7 @@ class AstBuilder extends ScopeListener {
         optional('set', getOrSet));
     debugEvent("Method");
 
-    FunctionBody body = pop();
-    ConstructorName redirectedConstructor = null; // TODO(paulberry)
+    var bodyObject = pop();
     List<ConstructorInitializer> initializers = pop() ?? const [];
     Token separator = pop();
     FormalParameterList parameters = pop();
@@ -2038,6 +2037,19 @@ class AstBuilder extends ScopeListener {
     _Modifiers modifiers = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
+
+    ConstructorName redirectedConstructor;
+    FunctionBody body;
+    if (bodyObject is FunctionBody) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      separator = bodyObject.equalToken;
+      redirectedConstructor = bodyObject.constructorName;
+      body = ast.emptyFunctionBody(endToken);
+    } else {
+      unhandled("${bodyObject.runtimeType}", "bodyObject",
+          beginToken.charOffset, uri);
+    }
 
     if (parameters == null && (getOrSet == null || optional('set', getOrSet))) {
       Token previous = typeParameters?.endToken;

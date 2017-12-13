@@ -3665,6 +3665,7 @@ class Parser {
       allowAbstract = true;
     }
     if (optional('=', next)) {
+      reportRecoverableError(next, fasta.messageRedirectionInNonFactory);
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(token, false, allowAbstract);

@@ -1447,14 +1447,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_positionalParameterOutsideGroup() {
-    // TODO(brianwilkerson) Wrong errors:
-    // Expected 1 errors of type ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, found 0
-    super.test_positionalParameterOutsideGroup();
-  }
-
-  @override
-  @failingTest
   void test_redirectingConstructorWithBody_named() {
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, found 0
@@ -1467,22 +1459,6 @@ class ErrorParserTest_Fasta extends FastaParserTestCase
     // TODO(brianwilkerson) Wrong errors:
     // Expected 1 errors of type ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, found 0
     super.test_redirectingConstructorWithBody_unnamed();
-  }
-
-  @override
-  @failingTest
-  void test_redirectionInNonFactoryConstructor() {
-    // TODO(brianwilkerson) Does not recover.
-    //   type '_RedirectingFactoryBody' is not a subtype of type 'FunctionBody' of 'body' where
-    //   _RedirectingFactoryBody is from package:analyzer/src/fasta/ast_builder.dart
-    //   FunctionBody is from package:analyzer/dart/ast/ast.dart
-    //
-    //   package:analyzer/src/fasta/ast_builder.dart 1613:25                AstBuilder.endMethod
-    //   test/generated/parser_fasta_listener.dart 926:14                   ForwardingTestListener.endMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2433:14             Parser.parseMethod
-    //   package:front_end/src/fasta/parser/parser.dart 2323:11             Parser.parseMember
-    //   test/generated/parser_fasta_test.dart 3766:39                      ParserProxy._run
-    super.test_redirectionInNonFactoryConstructor();
   }
 
   @override

@@ -4461,11 +4461,15 @@ class Wrong<T> {
     createParser('(a, b = 0)');
     FormalParameterList list = parser.parseFormalParameterList();
     expectNotNullIfNoErrors(list);
-    listener.assertErrors([
-      expectedError(ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, 4, 1)
-    ]);
+    listener.assertErrors(usingFastaParser
+        ? [expectedError(ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, 6, 1)]
+        : [
+            expectedError(
+                ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, 4, 1)
+          ]);
     expect(list.parameters[0].kind, ParameterKind.REQUIRED);
-    expect(list.parameters[1].kind, ParameterKind.POSITIONAL);
+    expect(list.parameters[1].kind,
+        usingFastaParser ? ParameterKind.NAMED : ParameterKind.POSITIONAL);
   }
 
   void test_redirectingConstructorWithBody_named() {
