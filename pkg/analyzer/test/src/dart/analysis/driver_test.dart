@@ -1510,6 +1510,147 @@ class C<T> {
     expect(fElement.type, typeProvider.listType.instantiate([tElement.type]));
   }
 
+  test_formalParameter_functionTyped() async {
+    addTestFile(r'''
+class A {
+  A(String p(int a));
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration clazz = result.unit.declarations[0];
+    ConstructorDeclaration constructor = clazz.members[0];
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+
+    FunctionTypedFormalParameter p = parameters[0];
+    expect(p.element, same(constructor.element.parameters[0]));
+
+    {
+      FunctionType type = p.identifier.staticType;
+      expect(type.returnType, typeProvider.stringType);
+
+      expect(type.parameters, hasLength(1));
+      expect(type.parameters[0].type, typeProvider.intType);
+    }
+
+    _assertTypeNameSimple(p.returnType, typeProvider.stringType);
+
+    {
+      SimpleFormalParameter a = p.parameters.parameters[0];
+      _assertTypeNameSimple(a.type, typeProvider.intType);
+      expect(a.identifier.staticType, typeProvider.intType);
+    }
+  }
+
+  test_formalParameter_functionTyped_fieldFormal_typed() async {
+    // TODO(scheglov) Add "untyped" version with precise type in field.
+    addTestFile(r'''
+class A {
+  Function f;
+  A(String this.f(int a));
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration clazz = result.unit.declarations[0];
+
+    FieldDeclaration fDeclaration = clazz.members[0];
+    VariableDeclaration fNode = fDeclaration.fields.variables[0];
+    FieldElement fElement = fNode.element;
+
+    ConstructorDeclaration constructor = clazz.members[1];
+
+    FieldFormalParameterElement pElement = constructor.element.parameters[0];
+    expect(pElement.field, same(fElement));
+
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+    FieldFormalParameter p = parameters[0];
+    expect(p.element, same(pElement));
+
+    expect(p.identifier.staticElement, same(pElement));
+    expect(p.identifier.staticType.toString(), '(int) → String');
+
+    {
+      FunctionType type = p.identifier.staticType;
+      expect(type.returnType, typeProvider.stringType);
+
+      expect(type.parameters, hasLength(1));
+      expect(type.parameters[0].type, typeProvider.intType);
+    }
+
+    _assertTypeNameSimple(p.type, typeProvider.stringType);
+
+    {
+      SimpleFormalParameter a = p.parameters.parameters[0];
+      _assertTypeNameSimple(a.type, typeProvider.intType);
+      expect(a.identifier.staticType, typeProvider.intType);
+    }
+  }
+
+  test_formalParameter_simple_fieldFormal() async {
+    addTestFile(r'''
+class A {
+  int f;
+  A(this.f);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration clazz = result.unit.declarations[0];
+
+    FieldDeclaration fDeclaration = clazz.members[0];
+    VariableDeclaration fNode = fDeclaration.fields.variables[0];
+    FieldElement fElement = fNode.element;
+
+    ConstructorDeclaration constructor = clazz.members[1];
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+
+    FieldFormalParameterElement parameterElement =
+        constructor.element.parameters[0];
+    expect(parameterElement.field, same(fElement));
+
+    FieldFormalParameter parameterNode = parameters[0];
+    expect(parameterNode.type, isNull);
+    expect(parameterNode.element, same(parameterElement));
+
+    expect(parameterNode.identifier.staticElement, same(parameterElement));
+    expect(parameterNode.identifier.staticType, typeProvider.intType);
+  }
+
+  test_formalParameter_simple_fieldFormal_typed() async {
+    addTestFile(r'''
+class A {
+  int f;
+  A(int this.f);
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    ClassDeclaration clazz = result.unit.declarations[0];
+
+    FieldDeclaration fDeclaration = clazz.members[0];
+    VariableDeclaration fNode = fDeclaration.fields.variables[0];
+    FieldElement fElement = fNode.element;
+
+    ConstructorDeclaration constructor = clazz.members[1];
+    List<FormalParameter> parameters = constructor.parameters.parameters;
+
+    FieldFormalParameterElement parameterElement =
+        constructor.element.parameters[0];
+    expect(parameterElement.field, same(fElement));
+
+    FieldFormalParameter parameterNode = parameters[0];
+    _assertTypeNameSimple(parameterNode.type, typeProvider.intType);
+    expect(parameterNode.element, same(parameterElement));
+
+    expect(parameterNode.identifier.staticElement, same(parameterElement));
+    expect(parameterNode.identifier.staticType, typeProvider.intType);
+  }
+
   test_indexExpression() async {
     String content = r'''
 main() {

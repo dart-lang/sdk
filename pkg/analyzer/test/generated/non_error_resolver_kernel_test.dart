@@ -159,34 +159,6 @@ class NonErrorResolverTest_Kernel extends NonErrorResolverTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_fieldFormalParameter_functionTyped_named() async {
-    return super.test_fieldFormalParameter_functionTyped_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldFormalParameter_genericFunctionTyped() async {
-    return super.test_fieldFormalParameter_genericFunctionTyped();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_fieldFormalParameter_genericFunctionTyped_named() async {
-    return super.test_fieldFormalParameter_genericFunctionTyped_named();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_finalNotInitialized_functionTypedFieldFormal() async {
-    return super.test_finalNotInitialized_functionTypedFieldFormal();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_finalNotInitialized_hasNativeClause_hasConstructor() async {
     return super.test_finalNotInitialized_hasNativeClause_hasConstructor();
   }

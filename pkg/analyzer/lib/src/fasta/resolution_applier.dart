@@ -239,7 +239,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
         }
       }
 
-      _applyParameters(element.parameters, parameterList.parameters);
+      applyParameters(element.parameters, parameterList);
     }
 
     functionExpression.body?.accept(this);
@@ -257,7 +257,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (element != null) {
       node.element = element;
       node.staticType = element.type;
-      _applyParameters(element.parameters, parameterList.parameters);
+      applyParameters(element.parameters, parameterList);
     }
 
     // Apply resolution to default values.
@@ -643,6 +643,65 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     }
   }
 
+  /// Apply the types of the [parameterElements] to the [parameterList] that
+  /// have an explicit type annotation.
+  static void applyParameters(List<ParameterElement> parameterElements,
+      FormalParameterList parameterList) {
+    List<FormalParameter> parameters = parameterList.parameters;
+
+    int length = parameterElements.length;
+    if (parameters.length != length) {
+      throw new StateError('Parameter counts do not match');
+    }
+    for (int i = 0; i < length; i++) {
+      ParameterElementImpl element = parameterElements[i];
+      FormalParameter parameter = parameters[i];
+
+      NormalFormalParameter normalParameter;
+      if (parameter is NormalFormalParameter) {
+        normalParameter = parameter;
+      } else if (parameter is DefaultFormalParameter) {
+        normalParameter = parameter.parameter;
+      }
+      assert(normalParameter != null);
+
+      if (normalParameter is SimpleFormalParameterImpl) {
+        normalParameter.element = element;
+      }
+
+      if (normalParameter.identifier != null) {
+        element.nameOffset = normalParameter.identifier.offset;
+        normalParameter.identifier.staticElement = element;
+        normalParameter.identifier.staticType = element.type;
+      }
+
+      // Apply the type or the return type, if a function typed parameter.
+      TypeAnnotation functionReturnType;
+      FormalParameterList functionParameterList;
+      if (normalParameter is SimpleFormalParameter) {
+        applyToTypeAnnotation(element.type, normalParameter.type);
+      } else if (normalParameter is FunctionTypedFormalParameter) {
+        functionReturnType = normalParameter.returnType;
+        functionParameterList = normalParameter.parameters;
+      } else if (normalParameter is FieldFormalParameter) {
+        if (normalParameter.parameters == null) {
+          applyToTypeAnnotation(element.type, normalParameter.type);
+        } else {
+          functionReturnType = normalParameter.type;
+          functionParameterList = normalParameter.parameters;
+        }
+      }
+
+      if (functionParameterList != null) {
+        FunctionType elementType = element.type;
+        if (functionReturnType != null) {
+          applyToTypeAnnotation(elementType.returnType, functionReturnType);
+        }
+        applyParameters(elementType.parameters, functionParameterList);
+      }
+    }
+  }
+
   /// Apply the [type] to the [typeAnnotation] by setting the type of the
   /// [typeAnnotation] to the [type] and recursively applying each of the type
   /// arguments of the [type] to the corresponding type arguments of the
@@ -668,8 +727,7 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       FunctionType functionType = type;
       typeAnnotation.type = type;
       applyToTypeAnnotation(functionType.returnType, typeAnnotation.returnType);
-      _applyParameters(
-          functionType.parameters, typeAnnotation.parameters.parameters);
+      applyParameters(functionType.parameters, typeAnnotation.parameters);
     } else if (typeAnnotation is TypeNameImpl) {
       typeAnnotation.type = type;
       SimpleIdentifier name = nameForElement(typeAnnotation.name);
@@ -687,42 +745,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
       TypeArgumentList typeArguments = typeAnnotation.typeArguments;
       if (typeArguments != null) {
         _applyTypeArgumentsToList(type, typeArguments.arguments);
-      }
-    }
-  }
-
-  /// Apply the types of the [parameterElements] to the [parameters] that have
-  /// an explicit type annotation.
-  static void _applyParameters(List<ParameterElement> parameterElements,
-      List<FormalParameter> parameters) {
-    int length = parameterElements.length;
-    if (parameters.length != length) {
-      throw new StateError('Parameter counts do not match');
-    }
-    for (int i = 0; i < length; i++) {
-      ParameterElement element = parameterElements[i];
-      FormalParameter parameter = parameters[i];
-
-      NormalFormalParameter normalParameter;
-      if (parameter is NormalFormalParameter) {
-        normalParameter = parameter;
-      } else if (parameter is DefaultFormalParameter) {
-        normalParameter = parameter.parameter;
-      }
-
-      TypeAnnotation typeAnnotation = null;
-      if (normalParameter is SimpleFormalParameter) {
-        typeAnnotation = normalParameter.type;
-      }
-      if (typeAnnotation != null) {
-        applyToTypeAnnotation(element.type, typeAnnotation);
-      }
-
-      if (normalParameter is SimpleFormalParameterImpl) {
-        normalParameter.element = element;
-      }
-      if (normalParameter.identifier != null) {
-        normalParameter.identifier.staticElement = element;
       }
     }
   }
