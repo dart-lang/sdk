@@ -142,22 +142,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     return new ArgListContributor();
   }
 
-  fail_test_Annotation_local_constructor_named_param_10() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2' ^) main() { }''');
-    await computeSuggestions();
-    assertSuggestions([', one: ']);
-  }
-
-  fail_test_Annotation_local_constructor_named_param_9() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2'^) main() { }''');
-    await computeSuggestions();
-    assertSuggestions([', one: ']);
-  }
-
   test_Annotation_imported_constructor_named_param() async {
     addSource('/libA.dart', '''
 library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
@@ -174,6 +158,15 @@ class A { const A({int one, String two: 'defaultValue'}); }
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(
         namedArgumentsWithTypes: {'one': 'int', 'two': 'String'});
+  }
+
+  @failingTest
+  test_Annotation_local_constructor_named_param_10() async {
+    addTestSource('''
+class A { const A({int one, String two: 'defaultValue'}); }
+@A(two: '2' ^) main() { }''');
+    await computeSuggestions();
+    assertSuggestions([', one: ']);
   }
 
   test_Annotation_local_constructor_named_param_11() async {
@@ -238,6 +231,15 @@ class A { const A(int zero, {int one, String two: 'defaultValue'}); }
 @A(0, ^two: '2') main() { }''');
     await computeSuggestions();
     assertSuggestions(['one: ,']);
+  }
+
+  @failingTest
+  test_Annotation_local_constructor_named_param_9() async {
+    addTestSource('''
+class A { const A({int one, String two: 'defaultValue'}); }
+@A(two: '2'^) main() { }''');
+    await computeSuggestions();
+    assertSuggestions([', one: ']);
   }
 
   test_Annotation_local_constructor_named_param_negative() async {
@@ -344,31 +346,6 @@ build() => new Row(
         defaultArgumentListTextRanges: null);
   }
 
-  test_ArgumentList_Flutter_InstanceCreationExpression_slivers() async {
-    configureFlutterPkg({
-      'src/widgets/framework.dart': flutter_framework_code +
-          '\nclass CustomScrollView extends Widget { CustomScrollView('
-          '\n{List<Widget> slivers}){}}'
-    });
-
-    addTestSource('''
-import 'package:flutter/src/widgets/framework.dart';
-
-build() => new CustomScrollView(
-    ^
-  );
-''');
-
-    await computeSuggestions();
-
-    assertSuggest('slivers: <Widget>[],',
-        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-        relevance: DART_RELEVANCE_NAMED_PARAMETER,
-        defaultArgListString: null,
-        selectionOffset: 18,
-        defaultArgumentListTextRanges: null);
-  }
-
   test_ArgumentList_Flutter_InstanceCreationExpression_children_dynamic() async {
     // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
     // type it's children.
@@ -417,6 +394,31 @@ build() => new Container(
         relevance: DART_RELEVANCE_NAMED_PARAMETER,
         selectionOffset: 10,
         defaultArgListString: null);
+  }
+
+  test_ArgumentList_Flutter_InstanceCreationExpression_slivers() async {
+    configureFlutterPkg({
+      'src/widgets/framework.dart': flutter_framework_code +
+          '\nclass CustomScrollView extends Widget { CustomScrollView('
+          '\n{List<Widget> slivers}){}}'
+    });
+
+    addTestSource('''
+import 'package:flutter/src/widgets/framework.dart';
+
+build() => new CustomScrollView(
+    ^
+  );
+''');
+
+    await computeSuggestions();
+
+    assertSuggest('slivers: <Widget>[],',
+        csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+        relevance: DART_RELEVANCE_NAMED_PARAMETER,
+        defaultArgListString: null,
+        selectionOffset: 18,
+        defaultArgumentListTextRanges: null);
   }
 
   test_ArgumentList_Flutter_MethodExpression_children() async {
