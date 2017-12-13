@@ -248,11 +248,11 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
-      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
+      if (FLAG_write_protect_code) {
         exec_pages_tail_->WriteProtect(false);
       }
       exec_pages_tail_->set_next(page);
-      if (FLAG_write_protect_code && !exec_pages_tail_->is_image_page()) {
+      if (FLAG_write_protect_code) {
         exec_pages_tail_->WriteProtect(true);
       }
     }
@@ -826,14 +826,12 @@ void PageSpace::WriteProtectCode(bool read_only) {
     HeapPage* page = exec_pages_;
     while (page != NULL) {
       ASSERT(page->type() == HeapPage::kExecutable);
-      if (!page->is_image_page()) {
-        page->WriteProtect(read_only);
-      }
+      page->WriteProtect(read_only);
       page = page->next();
     }
     page = large_pages_;
     while (page != NULL) {
-      if (page->type() == HeapPage::kExecutable && !page->is_image_page()) {
+      if (page->type() == HeapPage::kExecutable) {
         page->WriteProtect(read_only);
       }
       page = page->next();
