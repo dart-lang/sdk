@@ -208,6 +208,11 @@ class SourceClassBuilder extends KernelClassBuilder {
   @override
   int finishPatch() {
     if (!isPatch) return 0;
+
+    // TODO(ahe): restore file-offset once we track both origin and patch file
+    // URIs. See https://github.com/dart-lang/sdk/issues/31579
+    cls.annotations.forEach((m) => m.fileOffset = origin.cls.fileOffset);
+
     int count = 0;
     scope.forEach((String name, Builder builder) {
       count += builder.finishPatch();
