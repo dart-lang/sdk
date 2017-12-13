@@ -126,8 +126,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   int finishDeferredLoadTearoffs() => 0;
 
-  int finishStaticInvocations() => 0;
-
   int finishNativeMethods() => 0;
 
   int finishPatchMethods() => 0;

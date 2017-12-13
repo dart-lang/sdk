@@ -287,7 +287,6 @@ class KernelTarget extends TargetImplementation {
     try {
       ticker.logMs("Building program");
       await loader.buildBodies();
-      loader.finishStaticInvocations();
       loader.finishDeferredLoadTearoffs();
       finishAllConstructors();
       loader.finishNativeMethods();

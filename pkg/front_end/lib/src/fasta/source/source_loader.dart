@@ -331,16 +331,6 @@ class SourceLoader<L> extends Loader<L> {
     ticker.logMs("Finished deferred load tearoffs $count");
   }
 
-  void finishStaticInvocations() {
-    int count = 0;
-    builders.forEach((Uri uri, LibraryBuilder library) {
-      if (library.loader == this) {
-        count += library.finishStaticInvocations();
-      }
-    });
-    ticker.logMs("Finished static invocations $count");
-  }
-
   void resolveConstructors() {
     int count = 0;
     builders.forEach((Uri uri, LibraryBuilder library) {
