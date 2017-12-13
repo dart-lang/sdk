@@ -79,7 +79,7 @@ abstract class RuntimeTypesChecks {
   /// in the return type or the argument types.
   Set<ClassEntity> getReferencedClasses(FunctionType type);
 
-  /// Return all classes that are uses a type arguments.
+  /// Return all classes that use type arguments.
   Set<ClassEntity> getRequiredArgumentClasses();
 }
 
