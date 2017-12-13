@@ -20,12 +20,22 @@ import '../serialization/helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
+import "package:expect/expect.dart";
+
+class A<T> {
+  foo() {
+    bar() => T;
+    return bar();
+  }
+}
+
 main() {
   for (int i = 0; i < 10; i++) {
     if (i == 5) continue;
     print('Hello World: \$i!');
     if (i == 7) break;
   }
+  Expect.equals(new A<int>().foo(), int);
 }
 '''
 };
@@ -68,12 +78,11 @@ Future<ResultKind> mainInternal(List<String> args,
     dillFile.toString(),
     '-o$output',
     Flags.useKernel,
-    Flags.disableTypeInference,
-    Flags.disableInlining,
     Flags.enableAssertMessage
   ];
   print('Running: dart2js ${dart2jsArgs.join(' ')}');
 
+  dart2js.disableInliningForKernel = false;
   await dart2js.internalMain(dart2jsArgs);
 
   print('---- run from dill --------------------------------------------');
