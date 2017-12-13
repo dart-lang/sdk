@@ -4280,11 +4280,6 @@ class KernelSsaGraphBuilder extends ir.Visitor
       ir.Node currentNode,
       SourceInformation sourceInformation,
       {InterfaceType instanceType}) {
-    // TODO(johnniwinther,sra): Remove this when inlining is more mature.
-    if (function.library.canonicalUri.scheme == 'dart') {
-      // Temporarily disable inlining of platform libraries.
-      return false;
-    }
     if (function.isExternal) {
       // Don't inline external methods; these should just fail at runtime.
       return false;
