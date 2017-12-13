@@ -746,14 +746,12 @@ class LibraryAnalyzer {
             }
           } else if (member is FieldDeclaration) {
             List<VariableDeclaration> fields = member.fields.variables;
-            if (fields.length != 1) {
-              // TODO(scheglov) Handle this case.
-              throw new UnimplementedError('Multiple field');
-            }
             var context = fields[0].element as ElementImpl;
             var resolution = resolutions.next();
             var applier = _createResolutionApplier(context, resolution);
-            fields[0].initializer?.accept(applier);
+            for (var field in fields.reversed) {
+              field.initializer?.accept(applier);
+            }
             applier.applyToAnnotations(member);
             applier.checkDone();
           } else if (member is MethodDeclaration) {
@@ -784,14 +782,12 @@ class LibraryAnalyzer {
         // No bodies to resolve.
       } else if (declaration is TopLevelVariableDeclaration) {
         List<VariableDeclaration> variables = declaration.variables.variables;
-        if (variables.length != 1) {
-          // TODO(scheglov) Handle this case.
-          throw new UnimplementedError('Multiple variables');
-        }
         var context = variables[0].element as ElementImpl;
         var resolution = resolutions.next();
         var applier = _createResolutionApplier(context, resolution);
-        variables[0].initializer?.accept(applier);
+        for (var variable in variables.reversed) {
+          variable.initializer?.accept(applier);
+        }
         applier.applyToAnnotations(declaration);
         applier.checkDone();
       } else {

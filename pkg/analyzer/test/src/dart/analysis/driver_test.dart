@@ -102,7 +102,7 @@ const myAnnotation = 1;
 @myAnnotation
 class C {
   @myAnnotation
-  int field = 2;
+  int field1 = 2, field2 = 3;
 
   @myAnnotation
   C() {}
@@ -112,7 +112,7 @@ class C {
 }
 
 @myAnnotation
-int topLevelVariable = 3;
+int topLevelVariable1 = 4, topLevelVariable2 = 5;
 
 @myAnnotation
 void topLevelFunction() {}
@@ -4535,6 +4535,53 @@ class C<T> {
     }
   }
 
+  test_top_field_class_multiple() async {
+    String content = r'''
+class C {
+  var a = 1, b = 2.3;
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    ClassDeclaration cNode = unit.declarations[0];
+    ClassElement cElement = cNode.element;
+
+    FieldDeclaration fieldDeclaration = cNode.members[0];
+
+    {
+      FieldElement aElement = cElement.getField('a');
+
+      VariableDeclaration aNode = fieldDeclaration.fields.variables[0];
+      expect(aNode.element, same(aElement));
+      expect(aElement.type, typeProvider.intType);
+
+      expect(aNode.name.staticElement, same(aElement));
+      expect(aNode.name.staticType, same(aElement.type));
+
+      Expression aValue = aNode.initializer;
+      expect(aValue.staticType, typeProvider.intType);
+    }
+
+    {
+      FieldElement bElement = cElement.getField('b');
+
+      VariableDeclaration bNode = fieldDeclaration.fields.variables[1];
+      expect(bNode.element, same(bElement));
+      expect(bElement.type, typeProvider.doubleType);
+
+      expect(bNode.name.staticElement, same(bElement));
+      expect(bNode.name.staticType, same(bElement.type));
+
+      Expression aValue = bNode.initializer;
+      expect(aValue.staticType, typeProvider.doubleType);
+    }
+  }
+
   test_top_field_top() async {
     String content = r'''
 var a = 1;
@@ -4573,6 +4620,47 @@ double b = 2.3;
 
       expect(bNode.name.staticElement, same(bElement));
       expect(bNode.name.staticType, same(bElement.type));
+
+      Expression aValue = bNode.initializer;
+      expect(aValue.staticType, typeProvider.doubleType);
+    }
+  }
+
+  test_top_field_top_multiple() async {
+    String content = r'''
+var a = 1, b = 2.3;
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    CompilationUnit unit = result.unit;
+    CompilationUnitElement unitElement = unit.element;
+    var typeProvider = unitElement.context.typeProvider;
+
+    TopLevelVariableDeclaration variableDeclaration = unit.declarations[0];
+    expect(variableDeclaration.variables.type, isNull);
+
+    {
+      VariableDeclaration aNode = variableDeclaration.variables.variables[0];
+      TopLevelVariableElement aElement = aNode.element;
+      expect(aElement, same(unitElement.topLevelVariables[0]));
+      expect(aElement.type, typeProvider.intType);
+
+      expect(aNode.name.staticElement, same(aElement));
+      expect(aNode.name.staticType, aElement.type);
+
+      Expression aValue = aNode.initializer;
+      expect(aValue.staticType, typeProvider.intType);
+    }
+
+    {
+      VariableDeclaration bNode = variableDeclaration.variables.variables[1];
+      TopLevelVariableElement bElement = bNode.element;
+      expect(bElement, same(unitElement.topLevelVariables[1]));
+      expect(bElement.type, typeProvider.doubleType);
+
+      expect(bNode.name.staticElement, same(bElement));
+      expect(bNode.name.staticType, bElement.type);
 
       Expression aValue = bNode.initializer;
       expect(aValue.staticType, typeProvider.doubleType);
