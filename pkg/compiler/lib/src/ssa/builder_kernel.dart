@@ -4843,6 +4843,7 @@ class InlineWeeder extends ir.Visitor {
   }
 
   visitReturnStatement(ir.ReturnStatement node) {
+    if (!registerNode()) return;
     if (seenReturn) {
       tooDifficultReason = 'code after return';
       return;
@@ -4852,8 +4853,10 @@ class InlineWeeder extends ir.Visitor {
   }
 
   visitThrow(ir.Throw node) {
+    if (!registerNode()) return;
     if (seenReturn) {
       tooDifficultReason = 'code after return';
+      return;
     }
     node.visitChildren(this);
   }
