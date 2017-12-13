@@ -76,6 +76,18 @@ f() {
     testUserDefinableOperatorWithSuper('|');
   }
 
+  void test_cascade_missingRight() {
+    testRecovery('''
+f(x) {
+  x..
+}
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN], '''
+f(x) {
+  x.. _s_;
+}
+''');
+  }
+
   void test_classDeclaration_missingName() {
     testRecovery('''
 class {}

@@ -236,7 +236,7 @@ ExpectedHexDigit:
 ExpectedIdentifier:
   template: "Expected an identifier, but got '#lexeme'."
   analyzerCode: MISSING_IDENTIFIER
-  dart2jsCode: EXPECTED_IDENTIFIER
+  dart2jsCode: "*fatal*"
   script: "do() {} main() {}"
 
 EqualityCannotBeEqualityOperand:

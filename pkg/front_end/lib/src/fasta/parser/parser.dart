@@ -4459,11 +4459,9 @@ class Parser {
     listener.beginCascade(cascadeOperator);
     if (optional('[', token.next)) {
       token = parseArgumentOrIndexStar(token, null);
-    } else if (token.next.isIdentifier) {
+    } else {
       token = parseSend(token, IdentifierContext.expressionContinuation);
       listener.endBinaryExpression(cascadeOperator);
-    } else {
-      return reportUnexpectedToken(token.next);
     }
     Token next = token.next;
     Token mark;

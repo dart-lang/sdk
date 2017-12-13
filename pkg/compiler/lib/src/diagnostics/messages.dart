@@ -2668,8 +2668,7 @@ main() {}
       MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD: const MessageTemplate(
           MessageKind.EXPECTED_IDENTIFIER_NOT_RESERVED_WORD,
           "'#{keyword}' is a reserved word and can't be used here.",
-          howToFix: "Try using a different name.",
-          examples: const ["do() {} main() {}"]),
+          howToFix: "Try using a different name."),
 
       MessageKind.NAMED_FUNCTION_EXPRESSION: const MessageTemplate(
           MessageKind.NAMED_FUNCTION_EXPRESSION,
