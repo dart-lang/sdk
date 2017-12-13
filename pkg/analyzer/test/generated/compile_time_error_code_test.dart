@@ -98,169 +98,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
   AnalysisOptions get defaultAnalysisOptions =>
       new AnalysisOptionsImpl()..strongMode = true;
 
-  fail_awaitInWrongContext_sync() async {
-    // This test requires better error recovery than we currently have. In
-    // particular, we need to be able to distinguish between an await expression
-    // in the wrong context, and the use of 'await' as an identifier.
-    Source source = addSource(r'''
-f(x) {
-  return await x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
-    verify([source]);
-  }
-
-  fail_awaitInWrongContext_syncStar() async {
-    // This test requires better error recovery than we currently have. In
-    // particular, we need to be able to distinguish between an await expression
-    // in the wrong context, and the use of 'await' as an identifier.
-    Source source = addSource(r'''
-f(x) sync* {
-  yield await x;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
-    verify([source]);
-  }
-
-  fail_constEvalThrowsException() async {
-    Source source = addSource(r'''
-class C {
-  const C();
-}
-f() { return const C(); }''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION]);
-    verify([source]);
-  }
-
-  fail_invalidIdentifierInAsync_async() async {
-    // TODO(brianwilkerson) Report this error.
-    Source source = addSource(r'''
-class A {
-  m() async {
-    int async;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
-    verify([source]);
-  }
-
-  fail_invalidIdentifierInAsync_await() async {
-    // TODO(brianwilkerson) Report this error.
-    Source source = addSource(r'''
-class A {
-  m() async {
-    int await;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
-    verify([source]);
-  }
-
-  fail_invalidIdentifierInAsync_yield() async {
-    // TODO(brianwilkerson) Report this error.
-    Source source = addSource(r'''
-class A {
-  m() async {
-    int yield;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
-    verify([source]);
-  }
-
-  fail_mixinDeclaresConstructor() async {
-    Source source = addSource(r'''
-class A {
-  A() {}
-}
-class B extends Object mixin A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
-    verify([source]);
-  }
-
-  fail_mixinOfNonClass() async {
-    // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
-    Source source = addSource(r'''
-var A;
-class B extends Object mixin A {}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_NON_CLASS]);
-    verify([source]);
-  }
-
-  fail_objectCannotExtendAnotherClass() async {
-    Source source = addSource(r'''
-''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS]);
-    verify([source]);
-  }
-
-  fail_superInitializerInObject() async {
-    Source source = addSource(r'''
-''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT]);
-    verify([source]);
-  }
-
-  fail_yieldEachInNonGenerator_async() async {
-    // TODO(brianwilkerson) We are currently parsing the yield statement as a
-    // binary expression.
-    Source source = addSource(r'''
-f() async {
-  yield* 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
-    verify([source]);
-  }
-
-  fail_yieldEachInNonGenerator_sync() async {
-    // TODO(brianwilkerson) We are currently parsing the yield statement as a
-    // binary expression.
-    Source source = addSource(r'''
-f() {
-  yield* 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
-    verify([source]);
-  }
-
-  fail_yieldInNonGenerator_async() async {
-    // TODO(brianwilkerson) We are currently trying to parse the yield statement
-    // as a binary expression.
-    Source source = addSource(r'''
-f() async {
-  yield 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
-    verify([source]);
-  }
-
-  fail_yieldInNonGenerator_sync() async {
-    // TODO(brianwilkerson) We are currently trying to parse the yield statement
-    // as a binary expression.
-    Source source = addSource(r'''
-f() {
-  yield 0;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
-    verify([source]);
-  }
-
   test_accessPrivateEnumField() async {
     Source source = addSource(r'''
 enum E { ONE }
@@ -656,6 +493,34 @@ f() sync* {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_awaitInWrongContext_sync() async {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    Source source = addSource(r'''
+f(x) {
+  return await x;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_awaitInWrongContext_syncStar() async {
+    // This test requires better error recovery than we currently have. In
+    // particular, we need to be able to distinguish between an await expression
+    // in the wrong context, and the use of 'await' as an identifier.
+    Source source = addSource(r'''
+f(x) sync* {
+  yield await x;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
     verify([source]);
   }
 
@@ -1188,6 +1053,19 @@ const C = a.m;''');
     await computeAnalysisResult(source);
     assertErrors(source,
         [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_constEvalThrowsException() async {
+    Source source = addSource(r'''
+class C {
+  const C();
+}
+f() { return const C(); }''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION]);
     verify([source]);
   }
 
@@ -3440,6 +3318,48 @@ class A {
     // no verify() call, "B" is not resolved
   }
 
+  @failingTest
+  test_invalidIdentifierInAsync_async() async {
+    // TODO(brianwilkerson) Report this error.
+    Source source = addSource(r'''
+class A {
+  m() async {
+    int async;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_invalidIdentifierInAsync_await() async {
+    // TODO(brianwilkerson) Report this error.
+    Source source = addSource(r'''
+class A {
+  m() async {
+    int await;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_invalidIdentifierInAsync_yield() async {
+    // TODO(brianwilkerson) Report this error.
+    Source source = addSource(r'''
+class A {
+  m() async {
+    int yield;
+  }
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
   test_invalidModifierOnConstructor_async() async {
     Source source = addSource(r'''
 class A {
@@ -3760,6 +3680,18 @@ class A {
     verify([source]);
   }
 
+  @failingTest
+  test_mixinDeclaresConstructor() async {
+    Source source = addSource(r'''
+class A {
+  A() {}
+}
+class B extends Object mixin A {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    verify([source]);
+  }
+
   test_mixinDeclaresConstructor_classDeclaration() async {
     Source source = addSource(r'''
 class A {
@@ -4040,6 +3972,17 @@ enum E { ONE }
 class A extends Object with E {}''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_ENUM]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_mixinOfNonClass() async {
+    // TODO(brianwilkerson) Compare with MIXIN_WITH_NON_CLASS_SUPERCLASS.
+    Source source = addSource(r'''
+var A;
+class B extends Object mixin A {}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_NON_CLASS]);
     verify([source]);
   }
 
@@ -5016,6 +4959,16 @@ class B extends A {
 }''');
     await computeAnalysisResult(source);
     assertErrors(source, [CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_objectCannotExtendAnotherClass() async {
+    Source source = addSource(r'''
+''');
+    await computeAnalysisResult(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS]);
     verify([source]);
   }
 
@@ -6121,6 +6074,15 @@ f() {
     // no verify(), 'super.y' is not resolved
   }
 
+  @failingTest
+  test_superInitializerInObject() async {
+    Source source = addSource(r'''
+''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT]);
+    verify([source]);
+  }
+
   test_superInRedirectingConstructor_redirectionSuper() async {
     Source source = addSource(r'''
 class A {}
@@ -6612,6 +6574,58 @@ f() sync* {
 ''');
     await computeAnalysisResult(source);
     assertErrors(source, [ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_yieldEachInNonGenerator_async() async {
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a
+    // binary expression.
+    Source source = addSource(r'''
+f() async {
+  yield* 0;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_yieldEachInNonGenerator_sync() async {
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a
+    // binary expression.
+    Source source = addSource(r'''
+f() {
+  yield* 0;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_yieldInNonGenerator_async() async {
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement
+    // as a binary expression.
+    Source source = addSource(r'''
+f() async {
+  yield 0;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  @failingTest
+  test_yieldInNonGenerator_sync() async {
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement
+    // as a binary expression.
+    Source source = addSource(r'''
+f() {
+  yield 0;
+}''');
+    await computeAnalysisResult(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
     verify([source]);
   }
 
