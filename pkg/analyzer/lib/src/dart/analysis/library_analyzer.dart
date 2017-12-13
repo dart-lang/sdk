@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analyzer/context/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -1010,10 +1011,11 @@ class _ResolutionApplierContext implements TypeContext {
   ElementImpl context;
 
   List<Element> declaredElements = [];
-  Map<kernel.TreeNode, Element> declarationToElement = {};
-  Map<FunctionElementImpl, kernel.TreeNode> functionElementToDeclaration = {};
+  Map<kernel.TreeNode, Element> declarationToElement = new HashMap.identity();
+  Map<FunctionElementImpl, kernel.TreeNode> functionElementToDeclaration =
+      new HashMap.identity();
   Map<ParameterElementImpl, kernel.VariableDeclaration>
-      parameterElementToDeclaration = {};
+      parameterElementToDeclaration = new HashMap.identity();
 
   ResolutionApplier applier;
 

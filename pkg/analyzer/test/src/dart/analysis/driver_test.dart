@@ -1122,49 +1122,104 @@ main() {
   items.forEach((item) {
     item;
   });
+  items.forEach((item) {
+    item;
+  });
 }
 ''');
     AnalysisResult result = await driver.getResult(testFile);
     var typeProvider = result.unit.element.context.typeProvider;
 
-    List<Statement> mainStatements = _getMainStatements(result);
+    FunctionDeclaration mainDeclaration = result.unit.declarations[0];
+    FunctionElement mainElement = mainDeclaration.element;
+    BlockFunctionBody mainBody = mainDeclaration.functionExpression.body;
+    List<Statement> mainStatements = mainBody.block.statements;
 
     VariableDeclarationStatement itemsStatement = mainStatements[0];
     var itemsElement = itemsStatement.variables.variables[0].element;
 
-    ExpressionStatement forStatement = mainStatements[1];
-    MethodInvocation forInvocation = forStatement.expression;
+    // First closure.
+    ParameterElement itemElement1;
+    {
+      ExpressionStatement forStatement = mainStatements[1];
+      MethodInvocation forInvocation = forStatement.expression;
 
-    SimpleIdentifier forTarget = forInvocation.target;
-    expect(forTarget.staticElement, itemsElement);
+      SimpleIdentifier forTarget = forInvocation.target;
+      expect(forTarget.staticElement, itemsElement);
 
-    var closureTypeStr = '(int) → Null';
-    FunctionExpression closure = forInvocation.argumentList.arguments[0];
-    FunctionElement closureElement = closure.element;
-    ParameterElement itemElement = closureElement.parameters[0];
+      var closureTypeStr = '(int) → Null';
+      FunctionExpression closure = forInvocation.argumentList.arguments[0];
 
-    expect(closureElement.returnType, typeProvider.nullType);
-    expect(closureElement.type.element, same(closureElement));
-    expect(closureElement.type.toString(), closureTypeStr);
-    expect(closure.staticType, same(closureElement.type));
+      FunctionElementImpl closureElement = closure.element;
+      expect(closureElement.enclosingElement, same(mainElement));
 
-    List<FormalParameter> closureParameters = closure.parameters.parameters;
-    expect(closureParameters, hasLength(1));
+      ParameterElement itemElement = closureElement.parameters[0];
+      itemElement1 = itemElement;
 
-    SimpleFormalParameter itemNode = closureParameters[0];
-    _assertSimpleParameter(itemNode, itemElement,
-        name: 'item',
-        offset: 56,
-        kind: ParameterKind.REQUIRED,
-        type: typeProvider.intType);
+      expect(closureElement.returnType, typeProvider.nullType);
+      expect(closureElement.type.element, same(closureElement));
+      expect(closureElement.type.toString(), closureTypeStr);
+      expect(closure.staticType, same(closureElement.type));
 
-    BlockFunctionBody closureBody = closure.body;
-    List<Statement> closureStatements = closureBody.block.statements;
+      List<FormalParameter> closureParameters = closure.parameters.parameters;
+      expect(closureParameters, hasLength(1));
 
-    ExpressionStatement itemStatement = closureStatements[0];
-    SimpleIdentifier itemIdentifier = itemStatement.expression;
-    expect(itemIdentifier.staticElement, itemElement);
-    expect(itemIdentifier.staticType, typeProvider.intType);
+      SimpleFormalParameter itemNode = closureParameters[0];
+      _assertSimpleParameter(itemNode, itemElement,
+          name: 'item',
+          offset: 56,
+          kind: ParameterKind.REQUIRED,
+          type: typeProvider.intType);
+
+      BlockFunctionBody closureBody = closure.body;
+      List<Statement> closureStatements = closureBody.block.statements;
+
+      ExpressionStatement itemStatement = closureStatements[0];
+      SimpleIdentifier itemIdentifier = itemStatement.expression;
+      expect(itemIdentifier.staticElement, itemElement);
+      expect(itemIdentifier.staticType, typeProvider.intType);
+    }
+
+    // Second closure, same names, different elements.
+    {
+      ExpressionStatement forStatement = mainStatements[2];
+      MethodInvocation forInvocation = forStatement.expression;
+
+      SimpleIdentifier forTarget = forInvocation.target;
+      expect(forTarget.staticElement, itemsElement);
+
+      var closureTypeStr = '(int) → Null';
+      FunctionExpression closure = forInvocation.argumentList.arguments[0];
+
+      FunctionElementImpl closureElement = closure.element;
+      expect(closureElement.enclosingElement, same(mainElement));
+
+      ParameterElement itemElement = closureElement.parameters[0];
+      expect(itemElement, isNot(same(itemElement1)));
+
+      expect(closureElement.returnType, typeProvider.nullType);
+      expect(closureElement.type.element, same(closureElement));
+      expect(closureElement.type.toString(), closureTypeStr);
+      expect(closure.staticType, same(closureElement.type));
+
+      List<FormalParameter> closureParameters = closure.parameters.parameters;
+      expect(closureParameters, hasLength(1));
+
+      SimpleFormalParameter itemNode = closureParameters[0];
+      _assertSimpleParameter(itemNode, itemElement,
+          name: 'item',
+          offset: 97,
+          kind: ParameterKind.REQUIRED,
+          type: typeProvider.intType);
+
+      BlockFunctionBody closureBody = closure.body;
+      List<Statement> closureStatements = closureBody.block.statements;
+
+      ExpressionStatement itemStatement = closureStatements[0];
+      SimpleIdentifier itemIdentifier = itemStatement.expression;
+      expect(itemIdentifier.staticElement, itemElement);
+      expect(itemIdentifier.staticType, typeProvider.intType);
+    }
   }
 
   test_conditionalExpression() async {
