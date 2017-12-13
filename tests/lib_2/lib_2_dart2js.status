@@ -168,13 +168,15 @@ html/custom/document_register_basic_test: Skip # Times out, or unittest times ou
 html/dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 html/element_animate_test/timing_dict: RuntimeError # Issue 26730
 html/element_classes_test: RuntimeError # Issue 27535
-html/element_types_content_test: Pass, RuntimeError # Issue 28983
 html/element_types_content_test: RuntimeError # Issue 29922
+html/element_types_content_test: Pass, RuntimeError # Issue 28983
 html/element_types_keygen_test: RuntimeError # Issue 29922
 html/element_types_keygen_test: Fail
 html/element_types_shadow_test: RuntimeError # Issue 29922
 html/element_types_shadow_test: Pass, RuntimeError # Issue 28983
-html/fileapi_supported_throws_test: Fail
+html/file_sample_test: Skip # FileSystem not supported on FireFox.
+html/fileapi_supported_test: Skip # FileSystem not supported on FireFox.
+html/fileapi_supported_throws_test: Skip # FileSystem not supported on FireFox.
 html/history_test/history: Skip # Issue 22050
 html/input_element_datetime_test: Fail
 html/input_element_month_test: Fail
@@ -397,8 +399,8 @@ html/isolates_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': 
 html/js_array_test: CompileTimeError
 html/js_array_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_dart_to_string_test: Crash # 'file:*/pkg/compiler/lib/src/common_elements.dart': Failed assertion: line 405 pos 12: 'element.name == '=='': is not true.
-html/js_dispatch_property_test: CompileTimeError
 html/js_dispatch_property_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
+html/js_dispatch_property_test: CompileTimeError
 html/js_function_getter_test: CompileTimeError
 html/js_function_getter_test/call getter as function: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
 html/js_function_getter_trust_types_test: Crash # FileSystemException(uri=file:///usr/local/google/home/efortuna/dart2/sdk/sdk/lib/_internal/dart2js_platform.dill; message=Error reading 'sdk/lib/_internal/dart2js_platform.dill'  (No such file or directory))
