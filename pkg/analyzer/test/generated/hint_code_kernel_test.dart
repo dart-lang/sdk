@@ -479,11 +479,4 @@ class HintCodeTest_Kernel extends HintCodeTest_Driver {
     // Expected 1 errors of type HintCode.UNUSED_SHOWN_NAME, found 0
     return super.test_unusedShownName_topLevelVariable();
   }
-
-  @failingTest
-  @override
-  test_useOfVoidResult_variableDeclaration_method2() async {
-    // UnimplementedError: Multiple variables in one declaration
-    return super.test_useOfVoidResult_variableDeclaration_method2();
-  }
 }

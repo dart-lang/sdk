@@ -2501,14 +2501,12 @@ void main() {
   }
 
   test_local_variable() async {
-    String content = r'''
+    addTestFile(r'''
 void main() {
   var v = 42;
   v;
 }
-''';
-    addTestFile(content);
-
+''');
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
     expect(result.errors, isEmpty);
@@ -2723,6 +2721,28 @@ void main() {
     SimpleIdentifier identifier = statement.expression;
     expect(identifier.staticElement, vElement);
     expect(identifier.staticType, typeProvider.numType);
+  }
+
+  test_local_variable_multiple() async {
+    addTestFile(r'''
+void main() {
+  var a = 1, b = 2.3;
+}
+''');
+    AnalysisResult result = await driver.getResult(testFile);
+    var typeProvider = result.unit.element.context.typeProvider;
+
+    List<Statement> statements = _getMainStatements(result);
+
+    VariableDeclarationStatement declarationStatement = statements[0];
+
+    VariableDeclaration aNode = declarationStatement.variables.variables[0];
+    LocalVariableElement aElement = aNode.element;
+    expect(aElement.type, typeProvider.intType);
+
+    VariableDeclaration bNode = declarationStatement.variables.variables[1];
+    LocalVariableElement bElement = bNode.element;
+    expect(bElement.type, typeProvider.doubleType);
   }
 
   test_local_variable_ofLocalFunction() async {

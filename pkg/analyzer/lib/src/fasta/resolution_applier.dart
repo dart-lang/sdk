@@ -517,10 +517,6 @@ class ResolutionApplier extends GeneralizingAstVisitor {
     if (node.parent is TopLevelVariableDeclaration) {
       node.variables.accept(this);
     } else {
-      if (node.variables.length != 1) {
-        // TODO(paulberry): handle this case
-        throw new UnimplementedError('Multiple variables in one declaration');
-      }
       if (node.metadata.isNotEmpty) {
         // TODO(paulberry): handle this case
         throw new UnimplementedError('Metadata on a variable declaration list');
