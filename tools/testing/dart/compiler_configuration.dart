@@ -108,8 +108,8 @@ abstract class CompilerConfiguration {
   List<Uri> bootstrapDependencies() => const <Uri>[];
 
   /// Creates a [Command] to compile [inputFile] to [outputFile].
-  Command createCommand(
-      String inputFile, String outputFile, List<String> sharedOptions) {
+  Command createCommand(String inputFile, String outputFile,
+      List<String> sharedOptions, Map<String, String> environment) {
     // TODO(rnystrom): See if this method can be unified with
     // computeCompilationArtifact() and/or computeCompilerArguments() for the
     // other compilers.
@@ -475,9 +475,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     return result;
   }
 
-  Command createCommand(
-      String inputFile, String outputFile, List<String> sharedOptions,
-      [Map<String, String> environment = const {}]) {
+  Command createCommand(String inputFile, String outputFile,
+      List<String> sharedOptions, Map<String, String> environment) {
     var moduleRoot =
         new Path(outputFile).directoryPath.directoryPath.toNativePath();
 
@@ -559,9 +558,8 @@ class DevKernelCompilerConfiguration extends CompilerConfiguration {
     return result;
   }
 
-  Command createCommand(
-      String inputFile, String outputFile, List<String> sharedOptions,
-      [Map<String, String> environment = const {}]) {
+  Command createCommand(String inputFile, String outputFile,
+      List<String> sharedOptions, Map<String, String> environment) {
     var args = sharedOptions.toList();
 
     var sdkSummary = new Path(_configuration.buildDirectory)

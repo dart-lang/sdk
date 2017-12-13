@@ -790,6 +790,7 @@ class BatchRunnerProcess {
   bool _dictEquals(Map a, Map b) {
     if (a == null) return b == null;
     if (b == null) return false;
+    if (a.length != b.length) return false;
     for (var key in a.keys) {
       if (a[key] != b[key]) return false;
     }

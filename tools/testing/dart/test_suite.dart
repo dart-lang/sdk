@@ -1045,8 +1045,11 @@ class StandardTestSuite extends TestSuite {
       case Compiler.dartdevk:
         var toPath =
             new Path('$compilationTempDir/$nameNoExt.js').toNativePath();
-        commands.add(configuration.compilerConfiguration.createCommand(fileName,
-            toPath, optionsFromFile["sharedOptions"] as List<String>));
+        commands.add(configuration.compilerConfiguration.createCommand(
+            fileName,
+            toPath,
+            optionsFromFile["sharedOptions"] as List<String>,
+            environmentOverrides));
         break;
 
       default:
@@ -1070,7 +1073,8 @@ class StandardTestSuite extends TestSuite {
           commands.add(configuration.compilerConfiguration.createCommand(
               fromPath.toNativePath(),
               toPath,
-              optionsFromFile["sharedOptions"] as List<String>));
+              optionsFromFile["sharedOptions"] as List<String>,
+              environmentOverrides));
           break;
       }
     }
