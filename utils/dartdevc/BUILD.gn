@@ -47,7 +47,9 @@ application_snapshot("dartdevk") {
   training_args = [
     "--dart-sdk-summary",
     rebase_path(sdk_dill),
-    "--help",
+    "-o",
+    "dartdevk.js",
+    rebase_path("../../pkg/dev_compiler/test/codegen/sunflower/sunflower.dart"),
   ]
 
   deps = [
