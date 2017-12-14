@@ -1977,9 +1977,8 @@ instanceof4_test/01: Pass
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: Pass
 instanceof4_test/none: RuntimeError
-int64_literal_test/04: CompileTimeError # Issue 31369
-int64_literal_test/05: CompileTimeError # Issue 31369
-int64_literal_test/40: CompileTimeError # Issue 31369
+int64_literal_test/03: MissingCompileTimeError # http://dartbug.com/31479
+int64_literal_test/30: MissingCompileTimeError # http://dartbug.com/31479
 interface_test/00: MissingCompileTimeError
 invocation_mirror2_test: SkipByDesign
 invocation_mirror_invoke_on2_test: SkipByDesign

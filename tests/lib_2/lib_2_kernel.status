@@ -11,8 +11,7 @@
 # to add them.
 
 [ $compiler == dartkp ]
-typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Issue 31369
-typed_data/int32x4_arithmetic_test/none: CompileTimeError # Issue 31369
+typed_data/int32x4_arithmetic_test/int64: CompileTimeError # Issue 31339
 
 [ $arch == x64 && $compiler == dartk && $mode == debug && $runtime == vm && $strong ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
@@ -173,8 +172,8 @@ mirrors/invocation_fuzz_test/smi: RuntimeError
 mirrors/invocation_fuzz_test/string: Crash
 mirrors/invoke_private_test: RuntimeError
 mirrors/invoke_private_wrong_library_test: RuntimeError
-mirrors/invoke_throws_test: Crash
 mirrors/invoke_throws_test: RuntimeError
+mirrors/invoke_throws_test: Crash
 mirrors/lazy_static_test: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_declarations_test/01: CompileTimeError # Issue 31402 (Invocation arguments)
 mirrors/library_declarations_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
