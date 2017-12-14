@@ -165,9 +165,10 @@ import "dart:convert"
         StringConversionSink,
         utf8;
 import "dart:math" show Random; // Used by List.shuffle.
-import "dart:typed_data" show Uint8List;
+import "dart:typed_data" show Uint8List, Uint16List, Endian;
 
 part "annotations.dart";
+part "bigint.dart";
 part "bool.dart";
 part "comparable.dart";
 part "date_time.dart";
