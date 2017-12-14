@@ -6455,7 +6455,14 @@ class Parser {
     Expression message;
     if (_matches(TokenType.COMMA)) {
       comma = getAndAdvance();
-      message = parseExpression2();
+      if (_matches(TokenType.CLOSE_PAREN)) {
+        comma = null;
+      } else {
+        message = parseExpression2();
+        if (_matches(TokenType.COMMA)) {
+          getAndAdvance();
+        }
+      }
     }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
     return astFactory.assertInitializer(
