@@ -54,10 +54,11 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
 
       if (srcInfo is FileUriNode) {
         parentsStack.add(srcInfo);
-        if (srcInfo is Procedure || srcInfo is Class) mark = false;
-      } else if (srcInfo is Constructor) {
-        parentsStack.add(srcInfo.parent);
-        mark = false;
+        if (srcInfo is Procedure ||
+            srcInfo is Class ||
+            srcInfo is Constructor) {
+          mark = false;
+        }
       }
       if (mark && srcInfo is Block) mark = false;
     } else {
@@ -93,8 +94,6 @@ class SourceMapPrintingContext extends JS.SimpleJavaScriptPrintingContext {
     if (offset != -1) _mark(offset, true);
 
     if (srcInfo is FileUriNode) {
-      parentsStack.removeLast();
-    } else if (srcInfo is Constructor) {
       parentsStack.removeLast();
     }
   }
