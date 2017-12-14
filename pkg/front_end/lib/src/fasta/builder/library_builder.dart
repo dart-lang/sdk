@@ -45,9 +45,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   LibraryBuilder partOfLibrary;
 
-  /// True if a compile-time error has been reported in this library.
-  bool hasCompileTimeErrors = false;
-
   bool mayImplementRestrictedTypes = false;
 
   LibraryBuilder(Uri fileUri, this.scope, this.exportScope)
@@ -82,7 +79,6 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   void addCompileTimeError(Message message, int charOffset, Uri fileUri,
       {bool wasHandled: false, LocatedMessage context}) {
     fileUri ??= this.fileUri;
-    hasCompileTimeErrors = true;
     loader.addCompileTimeError(message, charOffset, fileUri,
         wasHandled: wasHandled, context: context);
   }

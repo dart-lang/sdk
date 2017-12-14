@@ -2698,7 +2698,9 @@ class BodyBuilder extends ScopeListener<JumpTarget> implements BuilderHelper {
     } else if (declaration is ExpressionStatement) {
       // If [declaration] isn't a [FunctionDeclaration], it must be because
       // there was a compile-time error.
-      assert(library.hasCompileTimeErrors);
+      // TODO(askesc): Be more specific about the error code when we have
+      // errors represented as explicit invalid nodes.
+      assert(library.loader.handledErrors.isNotEmpty);
 
       // TODO(paulberry,ahe): ensure that when integrating with analyzer, type
       // inference is still performed for the dropped declaration.
