@@ -228,8 +228,8 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     final commands = <Command>[
       computeCompileToKernelCommand(tempDir, arguments, environmentOverrides),
     ];
-    return new CommandArtifact(
-        commands, tempKernelFile(tempDir), 'application/kernel-ir');
+    return new CommandArtifact(commands, tempKernelFile(tempDir),
+        'application/kernel-ir-fully-linked');
   }
 
   List<String> computeRuntimeArguments(
@@ -242,6 +242,8 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     var args = <String>[];
     if (_isStrong) {
       args.add('--strong');
+      args.add('--reify-generic-functions');
+      args.add('--limit-ints-to-64-bits');
     }
     if (_isChecked) {
       args.add('--enable_asserts');

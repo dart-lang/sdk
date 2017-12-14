@@ -177,14 +177,17 @@ abstract class TestSuite {
     }
 
     if (dartExecutable == null) {
-      var suffix = executableBinarySuffix;
-      dartExecutable = useSdk
-          ? '$buildDir/dart-sdk/bin/dart$suffix'
-          : '$buildDir/dart$suffix';
+      dartExecutable = dartVmExecutableFileName;
     }
 
     TestUtils.ensureExists(dartExecutable, configuration);
     return dartExecutable;
+  }
+
+  String get dartVmExecutableFileName {
+    return useSdk
+        ? '$buildDir/dart-sdk/bin/dart$executableBinarySuffix'
+        : '$buildDir/dart$executableBinarySuffix';
   }
 
   /// Returns the name of the flutter engine executable.
