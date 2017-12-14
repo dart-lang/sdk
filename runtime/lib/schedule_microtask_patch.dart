@@ -24,7 +24,3 @@ class _ScheduleImmediate {
 void _setScheduleImmediateClosure(_ScheduleImmediateClosure closure) {
   _ScheduleImmediate._closure = closure;
 }
-
-void _ensureScheduleImmediate() {
-  _AsyncRun._scheduleImmediate(_startMicrotaskLoop);
-}

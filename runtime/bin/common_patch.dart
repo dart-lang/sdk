@@ -59,13 +59,3 @@ _setupHooks() {
   VMLibraryHooks.eventHandlerSendData = _EventHandler._sendData;
   VMLibraryHooks.timerMillisecondClock = _EventHandler._timerMillisecondClock;
 }
-
-// The implementation of waitForEventSync for embedders in which the VM
-// manages the event loop and microtask queue.
-// IOUtils_WaitForEventSync throws an exception if there is an error.
-void _standaloneWaitForEventSync(int timeoutMillis)
-    native "IOUtils_WaitForEventSync";
-
-void Function(int timeoutMillis) _getWaitForEventSyncClosure() {
-  return _standaloneWaitForEventSync;
-}

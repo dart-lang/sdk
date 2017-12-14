@@ -626,7 +626,6 @@ void Precompiler::PrecompileConstructors() {
 
 static Dart_QualifiedFunctionName vm_entry_points[] = {
     // Functions
-    {"dart:async", "::", "_ensureScheduleImmediate"},
     {"dart:core", "::", "_completeDeferredLoads"},
     {"dart:core", "::", "identityHashCode"},
     {"dart:core", "AbstractClassInstantiationError",
