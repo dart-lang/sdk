@@ -71,7 +71,9 @@ abstract class CompilerConfiguration {
         return new PrecompilerCompilerConfiguration(configuration);
 
       case Compiler.dartk:
-        if (configuration.architecture == Architecture.simdbc64) {
+        if (configuration.architecture == Architecture.simdbc64 ||
+            configuration.architecture == Architecture.simarm ||
+            configuration.architecture == Architecture.simarm64) {
           return new VMKernelCompilerConfiguration(configuration);
         }
         return new NoneCompilerConfiguration(configuration, useDfe: true);
