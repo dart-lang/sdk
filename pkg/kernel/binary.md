@@ -804,6 +804,12 @@ type Let extends Expression {
   Expression body;
 }
 
+type Instantiation extends Expression {
+  Byte tag = 54;
+  Expression expression;
+  List<DartType> typeArguments;
+}
+
 type LoadLibrary extends Expression {
   Byte tag = 14;
   LibraryDependencyReference deferredImport;

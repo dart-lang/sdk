@@ -54,6 +54,7 @@ abstract class ExpressionVisitor<R> {
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitInstantiation(Instantiation node) => defaultExpression(node);
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
@@ -179,6 +180,7 @@ class TreeVisitor<R>
   R visitBoolLiteral(BoolLiteral node) => defaultBasicLiteral(node);
   R visitNullLiteral(NullLiteral node) => defaultBasicLiteral(node);
   R visitLet(Let node) => defaultExpression(node);
+  R visitInstantiation(Instantiation node) => defaultExpression(node);
   R visitLoadLibrary(LoadLibrary node) => defaultExpression(node);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
       defaultExpression(node);
@@ -490,6 +492,8 @@ abstract class ExpressionVisitor1<R, T> {
   R visitBoolLiteral(BoolLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitNullLiteral(NullLiteral node, T arg) => defaultBasicLiteral(node, arg);
   R visitLet(Let node, T arg) => defaultExpression(node, arg);
+  R visitInstantiation(Instantiation node, T arg) =>
+      defaultExpression(node, arg);
   R visitLoadLibrary(LoadLibrary node, T arg) => defaultExpression(node, arg);
   R visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node, T arg) =>
       defaultExpression(node, arg);

@@ -479,6 +479,23 @@ class TypeCheckingVisitor
   }
 
   @override
+  DartType visitInstantiation(Instantiation node) {
+    DartType type = visitExpression(node.expression);
+    if (type is! FunctionType) {
+      fail(node, 'Not a function type');
+      return const BottomType();
+    }
+    FunctionType functionType = type;
+    if (functionType.typeParameters.length != node.typeArguments.length) {
+      fail(node, 'Wrong number of type arguments');
+      return const BottomType();
+    }
+    return Substitution
+        .fromPairs(functionType.typeParameters, node.typeArguments)
+        .substituteType(functionType);
+  }
+
+  @override
   DartType visitListLiteral(ListLiteral node) {
     for (int i = 0; i < node.expressions.length; ++i) {
       node.expressions[i] =

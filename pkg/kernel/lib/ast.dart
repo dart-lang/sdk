@@ -2914,6 +2914,39 @@ class ConstructorInvocation extends InvocationExpression {
   }
 }
 
+/// An explicit type instantiation of a generic function.
+class Instantiation extends Expression {
+  Expression expression;
+  final List<DartType> typeArguments;
+
+  Instantiation(this.expression, this.typeArguments) {
+    expression?.parent = this;
+  }
+
+  DartType getStaticType(TypeEnvironment types) {
+    FunctionType type = expression.getStaticType(types);
+    return Substitution
+        .fromPairs(type.typeParameters, typeArguments)
+        .substituteType(type);
+  }
+
+  accept(ExpressionVisitor v) => v.visitInstantiation(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitInstantiation(this, arg);
+
+  visitChildren(Visitor v) {
+    expression?.accept(v);
+    visitList(typeArguments, v);
+  }
+
+  transformChildren(Transformer v) {
+    if (expression != null) {
+      expression = expression.accept(v);
+      expression?.parent = this;
+    }
+    transformTypeList(typeArguments, v);
+  }
+}
+
 /// Expression of form `!x`.
 ///
 /// The `is!` and `!=` operators are desugared into [Not] nodes with `is` and

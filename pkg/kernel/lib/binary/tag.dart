@@ -64,6 +64,7 @@ class Tag {
   static const int AwaitExpression = 51;
   static const int FunctionExpression = 52;
   static const int Let = 53;
+  static const int Instantiation = 54;
   static const int PositiveIntLiteral = 55;
   static const int NegativeIntLiteral = 56;
   static const int BigIntLiteral = 57;
@@ -134,7 +135,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h.
-  static const int BinaryFormatVersion = 2;
+  static const int BinaryFormatVersion = 3;
 }
 
 abstract class ConstantTag {

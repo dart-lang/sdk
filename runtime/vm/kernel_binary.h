@@ -19,7 +19,7 @@ namespace kernel {
 // Keep in sync with package:kernel/lib/binary/tag.dart.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kBinaryFormatVersion = 2;
+static const uint32_t kBinaryFormatVersion = 3;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 enum Tag {
@@ -79,6 +79,7 @@ enum Tag {
   kAwaitExpression = 51,
   kFunctionExpression = 52,
   kLet = 53,
+  kInstantiation = 54,
 
   kPositiveIntLiteral = 55,
   kNegativeIntLiteral = 56,

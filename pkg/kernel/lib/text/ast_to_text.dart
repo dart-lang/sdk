@@ -1222,6 +1222,13 @@ class Printer extends Visitor<Null> {
     writeExpression(node.body);
   }
 
+  visitInstantiation(Instantiation node) {
+    writeExpression(node.expression);
+    writeSymbol('<');
+    writeList(node.typeArguments, writeType);
+    writeSymbol('>');
+  }
+
   visitLoadLibrary(LoadLibrary node) {
     writeWord('LoadLibrary');
     writeSymbol('(');

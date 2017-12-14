@@ -1188,6 +1188,12 @@ class BinaryPrinter extends Visitor implements BinarySink {
     --_variableIndexer.stackHeight;
   }
 
+  visitInstantiation(Instantiation node) {
+    writeByte(Tag.Instantiation);
+    writeNode(node.expression);
+    writeNodeList(node.typeArguments);
+  }
+
   visitLoadLibrary(LoadLibrary node) {
     writeByte(Tag.LoadLibrary);
     writeLibraryDependencyReference(node.import);

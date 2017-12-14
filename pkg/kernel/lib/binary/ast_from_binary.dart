@@ -1362,6 +1362,10 @@ class BinaryBuilder {
         var body = readExpression();
         variableStack.length = stackHeight;
         return new Let(variable, body);
+      case Tag.Instantiation:
+        var expression = readExpression();
+        var typeArguments = readDartTypeList();
+        return new Instantiation(expression, typeArguments);
       case Tag.VectorCreation:
         var length = readUInt();
         return new VectorCreation(length);
