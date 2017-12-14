@@ -198,8 +198,8 @@ async_star_pause_test: Fail, OK
 async_star_regression_2238_test: RuntimeError
 async_star_regression_23116_test: RuntimeError
 async_star_regression_fisk_test: RuntimeError
-async_star_test/01: Pass
 async_star_test/01: CompileTimeError # Issue 2238.
+async_star_test/01: Pass
 async_star_test/01: RuntimeError
 async_star_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -390,8 +390,8 @@ deferred_constraints_constants_test/none: CompileTimeError # KernelVM bug: Defer
 deferred_constraints_constants_test/reference_after_load: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/as_operation: MissingCompileTimeError
 deferred_constraints_type_annotation_test/as_operation: Pass # Passes by mistake. Deferred loading kernel issue 28335
-deferred_constraints_type_annotation_test/catch_check: Pass # Passes by mistake. Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/catch_check: MissingCompileTimeError
+deferred_constraints_type_annotation_test/catch_check: Pass # Passes by mistake. Deferred loading kernel issue 28335.
 deferred_constraints_type_annotation_test/is_check: MissingCompileTimeError
 deferred_constraints_type_annotation_test/is_check: Pass # Passes by mistake. Deferred loading kernel issue 28335
 deferred_constraints_type_annotation_test/new: CompileTimeError # Deferred loading kernel issue 28335.
@@ -648,8 +648,8 @@ generic_async_star_test: RuntimeError
 generic_closure_test: RuntimeError
 generic_function_bounds_test: CompileTimeError
 generic_function_bounds_test: RuntimeError
-generic_function_dcall_test: RuntimeError
 generic_function_dcall_test: CompileTimeError
+generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
 generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, issue 30931
 generic_function_typedef2_test/04: MissingCompileTimeError
@@ -1020,8 +1020,8 @@ redirecting_factory_default_values_test/03: MissingCompileTimeError
 redirecting_factory_incompatible_signature_test/01: MissingCompileTimeError
 redirecting_factory_infinite_steps_test/01: MissingCompileTimeError
 redirecting_factory_malbounded_test/01: MissingCompileTimeError
-redirecting_factory_reflection_test: RuntimeError
 redirecting_factory_reflection_test: Crash, Pass
+redirecting_factory_reflection_test: RuntimeError
 regress_13494_test: MissingCompileTimeError
 regress_17382_test: MissingCompileTimeError
 regress_19413_test: MissingCompileTimeError
@@ -1031,8 +1031,8 @@ regress_22443_test: CompileTimeError # KernelVM bug: Deferred loading kernel iss
 regress_22936_test: MissingCompileTimeError
 regress_22976_test/01: CompileTimeError # Issue 31402 (Variable declaration)
 regress_23089_test: MissingCompileTimeError
-regress_23408_test: RuntimeError
 regress_23408_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+regress_23408_test: RuntimeError
 regress_25550_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_27572_test: MissingCompileTimeError
 regress_27617_test/1: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
@@ -1199,6 +1199,30 @@ void_type_usage_test/paren_stmt: CompileTimeError
 void_type_usage_test/setter_assign: CompileTimeError
 wrong_number_type_arguments_test/*: MissingCompileTimeError
 wrong_number_type_arguments_test/none: Pass
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
+bit_operations_test/03: CompileTimeError # Please triage.
+bit_operations_test/04: CompileTimeError # Please triage.
+bit_operations_test/none: CompileTimeError # Please triage.
+class_cycle_test/02: MissingCompileTimeError # Please triage.
+class_cycle_test/03: MissingCompileTimeError # Please triage.
+duplicate_implements_test/01: MissingCompileTimeError # Please triage.
+duplicate_implements_test/02: MissingCompileTimeError # Please triage.
+duplicate_implements_test/03: MissingCompileTimeError # Please triage.
+duplicate_implements_test/04: MissingCompileTimeError # Please triage.
+generic_methods_generic_function_result_test/01: MissingCompileTimeError # Please triage.
+identical_closure2_test: CompileTimeError # Please triage.
+issue23244_test: RuntimeError # Please triage.
+least_upper_bound_expansive_test/none: RuntimeError # Please triage.
+mint_arithmetic_test: CompileTimeError # Please triage.
+mixin_black_listed_test/02: MissingCompileTimeError # Please triage.
+null_test/02: MissingCompileTimeError # Please triage.
+null_test/03: MissingCompileTimeError # Please triage.
+vm/unaligned_integer_access_literal_index_test: CompileTimeError # Please triage.
+vm/unaligned_integer_access_register_index_test: CompileTimeError # Please triage.
 
 [ $compiler == dartk && !$strong ]
 *: SkipByDesign # language_2 is only supported in strong mode.
@@ -1404,8 +1428,8 @@ async_star_regression_fisk_test: RuntimeError
 async_star_test/01: CompileTimeError # Issue 2238.
 async_star_test/01: Crash
 async_star_test/01: Pass
-async_star_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/02: RuntimeError
+async_star_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/04: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/05: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -1476,8 +1500,8 @@ checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-class_keyword_test/02: MissingCompileTimeError # Issue 13627
 class_keyword_test/02: Pass
+class_keyword_test/02: MissingCompileTimeError # Issue 13627
 class_literal_static_test/12: MissingCompileTimeError
 class_literal_static_test/13: MissingCompileTimeError
 class_literal_static_test/17: MissingCompileTimeError
@@ -1619,8 +1643,8 @@ deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_generic1: Pass
 deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: Pass
-deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic3: Pass
+deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic4: Pass
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
@@ -1648,8 +1672,8 @@ deferred_no_such_method_test: CompileTimeError # KernelVM bug: Deferred loading 
 deferred_not_loaded_check_test: RuntimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 deferred_only_constant_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_optimized_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 deferred_redirecting_factory_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
+deferred_redirecting_factory_test: Fail, Crash # Issue 23408
 deferred_regression_22995_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_regression_28678_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_shadow_load_library_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -1677,8 +1701,8 @@ enum_private_test/02: MissingCompileTimeError
 example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Skip # Issue 29895
 export_ambiguous_main_negative_test: Fail # Issue 14763
-export_double_same_main_test: Crash # Issue 29895
 export_double_same_main_test: Skip # Issue 29895
+export_double_same_main_test: Crash # Issue 29895
 external_test/10: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/13: MissingRuntimeError # KernelVM bug: Unbound external.
 external_test/20: MissingRuntimeError # KernelVM bug: Unbound external.
@@ -1862,8 +1886,8 @@ function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_async_star_test: RuntimeError
 generic_closure_test: RuntimeError
-generic_function_bounds_test: CompileTimeError
 generic_function_bounds_test: RuntimeError
+generic_function_bounds_test: CompileTimeError
 generic_function_dcall_test: CompileTimeError
 generic_function_dcall_test: RuntimeError
 generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
@@ -1877,8 +1901,8 @@ generic_is_check_test: RuntimeError
 generic_list_checked_test: RuntimeError
 generic_list_checked_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_method_types_test/02: RuntimeError
-generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_bounds_test/01: Crash
+generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_optional_parameters_test: Pass
 generic_methods_optional_parameters_test: RuntimeError
@@ -1890,8 +1914,8 @@ generic_methods_recursive_bound_test/03: Pass
 generic_methods_recursive_bound_test/03: MissingRuntimeError
 generic_methods_recursive_bound_test/03: Crash, Pass
 generic_methods_reuse_type_variables_test: Pass
-generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_tearoff_specialization_test: RuntimeError
+generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_type_expression_test: Crash
 generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
@@ -2164,8 +2188,8 @@ mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
 multiline_strings_test: Pass
 multiline_strings_test: Fail # Issue 23020
-named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
+named_constructor_test/01: MissingCompileTimeError
 named_constructor_test/03: MissingCompileTimeError
 named_parameters2_test: MissingCompileTimeError
 named_parameters3_test: MissingCompileTimeError
@@ -2335,8 +2359,8 @@ regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redi
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28255_test: SkipByDesign
 regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-regress_28341_test: Pass
 regress_28341_test: RuntimeError
+regress_28341_test: Pass
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_29784_test/01: MissingCompileTimeError
@@ -2451,8 +2475,8 @@ vm/optimized_stacktrace_test: Skip # Issue 30198
 vm/reflect_core_vm_test: SkipByDesign
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_27201_test: Fail
-vm/regress_27671_test: Crash
 vm/regress_27671_test: Skip # Unsupported
+vm/regress_27671_test: Crash
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers

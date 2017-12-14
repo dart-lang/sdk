@@ -449,6 +449,15 @@ symbol_test/03: MissingCompileTimeError
 symbol_test/none: RuntimeError
 unicode_test: RuntimeError
 
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && $strong && ($arch == simarm || $arch == simarm64) ]
+bit_twiddling_test/int64: CompileTimeError # Please triage.
+integer_to_radix_string_test/02: CompileTimeError # Please triage.
+integer_to_string_test/01: CompileTimeError # Please triage.
+num_sign_test: CompileTimeError # Please triage.
+
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
 bit_twiddling_test/int64: CompileTimeError
 integer_parsed_arith_vm_test/01: RuntimeError
