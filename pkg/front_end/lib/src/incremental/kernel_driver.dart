@@ -278,11 +278,16 @@ class KernelDriver {
         return await _fsState.getFile(uri);
       });
 
-      List<LibraryCycle> cycles = _logger.run('Compute library cycles', () {
-        List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
-        _logger.writeln('Computed ${cycles.length} cycles.');
-        return cycles;
-      });
+      List<LibraryCycle> cycles;
+      if (_fsState.skipSdkLibraries.contains(uri)) {
+        cycles = <LibraryCycle>[];
+      } else {
+        cycles = _logger.run('Compute library cycles', () {
+          List<LibraryCycle> cycles = entryLibrary.topologicalOrder;
+          _logger.writeln('Computed ${cycles.length} cycles.');
+          return cycles;
+        });
+      }
 
       DillTarget dillTarget = new DillTarget(
           new Ticker(isVerbose: false), uriTranslator, _options.target);

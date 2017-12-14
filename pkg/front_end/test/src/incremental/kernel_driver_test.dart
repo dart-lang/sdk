@@ -7,12 +7,12 @@ import 'dart:async';
 import 'package:front_end/src/api_prototype/byte_store.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/summary_generator.dart';
 import 'package:front_end/src/base/performance_logger.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:front_end/src/fasta/uri_translator_impl.dart';
 import 'package:front_end/src/incremental/kernel_driver.dart';
-import 'package:front_end/src/api_prototype/summary_generator.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/target/targets.dart';
@@ -571,6 +571,22 @@ int getValue() {
           new Program(nameRoot: kernelResult.nameRoot, libraries: allLibraries);
       serializeProgram(program,
           filter: (library) => !library.importUri.isScheme('dart'));
+    }
+
+    // Ask dart:core, should be served from the outline.
+    {
+      var dartCoreUri = Uri.parse('dart:core');
+      var kernelResult = await driver.getKernelSequence(dartCoreUri);
+      bool hasDartCore = false;
+      for (var libraryResult in kernelResult.results) {
+        for (var lib in libraryResult.kernelLibraries) {
+          if (lib.importUri == dartCoreUri) {
+            hasDartCore = true;
+            break;
+          }
+        }
+      }
+      expect(hasDartCore, isTrue);
     }
   }
 
