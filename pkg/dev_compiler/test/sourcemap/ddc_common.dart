@@ -4,16 +4,21 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:path/path.dart' as path;
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
-import 'package:testing/testing.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
+import 'package:testing/testing.dart';
 
 import 'common.dart';
 
 abstract class DdcRunner {
-  ProcessResult runDDC(Uri inputFile, Uri outputFile, Uri outWrapperPath);
+  Future<Null> runDDC(Uri inputFile, Uri outputFile, Uri outWrapperPath);
+}
+
+abstract class WithCompilerState {
+  fe.InitializedCompilerState compilerState;
 }
 
 class Compile extends Step<Data, Data, ChainContext> {
@@ -37,7 +42,7 @@ class Compile extends Step<Data, Data, ChainContext> {
     var outputFile = outDirUri.resolve(outputFilename);
     var outWrapperPath = outDirUri.resolve("wrapper.js");
 
-    ddcRunner.runDDC(testFile, outputFile, outWrapperPath);
+    await ddcRunner.runDDC(testFile, outputFile, outWrapperPath);
 
     return pass(data);
   }
@@ -66,7 +71,8 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
 
   Future<bool> _compile(String input, String output) async {
     var outWrapperPath = _getWrapperPathFromDirectoryFile(new Uri.file(input));
-    ddcRunner.runDDC(new Uri.file(input), new Uri.file(output), outWrapperPath);
+    await ddcRunner.runDDC(
+        new Uri.file(input), new Uri.file(output), outWrapperPath);
     return true;
   }
 
