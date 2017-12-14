@@ -5057,24 +5057,28 @@ class Parser {
     listener.beginLiteralString(token);
     // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
     int interpolationCount = 0;
-    var kind = token.next.kind;
+    Token next = token.next;
+    var kind = next.kind;
     while (kind != EOF_TOKEN) {
       if (identical(kind, STRING_INTERPOLATION_TOKEN)) {
         // Parsing ${expression}.
-        token = parseExpression(token.next).next;
+        token = parseExpression(next).next;
         expect('}', token);
+        listener.handleInterpolationExpression(next, token);
       } else if (identical(kind, STRING_INTERPOLATION_IDENTIFIER_TOKEN)) {
         // Parsing $identifier.
-        token = parseIdentifierExpression(token.next);
+        token = parseIdentifierExpression(next);
+        listener.handleInterpolationExpression(next, null);
       } else {
         break;
       }
       ++interpolationCount;
       // Parsing the infix/suffix, for instance y and z' of 'x${id}y${id}z'
       token = parseStringPart(token);
-      kind = token.next.kind;
+      next = token.next;
+      kind = next.kind;
     }
-    listener.endLiteralString(interpolationCount, token.next);
+    listener.endLiteralString(interpolationCount, next);
     return token;
   }
 

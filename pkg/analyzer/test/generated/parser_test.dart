@@ -7237,7 +7237,9 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(
         interpolation.elements[1], new isInstanceOf<InterpolationExpression>());
     InterpolationExpression element1 = interpolation.elements[1];
+    expect(element1.leftBracket.lexeme, '\$');
     expect(element1.expression, new isInstanceOf<SimpleIdentifier>());
+    expect(element1.rightBracket, isNull);
     expect(interpolation.elements[2], new isInstanceOf<InterpolationString>());
     InterpolationString element2 = interpolation.elements[2];
     expect(element2.value, '');
@@ -7256,6 +7258,10 @@ abstract class ExpressionParserTestMixin implements AbstractParserTestCase {
     expect(elements[2] is InterpolationString, isTrue);
     expect(elements[3] is InterpolationExpression, isTrue);
     expect(elements[4] is InterpolationString, isTrue);
+    expect((elements[1] as InterpolationExpression).leftBracket.lexeme, '\${');
+    expect((elements[1] as InterpolationExpression).rightBracket.lexeme, '}');
+    expect((elements[3] as InterpolationExpression).leftBracket.lexeme, '\$');
+    expect((elements[3] as InterpolationExpression).rightBracket, isNull);
   }
 
   void test_parseStringLiteral_multiline_encodedSpace() {

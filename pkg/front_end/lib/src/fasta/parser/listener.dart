@@ -609,6 +609,8 @@ class Listener {
 
   void beginLiteralString(Token token) {}
 
+  void handleInterpolationExpression(Token leftBracket, Token rightBracket) {}
+
   void endLiteralString(int interpolationCount, Token endToken) {
     logEvent("LiteralString");
   }

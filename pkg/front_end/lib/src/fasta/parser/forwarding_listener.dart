@@ -998,6 +998,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleInterpolationExpression(Token leftBracket, Token rightBracket) {
+    listener?.handleInterpolationExpression(leftBracket, rightBracket);
+  }
+
+  @override
   void handleInvalidExpression(Token token) {
     listener?.handleInvalidExpression(token);
   }
