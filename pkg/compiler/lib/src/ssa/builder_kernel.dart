@@ -409,9 +409,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     // [fieldValues] accumulates the field initializer values, which may be
     // overwritten by initializer-list initializers.
-    Map<FieldEntity, HInstruction> fieldValues = <FieldEntity, HInstruction>{};
-    List<ir.Constructor> constructorChain = <ir.Constructor>[];
-    _buildInitializers(node, constructorChain, fieldValues);
+    ConstructorData constructorData = new ConstructorData();
+    _buildInitializers(node, constructorData);
 
     List<HInstruction> constructorArguments = <HInstruction>[];
     // Doing this instead of fieldValues.forEach because we haven't defined the
@@ -422,7 +421,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
     List<FieldEntity> fields = <FieldEntity>[];
     _worldBuilder.forEachInstanceField(cls,
         (ClassEntity enclosingClass, FieldEntity member) {
-      HInstruction value = fieldValues[member];
+      HInstruction value = constructorData.fieldValues[member];
       if (value == null) {
         assert(isCustomElement || reporter.hasReportedError,
             'No initializer value for field ${member}');
@@ -481,7 +480,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
     HInstruction interceptor;
     // Generate calls to the constructor bodies.
-    for (ir.Constructor body in constructorChain.reversed) {
+    for (ir.Constructor body in constructorData.constructorChain.reversed) {
       if (_isEmptyStatement(body.function.body)) continue;
 
       List<HInstruction> bodyCallInputs = <HInstruction>[];
@@ -497,9 +496,9 @@ class KernelSsaGraphBuilder extends ir.Visitor
       // Pass uncaptured arguments first, captured arguments in a box, then type
       // arguments.
 
-      ConstructorEntity constructorElement = _elementMap.getConstructor(body);
+      ConstructorEntity inlinedConstructor = _elementMap.getConstructor(body);
 
-      inlinedFrom(constructorElement, () {
+      inlinedFrom(inlinedConstructor, () {
         void handleParameter(ir.VariableDeclaration node) {
           Local parameter = localsMap.getLocalVariable(node);
           // If [parameter] is boxed, it will be a field in the box passed as
@@ -518,20 +517,20 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // If there are locals that escape (i.e. mutated in closures), we pass the
         // box to the constructor.
         CapturedScope scopeData =
-            closureDataLookup.getCapturedScope(constructorElement);
+            closureDataLookup.getCapturedScope(inlinedConstructor);
         if (scopeData.requiresContextBox) {
           bodyCallInputs.add(localsHandler.readLocal(scopeData.context));
         }
 
         // Pass type arguments.
-        ir.Class currentClass = body.enclosingClass;
-        if (closedWorld.rtiNeed
-            .classNeedsRti(_elementMap.getClass(currentClass))) {
-          for (ir.DartType typeParameter
-              in currentClass.thisType.typeArguments) {
-            HInstruction argument = localsHandler.readLocal(
-                localsHandler.getTypeVariableAsLocal(
-                    _elementMap.getDartType(typeParameter)));
+        ClassEntity inlinedConstructorClass = inlinedConstructor.enclosingClass;
+        if (closedWorld.rtiNeed.classNeedsRti(inlinedConstructorClass)) {
+          InterfaceType thisType = _elementMap.elementEnvironment
+              .getThisType(inlinedConstructorClass);
+          for (DartType typeVariable in thisType.typeArguments) {
+            DartType result = localsHandler.substInContext(typeVariable);
+            HInstruction argument =
+                typeBuilder.analyzeTypeArgument(result, sourceElement);
             bodyCallInputs.add(argument);
           }
         }
@@ -586,10 +585,35 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Collects the values for field initializers for the direct fields of
   /// [clazz].
-  void _collectFieldValues(
-      ir.Class clazz, Map<FieldEntity, HInstruction> fieldValues) {
+  void _collectFieldValues(ir.Class clazz, ConstructorData constructorData) {
+    void ensureTypeVariablesForInitializers(ClassEntity enclosingClass) {
+      if (!constructorData.includedClasses.add(enclosingClass)) return;
+      if (rtiNeed.classNeedsRti(enclosingClass)) {
+        // If [enclosingClass] needs RTI, we have to give a value to its type
+        // parameters. For a super constructor call, the type is the supertype
+        // of current class. For a redirecting constructor, the type is the
+        // current type. [LocalsHandler.substInContext] takes care of both.
+        InterfaceType thisType =
+            _elementMap.elementEnvironment.getThisType(enclosingClass);
+        InterfaceType type = localsHandler.substInContext(thisType);
+        List<DartType> arguments = type.typeArguments;
+        List<DartType> typeVariables = thisType.typeArguments;
+        assert(arguments.length == typeVariables.length);
+        Iterator<DartType> variables = typeVariables.iterator;
+        type.typeArguments.forEach((DartType argument) {
+          variables.moveNext();
+          TypeVariableType typeVariable = variables.current;
+          localsHandler.updateLocal(
+              localsHandler.getTypeVariableAsLocal(typeVariable),
+              typeBuilder.analyzeTypeArgument(argument, sourceElement));
+        });
+      }
+    }
+
     ClassEntity cls = _elementMap.getClass(clazz);
     _worldBuilder.forEachDirectInstanceField(cls, (FieldEntity field) {
+      ensureTypeVariablesForInitializers(field.enclosingClass);
+
       MemberDefinition definition = _elementMap.getMemberDefinition(field);
       ir.Field node;
       switch (definition.kind) {
@@ -603,7 +627,8 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // Unassigned fields of native classes are not initialized to
         // prevent overwriting pre-initialized native properties.
         if (!nativeData.isNativeOrExtendsNative(cls)) {
-          fieldValues[field] = graph.addConstantNull(closedWorld);
+          constructorData.fieldValues[field] =
+              graph.addConstantNull(closedWorld);
         }
       } else if (node.initializer is! ir.NullLiteral ||
           !nativeData.isNativeClass(cls)) {
@@ -613,7 +638,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
         // initializer.
         inlinedFrom(field, () {
           node.initializer.accept(this);
-          fieldValues[field] = pop();
+          constructorData.fieldValues[field] = pop();
         });
       }
     });
@@ -625,37 +650,35 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
   /// Collects field initializers all the way up the inheritance chain.
   void _buildInitializers(
-      ir.Constructor constructor,
-      List<ir.Constructor> constructorChain,
-      Map<FieldEntity, HInstruction> fieldValues) {
+      ir.Constructor constructor, ConstructorData constructorData) {
     assert(
         _elementMap.getConstructor(constructor) == localsMap.currentMember,
         failedAt(
             localsMap.currentMember,
             'Expected ${localsMap.currentMember} '
             'but found ${_elementMap.getConstructor(constructor)}.'));
-    constructorChain.add(constructor);
+    constructorData.constructorChain.add(constructor);
 
     if (!isRedirectingConstructor(constructor)) {
       // Compute values for field initializers, but only if this is not a
       // redirecting constructor, since the target will compute the fields.
-      _collectFieldValues(constructor.enclosingClass, fieldValues);
+      _collectFieldValues(constructor.enclosingClass, constructorData);
     }
     var foundSuperOrRedirectCall = false;
     for (var initializer in constructor.initializers) {
       if (initializer is ir.FieldInitializer) {
         initializer.value.accept(this);
-        fieldValues[_elementMap.getField(initializer.field)] = pop();
+        constructorData.fieldValues[_elementMap.getField(initializer.field)] =
+            pop();
       } else if (initializer is ir.SuperInitializer) {
         assert(!foundSuperOrRedirectCall);
         foundSuperOrRedirectCall = true;
-        _inlineSuperInitializer(
-            initializer, constructorChain, fieldValues, constructor);
+        _inlineSuperInitializer(initializer, constructorData, constructor);
       } else if (initializer is ir.RedirectingInitializer) {
         assert(!foundSuperOrRedirectCall);
         foundSuperOrRedirectCall = true;
         _inlineRedirectingInitializer(
-            initializer, constructorChain, fieldValues, constructor);
+            initializer, constructorData, constructor);
       } else if (initializer is ir.LocalInitializer) {
         // LocalInitializer is like a let-expression that is in scope for the
         // rest of the initializers.
@@ -726,33 +749,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
     return builtArguments;
   }
 
-  /// Creates localsHandler bindings for type parameters of a Supertype.
-  void _bindSupertypeTypeParameters(ir.Supertype supertype) {
-    ir.Class cls = supertype.classNode;
-    var parameters = cls.typeParameters;
-    var arguments = supertype.typeArguments;
-    assert(arguments.length == parameters.length);
-
-    for (int i = 0; i < parameters.length; i++) {
-      ir.DartType argument = arguments[i];
-      ir.TypeParameter parameter = parameters[i];
-
-      localsHandler.updateLocal(
-          localsHandler.getTypeVariableAsLocal(
-              _elementMap.getDartType(new ir.TypeParameterType(parameter))),
-          typeBuilder.analyzeTypeArgument(
-              _elementMap.getDartType(argument), sourceElement));
-    }
-  }
-
   /// Inlines the given redirecting [constructor]'s initializers by collecting
   /// its field values and building its constructor initializers. We visit super
   /// constructors all the way up to the [Object] constructor.
-  void _inlineRedirectingInitializer(
-      ir.RedirectingInitializer initializer,
-      List<ir.Constructor> constructorChain,
-      Map<FieldEntity, HInstruction> fieldValues,
-      ir.Constructor caller) {
+  void _inlineRedirectingInitializer(ir.RedirectingInitializer initializer,
+      ConstructorData constructorData, ir.Constructor caller) {
     var superOrRedirectConstructor = initializer.target;
     var arguments = _normalizeAndBuildArguments(
         superOrRedirectConstructor.function, initializer.arguments);
@@ -764,17 +765,14 @@ class KernelSsaGraphBuilder extends ir.Visitor
     // effective target, so we don't do it here.
 
     _inlineSuperOrRedirectCommon(initializer, superOrRedirectConstructor,
-        arguments, constructorChain, fieldValues, caller);
+        arguments, constructorData, caller);
   }
 
   /// Inlines the given super [constructor]'s initializers by collecting its
   /// field values and building its constructor initializers. We visit super
   /// constructors all the way up to the [Object] constructor.
-  void _inlineSuperInitializer(
-      ir.SuperInitializer initializer,
-      List<ir.Constructor> constructorChain,
-      Map<FieldEntity, HInstruction> fieldValues,
-      ir.Constructor caller) {
+  void _inlineSuperInitializer(ir.SuperInitializer initializer,
+      ConstructorData constructorData, ir.Constructor caller) {
     var target = initializer.target;
     var arguments =
         _normalizeAndBuildArguments(target.function, initializer.arguments);
@@ -783,40 +781,31 @@ class KernelSsaGraphBuilder extends ir.Visitor
     ir.Supertype supertype = callerClass.supertype;
 
     if (callerClass.mixedInType != null) {
-      _bindSupertypeTypeParameters(callerClass.mixedInType);
-      _collectFieldValues(callerClass.mixedInType.classNode, fieldValues);
+      _collectFieldValues(callerClass.mixedInType.classNode, constructorData);
     }
 
     // The class of the super-constructor may not be the supertype class. In
     // this case, we must go up the class hierarchy until we reach the class
     // containing the super-constructor.
     while (supertype.classNode != target.enclosingClass) {
-      _bindSupertypeTypeParameters(supertype);
-
-      if (supertype.classNode.mixedInType != null) {
-        _bindSupertypeTypeParameters(supertype.classNode.mixedInType);
-      }
-
       // Fields from unnamed mixin application classes (ie Object&Foo) get
       // "collected" with the regular supertype fields, so we must bind type
       // parameters from both the supertype and the supertype's mixin classes
       // before collecting the field values.
-      _collectFieldValues(supertype.classNode, fieldValues);
+      _collectFieldValues(supertype.classNode, constructorData);
       supertype = supertype.classNode.supertype;
     }
-    _bindSupertypeTypeParameters(supertype);
     supertype = supertype.classNode.supertype;
 
     _inlineSuperOrRedirectCommon(
-        initializer, target, arguments, constructorChain, fieldValues, caller);
+        initializer, target, arguments, constructorData, caller);
   }
 
   void _inlineSuperOrRedirectCommon(
       ir.Initializer initializer,
       ir.Constructor constructor,
       List<HInstruction> arguments,
-      List<ir.Constructor> constructorChain,
-      Map<FieldEntity, HInstruction> fieldValues,
+      ConstructorData constructorData,
       ir.Constructor caller) {
     var index = 0;
 
@@ -843,7 +832,7 @@ class KernelSsaGraphBuilder extends ir.Visitor
       localsHandler.scopeInfo = newScopeInfo;
       localsHandler.enterScope(closureDataLookup.getCapturedScope(element),
           _sourceInformationBuilder.buildDeclaration(element));
-      _buildInitializers(constructor, constructorChain, fieldValues);
+      _buildInitializers(constructor, constructorData);
     });
     localsHandler.scopeInfo = oldScopeInfo;
   }
@@ -4759,6 +4748,19 @@ class KernelSsaGraphBuilder extends ir.Visitor
           <HInstruction>[idConstant, nameConstant], commonMasks.dynamicType));
     }
   }
+}
+
+/// Data collected to create a constructor.
+class ConstructorData {
+  /// Inlined (super) constructors.
+  final List<ir.Constructor> constructorChain = <ir.Constructor>[];
+
+  /// Initial values for all instance fields.
+  final Map<FieldEntity, HInstruction> fieldValues =
+      <FieldEntity, HInstruction>{};
+
+  /// Classes for which type variables have been prepared.
+  final Set<ClassEntity> includedClasses = new Set<ClassEntity>();
 }
 
 class KernelInliningState {
