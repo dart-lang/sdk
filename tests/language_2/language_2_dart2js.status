@@ -1076,7 +1076,6 @@ library_env_test/has_no_io_support: Pass # Issue 27398
 covariant_subtyping_test: CompileTimeError
 
 [ $compiler == dart2js && $checked && $dart2js_with_kernel ]
-arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -1197,6 +1196,7 @@ covariance_type_parameter_test/none: Crash # NoSuchMethodError: The method 'hasS
 covariant_override/runtime_check_test: RuntimeError
 covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 cyclic_constructor_test/01: Crash # Stack Overflow
+deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
 deferred_constraints_constants_test/none: Crash # Unsupported operation: KernelDeferredLoadTask.addMirrorElementsForLibrary
@@ -1243,6 +1243,9 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
+full_stacktrace1_test: RuntimeError # Issue 12698
+full_stacktrace2_test: RuntimeError # Issue 12698
+full_stacktrace3_test: RuntimeError # Issue 12698
 function_type_alias_test: RuntimeError
 generalized_void_syntax_test: CompileTimeError
 generic_closure_test/01: RuntimeError
@@ -1437,8 +1440,11 @@ regress_30339_test: RuntimeError # Issue 26429
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_test: RuntimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
+stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
+stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -2025,8 +2031,8 @@ regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_test: RuntimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -2453,8 +2459,8 @@ regress_29784_test/02: MissingCompileTimeError # Issue 29784
 regress_31057_test: Crash # Unsupported operation: Unsupported type parameter type node B.
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
-stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_test: RuntimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # Assertion failure: Missing scope info for j:method(E.boz).
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -2477,7 +2483,6 @@ type_literal_test: RuntimeError
 typevariable_substitution2_test/02: RuntimeError
 
 [ $compiler == dart2js && $dart2js_with_kernel && $minified ]
-arithmetic_canonicalization_test: RuntimeError
 assertion_initializer_const_function_test/01: MissingCompileTimeError
 assertion_initializer_test: CompileTimeError
 assertion_test: RuntimeError
@@ -2599,6 +2604,7 @@ covariant_subtyping_unsafe_call1_test: RuntimeError
 covariant_subtyping_unsafe_call2_test: RuntimeError
 covariant_subtyping_unsafe_call3_test: RuntimeError
 cyclic_constructor_test/01: Crash # Issue 30856
+deferred_call_empty_before_load_test: RuntimeError
 deferred_closurize_load_library_test: RuntimeError
 deferred_constraints_constants_test/default_argument2: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
 deferred_constraints_constants_test/none: Crash # NoSuchMethodError: The getter 'closureClassEntity' was called on null.
@@ -2647,9 +2653,9 @@ field_override3_test/03: MissingCompileTimeError
 field_override4_test/02: MissingCompileTimeError
 final_attempt_reinitialization_test/01: MissingCompileTimeError
 final_attempt_reinitialization_test/02: MissingCompileTimeError
-full_stacktrace1_test: RuntimeError
-full_stacktrace2_test: RuntimeError
-full_stacktrace3_test: RuntimeError
+full_stacktrace1_test: RuntimeError # Issue 12698
+full_stacktrace2_test: RuntimeError # Issue 12698
+full_stacktrace3_test: RuntimeError # Issue 12698
 function_subtype_bound_closure3_test: RuntimeError
 function_subtype_bound_closure4_test: RuntimeError
 function_subtype_bound_closure7_test: RuntimeError
@@ -2872,11 +2878,11 @@ regress_31057_test: Crash # Unsupported operation: Unsupported type parameter ty
 setter_override_test/00: MissingCompileTimeError
 setter_override_test/03: MissingCompileTimeError
 stack_trace_test: RuntimeError
-stacktrace_demangle_ctors_test: RuntimeError
-stacktrace_rethrow_error_test/none: RuntimeError
-stacktrace_rethrow_error_test/withtraceparameter: RuntimeError
-stacktrace_rethrow_nonerror_test: RuntimeError
-stacktrace_test: RuntimeError
+stacktrace_demangle_ctors_test: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/none: RuntimeError # Issue 12698
+stacktrace_rethrow_error_test/withtraceparameter: RuntimeError # Issue 12698
+stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
+stacktrace_test: RuntimeError # Issue 12698
 super_call4_test: Crash # NoSuchMethodError: The getter 'thisLocal' was called on null.
 switch_bad_case_test/01: MissingCompileTimeError
 switch_bad_case_test/02: MissingCompileTimeError
@@ -3082,7 +3088,7 @@ regress_22976_test: CompileTimeError # Issue 23132
 regress_24283_test: RuntimeError # Issue 1533
 scope_variable_test/01: MissingCompileTimeError # Issue 13016
 setter4_test: CompileTimeError # issue 13639
-stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant.
+stacktrace_demangle_ctors_test: Fail # dart2js stack traces are not always compliant, issue 12698
 stacktrace_rethrow_error_test: Pass, RuntimeError # Issue 12698
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError # Issue 12698
 stacktrace_test: Pass, RuntimeError # # Issue 12698

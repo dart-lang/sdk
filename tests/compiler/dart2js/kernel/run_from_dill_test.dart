@@ -115,7 +115,6 @@ Future<ResultKind> mainInternal(List<String> args,
   ];
   print('Running: dart2js ${dart2jsArgs.join(' ')}');
 
-  dart2js.disableInliningForKernel = false;
   await dart2js.internalMain(dart2jsArgs);
 
   print('---- run from dill --------------------------------------------');

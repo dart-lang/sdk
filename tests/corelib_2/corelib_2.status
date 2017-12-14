@@ -209,6 +209,7 @@ package_resource_test: RuntimeError # Issue 26842
 
 [ $compiler == dart2js && $checked && $dart2js_with_kernel ]
 apply3_test: RuntimeError
+error_stack_trace1_test: RuntimeError # Issue 12399
 from_environment_const_type_test/02: MissingCompileTimeError
 from_environment_const_type_test/03: MissingCompileTimeError
 from_environment_const_type_test/04: MissingCompileTimeError

@@ -289,10 +289,6 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setUseKernel(String argument) {
     useKernel = true;
-    // TODO(sigmund): remove once we support inlining with `useKernel`.
-    if (disableInliningForKernel) {
-      options.add(Flags.disableInlining);
-    }
     passThrough(argument);
   }
 
@@ -1147,6 +1143,3 @@ class _BufferedOutputSink implements api.OutputSink {
     // Do nothing.
   }
 }
-
-// TODO(johnniwinther): Remove once we support inlining with `useKernel`.
-bool disableInliningForKernel = true;
