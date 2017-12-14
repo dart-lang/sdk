@@ -5911,6 +5911,17 @@ void testTypeRef() {
     assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
   }
 
+  test_referencedBeforeDeclaration_hideInBlock_comment() async {
+    Source source = addSource(r'''
+main() {
+  /// [v] is a variable.
+  var v = 2;
+}
+print(x) {}''');
+    await computeAnalysisResult(source);
+    assertNoErrors(source);
+  }
+
   test_rethrowOutsideCatch() async {
     Source source = addSource(r'''
 f() {

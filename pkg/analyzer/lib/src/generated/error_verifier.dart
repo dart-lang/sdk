@@ -5561,7 +5561,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkForReferenceBeforeDeclaration(SimpleIdentifier node) {
     if (!node.inDeclarationContext() &&
         _hiddenElements != null &&
-        _hiddenElements.contains(node.staticElement)) {
+        _hiddenElements.contains(node.staticElement) &&
+        node.parent is! CommentReference) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
           node,
