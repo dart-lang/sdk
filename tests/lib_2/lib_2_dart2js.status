@@ -89,8 +89,6 @@ html/fileapi_directory_test: Fail # TODO(dart2js-team): Please triage this failu
 html/fileapi_entry_test: Pass, Fail # TODO(dart2js-team): Please triage this failure.
 html/fileapi_file_test: Fail # TODO(dart2js-team): Please triage this failure.
 html/media_stream_test: RuntimeError # Please triage.
-html/messageevent_test: RuntimeError # Please triage this error. New in Chrome 62.
-html/serialized_script_value_test: RuntimeError # Please triage this error. New in Chrome 62.
 html/speechrecognition_test: RuntimeError # Please triage.
 isolate/function_send_test: Skip # Crashes Chrome 62: https://bugs.chromium.org/p/chromium/issues/detail?id=775506
 isolate/kill_self_synchronously_test: RuntimeError
@@ -679,7 +677,6 @@ html/localstorage_test: RuntimeError
 html/location_test: RuntimeError
 html/media_stream_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/mediasource_test: RuntimeError, Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
-html/messageevent_test: RuntimeError
 html/mirrors_js_typed_interop_test: RuntimeError
 html/mouse_event_test: RuntimeError
 html/mutationobserver_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
@@ -697,7 +694,6 @@ html/range_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance gett
 html/request_animation_frame_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/rtc_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/selectelement_test: RuntimeError
-html/serialized_script_value_test: RuntimeError
 html/shadow_dom_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.
 html/shadowroot_test: RuntimeError
 html/speechrecognition_test: Crash # NoSuchMethodError: Class 'JMethod' has no instance getter 'implementation'.

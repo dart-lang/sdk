@@ -24433,7 +24433,7 @@ class MessageEvent extends Event {
       String origin,
       String lastEventId,
       Window source,
-      List<MessagePort> messagePorts}) {
+      List<MessagePort> messagePorts: const []}) {
     if (source == null) {
       source = window;
     }

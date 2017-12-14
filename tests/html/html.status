@@ -161,8 +161,6 @@ fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure
 fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
 media_stream_test/supported_MediaStreamEvent: RuntimeError # Please triage.
 media_stream_test/supported_MediaStreamTrackEvent: RuntimeError # Please triage.
-messageevent_test: RuntimeError # Please triage this error. New in Chrome 62.
-serialized_script_value_test: RuntimeError # Please triage this error. New in Chrome 62.
 speechrecognition_test/types: RuntimeError # Please triage.
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
 
