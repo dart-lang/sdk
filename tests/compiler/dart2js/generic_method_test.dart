@@ -16,6 +16,8 @@ List<FunctionTypeData> signatures = const <FunctionTypeData>[
   const FunctionTypeData("void", "2", "<T, S>(T t, S s)"),
   const FunctionTypeData("void", "3", "<T, S>(T t, [S s])"),
   const FunctionTypeData("void", "4", "<T, S>(T t, {S s})"),
+  const FunctionTypeData("void", "5", "<T extends num>(T t)"),
+  const FunctionTypeData("void", "6", "<T extends int>(T t)"),
 ];
 
 main() {
