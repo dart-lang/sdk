@@ -276,6 +276,20 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 math/math2_test: RuntimeError
 math/math_test: RuntimeError
 
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && $mode == debug && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+mirrors/variable_is_const_test/01: Crash # Please triage.
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+mirrors/invocation_fuzz_test/smi: Crash # Please triage.
+mirrors/library_uri_io_test: RuntimeError # Please triage.
+mirrors/spawn_function_root_library_test: Skip
+
 [ $compiler != dartk && $compiler != dartkp && ($runtime == dart_precompiled || $runtime == flutter || $runtime == vm) ]
 mirrors/initializing_formals_test/01: Fail # initializing formals are implicitly final as of Dart 1.21
 

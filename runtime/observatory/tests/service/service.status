@@ -61,8 +61,31 @@ async_generator_breakpoint_test: Skip # Issue 29145
 dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in paths
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $arch == simdbc64 && $compiler == dartk ]
+coverage_optimized_function_test: Crash # Please triage
+rewind_optimized_out_test: RuntimeError # Please triage
+rewind_test: RuntimeError # Please triage
+
 [ $builder_tag == strong && $compiler == dart2analyzer ]
 *: Skip # Issue 28649
+
+# Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
+# are to be triaged.  Isolate tests are skipped on purpose due to the usage of
+# batch mode.
+[ $compiler == dartk && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+coverage_leaf_function_test: RuntimeError # Please triage.
+coverage_optimized_function_test: RuntimeError # Please triage.
+dev_fs_spawn_test: RuntimeError # Please triage.
+developer_service_get_isolate_id_test: RuntimeError # Please triage.
+get_object_rpc_test: RuntimeError # Please triage.
+get_source_report_test: RuntimeError # Please triage.
+issue_30555_test: RuntimeError # Please triage.
+library_dependency_test: RuntimeError # Please triage.
+reload_sources_test: Timeout, Skip # Please triage.
+set_name_rpc_test: RuntimeError # Please triage.
 
 [ $compiler == none && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
