@@ -434,6 +434,10 @@ class KernelSsaGraphBuilder extends ir.Visitor
       }
     });
 
+    addImplicitInstantiation(thisType);
+    List<DartType> instantiatedTypes =
+        new List<InterfaceType>.from(currentImplicitInstantiations);
+
     HInstruction newObject;
     if (isCustomElement) {
       // Bulk assign to the initialized fields.
@@ -472,11 +476,11 @@ class KernelSsaGraphBuilder extends ir.Visitor
 
       newObject = new HCreate(cls, constructorArguments,
           new TypeMask.nonNullExact(cls, closedWorld), sourceInformation,
-          instantiatedTypes: <InterfaceType>[thisType],
-          hasRtiInput: hasRtiInput);
+          instantiatedTypes: instantiatedTypes, hasRtiInput: hasRtiInput);
 
       add(newObject);
     }
+    removeImplicitInstantiation(thisType);
 
     HInstruction interceptor;
     // Generate calls to the constructor bodies.

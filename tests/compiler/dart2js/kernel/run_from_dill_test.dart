@@ -22,12 +22,18 @@ const SOURCE = const {
   'main.dart': '''
 import "package:expect/expect.dart";
 
+class K {}
+
 class A<T> {
   foo() {
     bar() => T;
     return bar();
   }
 }
+
+class B extends A<K> {}
+
+class X<T> {}
 
 main() {
   for (int i = 0; i < 10; i++) {
@@ -36,6 +42,10 @@ main() {
     if (i == 7) break;
   }
   Expect.equals(new A<int>().foo(), int);
+  var v = new DateTime.now().millisecondsSinceEpoch != 42
+      ? new X<B>()
+      : new X<A<String>>();
+  Expect.isFalse(v is X<A<String>>);
 }
 '''
 };
