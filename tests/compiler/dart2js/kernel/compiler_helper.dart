@@ -14,17 +14,12 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/tasks.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:kernel/ast.dart' as ir;
 import '../memory_compiler.dart';
-import '../../../../pkg/compiler/tool/generate_kernel.dart' as generate;
-
-import 'package:front_end/src/compute_platform_binaries_location.dart'
-    show computePlatformBinariesLocation;
 
 typedef Future<Compiler> CompileFunction();
 
@@ -117,25 +112,6 @@ Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
     entryPoint = dir.uri.resolve(entryPoint.path);
   }
   return entryPoint;
-}
-
-Future generateDill(Uri entryPoint, Map<String, String> memorySourceFiles,
-    {bool printSteps: false}) async {
-  entryPoint =
-      await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
-  if (printSteps) {
-    print('---- generate dill -----------------------------------------------');
-  }
-
-  Uri dillFile = Uri.parse('$entryPoint.dill');
-  Uri platform =
-      computePlatformBinariesLocation().resolve("dart2js_platform.dill");
-  await generate.main([
-    '--platform=${platform.toFilePath()}',
-    '--out=${uriPathToNative(dillFile.path)}',
-    '${entryPoint.path}',
-  ]);
-  return dillFile;
 }
 
 Future<Compiler> compileWithDill(

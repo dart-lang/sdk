@@ -104,14 +104,15 @@ Future<ResultKind> mainInternal(List<String> args,
     memorySourceFiles = SOURCE;
   }
 
-  Uri dillFile =
-      await generateDill(entryPoint, memorySourceFiles, printSteps: true);
-  String output = uriPathToNative(dillFile.resolve('out.js').path);
+  Uri mainFile =
+      await createTemp(entryPoint, memorySourceFiles, printSteps: true);
+  String output = uriPathToNative(mainFile.resolve('out.js').path);
   List<String> dart2jsArgs = [
-    dillFile.toString(),
+    mainFile.toString(),
     '-o$output',
     Flags.useKernel,
-    Flags.enableAssertMessage
+    Flags.enableAssertMessage,
+    '--packages=${Platform.packageConfig}',
   ];
   print('Running: dart2js ${dart2jsArgs.join(' ')}');
 
