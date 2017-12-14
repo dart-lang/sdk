@@ -2683,13 +2683,6 @@ class RecoveryParserTest_Fasta extends FastaParserTestCase
 
   @override
   @failingTest
-  void test_incompleteField_var() {
-    // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
-    super.test_incompleteField_var();
-  }
-
-  @override
-  @failingTest
   void test_incompleteForEach() {
     // TODO(brianwilkerson) reportUnrecoverableErrorWithToken
     super.test_incompleteForEach();

@@ -10312,6 +10312,34 @@ class C {
     expect(field.name.isSynthetic, isTrue);
   }
 
+  void test_incompleteField_type() {
+    CompilationUnit unit = parseCompilationUnit(r'''
+class C {
+  A
+}''', codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.EXPECTED_TOKEN
+    ]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    CompilationUnitMember unitMember = declarations[0];
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ClassDeclaration, ClassDeclaration, unitMember);
+    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    expect(members, hasLength(1));
+    ClassMember classMember = members[0];
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
+    VariableDeclarationList fieldList =
+        (classMember as FieldDeclaration).fields;
+    TypeName type = fieldList.type;
+    expect(type.name.name, 'A');
+    NodeList<VariableDeclaration> fields = fieldList.variables;
+    expect(fields, hasLength(1));
+    VariableDeclaration field = fields[0];
+    expect(field.name.isSynthetic, isTrue);
+  }
+
   void test_incompleteField_var() {
     CompilationUnit unit = parseCompilationUnit(r'''
 class C {

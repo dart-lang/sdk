@@ -1743,7 +1743,7 @@ class Parser {
     } else if (context == IdentifierContext.combinator) {
       followingValues = [';'];
     } else if (context == IdentifierContext.fieldDeclaration) {
-      followingValues = [';', '=', ','];
+      followingValues = [';', '=', ',', '}'];
     } else if (context == IdentifierContext.enumDeclaration) {
       followingValues = ['{'];
     } else if (context == IdentifierContext.enumValueDeclaration) {
@@ -2720,15 +2720,13 @@ class Parser {
     Token afterModifiers =
         identifiers.isNotEmpty ? identifiers.head.next.next : beforeStart.next;
     return isField
-        ? parseFields(beforeStart, identifiers.reverse(), beforeType?.next,
-            beforeName, true)
+        ? parseFields(beforeStart, identifiers.reverse(), beforeName, true)
         : parseTopLevelMethod(
             beforeStart, afterModifiers, beforeType, getOrSet, beforeName);
   }
 
-  Token parseFields(Token start, Link<Token> modifiers, Token type,
-      Token beforeName, bool isTopLevel) {
-    // TODO(brianwilkerson): Remove the parameter `type` because it isn't used.
+  Token parseFields(
+      Token start, Link<Token> modifiers, Token beforeName, bool isTopLevel) {
     Token varFinalOrConst = null;
     for (Token beforeModifier in modifiers) {
       Token modifier = beforeModifier.next;
@@ -3469,7 +3467,15 @@ class Parser {
 
     Link<Token> identifiers = findMemberName(start);
     if (identifiers.isEmpty) {
-      return recoverFromInvalidClassMember(start);
+      if ((isValidTypeReference(token) || optional('var', token)) &&
+          isPostIdentifierForRecovery(
+              token.next, IdentifierContext.fieldDeclaration)) {
+        // Recovery: Looks like a field declaration but missing a field name.
+        insertSyntheticIdentifier(token, IdentifierContext.fieldDeclaration);
+        return parseFields(start, const Link<Token>(), token, false);
+      } else {
+        return recoverFromInvalidClassMember(start);
+      }
     }
     Token afterName = identifiers.head.next;
     identifiers = identifiers.tail;
@@ -3540,8 +3546,7 @@ class Parser {
 
     Token lastModifier = identifiers.isNotEmpty ? identifiers.head.next : start;
     token = isField
-        ? parseFields(
-            start, identifiers.reverse(), beforeType?.next, beforeName, false)
+        ? parseFields(start, identifiers.reverse(), beforeName, false)
         : parseMethod(start, lastModifier, beforeType, getOrSet, beforeName);
     listener.endMember();
     return token;
