@@ -155,7 +155,6 @@ vm/regress_27201_test: SkipByDesign # Loads bad library, so will always crash.
 
 [ $compiler == dart2analyzer && $runtime == none ]
 assertion_initializer_const_function_test/01: CompileTimeError
-assertion_initializer_test: CompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
@@ -1036,6 +1035,7 @@ accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
 assertion_initializer_const_function_test/01: MissingStaticWarning
+assertion_initializer_test: CompileTimeError
 async_return_types_test/nestedFuture: MissingCompileTimeError
 bug31436_test: CompileTimeError
 cascaded_forwarding_stubs_test: CompileTimeError
