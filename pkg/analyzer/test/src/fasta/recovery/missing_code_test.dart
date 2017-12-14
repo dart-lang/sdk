@@ -9,9 +9,83 @@ import 'recovery_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ListLiteralTest);
+    defineReflectiveTests(MapLiteralTest);
     defineReflectiveTests(MissingCodeTest);
     defineReflectiveTests(ParameterListTest);
   });
+}
+
+/**
+ * Test how well the parser recovers when tokens are missing in a list literal.
+ */
+@reflectiveTest
+class ListLiteralTest extends AbstractRecoveryTest {
+  void test_extraComma() {
+    testRecovery('''
+f() => [a, , b];
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f() => [a, _s_, b];
+''');
+  }
+
+  @failingTest
+  void test_missingComma() {
+    testRecovery('''
+f() => [a, b c];
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f() => [a, b, c];
+''');
+  }
+}
+
+/**
+ * Test how well the parser recovers when tokens are missing in a map literal.
+ */
+@reflectiveTest
+class MapLiteralTest extends AbstractRecoveryTest {
+  @failingTest
+  void test_extraComma() {
+    testRecovery('''
+f() => {a: b, , c: d};
+''', [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.MISSING_IDENTIFIER],
+        '''
+f() => {a: b, _s_: _s_, c: d};
+''');
+  }
+
+  @failingTest
+  void test_missingComma() {
+    testRecovery('''
+f() => {a: b, c: d e: f};
+''', [ParserErrorCode.EXPECTED_TOKEN], '''
+f() => {a: b, c: d, e: f};
+''');
+  }
+
+  void test_missingKey() {
+    testRecovery('''
+f() => {: b};
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f() => {_s_: b};
+''');
+  }
+
+  void test_missingValue_last() {
+    testRecovery('''
+f() => {a: };
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f() => {a: _s_};
+''');
+  }
+
+  void test_missingValue_notLast() {
+    testRecovery('''
+f() => {a: , b: c};
+''', [ParserErrorCode.MISSING_IDENTIFIER], '''
+f() => {a: _s_, b: c};
+''');
+  }
 }
 
 /**
