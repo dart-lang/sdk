@@ -667,7 +667,6 @@ const List<ErrorCode> errorCodeValues = const [
   StrongModeCode.TOP_LEVEL_INSTANCE_GETTER,
   StrongModeCode.TOP_LEVEL_TYPE_ARGUMENTS,
   StrongModeCode.TOP_LEVEL_UNSUPPORTED,
-  StrongModeCode.UNSAFE_BLOCK_CLOSURE_INFERENCE,
   TodoCode.TODO,
 ];
 

@@ -5038,12 +5038,6 @@ class StrongModeCode extends ErrorCode {
       "The type of '{0}' can't be inferred because {1} expressions aren't supported.",
       "Try adding an explicit type for '{0}'.");
 
-  static const StrongModeCode UNSAFE_BLOCK_CLOSURE_INFERENCE = const StrongModeCode(
-      ErrorType.STATIC_WARNING,
-      'UNSAFE_BLOCK_CLOSURE_INFERENCE',
-      "Unsafe use of a block closure in a type-inferred variable outside a function body.",
-      "Try adding a type annotation for '{0}'. See dartbug.com/26947.");
-
   @override
   final ErrorType type;
 
