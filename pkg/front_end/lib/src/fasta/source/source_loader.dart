@@ -425,33 +425,47 @@ class SourceLoader<L> extends Loader<L> {
   void checkSemantics() {
     List<ClassBuilder> allClasses = target.collectAllClasses();
     Iterable<ClassBuilder> candidates = cyclicCandidates(allClasses);
-    Map<ClassBuilder, Set<ClassBuilder>> realCycles =
-        <ClassBuilder, Set<ClassBuilder>>{};
-    for (ClassBuilder cls in candidates) {
-      Set<ClassBuilder> cycles = cyclicCandidates(allSupertypes(cls));
-      if (cycles.isNotEmpty) {
-        realCycles[cls] = cycles;
+    if (candidates.isNotEmpty) {
+      Map<ClassBuilder, Set<ClassBuilder>> realCycles =
+          <ClassBuilder, Set<ClassBuilder>>{};
+      for (ClassBuilder cls in candidates) {
+        Set<ClassBuilder> cycles = cyclicCandidates(allSupertypes(cls));
+        if (cycles.isNotEmpty) {
+          realCycles[cls] = cycles;
+        }
       }
-    }
-    Set<ClassBuilder> reported = new Set<ClassBuilder>();
-    realCycles.forEach((ClassBuilder cls, Set<ClassBuilder> cycles) {
-      target.breakCycle(cls);
-      if (reported.add(cls)) {
+      Map<LocatedMessage, ClassBuilder> messages =
+          <LocatedMessage, ClassBuilder>{};
+      realCycles.forEach((ClassBuilder cls, Set<ClassBuilder> cycles) {
+        target.breakCycle(cls);
         List<ClassBuilder> involved = <ClassBuilder>[];
         for (ClassBuilder cls in cycles) {
           if (realCycles.containsKey(cls)) {
             involved.add(cls);
-            reported.add(cls);
           }
         }
-        String involvedString =
-            involved.map((c) => c.fullNameForErrors).join("', '");
-        cls.addCompileTimeError(
-            templateCyclicClassHierarchy.withArguments(
-                cls.fullNameForErrors, involvedString),
-            cls.charOffset);
+        // Sort the class names alphabetically to ensure the order is stable.
+        // TODO(ahe): It's possible that a better UX would be to sort the
+        // classes based on walking the class hierarchy in breadth-first order.
+        String involvedString = (involved
+                .where((c) => c != cls)
+                .map((c) => c.fullNameForErrors)
+                .toList()
+                  ..sort())
+            .join("', '");
+        messages[templateCyclicClassHierarchy
+            .withArguments(cls.fullNameForErrors, involvedString)
+            .withLocation(cls.fileUri, cls.charOffset)] = cls;
+      });
+
+      // Report all classes involved in a cycle, sorted to ensure stability as
+      // [cyclicCandidates] is sensitive to if the platform (or other modules)
+      // are included in allClasses.
+      for (LocatedMessage message in messages.keys.toList()..sort()) {
+        messages[message]
+            .addCompileTimeError(message.messageObject, message.charOffset);
       }
-    });
+    }
     ticker.logMs("Found cycles");
     Set<ClassBuilder> blackListedClasses = new Set<ClassBuilder>.from([
       coreLibrary["bool"],
