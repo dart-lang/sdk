@@ -422,9 +422,8 @@ class SourceLoader<L> extends Loader<L> {
     return output;
   }
 
-  void checkSemantics() {
-    List<ClassBuilder> allClasses = target.collectAllClasses();
-    Iterable<ClassBuilder> candidates = cyclicCandidates(allClasses);
+  void checkSemantics(List<SourceClassBuilder> classes) {
+    Iterable<ClassBuilder> candidates = cyclicCandidates(classes);
     if (candidates.isNotEmpty) {
       Map<ClassBuilder, Set<ClassBuilder>> realCycles =
           <ClassBuilder, Set<ClassBuilder>>{};
@@ -460,7 +459,7 @@ class SourceLoader<L> extends Loader<L> {
 
       // Report all classes involved in a cycle, sorted to ensure stability as
       // [cyclicCandidates] is sensitive to if the platform (or other modules)
-      // are included in allClasses.
+      // are included in [classes].
       for (LocatedMessage message in messages.keys.toList()..sort()) {
         messages[message]
             .addCompileTimeError(message.messageObject, message.charOffset);
@@ -474,7 +473,7 @@ class SourceLoader<L> extends Loader<L> {
       coreLibrary["double"],
       coreLibrary["String"],
     ]);
-    for (ClassBuilder cls in allClasses) {
+    for (ClassBuilder cls in classes) {
       if (cls.library.loader != this) continue;
       Set<ClassBuilder> directSupertypes = new Set<ClassBuilder>();
       target.addDirectSupertype(cls, directSupertypes);
