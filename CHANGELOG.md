@@ -1,3 +1,7 @@
+# 0.1.41
+
+* broadened `args` package dependency to support versions `1.*`
+
 # 0.1.40
 
 * `avoid_unused_constructor_parameters` updated to better handle redirecting factory constructors
