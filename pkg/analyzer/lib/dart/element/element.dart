@@ -665,6 +665,10 @@ abstract class Element implements AnalysisTarget, ResolutionTarget {
    */
   bool get isSynthetic;
 
+  /// Return `true` if this element has an annotation of the form
+  /// '@visibleForTesting'.
+  bool get isVisibleForTesting;
+
   /**
    * Return the kind of element that this is.
    */
@@ -872,6 +876,10 @@ abstract class ElementAnnotation
    * required.
    */
   bool get isRequired;
+
+  /// Return `true` if this annotation marks the associated member as being
+  /// visible for testing.
+  bool get isVisibleForTesting;
 
   /**
    * Return a representation of the value of this annotation, forcing the value
