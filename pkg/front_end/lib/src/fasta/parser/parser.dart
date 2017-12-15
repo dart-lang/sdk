@@ -1722,6 +1722,27 @@ class Parser {
     return token;
   }
 
+  /// Return `true` if the given [token] should be treated like the start of
+  /// an expression for the purposes of recovery.
+  bool isExpressionStartForRecovery(Token next) =>
+      next.isKeywordOrIdentifier ||
+      next.type == TokenType.DOUBLE ||
+      next.type == TokenType.HASH ||
+      next.type == TokenType.HEXADECIMAL ||
+      next.type == TokenType.IDENTIFIER ||
+      next.type == TokenType.INT ||
+      next.type == TokenType.STRING ||
+      optional('{', next) ||
+      optional('(', next) ||
+      optional('[', next) ||
+      optional('[]', next) ||
+      optional('<', next) ||
+      optional('!', next) ||
+      optional('-', next) ||
+      optional('~', next) ||
+      optional('++', next) ||
+      optional('--', next);
+
   /// Return `true` if the given [token] should be treated like an identifier in
   /// the given [context] for the purposes of recovery.
   bool isIdentifierForRecovery(Token token, IdentifierContext context) {
@@ -4802,17 +4823,41 @@ class Parser {
     int count = 0;
     bool old = mayParseFunctionExpressions;
     mayParseFunctionExpressions = true;
-    do {
+    while (true) {
       if (optional('}', token.next)) {
         token = token.next;
         break;
       }
-      token = parseMapLiteralEntry(token).next;
+      token = parseMapLiteralEntry(token);
+      Token next = token.next;
       ++count;
-    } while (optional(',', token));
+      if (!optional(',', next)) {
+        if (optional('}', next)) {
+          token = next;
+          break;
+        }
+        // Recovery
+        if (isExpressionStartForRecovery(next)) {
+          // If this looks like the start of an expression,
+          // then report an error, insert the comma, and continue parsing.
+          next = rewriteAndRecover(
+                  token,
+                  fasta.templateExpectedButGot.withArguments(','),
+                  new SyntheticToken(TokenType.COMMA, next.offset))
+              .next;
+        } else {
+          reportRecoverableError(
+              next, fasta.templateExpectedButGot.withArguments('}'));
+          // Scanner guarantees a closing curly bracket
+          token = beginToken.endGroup;
+          break;
+        }
+      }
+      token = next;
+    }
+    assert(optional('}', token));
     mayParseFunctionExpressions = old;
     listener.handleLiteralMap(count, beginToken, constKeyword, token);
-    expect('}', token);
     return token;
   }
 
@@ -4878,10 +4923,9 @@ class Parser {
     // Assume the listener rejects non-string keys.
     // TODO(brianwilkerson): Change the assumption above by moving error
     // checking into the parser, making it possible to recover.
-    token = parseExpression(token).next;
-    Token colon = token;
-    expect(':', colon);
     token = parseExpression(token);
+    Token colon = ensureColon(token);
+    token = parseExpression(colon);
     listener.endLiteralMapEntry(colon, token.next);
     return token;
   }
@@ -5202,25 +5246,7 @@ class Parser {
           break;
         }
         // Recovery
-        // TODO(danrubel): Consider using isPostIdentifierForRecovery
-        // and isStartOfNextSibling.
-        if (next.isKeywordOrIdentifier ||
-            next.type == TokenType.DOUBLE ||
-            next.type == TokenType.HASH ||
-            next.type == TokenType.HEXADECIMAL ||
-            next.type == TokenType.IDENTIFIER ||
-            next.type == TokenType.INT ||
-            next.type == TokenType.STRING ||
-            optional('{', next) ||
-            optional('(', next) ||
-            optional('[', next) ||
-            optional('[]', next) ||
-            optional('<', next) ||
-            optional('!', next) ||
-            optional('-', next) ||
-            optional('~', next) ||
-            optional('++', next) ||
-            optional('--', next)) {
+        if (isExpressionStartForRecovery(next)) {
           // If this looks like the start of an expression,
           // then report an error, insert the comma, and continue parsing.
           next = rewriteAndRecover(
