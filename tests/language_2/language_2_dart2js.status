@@ -1524,6 +1524,7 @@ assertion_initializer_const_error2_test/none: Pass
 cascaded_forwarding_stubs_generic_test: RuntimeError
 cascaded_forwarding_stubs_test: RuntimeError
 checked_setter3_test: RuntimeError # Issue 31128
+forwarding_semi_stub_test: RuntimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 implicit_downcast_during_assignment_test: RuntimeError
@@ -1569,6 +1570,7 @@ const_constructor2_test/24: MissingCompileTimeError
 const_constructor3_test/02: MissingCompileTimeError
 const_constructor3_test/04: MissingCompileTimeError
 const_init2_test/02: MissingCompileTimeError
+forwarding_semi_stub_test: RuntimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 function_subtype_inline2_test: RuntimeError

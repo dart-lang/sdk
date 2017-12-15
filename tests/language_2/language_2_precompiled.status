@@ -1047,6 +1047,7 @@ covariance_setter_test/05: RuntimeError
 covariance_type_parameter_test/01: RuntimeError
 covariance_type_parameter_test/02: RuntimeError
 covariance_type_parameter_test/03: RuntimeError
+forwarding_semi_stub_test: RuntimeError
 forwarding_stub_tearoff_generic_test: RuntimeError
 forwarding_stub_tearoff_test: RuntimeError
 function_type_call_getter2_test/none: RuntimeError
