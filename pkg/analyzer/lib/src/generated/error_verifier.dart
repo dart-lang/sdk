@@ -2574,17 +2574,24 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.ASSIGNMENT_TO_CONST, expression);
       } else if (element.isFinal) {
-        if (element is FieldElementImpl &&
-            element.setter == null &&
-            element.isSynthetic) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
-              highlightedNode,
-              [element.name, element.enclosingElement.displayName]);
+        if (element is FieldElementImpl) {
+          if (element.setter == null && element.isSynthetic) {
+            _errorReporter.reportErrorForNode(
+                StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+                highlightedNode,
+                [element.name, element.enclosingElement.displayName]);
+          } else {
+            _errorReporter.reportErrorForNode(
+                StaticWarningCode.ASSIGNMENT_TO_FINAL,
+                highlightedNode,
+                [element.name]);
+          }
           return;
         }
-        _errorReporter.reportErrorForNode(StaticWarningCode.ASSIGNMENT_TO_FINAL,
-            highlightedNode, [element.name]);
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL,
+            highlightedNode,
+            [element.name]);
       }
     } else if (element is FunctionElement) {
       _errorReporter.reportErrorForNode(

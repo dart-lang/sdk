@@ -3325,6 +3325,17 @@ class StaticWarningCode extends ErrorCode {
    * a NoSuchMethodError to be thrown, because no setter is defined for it. The
    * assignment will also give rise to a static warning for the same reason.
    */
+  static const StaticWarningCode ASSIGNMENT_TO_FINAL_LOCAL =
+      const StaticWarningCode(
+          'ASSIGNMENT_TO_FINAL_LOCAL',
+          "'{0}', a final variable, can only be set once.",
+          "Try making '{0}' non-final.");
+
+  /**
+   * 5 Variables: Attempting to assign to a final variable elsewhere will cause
+   * a NoSuchMethodError to be thrown, because no setter is defined for it. The
+   * assignment will also give rise to a static warning for the same reason.
+   */
   static const StaticWarningCode ASSIGNMENT_TO_FINAL_NO_SETTER =
       const StaticWarningCode(
           'ASSIGNMENT_TO_FINAL_NO_SETTER',

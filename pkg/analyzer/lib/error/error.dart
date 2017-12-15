@@ -533,6 +533,7 @@ const List<ErrorCode> errorCodeValues = const [
   StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.ASSIGNMENT_TO_CONST,
   StaticWarningCode.ASSIGNMENT_TO_FINAL,
+  StaticWarningCode.ASSIGNMENT_TO_FINAL_LOCAL,
   StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
   StaticWarningCode.ASSIGNMENT_TO_FUNCTION,
   StaticWarningCode.ASSIGNMENT_TO_METHOD,

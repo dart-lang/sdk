@@ -376,71 +376,71 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_localVariable() async {
-    return super.test_assignmentToFinal_localVariable();
+  test_assignmentToFinalLocal_localVariable() async {
+    return super.test_assignmentToFinalLocal_localVariable();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_localVariable_plusEq() async {
-    return super.test_assignmentToFinal_localVariable_plusEq();
+  test_assignmentToFinalLocal_localVariable_plusEq() async {
+    return super.test_assignmentToFinalLocal_localVariable_plusEq();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_parameter() async {
-    return super.test_assignmentToFinal_parameter();
+  test_assignmentToFinalLocal_parameter() async {
+    return super.test_assignmentToFinalLocal_parameter();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_postfixMinusMinus() async {
-    return super.test_assignmentToFinal_postfixMinusMinus();
+  test_assignmentToFinalLocal_postfixMinusMinus() async {
+    return super.test_assignmentToFinalLocal_postfixMinusMinus();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_postfixPlusPlus() async {
-    return super.test_assignmentToFinal_postfixPlusPlus();
+  test_assignmentToFinalLocal_postfixPlusPlus() async {
+    return super.test_assignmentToFinalLocal_postfixPlusPlus();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_prefixMinusMinus() async {
-    return super.test_assignmentToFinal_prefixMinusMinus();
+  test_assignmentToFinalLocal_prefixMinusMinus() async {
+    return super.test_assignmentToFinalLocal_prefixMinusMinus();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_prefixPlusPlus() async {
-    return super.test_assignmentToFinal_prefixPlusPlus();
+  test_assignmentToFinalLocal_prefixPlusPlus() async {
+    return super.test_assignmentToFinalLocal_prefixPlusPlus();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_suffixMinusMinus() async {
-    return super.test_assignmentToFinal_suffixMinusMinus();
+  test_assignmentToFinalLocal_suffixMinusMinus() async {
+    return super.test_assignmentToFinalLocal_suffixMinusMinus();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_suffixPlusPlus() async {
-    return super.test_assignmentToFinal_suffixPlusPlus();
+  test_assignmentToFinalLocal_suffixPlusPlus() async {
+    return super.test_assignmentToFinalLocal_suffixPlusPlus();
   }
 
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_assignmentToFinal_topLevelVariable() async {
-    return super.test_assignmentToFinal_topLevelVariable();
+  test_assignmentToFinalLocal_topLevelVariable() async {
+    return super.test_assignmentToFinalLocal_topLevelVariable();
   }
 
   @override
