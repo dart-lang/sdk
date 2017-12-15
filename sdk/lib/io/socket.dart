@@ -577,9 +577,9 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    */
   InternetAddress get remoteAddress;
 
-  Future<Socket> close();
+  Future close();
 
-  Future<Socket> get done;
+  Future get done;
 }
 
 /**
