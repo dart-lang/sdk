@@ -693,5 +693,5 @@ string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $hot_reload || $hot_reload_rollback ]
 bigint_parse_radix_test: Pass, Timeout # Issue 31659
+bigint_test: Pass, Crash # Issue 31660
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow
-
