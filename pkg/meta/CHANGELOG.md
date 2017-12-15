@@ -32,6 +32,14 @@
     }
     ```
 
+## 1.0.5
+* Introduce `@experimental` to annotate a library, or any declaration that is
+  part of the public interface of a library (such as top-level members, class
+  members, and function parameters) to indicate that the annotated API is
+  experimental and may be removed or changed at any-time without updating the
+  version of the containing package, despite the fact that it would otherwise
+  be a breaking change.
+
 ## 1.0.4
 * Introduce `@virtual` to allow field overrides in strong mode
     (SDK issue [27384](https://github.com/dart-lang/sdk/issues/27384)).
