@@ -1754,6 +1754,7 @@ class Parser {
         return true;
       }
       followingValues = [
+        '.',
         ',',
         '(',
         ')',

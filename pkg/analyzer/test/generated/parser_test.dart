@@ -10868,6 +10868,25 @@ class C {
     expect(expression, new isInstanceOf<SimpleIdentifier>());
   }
 
+  void test_propertyAccess_missing_LHS_RHS() {
+    Expression result = parseExpression(".", codes: [
+      ParserErrorCode.MISSING_IDENTIFIER,
+      ParserErrorCode.MISSING_IDENTIFIER
+    ]);
+    if (usingFastaParser) {
+      PrefixedIdentifier expression = result;
+      expect(expression.prefix.isSynthetic, isTrue);
+      expect(expression.period.lexeme, '.');
+      expect(expression.identifier.isSynthetic, isTrue);
+    } else {
+      PropertyAccess expression = result;
+      SimpleIdentifier target = expression.target;
+      expect(target.isSynthetic, isTrue);
+      expect(expression.operator.lexeme, '.');
+      expect(expression.propertyName.isSynthetic, isTrue);
+    }
+  }
+
   void test_relationalExpression_missing_LHS() {
     IsExpression expression =
         parseExpression("is y", codes: [ParserErrorCode.MISSING_IDENTIFIER]);
