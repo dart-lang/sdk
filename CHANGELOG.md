@@ -111,6 +111,16 @@
 
 ### Tool Changes
 
+* Analyzer
+
+The analyzer will no longer issue a warning when a generic type parameter is
+used as the type in an instance check. For example:
+    ```dart
+    test<T>() {
+      print(3 is T); // No warning
+    }
+    ```
+
 * Pub
 
   * Git dependencies may now include a `path` parameter, indicating that the

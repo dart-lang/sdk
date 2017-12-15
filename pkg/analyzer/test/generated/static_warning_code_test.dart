@@ -3389,45 +3389,6 @@ a.A v;'''
     ]);
   }
 
-  test_typeAnnotationGenericFunctionParameter_localFunction() async {
-    Source source = addSource(r'''
-class A {
-  void method() {
-    T local<T>(Object t) {
-      return (t is T) ? t : null;
-    }
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
-    verify([source]);
-  }
-
-  test_typeAnnotationGenericFunctionParameter_method() async {
-    Source source = addSource(r'''
-class A {
-  T method<T>(Object t) {
-    return (t is T) ? t : null;
-  }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
-    verify([source]);
-  }
-
-  test_typeAnnotationGenericFunctionParameter_topLevelFunction() async {
-    Source source = addSource(r'''
-T function<T>(Object t) {
-  return (t is T) ? t : null;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(
-        source, [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER]);
-    verify([source]);
-  }
-
   test_typeParameterReferencedByStatic_field() async {
     Source source = addSource(r'''
 class A<K> {

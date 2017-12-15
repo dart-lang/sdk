@@ -4534,19 +4534,6 @@ class StaticWarningCode extends ErrorCode {
           "changing the import to not be deferred.");
 
   /**
-   * Not yet spec'd.
-   *
-   * Parameters:
-   * 0: the name of the generic function's type parameter that is being used in
-   *    an `is` expression
-   */
-  static const StaticWarningCode TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER =
-      const StaticWarningCode(
-          'TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER',
-          "The type parameter '{0}' can't be used in a type test.",
-          "Try using a different type.");
-
-  /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
    * available in the current lexical scope.
    */

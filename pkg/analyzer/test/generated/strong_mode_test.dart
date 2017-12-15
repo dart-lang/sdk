@@ -2796,12 +2796,9 @@ main() {
     await resolveTestUnit(code);
   }
 
-  @failingTest
   test_futureOr_promotion3() async {
     // Test that promotion from FutureOr<T> to T works for type
     // parameters T
-    // TODO(leafp): When the restriction on is checks for generic methods
-    // goes away this should pass.
     String code = r'''
     import "dart:async";
     dynamic test<T extends num>(FutureOr<T> x) => (x is T) &&

@@ -1740,27 +1740,6 @@ class StaticWarningCodeTest_Kernel extends StaticWarningCodeTest_Driver {
   @override
   @failingTest
   @potentialAnalyzerProblem
-  test_typeAnnotationGenericFunctionParameter_localFunction() async {
-    return super.test_typeAnnotationGenericFunctionParameter_localFunction();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationGenericFunctionParameter_method() async {
-    return super.test_typeAnnotationGenericFunctionParameter_method();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
-  test_typeAnnotationGenericFunctionParameter_topLevelFunction() async {
-    return super.test_typeAnnotationGenericFunctionParameter_topLevelFunction();
-  }
-
-  @override
-  @failingTest
-  @potentialAnalyzerProblem
   test_typeParameterReferencedByStatic_field() async {
     return super.test_typeParameterReferencedByStatic_field();
   }

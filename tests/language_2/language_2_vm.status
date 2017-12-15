@@ -43,7 +43,6 @@ example_constructor_test: Fail, OK
 export_ambiguous_main_negative_test: Fail # Issue 14763
 field_initialization_order_test: Fail, OK
 generalized_void_syntax_test: CompileTimeError # Issue #30176
-generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 hello_dart_test: Skip # Incompatible flag: --compile_all
 language_2/least_upper_bound_expansive_test/none: CompileTimeError
 library_env_test/has_html_support: RuntimeError, OK
@@ -1185,7 +1184,6 @@ export_ambiguous_main_negative_test: Fail # Issue 14763
 field_initialization_order_test: Fail, OK
 generalized_void_syntax_test: CompileTimeError # Issue #30176
 generic_methods_bounds_test/02: MissingRuntimeError
-generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
 main_not_a_function_test: Skip

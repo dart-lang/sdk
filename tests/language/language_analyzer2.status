@@ -105,6 +105,7 @@ generic_closure_test: StaticWarning
 generic_list_checked_test: StaticWarning
 generic_local_functions_test: CompileTimeError # Issue 28515
 generic_methods_generic_function_parameter_test: CompileTimeError # Issue 28515
+generic_methods_type_expression_test: Skip # This tests now unsupported Dart 1.0 behavior (is check warnings)
 generic_test: StaticWarning
 generics_test: StaticWarning
 get_set_syntax_test/none: Fail # Issue 11575

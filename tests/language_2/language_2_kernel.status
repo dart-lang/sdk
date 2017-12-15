@@ -664,7 +664,6 @@ generic_methods_overriding_test/03: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
 generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_tearoff_specialization_test: RuntimeError
-generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533
@@ -1916,8 +1915,6 @@ generic_methods_recursive_bound_test/03: Crash, Pass
 generic_methods_reuse_type_variables_test: Pass
 generic_methods_tearoff_specialization_test: RuntimeError
 generic_methods_tearoff_specialization_test: CompileTimeError # Issue 31402 (Variable declaration)
-generic_methods_type_expression_test: Crash
-generic_methods_type_expression_test: RuntimeError # Issue 25869 / 27460
 generic_methods_unused_parameter_test: CompileTimeError # Issue 31402 (Variable declaration)
 generic_methods_unused_parameter_test: RuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Issue 31533

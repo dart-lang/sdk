@@ -48,13 +48,8 @@ final_syntax_test/04: MissingCompileTimeError
 forwarding_stub_tearoff_test: CompileTimeError
 fuzzy_arrows_test/01: MissingCompileTimeError
 generic_local_functions_test: CompileTimeError
-generic_methods_closure_test: CompileTimeError # Issue 29920
 generic_methods_generic_function_parameter_test: CompileTimeError
 generic_methods_generic_function_result_test/none: CompileTimeError # Issue #30208
-generic_methods_local_variable_declaration_test: CompileTimeError # Issue 29920
-generic_methods_shadowing_test: CompileTimeError # Issue 29920
-generic_methods_simple_is_expression_test: CompileTimeError # Issue 29920
-generic_methods_type_expression_test: CompileTimeError
 generic_no_such_method_dispatcher_simple_test: Skip # This test is just for kernel.
 generic_no_such_method_dispatcher_test: CompileTimeError
 generic_test: CompileTimeError
@@ -790,7 +785,6 @@ generic_closure_test/01: RuntimeError # ReferenceError: TToT is not defined
 generic_closure_test/none: RuntimeError # ReferenceError: TToT is not defined
 generic_list_checked_test: RuntimeError # Expect.throws fails: Did not throw
 generic_method_types_test/02: RuntimeError
-generic_methods_type_expression_test: RuntimeError # Expect.isTrue(false) fails.
 generic_methods_unused_parameter_test: RuntimeError # Expect.isTrue(false) fails.
 generic_test: RuntimeError # ReferenceError: BOfT is not defined
 library_env_test/has_io_support: RuntimeError # Unsupported operation: bool.fromEnvironment can only be used as a const constructor
