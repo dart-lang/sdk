@@ -2927,7 +2927,7 @@ class Instantiation extends Expression {
     FunctionType type = expression.getStaticType(types);
     return Substitution
         .fromPairs(type.typeParameters, typeArguments)
-        .substituteType(type);
+        .substituteType(type.withoutTypeParameters);
   }
 
   accept(ExpressionVisitor v) => v.visitInstantiation(this);

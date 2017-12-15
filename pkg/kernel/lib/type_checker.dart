@@ -281,18 +281,14 @@ class TypeCheckingVisitor
         fail(arguments, 'Too many positional arguments');
         return const BottomType();
       }
-      if (arguments.types.length != typeParameters.length) {
+      var typeArguments = arguments.types;
+      if (typeArguments.length != typeParameters.length) {
         fail(arguments, 'Wrong number of type arguments');
         return const BottomType();
       }
-      var instantiation =
-          Substitution.fromPairs(typeParameters, arguments.types);
-      var substitution = Substitution.combine(receiver, instantiation);
-      for (int i = 0; i < typeParameters.length; ++i) {
-        var argument = arguments.types[i];
-        var bound = substitution.substituteType(typeParameters[i].bound);
-        checkAssignable(arguments, argument, bound);
-      }
+      Substitution substitution = _instantiateFunction(
+          typeParameters, typeArguments, arguments,
+          receiverSubstitution: receiver);
       for (int i = 0; i < arguments.positional.length; ++i) {
         var expectedType = substitution.substituteType(
             functionType.positionalParameters[i],
@@ -383,6 +379,21 @@ class TypeCheckingVisitor
       default:
         throw 'Unexpected async marker: ${function.asyncMarker}';
     }
+  }
+
+  Substitution _instantiateFunction(List<TypeParameter> typeParameters,
+      List<DartType> typeArguments, TreeNode where,
+      {Substitution receiverSubstitution}) {
+    var instantiation = Substitution.fromPairs(typeParameters, typeArguments);
+    var substitution = receiverSubstitution == null
+        ? instantiation
+        : Substitution.combine(receiverSubstitution, instantiation);
+    for (int i = 0; i < typeParameters.length; ++i) {
+      var argument = typeArguments[i];
+      var bound = substitution.substituteType(typeParameters[i].bound);
+      checkAssignable(where, argument, bound);
+    }
+    return substitution;
   }
 
   @override
@@ -482,7 +493,7 @@ class TypeCheckingVisitor
   DartType visitInstantiation(Instantiation node) {
     DartType type = visitExpression(node.expression);
     if (type is! FunctionType) {
-      fail(node, 'Not a function type');
+      fail(node, 'Not a function type: $type');
       return const BottomType();
     }
     FunctionType functionType = type;
@@ -490,9 +501,9 @@ class TypeCheckingVisitor
       fail(node, 'Wrong number of type arguments');
       return const BottomType();
     }
-    return Substitution
-        .fromPairs(functionType.typeParameters, node.typeArguments)
-        .substituteType(functionType);
+    return _instantiateFunction(
+            functionType.typeParameters, node.typeArguments, node)
+        .substituteType(functionType.withoutTypeParameters);
   }
 
   @override

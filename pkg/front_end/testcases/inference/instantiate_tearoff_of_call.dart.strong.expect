@@ -1,0 +1,9 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+static method test(<T extends core::Object>(T) → T f) → void {
+  (core::int) → core::int func;
+  func = f.call<core::int>;
+}
+static method main() → dynamic {}

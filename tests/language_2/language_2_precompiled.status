@@ -471,6 +471,9 @@ instance_creation_in_function_annotation_test: SkipByDesign
 instanceof2_test: RuntimeError
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: RuntimeError
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_of_call_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 invalid_cast_test/01: MissingCompileTimeError
 invalid_cast_test/02: MissingCompileTimeError

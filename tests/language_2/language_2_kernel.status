@@ -184,9 +184,6 @@ assign_top_method_test: MissingCompileTimeError
 async_await_syntax_test/c10a: MissingCompileTimeError
 async_await_syntax_test/d08b: MissingCompileTimeError
 async_await_syntax_test/d10a: MissingCompileTimeError
-async_await_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
-async_await_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
-async_await_test/none: CompileTimeError # Issue 31402 (Invocation arguments)
 async_or_generator_return_type_stacktrace_test/01: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/02: MissingCompileTimeError
 async_or_generator_return_type_stacktrace_test/03: MissingCompileTimeError
@@ -431,8 +428,8 @@ deferred_inheritance_constraints_test/redirecting_constructor: RuntimeError # Fa
 deferred_inlined_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_inlined_test: RuntimeError
 deferred_load_constants_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-deferred_load_inval_code_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_load_inval_code_test: RuntimeError
+deferred_load_inval_code_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_load_library_wrong_args_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
 deferred_load_library_wrong_args_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_load_library_wrong_args_test/none: RuntimeError
@@ -457,8 +454,8 @@ deferred_shared_and_unshared_classes_test: RuntimeError
 deferred_static_seperate_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_static_seperate_test: RuntimeError
 deferred_super_dependency_test/01: Pass # Passes by mistake. KernelVM bug: Deferred loading kernel issue 28335.
-deferred_type_dependency_test/as: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/as: RuntimeError
+deferred_type_dependency_test/as: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/is: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
 deferred_type_dependency_test/is: RuntimeError
 deferred_type_dependency_test/none: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
@@ -470,8 +467,8 @@ duplicate_export_negative_test: Fail # Issue 6134
 dynamic_prefix_core_test/01: MissingCompileTimeError
 dynamic_prefix_core_test/01: RuntimeError # KernelVM bug: Blocked on language issue 29125.
 dynamic_prefix_core_test/none: RuntimeError
-dynamic_test: CompileTimeError # Issue 31402 (Variable declaration)
 dynamic_test: RuntimeError
+dynamic_test: CompileTimeError # Issue 31402 (Variable declaration)
 emit_const_fields_test: CompileTimeError # Issue 31533
 empty_block_case_test: MissingCompileTimeError
 enum_private_test/02: MissingCompileTimeError
@@ -650,8 +647,8 @@ generic_function_bounds_test: CompileTimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test: CompileTimeError
 generic_function_dcall_test: RuntimeError
-generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
 generic_function_type_as_type_argument_test/02: Pass # For the wrong reason, issue 30931
+generic_function_type_as_type_argument_test/02: MissingCompileTimeError, OK # No type inference
 generic_function_typedef2_test/04: MissingCompileTimeError
 generic_instanceof2_test: RuntimeError
 generic_instanceof_test: RuntimeError
@@ -694,6 +691,9 @@ initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instanceof2_test: RuntimeError
+instantiate_tearoff_after_contravariance_check_test: CompileTimeError
+instantiate_tearoff_of_call_test: CompileTimeError
+instantiate_tearoff_test: CompileTimeError
 int64_literal_test/03: MissingCompileTimeError # http://dartbug.com/31479
 int64_literal_test/30: MissingCompileTimeError # http://dartbug.com/31479
 interface_test/00: MissingCompileTimeError
@@ -1145,8 +1145,6 @@ unresolved_in_factory_test: MissingCompileTimeError
 unresolved_top_level_method_test: MissingCompileTimeError
 unresolved_top_level_var_test: MissingCompileTimeError
 vm/canonicalization_preserves_deopt_test: CompileTimeError # Issue 31402 (Assert statement)
-vm/causal_async_exception_stack2_test: CompileTimeError # Issue 31402 (Invocation arguments)
-vm/causal_async_exception_stack_test: CompileTimeError # Issue 31402 (Invocation arguments)
 vm/closure_memory_retention_test: Skip # KernelVM bug: Hits OOM
 vm/debug_break_enabled_vm_test/01: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
 vm/debug_break_enabled_vm_test/none: CompileTimeError # KernelVM bug: Bad test using extended break syntax.
@@ -1427,8 +1425,8 @@ async_star_regression_fisk_test: RuntimeError
 async_star_test/01: CompileTimeError # Issue 2238.
 async_star_test/01: Crash
 async_star_test/01: Pass
-async_star_test/02: RuntimeError
 async_star_test/02: CompileTimeError # Issue 31402 (Invocation arguments)
+async_star_test/02: RuntimeError
 async_star_test/03: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/04: CompileTimeError # Issue 31402 (Invocation arguments)
 async_star_test/05: CompileTimeError # Issue 31402 (Invocation arguments)
@@ -1499,8 +1497,8 @@ checked_setter3_test/02: MissingCompileTimeError
 checked_setter3_test/03: MissingCompileTimeError
 class_cycle_test/02: MissingCompileTimeError
 class_cycle_test/03: MissingCompileTimeError
-class_keyword_test/02: Pass
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
+class_keyword_test/02: Pass
 class_literal_static_test/12: MissingCompileTimeError
 class_literal_static_test/13: MissingCompileTimeError
 class_literal_static_test/17: MissingCompileTimeError
@@ -1642,8 +1640,8 @@ deferred_constraints_type_annotation_test/type_annotation_generic1: MissingCompi
 deferred_constraints_type_annotation_test/type_annotation_generic1: Pass
 deferred_constraints_type_annotation_test/type_annotation_generic2: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic2: Pass
-deferred_constraints_type_annotation_test/type_annotation_generic3: Pass
 deferred_constraints_type_annotation_test/type_annotation_generic3: MissingCompileTimeError
+deferred_constraints_type_annotation_test/type_annotation_generic3: Pass
 deferred_constraints_type_annotation_test/type_annotation_generic4: MissingCompileTimeError
 deferred_constraints_type_annotation_test/type_annotation_generic4: Pass
 deferred_constraints_type_annotation_test/type_annotation_non_deferred: CompileTimeError
@@ -1974,6 +1972,9 @@ instanceof4_test/01: Pass
 instanceof4_test/01: RuntimeError
 instanceof4_test/none: Pass
 instanceof4_test/none: RuntimeError
+instantiate_tearoff_after_contravariance_check_test: CompileTimeError
+instantiate_tearoff_of_call_test: CompileTimeError
+instantiate_tearoff_test: CompileTimeError
 int64_literal_test/03: MissingCompileTimeError # http://dartbug.com/31479
 int64_literal_test/30: MissingCompileTimeError # http://dartbug.com/31479
 interface_test/00: MissingCompileTimeError
@@ -2185,8 +2186,8 @@ mixin_with_two_implicit_constructors_test: MissingCompileTimeError
 mock_writable_final_private_field_test: RuntimeError # Issue 30849
 multiline_strings_test: Pass
 multiline_strings_test: Fail # Issue 23020
-named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_constructor_test/01: MissingCompileTimeError
+named_constructor_test/01: MissingRuntimeError # Fasta bug: Bad compilation of constructor reference.
 named_constructor_test/03: MissingCompileTimeError
 named_parameters2_test: MissingCompileTimeError
 named_parameters3_test: MissingCompileTimeError
@@ -2356,8 +2357,8 @@ regress_28217_test/01: MissingCompileTimeError # Fasta bug: Bad constructor redi
 regress_28217_test/none: MissingCompileTimeError # Fasta bug: Bad constructor redirection.
 regress_28255_test: SkipByDesign
 regress_28278_test: CompileTimeError # KernelVM bug: Deferred loading kernel issue 28335.
-regress_28341_test: RuntimeError
 regress_28341_test: Pass
+regress_28341_test: RuntimeError
 regress_29025_test: CompileTimeError # Issue 31402 (Variable declaration)
 regress_29405_test: CompileTimeError # Issue 31402 (Invocation arguments)
 regress_29784_test/01: MissingCompileTimeError
@@ -2472,8 +2473,8 @@ vm/optimized_stacktrace_test: Skip # Issue 30198
 vm/reflect_core_vm_test: SkipByDesign
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_27201_test: Fail
-vm/regress_27671_test: Skip # Unsupported
 vm/regress_27671_test: Crash
+vm/regress_27671_test: Skip # Unsupported
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError # Expects line and column numbers
 vm/type_vm_test: RuntimeError, Pass # Expects line and column numbers

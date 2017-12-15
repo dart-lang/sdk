@@ -33,6 +33,7 @@ import 'package:kernel/ast.dart'
         FunctionNode,
         FunctionType,
         Initializer,
+        Instantiation,
         InterfaceType,
         InvocationExpression,
         Let,
@@ -41,6 +42,7 @@ import 'package:kernel/ast.dart'
         Member,
         MethodInvocation,
         Name,
+        NamedExpression,
         Procedure,
         ProcedureKind,
         PropertyGet,
@@ -742,7 +744,10 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Determines the dispatch category of a [PropertyGet] and adds an "as" check
   /// if necessary due to contravariance.
-  void handlePropertyGetContravariance(
+  ///
+  /// Returns the "as" check if it was added; otherwise returns the original
+  /// expression.
+  Expression handlePropertyGetContravariance(
       Expression receiver,
       Object interfaceMember,
       PropertyGet desugaredGet,
@@ -763,13 +768,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         interfaceMember is Procedure) {
       checkReturn = interfaceMember.isGenericContravariant;
     }
+    var replacedExpression = desugaredGet ?? expression;
     if (checkReturn) {
-      var expressionToReplace = desugaredGet ?? expression;
-      expressionToReplace.parent.replaceChild(
-          expressionToReplace,
-          new AsExpression(expressionToReplace, inferredType)
-            ..isTypeError = true
-            ..fileOffset = fileOffset);
+      var expressionToReplace = replacedExpression;
+      var parent = expressionToReplace.parent;
+      replacedExpression = new AsExpression(expressionToReplace, inferredType)
+        ..isTypeError = true
+        ..fileOffset = fileOffset;
+      parent.replaceChild(expressionToReplace, replacedExpression);
     }
     if (instrumentation != null) {
       int offset = expression.fileOffset;
@@ -790,6 +796,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             new InstrumentationValueForType(inferredType));
       }
     }
+    return replacedExpression;
   }
 
   /// Determines the dispatch category of a [PropertySet].
@@ -976,6 +983,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
             : formalType;
         var actualType = actualTypes[i];
         var expression = expressions[i];
+        // If the expression was replaced during type inference, e.g. due
+        // to insertion of an Instantiation node, we need to find the replaced
+        // expression.  We can do so by walking parent pointers.
+        while (true) {
+          var parent = expression.parent;
+          if (identical(parent, arguments) || parent is NamedExpression) break;
+          expression = parent;
+        }
         checkAssignability(
             expectedType, actualType, expression, expression.fileOffset);
       }
@@ -1248,9 +1263,14 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
     }
     var inferredType = getCalleeType(interfaceMember, receiverType);
-    // TODO(paulberry): Infer tear-off type arguments if appropriate.
-    handlePropertyGetContravariance(receiver, interfaceMember, desugaredGet,
-        expression, inferredType, fileOffset);
+    var replacedExpression = handlePropertyGetContravariance(receiver,
+        interfaceMember, desugaredGet, expression, inferredType, fileOffset);
+    if ((interfaceMember is Procedure &&
+            interfaceMember.kind == ProcedureKind.Method) ||
+        interfaceMember == 'call') {
+      inferredType =
+          instantiateTearOff(inferredType, typeContext, replacedExpression);
+    }
     if (identical(interfaceMember, 'call')) {
       listener.propertyGetExitCall(expression, inferredType);
     } else {
@@ -1274,6 +1294,36 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   /// Derived classes should override this method with logic that dispatches on
   /// the statement type and calls the appropriate specialized "infer" method.
   void inferStatement(Statement statement);
+
+  /// Performs the type inference steps necessary to instantiate a tear-off
+  /// (if necessary).
+  DartType instantiateTearOff(
+      DartType tearoffType, DartType context, Expression expression) {
+    if (strongMode &&
+        tearoffType is FunctionType &&
+        context is FunctionType &&
+        context.typeParameters.isEmpty) {
+      var typeParameters = tearoffType.typeParameters;
+      if (typeParameters.isNotEmpty) {
+        var inferredTypes = new List<DartType>.filled(
+            typeParameters.length, const UnknownType());
+        var instantiatedType = tearoffType.withoutTypeParameters;
+        typeSchemaEnvironment.inferGenericFunctionOrType(
+            instantiatedType, typeParameters, [], [], context, inferredTypes);
+        if (!isTopLevel) {
+          var parent = expression.parent;
+          parent.replaceChild(
+              expression,
+              new Instantiation(expression, inferredTypes)
+                ..fileOffset = expression.fileOffset);
+        }
+        var substitution =
+            Substitution.fromPairs(typeParameters, inferredTypes);
+        return substitution.substituteType(instantiatedType);
+      }
+    }
+    return tearoffType;
+  }
 
   /// Determines the dispatch category of a [MethodInvocation] and returns a
   /// boolean indicating whether an "as" check will need to be added due to

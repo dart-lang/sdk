@@ -1807,7 +1807,11 @@ class ShadowStaticGet extends StaticGet implements ShadowExpression {
       target._inferenceNode.resolve();
       target._inferenceNode = null;
     }
-    var inferredType = typeNeeded ? target.getterType : null;
+    var type = target.getterType;
+    if (target is Procedure && target.kind == ProcedureKind.Method) {
+      type = inferrer.instantiateTearOff(type, typeContext, this);
+    }
+    var inferredType = typeNeeded ? type : null;
     inferrer.listener.staticGetExit(this, inferredType);
     return inferredType;
   }
@@ -2470,8 +2474,11 @@ class ShadowVariableGet extends VariableGet implements ShadowExpression {
           new InstrumentationValueForType(promotedType));
     }
     this.promotedType = promotedType;
-    var inferredType =
-        typeNeeded ? (promotedType ?? declaredOrInferredType) : null;
+    var type = promotedType ?? declaredOrInferredType;
+    if (variable._isLocalFunction) {
+      type = inferrer.instantiateTearOff(type, typeContext, this);
+    }
+    var inferredType = typeNeeded ? type : null;
     inferrer.listener.variableGetExit(this, inferredType);
     return inferredType;
   }

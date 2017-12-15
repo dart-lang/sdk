@@ -315,13 +315,6 @@ class StrongModeLocalInferenceTest_Kernel extends StrongModeLocalInferenceTest {
 
   @override
   @failingTest
-  test_inferGenericInstantiation() async {
-    // Expected: '(dynamic) → dynamic'
-    await super.test_inferGenericInstantiation();
-  }
-
-  @override
-  @failingTest
   test_inferGenericInstantiation2() async {
     // Expected 1 errors of type StrongModeCode.STRONG_MODE_COULD_NOT_INFER, found 0;
     //          1 errors of type StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, found 0

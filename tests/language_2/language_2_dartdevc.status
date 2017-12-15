@@ -60,6 +60,8 @@ implicit_downcast_during_function_literal_arrow_test: CompileTimeError # Issue #
 import_core_prefix_test: CompileTimeError
 import_private_test/01: MissingCompileTimeError # Issue 29920
 initializing_formal_final_test: MissingCompileTimeError
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_of_call_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 internal_library_test/01: MissingCompileTimeError # Issue 29920
 method_override_test: CompileTimeError # Negative test
@@ -303,7 +305,7 @@ final_attempt_reinitialization_test/01: Crash
 final_attempt_reinitialization_test/02: Crash
 final_syntax_test/09: Crash
 function_propagation_test: CompileTimeError
-function_subtype_bound_closure7_test: CompileTimeError
+function_subtype_bound_closure7_test: Crash
 function_type/function_type10_test: CompileTimeError
 function_type/function_type11_test: CompileTimeError
 function_type/function_type14_test: CompileTimeError
@@ -374,12 +376,12 @@ function_type_parameter2_negative_test: Fail
 function_type_parameter_negative_test: Fail
 generalized_void_syntax_test: CompileTimeError
 generic_function_bounds_test: CompileTimeError
-generic_function_dcall_test: CompileTimeError
+generic_function_dcall_test: Crash
 generic_methods_bounds_test/01: MissingCompileTimeError
 generic_methods_generic_function_result_test/01: MissingCompileTimeError
 generic_methods_recursive_bound_test/02: MissingCompileTimeError
-generic_methods_tearoff_specialization_test: CompileTimeError
-generic_methods_unused_parameter_test: CompileTimeError
+generic_methods_tearoff_specialization_test: Crash
+generic_methods_unused_parameter_test: Crash
 generic_no_such_method_dispatcher_simple_test: CompileTimeError # Warning: Superclass has no method named 'foo'.
 generic_no_such_method_dispatcher_test: CompileTimeError # Issue 31533
 getter_override2_test/02: MissingCompileTimeError
@@ -396,6 +398,9 @@ implicit_this_test/04: MissingCompileTimeError
 initializing_formal_type_annotation_test/01: MissingCompileTimeError
 initializing_formal_type_annotation_test/02: MissingCompileTimeError
 instance_call_wrong_argument_count_negative_test: Fail
+instantiate_tearoff_after_contravariance_check_test: Crash
+instantiate_tearoff_of_call_test: Crash
+instantiate_tearoff_test: Crash
 invocation_mirror_test: CompileTimeError # Issue 31402 Error: A value of type 'dart.core::int' can't be assigned to a variable of type 'dart.core::Invocation'.
 issue13179_test: CompileTimeError # Issue 31537
 issue18628_2_test/01: MissingCompileTimeError

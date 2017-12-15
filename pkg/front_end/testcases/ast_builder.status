@@ -60,6 +60,9 @@ inference/infer_from_complex_expressions_if_outer_most_value_is_precise: Crash
 inference/infer_local_function_referenced_before_declaration: Crash
 inference/infer_rethrow: Crash
 inference/infer_statics_transitively3: Crash
+inference/instantiate_tearoff: Crash
+inference/instantiate_tearoff_after_contravariance_check: Crash
+inference/instantiate_tearoff_of_call: Crash
 inference/lambda_does_not_have_propagated_type_hint: Crash
 inference/super_initializer: Crash
 inference/super_initializer_substitution: Crash

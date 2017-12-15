@@ -461,6 +461,9 @@ inferrer_constructor5_test/01: MissingCompileTimeError
 initializing_formal_final_test: MissingCompileTimeError
 initializing_formal_type_test: MissingCompileTimeError
 instanceof2_test: RuntimeError
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_of_call_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 interface_test/00: MissingCompileTimeError
 invalid_cast_test/01: MissingCompileTimeError
 invalid_cast_test/02: MissingCompileTimeError

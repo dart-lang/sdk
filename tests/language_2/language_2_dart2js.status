@@ -1615,6 +1615,9 @@ implicit_downcast_during_return_async_test: RuntimeError
 implicit_downcast_during_super_initializer_test: RuntimeError
 implicit_downcast_during_yield_star_test: RuntimeError
 implicit_downcast_during_yield_test: RuntimeError
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_of_call_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 invalid_cast_test/01: MissingCompileTimeError
 invalid_cast_test/02: MissingCompileTimeError
 invalid_cast_test/03: MissingCompileTimeError
@@ -3038,6 +3041,9 @@ identical_closure2_test: RuntimeError # Issue 1533, Issue 12596
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 infinity_test: RuntimeError # Issue 4984
+instantiate_tearoff_after_contravariance_check_test: RuntimeError
+instantiate_tearoff_of_call_test: RuntimeError
+instantiate_tearoff_test: RuntimeError
 integer_division_by_zero_test: RuntimeError # Issue 8301
 invocation_mirror2_test: RuntimeError # Issue 6490 (wrong retval).
 left_shift_test: RuntimeError # Issue 1533
