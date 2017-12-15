@@ -752,6 +752,22 @@ class ConstantEvaluationEngine {
           reportLocalErrorForRecordedExternalErrors();
           return result;
         }
+      } else if (initializer is AssertInitializer) {
+        Expression condition = initializer.condition;
+        if (condition == null) {
+          errorReporter.reportErrorForNode(
+              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+              node);
+        }
+        DartObjectImpl evaluationResult = condition.accept(initializerVisitor);
+        if (evaluationResult == null ||
+            !evaluationResult.isBool ||
+            evaluationResult.toBoolValue() != true) {
+          errorReporter.reportErrorForNode(
+              CheckedModeCompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+              node);
+          return null;
+        }
       }
     }
     // Evaluate explicit or implicit call to super().
