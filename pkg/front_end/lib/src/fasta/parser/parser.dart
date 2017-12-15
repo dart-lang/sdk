@@ -1512,7 +1512,7 @@ class Parser {
         Token extendsKeyword =
             new SyntheticKeywordToken(Keyword.EXTENDS, next.offset);
         Token superclassToken = new SyntheticStringToken(
-            TokenType.IDENTIFIER, 'Object', next.offset);
+            TokenType.IDENTIFIER, 'Object', next.offset, 0);
         rewriter.insertTokenAfter(token, extendsKeyword);
         rewriter.insertTokenAfter(extendsKeyword, superclassToken);
         token = parseType(extendsKeyword);
@@ -3193,9 +3193,10 @@ class Parser {
   /// If the next token is a colon, return it. Otherwise, report an
   /// error, insert a synthetic colon, and return the inserted colon.
   Token ensureColon(Token token) {
-    if (optional(':', token.next)) return token.next;
+    Token next = token.next;
+    if (optional(':', next)) return next;
     Message message = fasta.templateExpectedButGot.withArguments(':');
-    Token newToken = new SyntheticToken(TokenType.COLON, token.charOffset);
+    Token newToken = new SyntheticToken(TokenType.COLON, next.charOffset);
     return rewriteAndRecover(token, message, newToken).next;
   }
 
@@ -4944,8 +4945,8 @@ class Parser {
       reportRecoverableError(
           token, fasta.templateExpectedButGot.withArguments('('));
       BeginToken replacement = link(
-          new SyntheticBeginToken(TokenType.OPEN_PAREN, token.offset),
-          new SyntheticToken(TokenType.CLOSE_PAREN, token.offset));
+          new SyntheticBeginToken(TokenType.OPEN_PAREN, next.offset),
+          new SyntheticToken(TokenType.CLOSE_PAREN, next.offset));
       rewriter.insertTokenAfter(token, replacement);
     }
     token = parseArguments(token);

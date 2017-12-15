@@ -702,7 +702,7 @@ class SyntheticStringToken extends StringToken {
   int get length => _length ?? super.length;
 
   @override
-  Token copy() => new SyntheticStringToken(type, _value, offset);
+  Token copy() => new SyntheticStringToken(type, _value, offset, _length);
 }
 
 /**
