@@ -9,9 +9,10 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/types/masks.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'package:expect/expect.dart';
-import 'memory_compiler.dart';
-import 'type_mask_test_helper.dart';
+import '../memory_compiler.dart';
+import '../type_mask_test_helper.dart';
 
+/// TODO(johnniwinther): Port this test to use the equivalence framework.
 const String SOURCE = '''
 main(args) {
   test0();

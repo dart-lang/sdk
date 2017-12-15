@@ -25,7 +25,7 @@ import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/universe/call_structure.dart' show CallStructure;
 import 'package:expect/expect.dart';
 
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 main(List<String> arguments) {
   bool verbose = arguments.contains('-v');

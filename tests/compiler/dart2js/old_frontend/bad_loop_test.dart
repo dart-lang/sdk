@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:expect/expect.dart';
-import 'memory_source_file_helper.dart';
-import "package:async_helper/async_helper.dart";
-
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler.dart' show Diagnostic;
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/old_to_new_api.dart';
+import 'package:expect/expect.dart';
+import '../memory_source_file_helper.dart';
 
 main() {
   Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
+  Uri libraryRoot = script.resolve('../../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
   var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);

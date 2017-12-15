@@ -15,7 +15,7 @@ import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
-import 'diagnostic_helper.dart';
+import '../diagnostic_helper.dart';
 
 /// Option for hiding whitelisted messages.
 const String HIDE_WHITELISTED = '--hide-whitelisted';

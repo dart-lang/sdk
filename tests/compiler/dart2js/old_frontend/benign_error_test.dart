@@ -4,7 +4,7 @@
 
 // Test that benign error do not prevent compilation.
 
-import 'memory_compiler.dart';
+import '../memory_compiler.dart';
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';

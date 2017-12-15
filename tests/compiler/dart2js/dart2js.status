@@ -52,9 +52,9 @@ subtype_test: Slow, Pass
 uri_retention_test: Fail # Issue 26504
 
 [ $mode == debug ]
-analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
-analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
-analyze_unused_dart2js_test: Pass, Slow
+old_frontend/analyze_api_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
+old_frontend/analyze_dart2js_test: Pass, Slow # DON'T CHANGE THIS LINE -- Don't mark these tests as failing. Instead, fix the errors/warnings that they report or update the whitelist in the test-files to temporarily allow digression.
+old_frontend/analyze_unused_dart2js_test: Pass, Slow
 check_elements_invariants_test: Skip # Slow and only needs to be run in one configuration
 check_members_test: Pass, Slow
 dart2js_batch_test: Pass, Slow
@@ -74,9 +74,9 @@ source_map_pub_build_validity_test: Pass, Slow
 dart2js_batch2_test: Pass, RuntimeError # Issue 29021
 
 [ $checked ]
-analyze_dart2js_helpers_test: Pass, Slow
-analyze_dart2js_test: Pass, Slow
-analyze_unused_dart2js_test: Pass, Slow
+old_frontend/analyze_dart2js_helpers_test: Pass, Slow
+old_frontend/analyze_dart2js_test: Pass, Slow
+old_frontend/analyze_unused_dart2js_test: Pass, Slow
 dart2js_resolver_test: Pass, Slow
 deferred_mirrors_test: Pass, Slow
 duplicate_library_test: Pass, Slow

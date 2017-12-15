@@ -5,7 +5,7 @@
 // Test that dart2js produces the expected static type warnings and
 // compile-time errors for these tests.
 
-import 'frontend_checker.dart';
+import '../frontend_checker.dart';
 
 /// Map of test files to run together with their associated whitelist.
 ///
