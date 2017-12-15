@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'package:async_helper/async_helper.dart';
 
-import "memory_compiler.dart";
+import "../memory_compiler.dart";
 
 runTest(String source, String categories, int expectedErrors) async {
   var collector = new DiagnosticCollector();

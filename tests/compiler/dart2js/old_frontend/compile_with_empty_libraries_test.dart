@@ -6,7 +6,7 @@
 /// references to core library definitions.
 
 import 'package:async_helper/async_helper.dart';
-import 'mock_compiler.dart';
+import '../mock_compiler.dart';
 
 const String TEST = r"main() {}";
 

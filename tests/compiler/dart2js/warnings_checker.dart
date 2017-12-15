@@ -21,11 +21,10 @@ final _multiTestRegExpSeperator = new RegExp(r"//[#/]");
 
 void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
   bool isWindows = Platform.isWindows;
-  Uri script = currentDirectory.resolveUri(Platform.script);
   bool warningsMismatch = false;
   bool verbose = arguments != null && arguments.contains('-v');
   asyncTest(() => Future.forEach(tests.keys, (String test) async {
-        Uri uri = script.resolve('../../$test');
+        Uri uri = Uri.base.resolve('tests/$test');
         String source = utf8.decode(readAll(uriPathToNative(uri.path)));
         SourceFile file = new StringSourceFile(
             uri, relativize(currentDirectory, uri, isWindows), source);

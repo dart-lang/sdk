@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// TODO(johnniwinther): Port this test to use the equivalence framework.
+
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
@@ -12,7 +14,6 @@ import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 import '../type_mask_test_helper.dart';
 
-/// TODO(johnniwinther): Port this test to use the equivalence framework.
 const String SOURCE = '''
 main(args) {
   test0();
