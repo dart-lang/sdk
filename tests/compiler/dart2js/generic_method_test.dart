@@ -27,7 +27,7 @@ main() {
     TypeEnvironment env = await TypeEnvironment.create("""
       ${createTypedefs(signatures, prefix: 't')}
       ${createMethods(signatures, prefix: 'm')}
-    """, compileMode: CompileMode.dill);
+    """, compileMode: CompileMode.kernel);
 
     for (FunctionTypeData data in signatures) {
       FunctionType functionType = env.getElementType('t${data.name}');

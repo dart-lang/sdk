@@ -15,7 +15,7 @@ import 'type_test_helper.dart';
 void main() {
   asyncTest(() async {
     await runTests(CompileMode.memory);
-    await runTests(CompileMode.dill);
+    await runTests(CompileMode.kernel);
   });
 }
 

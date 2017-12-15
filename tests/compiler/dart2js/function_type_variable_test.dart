@@ -25,7 +25,7 @@ main() {
         .create(createTypedefs(existentialTypeData, additionalData: """
     class C1 {}
     class C2 {}
-  """), compileMode: CompileMode.dill);
+  """), compileMode: CompileMode.kernel);
 
     testToString(FunctionType type, String expectedToString) {
       Expect.equals(expectedToString, type.toString());

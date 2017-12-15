@@ -18,8 +18,11 @@ import 'package:compiler/src/elements/elements.dart'
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import 'compiler_helper.dart' as mock;
+import 'compiler_helper.dart' show CompileMode;
 import 'memory_compiler.dart' as memory;
 import 'kernel/compiler_helper.dart' as dill;
+
+export 'compiler_helper.dart' show CompileMode;
 
 DartType instantiate(Entity element, List<DartType> arguments) {
   if (element is ClassElement) {
@@ -31,8 +34,6 @@ DartType instantiate(Entity element, List<DartType> arguments) {
     return new ResolutionTypedefType(element, arguments);
   }
 }
-
-enum CompileMode { mock, memory, dill }
 
 class TypeEnvironment {
   final Compiler compiler;
@@ -66,7 +67,7 @@ class TypeEnvironment {
       source = '$mainSource\n$source';
     }
     memory.DiagnosticCollector collector;
-    if (compileMode == CompileMode.dill) {
+    if (compileMode == CompileMode.kernel) {
       collector = new memory.DiagnosticCollector();
       uri = Uri.parse('memory:main.dart');
       compiler = await dill.compileWithDill(
