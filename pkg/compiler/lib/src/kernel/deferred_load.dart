@@ -15,8 +15,8 @@ import 'element_map.dart';
 
 class KernelDeferredLoadTask extends DeferredLoadTask {
   KernelToElementMapForImpact _elementMap;
-  Map<ir.Library, Set<ir.Member>> _additionalExportsSets =
-      <ir.Library, Set<ir.Member>>{};
+  Map<ir.Library, Set<ir.NamedNode>> _additionalExportsSets =
+      <ir.Library, Set<ir.NamedNode>>{};
 
   KernelDeferredLoadTask(Compiler compiler, this._elementMap) : super(compiler);
 
@@ -85,8 +85,8 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
         "KernelDeferredLoadTask.addMirrorElementsForLibrary");
   }
 
-  Set<ir.Member> additionalExports(ir.Library library) {
-    return _additionalExportsSets[library] ??= new Set<ir.Member>.from(
+  Set<ir.NamedNode> additionalExports(ir.Library library) {
+    return _additionalExportsSets[library] ??= new Set<ir.NamedNode>.from(
         library.additionalExports.map((ir.Reference ref) => ref.node));
   }
 

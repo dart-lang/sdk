@@ -1109,7 +1109,7 @@ class FragmentEmitter {
 
     bool isIntercepted = false;
     if (method is InstanceMethod) {
-      MethodElement element = method.element;
+      FunctionEntity element = method.element;
       isIntercepted = _interceptorData.isInterceptedMethod(element);
     }
     int requiredParameterCount = 0;

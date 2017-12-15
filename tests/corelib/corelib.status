@@ -239,7 +239,7 @@ big_integer_parsed_mul_div_vm_test: RuntimeError
 bit_twiddling_bigint_test: RuntimeError
 compare_to2_test: RuntimeError
 double_parse_test/01: RuntimeError
-error_stack_trace1_test: Pass # Issue 27394
+error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError
 int_modulo_arith_test/bignum: RuntimeError
 int_modulo_arith_test/modPow: RuntimeError

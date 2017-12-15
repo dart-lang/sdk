@@ -45,7 +45,6 @@ native_library_same_name_used_frog_test: CompileTimeError
 native_mirror_test: RuntimeError
 native_no_such_method_exception4_frog_test: RuntimeError
 native_no_such_method_exception5_frog_test: RuntimeError
-optimization_hints_test: RuntimeError
 subclassing_constructor_1_test: RuntimeError
 subclassing_super_call_test: RuntimeError
 subclassing_super_field_1_test: RuntimeError
