@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
+import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/fasta/resolution_applier.dart';
 import 'package:analyzer/src/fasta/resolution_storer.dart' as kernel;
 import 'package:analyzer/src/generated/declaration_resolver.dart';
@@ -197,7 +198,7 @@ class LibraryAnalyzer {
 
       // TODO(scheglov) Improve.
       AnalyzerTarget analyzerTarget;
-      await _kernelDriver.compileLibrary(
+      final kernelResult = await _kernelDriver.compileLibrary(
           (fileSystem, bool includeComments, dillTarget, uriTranslator,
                   {metadataCollector}) =>
               analyzerTarget ??= new AnalyzerTarget(fileSystem, dillTarget,
@@ -208,6 +209,18 @@ class LibraryAnalyzer {
       units.forEach((file, unit) {
         _resolveFile2(file, unit, resolutions);
         _computePendingMissingRequiredParameters(file, unit);
+
+        // Invalid part URIs can result in an element with a null source
+        if (unit.element.source != null) {
+          final errorListener = new FastaErrorReporter(
+              new ErrorReporter(_getErrorListener(file), unit.element.source));
+          final libraryKernelResult = kernelResult.results
+              .expand((r) => r.libraryResults)
+              .where((r) => r.library.importUri == unit.element.source.uri)
+              .firstWhere((_) => true, orElse: () => null);
+          libraryKernelResult?.errors?.forEach((kernelError) =>
+              errorListener.reportCompilationMessage(kernelError));
+        }
       });
 
       _computeConstants();

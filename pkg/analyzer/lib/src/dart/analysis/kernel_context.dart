@@ -84,14 +84,16 @@ KernelDriver createKernelDriver(
 
   var uriTranslator = new UriTranslatorImpl(
       new TargetLibrariesSpecification('none', dartLibraries), packages);
+  var errorListener = new KernelErrorListener();
   var options = new ProcessedOptions(new CompilerOptions()
     ..target = new _AnalysisTarget(
         new TargetFlags(strongMode: analysisOptions.strongMode))
     ..reportMessages = false
     ..logger = logger
     ..fileSystem = new _FileSystemAdaptor(fsState, pathContext)
-    ..byteStore = byteStore);
-  return new KernelDriver(options, uriTranslator,
+    ..byteStore = byteStore
+    ..onError = errorListener.onError);
+  return new KernelDriver(options, uriTranslator, errorListener,
       metadataFactory: new AnalyzerMetadataFactory(),
       sdkOutlineBytes: sdkOutlineBytes);
 }
@@ -171,7 +173,7 @@ class KernelContext {
       }
 
       kernelResult.dependencies.forEach(addLibrary);
-      addLibrary(kernelResult.library);
+      addLibrary(kernelResult.libraryResult.library);
 
       if (DEBUG) {
         print('----------- ${targetLibrary.uriStr}');
