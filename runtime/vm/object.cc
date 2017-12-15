@@ -6570,8 +6570,9 @@ RawFunction* Function::InstantiateSignatureFrom(
 // If test_kind == kIsMoreSpecificThan, checks if the type of the specified
 // parameter of this function is more specific than the type of the specified
 // parameter of the other function.
-// Note that for kIsMoreSpecificThan, we do not apply contravariance of
-// parameter types, but covariance of both parameter types and result type.
+// Note that for kIsMoreSpecificThan (non-strong mode only), we do not apply
+// contravariance of parameter types, but covariance of both parameter types and
+// result type.
 bool Function::TestParameterType(TypeTestKind test_kind,
                                  intptr_t parameter_position,
                                  intptr_t other_parameter_position,
@@ -6579,10 +6580,20 @@ bool Function::TestParameterType(TypeTestKind test_kind,
                                  Error* bound_error,
                                  TrailPtr bound_trail,
                                  Heap::Space space) const {
-  Isolate* isolate = Isolate::Current();
+  if (Isolate::Current()->strong()) {
+    const AbstractType& param_type =
+        AbstractType::Handle(ParameterTypeAt(parameter_position));
+    if (param_type.IsDynamicType()) {
+      return true;
+    }
+    const AbstractType& other_param_type =
+        AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
+    return other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                        space);
+  }
   const AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(other_parameter_position));
-  if (!isolate->strong() && other_param_type.IsDynamicType()) {
+  if (other_param_type.IsDynamicType()) {
     return true;
   }
   const AbstractType& param_type =
@@ -6591,21 +6602,14 @@ bool Function::TestParameterType(TypeTestKind test_kind,
     return test_kind == kIsSubtypeOf;
   }
   if (test_kind == kIsSubtypeOf) {
-    if (!((!isolate->strong() &&
-           param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
-                                  space)) ||
-          other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
-                                       space))) {
-      return false;
-    }
-  } else {
-    ASSERT(test_kind == kIsMoreSpecificThan);
-    if (!param_type.IsMoreSpecificThan(other_param_type, bound_error,
-                                       bound_trail, space)) {
-      return false;
-    }
+    return param_type.IsSubtypeOf(other_param_type, bound_error, bound_trail,
+                                  space) ||
+           other_param_type.IsSubtypeOf(param_type, bound_error, bound_trail,
+                                        space);
   }
-  return true;
+  ASSERT(test_kind == kIsMoreSpecificThan);
+  return param_type.IsMoreSpecificThan(other_param_type, bound_error,
+                                       bound_trail, space);
 }
 
 bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
@@ -6681,29 +6685,28 @@ bool Function::TypeTest(TypeTestKind test_kind,
       AbstractType::Handle(zone, other.result_type());
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-    if (res_type.IsVoidType()) {
-      // In strong mode, check if 'other' is 'FutureOr'.
-      // If so, apply additional subtyping rules.
-      if (isolate->strong() &&
-          res_type.FutureOrTypeTest(zone, other_res_type, bound_error,
-                                    bound_trail, space)) {
-        return true;
-      }
-      return false;
-    }
-    if (test_kind == kIsSubtypeOf) {
-      if (!(res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
-                                 space) ||
-            (!isolate->strong() &&
-             other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
-                                        space)))) {
+    if (isolate->strong()) {
+      if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                space)) {
         return false;
       }
     } else {
-      ASSERT(test_kind == kIsMoreSpecificThan);
-      if (!res_type.IsMoreSpecificThan(other_res_type, bound_error, bound_trail,
-                                       space)) {
+      if (res_type.IsVoidType()) {
         return false;
+      }
+      if (test_kind == kIsSubtypeOf) {
+        if (!res_type.IsSubtypeOf(other_res_type, bound_error, bound_trail,
+                                  space) &&
+            !other_res_type.IsSubtypeOf(res_type, bound_error, bound_trail,
+                                        space)) {
+          return false;
+        }
+      } else {
+        ASSERT(test_kind == kIsMoreSpecificThan);
+        if (!res_type.IsMoreSpecificThan(other_res_type, bound_error,
+                                         bound_trail, space)) {
+          return false;
+        }
       }
     }
   }

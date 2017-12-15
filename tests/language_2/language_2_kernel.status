@@ -1152,7 +1152,6 @@ vm/optimized_guarded_field_isolates_test: RuntimeError # Issue 31402 (Variable d
 vm/regress_27201_test: CompileTimeError # Fasta/KernelVM bug: Deferred loading kernel issue 28335.
 vm/regress_29145_test: Skip # Issue 29145
 vm/type_cast_vm_test: RuntimeError
-vm/type_vm_test/none: RuntimeError
 void_block_return_test/00: MissingCompileTimeError
 void_type_callbacks_test/none: CompileTimeError
 void_type_function_types_test/none: CompileTimeError
@@ -1756,6 +1755,7 @@ function_subtype_bound_closure7_test: RuntimeError
 function_subtype_bound_closure7_test: CompileTimeError # Issue 31402 (Variable declaration)
 function_subtype_call1_test: RuntimeError
 function_subtype_call2_test: RuntimeError
+function_subtype_cast0_test: RuntimeError
 function_subtype_cast2_test: RuntimeError
 function_subtype_cast3_test: RuntimeError
 function_subtype_checked0_test: RuntimeError
