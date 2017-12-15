@@ -1008,6 +1008,7 @@ LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # Issue 16395
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Issue 16395
 LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Issue 25155
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Issue 16574
+LibTest/html/Element/mouseOverEvent_A01_t01: RuntimeError, Pass # Issue 30068
 LibTest/html/Element/mouseWheelEvent_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onMouseWheel_A01_t01: Skip # Times out. Please triage this failure
 LibTest/html/Element/onTransitionEnd_A01_t01: Skip # Please triage this failure
