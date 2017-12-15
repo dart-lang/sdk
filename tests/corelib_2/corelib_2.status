@@ -692,5 +692,6 @@ double_round_to_double2_test: Fail, OK # Runtime rounds 0.49999999999999994 to 1
 string_trimlr_test/02: RuntimeError # Uses Unicode 6.2.0 or earlier.
 
 [ $hot_reload || $hot_reload_rollback ]
+bigint_parse_radix_test: Pass, Timeout # Issue 31659
 integer_parsed_mul_div_vm_test: Pass, Slow # Slow
 
