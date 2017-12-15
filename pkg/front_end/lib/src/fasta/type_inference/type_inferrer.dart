@@ -42,7 +42,6 @@ import 'package:kernel/ast.dart'
         Member,
         MethodInvocation,
         Name,
-        NamedExpression,
         Procedure,
         ProcedureKind,
         PropertyGet,
@@ -907,11 +906,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     Substitution substitution;
     List<DartType> formalTypes;
     List<DartType> actualTypes;
-    List<Expression> expressions;
     if (inferenceNeeded || typeChecksNeeded) {
       formalTypes = [];
       actualTypes = [];
-      expressions = [];
     }
     if (inferenceNeeded) {
       if (isConst && typeContext != null) {
@@ -953,7 +950,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       if (inferenceNeeded || typeChecksNeeded) {
         formalTypes.add(formalType);
         actualTypes.add(expressionType);
-        expressions.add(expression);
       }
       if (isOverloadedArithmeticOperator) {
         returnType = typeSchemaEnvironment.getTypeOfOverloadedArithmetic(
@@ -976,21 +972,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       arguments.types.addAll(inferredTypes);
     }
     if (typeChecksNeeded) {
+      int numPositionalArgs = arguments.positional.length;
       for (int i = 0; i < formalTypes.length; i++) {
         var formalType = formalTypes[i];
         var expectedType = substitution != null
             ? substitution.substituteType(formalType)
             : formalType;
         var actualType = actualTypes[i];
-        var expression = expressions[i];
-        // If the expression was replaced during type inference, e.g. due
-        // to insertion of an Instantiation node, we need to find the replaced
-        // expression.  We can do so by walking parent pointers.
-        while (true) {
-          var parent = expression.parent;
-          if (identical(parent, arguments) || parent is NamedExpression) break;
-          expression = parent;
-        }
+        var expression = i < numPositionalArgs
+            ? arguments.positional[i]
+            : arguments.named[i - numPositionalArgs].value;
         checkAssignability(
             expectedType, actualType, expression, expression.fileOffset);
       }
