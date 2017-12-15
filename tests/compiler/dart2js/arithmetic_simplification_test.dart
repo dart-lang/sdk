@@ -98,7 +98,9 @@ main() {
   }
 
   asyncTest(() async {
+    print('--test from ast---------------------------------------------------');
     await test(CompileMode.memory);
+    print('--test from kernel------------------------------------------------');
     await test(CompileMode.kernel);
   });
 }
