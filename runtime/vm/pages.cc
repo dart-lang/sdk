@@ -113,7 +113,8 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
-  ASSERT(Thread::Current()->IsAtSafepoint());
+  ASSERT(Thread::Current()->IsAtSafepoint() ||
+         (Thread::Current()->task_kind() == Thread::kCompactorTask));
   NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
@@ -983,14 +984,14 @@ void PageSpace::CollectGarbage(bool compact) {
       }
 
       mid3 = OS::GetCurrentMonotonicMicros();
+    }
 
-      if (compact) {
-        Compact(thread);
-      } else if (FLAG_concurrent_sweep) {
-        ConcurrentSweep(isolate);
-      } else {
-        BlockingSweep();
-      }
+    if (compact) {
+      Compact(thread);
+    } else if (FLAG_concurrent_sweep) {
+      ConcurrentSweep(isolate);
+    } else {
+      BlockingSweep();
     }
 
     // Make code pages read-only.
@@ -1049,6 +1050,9 @@ void PageSpace::CollectGarbage(bool compact) {
 }
 
 void PageSpace::BlockingSweep() {
+  MutexLocker mld(freelist_[HeapPage::kData].mutex());
+  MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
+
   // Sweep all regular sized pages now.
   GCSweeper sweeper;
   HeapPage* prev_page = NULL;

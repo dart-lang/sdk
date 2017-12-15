@@ -671,7 +671,7 @@ class RawObject {
   friend class Serializer;        // GetClassId
   friend class Array;
   friend class Become;  // GetClassId
-  friend class GCCompactor;  // GetClassId
+  friend class CompactorTask;  // GetClassId
   friend class Bigint;
   friend class ByteBuffer;
   friend class CidRewriteVisitor;

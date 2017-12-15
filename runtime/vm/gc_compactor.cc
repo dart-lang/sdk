@@ -8,6 +8,7 @@
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/pages.h"
+#include "vm/thread_barrier.h"
 #include "vm/timeline.h"
 
 namespace dart {
@@ -120,6 +121,50 @@ void HeapPage::FreeForwardingPage() {
   forwarding_page_ = NULL;
 }
 
+class CompactorTask : public ThreadPool::Task {
+ public:
+  CompactorTask(Isolate* isolate,
+                GCCompactor* compactor,
+                ThreadBarrier* barrier,
+                intptr_t* next_forwarding_task,
+                HeapPage* head,
+                HeapPage** tail,
+                FreeList* freelist)
+      : isolate_(isolate),
+        compactor_(compactor),
+        barrier_(barrier),
+        next_forwarding_task_(next_forwarding_task),
+        head_(head),
+        tail_(tail),
+        freelist_(freelist),
+        free_page_(NULL),
+        free_current_(0),
+        free_end_(0) {}
+
+ private:
+  void Run();
+  void PlanPage(HeapPage* page);
+  void SlidePage(HeapPage* page);
+  uword PlanBlock(uword first_object, ForwardingPage* forwarding_page);
+  uword SlideBlock(uword first_object, ForwardingPage* forwarding_page);
+  void PlanMoveToExactAddress(uword addr);
+  void PlanMoveToContiguousSize(intptr_t size);
+  void SlideFreeUpTo(uword addr);
+
+  Isolate* isolate_;
+  GCCompactor* compactor_;
+  ThreadBarrier* barrier_;
+  intptr_t* next_forwarding_task_;
+  HeapPage* head_;
+  HeapPage** tail_;
+  FreeList* freelist_;
+  HeapPage* free_page_;
+  uword free_current_;
+  uword free_end_;
+
+  DISALLOW_COPY_AND_ASSIGN(CompactorTask);
+};
+
 // Slides live objects down past free gaps, updates pointers and frees empty
 // pages. Keeps cursors pointing to the next free and next live chunks, and
 // repeatedly moves the next live chunk to the next free chunk, one block at a
@@ -131,66 +176,96 @@ void GCCompactor::Compact(HeapPage* pages,
                           Mutex* pages_lock) {
   SetupImagePageBoundaries();
 
+  // Divide the heap.
+  // TODO(30978): Try to divide based on live bytes or with work stealing.
+  intptr_t num_pages = 0;
+  for (HeapPage* page = pages; page != NULL; page = page->next()) {
+    num_pages++;
+  }
+
+  intptr_t num_tasks = FLAG_compactor_tasks;
+  RELEASE_ASSERT(num_tasks >= 1);
+  if (num_pages < num_tasks) {
+    num_tasks = num_pages;
+  }
+  HeapPage** heads = new HeapPage*[num_tasks];
+  HeapPage** tails = new HeapPage*[num_tasks];
+
   {
-    MutexLocker ml(pages_lock);
-
-    {
-      TIMELINE_FUNCTION_GC_DURATION(thread(), "Plan");
-      free_page_ = pages;
-      free_current_ = free_page_->object_start();
-      free_end_ = free_page_->object_end();
-
-      for (HeapPage* page = pages; page != NULL; page = page->next()) {
-        PlanPage(page);
+    const intptr_t pages_per_task = num_pages / num_tasks;
+    intptr_t task_index = 0;
+    intptr_t page_index = 0;
+    HeapPage* page = pages;
+    HeapPage* prev = NULL;
+    while (task_index < num_tasks) {
+      if (page_index % pages_per_task == 0) {
+        heads[task_index] = page;
+        tails[task_index] = NULL;
+        if (prev != NULL) {
+          prev->set_next(NULL);
+        }
+        task_index++;
       }
+      prev = page;
+      page = page->next();
+      page_index++;
     }
-
-    {
-      TIMELINE_FUNCTION_GC_DURATION(thread(), "Slide");
-      free_page_ = pages;
-      free_current_ = free_page_->object_start();
-      free_end_ = free_page_->object_end();
-      freelist_ = freelist;
-
-      for (HeapPage* page = pages; page != NULL; page = page->next()) {
-        SlidePage(page);
-      }
-    }
-
-    // Add any leftover in the last used page to the freelist. This is required
-    // to make the page walkable during forwarding, etc.
-    intptr_t free_remaining = free_end_ - free_current_;
-    if (free_remaining != 0) {
-      freelist->FreeLocked(free_current_, free_remaining);
-    }
-
-    // Unlink empty pages so they will not be visited during forwarding.
-    // We cannot deallocate them until forwarding is complete.
-    HeapPage* tail = free_page_;
-    HeapPage* first_unused_page = tail->next();
-    tail->set_next(NULL);
-    heap_->old_space()->pages_tail_ = tail;
-    free_page_ = first_unused_page;
+    ASSERT(page_index <= num_pages);
+    ASSERT(task_index == num_tasks);
   }
 
   {
-    TIMELINE_FUNCTION_GC_DURATION(thread(), "ForwardPointers");
-    ForwardPointers();
+    ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
+                          heap_->barrier_done());
+    intptr_t next_forwarding_task = 0;
+
+    for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
+      Dart::thread_pool()->Run(new CompactorTask(
+          thread()->isolate(), this, &barrier, &next_forwarding_task,
+          heads[task_index], &tails[task_index], freelist));
+    }
+
+    // Plan pages.
+    barrier.Sync();
+    // Slides pages. Forward large pages, new space, etc.
+    barrier.Sync();
+    barrier.Exit();
+  }
+
+  for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
+    ASSERT(tails[task_index] != NULL);
+  }
+
+  {
+    TIMELINE_FUNCTION_GC_DURATION(thread(), "ForwardStackPointers");
+    ForwardStackPointers();
   }
 
   {
     MutexLocker ml(pages_lock);
 
     // Free empty pages.
-    HeapPage* page = free_page_;
-    while (page != NULL) {
-      HeapPage* next = page->next();
-      heap_->old_space()->IncreaseCapacityInWordsLocked(
-          -(page->memory_->size() >> kWordSizeLog2));
-      page->FreeForwardingPage();
-      page->Deallocate();
-      page = next;
+    for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
+      HeapPage* page = tails[task_index]->next();
+      while (page != NULL) {
+        HeapPage* next = page->next();
+        heap_->old_space()->IncreaseCapacityInWordsLocked(
+            -(page->memory_->size() >> kWordSizeLog2));
+        page->FreeForwardingPage();
+        page->Deallocate();
+        page = next;
+      }
     }
+
+    // Re-join the heap.
+    for (intptr_t task_index = 0; task_index < num_tasks - 1; task_index++) {
+      tails[task_index]->set_next(heads[task_index + 1]);
+    }
+    tails[num_tasks - 1]->set_next(NULL);
+    heap_->old_space()->pages_tail_ = tails[num_tasks - 1];
+
+    delete[] heads;
+    delete[] tails;
   }
 
   // Free forwarding information from the suriving pages.
@@ -199,7 +274,106 @@ void GCCompactor::Compact(HeapPage* pages,
   }
 }
 
-void GCCompactor::PlanPage(HeapPage* page) {
+void CompactorTask::Run() {
+  bool result =
+      Thread::EnterIsolateAsHelper(isolate_, Thread::kCompactorTask, true);
+  ASSERT(result);
+  NOT_IN_PRODUCT(Thread* thread = Thread::Current());
+  {
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "Plan");
+      free_page_ = head_;
+      free_current_ = free_page_->object_start();
+      free_end_ = free_page_->object_end();
+
+      for (HeapPage* page = head_; page != NULL; page = page->next()) {
+        PlanPage(page);
+      }
+    }
+
+    barrier_->Sync();
+
+    {
+      TIMELINE_FUNCTION_GC_DURATION(thread, "Slide");
+      free_page_ = head_;
+      free_current_ = free_page_->object_start();
+      free_end_ = free_page_->object_end();
+
+      for (HeapPage* page = head_; page != NULL; page = page->next()) {
+        SlidePage(page);
+      }
+
+      // Add any leftover in the last used page to the freelist. This is
+      // required to make the page walkable during forwarding, etc.
+      intptr_t free_remaining = free_end_ - free_current_;
+      if (free_remaining != 0) {
+        freelist_->Free(free_current_, free_remaining);
+      }
+
+      ASSERT(free_page_ != NULL);
+      *tail_ = free_page_;  // Last live page.
+    }
+
+    // Heap: Regular pages already visited during sliding. Code and image pages
+    // have no pointers to forward. Visit large pages and new-space.
+
+    bool more_forwarding_tasks = true;
+    while (more_forwarding_tasks) {
+      intptr_t forwarding_task =
+          AtomicOperations::FetchAndIncrement(next_forwarding_task_);
+      switch (forwarding_task) {
+        case 0: {
+          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardLargePages");
+          for (HeapPage* large_page =
+                   isolate_->heap()->old_space()->large_pages_;
+               large_page != NULL; large_page = large_page->next()) {
+            large_page->VisitObjectPointers(compactor_);
+          }
+          break;
+        }
+        case 1: {
+          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardNewSpace");
+          isolate_->heap()->new_space()->VisitObjectPointers(compactor_);
+          break;
+        }
+        case 2: {
+          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardRememberedSet");
+          isolate_->store_buffer()->VisitObjectPointers(compactor_);
+          break;
+        }
+        case 3: {
+          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardWeakTables");
+          isolate_->heap()->ForwardWeakTables(compactor_);
+          break;
+        }
+        case 4: {
+          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardWeakHandles");
+          isolate_->VisitWeakPersistentHandles(compactor_);
+          break;
+        }
+#ifndef PRODUCT
+        case 5: {
+          if (FLAG_support_service) {
+            TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
+            isolate_->object_id_ring()->VisitPointers(compactor_);
+          }
+          break;
+        }
+#endif  // !PRODUCT
+        default:
+          more_forwarding_tasks = false;
+      }
+    }
+
+    barrier_->Sync();
+  }
+  Thread::ExitIsolateAsHelper(true);
+
+  // This task is done. Notify the original thread.
+  barrier_->Exit();
+}
+
+void CompactorTask::PlanPage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
@@ -209,7 +383,7 @@ void GCCompactor::PlanPage(HeapPage* page) {
   }
 }
 
-void GCCompactor::SlidePage(HeapPage* page) {
+void CompactorTask::SlidePage(HeapPage* page) {
   uword current = page->object_start();
   uword end = page->object_end();
 
@@ -219,8 +393,8 @@ void GCCompactor::SlidePage(HeapPage* page) {
   }
 }
 
-uword GCCompactor::PlanBlock(uword first_object,
-                             ForwardingPage* forwarding_page) {
+uword CompactorTask::PlanBlock(uword first_object,
+                               ForwardingPage* forwarding_page) {
   uword block_start = first_object & kBlockMask;
   uword block_end = block_start + kBlockSize;
   ForwardingBlock* forwarding_block = forwarding_page->BlockFor(first_object);
@@ -271,8 +445,8 @@ uword GCCompactor::PlanBlock(uword first_object,
   return current;  // First object in the next block
 }
 
-uword GCCompactor::SlideBlock(uword first_object,
-                              ForwardingPage* forwarding_page) {
+uword CompactorTask::SlideBlock(uword first_object,
+                                ForwardingPage* forwarding_page) {
   uword block_start = first_object & kBlockMask;
   uword block_end = block_start + kBlockSize;
   ForwardingBlock* forwarding_block = forwarding_page->BlockFor(first_object);
@@ -299,14 +473,14 @@ uword GCCompactor::SlideBlock(uword first_object,
                 reinterpret_cast<void*>(old_addr), size);
       }
       new_obj->ClearMarkBit();
-      new_obj->VisitPointers(this);
+      new_obj->VisitPointers(compactor_);
 
       ASSERT(free_current_ == new_addr);
       free_current_ += size;
     } else if (forwarding_block->IsLive(old_addr)) {
       // Gap we're keeping to prevent class movement.
       ASSERT(free_current_ == old_addr);
-      freelist_->FreeLocked(old_addr, size);
+      freelist_->Free(old_addr, size);
       free_current_ += size;
     }
     old_addr += size;
@@ -315,7 +489,7 @@ uword GCCompactor::SlideBlock(uword first_object,
   return old_addr;  // First object in the next block.
 }
 
-void GCCompactor::SlideFreeUpTo(uword addr) {
+void CompactorTask::SlideFreeUpTo(uword addr) {
   if (free_current_ == addr) return;
 
   // Skip pages until class's page.
@@ -324,7 +498,7 @@ void GCCompactor::SlideFreeUpTo(uword addr) {
     intptr_t free_remaining = free_end_ - free_current_;
     if (free_remaining != 0) {
       // Note we aren't bothering to check for a whole page to release.
-      freelist_->FreeLocked(free_current_, free_remaining);
+      freelist_->Free(free_current_, free_remaining);
     }
     // And advance to the next free page.
     free_page_ = free_page_->next();
@@ -336,7 +510,7 @@ void GCCompactor::SlideFreeUpTo(uword addr) {
   // Skip within page until class's address.
   intptr_t free_skip = addr - free_current_;
   if (free_skip != 0) {
-    freelist_->FreeLocked(free_current_, free_skip);
+    freelist_->Free(free_current_, free_skip);
     free_current_ += free_skip;
   }
 
@@ -344,7 +518,7 @@ void GCCompactor::SlideFreeUpTo(uword addr) {
   ASSERT(free_current_ == addr);
 }
 
-void GCCompactor::PlanMoveToExactAddress(uword addr) {
+void CompactorTask::PlanMoveToExactAddress(uword addr) {
   // Skip space to ensure class objects do not move. Computing the size
   // of larger objects requires consulting their class, whose old body
   // might be overwritten during the sliding.
@@ -365,7 +539,7 @@ void GCCompactor::PlanMoveToExactAddress(uword addr) {
   free_current_ = addr;
 }
 
-void GCCompactor::PlanMoveToContiguousSize(intptr_t size) {
+void CompactorTask::PlanMoveToContiguousSize(intptr_t size) {
   // Move the free cursor to ensure 'size' bytes of contiguous space.
   ASSERT(size <= kPageSize);
 
@@ -433,6 +607,8 @@ void GCCompactor::ForwardPointer(RawObject** ptr) {
   *ptr = new_target;
 }
 
+// N.B.: This pointer visitor is not idempotent. We must take care to visit
+// each pointer exactly once.
 void GCCompactor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** ptr = first; ptr <= last; ptr++) {
     ForwardPointer(ptr);
@@ -445,39 +621,11 @@ void GCCompactor::VisitHandle(uword addr) {
   ForwardPointer(handle->raw_addr());
 }
 
-void GCCompactor::ForwardPointers() {
-  // N.B.: This pointer visitor is not idempotent. We must take care to visit
-  // each pointer exactly once.
-
-  // Heap pointers.
-  // N.B.: We forward the heap before forwarding the stack. This limits the
-  // amount of following of forwarding pointers needed to get at stack maps.
-  // Regular pages already visited during sliding. Code and image pages have no
-  // pointers to forward. Visit large pages and new-space.
-  for (HeapPage* large_page = heap_->old_space()->large_pages_;
-       large_page != NULL; large_page = large_page->next()) {
-    large_page->VisitObjectPointers(this);
-  }
-  heap_->new_space()->VisitObjectPointers(this);
-
-  // C++ pointers.
+void GCCompactor::ForwardStackPointers() {
+  // N.B.: Heap pointers have already been forwarded. We forward the heap before
+  // forwarding the stack to limit the number of places that need to be aware of
+  // forwarding when reading stack maps.
   isolate()->VisitObjectPointers(this, StackFrameIterator::kDontValidateFrames);
-#ifndef PRODUCT
-  if (FLAG_support_service) {
-    ObjectIdRing* ring = isolate()->object_id_ring();
-    ASSERT(ring != NULL);
-    ring->VisitPointers(this);
-  }
-#endif  // !PRODUCT
-
-  // Weak persistent handles.
-  isolate()->VisitWeakPersistentHandles(this);
-
-  // Remembered set.
-  isolate()->store_buffer()->VisitObjectPointers(this);
-
-  // Weak tables.
-  heap_->ForwardWeakTables(this);
 }
 
 }  // namespace dart

@@ -457,6 +457,7 @@ class PageSpace {
   friend class PageSpaceController;
   friend class SweeperTask;
   friend class GCCompactor;
+  friend class CompactorTask;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };
