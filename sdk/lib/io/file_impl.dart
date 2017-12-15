@@ -560,8 +560,19 @@ class _File extends FileSystemEntity implements File {
     }
   }
 
-  Future<String> readAsString({Encoding encoding: utf8}) =>
-      readAsBytes().then((bytes) => _tryDecode(bytes, encoding));
+  Future<String> readAsString({Encoding encoding: utf8}) {
+    // TODO(dart:io): If the change in async semantics to run synchronously
+    // until await lands, this is as efficient as
+    // return _tryDecode(await readAsBytes(), encoding);
+    var stack = StackTrace.current;
+    return readAsBytes().then((bytes) {
+      try {
+        return _tryDecode(bytes, encoding);
+      } catch (e) {
+        return new Future.error(e, stack);
+      }
+    });
+  }
 
   String readAsStringSync({Encoding encoding: utf8}) =>
       _tryDecode(readAsBytesSync(), encoding);
