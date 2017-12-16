@@ -11,6 +11,7 @@ accessor_conflict_import_prefixed2_test: CompileTimeError # Issue 25626
 accessor_conflict_import_prefixed_test: CompileTimeError # Issue 25626
 accessor_conflict_import_test: CompileTimeError # Issue 25626
 additional_interface_adds_optional_args_test: CompileTimeError # Issue #30568
+assertion_initializer_const_error2_test/*: Crash # Issue #27809
 assertion_initializer_const_error2_test/cc10: Pass # Issue #31319
 assertion_initializer_const_error2_test/cc11: Pass # Issue #31319
 assertion_initializer_const_error2_test/none: Pass

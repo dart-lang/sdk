@@ -158,6 +158,12 @@ assertion_initializer_const_function_test/01: CompileTimeError
 error_stacktrace_test/00: MissingCompileTimeError
 vm/lazy_deopt_with_exception_test: CompileTimeError
 
+[ $compiler == dart2analyzer && $checked ]
+assertion_initializer_const_error2_test/*: MissingCompileTimeError # Issue #
+assertion_initializer_const_error2_test/cc10: Pass # Issue #31321
+assertion_initializer_const_error2_test/cc11: Pass # Issue #31321
+assertion_initializer_const_error2_test/none: Pass
+
 [ $compiler == dart2analyzer && $checked && !$strong ]
 abstract_beats_arguments_test: MissingCompileTimeError
 abstract_exact_selector_test/01: MissingCompileTimeError
@@ -557,18 +563,6 @@ switch_fallthru_test/01: MissingCompileTimeError
 type_variable_identifier_expression_test: MissingCompileTimeError
 type_variable_static_context_test: MissingCompileTimeError
 unresolved_in_factory_test: MissingCompileTimeError
-
-[ $compiler == dart2analyzer && !$checked && $strong ]
-assertion_initializer_const_error2_test/cc01: CompileTimeError
-assertion_initializer_const_error2_test/cc02: CompileTimeError
-assertion_initializer_const_error2_test/cc03: CompileTimeError
-assertion_initializer_const_error2_test/cc05: CompileTimeError
-assertion_initializer_const_error2_test/cc06: CompileTimeError
-assertion_initializer_const_error2_test/cc07: CompileTimeError
-assertion_initializer_const_error2_test/cc08: CompileTimeError
-assertion_initializer_const_error2_test/cc09: CompileTimeError
-assertion_initializer_const_error2_test/cc10: CompileTimeError
-assertion_initializer_const_error2_test/cc11: CompileTimeError
 
 # Analyzer only implements Dart 2.0 static type checking with "--strong".
 [ $compiler == dart2analyzer && !$checked && !$strong ]
